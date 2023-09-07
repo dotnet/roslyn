@@ -61,12 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             WellKnownMember.System_Collections_Generic_IList_T__IndexOf,
             WellKnownMember.System_Collections_Generic_IList_T__Insert,
             WellKnownMember.System_Collections_Generic_IList_T__RemoveAt,
+            WellKnownMember.System_NotSupportedException__ctor,
+        };
+
+        private static readonly WellKnownMember[] s_requiredWellKnownMembersUnknownLength = new[]
+        {
             WellKnownMember.System_Collections_Generic_List_T__Count,
             WellKnownMember.System_Collections_Generic_List_T__Contains,
             WellKnownMember.System_Collections_Generic_List_T__CopyTo,
             WellKnownMember.System_Collections_Generic_List_T__Item,
             WellKnownMember.System_Collections_Generic_List_T__IndexOf,
-            WellKnownMember.System_NotSupportedException__ctor,
         };
 
         internal static NamedTypeSymbol Create(SourceModuleSymbol containingModule, string name, bool hasKnownLength)
@@ -85,9 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (diagnosticInfo is null)
             {
-                foreach (var type in s_requiredWellKnownTypes)
+                foreach (var member in s_requiredSpecialMembers)
                 {
-                    diagnosticInfo = compilation.GetWellKnownType(type).GetUseSiteInfo().DiagnosticInfo;
+                    diagnosticInfo = getSpecialTypeMemberDiagnosticInfo(compilation, member);
                     if (diagnosticInfo is { })
                     {
                         break;
@@ -97,27 +101,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (diagnosticInfo is null)
             {
-                foreach (var member in s_requiredSpecialMembers)
+                foreach (var member in s_requiredWellKnownMembers)
                 {
-                    var symbol = compilation.GetSpecialTypeMember(member);
-                    if (symbol is null)
+                    diagnosticInfo = getWellKnownTypeMemberDiagnosticInfo(compilation, member);
+                    if (diagnosticInfo is { })
                     {
-                        var memberDescriptor = SpecialMembers.GetDescriptor(member);
-                        diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name);
                         break;
                     }
                 }
             }
 
-            if (diagnosticInfo is null)
+            if (!hasKnownLength)
             {
-                foreach (var member in s_requiredWellKnownMembers)
+                if (diagnosticInfo is null)
                 {
-                    var symbol = Binder.GetWellKnownTypeMember(compilation, member, out var useSiteInfo);
-                    if (symbol is null)
+                    diagnosticInfo = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).GetUseSiteInfo().DiagnosticInfo;
+                }
+
+                if (diagnosticInfo is null)
+                {
+                    foreach (var member in s_requiredWellKnownMembersUnknownLength)
                     {
-                        diagnosticInfo = useSiteInfo.DiagnosticInfo;
-                        Debug.Assert(diagnosticInfo is { });
+                        diagnosticInfo = getWellKnownTypeMemberDiagnosticInfo(compilation, member);
                         if (diagnosticInfo is { })
                         {
                             break;
@@ -132,6 +137,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new SynthesizedReadOnlyListTypeSymbol(containingModule, name, hasKnownLength);
+
+            static DiagnosticInfo? getSpecialTypeMemberDiagnosticInfo(CSharpCompilation compilation, SpecialMember member)
+            {
+                var symbol = compilation.GetSpecialTypeMember(member);
+                if (symbol is { })
+                {
+                    return null;
+                }
+                var memberDescriptor = SpecialMembers.GetDescriptor(member);
+                return new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name);
+            }
+
+            static DiagnosticInfo? getWellKnownTypeMemberDiagnosticInfo(CSharpCompilation compilation, WellKnownMember member)
+            {
+                var symbol = Binder.GetWellKnownTypeMember(compilation, member, out var useSiteInfo);
+                if (symbol is { })
+                {
+                    return null;
+                }
+                var diagnosticInfo = useSiteInfo.DiagnosticInfo;
+                Debug.Assert(diagnosticInfo is { });
+                return diagnosticInfo; ;
+            }
         }
 
         private readonly ModuleSymbol _containingModule;

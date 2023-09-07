@@ -6342,7 +6342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [Theory]
-        public void SynthesizedReadOnlyList([CombinatorialValues("IEnumerable<T>", "IReadOnlyCollection<T>", "IReadOnlyList<T>")] string targetType)
+        public void SynthesizedReadOnlyList_01([CombinatorialValues("IEnumerable<T>", "IReadOnlyCollection<T>", "IReadOnlyList<T>")] string targetType)
         {
             string source = $$"""
                 using System;
@@ -6564,6 +6564,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IList<T>.Insert(int, T)", expectedNotSupportedIL);
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IList<T>.RemoveAt(int)", expectedNotSupportedIL);
+        }
+
+        [Fact]
+        public void SynthesizedReadOnlyList_02()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var i in F(1, 2))
+                        {
+                            Console.Write("{0}, ", i);
+                        }
+                    }
+                    static IEnumerable<int> F(int x, int y) => [x, y];
+                }
+                """;
+            CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: "1, 2, ");
+        }
+
+        [Fact]
+        public void SynthesizedReadOnlyList_03()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var i in F(1, 2, new[] { 3 }))
+                        {
+                            Console.Write("{0}, ", i);
+                        }
+                    }
+                    static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y, ..e];
+                }
+                """;
+            CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: "1, 2, 3, ");
         }
 
         // Compare members of synthesized types to a similar type from source.
