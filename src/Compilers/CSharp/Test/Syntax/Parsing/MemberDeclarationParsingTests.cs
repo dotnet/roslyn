@@ -10493,8 +10493,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,55): error CS1003: Syntax error, '>' expected
                     // static IEnumerable<(string Value, string Description) GetAllValues(Type t)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "GetAllValues").WithArguments(">").WithLocation(1, 55)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "GetAllValues").WithArguments(">").WithLocation(1, 55));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -10751,8 +10750,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,55): error CS1003: Syntax error, ',' expected
                     // static IDictionary<(string Value, string Description) Type> GetAllValues(Type t);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Type").WithArguments(",").WithLocation(1, 55)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Type").WithArguments(",").WithLocation(1, 55));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -10833,8 +10831,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21),
                     // (3,14): error CS1003: Syntax error, '>' expected
                     //     Action<T t = Method<T;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 14)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 14));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -10931,8 +10928,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 29),
                     // (3,29): error CS1003: Syntax error, '>' expected
                     //     Action<ImmutableArray<T t = Method<ImmutableArray<T;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 29)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 29));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -11040,8 +11036,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,21): error CS1003: Syntax error, '>' expected
                     // static void Method<T()
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -11194,8 +11189,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,21): error CS1003: Syntax error, '>' expected
                     // static void Method<T()
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 21));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -11368,8 +11362,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24),
                     // (3,17): error CS1003: Syntax error, '>' expected
                     //     Action<T, U t = Method<T, U;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 17)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 17));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -11481,8 +11474,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 32),
                     // (3,32): error CS1003: Syntax error, '>' expected
                     //     Action<ImmutableArray<T, U t = Method<ImmutableArray<T, U;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 32)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(">").WithLocation(3, 32));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -11605,8 +11597,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,24): error CS1003: Syntax error, '>' expected
                     // static void Method<T, U()
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -11787,8 +11778,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,24): error CS1003: Syntax error, '>' expected
                     // static void Method<T, U()
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 24));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -11983,8 +11973,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,48): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description) Values { get; set; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 48)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 48));
 
                 N(SyntaxKind.PropertyDeclaration);
                 {
@@ -12054,8 +12043,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,48): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description) Values => null;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 48)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 48));
 
                 N(SyntaxKind.PropertyDeclaration);
                 {
@@ -12119,8 +12107,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,24): error CS1003: Syntax error, '>' expected
                     // Dictionary<int, string Values { get; set; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 24)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 24));
 
                 N(SyntaxKind.PropertyDeclaration);
                 {
@@ -12177,8 +12164,7 @@ public class Class
                 UsingStatement(source, options,
                     // (1,48): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description) values;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "values").WithArguments(">").WithLocation(1, 48)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "values").WithArguments(">").WithLocation(1, 48));
 
                 N(SyntaxKind.LocalDeclarationStatement);
                 {
@@ -12240,8 +12226,7 @@ public class Class
                 UsingStatement(source, options,
                     // (1,48): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description) values = null;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "values").WithArguments(">").WithLocation(1, 48)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "values").WithArguments(">").WithLocation(1, 48));
 
                 N(SyntaxKind.LocalDeclarationStatement);
                 {
@@ -12315,8 +12300,7 @@ public class Class
                 UsingStatement(source, options,
                     // (1,47): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(1, 47)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(1, 47));
 
                 N(SyntaxKind.LocalDeclarationStatement);
                 {
@@ -12459,8 +12443,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,48): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description) values = null;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "values").WithArguments(">").WithLocation(1, 48)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "values").WithArguments(">").WithLocation(1, 48));
 
                 N(SyntaxKind.FieldDeclaration);
                 {
@@ -12534,8 +12517,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,47): error CS1003: Syntax error, '>' expected
                     // IEnumerable<(string Value, string Description)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(1, 47)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(1, 47));
 
                 N(SyntaxKind.FieldDeclaration);
                 {
@@ -12615,8 +12597,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,34): error CS1003: Syntax error, '>' expected
                     // public void M(ImmutableArray<int arr);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "arr").WithArguments(">").WithLocation(1, 34)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "arr").WithArguments(">").WithLocation(1, 34));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -12752,8 +12733,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(">").WithLocation(1, 70),
                     // (1,70): error CS1003: Syntax error, '>' expected
                     // public ImmutableArray<int M(ImmutableArray<int a, ImmutableArray<int b);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(">").WithLocation(1, 70)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(">").WithLocation(1, 70));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -12845,8 +12825,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(">").WithLocation(1, 66),
                     // (1,66): error CS1003: Syntax error, '>' expected
                     // public ImmutableArray<T M<T(ImmutableArray<T a, ImmutableArray<T b);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(">").WithLocation(1, 66)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(">").WithLocation(1, 66));
 
                 N(SyntaxKind.MethodDeclaration);
                 {
@@ -12938,8 +12917,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 43),
                     // (1,74): error CS1003: Syntax error, '>' expected
                     // Invoke<ImmutableArray<(string a, string b)(31, default(ImmutableArray<int));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">").WithLocation(1, 74)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">").WithLocation(1, 74));
 
                 N(SyntaxKind.ExpressionStatement);
                 {
@@ -13040,8 +13018,7 @@ public class Class
                 UsingStatement(source, options,
                     // (1,75): error CS1003: Syntax error, '>' expected
                     // Invoke<ImmutableArray<(string a, string b)>(31, default(ImmutableArray<int));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">").WithLocation(1, 75)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">").WithLocation(1, 75));
 
                 N(SyntaxKind.ExpressionStatement);
                 {
@@ -13240,8 +13217,7 @@ public class Class
                 UsingDeclaration(source, options,
                     // (1,36): error CS1003: Syntax error, '>' expected
                     // public record M(ImmutableArray<int Array);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Array").WithArguments(">").WithLocation(1, 36)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Array").WithArguments(">").WithLocation(1, 36));
 
                 N(SyntaxKind.RecordDeclaration);
                 {
@@ -13293,8 +13269,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 18),
                     // (1,36): error CS1003: Syntax error, '>' expected
                     // public record M<T(ImmutableArray<T Array);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Array").WithArguments(">").WithLocation(1, 36)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Array").WithArguments(">").WithLocation(1, 36));
 
                 N(SyntaxKind.RecordDeclaration);
                 {
@@ -13366,8 +13341,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(2, 14),
                     // (2,33): error CS1003: Syntax error, ',' expected
                     //     : Other<T((ImmutableArray<T)Array);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Array").WithArguments(",").WithLocation(2, 33)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Array").WithArguments(",").WithLocation(2, 33));
 
                 N(SyntaxKind.RecordDeclaration);
                 {
