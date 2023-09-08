@@ -6,12 +6,24 @@ using System;
 using System.CommandLine;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+
+#if !DOTNET_BUILD_FROM_SOURCE
 using StreamJsonRpc;
+#endif
 
 namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 
 internal static class Program
 {
+#if DOTNET_BUILD_FROM_SOURCE
+
+    internal static void Main()
+    {
+        throw new NotSupportedException("This cannot currently be launched as a process in source build scenarios.");
+    }
+
+#else
+
     internal static async Task Main(string[] args)
     {
         var binaryLogOption = new CliOption<string?>("--binlog") { Required = false };
@@ -50,4 +62,6 @@ internal static class Program
 
         logger.LogInformation("RPC channel closed; process exiting.");
     }
+
+#endif
 }
