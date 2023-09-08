@@ -577,6 +577,11 @@
         <target state="translated">Невозможно использовать переменную "{0}" в этом контексте, поскольку при этом могут быть раскрыты доступные по ссылке переменные вне их области объявления.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Явная реализация определяемого пользователем оператора "{0}" должна быть объявлена статической</target>

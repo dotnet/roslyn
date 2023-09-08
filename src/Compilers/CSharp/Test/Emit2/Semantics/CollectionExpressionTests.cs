@@ -14746,11 +14746,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void RuntimeHelpers_CreateSpan_MissingImplicitOperator()
+        public void RuntimeHelpers_CreateSpan_MissingConstructor()
         {
             string source = """
                 using System;
-                class  Program
+                class Program
                 {
                     static void Main()
                     {
@@ -14759,11 +14759,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_ReadOnlySpan_T_Array);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.op_Implicit'
+                // (6,31): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
                 //         ReadOnlySpan<int> s = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.ReadOnlySpan`1", "op_Implicit").WithLocation(6, 31));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(6, 31));
         }
 
         [Fact]

@@ -79,12 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan &&
                     ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
                 {
-                    var conversionMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_ReadOnlySpan_T_Array)).AsMember(spanType);
-                    return new BoundReadOnlySpanFromArray(
-                        syntax,
-                        _factory.Array(elementType.Type, elements),
-                        conversionMethod,
-                        spanType);
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
+                    return _factory.New(constructor, _factory.Array(elementType.Type, elements));
                 }
 
                 if (ShouldUseInlineArray(node) &&

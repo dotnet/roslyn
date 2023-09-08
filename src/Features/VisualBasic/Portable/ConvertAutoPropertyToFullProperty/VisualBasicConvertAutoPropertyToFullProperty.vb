@@ -36,10 +36,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
         End Function
 
         Protected Overrides Function GetNewAccessors(
-            info As VisualBasicCodeGenerationContextInfo,
-            propertyNode As SyntaxNode,
-            fieldName As String,
-            generator As SyntaxGenerator) As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
+                info As VisualBasicCodeGenerationContextInfo,
+                propertyNode As SyntaxNode,
+                fieldName As String,
+                generator As SyntaxGenerator,
+                cancellationToken As CancellationToken) As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
 
             Dim returnStatement = New SyntaxList(Of StatementSyntax)(DirectCast(generator.ReturnStatement(
                 generator.IdentifierName(fieldName)), StatementSyntax))
