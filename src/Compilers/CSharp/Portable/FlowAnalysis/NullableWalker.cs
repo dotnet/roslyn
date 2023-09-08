@@ -5821,6 +5821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitRvalueEpilogue(receiver); // VisitRvalue does this after visiting each node
                         receiverType = ResultType;
                         CheckCallReceiver(receiver, receiverType, node.Method);
+                        extensionReceiverResult = null;
                     }
                     else
                     {
