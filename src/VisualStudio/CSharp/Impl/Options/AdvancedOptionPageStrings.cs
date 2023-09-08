@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => BackgroundAnalysisScope.None;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Active_File_Tag
-            => BackgroundAnalysisScope.ActiveFile;
+            => BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Open_Files_Tag
             => BackgroundAnalysisScope.OpenFiles;
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CompilerDiagnosticsScope.None;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
-            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+            => CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
             => CompilerDiagnosticsScope.OpenFiles;

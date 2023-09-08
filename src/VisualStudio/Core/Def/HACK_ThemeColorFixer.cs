@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
+        private readonly IClassificationFormatMap _textFormatMap;
 
         private bool _done;
 
@@ -46,7 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             _classificationFormatMapService = classificationFormatMapService;
 
             // Note: We never unsubscribe from this event. This service lives for the lifetime of VS.
-            _classificationFormatMapService.GetClassificationFormatMap("text").ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
+            _textFormatMap = _classificationFormatMapService.GetClassificationFormatMap("text");
+            _textFormatMap.ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
         }
 
         private void TextFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -54,10 +56,58 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public void RefreshThemeColors()
         {
-            var textFormatMap = _classificationFormatMapService.GetClassificationFormatMap("text");
-            var tooltipFormatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
+            // Unsubscribe while we're making any actual changes, to avoid reentrancy.
+            _textFormatMap.ClassificationFormatMappingChanged -= TextFormatMap_ClassificationFormatMappingChanged;
+            try
+            {
+                var textFormatMap = _classificationFormatMapService.GetClassificationFormatMap("text");
+                var tooltipFormatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
-            UpdateForegroundColors(textFormatMap, tooltipFormatMap);
+                // We have features that would like to classify the contents of strings (for example, as regex/json, or even
+                // as C# code itself).  To ensure that the classifications provided for the string show up over the string
+                // literal, we reprioritize the 'string literal' classification to have the lowest priority of all
+                // classifications.
+                DeprioritizeStringClassification(textFormatMap, ClassificationTypeNames.StringLiteral);
+                DeprioritizeStringClassification(tooltipFormatMap, ClassificationTypeNames.StringLiteral);
+                DeprioritizeStringClassification(textFormatMap, ClassificationTypeNames.VerbatimStringLiteral);
+                DeprioritizeStringClassification(tooltipFormatMap, ClassificationTypeNames.VerbatimStringLiteral);
+
+                UpdateForegroundColors(textFormatMap, tooltipFormatMap);
+            }
+            finally
+            {
+                // resubscribe once done.
+                _textFormatMap.ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
+            }
+        }
+
+        private void DeprioritizeStringClassification(IClassificationFormatMap formatMap, string typeName)
+        {
+            // No better option (According to DPugh) than bubble sorting this classification backwards to the start of
+            // the list.  Use a batch-update though to make this only do updates once.
+            var classificationType = _classificationTypeRegistryService.GetClassificationType(typeName);
+            if (classificationType is null)
+                return;
+
+            // We're only changing StringLiteral and VerbatimStringLiteral.  Once those are both at the start of the
+            // list, we don't have to do anything else with them.
+            var index = formatMap.CurrentPriorityOrder.IndexOf(classificationType);
+            if (index <= 1)
+                return;
+
+            formatMap.BeginBatchUpdate();
+            try
+            {
+                while (index - 1 >= 0)
+                {
+                    index--;
+                    formatMap.SwapPriorities(classificationType, formatMap.CurrentPriorityOrder[index]);
+                }
+            }
+            finally
+            {
+                formatMap.EndBatchUpdate();
+            }
         }
 
         private void UpdateForegroundColors(
@@ -71,6 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.ControlKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.NumericLiteral, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StringLiteral, sourceFormatMap, targetFormatMap);
+
+            UpdateForegroundColor(ClassificationTypeNames.VerbatimStringLiteral, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.StringEscapeCharacter, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.XmlDocCommentAttributeName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.XmlDocCommentAttributeQuotes, sourceFormatMap, targetFormatMap);
@@ -129,9 +182,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.NamespaceName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.LabelName, sourceFormatMap, targetFormatMap);
 
-            UpdateForegroundColor(ClassificationTypeNames.VerbatimStringLiteral, sourceFormatMap, targetFormatMap);
-            UpdateForegroundColor(ClassificationTypeNames.StringEscapeCharacter, sourceFormatMap, targetFormatMap);
-
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralText, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralProcessingInstruction, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralName, sourceFormatMap, targetFormatMap);
@@ -143,6 +193,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralAttributeQuotes, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralAttributeName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralEntityReference, sourceFormatMap, targetFormatMap);
+
+            UpdateForegroundColor(ClassificationTypeNames.TestCode, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.TestCodeMarkdown, sourceFormatMap, targetFormatMap);
         }
 
         private void UpdateForegroundColor(
