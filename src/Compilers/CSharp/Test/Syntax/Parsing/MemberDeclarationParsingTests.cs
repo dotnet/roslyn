@@ -1126,6 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EOF();
             }
         }
+
         [Fact]
         [CompilerTrait(CompilerFeature.InitOnlySetters)]
         public void InitAndSetAccessor()
@@ -12652,8 +12653,7 @@ public class Class
                     Diagnostic(ErrorCode.ERR_SyntaxError, "arr").WithArguments(",").WithLocation(1, 34),
                     // (1,59): error CS1003: Syntax error, '>' expected
                     // public void M(ImmutableArray<int arr, ImmutableArray<int> another);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "another").WithArguments(">").WithLocation(1, 59)
-                    );
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "another").WithArguments(">").WithLocation(1, 59));
 
                 N(SyntaxKind.MethodDeclaration);
                 {

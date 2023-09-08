@@ -5950,17 +5950,17 @@ parse_member_name:;
                 if (tokenKindBreaksTypeArgumentList(this.CurrentToken.Kind))
                     break;
 
+                // We are currently past parsing a type and we encounter an unexpected identifier token
+                // followed by tokens that are not part of a type argument list
+                // Example: List<(string a, string b) Method() { }
+                //                 current token:     ^^^^^^
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenKindBreaksTypeArgumentList(this.PeekToken(1).Kind))
+                {
+                    break;
+                }
+
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
-                    // we are currently past parsing a type and we encounter an unexpected identifier token
-                    // followed by tokens that are not part of a type argument list
-                    // example: List<(string a, string b) Method() { }
-                    //                 current token:     ^^^^^^
-                    if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenKindBreaksTypeArgumentList(this.PeekToken(1).Kind))
-                    {
-                        break;
-                    }
-
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     types.Add(this.ParseTypeArgument());
                 }
