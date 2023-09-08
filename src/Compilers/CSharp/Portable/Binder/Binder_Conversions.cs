@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             else if (collectionTypeKind == CollectionExpressionTypeKind.ListInterface ||
-                elements.Any(e => e is BoundCollectionExpressionSpreadElement)) // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
+                node.GetKnownLength(out _) is null)
             {
                 Debug.Assert(elementType is { });
 
@@ -681,16 +681,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var element = elements[i];
                     var elementConversion = elementConversions[i];
-                    var convertedElement = CreateConversion(
-                        element.Syntax,
-                        element,
-                        elementConversion,
-                        isCast: false,
-                        conversionGroupOpt: null,
-                        wasCompilerGenerated: true,
-                        destination: elementType,
-                        diagnostics);
-                    convertedElement.WasCompilerGenerated = true;
+                    var convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
+                        bindSpreadElement(
+                            spreadElement,
+                            elementType,
+                            elementConversion,
+                            diagnostics) :
+                        CreateConversion(
+                            element.Syntax,
+                            element,
+                            elementConversion,
+                            isCast: false,
+                            conversionGroupOpt: null,
+                            wasCompilerGenerated: true,
+                            destination: elementType,
+                            diagnostics);
                     builder.Add(convertedElement!);
                 }
             }
@@ -705,6 +710,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderInvocationConversion,
                 builder.ToImmutableAndFree(),
                 targetType);
+
+            BoundExpression bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
+            {
+                var enumeratorInfo = element.EnumeratorInfoOpt;
+                Debug.Assert(enumeratorInfo is { });
+                Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
+
+                var elementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+                var convertElement = CreateConversion(
+                    element.Syntax,
+                    elementPlaceholder,
+                    elementConversion,
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    wasCompilerGenerated: true,
+                    destination: elementType,
+                    diagnostics);
+                return element.Update(
+                    element.Expression,
+                    expressionPlaceholder: element.ExpressionPlaceholder,
+                    conversion: element.Conversion,
+                    enumeratorInfo,
+                    elementPlaceholder: elementPlaceholder,
+                    iteratorBody: new BoundExpressionStatement(syntax, convertElement) { WasCompilerGenerated = true },
+                    lengthOrCount: element.LengthOrCount);
+            }
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
