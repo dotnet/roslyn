@@ -4779,19 +4779,31 @@ static class Program
                 }
                 struct S<T> : I<T>
                 {
-                    public void Add(T t) { }
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
-                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    List<T> _list;
+                    public void Add(T t) { GetList().Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetList().GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetList().GetEnumerator();
+                    private List<T> GetList() => _list ??= new List<T>();
                 }
                 class Program
                 {
+                    public static void Main()
+                    {
+                        Program.Create1<S<int>, int>().Report();
+                        Program.Create2<S<int>, int>().Report();
+                        Program.Create3<S<int>, int>(42, 43).Report();
+                        Program.Create4<S<int>, int>(44, 45).Report();
+                    }
+
                     static T Create1<T, U>() where T : struct, I<U> => [];
                     static T? Create2<T, U>() where T : struct, I<U> => [];
+                    static T Create3<T, U>(U x, U y) where T : struct, I<U> => [x, y];
+                    static T? Create4<T, U>(U x, U y) where T : struct, I<U> => [x, y];
                 }
                 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[], [], [42, 43], [44, 45],");
 
             verifier.VerifyIL("Program.Create1<T, U>", """
                 {
@@ -4809,6 +4821,45 @@ static class Program
                   IL_0000:  call       "T System.Activator.CreateInstance<T>()"
                   IL_0005:  newobj     "T?..ctor(T)"
                   IL_000a:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Create3<T, U>", """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  ldarg.0
+                  IL_0009:  constrained. "T"
+                  IL_000f:  callvirt   "void I<U>.Add(U)"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldarg.1
+                  IL_0017:  constrained. "T"
+                  IL_001d:  callvirt   "void I<U>.Add(U)"
+                  IL_0022:  ldloc.0
+                  IL_0023:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Create4<T, U>", """
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  ldarg.0
+                  IL_0009:  constrained. "T"
+                  IL_000f:  callvirt   "void I<U>.Add(U)"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldarg.1
+                  IL_0017:  constrained. "T"
+                  IL_001d:  callvirt   "void I<U>.Add(U)"
+                  IL_0022:  ldloc.0
+                  IL_0023:  newobj     "T?..ctor(T)"
+                  IL_0028:  ret
                 }
                 """);
         }
