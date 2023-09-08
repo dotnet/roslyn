@@ -12,8 +12,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Analyzers are computed for visible documents
         /// and open documents which had errors/warnings in the prior solution snapshot.
+        /// We want to analyze such non-visible, open documents to ensure that these
+        /// prior reported errors/warnings get cleared out from the error list if they are
+        /// no longer valid in the latest solution snapshot, hence ensuring error list has
+        /// no stale entries.
         /// </summary>
-        VisibleFilesAndFilesWithPreviouslyReportedDiagnostics = 0,
+        VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics = 0,
 
         /// <summary>
         /// Analyzers are executed for all open documents.
@@ -31,6 +35,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         None = 3,
 
         Minimal = None,
-        Default = VisibleFilesAndFilesWithPreviouslyReportedDiagnostics,
+        Default = VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics,
     }
 }

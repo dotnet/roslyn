@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         CompilerDiagnosticsScope.None => false,
 
                         // Compiler diagnostics are enabled for visible documents and open documents which had errors/warnings in prior snapshot.
-                        CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics => IsVisibleDocumentOrOpenDocumentWithPriorReportedVisibleDiagnostics(isVisibleDocument, isOpenDocument, previousData),
+                        CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => IsVisibleDocumentOrOpenDocumentWithPriorReportedVisibleDiagnostics(isVisibleDocument, isOpenDocument, previousData),
 
                         // Compiler diagnostics are enabled for all open documents.
                         CompilerDiagnosticsScope.OpenFiles => isOpenDocument,
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         BackgroundAnalysisScope.None => false,
 
                         // Analyzers are enabled for visible documents and open documents which had errors/warnings in prior snapshot.
-                        BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics => IsVisibleDocumentOrOpenDocumentWithPriorReportedVisibleDiagnostics(isVisibleDocument, isOpenDocument, previousData),
+                        BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => IsVisibleDocumentOrOpenDocumentWithPriorReportedVisibleDiagnostics(isVisibleDocument, isOpenDocument, previousData),
 
                         // Analyzers are enabled for all open documents.
                         BackgroundAnalysisScope.OpenFiles => isOpenDocument,
@@ -129,7 +129,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool isVisibleDocument,
                 bool isOpenDocument,
                 DocumentAnalysisData previousData)
-                => isVisibleDocument || (isOpenDocument && previousData.Items.Any(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning or DiagnosticSeverity.Info));
+            {
+                if (isVisibleDocument)
+                    return true;
+
+                return isOpenDocument
+                    && previousData.Items.Any(static d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning or DiagnosticSeverity.Info);
+            }
         }
 
         /// <summary>

@@ -918,7 +918,7 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
         }
 
         [IdeTheory, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        [InlineData(BackgroundAnalysisScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics, CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution)]
         internal async Task ConfigureSeverityWithManualEditsToEditorconfig_CurrentDocumentScope(BackgroundAnalysisScope analyzerScope, CompilerDiagnosticsScope compilerScope)
         {
