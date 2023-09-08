@@ -6741,6 +6741,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We'll want to use the l-value type, rather than the result type, for method re-inference
                     UseLvalueOnly(argument);
                     break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
             }
 
             Debug.Assert(!IsConditionalState);
