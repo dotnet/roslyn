@@ -6685,6 +6685,10 @@ partial class Program
             Assert.True(underlyingConversion.IsValid);
             Assert.False(underlyingConversion.IsNullable);
             Assert.True(underlyingConversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(value);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("MyCollection<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]

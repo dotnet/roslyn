@@ -2201,7 +2201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (boundNodeForSyntacticParent is BoundConversion parentConversion)
                     {
                         // There was an explicit cast on top of the collection expression.
-                        convertedType = parentConversion.Type;
+                        convertedType = highestBoundExpr.Type;
                         convertedNullability = nullability;
                         conversion = parentConversion.Conversion;
                     }
