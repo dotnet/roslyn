@@ -10,13 +10,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosticSource
+internal abstract class AbstractDocumentDiagnosticSource<TDocument>(TDocument document) : IDiagnosticSource
     where TDocument : TextDocument
 {
-    public TDocument Document { get; }
-
-    public AbstractDocumentDiagnosticSource(TDocument document)
-        => Document = document;
+    public TDocument Document { get; } = document;
 
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;
@@ -30,4 +27,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
 
     public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
+
+    public TextDocument? GetTextDocument()
+        => this.Document;
 }

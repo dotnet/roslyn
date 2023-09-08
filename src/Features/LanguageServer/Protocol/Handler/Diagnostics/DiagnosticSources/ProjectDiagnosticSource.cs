@@ -35,4 +35,6 @@ internal sealed record class ProjectDiagnosticSource(Project Project, Func<Diagn
     }
 
     public string ToDisplayString() => Project.Name;
+
+    public TextDocument? GetTextDocument() => null;
 }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Security.Policy;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -47,11 +48,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
-            var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            if (!string.IsNullOrWhiteSpace(diagnostic.Message))
+            {
+                if (diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error)
+                    return true;
 
-            return
-                (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error || isUnnecessary) &&
-                !string.IsNullOrWhiteSpace(diagnostic.Message);
+                if (diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                    return true;
+            }
+
+            return false;
         }
 
         protected sealed override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)

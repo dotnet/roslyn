@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -284,7 +286,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
             var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
 
             // If we can't get a text document identifier we can't report diagnostics for this source.
@@ -299,8 +300,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
 
+            var document = diagnosticSource.GetTextDocument();
+            var sourceText = document is null ? null : await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
             foreach (var diagnostic in diagnostics)
-                result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
+                result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, sourceText, clientCapabilities));
 
             var report = CreateReport(documentIdentifier, result.ToArray(), resultId);
             progress.Report(report);
@@ -323,8 +328,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(
             IDiagnosticSource diagnosticSource,
             DiagnosticData diagnosticData,
+            SourceText? sourceText,
             ClientCapabilities capabilities)
         {
+            if (diagnosticData.IsSuppressed)
+                return ImmutableArray<LSP.Diagnostic>.Empty;
+
             if (!ShouldIncludeHiddenDiagnostic(diagnosticData, capabilities))
                 return ImmutableArray<LSP.Diagnostic>.Empty;
 
@@ -434,21 +443,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
                 //   4.  This matches classic behavior where we only squiggle the original location anyway.
 
-                // We also do not adjust the diagnostic locations to ensure they are in bounds because we've
-                // explicitly requested up to date diagnostics as of the snapshot we were passed in.
-                return new LSP.Range
-                {
-                    Start = new Position
-                    {
-                        Character = dataLocation.UnmappedFileSpan.StartLinePosition.Character,
-                        Line = dataLocation.UnmappedFileSpan.StartLinePosition.Line,
-                    },
-                    End = new Position
-                    {
-                        Character = dataLocation.UnmappedFileSpan.EndLinePosition.Character,
-                        Line = dataLocation.UnmappedFileSpan.EndLinePosition.Line,
-                    }
-                };
+                var clamped = sourceText == null
+                    ? dataLocation.UnmappedFileSpan.Span
+                    : dataLocation.UnmappedFileSpan.GetClampedSpan(sourceText);
+
+                return ProtocolConversions.LinePositionToRange(clamped);
             }
 
             static bool ShouldIncludeHiddenDiagnostic(DiagnosticData diagnosticData, ClientCapabilities capabilities)

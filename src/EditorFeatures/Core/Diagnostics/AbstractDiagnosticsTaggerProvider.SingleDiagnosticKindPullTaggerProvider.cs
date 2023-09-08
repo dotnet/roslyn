@@ -110,13 +110,13 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
                     document,
                     requestedSpan.Span.ToTextSpan(),
-                    diagnosticKind: _diagnosticKind,
+                    _diagnosticKind,
                     includeSuppressedDiagnostics: true,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
 
                 foreach (var diagnosticData in diagnostics)
                 {
-                    if (_callback.IncludeDiagnostic(diagnosticData) && !diagnosticData.IsSuppressed)
+                    if (!diagnosticData.IsSuppressed && _callback.IncludeDiagnostic(diagnosticData))
                     {
                         var diagnosticSpans = _callback.GetLocationsToTag(diagnosticData)
                             .Select(loc => loc.UnmappedFileSpan.GetClampedTextSpan(sourceText).ToSnapshotSpan(snapshot));
