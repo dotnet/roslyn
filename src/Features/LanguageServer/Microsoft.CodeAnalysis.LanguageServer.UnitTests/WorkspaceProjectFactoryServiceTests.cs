@@ -4,10 +4,8 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.BrokeredServices;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -20,12 +18,7 @@ public class WorkspaceProjectFactoryServiceTests
         await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
 
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        var workspaceProjectFactoryServiceInstance = (WorkspaceProjectFactoryService)exportProvider
-            .GetExportedValues<IExportedBrokeredService>()
-            .Single(service => service.Descriptor == WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor);
-
-        await using var brokeredServiceFactory = new BrokeredServiceProxy<IWorkspaceProjectFactoryService>(
-            workspaceProjectFactoryServiceInstance);
+        await using var brokeredServiceFactory = new BrokeredServiceProxy<IWorkspaceProjectFactoryService>(exportProvider, WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor);
 
         var workspaceProjectFactoryService = await brokeredServiceFactory.GetServiceAsync();
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(

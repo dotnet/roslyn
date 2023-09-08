@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Nerdbank.Streams;
 using StreamJsonRpc;
 
@@ -20,6 +23,18 @@ internal sealed class BrokeredServiceProxy<T> : IAsyncDisposable where T : class
     private JsonRpc? _serverRpc;
     private JsonRpc? _clientRpc;
     private T? _clientFactoryProxy;
+
+    public BrokeredServiceProxy(ExportProvider exportProvider, ServiceJsonRpcDescriptor serviceDescriptor)
+        : this((T)exportProvider
+                  .GetExports<IExportedBrokeredService, ExportedBrokeredServiceMetadata>()
+                  .Single(service => service.Metadata.ServiceName.Single() == serviceDescriptor.Moniker.Name).Value)
+    {
+    }
+
+    private class ExportedBrokeredServiceMetadata
+    {
+        public required IEnumerable<string> ServiceName { get; init; }
+    }
 
     public BrokeredServiceProxy(T service)
     {
