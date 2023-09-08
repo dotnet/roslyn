@@ -119,6 +119,30 @@
         },
         "problemMatcher": "$msCompile",
         "group": "build"
+    },
+    {
+      "label": "build language server",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "-c",
+        "Debug",
+        "src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "launch vscode with language server",
+      "command": "${execPath}",
+      "type": "process",
+      "options": {
+        "env": {
+          "DOTNET_ROSLYN_LANGUAGE_SERVER": "${workspaceFolder}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/net7.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+        }
+      },
+      "dependsOn": [ "build language server" ]
     }
   ]
 }
