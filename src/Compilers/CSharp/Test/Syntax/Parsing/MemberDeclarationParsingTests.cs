@@ -1081,6 +1081,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [CompilerTrait(CompilerFeature.InitOnlySetters)]
+        public void InitSetAccessor()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("string Property { init set; }", options: options,
+                    // (1,24): error CS8180: { or ; or => expected
+                    // string Property { init set; }
+                    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(1, 24),
+                    // (1,30): error CS1513: } expected
+                    // string Property { init set; }
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 30)
+                    );
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Property");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.InitAccessorDeclaration);
+                        {
+                            N(SyntaxKind.InitKeyword);
+                            N(SyntaxKind.Block);
+                            {
+                                M(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.ExpressionStatement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "set");
+                                    }
+                                    N(SyntaxKind.SemicolonToken);
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+        [Fact]
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
         public void InitAndSetAccessor()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
