@@ -2335,9 +2335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                // (6,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
                 //         F([], ['B']);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(6, 11),
+                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "string").WithLocation(6, 11),
                 // (7,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
                 //         F([default], ['B']);
                 Diagnostic(ErrorCode.ERR_BadArgType, "[default]").WithArguments("1", "collection expressions", "string").WithLocation(7, 11),
@@ -4857,6 +4857,9 @@ static class Program
                 // (6,13): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         s = [];
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(6, 13),
+                // (7,13): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //         s = ['a'];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['a']").WithArguments("string", "0").WithLocation(7, 13),
                 // (7,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s = ['a'];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'a'").WithArguments("string", "Add").WithLocation(7, 14));
@@ -11194,6 +11197,9 @@ partial class Program
                 // 1.cs(5,26): error CS7036: There is no argument given that corresponds to the required parameter 'list' of 'MyCollection.MyCollection(List<int>)'
                 //         MyCollection x = [];
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("list", "MyCollection.MyCollection(System.Collections.Generic.List<int>)").WithLocation(5, 26),
+                // 1.cs(6,26): error CS7036: There is no argument given that corresponds to the required parameter 'list' of 'MyCollection.MyCollection(List<int>)'
+                //         MyCollection y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, 2, 3]").WithArguments("list", "MyCollection.MyCollection(System.Collections.Generic.List<int>)").WithLocation(6, 26),
                 // 1.cs(6,27): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("MyCollection", "Add").WithLocation(6, 27),
@@ -11268,6 +11274,9 @@ partial class Program
                 // 1.cs(5,34): error CS7036: There is no argument given that corresponds to the required parameter 'list' of 'MyCollection<string>.MyCollection(List<string>)'
                 //         MyCollection<string> x = [];
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("list", "MyCollection<string>.MyCollection(System.Collections.Generic.List<string>)").WithLocation(5, 34),
+                // 1.cs(6,34): error CS7036: There is no argument given that corresponds to the required parameter 'list' of 'MyCollection<object>.MyCollection(List<object>)'
+                //         MyCollection<object> y = [1, 2, null];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, 2, null]").WithArguments("list", "MyCollection<object>.MyCollection(System.Collections.Generic.List<object>)").WithLocation(6, 34),
                 // 1.cs(6,35): error CS1061: 'MyCollection<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<object>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection<object> y = [1, 2, null];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("MyCollection<object>", "Add").WithLocation(6, 35),
@@ -17053,9 +17062,9 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                // (7,9): error CS0019: Operator '+' cannot be applied to operands of type 'collection expressions' and 'List<int>'
                 //         [] + list;
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "[] + list").WithArguments("+", "collection expressions", "System.Collections.Generic.List<int>").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [] + list;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "[] + list").WithLocation(7, 9));
@@ -17175,5 +17184,347 @@ partial class Program
                 //         [] as List<int>;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "[] as List<int>").WithLocation(7, 9));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                C x = [];
+
+                class C : IEnumerable<int>
+                {
+                    public C(string s) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    public void Add(int i) { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
+                // C x = [];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("s", "C.C(string)").WithLocation(4, 7)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void OptionalParameterCtor()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                C x = [];
+
+                class C : IEnumerable<int>
+                {
+                    public C(string s = null) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    public void Add(int i) { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_1()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                abstract class AbstractCollection : IEnumerable<int>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    public void Add(int i) { }
+                }
+
+                class Program
+                {
+                    static void F(AbstractCollection c) { }
+
+                    static void Main()
+                    {
+                        F([]);
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (17,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'AbstractCollection'
+                //         F([]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "AbstractCollection").WithLocation(17, 11)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_2()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class NoConstructorCollection : IEnumerable<int>
+                {
+                    private NoConstructorCollection() { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    public void Add(int i) { }
+                }
+
+                class Program
+                {
+                    static void F(NoConstructorCollection c) { }
+
+                    static void Main()
+                    {
+                        F([]);
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (18,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+                //         F([]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(18, 11)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_OverloadResolution()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                abstract class AbstractCollection : IEnumerable<int>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    public void Add(int i) { }
+                }
+
+                class NoConstructorCollection : IEnumerable<int>
+                {
+                    private NoConstructorCollection() { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    public void Add(int i) { }
+                }
+
+                class Program
+                {
+                    static void F(AbstractCollection c) { }
+                    static void F(NoConstructorCollection c) { }
+                    static void F(List<int> c) { }
+
+                    static void Main()
+                    {
+                        F([]);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("F([])", invocation.ToString());
+
+            Assert.Equal("void Program.F(System.Collections.Generic.List<System.Int32> c)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_MissingCtor(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = F0();
+                        x.Report();
+                        MyCollection<int> y = F1();
+                        y.Report();
+                        MyCollection<object> z = F2(3, 4);
+                        z.Report();
+                    }
+                    static MyCollection<string> F0()
+                    {
+                        return [];
+                    }
+                    static MyCollection<int> F1()
+                    {
+                        return [0, 1, 2];
+                    }
+                    static MyCollection<object> F2(int x, object y)
+                    {
+                        return [x, y, null];
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                new[] { sourceB1, s_collectionExtensions },
+                references: new[] { refA },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Fails,
+                expectedOutput: IncludeExpectedOutput("[], [0, 1, 2], [3, 4, null], "));
+            verifier.VerifyIL("Program.F0",
+                """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  call       "string[] System.Array.Empty<string>()"
+                  IL_0005:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+                  IL_000a:  call       "MyCollection<string> MyCollectionBuilder.Create<string>(System.ReadOnlySpan<string>)"
+                  IL_000f:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F1",
+                """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.AD5DC1478DE06A4C2728EA528BD9361A4B945E92A414BF4D180CEDAAEAA5F4CC4"
+                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_000f:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F2",
+                """
+                {
+                  // Code size       57 (0x39)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray3<object> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray3<object>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  box        "int"
+                  IL_0016:  stind.ref
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_001f:  ldarg.1
+                  IL_0020:  stind.ref
+                  IL_0021:  ldloca.s   V_0
+                  IL_0023:  ldc.i4.2
+                  IL_0024:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_0029:  ldnull
+                  IL_002a:  stind.ref
+                  IL_002b:  ldloca.s   V_0
+                  IL_002d:  ldc.i4.3
+                  IL_002e:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
+                  IL_0033:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_0038:  ret
+                }
+                """);
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> c = F2([1, 2]);
+                        c.Report();
+                    }
+                    static MyCollection<object> F2(MyCollection<object> c)
+                    {
+                        return [..c, 3];
+                    }
+                }
+                """;
+
+            verifier = CompileAndVerify(
+                new[] { sourceB2, s_collectionExtensions },
+                references: new[] { refA },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Fails,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyIL("Program.F2",
+                """
+                {
+                  // Code size       79 (0x4f)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.Generic.IEnumerator<object> V_1,
+                                object V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarga.s   V_0
+                  IL_0008:  call       "System.Collections.Generic.IEnumerator<object> MyCollection<object>.GetEnumerator()"
+                  IL_000d:  stloc.1
+                  .try
+                  {
+                    IL_000e:  br.s       IL_001e
+                    IL_0010:  ldloc.1
+                    IL_0011:  callvirt   "object System.Collections.Generic.IEnumerator<object>.Current.get"
+                    IL_0016:  stloc.2
+                    IL_0017:  ldloc.0
+                    IL_0018:  ldloc.2
+                    IL_0019:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_001e:  ldloc.1
+                    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0024:  brtrue.s   IL_0010
+                    IL_0026:  leave.s    IL_0032
+                  }
+                  finally
+                  {
+                    IL_0028:  ldloc.1
+                    IL_0029:  brfalse.s  IL_0031
+                    IL_002b:  ldloc.1
+                    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0031:  endfinally
+                  }
+                  IL_0032:  ldloc.0
+                  IL_0033:  ldc.i4.3
+                  IL_0034:  box        "int"
+                  IL_0039:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_003e:  ldloc.0
+                  IL_003f:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_0044:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_0049:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_004e:  ret
+                }
+                """);
+        }
+
     }
 }

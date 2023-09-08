@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        _binder.TryGetCollectionIterationType((Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+                        _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
                         elementType = elementTypeWithAnnotations.Type;
                         if (elementType is null)
                         {
@@ -177,6 +177,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
             {
+                if (_binder.TryBindIEnumerableCollectionInstance(targetType, syntax, BindingDiagnosticBag.Discarded, out var collectionCreation))
+                {
+                    if (collectionCreation.HasAnyErrors)
+                    {
+                        return Conversion.NoConversion;
+                    }
+                }
+                else
+                {
+                    return Conversion.NoConversion;
+                }
+
                 var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
                 var diagnostics = BindingDiagnosticBag.Discarded;
                 var collectionInitializerAddMethodBinder = _binder.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
