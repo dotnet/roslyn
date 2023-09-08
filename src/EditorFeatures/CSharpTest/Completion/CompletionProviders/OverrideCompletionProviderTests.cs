@@ -3511,11 +3511,22 @@ record Program : Base
         [WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6308")]
         public async Task NoOverrideItemsWhenNotInTypeDeclaration()
         {
-            await VerifyNoItemsExistAsync(@"
-namespace NS
-{
-    override $$
-}");
+            await VerifyNoItemsExistAsync("""
+                namespace NS
+                {
+                    override $$
+                }
+                """);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6308")]
+        public async Task NoOverrideItemsAtTopLevel()
+        {
+            await VerifyNoItemsExistAsync("""
+                System.Console.WriteLine();
+                
+                override $$
+                """);
         }
 
         private Task VerifyItemExistsAsync(string markup, string expectedItem)
