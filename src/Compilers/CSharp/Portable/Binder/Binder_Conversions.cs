@@ -543,9 +543,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             BindingDiagnosticBag diagnostics)
         {
-            if (targetType.IsNullableType())
+            if (conversion.IsNullable)
             {
-                Debug.Assert(conversion.IsNullable);
                 targetType = targetType.GetNullableUnderlyingType();
                 conversion = conversion.UnderlyingConversions[0];
                 _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);

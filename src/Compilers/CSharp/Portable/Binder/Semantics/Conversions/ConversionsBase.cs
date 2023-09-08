@@ -1156,8 +1156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsSystemNullable(TypeSymbol type, [NotNullWhen(true)] out TypeSymbol? underlyingType)
         {
-            if (type is NamedTypeSymbol nt
-                && nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T)
+
+            if (type is NamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nt)
             {
                 underlyingType = nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                 return true;

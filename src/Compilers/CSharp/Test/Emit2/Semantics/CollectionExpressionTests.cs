@@ -6461,7 +6461,12 @@ partial class Program
             var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.Fails);
+
+            // ILVerify:
+            // [M]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+            // [M]: Field is not visible. { Offset = 0x0 }
+            // [M]: Unexpected type on the stack. { Offset = 0x6, Found = address of '[78cb4f30-abc1-41ca-b5d2-939830104c72]<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
             verifier.VerifyIL("Program.M", """
 {
   // Code size       22 (0x16)
@@ -6532,6 +6537,30 @@ public class MyCollectionBuilder
                 // x.Value.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(11, 1)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void Nullable_BadConversion()
+        {
+            string src = """
+int? x = [1, 2, 3];
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // 0.cs(1,10): error CS9174: Cannot initialize type 'int?' with a collection expression because the type is not constructible.
+                // int? x = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("int?").WithLocation(1, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var conversion = model.GetConversion(collection);
+            Assert.False(conversion.IsValid);
+
+            var typeInfo = model.GetTypeInfo(collection);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Int32?", typeInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
