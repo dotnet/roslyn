@@ -5802,18 +5802,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TakeIncrementalSnapshot(node); // Visit does this before visiting each node
                 TypeWithState receiverType = visitAndCheckReceiver(node);
 
-                receiver = null;
+                VisitArgumentResult? extensionReceiverResult = null;
                 while (true)
                 {
-                    VisitArgumentResult? extensionReceiverResult = null;
-                    if (receiver is not null && node.ReceiverOpt is null)
-                    {
-                        Debug.Assert(node.InvokedAsExtensionMethod);
-                        var refKind = GetRefKind(node.ArgumentRefKindsOpt, 0);
-                        var annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded).Annotations;
-                        extensionReceiverResult = VisitArgumentEvaluateEpilogue(receiver, default, refKind, annotations);
-                    }
-
                     ReinferMethodAndVisitArguments(node, receiverType, firstArgumentResult: extensionReceiverResult);
 
                     receiver = node;
@@ -5830,6 +5821,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitRvalueEpilogue(receiver); // VisitRvalue does this after visiting each node
                         receiverType = ResultType;
                         CheckCallReceiver(receiver, receiverType, node.Method);
+                    }
+                    else
+                    {
+                        Debug.Assert(node.InvokedAsExtensionMethod);
+                        var refKind = GetRefKind(node.ArgumentRefKindsOpt, 0);
+                        var annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded).Annotations;
+                        extensionReceiverResult = VisitArgumentEvaluateEpilogue(receiver, default, refKind, annotations);
                     }
                 }
 
