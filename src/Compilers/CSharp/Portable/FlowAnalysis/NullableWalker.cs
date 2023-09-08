@@ -5856,7 +5856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..] &&
                     // Exclude arguments that need saving state before visiting (only lambdas currently).
-                    !VisitArgumentEvaluatePrologue(extensionReceiver).HasValue)
+                    !VisitArgumentEvaluateNeedsCloningState(extensionReceiver))
                 {
                     Debug.Assert(node.ReceiverOpt is null);
                     receiver = extensionReceiver;
@@ -6690,15 +6690,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, FlowAnalysisAnnotations annotations)
         {
-            var savedState = VisitArgumentEvaluatePrologue(argument);
+            var savedState = VisitArgumentEvaluateNeedsCloningState(argument) ? this.State.Clone() : default(Optional<LocalState>);
             Visit(argument);
             return VisitArgumentEvaluateEpilogue(argument, savedState, refKind, annotations);
         }
 
-        private Optional<LocalState> VisitArgumentEvaluatePrologue(BoundExpression argument)
+        private bool VisitArgumentEvaluateNeedsCloningState(BoundExpression argument)
         {
             Debug.Assert(!IsConditionalState);
-            return (argument.Kind == BoundKind.Lambda) ? this.State.Clone() : default(Optional<LocalState>);
+            return (argument.Kind == BoundKind.Lambda);
         }
 
         private VisitArgumentResult VisitArgumentEvaluateEpilogue(BoundExpression argument, Optional<LocalState> savedState, RefKind refKind, FlowAnalysisAnnotations annotations)
