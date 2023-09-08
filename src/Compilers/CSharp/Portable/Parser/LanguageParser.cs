@@ -5878,15 +5878,20 @@ parse_member_name:;
 
             if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
-                // for identifiers we assume that there could be a missing > token
-                // for example, we have reached C in X<A, B C
+                // Error recovery after missing > token:
 
-                // for tuples, we do not expect direct invocation right after the parenthesis
-                // an example is X<(string, string)(), where we imply a missing token between )(
+                // In the case of an identifier, we assume that there could be a missing > token
+                // For example, we have reached C in X<A, B C
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken)
+                {
+                    greaterThanToken = this.EatToken(SyntaxKind.GreaterThanToken);
+                    return result;
+                }
+
+                // As for tuples, we do not expect direct invocation right after the parenthesis
+                // EXAMPLE: X<(string, string)(), where we imply a missing > token between )(
                 // as the user probably wants to invoke X by X<(string, string)>()
-
-                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken ||
-                    (lastScannedType is ScanTypeFlags.TupleType && this.CurrentToken.Kind is SyntaxKind.OpenParenToken))
+                if (lastScannedType is ScanTypeFlags.TupleType && this.CurrentToken.Kind is SyntaxKind.OpenParenToken)
                 {
                     greaterThanToken = this.EatToken(SyntaxKind.GreaterThanToken);
                     return result;
@@ -5938,18 +5943,20 @@ parse_member_name:;
             // remaining types & commas
             while (true)
             {
-                // We prefer parsing as if there was a missing > over parsing as a tuple type for error recovery
-                if (tokenKindBreaksArgumentList(this.CurrentToken.Kind) || this.CurrentToken.Kind is SyntaxKind.GreaterThanToken)
-                {
+                if (this.CurrentToken.Kind is SyntaxKind.GreaterThanToken)
                     break;
-                }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+
+                // We prefer parsing as if there was a missing > over parsing as a tuple type for error recovery
+                if (tokenKindBreaksTypeArgumentList(this.CurrentToken.Kind))
+                    break;
+
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
                     // we are currently past parsing a type and we encounter an unexpected identifier token
                     // followed by tokens that are not part of a type argument list
                     // example: List<(string a, string b) Method() { }
                     //                 current token:     ^^^^^^
-                    if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenKindBreaksArgumentList(this.PeekToken(1).Kind))
+                    if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenKindBreaksTypeArgumentList(this.PeekToken(1).Kind))
                     {
                         break;
                     }
@@ -5965,7 +5972,7 @@ parse_member_name:;
 
             close = this.EatToken(SyntaxKind.GreaterThanToken);
 
-            static bool tokenKindBreaksArgumentList(SyntaxKind kind)
+            static bool tokenKindBreaksTypeArgumentList(SyntaxKind kind)
             {
                 return kind
                     is SyntaxKind.LessThanToken

@@ -6562,7 +6562,8 @@ class Program
                 
                 class Program
                 {
-                    Func<[|FlowControl|] x }
+                    Func<[|FlowControl|] x
+                }
                 """,
                 """
                 using System;
@@ -6570,7 +6571,8 @@ class Program
                 
                 class Program
                 {
-                    Func<FlowControl x }
+                    Func<FlowControl x
+                }
                 """,
                 index: 0,
                 parameters: new TestParameters(testHost: testHost));
