@@ -320,27 +320,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
+        private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(
+            IDiagnosticSource diagnosticSource,
+            DiagnosticData diagnosticData,
+            ClientCapabilities capabilities)
         {
             if (!ShouldIncludeHiddenDiagnostic(diagnosticData, capabilities))
-            {
                 return ImmutableArray<LSP.Diagnostic>.Empty;
-            }
 
             var project = diagnosticSource.GetProject();
-            var diagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
+            var diagnostic = CreateLspDiagnostic(diagnosticData, diagnosticData.DataLocation, project, capabilities, isUnnecessary: false);
 
             // Check if we need to handle the unnecessary tag (fading).
             if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
-            {
                 return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
-            }
 
             // DiagnosticId supports fading, check if the corresponding VS option is turned on.
             if (!SupportsFadingOption(diagnosticData))
-            {
                 return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
-            }
 
             // Check to see if there are specific locations marked to fade.
             if (!diagnosticData.TryGetUnnecessaryDataLocations(out var unnecessaryLocations))
@@ -359,25 +356,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
                 diagnosticsBuilder.Add(diagnostic);
                 foreach (var location in unnecessaryLocations)
-                {
-                    var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
-                    additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
-                    additionalDiagnostic.Range = GetRange(location);
-                    additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
-                    diagnosticsBuilder.Add(additionalDiagnostic);
-                }
+                    diagnosticsBuilder.Add(CreateLspDiagnostic(diagnosticData, location, project, capabilities, isUnnecessary: true));
 
                 return diagnosticsBuilder.ToImmutableArray();
             }
             else
             {
-                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) : new DiagnosticTag[] { DiagnosticTag.Unnecessary };
-                var diagnosticRelatedInformation = unnecessaryLocations.Value.Select(l => new DiagnosticRelatedInformation
+                diagnostic.Tags = diagnostic.Tags == null ? [DiagnosticTag.Unnecessary] : diagnostic.Tags.Append(DiagnosticTag.Unnecessary);
+                var diagnosticRelatedInformation = unnecessaryLocations.Value.Select(loc => new DiagnosticRelatedInformation
                 {
                     Location = new LSP.Location
                     {
-                        Range = GetRange(l),
-                        Uri = ProtocolConversions.CreateAbsoluteUri(l.UnmappedFileSpan.Path)
+                        Range = GetRange(loc),
+                        Uri = ProtocolConversions.CreateAbsoluteUri(loc.UnmappedFileSpan.Path)
                     },
                     Message = diagnostic.Message
                 }).ToArray();
@@ -385,10 +376,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
             }
 
-            LSP.VSDiagnostic CreateLspDiagnostic(
+            VSDiagnostic CreateLspDiagnostic(
                 DiagnosticData diagnosticData,
+                DiagnosticDataLocation location,
                 Project project,
-                ClientCapabilities capabilities)
+                ClientCapabilities capabilities,
+                bool isUnnecessary)
             {
                 Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
 
@@ -400,12 +393,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Code = diagnosticData.Id,
                     CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
-                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
-                    Tags = ConvertTags(diagnosticData),
+                    Severity = isUnnecessary ? LSP.DiagnosticSeverity.Hint : ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
                     DiagnosticRank = ConvertRank(diagnosticData),
                 };
 
-                diagnostic.Range = GetRange(diagnosticData.DataLocation);
+                diagnostic.Range = GetRange(location);
+                diagnostic.Tags = isUnnecessary
+                    ? [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip]
+                    : ConvertTags(diagnosticData);
 
                 if (capabilities.HasVisualStudioLspCapability())
                 {
@@ -431,7 +426,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return diagnostic;
             }
 
-            static LSP.Range GetRange(DiagnosticDataLocation dataLocation)
+            LSP.Range GetRange(DiagnosticDataLocation dataLocation)
             {
                 // We currently do not map diagnostics spans as
                 //   1.  Razor handles span mapping for razor files on their side.
