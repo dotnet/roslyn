@@ -14,7 +14,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<string, Cci.IMethodDefinition> _synthesizedMethods =
             new ConcurrentDictionary<string, Cci.IMethodDefinition>();
 
-        // synthesized top-level types (for inline arrays currently)
+        // synthesized top-level types (for inline arrays and collection expression types currently)
         private ImmutableArray<Cci.INamespaceTypeDefinition> _orderedTopLevelTypes;
         private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedTopLevelTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
 
