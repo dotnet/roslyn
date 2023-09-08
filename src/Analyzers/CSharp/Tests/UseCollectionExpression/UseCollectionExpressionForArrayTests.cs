@@ -432,7 +432,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = {|CS0826:{|CS0029:new[] { }|}|};
+                    string[] i = {|CS0826:new[] { }|};
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -957,7 +957,18 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(5,22): info IDE0300: Collection initialization can be simplified
+                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 25).WithSpan(5, 22, 5, 39).WithSeverity(DiagnosticSeverity.Info),
+                    // /0/Test0.cs(5,22): hidden IDE0300: Collection initialization can be simplified
+                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 27).WithSpan(5, 22, 5, 39).WithSpan(5, 22, 5, 27).WithSeverity(DiagnosticSeverity.Hidden),
+                }
+            },
             LanguageVersion = LanguageVersion.CSharp12,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
     }
 
@@ -2550,17 +2561,6 @@ public class UseCollectionExpressionForArrayTests
                 """,
             FixedCode = """
                 using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r = [new[] { 1 }, new int[] { 2 }];
-                    }
-                }
-                """,
-            BatchFixedCode = """
-                using System;
                 
                 class C
                 {
@@ -2595,22 +2595,6 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             FixedCode = """
-                using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r =
-                        [
-                            // Leading
-                            new[] { 1 }, // Trailing
-                            new int[] { 2 },
-                        ];
-                    }
-                }
-                """,
-            BatchFixedCode = """
                 using System;
                 
                 class C
@@ -2654,25 +2638,6 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             FixedCode = """
-                using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r =
-                        [
-                            new[]
-                            {
-                                // Leading
-                                1 // Trailing
-                            },
-                            new int[] { 2 },
-                        ];
-                    }
-                }
-                """,
-            BatchFixedCode = """
                 using System;
                 
                 class C

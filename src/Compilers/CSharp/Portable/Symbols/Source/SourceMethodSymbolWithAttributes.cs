@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -961,10 +962,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const int lineNumberParameterIndex = 1;
             const int characterNumberParameterIndex = 2;
 
-            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("InterceptorsPreview"))
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
+            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("InterceptorsPreview") && interceptorsNamespaces.IsEmpty)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax);
+                // InterceptorsPreview feature flag wasn't specified, and a non-empty value for InterceptorsPreviewNamespaces wasn't specified.
+                var namespaceNames = getNamespaceNames();
+                reportFeatureNotEnabled(diagnostics, attributeSyntax, namespaceNames);
+                namespaceNames.Free();
                 return;
+            }
+
+            if (!interceptorsNamespaces.IsEmpty)
+            {
+                // when InterceptorsPreviewNamespaces are present, ensure the interceptor is within one of the indicated namespaces
+                var thisNamespaceNames = getNamespaceNames();
+                var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
+                if (!foundAnyMatch)
+                {
+                    reportFeatureNotEnabled(diagnostics, attributeSyntax, thisNamespaceNames);
+                    thisNamespaceNames.Free();
+                    return;
+                }
+                thisNamespaceNames.Free();
             }
 
             var attributeFilePath = (string?)attributeArguments[0].Value;
@@ -1104,6 +1123,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static string mapPath(SourceReferenceResolver? referenceResolver, SyntaxTree tree)
             {
                 return referenceResolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+            }
+
+            // Caller must free the returned builder.
+            ArrayBuilder<string> getNamespaceNames()
+            {
+                var namespaceNames = ArrayBuilder<string>.GetInstance();
+                for (var containingNamespace = ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
+                    namespaceNames.Add(containingNamespace.Name);
+                // order outermost->innermost
+                // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
+                namespaceNames.ReverseContents();
+                return namespaceNames;
+            }
+
+            static bool isDeclaredInNamespace(ArrayBuilder<string> thisNamespaceNames, ImmutableArray<string> namespaceSegments)
+            {
+                Debug.Assert(namespaceSegments.Length > 0);
+                if (namespaceSegments.Length > thisNamespaceNames.Count)
+                {
+                    // the enabled NS has more components than interceptor's NS, so it will never match.
+                    return false;
+                }
+
+                for (var i = 0; i < namespaceSegments.Length; i++)
+                {
+                    if (namespaceSegments[i] != thisNamespaceNames[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)
+            {
+                var suggestedProperty = namespaceNames.Count == 0
+                    ? "<Features>$(Features);InterceptorsPreview</Features>"
+                    : $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
+                diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, suggestedProperty);
             }
         }
 

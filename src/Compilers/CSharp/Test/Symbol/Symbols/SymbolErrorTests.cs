@@ -3470,6 +3470,52 @@ class BAttribute : System.Attribute { }
                 );
         }
 
+        [Fact, WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
+        public void CS0246ERR_SingleTypeNameNotFound07()
+        {
+            var text =
+@"class C
+{
+    [SomeAttribute<int>]
+    static void M()
+    {
+    }
+}
+";
+            CreateCompilation(text).
+                VerifyDiagnostics(
+                // (3,6): error CS0246: The type or namespace name 'SomeAttributeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [SomeAttribute<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttributeAttribute<>"),
+                // (3,6): error CS0246: The type or namespace name 'SomeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [SomeAttribute<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttribute<>")
+                );
+        }
+
+        [Fact, WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
+        public void CS0246ERR_SingleTypeNameNotFound08()
+        {
+            var text =
+@"class C
+{
+    [Some<int>]
+    static void M()
+    {
+    }
+}
+";
+            CreateCompilation(text).
+                VerifyDiagnostics(
+                // (3,6): error CS0246: The type or namespace name 'SomeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [Some<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Some<int>").WithArguments("SomeAttribute<>"),
+                // (3,6): error CS0246: The type or namespace name 'Some<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [Some<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Some<int>").WithArguments("Some<>")
+                );
+        }
+
         [Fact]
         public void CS0249ERR_OverrideFinalizeDeprecated()
         {

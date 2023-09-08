@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -413,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
@@ -551,6 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_Experimental:
                     return 1;
                 default:
                     return 0;
@@ -1799,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FeatureNotAvailableInVersion7_1:
                 case ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes:
                 case ErrorCode.ERR_CompilerAndLanguageVersion:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.ERR_TupleInferredNamesNotAvailable:
                 case ErrorCode.ERR_TypelessTupleInAs:
                 case ErrorCode.ERR_NoRefOutWhenRefOnly:
@@ -2400,6 +2400,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion12:
                 case ErrorCode.ERR_CollectionExpressionEscape:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.ERR_ExpectedInterpolatedString:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

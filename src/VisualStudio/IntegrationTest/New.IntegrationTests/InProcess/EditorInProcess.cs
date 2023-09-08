@@ -196,6 +196,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             view.SetMultiSelection(positions.Select(p => new SnapshotSpan(subjectBuffer.CurrentSnapshot, p.Start, p.Length)));
         }
 
+        public async Task SetSelectionAsync(TextSpan span, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+
+            var subjectBuffer = view.GetBufferContainingCaret();
+            Assumes.Present(subjectBuffer);
+            view.SetSelection(new SnapshotSpan(subjectBuffer.CurrentSnapshot, span.Start, span.Length));
+        }
+
         public async Task SelectTextInCurrentDocumentAsync(string text, CancellationToken cancellationToken)
         {
             await PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);

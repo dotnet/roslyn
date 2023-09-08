@@ -65,20 +65,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task ErrorTagGeneratedForWarningAsError()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <CompilationOptions ReportDiagnostic = ""Error"" />
-            <Document FilePath = ""Test.cs"" >
-                class Program
-                {
-                    void Test()
-                    {
-                        int a = 5;
-                    }
-                }
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <CompilationOptions ReportDiagnostic = "Error" />
+                            <Document FilePath = "Test.cs" >
+                                class Program
+                                {
+                                    void Test()
+                                    {
+                                        int a = 5;
+                                    }
+                                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml);
 
@@ -92,26 +94,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task CustomizableTagsForUnnecessaryCode()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-// System is used - rest are unused.
-using System.Collections;
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                // System is used - rest are unused.
+                using System.Collections;
+                using System;
+                using System.Diagnostics;
+                using System.Collections.Generic;
 
-class Program
-{
-    void Test()
-    {
-        Int32 x = 2; // Int32 can be simplified.
-        x += 1;
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program
+                {
+                    void Test()
+                    {
+                        Int32 x = 2; // Int32 can be simplified.
+                        x += 1;
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             var language = workspace.Projects.Single().Language;
@@ -298,15 +302,17 @@ class Program
         public async Task BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-            class Test
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                            class Test
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
 
@@ -332,15 +338,17 @@ class Program
         public async Task LiveErrorZeroLengthSpan()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-            class Test
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                            class Test
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
 

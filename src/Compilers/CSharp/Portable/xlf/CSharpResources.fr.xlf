@@ -577,6 +577,11 @@
         <target state="translated">Impossible d’utiliser la variable '{0}' dans ce contexte, car elle peut exposer des variables référencées en dehors de leur étendue de déclaration</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">L’implémentation explicite d’un opérateur « {0} » défini par l’utilisateur doit être déclarée comme static</target>
@@ -1048,8 +1053,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
-        <target state="translated">La fonctionnalité expérimentale "intercepteurs" n'est pas activée. Ajoutez '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' à votre projet.</target>
+        <source>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -5035,6 +5040,16 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">Utilisation d'une variable locale non assignée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -12599,13 +12614,13 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental">
-        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0}' est utilisé à des fins d'évaluation uniquement. Il sera peut-être changé ou supprimé au cours des prochaines mises à jour.</target>
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">'{0}' est utilisé à des fins d'évaluation uniquement. Il sera peut-être changé ou supprimé au cours des prochaines mises à jour.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
-        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">Le type est utilisé à des fins d'évaluation uniquement. Il sera peut-être changé ou supprimé au cours des prochaines mises à jour.</target>
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="needs-review-translation">Le type est utilisé à des fins d'évaluation uniquement. Il sera peut-être changé ou supprimé au cours des prochaines mises à jour.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
