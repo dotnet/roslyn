@@ -44,9 +44,12 @@ internal class ProjectInitializationHandler : IDisposable
 
     public static async Task SendProjectInitializationCompleteNotificationAsync()
     {
-        Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
-        var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        await languageServerManager.SendNotificationAsync(ProjectInitializationCompleteName, CancellationToken.None);
+        // This could be null in unit tests, since we don't have an LSP channel connected for that
+        if (LanguageServerHost.Instance != null)
+        {
+            var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
+            await languageServerManager.SendNotificationAsync(ProjectInitializationCompleteName, CancellationToken.None);
+        }
     }
 
     public async Task SubscribeToInitializationCompleteAsync(CancellationToken cancellationToken)
