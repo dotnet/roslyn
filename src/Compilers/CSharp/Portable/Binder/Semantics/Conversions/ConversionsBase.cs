@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // the following should work and it is an ImplicitNullable conversion
             //    ImmutableArray<int>? x = [1, 2];
-            if (IsSystemNullable(destination, out var underlyingDestination))
+            if (destination.IsSystemNullable(out var underlyingDestination))
             {
                 var underlyingConversion = GetCollectionExpressionConversion(collectionExpression, underlyingDestination, ref useSiteInfo);
                 if (underlyingConversion.Exists)
@@ -1152,19 +1152,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
-        }
-
-        private static bool IsSystemNullable(TypeSymbol type, [NotNullWhen(true)] out TypeSymbol? underlyingType)
-        {
-            if (type is NamedTypeSymbol nt
-                && nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T)
-            {
-                underlyingType = nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                return true;
-            }
-
-            underlyingType = null;
-            return false;
         }
 #nullable disable
 
@@ -1267,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    int? x = 1;
             if (destination.Kind == SymbolKind.NamedType)
             {
-                if (IsSystemNullable(destination, out var underlyingDestination) &&
+                if (destination.IsSystemNullable(out var underlyingDestination) &&
                     HasImplicitConstantExpressionConversion(source, underlyingDestination))
                 {
                     return Conversion.ImplicitNullableWithImplicitConstantUnderlying;
@@ -1291,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // the following should work and it is an ImplicitNullable conversion
             //    (int, double)? x = (1,2);
-            if (IsSystemNullable(destination, out var underlyingDestination))
+            if (destination.IsSystemNullable(out var underlyingDestination))
             {
                 var underlyingTupleConversion = GetImplicitTupleLiteralConversion(source, underlyingDestination, ref useSiteInfo);
                 if (underlyingTupleConversion.Exists)
@@ -1319,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    var x = ((byte, string)?)(1,null);
             if (destination.Kind == SymbolKind.NamedType)
             {
-                if (IsSystemNullable(destination, out var underlyingDestination))
+                if (destination.IsSystemNullable(out var underlyingDestination))
                 {
                     var underlyingTupleConversion = GetExplicitTupleLiteralConversion(source, underlyingDestination, isChecked: isChecked, ref useSiteInfo, forCast);
 

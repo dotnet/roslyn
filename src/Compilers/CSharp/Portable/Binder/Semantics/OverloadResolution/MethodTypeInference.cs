@@ -650,8 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var underlyingTargetType = targetType.IsNullableType() ? targetType.GetNullableUnderlyingType() : targetType;
-            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, underlyingTargetType, out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, targetType.StrippedType(), out TypeWithAnnotations targetElementType))
             {
                 return;
             }

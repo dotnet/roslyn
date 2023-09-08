@@ -146,6 +146,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetNullableUnderlyingTypeWithAnnotations().Type;
         }
 
+        public static bool IsSystemNullable(this TypeSymbol? type, [NotNullWhen(true)] out TypeSymbol? underlyingType)
+        {
+            if (type is NamedTypeSymbol nt
+                && nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T)
+            {
+                underlyingType = nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                return true;
+            }
+
+            underlyingType = null;
+            return false;
+        }
+
         public static TypeWithAnnotations GetNullableUnderlyingTypeWithAnnotations(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
