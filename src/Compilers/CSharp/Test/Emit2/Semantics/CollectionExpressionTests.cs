@@ -6423,6 +6423,77 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void Nullable_ImplicitConversion_Byte()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<byte>? M()
+    {
+        return [1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81"
+  IL_0005:  ldc.i4.3
+  IL_0006:  newobj     "System.ReadOnlySpan<byte>..ctor(void*, int)"
+  IL_000b:  call       "MyCollection<byte> MyCollectionBuilder.Create<byte>(System.ReadOnlySpan<byte>)"
+  IL_0010:  newobj     "MyCollection<byte>?..ctor(MyCollection<byte>)"
+  IL_0015:  ret
+}
+""");
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var returnValue = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
+            var conversion = model.GetConversion(returnValue);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsNullable);
+            Assert.False(conversion.IsCollectionExpression);
+
+            Assert.Equal(1, conversion.UnderlyingConversions.Length);
+            var underlyingConversion = conversion.UnderlyingConversions[0];
+            Assert.True(underlyingConversion.IsValid);
+            Assert.False(underlyingConversion.IsNullable);
+            Assert.True(underlyingConversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(returnValue);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("MyCollection<System.Byte>?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
         public void Nullable_ImplicitConversion_Nullability()
         {
             string src = """
