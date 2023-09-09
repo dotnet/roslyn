@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "?", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         [Fact]
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "?", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         [Fact]
@@ -6676,19 +6676,11 @@ partial class Program
             var value = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Last().Expression;
             Assert.Equal("[1, 2, 3]", value.ToFullString());
             var conversion = model.GetConversion(value);
-            Assert.True(conversion.IsValid);
-            Assert.True(conversion.IsNullable);
-            Assert.False(conversion.IsCollectionExpression);
-
-            Assert.Equal(1, conversion.UnderlyingConversions.Length);
-            var underlyingConversion = conversion.UnderlyingConversions[0];
-            Assert.True(underlyingConversion.IsValid);
-            Assert.False(underlyingConversion.IsNullable);
-            Assert.True(underlyingConversion.IsCollectionExpression);
+            Assert.True(conversion.IsIdentity);
 
             var typeInfo = model.GetTypeInfo(value);
             Assert.Null(typeInfo.Type);
-            Assert.Equal("MyCollection<System.Int32>", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Null(typeInfo.ConvertedType);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
@@ -6798,9 +6790,11 @@ partial class Program
             Assert.Equal("[1, 2, 3]", value.ToFullString());
             var conversion = model.GetConversion(value);
             Assert.True(conversion.IsValid);
-            Assert.True(conversion.IsCollectionExpression);
-            Assert.True(conversion.IsImplicit);
-            Assert.False(conversion.IsExplicit);
+            Assert.True(conversion.IsIdentity);
+
+            var typeInfo = model.GetTypeInfo(value);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
         }
 
         [Fact]
@@ -7127,12 +7121,12 @@ partial class Program
             VerifyTypes(model, collections[3], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionExpression);
             VerifyTypes(model, collections[4], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionExpression);
             VerifyTypes(model, collections[5], expectedType: null, expectedConvertedType: "S2", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[6], expectedType: null, expectedConvertedType: "System.Int32[]", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[7], expectedType: null, expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[8], expectedType: null, expectedConvertedType: "System.Span<System.Int32>", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[9], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[10], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: "S2", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[6], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[7], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[8], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[9], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[10], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         private static void VerifyTypes(SemanticModel model, ExpressionSyntax expr, string expectedType, string expectedConvertedType, ConversionKind expectedConversionKind)

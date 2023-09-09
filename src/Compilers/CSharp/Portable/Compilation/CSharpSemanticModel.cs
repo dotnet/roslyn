@@ -2198,21 +2198,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         convertedNullability = convertedCollection.TopLevelNullability;
                         conversion = boundConversion.Conversion;
                     }
-                    else if (boundNodeForSyntacticParent is BoundConversion parentConversion)
-                    {
-                        // There was an explicit cast on top of the collection expression.
-                        convertedType = highestBoundExpr.Type;
-                        convertedNullability = nullability;
-                        conversion = parentConversion.Conversion;
-                    }
                     else
                     {
-                        // Error scenario like `object x = [];`
-                        (convertedType, convertedNullability) = (convertedCollection.Type, nullability);
-
-                        conversion = convertedCollection.CollectionTypeKind == CollectionExpressionTypeKind.None
-                            ? Conversion.NoConversion
-                            : Conversion.CollectionExpression;
+                        // Explicit cast or error scenario like `object x = [];`
+                        convertedNullability = nullability;
+                        convertedType = null;
+                        conversion = Conversion.Identity;
                     }
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
