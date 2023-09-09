@@ -26,18 +26,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             options As ClassificationOptions,
             result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
 
+            ' Short-circuit simple assignments to prevent calculation of symbol info as it can be expensive.
             If syntax.IsKind(SyntaxKind.SimpleAssignmentStatement) Then
                 Return
             End If
 
+            ' Short-circuit operators whose span doesn't intersect the requested span.
             Dim operatorSpan = GetOperatorTokenSpan(syntax)
-            If (Not operatorSpan.IsEmpty AndAlso operatorSpan.IntersectsWith(textSpan)) Then
-                Dim symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken)
-                If TypeOf symbolInfo.Symbol Is IMethodSymbol AndAlso
-                    DirectCast(symbolInfo.Symbol, IMethodSymbol).MethodKind = MethodKind.UserDefinedOperator Then
+            If (operatorSpan.IsEmpty OrElse Not operatorSpan.IntersectsWith(textSpan)) Then
+                Return
+            End If
 
-                    result.Add(New ClassifiedSpan(operatorSpan, ClassificationTypeNames.OperatorOverloaded))
-                End If
+            Dim symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken)
+            If TypeOf symbolInfo.Symbol Is IMethodSymbol AndAlso
+                DirectCast(symbolInfo.Symbol, IMethodSymbol).MethodKind = MethodKind.UserDefinedOperator Then
+
+                result.Add(New ClassifiedSpan(operatorSpan, ClassificationTypeNames.OperatorOverloaded))
             End If
         End Sub
 
@@ -50,6 +54,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             Return Nothing
         End Function
-
     End Class
 End Namespace
