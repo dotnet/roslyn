@@ -5959,6 +5959,17 @@ parse_member_name:;
                     break;
                 }
 
+                // This is for the case where we are in a this[] accessor, and the last one of the parameters in the parameter list
+                // is missing a > on its type
+                // Example: X this[IEnumerable<string parameter] => 
+                //                 current token:     ^^^^^^^^^
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken
+                    && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken
+                    && tokenKindBreaksTypeArgumentList(this.PeekToken(2).Kind))
+                {
+                    break;
+                }
+
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
@@ -5982,7 +5993,9 @@ parse_member_name:;
                     or SyntaxKind.OpenBraceToken
                     or SyntaxKind.CloseBraceToken
                     or SyntaxKind.EqualsToken
-                    or SyntaxKind.EqualsGreaterThanToken;
+                    or SyntaxKind.EqualsGreaterThanToken
+                    or SyntaxKind.ThisKeyword
+                    or SyntaxKind.OperatorKeyword;
             }
         }
 
