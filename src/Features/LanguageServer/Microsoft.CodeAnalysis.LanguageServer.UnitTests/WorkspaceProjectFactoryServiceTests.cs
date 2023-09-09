@@ -18,9 +18,10 @@ public class WorkspaceProjectFactoryServiceTests
         await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
 
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        await using var brokeredServiceFactory = new BrokeredServiceProxy<IWorkspaceProjectFactoryService>(exportProvider, WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor);
 
+        await using var brokeredServiceFactory = new BrokeredServiceProxy<IWorkspaceProjectFactoryService>(exportProvider, WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor);
         var workspaceProjectFactoryService = await brokeredServiceFactory.GetServiceAsync();
+
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
             new WorkspaceProjectCreationInfo(LanguageNames.CSharp, "DisplayName", FilePath: null, new Dictionary<string, string>()),
             CancellationToken.None);
@@ -45,6 +46,6 @@ public class WorkspaceProjectFactoryServiceTests
         if (OperatingSystem.IsWindows())
             return Path.Combine("Z:\\", relativePath);
         else
-            return Path.Combine("//", relativePath);
+            return Path.Combine("/", relativePath);
     }
 }
