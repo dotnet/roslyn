@@ -348,5 +348,66 @@ public interface MyInterface
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
+        [InlineData("public")]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        public async Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">{{modifier}} partial $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                root = true
+
+                [*]
+                # IDE0008: Use explicit type
+                dotnet_style_require_accessibility_modifiers = always
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                {{modifier}} partial interface MyInterface
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
+        public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">partial $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                root = true
+
+                [*]
+                # IDE0008: Use explicit type
+                dotnet_style_require_accessibility_modifiers = always
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public partial interface MyInterface
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }
