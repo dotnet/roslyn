@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
             Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
-            // namespaces are visible in all projects.
-            if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
+            // Namespaces are visible in all projects
+            // Preprocessing symbols are arbitrary identifiers that are not bound to specific projects
+            if (symbols.Any(static s => s.Kind is SymbolKind.Namespace or SymbolKind.Preprocessing))
                 return projects.ToImmutableArray();
 
             var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);

@@ -4866,16 +4866,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private PreprocessingSymbolInfo CreatePreprocessingSymbolInfo(SyntaxToken identifier)
         {
             bool isDefined = SyntaxTree.IsPreprocessorSymbolDefined(identifier.ValueText, identifier.SpanStart);
-            var preprocessingSymbol = CreatePreprocessingSymbol(identifier);
+            var preprocessingSymbol = new Symbols.PublicModel.PreprocessingSymbol(identifier.ValueText);
             return new PreprocessingSymbolInfo(preprocessingSymbol, isDefined);
-        }
-
-        private Symbols.PublicModel.PreprocessingSymbol CreatePreprocessingSymbol(SyntaxToken identifier)
-        {
-            return new Symbols.PublicModel.PreprocessingSymbol(
-                identifier.ValueText,
-                Compilation.Assembly.GetPublicSymbol(),
-                Compilation.SourceModule.GetPublicSymbol());
         }
 
         /// <summary>

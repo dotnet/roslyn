@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override IPreprocessingSymbol CommonCreatePreprocessingSymbol(string name)
         {
-            return new Symbols.PublicModel.PreprocessingSymbol(name, CommonAssembly, CommonSourceModule);
+            return new Symbols.PublicModel.PreprocessingSymbol(name);
         }
 
         #region Constructors and Factories

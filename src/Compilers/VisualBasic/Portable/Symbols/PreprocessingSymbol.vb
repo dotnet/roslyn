@@ -13,18 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IPreprocessingSymbol
 
         Private ReadOnly _name As String
-        Private ReadOnly _assembly As IAssemblySymbol
-        Private ReadOnly _module As IModuleSymbol
 
         Friend Sub New(name As String)
-            Me.New(name, Nothing, Nothing)
-        End Sub
-
-        Friend Sub New(name As String, assembly As IAssemblySymbol, moduleSymbol As IModuleSymbol)
-            MyBase.New()
             _name = name
-            _assembly = assembly
-            _module = moduleSymbol
         End Sub
 
         Public Overrides ReadOnly Property Name As String
@@ -96,30 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 Return Nothing
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
-            Get
-                Return TryCast(ISymbolContainingAssembly, AssemblySymbol)
-            End Get
-        End Property
-
-        Friend Overloads ReadOnly Property ISymbolContainingAssembly As IAssemblySymbol Implements ISymbol.ContainingAssembly
-            Get
-                Return _assembly
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
-            Get
-                Return TryCast(ISymbolContainingModule, ModuleSymbol)
-            End Get
-        End Property
-
-        Friend Overloads ReadOnly Property ISymbolContainingModule As IModuleSymbol Implements ISymbol.ContainingModule
-            Get
-                Return _module
             End Get
         End Property
 

@@ -2837,7 +2837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonCreatePreprocessingSymbol(name As String) As IPreprocessingSymbol
-            Return New PreprocessingSymbol(name, CommonAssembly, CommonSourceModule)
+            Return New PreprocessingSymbol(name)
         End Function
 
         Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer, elementNullableAnnotation As NullableAnnotation) As IArrayTypeSymbol

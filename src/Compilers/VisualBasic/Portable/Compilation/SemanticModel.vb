@@ -2969,7 +2969,7 @@ _Default:
                 Return symbolInfo
             End If
 
-            Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(token.ValueText, Compilation.Assembly, Compilation.SourceModule), constantValueOpt:=Nothing, isDefined:=False)
+            Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(token.ValueText), constantValueOpt:=Nothing, isDefined:=False)
 
         End Function
 

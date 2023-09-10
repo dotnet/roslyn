@@ -12,14 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
     internal sealed class PreprocessingSymbol : IPreprocessingSymbol
     {
         private readonly string _name;
-        private readonly IAssemblySymbol _assembly;
-        private readonly IModuleSymbol _module;
 
-        internal PreprocessingSymbol(string name, IAssemblySymbol assembly, IModuleSymbol module)
+        internal PreprocessingSymbol(string name)
         {
             _name = name;
-            _assembly = assembly;
-            _module = module;
         }
 
         ISymbol ISymbol.OriginalDefinition => this;
@@ -106,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         int ISymbol.MetadataToken => 0;
 
-        IAssemblySymbol? ISymbol.ContainingAssembly => _assembly;
+        IAssemblySymbol? ISymbol.ContainingAssembly => null;
 
-        IModuleSymbol? ISymbol.ContainingModule => _module;
+        IModuleSymbol? ISymbol.ContainingModule => null;
 
         INamespaceSymbol? ISymbol.ContainingNamespace => null;
 

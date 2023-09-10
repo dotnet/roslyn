@@ -42,16 +42,10 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
     {
         using var _ = ArrayBuilder<Document>.GetInstance(out var resultDocuments);
 
-        // NOTE: We intentionally search for all documents in the entire solution. This is because
-        //       the symbols are validly bound by their requested name, despite their current definition
-        //       state. Therefore, the same symbol name could be shared across multiple projects and
-        //       configured in the project configuration with the same shared identifier.
+        var projectDocuments = (IEnumerable<Document>?)documents
+            ?? await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-        var solution = project.Solution;
-        var sourceDocuments = (IEnumerable<Document>?)documents
-            ?? await GetAllSolutionDocumentsAsync(solution, cancellationToken).ConfigureAwait(false);
-
-        foreach (var document in sourceDocuments)
+        foreach (var document in projectDocuments)
         {
             var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTreeIndex.ContainsDirective && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name))
@@ -59,19 +53,6 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
         }
 
         return resultDocuments.ToImmutable();
-    }
-
-    private static async ValueTask<IEnumerable<Document>> GetAllSolutionDocumentsAsync(Solution solution, CancellationToken cancellationToken)
-    {
-        var documents = Enumerable.Empty<Document>();
-
-        foreach (var solutionProject in solution.Projects)
-        {
-            var projectDocuments = await solutionProject.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            documents = documents.Concat(projectDocuments);
-        }
-
-        return documents;
     }
 
     private static async ValueTask<ImmutableArray<FinderLocation>> FindPreprocessingReferencesInTokensAsync(
