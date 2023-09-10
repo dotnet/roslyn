@@ -5946,7 +5946,8 @@ parse_member_name:;
                 if (this.CurrentToken.Kind is SyntaxKind.GreaterThanToken)
                     break;
 
-                // We prefer parsing as if there was a missing > over parsing as a tuple type for error recovery
+                // We prefer early terminating the argument list over parsing until exhaustion
+                // for better error recovery
                 if (tokenKindBreaksTypeArgumentList(this.CurrentToken.Kind))
                     break;
 
@@ -5986,15 +5987,30 @@ parse_member_name:;
             static bool tokenKindBreaksTypeArgumentList(SyntaxKind kind)
             {
                 return kind
+                    // Example: IEnumerable<string Method<T>()
                     is SyntaxKind.LessThanToken
+                    // Example: Method<string(argument)
                     or SyntaxKind.OpenParenToken
+                    // Example: Method(IEnumerable<string parameter)
                     or SyntaxKind.CloseParenToken
+                    // Example: IEnumerable<string field;
                     or SyntaxKind.SemicolonToken
+                    // Example: IEnumerable<string Property { get; set; }
                     or SyntaxKind.OpenBraceToken
+                    // Example:
+                    // {
+                    //     IEnumerable<string field
+                    // }
                     or SyntaxKind.CloseBraceToken
+                    // Examples:
+                    // - IEnumerable<string field = null;
+                    // - Method(IEnumerable<string parameter = null)
                     or SyntaxKind.EqualsToken
+                    // Example: IEnumerable<string Property => null;
                     or SyntaxKind.EqualsGreaterThanToken
+                    // Example: IEnumerable<string this[string key] { get; set; }
                     or SyntaxKind.ThisKeyword
+                    // Example: static IEnumerable<string operator +(A left, A right);
                     or SyntaxKind.OperatorKeyword;
             }
         }
