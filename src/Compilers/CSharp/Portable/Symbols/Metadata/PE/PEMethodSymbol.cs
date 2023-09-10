@@ -1084,6 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case RefKind.None:
                 case RefKind.Ref:
                 case RefKind.In:
+                case RefKind.RefReadOnlyParameter:
                     return !parameter.IsParams;
                 default:
                     return false;
@@ -1111,6 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     case RefKind.Out:
                     case RefKind.Ref:
+                    case RefKind.RefReadOnlyParameter:
                         return false;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);

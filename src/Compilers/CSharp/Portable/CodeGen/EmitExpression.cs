@@ -315,10 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitRefValueOperator((BoundRefValueOperator)expression, used);
                     break;
 
-                case BoundKind.LoweredIsPatternExpression:
-                    EmitLoweredIsPatternExpression((BoundLoweredIsPatternExpression)expression, used);
-                    break;
-
                 case BoundKind.LoweredConditionalAccess:
                     EmitLoweredConditionalAccessExpression((BoundLoweredConditionalAccess)expression, used);
                     break;
@@ -354,42 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
-        }
-
-        private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used, bool sense = true)
-        {
-            EmitSideEffects(node.Statements);
-
-            if (!used)
-            {
-                _builder.MarkLabel(node.WhenTrueLabel);
-                _builder.MarkLabel(node.WhenFalseLabel);
-            }
-            else
-            {
-                var doneLabel = new object();
-                _builder.MarkLabel(node.WhenTrueLabel);
-                _builder.EmitBoolConstant(sense);
-                _builder.EmitBranch(ILOpCode.Br, doneLabel);
-                _builder.AdjustStack(-1);
-                _builder.MarkLabel(node.WhenFalseLabel);
-                _builder.EmitBoolConstant(!sense);
-                _builder.MarkLabel(doneLabel);
-            }
-        }
-
-        private void EmitSideEffects(ImmutableArray<BoundStatement> statements)
-        {
-#if DEBUG
-            int prevStack = _expectedStackDepth;
-            int origStack = _builder.GetStackDepth();
-            _expectedStackDepth = origStack;
-#endif
-            EmitStatements(statements);
-#if DEBUG
-            Debug.Assert(_expectedStackDepth == origStack);
-            _expectedStackDepth = prevStack;
-#endif
         }
 
         private void EmitThrowExpression(BoundThrowExpression node, bool used)
@@ -870,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitSequenceExpression(BoundSequence sequence, bool used, bool sense = true)
+        private void EmitSequenceExpression(BoundSequence sequence, bool used)
         {
             DefineLocals(sequence);
             EmitSideEffects(sequence);
@@ -884,14 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(sequence.Value.Kind != BoundKind.TypeExpression || !used);
             if (sequence.Value.Kind != BoundKind.TypeExpression)
             {
-                if (used && sequence.Type.SpecialType == SpecialType.System_Boolean)
-                {
-                    EmitCondExpr(sequence.Value, sense: sense);
-                }
-                else
-                {
-                    EmitExpression(sequence.Value, used: used);
-                }
+                EmitExpression(sequence.Value, used);
             }
 
             // sequence is used as a value, can release all locals
@@ -3012,7 +2965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // NOTE: passing "ReadOnlyStrict" here. 
                 //       we should not get an address of a copy if at all possible
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() is RefKind.RefReadOnly or RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() is RefKind.RefReadOnly or RefKindExtensions.StrictIn or RefKind.RefReadOnlyParameter ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.

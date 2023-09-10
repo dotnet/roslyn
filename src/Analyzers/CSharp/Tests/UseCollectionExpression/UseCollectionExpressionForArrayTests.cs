@@ -432,7 +432,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = {|CS0826:{|CS0029:new[] { }|}|};
+                    string[] i = {|CS0826:new[] { }|};
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -957,7 +957,18 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(5,22): info IDE0300: Collection initialization can be simplified
+                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 25).WithSpan(5, 22, 5, 39).WithSeverity(DiagnosticSeverity.Info),
+                    // /0/Test0.cs(5,22): hidden IDE0300: Collection initialization can be simplified
+                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 27).WithSpan(5, 22, 5, 39).WithSpan(5, 22, 5, 27).WithSeverity(DiagnosticSeverity.Hidden),
+                }
+            },
             LanguageVersion = LanguageVersion.CSharp12,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
     }
 
@@ -1918,6 +1929,57 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
+    public async Task TestNoMultiLineEvenWhenLongIfAllElementsAlreadyPresent()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                namespace N
+                {
+                    class WellKnownDiagnosticTags
+                    {
+                        public static string Telemetry, EditAndContinue, Unnecessary, NotConfigurable;
+                    }
+
+                    class C
+                    {
+                        private static readonly string s_enforceOnBuildNeverTag;
+                        private static readonly string[] s_microsoftCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_editAndContinueCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag };
+                        private static readonly string[] s_unnecessaryCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_notConfigurableCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                namespace N
+                {
+                    class WellKnownDiagnosticTags
+                    {
+                        public static string Telemetry, EditAndContinue, Unnecessary, NotConfigurable;
+                    }
+                
+                    class C
+                    {
+                        private static readonly string s_enforceOnBuildNeverTag;
+                        private static readonly string[] s_microsoftCustomTags = [WellKnownDiagnosticTags.Telemetry];
+                        private static readonly string[] s_editAndContinueCustomTags = [WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag];
+                        private static readonly string[] s_unnecessaryCustomTags = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry];
+                        private static readonly string[] s_notConfigurableCustomTags = [WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
+                        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNoInitializer_MultiLine1()
     {
         await new VerifyCS.Test
@@ -2499,17 +2561,6 @@ public class UseCollectionExpressionForArrayTests
                 """,
             FixedCode = """
                 using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r = [new[] { 1 }, new int[] { 2 }];
-                    }
-                }
-                """,
-            BatchFixedCode = """
-                using System;
                 
                 class C
                 {
@@ -2544,22 +2595,6 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             FixedCode = """
-                using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r =
-                        [
-                            // Leading
-                            new[] { 1 }, // Trailing
-                            new int[] { 2 },
-                        ];
-                    }
-                }
-                """,
-            BatchFixedCode = """
                 using System;
                 
                 class C
@@ -2604,25 +2639,6 @@ public class UseCollectionExpressionForArrayTests
                 """,
             FixedCode = """
                 using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r =
-                        [
-                            new[]
-                            {
-                                // Leading
-                                1 // Trailing
-                            },
-                            new int[] { 2 },
-                        ];
-                    }
-                }
-                """,
-            BatchFixedCode = """
-                using System;
                 
                 class C
                 {
@@ -2640,6 +2656,54 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int[] i = [|{|] 1, 2, 3 };
+                """,
+            FixedCode = """
+                int[] i = [1, 2, 3];
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int[] i =
+                [|{|]
+                    1,
+                    2,
+                    3,
+                };
+                """,
+            FixedCode = """
+                int[] i =
+                [
+                    1,
+                    2,
+                    3,
+                ];
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
         }.RunAsync();
     }
 }

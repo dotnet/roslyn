@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -253,13 +254,7 @@ public class CollectionExpressionParsingTests : ParsingTests
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 11),
             // (1,14): error CS1003: Syntax error, ',' expected
             // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14),
-            // (1,18): error CS1002: ; expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 18),
-            // (1,18): error CS1022: Type or namespace definition, or end-of-file expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 18));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -307,13 +302,6 @@ public class CollectionExpressionParsingTests : ParsingTests
                             N(SyntaxKind.IdentifierToken, "B");
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.EmptyStatement);
-                {
                     N(SyntaxKind.SemicolonToken);
                 }
             }
@@ -531,13 +519,7 @@ public class CollectionExpressionParsingTests : ParsingTests
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 11),
             // (1,11): error CS1003: Syntax error, ',' expected
             // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11),
-            // (1,15): error CS1002: ; expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 15),
-            // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 15));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -580,13 +562,6 @@ public class CollectionExpressionParsingTests : ParsingTests
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.EmptyStatement);
-                {
                     N(SyntaxKind.SemicolonToken);
                 }
             }
@@ -5652,6 +5627,127 @@ public class CollectionExpressionParsingTests : ParsingTests
                 }
                 N(SyntaxKind.CloseBracketToken);
             }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69508")]
+    public void CastVersusIndexAmbiguity31()
+    {
+        UsingStatement("var x = (A<B>)[1];");
+
+        N(SyntaxKind.LocalDeclarationStatement);
+        {
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.CastExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.CollectionExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69508")]
+    public void CastVersusIndexAmbiguity31_GlobalStatement()
+    {
+        UsingTree("var x = (A<B>)[1];");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.CastExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "B");
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.CollectionExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }

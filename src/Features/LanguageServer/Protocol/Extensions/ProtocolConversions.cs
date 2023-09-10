@@ -170,9 +170,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// For example, UNC paths with invalid characters in server name.
         /// </exception>
         public static Uri CreateAbsoluteUri(string absolutePath)
+        {
+            var uriString = IsAscii(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath);
+            try
+            {
 #pragma warning disable RS0030 // Do not use banned APIs
-            => new(IsAscii(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath), UriKind.Absolute);
+                return new(uriString, UriKind.Absolute);
 #pragma warning restore
+
+            }
+            catch (UriFormatException e)
+            {
+                // The standard URI format exception does not include the failing path, however
+                // in pretty much all cases we need to know the URI string (and original string) in order to fix the issue.
+                throw new UriFormatException($"Failed create URI from '{uriString}'; original string: '{absolutePath}'", e);
+            }
+        }
 
         // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
         internal static string GetAbsoluteUriString(string absolutePath)

@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             if (service == null && asyncService == null)
                 return false;
 
+            Contract.ThrowIfNull(document);
+
             // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP
             // client from handling the request.  So prevent the local service from handling goto def commands in the
             // remote workspace. This can be removed once typescript implements LSP support for goto def.
@@ -77,8 +79,6 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             var currentSnapshot = subjectBuffer.CurrentSnapshot;
             if (currentSnapshot.Length == 0)
                 return false;
-
-            Contract.ThrowIfNull(document);
 
             // If there's a selection, use the starting point of the selection as the invocation point. Otherwise, just
             // pick wherever the caret is exactly at.

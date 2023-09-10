@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(data.Message == null);
                     Debug.Assert(!data.IsError);
                     // Provide an explicit format for fully-qualified type names.
-                    return new CSDiagnosticInfo(ErrorCode.WRN_Experimental,
+                    return new CSDiagnosticInfo(ErrorCode.WRN_WindowsExperimental,
                         new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsObsoleteDiagnostic(this DiagnosticInfo diagnosticInfo)
         {
             return (ErrorCode)diagnosticInfo.Code is
-                       (ErrorCode.WRN_Experimental or ErrorCode.WRN_DeprecatedCollectionInitAdd or
+                       (ErrorCode.WRN_Experimental or ErrorCode.WRN_WindowsExperimental or ErrorCode.WRN_DeprecatedCollectionInitAdd or
                         ErrorCode.WRN_DeprecatedSymbol or ErrorCode.ERR_DeprecatedCollectionInitAddStr or
                         ErrorCode.ERR_DeprecatedSymbolStr or ErrorCode.WRN_DeprecatedCollectionInitAddStr or
                         ErrorCode.WRN_DeprecatedSymbolStr);

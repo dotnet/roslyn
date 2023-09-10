@@ -6,13 +6,11 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -38,8 +36,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
-        TForeachStatementSyntax,
-        TIfStatementSyntax,
         TVariableDeclaratorSyntax,
         TAnalyzer>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
@@ -50,8 +46,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
-        where TForeachStatementSyntax : TStatementSyntax
-        where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
             TExpressionSyntax,
@@ -60,8 +54,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TMemberAccessExpressionSyntax,
             TInvocationExpressionSyntax,
             TExpressionStatementSyntax,
-            TForeachStatementSyntax,
-            TIfStatementSyntax,
             TVariableDeclaratorSyntax,
             TAnalyzer>, new()
     {
@@ -196,7 +188,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (!preferInitializerOption.Value)
                     return null;
 
-                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
                 if (matches.IsDefault)
@@ -219,7 +211,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (arguments.Count != 0)
                     return null;
 
-                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: true, cancellationToken);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
                 if (matches.IsDefault)
@@ -239,52 +231,24 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             ImmutableArray<Location> locations,
             ImmutableDictionary<string, string?>? properties)
         {
-            var syntaxTree = context.Node.SyntaxTree;
             var syntaxFacts = GetSyntaxFacts();
 
-            foreach (var (match, _) in matches)
+            foreach (var match in matches)
             {
-                if (match is TExpressionStatementSyntax)
-                {
-                    var expression = syntaxFacts.GetExpressionOfExpressionStatement(match);
+                var additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
+                    syntaxFacts, match);
+                if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
+                    continue;
 
-                    if (syntaxFacts.IsInvocationExpression(expression))
-                    {
-                        var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
-                        var additionalUnnecessaryLocations = ImmutableArray.Create(
-                            syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
-                            syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
-
-                        // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-                        // will be offered.
-                        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                            s_unnecessaryCodeDescriptor,
-                            additionalUnnecessaryLocations[0],
-                            ReportDiagnostic.Default,
-                            additionalLocations: locations,
-                            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-                            properties));
-                    }
-                }
-                else if (match is TForeachStatementSyntax)
-                {
-                    // For a `foreach (var x in expr) ...` statement, fade out the parts before and after `expr`.
-
-                    var expression = syntaxFacts.GetExpressionOfForeachStatement(match);
-                    var additionalUnnecessaryLocations = ImmutableArray.Create(
-                        syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, expression.SpanStart)),
-                        syntaxTree.GetLocation(TextSpan.FromBounds(expression.FullSpan.End, match.Span.End)));
-
-                    // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-                    // will be offered.
-                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                        s_unnecessaryCodeDescriptor,
-                        additionalUnnecessaryLocations[0],
-                        ReportDiagnostic.Default,
-                        additionalLocations: locations,
-                        additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-                        properties));
-                }
+                // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+                // will be offered.
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    s_unnecessaryCodeDescriptor,
+                    additionalUnnecessaryLocations[0],
+                    ReportDiagnostic.Default,
+                    additionalLocations: locations,
+                    additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                    properties));
             }
         }
     }

@@ -4547,6 +4547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundCall(
                         nonNullSyntax,
                         receiver,
+                        initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, resultMember),
                         resultMember,
                         arguments,
                         analyzedArguments.GetNames(),
@@ -5900,7 +5901,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundCollectionExpressionSpreadElement BindCollectionInitializerSpreadElementAddMethod(
+        internal BoundExpression BindCollectionExpressionElementAddMethod(
+            BoundExpression element,
+            Binder collectionInitializerAddMethodBinder,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics,
+            out bool hasErrors)
+        {
+            var result = element is BoundCollectionExpressionSpreadElement spreadElement ?
+                BindCollectionExpressionSpreadElementAddMethod(
+                    (SpreadElementSyntax)spreadElement.Syntax,
+                    spreadElement,
+                    collectionInitializerAddMethodBinder,
+                    implicitReceiver,
+                    diagnostics) :
+                BindCollectionInitializerElementAddMethod(
+                    (ExpressionSyntax)element.Syntax,
+                    ImmutableArray.Create(element),
+                    hasEnumerableInitializerType: true,
+                    collectionInitializerAddMethodBinder,
+                    diagnostics,
+                    implicitReceiver);
+            hasErrors = result.HasErrors;
+            return result;
+        }
+
+        private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
             Binder collectionInitializerAddMethodBinder,
@@ -5912,7 +5938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return element.Update(
                     BindToNaturalType(element.Expression, BindingDiagnosticBag.Discarded, reportNoTargetType: false),
-                    element.EnumeratorInfoOpt,
+                    enumeratorInfo,
                     element.ElementPlaceholder,
                     element.AddElementPlaceholder,
                     element.AddMethodInvocation,
@@ -7976,7 +8002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundPropertyAccess(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, propertySymbol), propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
         }
 #nullable disable
 
@@ -9125,6 +9151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertyAccess = new BoundIndexerAccess(
                     syntax,
                     receiver,
+                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
                     property,
                     arguments,
                     argumentNames,

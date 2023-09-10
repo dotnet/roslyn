@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -24,8 +23,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
-        TForeachStatementSyntax,
-        TIfStatementSyntax,
         TVariableDeclaratorSyntax,
         TAnalyzer>
         : ForkingSyntaxEditorBasedCodeFixProvider<TObjectCreationExpressionSyntax>
@@ -36,8 +33,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
-        where TForeachStatementSyntax : TStatementSyntax
-        where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
             TExpressionSyntax,
@@ -46,8 +41,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TMemberAccessExpressionSyntax,
             TInvocationExpressionSyntax,
             TExpressionStatementSyntax,
-            TForeachStatementSyntax,
-            TIfStatementSyntax,
             TVariableDeclaratorSyntax,
             TAnalyzer>, new()
     {

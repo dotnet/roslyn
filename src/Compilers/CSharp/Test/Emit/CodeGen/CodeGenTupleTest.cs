@@ -3261,7 +3261,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))] // The used assemblies test hook is blocked by https://github.com/dotnet/roslyn/issues/39976
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
         [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {
@@ -3282,10 +3282,13 @@ class C
     }
 }
 ";
-            CreateCompilation(source);
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = (1, 1, ..., 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3305,7 +3308,10 @@ class C
     }
 }
 ";
-            CreateCompilation(source);
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,15015): warning CS0168: The variable 'x' is declared but never used
+                //         (int, int, ..., int) x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 15015));
         }
 
         [Fact]
@@ -7364,9 +7370,6 @@ class C
                 // (17,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple`3").WithLocation(17, 13),
-                // (17,13): error CS0029: Cannot implicitly convert type 'System.ValueTuple<(int, int), int, int, int, int, int, int, (int, int, int)>' to '((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)'
-                //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple<(int, int), int, int, int, int, int, int, (int, int, int)>", "((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)").WithLocation(17, 13),
                 // (18,37): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1,1,1)").WithArguments("System.ValueTuple`3").WithLocation(18, 37));

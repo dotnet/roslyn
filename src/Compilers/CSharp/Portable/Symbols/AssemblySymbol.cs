@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract TypeConversions TypeConversions { get; }
+
         /// <summary>
         /// A helper method for ReferenceManager to set the system assembly, which provides primitive 
         /// types like Object, String, etc., e.g. mscorlib.dll. 

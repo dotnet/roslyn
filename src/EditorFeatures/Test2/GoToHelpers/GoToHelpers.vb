@@ -2,12 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Friend Class GoToHelpers
@@ -23,7 +22,7 @@ Friend Class GoToHelpers
             Dim position = documentWithCursor.CursorPosition.Value
 
             Dim solution = workspace.CurrentSolution
-            Dim document = solution.GetDocument(documentWithCursor.Id)
+            Dim document = Await solution.GetRequiredDocumentAsync(documentWithCursor.Id, includeSourceGenerated:=True)
 
             Dim context = New SimpleFindUsagesContext(workspace.GlobalOptions)
             Await testingMethod(document, position, context)
@@ -55,13 +54,13 @@ Friend Class GoToHelpers
                                 $"Expected: ({expected}) but got: ({actual})")
                 Next
 
-                Dim actualDefintionsWithoutSpans = context.GetDefinitions() _
-                    .Where(Function(d) d.SourceSpans.IsDefaultOrEmpty) _
-                    .Select(Function(di)
-                                Return String.Format("{0}:{1}",
-                                                     String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
-                                                     String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
-                            End Function).ToList()
+                Dim actualDefintionsWithoutSpans = context.GetDefinitions().
+                    Where(Function(d) d.SourceSpans.IsDefaultOrEmpty).
+                    Select(Function(di)
+                               Return String.Format("{0}:{1}",
+                                                    String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
+                                                    String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
+                           End Function).ToList()
 
                 actualDefintionsWithoutSpans.Sort()
 
