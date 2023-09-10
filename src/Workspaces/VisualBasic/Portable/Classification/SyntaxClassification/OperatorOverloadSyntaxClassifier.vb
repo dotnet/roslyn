@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             ' Short-circuit operators whose span doesn't intersect the requested span.
             Dim operatorSpan = GetOperatorTokenSpan(syntax)
-            If (operatorSpan.IsEmpty OrElse Not operatorSpan.IntersectsWith(textSpan)) Then
+            If operatorSpan.IsEmpty OrElse Not operatorSpan.IntersectsWith(textSpan) Then
                 Return
             End If
 
