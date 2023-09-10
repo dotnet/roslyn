@@ -157,8 +157,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Get symbol name at preprocessor definition, i.e. #Const directive.
                 ' NOTE: symbolName and conditionalSymbolName might have different case, we want the definition name.
                 Dim symbolName = _conditionalsMap.Keys.First(Function(key) IdentifierComparison.Equals(key, conditionalSymbolName))
-                ' NOTE: Due to not having access to a semantic model when buidling this preprocessing symbol's info,
-                '       we allow only simply defining the symbol name, and ignoring its source module and assembly
                 Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(name:=symbolName), constantValueOpt:=constValue.ValueAsObject, isDefined:=True)
             End Function
 
