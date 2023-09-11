@@ -5829,6 +5829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var refKind = GetRefKind(node.ArgumentRefKindsOpt, 0);
                         var annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded).Annotations;
                         extensionReceiverResult = VisitArgumentEvaluateEpilogue(receiver, default, refKind, annotations);
+                        receiverType = default;
                     }
                 }
 
