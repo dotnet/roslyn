@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,11 +17,12 @@ namespace Microsoft.CodeAnalysis
     /// A small struct that holds the values that define the identity of a source generated document, and don't change
     /// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
     /// </summary>
+    [DataContract]
     internal readonly record struct SourceGeneratedDocumentIdentity(
-        DocumentId DocumentId,
-        string HintName,
-        SourceGeneratorIdentity Generator,
-        string FilePath)
+        [property: DataMember(Order = 0)] DocumentId DocumentId,
+        [property: DataMember(Order = 1)] string HintName,
+        [property: DataMember(Order = 2)] SourceGeneratorIdentity Generator,
+        [property: DataMember(Order = 3)] string FilePath)
         : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
     {
         public bool ShouldReuseInSerialization => true;
