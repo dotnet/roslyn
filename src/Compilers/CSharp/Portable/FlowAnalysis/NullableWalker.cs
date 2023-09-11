@@ -5815,7 +5815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     VisitExpressionWithoutStackGuardEpilogue(receiver); // VisitExpressionWithoutStackGuard does this after visiting each node
 
-                    // Only instance receivers go through VisitRvalue; arguments go through Visit.
+                    // Only instance receivers go through VisitRvalue; arguments go through VisitArgumentEvaluate.
                     if (node.ReceiverOpt is not null)
                     {
                         VisitRvalueEpilogue(receiver); // VisitRvalue does this after visiting each node
