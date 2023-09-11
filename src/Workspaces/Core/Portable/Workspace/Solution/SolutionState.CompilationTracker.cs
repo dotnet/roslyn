@@ -865,8 +865,6 @@ namespace Microsoft.CodeAnalysis
                 ISourceGeneratorTelemetryCollectorWorkspaceService? telemetryCollector,
                 CancellationToken cancellationToken)
             {
-                using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
-
                 // We have at least one source generator. If we don't already have a generator driver, we'll have to
                 // create one from scratch
                 if (generatorInfo.Driver == null)
@@ -940,6 +938,7 @@ namespace Microsoft.CodeAnalysis
                         compilationWithStaleGeneratedTrees = null;
                 }
 
+                using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
                 foreach (var generatorResult in runResult.Results)
                 {
                     if (IsGeneratorRunResultToIgnore(generatorResult))
