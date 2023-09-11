@@ -11,6 +11,10 @@
       <Sha>01850f2b7bff23e118d1faecb941d770c8e626f2</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
+    <Dependency Name="System.CommandLine" Version="2.0.0-beta4.23307.1">
+      <Uri>https://github.com/dotnet/command-line-api</Uri>
+      <Sha>02fe27cd6a9b001c8feb7938e6ef4b3799745759</Sha>
+    </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
     <Dependency Name="System.IO.Pipelines" Version="7.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
