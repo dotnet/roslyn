@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Emit
             replaceSymbols = lazyReplaceSymbolsBuilder ?? SpecializedCollections.EmptySet<ISymbol>();
 
             deletedMembers = lazyDeletedMembersBuilder?.ToImmutableDictionary(
-                keySelector: static e => e.Key, 
+                keySelector: static e => e.Key,
                 elementSelector: static e => e.Value.ToImmutableAndFree()) ?? ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>>.Empty;
         }
 
