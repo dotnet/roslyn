@@ -9,33 +9,90 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal readonly struct FileIdentifier
+internal struct FileIdentifier
 {
     private static readonly Encoding s_encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-    public string? EncoderFallbackErrorMessage { get; init; }
-    public ImmutableArray<byte> FilePathChecksumOpt { get; init; }
-    public string DisplayFilePath { get; init; }
+    private string? _filePath;
+
+    private string? _encoderFallbackErrorMessage;
+    private string? _displayFilePath;
+    private ImmutableArray<byte> _filePathChecksumOpt;
+
+    private FileIdentifier(string filePath)
+    {
+        _filePath = filePath;
+    }
+
+    private FileIdentifier(ImmutableArray<byte> filePathChecksumOpt, string displayFilePath)
+    {
+        _filePathChecksumOpt = filePathChecksumOpt;
+        _displayFilePath = displayFilePath;
+    }
+
+    private void EnsureInitialized()
+    {
+        if (_filePath is not null)
+        {
+            string? encoderFallbackErrorMessage = null;
+            ImmutableArray<byte> hash = default;
+            try
+            {
+                var encodedFilePath = s_encoding.GetBytes(_filePath);
+                using var hashAlgorithm = SourceHashAlgorithms.CreateDefaultInstance();
+                hash = hashAlgorithm.ComputeHash(encodedFilePath).ToImmutableArray();
+            }
+            catch (EncoderFallbackException ex)
+            {
+                encoderFallbackErrorMessage = ex.Message;
+            }
+
+            var displayFilePath = GeneratedNames.GetDisplayFilePath(_filePath);
+
+            _encoderFallbackErrorMessage = encoderFallbackErrorMessage;
+            _filePathChecksumOpt = hash;
+            _displayFilePath = displayFilePath;
+
+            _filePath = null;
+        }
+    }
+
+    public string DisplayFilePath
+    {
+        get
+        {
+            EnsureInitialized();
+
+            return _displayFilePath!;
+        }
+    }
+
+    public string? EncoderFallbackErrorMessage
+    {
+        get
+        {
+            EnsureInitialized();
+
+            return _encoderFallbackErrorMessage;
+        }
+    }
+
+    public ImmutableArray<byte> FilePathChecksumOpt
+    {
+        get
+        {
+            EnsureInitialized();
+
+            return _filePathChecksumOpt;
+        }
+    }
 
     public static FileIdentifier Create(SyntaxTree tree)
         => Create(tree.FilePath);
 
     public static FileIdentifier Create(string filePath)
-    {
-        string? encoderFallbackErrorMessage = null;
-        ImmutableArray<byte> hash = default;
-        try
-        {
-            var encodedFilePath = s_encoding.GetBytes(filePath);
-            using var hashAlgorithm = SourceHashAlgorithms.CreateDefaultInstance();
-            hash = hashAlgorithm.ComputeHash(encodedFilePath).ToImmutableArray();
-        }
-        catch (EncoderFallbackException ex)
-        {
-            encoderFallbackErrorMessage = ex.Message;
-        }
+        => new FileIdentifier(filePath);
 
-        var displayFilePath = GeneratedNames.GetDisplayFilePath(filePath);
-        return new FileIdentifier { EncoderFallbackErrorMessage = encoderFallbackErrorMessage, FilePathChecksumOpt = hash, DisplayFilePath = displayFilePath };
-    }
+    public static FileIdentifier Create(ImmutableArray<byte> filePathChecksumOpt, string displayFilePath)
+        => new FileIdentifier(filePathChecksumOpt, displayFilePath);
 }
