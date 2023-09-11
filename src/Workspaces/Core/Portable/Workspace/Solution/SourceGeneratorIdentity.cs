@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     /// you'll simply get duplicate outputs which might collide and cause compile errors. If https://github.com/dotnet/roslyn/issues/56619
     /// is addressed, we can potentially match the compiler behavior by taking a different approach here.
     /// </remarks>
-    internal record struct SourceGeneratorIdentity
+    internal readonly record struct SourceGeneratorIdentity
     {
         public required string AssemblyName { get; init; }
         public required string? AssemblyPath { get; init; }

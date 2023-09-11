@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -11,7 +13,10 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class SourceGeneratedDocumentState : DocumentState
     {
+        private readonly AsyncLazy<Checksum> _lazyTextChecksum;
+
         public SourceGeneratedDocumentIdentity Identity { get; }
+
         public string HintName => Identity.HintName;
 
         public static SourceGeneratedDocumentState Create(
@@ -60,18 +65,26 @@ namespace Microsoft.CodeAnalysis
             : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
         {
             Identity = documentIdentity;
+            _lazyTextChecksum = AsyncLazy.Create(async cancellationToken =>
+            {
+                var text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return Checksum.From(text.GetChecksum());
+            });
         }
 
         // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
         public new ParseOptions ParseOptions => base.ParseOptions!;
+
+        public Task<Checksum> GetTextChecksumAsync(CancellationToken cancellationToken)
+            => _lazyTextChecksum.GetValueAsync(cancellationToken);
 
         protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
             => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
 
         public SourceGeneratedDocumentState WithUpdatedGeneratedContent(SourceText sourceText, ParseOptions parseOptions)
         {
-            if (TryGetText(out var existingText) &&
-                Checksum.From(existingText.GetChecksum()) == Checksum.From(sourceText.GetChecksum()) &&
+            if (_lazyTextChecksum.TryGetValue(out var exitingChecksum) &&
+                exitingChecksum == Checksum.From(sourceText.GetChecksum()) &&
                 ParseOptions.Equals(parseOptions))
             {
                 // We can reuse this instance directly
