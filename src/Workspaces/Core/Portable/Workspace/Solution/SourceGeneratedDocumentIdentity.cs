@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             // a document by DocumentId can find it after some change has happened that requires generators to run again.
             // To achieve this we'll just do a crytographic hash of the generator name and hint name; the choice of a cryptographic hash
             // as opposed to a more generic string hash is we actually want to ensure we don't have collisions.
-            var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
+            var generatorIdentity = SourceGeneratorIdentity.Create(generator, analyzerReference);
 
             // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
             // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
@@ -90,13 +90,11 @@ namespace Microsoft.CodeAnalysis
             return new SourceGeneratedDocumentIdentity(
                 documentId,
                 hintName,
-                new SourceGeneratorIdentity
-                {
-                    AssemblyName = generatorAssemblyName,
-                    AssemblyPath = generatorAssemblyPath,
-                    AssemblyVersion = generatorAssemblyVersion,
-                    TypeName = generatorTypeName
-                },
+                new SourceGeneratorIdentity(
+                    generatorAssemblyName,
+                    generatorAssemblyPath,
+                    generatorAssemblyVersion,
+                    generatorTypeName),
                 filePath);
         }
     }

@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis
 
         public SourceGeneratedDocumentState WithUpdatedGeneratedContent(SourceText sourceText, ParseOptions parseOptions)
         {
-            if (_lazyTextChecksum.TryGetValue(out var exitingChecksum) &&
-                exitingChecksum == Checksum.From(sourceText.GetChecksum()) &&
+            if (this.TryGetText(out var existingText) &&
+                Checksum.From(existingText.GetChecksum()) == Checksum.From(sourceText.GetChecksum()) &&
                 ParseOptions.Equals(parseOptions))
             {
                 // We can reuse this instance directly

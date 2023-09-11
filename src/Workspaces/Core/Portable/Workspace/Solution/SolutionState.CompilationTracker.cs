@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis
                     AnalyzerReference analyzerReference,
                     string hintName)
                 {
-                    var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
+                    var generatorIdentity = SourceGeneratorIdentity.Create(generator, analyzerReference);
 
                     foreach (var (_, state) in states.States)
                     {
