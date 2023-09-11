@@ -210,6 +210,65 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void FeatureFlag_Granular_04()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace global
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_05()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace global.B
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global.A"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);global.B</InterceptorsPreviewNamespaces>' to your project.
+            //         [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);global.B</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+    }
+
+    [Fact]
     public void SelfInterception()
     {
         var source = """
