@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Classification
             StructName,
             RecordStructName,
             TypeParameterName,
-            PreprocessingName,
             FieldName,
             EnumMemberName,
             ConstantName,
@@ -127,8 +126,6 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string StructName = "struct name";
         public const string RecordStructName = "record struct name";
         public const string TypeParameterName = "type parameter name";
-        // NOTE: This is internal until the classification type is formally supported
-        internal const string PreprocessingName = "preprocessing name";
 
         internal const string TestCode = "roslyn test code";
         internal const string TestCodeMarkdown = "roslyn test code markdown";

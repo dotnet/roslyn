@@ -47,10 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.TypeParameterName);
 
         [DebuggerStepThrough]
-        public static FormattedClassification Preprocessing(string text)
-            => New(text, ClassificationTypeNames.PreprocessingName);
-
-        [DebuggerStepThrough]
         public static FormattedClassification Namespace(string text)
             => New(text, ClassificationTypeNames.NamespaceName);
 

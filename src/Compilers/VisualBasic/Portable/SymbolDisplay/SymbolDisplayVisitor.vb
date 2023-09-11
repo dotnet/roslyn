@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overrides Sub VisitPreprocessing(symbol As IPreprocessingSymbol)
-            Dim part = New SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, symbol, symbol.Name)
+            Dim part = New SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol, symbol.Name)
             builder.Add(part)
         End Sub
 

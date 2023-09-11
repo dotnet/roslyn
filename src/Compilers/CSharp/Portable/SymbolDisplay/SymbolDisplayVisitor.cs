@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void VisitPreprocessing(IPreprocessingSymbol symbol)
         {
-            var part = new SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, symbol, symbol.Name);
+            var part = new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol, symbol.Name);
             builder.Add(part);
         }
 

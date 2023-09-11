@@ -239,9 +239,6 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.RecordStruct:
                     return ClassificationTypeNames.RecordStructName;
 
-                case TextTags.Preprocessing:
-                    return ClassificationTypeNames.PreprocessingName;
-
                 case TextTags.ContainerStart:
                 case TextTags.ContainerEnd:
                 case TextTags.CodeBlockStart:

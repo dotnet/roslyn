@@ -57,5 +57,4 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInlineArrayAcces
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInlineArrayAccess(Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.SyntaxContextReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
 virtual Microsoft.CodeAnalysis.SyntaxReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxReceiver!
-Microsoft.CodeAnalysis.SymbolDisplayPartKind.PreprocessingName = 33 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.Compilation.CreatePreprocessingSymbol(string! name) -> Microsoft.CodeAnalysis.IPreprocessingSymbol!
