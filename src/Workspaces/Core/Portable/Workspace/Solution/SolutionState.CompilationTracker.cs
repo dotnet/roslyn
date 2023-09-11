@@ -700,10 +700,10 @@ namespace Microsoft.CodeAnalysis
             /// match the states included in <paramref name="generatorInfo"/>. If a generator run here produces
             /// the same set of generated documents as are in <paramref name="generatorInfo"/>, and we don't need to make any other
             /// changes to references, we can then use this compilation instead of re-adding source generated files again to the
-            /// <paramref name="compilationWithoutGenerators"/>.</param>
+            /// <paramref name="compilationWithoutGeneratedFiles"/>.</param>
             private async Task<CompilationInfo> FinalizeCompilationAsync(
                 SolutionState solution,
-                Compilation compilationWithoutGenerators,
+                Compilation compilationWithoutGeneratedFiles,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis
                     //     For the latter, we use a heuristic if the underlying compilation defines "System.Object" type.
                     var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation &&
                         (this.ProjectState.MetadataReferences.Count > 0 ||
-                         compilationWithoutGenerators.GetTypeByMetadataName("System.Object") != null);
+                         compilationWithoutGeneratedFiles.GetTypeByMetadataName("System.Object") != null);
 
                     var newReferences = new List<MetadataReference>();
                     var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
@@ -742,10 +742,10 @@ namespace Microsoft.CodeAnalysis
                                 var previousSubmissionCompilation =
                                     await solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
 
-                                if (compilationWithoutGenerators.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
+                                if (compilationWithoutGeneratedFiles.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
                                 {
-                                    compilationWithoutGenerators = compilationWithoutGenerators.WithScriptCompilationInfo(
-                                        compilationWithoutGenerators.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+                                    compilationWithoutGeneratedFiles = compilationWithoutGeneratedFiles.WithScriptCompilationInfo(
+                                        compilationWithoutGeneratedFiles.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
 
                                     compilationWithStaleGeneratedTrees = compilationWithStaleGeneratedTrees?.WithScriptCompilationInfo(
                                         compilationWithStaleGeneratedTrees.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
@@ -775,14 +775,14 @@ namespace Microsoft.CodeAnalysis
                     // that doesn't have generated files, and the one we're trying to reuse that has generated files.
                     // Since we updated both of these compilations together in response to edits, we only have to check one
                     // for a potential mismatch.
-                    if (!Enumerable.SequenceEqual(compilationWithoutGenerators.ExternalReferences, newReferences))
+                    if (!Enumerable.SequenceEqual(compilationWithoutGeneratedFiles.ExternalReferences, newReferences))
                     {
-                        compilationWithoutGenerators = compilationWithoutGenerators.WithReferences(newReferences);
+                        compilationWithoutGeneratedFiles = compilationWithoutGeneratedFiles.WithReferences(newReferences);
                         compilationWithStaleGeneratedTrees = compilationWithStaleGeneratedTrees?.WithReferences(newReferences);
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    Compilation compilationWithGenerators;
+                    Compilation compilationWithGeneratedFiles;
 
                     if (generatorInfo.DocumentsAreFinal)
                     {
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis
                         // This could happen if the trees were strongly held, but the compilation was entirely garbage collected.
                         // Just add in the trees we already have. We don't want to rerun since the consumer of this Solution
                         // snapshot has already seen the trees and thus needs to ensure identity of them.
-                        compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
+                        compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
                             await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
                     }
                     else
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis
                                 }
                             }
 
-                            var compilationToRunGeneratorsOn = compilationWithoutGenerators.RemoveSyntaxTrees(treesToRemove);
+                            var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
                             // END HACK HACK HACK HACK.
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
@@ -936,31 +936,31 @@ namespace Microsoft.CodeAnalysis
                         // If we didn't null out this compilation, it means we can actually use it
                         if (compilationWithStaleGeneratedTrees != null)
                         {
-                            compilationWithGenerators = compilationWithStaleGeneratedTrees;
+                            compilationWithGeneratedFiles = compilationWithStaleGeneratedTrees;
                             generatorInfo = generatorInfo.WithDocumentsAreFinal(true);
                         }
                         else
                         {
                             // We produced new documents, so time to create new state for it
                             var generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
-                            compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
+                            compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
                                 await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
                             generatorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorInfo.Driver, documentsAreFinal: true);
                         }
                     }
 
                     var finalState = FinalState.Create(
-                        compilationWithGenerators,
-                        compilationWithoutGenerators,
+                        compilationWithGeneratedFiles,
+                        compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
                         generatorInfo,
-                        compilationWithGenerators,
+                        compilationWithGeneratedFiles,
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
                     this.WriteState(finalState);
 
-                    return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatorInfo);
+                    return new CompilationInfo(compilationWithGeneratedFiles, hasSuccessfullyLoaded, generatorInfo);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
