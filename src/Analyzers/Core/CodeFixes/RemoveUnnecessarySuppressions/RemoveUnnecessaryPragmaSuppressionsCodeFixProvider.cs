@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         {
             var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-
             foreach (var diagnostic in context.Diagnostics)
             {
                 // Defensive check that we are operating on the diagnostic on a pragma.

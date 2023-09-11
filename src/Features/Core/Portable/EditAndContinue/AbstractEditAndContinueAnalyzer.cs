@@ -12,16 +12,16 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -2452,7 +2452,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // { new type -> constructor update }
             PooledDictionary<INamedTypeSymbol, MemberInitializationUpdates>? instanceConstructorEdits = null;
             PooledDictionary<INamedTypeSymbol, MemberInitializationUpdates>? staticConstructorEdits = null;
-            
+
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var processedSymbols);
             using var _2 = ArrayBuilder<SemanticEditInfo>.GetInstance(out var semanticEdits);
             using var _3 = PooledDictionary<ISymbol, SymbolKey>.GetInstance(out var symbolKeyCache);
@@ -2944,7 +2944,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 Contract.ThrowIfNull(newSymbol);
 
                                 if (oldSymbol is IParameterSymbol &&
-                                    !IsMemberOrDelegateReplaced(oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol) && 
+                                    !IsMemberOrDelegateReplaced(oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol) &&
                                     !capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
                                 {
                                     diagnosticContext.Report(RudeEditKind.RenamingNotSupportedByRuntime, cancellationToken);
@@ -3243,7 +3243,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
 
                         Func<SyntaxNode, SyntaxNode?>? syntaxMap = null;
-                        
+
                         // only trivia changed:
                         Contract.ThrowIfNull(newBody);
                         Debug.Assert(IsConstructorWithMemberInitializers(oldSymbol, cancellationToken) == IsConstructorWithMemberInitializers(newSymbol, cancellationToken));
@@ -3685,7 +3685,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 case IPropertySymbol oldPropertySymbol:
                     // Properties may be overloaded on signature.
-                    
+
                     // delete the property and its accessors
                     AddDelete(oldPropertySymbol);
                     AddDelete(oldPropertySymbol.GetMethod);
@@ -4349,7 +4349,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 AddSemanticEditsOriginatingFromParameterUpdate(semanticEdits, oldParameter, newParameter, diagnosticContext.NewModel.Compilation, cancellationToken);
 
                 // Attributes applied on parameters of a delegate are applied to both Invoke and BeginInvoke methods. So are the parameter names.
-                if ((hasSymbolAttributeChange || oldParameter.Name != newParameter.Name) && 
+                if ((hasSymbolAttributeChange || oldParameter.Name != newParameter.Name) &&
                     newParameter.ContainingType is INamedTypeSymbol { TypeKind: TypeKind.Delegate } newContainingDelegateType)
                 {
                     AddDelegateMethodEdit(semanticEdits, newContainingDelegateType, "Invoke", cancellationToken);
@@ -6605,7 +6605,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
-#endregion
+        #endregion
 
         #region Helpers
 
