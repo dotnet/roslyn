@@ -841,15 +841,21 @@ namespace Microsoft.CodeAnalysis
                     // Will reuse the generator info since we're reusing all the trees from within it.
                     return (compilationWithGeneratedFiles, generatorInfo);
                 }
-                else
+
+                if (!this.ProjectState.SourceGenerators.Any())
                 {
-                    return await ComputeNewGeneratorInfoAsync(
-                        compilationWithoutGeneratedFiles,
-                        generatorInfo,
-                        compilationWithStaleGeneratedTrees,
-                        telemetryCollector,
-                        cancellationToken).ConfigureAwait(false);
+                    // We don't have any source generators.  Trivially bail out.
+                    var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles;
+                    return (compilationWithGeneratedFiles, new CompilationTrackerGeneratorInfo(
+                        TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorInfo.Driver, documentsAreFinal: true));
                 }
+
+                return await ComputeNewGeneratorInfoAsync(
+                    compilationWithoutGeneratedFiles,
+                    generatorInfo,
+                    compilationWithStaleGeneratedTrees,
+                    telemetryCollector,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoAsync(
@@ -861,135 +867,127 @@ namespace Microsoft.CodeAnalysis
             {
                 using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
 
-                if (!ProjectState.SourceGenerators.Any())
+                // We have at least one source generator. If we don't already have a generator driver, we'll have to
+                // create one from scratch
+                if (generatorInfo.Driver == null)
                 {
-                    // We don't have any generators, so if we have a compilation from a previous run with generated files, we definitely can't use it anymore
-                    compilationWithStaleGeneratedTrees = null;
+                    var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
+                    var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+
+                    generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
+                        this.ProjectState.ParseOptions!,
+                        ProjectState.SourceGenerators.ToImmutableArray(),
+                        this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
+                        additionalTexts));
                 }
                 else
                 {
-                    // We have at least one source generator. If we don't already have a generator driver, we'll have to
-                    // create one from scratch
-                    if (generatorInfo.Driver == null)
-                    {
-                        var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
-                        var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
-
-                        generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
-                            this.ProjectState.ParseOptions!,
-                            ProjectState.SourceGenerators.ToImmutableArray(),
-                            this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
-                            additionalTexts));
-                    }
-                    else
-                    {
 #if DEBUG
 
-                        // Assert that the generator driver is in sync with our additional document states; there's not a public
-                        // API to get this, but we'll reflect in DEBUG-only.
-                        var driverType = generatorInfo.Driver.GetType();
-                        var stateMember = driverType.GetField("_state", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                        Contract.ThrowIfNull(stateMember);
-                        var additionalTextsMember = stateMember.FieldType.GetField("AdditionalTexts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                        Contract.ThrowIfNull(additionalTextsMember);
-                        var state = stateMember.GetValue(generatorInfo.Driver);
-                        var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
+                    // Assert that the generator driver is in sync with our additional document states; there's not a public
+                    // API to get this, but we'll reflect in DEBUG-only.
+                    var driverType = generatorInfo.Driver.GetType();
+                    var stateMember = driverType.GetField("_state", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    Contract.ThrowIfNull(stateMember);
+                    var additionalTextsMember = stateMember.FieldType.GetField("AdditionalTexts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    Contract.ThrowIfNull(additionalTextsMember);
+                    var state = stateMember.GetValue(generatorInfo.Driver);
+                    var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
 
-                        Contract.ThrowIfFalse(additionalTexts.Length == this.ProjectState.AdditionalDocumentStates.Count);
+                    Contract.ThrowIfFalse(additionalTexts.Length == this.ProjectState.AdditionalDocumentStates.Count);
 
 #endif
-                    }
+                }
 
-                    Contract.ThrowIfNull(generatorInfo.Driver);
+                Contract.ThrowIfNull(generatorInfo.Driver);
 
-                    // HACK HACK HACK HACK to address https://github.com/dotnet/roslyn/issues/59818. There, we were running into issues where
-                    // a generator being present and consuming syntax was causing all red nodes to be processed. This was problematic when
-                    // Razor design time files are also fed in, since those files tend to be quite large. The Razor design time files
-                    // aren't produced via a generator, but rather via our legacy IDynamicFileInfo mechanism, so it's also a bit strange
-                    // we'd even give them to other generators since that doesn't match the real compiler anyways. This simply removes
-                    // all of those trees in an effort to speed things up, and also ensure the design time compilations are a bit more accurate.
-                    using var _ = ArrayBuilder<SyntaxTree>.GetInstance(out var treesToRemove);
+                // HACK HACK HACK HACK to address https://github.com/dotnet/roslyn/issues/59818. There, we were running into issues where
+                // a generator being present and consuming syntax was causing all red nodes to be processed. This was problematic when
+                // Razor design time files are also fed in, since those files tend to be quite large. The Razor design time files
+                // aren't produced via a generator, but rather via our legacy IDynamicFileInfo mechanism, so it's also a bit strange
+                // we'd even give them to other generators since that doesn't match the real compiler anyways. This simply removes
+                // all of those trees in an effort to speed things up, and also ensure the design time compilations are a bit more accurate.
+                using var _ = ArrayBuilder<SyntaxTree>.GetInstance(out var treesToRemove);
 
-                    foreach (var documentState in ProjectState.DocumentStates.States)
+                foreach (var documentState in ProjectState.DocumentStates.States)
+                {
+                    // This matches the logic in CompileTimeSolutionProvider for which documents are removed when we're
+                    // activating the generator.
+                    if (documentState.Value.Attributes.DesignTimeOnly)
+                        treesToRemove.Add(await documentState.Value.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                }
+
+                var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
+                // END HACK HACK HACK HACK.
+
+                generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
+                Contract.ThrowIfNull(generatorInfo.Driver);
+
+                var runResult = generatorInfo.Driver.GetRunResult();
+                telemetryCollector?.CollectRunResult(runResult, generatorInfo.Driver.GetTimingInfo(), ProjectState);
+
+                // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
+                // to compilationWithStaleGeneratedTrees if we at any point realize it can't be used. We'll first check the count of trees
+                // if that changed then we absolutely can't reuse it. But if the counts match, we'll then see if each generated tree
+                // content is identical to the prior generation run; if we find a match each time, then the set of the generated trees
+                // and the prior generated trees are identical.
+                if (compilationWithStaleGeneratedTrees != null)
+                {
+                    var generatedTreeCount =
+                        runResult.Results.Sum(r => IsGeneratorRunResultToIgnore(r) ? 0 : r.GeneratedSources.Length);
+
+                    if (generatorInfo.Documents.Count != generatedTreeCount)
+                        compilationWithStaleGeneratedTrees = null;
+                }
+
+                foreach (var generatorResult in runResult.Results)
+                {
+                    if (IsGeneratorRunResultToIgnore(generatorResult))
+                        continue;
+
+                    var generatorAnalyzerReference = this.ProjectState.GetAnalyzerReferenceForGenerator(generatorResult.Generator);
+
+                    foreach (var generatedSource in generatorResult.GeneratedSources)
                     {
-                        // This matches the logic in CompileTimeSolutionProvider for which documents are removed when we're
-                        // activating the generator.
-                        if (documentState.Value.Attributes.DesignTimeOnly)
-                            treesToRemove.Add(await documentState.Value.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                    }
+                        var existing = FindExistingGeneratedDocumentState(
+                            generatorInfo.Documents,
+                            generatorResult.Generator,
+                            generatorAnalyzerReference,
+                            generatedSource.HintName);
 
-                    var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
-                    // END HACK HACK HACK HACK.
-
-                    generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
-                    Contract.ThrowIfNull(generatorInfo.Driver);
-
-                    var runResult = generatorInfo.Driver.GetRunResult();
-                    telemetryCollector?.CollectRunResult(runResult, generatorInfo.Driver.GetTimingInfo(), ProjectState);
-
-                    // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
-                    // to compilationWithStaleGeneratedTrees if we at any point realize it can't be used. We'll first check the count of trees
-                    // if that changed then we absolutely can't reuse it. But if the counts match, we'll then see if each generated tree
-                    // content is identical to the prior generation run; if we find a match each time, then the set of the generated trees
-                    // and the prior generated trees are identical.
-                    if (compilationWithStaleGeneratedTrees != null)
-                    {
-                        var generatedTreeCount =
-                            runResult.Results.Sum(r => IsGeneratorRunResultToIgnore(r) ? 0 : r.GeneratedSources.Length);
-
-                        if (generatorInfo.Documents.Count != generatedTreeCount)
-                            compilationWithStaleGeneratedTrees = null;
-                    }
-
-                    foreach (var generatorResult in runResult.Results)
-                    {
-                        if (IsGeneratorRunResultToIgnore(generatorResult))
-                            continue;
-
-                        var generatorAnalyzerReference = this.ProjectState.GetAnalyzerReferenceForGenerator(generatorResult.Generator);
-
-                        foreach (var generatedSource in generatorResult.GeneratedSources)
+                        if (existing != null)
                         {
-                            var existing = FindExistingGeneratedDocumentState(
-                                generatorInfo.Documents,
-                                generatorResult.Generator,
-                                generatorAnalyzerReference,
-                                generatedSource.HintName);
+                            var newDocument = existing.WithUpdatedGeneratedContent(
+                                generatedSource.SourceText,
+                                this.ProjectState.ParseOptions!);
 
-                            if (existing != null)
-                            {
-                                var newDocument = existing.WithUpdatedGeneratedContent(
-                                    generatedSource.SourceText,
-                                    this.ProjectState.ParseOptions!);
+                            generatedDocumentsBuilder.Add(newDocument);
 
-                                generatedDocumentsBuilder.Add(newDocument);
-
-                                if (newDocument != existing)
-                                    compilationWithStaleGeneratedTrees = null;
-                            }
-                            else
-                            {
-                                // NOTE: the use of generatedSource.SyntaxTree to fetch the path and options is OK,
-                                // since the tree is a lazy tree and that won't trigger the parse.
-                                var identity = SourceGeneratedDocumentIdentity.Generate(
-                                    ProjectState.Id,
-                                    generatedSource.HintName,
-                                    generatorResult.Generator,
-                                    generatedSource.SyntaxTree.FilePath,
-                                    generatorAnalyzerReference);
-
-                                generatedDocumentsBuilder.Add(
-                                    SourceGeneratedDocumentState.Create(
-                                        identity,
-                                        generatedSource.SourceText,
-                                        generatedSource.SyntaxTree.Options,
-                                        ProjectState.LanguageServices));
-
-                                // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
-                                // was added, and an equal number must have been removed. Rather than trying to incrementally update
-                                // this compilation, we'll just toss this and re-add all the trees.
+                            if (newDocument != existing)
                                 compilationWithStaleGeneratedTrees = null;
-                            }
+                        }
+                        else
+                        {
+                            // NOTE: the use of generatedSource.SyntaxTree to fetch the path and options is OK,
+                            // since the tree is a lazy tree and that won't trigger the parse.
+                            var identity = SourceGeneratedDocumentIdentity.Generate(
+                                ProjectState.Id,
+                                generatedSource.HintName,
+                                generatorResult.Generator,
+                                generatedSource.SyntaxTree.FilePath,
+                                generatorAnalyzerReference);
+
+                            generatedDocumentsBuilder.Add(
+                                SourceGeneratedDocumentState.Create(
+                                    identity,
+                                    generatedSource.SourceText,
+                                    generatedSource.SyntaxTree.Options,
+                                    ProjectState.LanguageServices));
+
+                            // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
+                            // was added, and an equal number must have been removed. Rather than trying to incrementally update
+                            // this compilation, we'll just toss this and re-add all the trees.
+                            compilationWithStaleGeneratedTrees = null;
                         }
                     }
                 }
