@@ -608,6 +608,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreParametersEqual(parameter As ParameterSymbol, other As ParameterSymbol) As Boolean
                 Debug.Assert(parameter.Ordinal = other.Ordinal)
+
+                ' allow a different ref-kind as long as the runtime time is the same:
                 Return parameter.IsByRef = other.IsByRef AndAlso Me._comparer.Equals(parameter.Type, other.Type)
             End Function
 

@@ -590,6 +590,56 @@ class Bad : Bad
                 Handle(3, TableIndex.StandAloneSig));
         }
 
+        [Theory]
+        [InlineData("in")]
+        [InlineData("out")]
+        [InlineData("ref readonly")]
+        public void ModifyMethod_ParameterModifiers_RefOut(string newModifier)
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    class C
+                    {
+                        public int F(ref int x) => x = 1;
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: $$"""
+                    class C
+                    {
+                       public int F({{newModifier}} int x) => x = 1;
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.StandAloneSig)
+                        });
+                    })
+                .Verify();
+        }
+
         [CompilerTrait(CompilerFeature.Tuples)]
         [Fact]
         public void ModifyMethod_WithTuples()

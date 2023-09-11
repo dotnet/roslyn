@@ -240,6 +240,52 @@ End Class
             End Using
         End Sub
 
+        <Fact>
+        Public Sub ModifyMethod_ParameterModifiers_RefOut()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Public Sub F(ByRef x As Integer)
+        x = 1
+    End Sub
+End Class
+                    ",
+                    validator:=Sub(g)
+                               End Sub).
+                AddGeneration(
+                    source:="
+Imports System.Runtime.InteropServices
+Class C
+    Public Sub F(<Out> ByRef x As Integer)
+        x = 1
+    End Sub
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=Sub(g)
+                                   g.VerifyTypeDefNames()
+                                   g.VerifyMethodDefNames("F")
+
+                                   g.VerifyEncLogDefinitions(
+                                   {
+                                       Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                                   })
+
+                                   g.VerifyEncMapDefinitions(
+                                   {
+                                       Handle(2, TableIndex.MethodDef),
+                                       Handle(1, TableIndex.Param)
+                                   })
+                               End Sub).
+                Verify()
+            End Using
+        End Sub
+
         <WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
         <Fact>
         Public Sub PartialMethod()

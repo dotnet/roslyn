@@ -2309,7 +2309,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected static bool ReturnTypesEquivalent(IMethodSymbol oldMethod, IMethodSymbol newMethod, bool exact)
             => oldMethod.ReturnsByRef == newMethod.ReturnsByRef &&
-               oldMethod.ReturnsByRefReadonly == newMethod.ReturnsByRefReadonly &&
+               oldMethod.ReturnsByRefReadonly == newMethod.ReturnsByRefReadonly && // modreq emitted on the return type
                CustomModifiersEquivalent(oldMethod.ReturnTypeCustomModifiers, newMethod.ReturnTypeCustomModifiers, exact) &&
                CustomModifiersEquivalent(oldMethod.RefCustomModifiers, newMethod.RefCustomModifiers, exact) &&
                TypesEquivalent(oldMethod.ReturnType, newMethod.ReturnType, exact);

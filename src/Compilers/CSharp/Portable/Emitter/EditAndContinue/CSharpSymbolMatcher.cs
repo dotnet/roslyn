@@ -871,7 +871,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
             {
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
-                return (parameter.RefKind == other.RefKind) &&
+
+                // allow a different ref-kind as long as the runtime time is the same:
+                return parameter.RefKind is RefKind.None == other.RefKind is RefKind.None &&
                     _comparer.Equals(parameter.Type, other.Type);
             }
 
