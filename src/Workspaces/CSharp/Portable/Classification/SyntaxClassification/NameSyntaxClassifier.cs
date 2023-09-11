@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 TryClassifyFromIdentifier(name, symbolInfo, result) ||
                 TryClassifyValueIdentifier(name, symbolInfo, result) ||
                 TryClassifyNameOfIdentifier(name, symbolInfo, result) ||
-                TryClassifyAsyncIdentifier(name, symbolInfo, result);
+                TryClassifyAsyncIdentifier(name, symbolInfo, result) ||
+                TryClassifyPartialIdentifier(name, symbolInfo, result);
         }
 
         private bool TryClassifySymbol(
@@ -371,6 +372,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // reference an actual symbol with that name.
             if (symbol is null &&
                 name is IdentifierNameSyntax { Identifier.Text: "async" })
+            {
+                result.Add(new(name.Span, ClassificationTypeNames.Keyword));
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryClassifyPartialIdentifier(NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
+        {
+            if (symbolInfo.GetAnySymbol() is null &&
+                name is IdentifierNameSyntax { Identifier.Text: "partial" })
             {
                 result.Add(new(name.Span, ClassificationTypeNames.Keyword));
                 return true;
