@@ -204,15 +204,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitListInterfaceCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+            Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(node.Type is NamedTypeSymbol);
 
+            var syntax = node.Syntax;
             var collectionType = (NamedTypeSymbol)node.Type;
             BoundExpression arrayOrList;
 
             // Use Array.Empty<T>() rather than List<T> for an empty collection expression when
             // the target type is IEnumerable<T>, IReadOnlyCollection<T>, or IReadOnlyList<T>.
-            if (node.Elements.Length == 0 &&
-                collectionType is
+            if (collectionType is
                 {
                     OriginalDefinition.SpecialType:
                         SpecialType.System_Collections_Generic_IEnumerable_T or
@@ -221,7 +223,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var elementType]
                 })
             {
-                arrayOrList = CreateEmptyArray(node.Syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
+                var elements = node.Elements;
+                int? lengthOpt = node.GetKnownLength(out _);
+
+                if (lengthOpt == 0)
+                {
+                    // arrayOrList = Array.Empty<ElementType>();
+                    arrayOrList = CreateEmptyArray(syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
+                }
+                else
+                {
+                    var typeArgs = ImmutableArray.Create(elementType);
+                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, hasKnownLength: lengthOpt.HasValue, _diagnostics.DiagnosticBag).Construct(typeArgs);
+                    if (synthesizedType.IsErrorType())
+                    {
+                        return BadExpression(node);
+                    }
+
+                    BoundExpression fieldValue;
+                    if (lengthOpt.HasValue)
+                    {
+                        // fieldValue = new ElementType[] { e1, ..., eN };
+                        var initialization = new BoundArrayInitialization(
+                            syntax,
+                            isInferred: false,
+                            elements.SelectAsArray(e => VisitExpression(e)));
+                        var arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
+                        fieldValue = new BoundArrayCreation(
+                            syntax,
+                            ImmutableArray.Create<BoundExpression>(
+                                new BoundLiteral(
+                                    syntax,
+                                    ConstantValue.Create(lengthOpt.GetValueOrDefault()),
+                                    _compilation.GetSpecialType(SpecialType.System_Int32))),
+                            initialization,
+                            arrayType);
+                    }
+                    else
+                    {
+                        // fieldValue = new List<ElementType> { e1, ..., eN };
+                        fieldValue = VisitCollectionInitializerCollectionExpression(
+                            node,
+                            _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArgs));
+                    }
+
+                    // arrayOrList = new <>z__ReadOnlyList<ElementType>(fieldValue);
+                    arrayOrList = new BoundObjectCreationExpression(syntax, synthesizedType.Constructors.Single(), fieldValue) { WasCompilerGenerated = true };
+                }
             }
             else
             {

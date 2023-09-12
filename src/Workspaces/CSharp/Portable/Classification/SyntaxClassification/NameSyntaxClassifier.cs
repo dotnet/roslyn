@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     {
         public override void AddClassifications(
             SyntaxNode syntax,
+            TextSpan textSpan,
             SemanticModel semanticModel,
             ClassificationOptions options,
             SegmentedList<ClassifiedSpan> result,

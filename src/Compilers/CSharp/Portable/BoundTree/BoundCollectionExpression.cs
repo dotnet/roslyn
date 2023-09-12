@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundCollectionExpressionBase
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     hasSpreadElements = true;
                     if (spreadElement.LengthOrCount is null)
-                    {
+        {
                         return null;
                     }
                 }

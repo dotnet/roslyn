@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
                 }
             }
-            else if (collectionTypeKind == CollectionExpressionTypeKind.ListInterface ||
+            else if ((collectionTypeKind == CollectionExpressionTypeKind.ListInterface && isListInterfaceThatRequiresList(targetType)) ||
                 node.GetKnownLength(out _) is null)
             {
                 Debug.Assert(elementType is { });
@@ -735,6 +735,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementPlaceholder: elementPlaceholder,
                     iteratorBody: new BoundExpressionStatement(syntax, convertElement) { WasCompilerGenerated = true },
                     lengthOrCount: element.LengthOrCount);
+            }
+
+            static bool isListInterfaceThatRequiresList(TypeSymbol targetType)
+            {
+                return targetType is not
+                {
+                    OriginalDefinition.SpecialType:
+                        SpecialType.System_Collections_Generic_IEnumerable_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyList_T
+                };
             }
         }
 
