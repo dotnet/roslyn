@@ -19,16 +19,8 @@
          prebuilt only for the repo CI build but not full source-build. -->
     <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/7.0*" />
 
-    <!-- The repo has a dependency on this package that shows up as a prebuilt in the repo's CI but in full
-         source-build this will be overridden. -->
-    <UsagePattern IdentityGlob="Microsoft.DiaSymReader/2.0.0" />
-
     <!-- Roslyn's source-build CI builds both NetPrevious and NetCurrent. This 7.0 ref pack shows up as
          prebuilt only for the repo CI build but not full source-build. -->
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0*" />
-
-    <!-- The repo has a dependency on this package that shows up as a prebuilt in the repo's CI but in full
-         source-build this will be overridden. -->
-    <UsagePattern IdentityGlob="System.CommandLine/2.0.0*" />
   </IgnorePatterns>
 </UsageData>
