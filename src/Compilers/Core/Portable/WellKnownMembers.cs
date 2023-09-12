@@ -4076,8 +4076,8 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
 
-                // System_Collections_Generic_IReadOnlyList_T__Item
-                (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
+                // System_Collections_Generic_IReadOnlyList_T__get_Item
+                (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                      // Flags
                 (byte)SpecialType.System_Collections_Generic_IReadOnlyList_T,                                               // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
@@ -4138,8 +4138,8 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Return Type
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
-                // System_Collections_Generic_IList_T__Item
-                (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
+                // System_Collections_Generic_IList_T__get_Item
+                (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                      // Flags
                 (byte)SpecialType.System_Collections_Generic_IList_T,                                                       // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
@@ -4195,8 +4195,8 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                // System_Collections_Generic_List_T__Item
-                (byte)MemberFlags.Property,                                                         // Flags
+                // System_Collections_Generic_List_T__get_Item
+                (byte)MemberFlags.PropertyGet,                                                      // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
@@ -4722,7 +4722,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
                 "Count",                                    // System_Collections_Generic_IReadOnlyCollection_T__Count,
-                "this[]",                                   // System_Collections_Generic_IReadOnlyList_T__Item,
+                "get_Item",                                 // System_Collections_Generic_IReadOnlyList_T__get_Item,
                 "Count",                                    // System_Collections_Generic_ICollection_T__Count,
                 "IsReadOnly",                               // System_Collections_Generic_ICollection_T__IsReadOnly,
                 "Add",                                      // System_Collections_Generic_ICollection_T__Add,
@@ -4730,14 +4730,14 @@ namespace Microsoft.CodeAnalysis
                 "Contains",                                 // System_Collections_Generic_ICollection_T__Contains,
                 "CopyTo",                                   // System_Collections_Generic_ICollection_T__CopyTo,
                 "Remove",                                   // System_Collections_Generic_ICollection_T__Remove,
-                "this[]",                                   // System_Collections_Generic_IList_T__Item,
+                "get_Item",                                 // System_Collections_Generic_IList_T__get_Item,
                 "IndexOf",                                  // System_Collections_Generic_IList_T__IndexOf,
                 "Insert",                                   // System_Collections_Generic_IList_T__Insert,
                 "RemoveAt",                                 // System_Collections_Generic_IList_T__RemoveAt,
                 "Count",                                    // System_Collections_Generic_List_T__Count,
                 "Contains",                                 // System_Collections_Generic_List_T__Contains,
                 "CopyTo",                                   // System_Collections_Generic_List_T__CopyTo,
-                "this[]",                                   // System_Collections_Generic_List_T__Item,
+                "get_Item",                                 // System_Collections_Generic_List_T__get_Item,
                 "IndexOf",                                  // System_Collections_Generic_List_T__IndexOf,
                 "ToArray",                                  // System_Collections_Generic_List_T__ToArray
             };

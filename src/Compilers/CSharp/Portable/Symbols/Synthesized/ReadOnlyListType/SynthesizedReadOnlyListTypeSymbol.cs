@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly WellKnownMember[] s_requiredWellKnownMembers = new[]
         {
             WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count,
-            WellKnownMember.System_Collections_Generic_IReadOnlyList_T__Item,
+            WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item,
             WellKnownMember.System_Collections_Generic_ICollection_T__Count,
             WellKnownMember.System_Collections_Generic_ICollection_T__IsReadOnly,
             WellKnownMember.System_Collections_Generic_ICollection_T__Add,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             WellKnownMember.System_Collections_Generic_ICollection_T__Contains,
             WellKnownMember.System_Collections_Generic_ICollection_T__CopyTo,
             WellKnownMember.System_Collections_Generic_ICollection_T__Remove,
-            WellKnownMember.System_Collections_Generic_IList_T__Item,
+            WellKnownMember.System_Collections_Generic_IList_T__get_Item,
             WellKnownMember.System_Collections_Generic_IList_T__IndexOf,
             WellKnownMember.System_Collections_Generic_IList_T__Insert,
             WellKnownMember.System_Collections_Generic_IList_T__RemoveAt,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             WellKnownMember.System_Collections_Generic_List_T__Count,
             WellKnownMember.System_Collections_Generic_List_T__Contains,
             WellKnownMember.System_Collections_Generic_List_T__CopyTo,
-            WellKnownMember.System_Collections_Generic_List_T__Item,
+            WellKnownMember.System_Collections_Generic_List_T__get_Item,
             WellKnownMember.System_Collections_Generic_List_T__IndexOf,
         };
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
                     this,
-                    ((PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__Item)!).AsMember(iReadOnlyListT),
+                    ((PropertySymbol)((MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item)!).AssociatedSymbol).AsMember(iReadOnlyListT),
                     generateIndexer));
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
                     this,
-                    ((PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IList_T__Item)!).AsMember(iListT),
+                    ((PropertySymbol)((MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IList_T__get_Item)!).AssociatedSymbol).AsMember(iListT),
                     generateIndexer,
                     generateNotSupportedException));
             membersBuilder.Add(
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // return _items[param0];
-                    var listMember = (PropertySymbol)containingType.GetFieldTypeMember(WellKnownMember.System_Collections_Generic_List_T__Item);
+                    var listMember = (PropertySymbol)((MethodSymbol)containingType.GetFieldTypeMember(WellKnownMember.System_Collections_Generic_List_T__get_Item)).AssociatedSymbol;
                     return f.Return(
                         f.Indexer(fieldReference, listMember, parameterReference));
                 }

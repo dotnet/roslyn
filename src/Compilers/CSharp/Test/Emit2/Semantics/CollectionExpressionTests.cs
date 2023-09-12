@@ -6773,7 +6773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count, "System.Collections.Generic.IReadOnlyCollection`1", "Count")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyList_T__Item, "System.Collections.Generic.IReadOnlyList`1", "this[]")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item, "System.Collections.Generic.IReadOnlyList`1", "get_Item")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Count, "System.Collections.Generic.ICollection`1", "Count")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__IsReadOnly, "System.Collections.Generic.ICollection`1", "IsReadOnly")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Add, "System.Collections.Generic.ICollection`1", "Add")]
@@ -6781,7 +6781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Contains, "System.Collections.Generic.ICollection`1", "Contains")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__CopyTo, "System.Collections.Generic.ICollection`1", "CopyTo")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Remove, "System.Collections.Generic.ICollection`1", "Remove")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__Item, "System.Collections.Generic.IList`1", "this[]")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__get_Item, "System.Collections.Generic.IList`1", "get_Item")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__IndexOf, "System.Collections.Generic.IList`1", "IndexOf")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__Insert, "System.Collections.Generic.IList`1", "Insert")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__RemoveAt, "System.Collections.Generic.IList`1", "RemoveAt")]
@@ -6813,7 +6813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__Contains, "System.Collections.Generic.List`1", "Contains")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__CopyTo, "System.Collections.Generic.List`1", "CopyTo")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__Item, "System.Collections.Generic.List`1", "this[]")]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__get_Item, "System.Collections.Generic.List`1", "get_Item")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_List_T__IndexOf, "System.Collections.Generic.List`1", "IndexOf")]
         public void SynthesizedReadOnlyList_MissingWellKnownMembers_UnknownLength(int missingMember, string missingMemberTypeName, string missingMemberName)
         {
