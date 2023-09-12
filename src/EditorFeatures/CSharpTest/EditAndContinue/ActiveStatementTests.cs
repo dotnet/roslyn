@@ -1640,11 +1640,9 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [Theory]
         [InlineData("class")]
         [InlineData("struct")]
-        [InlineData("record")]
-        [InlineData("record struct")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Instance_Primary_ImplicitInitializer_ParameterChange(string keyword)
         {
@@ -1654,9 +1652,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            // TODO: should be rude edit (https://github.com/dotnet/roslyn/issues/68708)
             edits.VerifySemanticDiagnostics(
                 active,
+                diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "(byte P)", GetResource("constructor"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 

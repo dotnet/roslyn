@@ -2943,6 +2943,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 Contract.ThrowIfNull(oldSymbol);
                                 Contract.ThrowIfNull(newSymbol);
 
+                                ReportTypeLayoutUpdateRudeEdits(diagnosticContext, oldSymbol, cancellationToken);
+
                                 if (oldSymbol is IParameterSymbol &&
                                     !IsMemberOrDelegateReplaced(oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol) &&
                                     !capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
@@ -4939,7 +4941,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Type Layout Update Validation 
 
-        internal static void ReportTypeLayoutUpdateRudeEdits(in DiagnosticContext diagnosticContext, ISymbol newSymbol, CancellationToken cancellationToken)
+        internal void ReportTypeLayoutUpdateRudeEdits(in DiagnosticContext diagnosticContext, ISymbol newSymbol, CancellationToken cancellationToken)
         {
             switch (newSymbol.Kind)
             {
@@ -4968,8 +4970,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     break;
+
+                case SymbolKind.Parameter:
+                    // parameter of a primary constructor that's lifted to a field
+                    if (HasBackingField((IParameterSymbol)newSymbol, cancellationToken) &&
+                        HasExplicitOrSequentialLayout(newSymbol.ContainingType, diagnosticContext.NewModel))
+                    {
+                        diagnosticContext.ReportTypeLayoutUpdateRudeEdits(cancellationToken);
+                    }
+
+                    break;
             }
         }
+
+        private bool HasBackingField(IParameterSymbol parameter, CancellationToken cancellationToken)
+            => IsPrimaryConstructor(parameter.ContainingSymbol, cancellationToken) &&
+               parameter.ContainingType.GetMembers($"<{parameter.Name}>P").Any(m => m.Kind == SymbolKind.Field);
 
         private static bool HasBackingField(IEventSymbol @event)
         {

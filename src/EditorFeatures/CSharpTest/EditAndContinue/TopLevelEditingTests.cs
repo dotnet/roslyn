@@ -11512,7 +11512,10 @@ class C(int x)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "b", GetResource("struct"), "b") },
+                [
+                    Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "b", GetResource("struct"), "b"),
+                    Diagnostic(RudeEditKind.InsertIntoStruct, "int b", GetResource("parameter"), GetResource("struct"))
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11814,7 +11817,10 @@ class C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "y", GetResource("class with explicit or sequential layout"), "y"));
+            [
+                Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "y", GetResource("class with explicit or sequential layout"), "y"),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "int y", GetResource("parameter"), GetResource("class"))
+            ]);
         }
 
         [Fact]
@@ -11843,13 +11849,15 @@ class C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "y", GetResource("class with explicit or sequential layout"), "y"));
+            [
+                Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "y", GetResource("class with explicit or sequential layout"), "y"),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "int y", GetResource("parameter"), GetResource("class"))
+            ]);
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [Theory]
         [InlineData("struct")]
         [InlineData("class")]
-        [InlineData("record")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Parameter_Reorder_Primary_NotLifted(string keyword)
         {
@@ -11858,11 +11866,14 @@ class C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")));
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Parameter_Reorder_Primary_NotLifted_Record_Struct()
         {
@@ -11870,37 +11881,70 @@ class C(int x, int y)
             var src2 = "record struct C(byte y, int x) { }";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: type layout changes
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                [Diagnostic(RudeEditKind.InsertIntoStruct, "byte y", GetResource("auto-property"), GetResource("record struct"))],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
-        [InlineData("struct")]
-        [InlineData("record struct")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
-        public void Constructor_Parameter_Reorder_Primary_Lifted_Struct(string keyword)
+        public void Constructor_Parameter_Reorder_Primary_Lifted_Struct()
         {
-            var src1 = keyword + " C(int x, byte y) { int M() => x + y; }";
-            var src2 = keyword + " C(byte y, int x) { int M() => x + y; }";
+            var src1 = "struct C(int x, byte y) { int M() => x + y; }";
+            var src2 = "struct C(byte y, int x) { int M() => x + y; }";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: type layout changes
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                [Diagnostic(RudeEditKind.InsertIntoStruct, "byte y", GetResource("parameter"), GetResource("struct"))],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
-        [InlineData("class")]
-        [InlineData("record")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
-        public void Constructor_Parameter_Reorder_Primary_Lifted_Class(string keyword)
+        public void Constructor_Parameter_Reorder_Primary_Lifted_Class()
         {
-            var src1 = keyword + " C(int x, byte y) { int M() => x + y; }";
-            var src2 = keyword + " C(byte y, int x) { int M() => x + y; }";
+            var src1 = "class C(int x, byte y) { int M() => x + y; }";
+            var src2 = "class C(byte y, int x) { int M() => x + y; }";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
+            [
                 SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")));
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C"))
+            ],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69894")]
+        public void Constructor_Parameter_Reorder_Primary_Lifted_Record()
+        {
+            var src1 = "record C(int x, byte y) { int M() => x + y; }";
+            var src2 = "record C(byte y, int x) { int M() => x + y; }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
+                SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Deconstruct"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Deconstruct")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.x")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_x")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_x")),
+                // TODO: y should also be updated (to update sequence points to the new location)
+                // https://github.com/dotnet/roslyn/issues/69894
+                // SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.y")),
+                // SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_y")),
+                // SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_y")),
+
+            ],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]

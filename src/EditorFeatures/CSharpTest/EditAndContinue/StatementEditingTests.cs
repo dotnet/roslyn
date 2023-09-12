@@ -6047,7 +6047,7 @@ class C
                 Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Lambdas_CapturedParameter_ChangeType()
         {
