@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -25,6 +26,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -319,6 +321,91 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 remoteWorkspace.GetTestAccessor().CreateSolutionFromInfo(solutionInfo), workspaceVersion: 1);
             Assert.True(updated);
             Assert.NotNull(solution);
+        }
+
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgreeOnContents()
+        {
+            using var localWorkspace = CreateWorkspace();
+
+            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
+            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { }, computeSource: () => Guid.NewGuid().ToString());
+
+            var analyzerReference = new TestGeneratorReference(generator);
+            var project = AddEmptyProject(localWorkspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference);
+
+            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+
+            var localProject = localWorkspace.CurrentSolution.Projects.Single();
+            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+
+            // Ensure we already have a compilation created
+            var localCompilation = await localProject.GetCompilationAsync();
+            var remoteCompilation = await remoteProject.GetCompilationAsync();
+
+            var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+            var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+
+            Assert.Equal(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
+            Assert.Equal(1, localGeneratedDocs.Length);
+
+            var localDoc = localGeneratedDocs.Single();
+            var remoteDoc = remoteGeneratedDocs.Single();
+
+            Assert.Equal(localDoc.GetTextSynchronously(default).ToString(), remoteDoc.GetTextSynchronously(default).ToString());
+
+            //project = await MakeChangesToDocument(project);
+
+            //var compilationAfterFirstChange = await project.GetRequiredCompilationAsync(CancellationToken.None);
+
+            //project = await MakeChangesToDocument(project);
+
+            //var compilationAfterSecondChange = await project.GetRequiredCompilationAsync(CancellationToken.None);
+
+            //// When we produced compilationAfterSecondChange, what we would ideally like is that compilation was produced by taking
+            //// compilationAfterFirstChange and simply updating the syntax tree that changed, since the generated documents didn't change.
+            //// That allows the compiler to reuse the same declaration tree for the generated file. This is hard to observe directly, but if we reflect
+            //// into the Compilation we can see if the declaration tree is untouched. We won't look at the original compilation, since
+            //// that original one was produced by adding the generated file as the final step, so it's cache won't be reusable, since the
+            //// compiler separates the "most recently changed tree" in the declaration table for efficiency.
+
+            //var cachedStateAfterFirstChange = GetDeclarationManagerCachedStateForUnchangingTrees(compilationAfterFirstChange);
+            //var cachedStateAfterSecondChange = GetDeclarationManagerCachedStateForUnchangingTrees(compilationAfterSecondChange);
+
+            //Assert.Same(cachedStateAfterFirstChange, cachedStateAfterSecondChange);
+
+            //static object GetDeclarationManagerCachedStateForUnchangingTrees(Compilation compilation)
+            //{
+            //    var syntaxAndDeclarationsManager = compilation.GetFieldValue("_syntaxAndDeclarations");
+            //    var state = syntaxAndDeclarationsManager.GetType().GetMethod("GetLazyState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(syntaxAndDeclarationsManager, null);
+            //    var declarationTable = state.GetFieldValue("DeclarationTable");
+            //    return declarationTable.GetFieldValue("_cache");
+            //}
+
+            //static async Task<Project> MakeChangesToDocument(Project project)
+            //{
+            //    var existingText = await project.Documents.Single().GetTextAsync();
+            //    var newText = existingText.WithChanges(new TextChange(new TextSpan(existingText.Length, length: 0), " With Change"));
+            //    project = project.Documents.Single().WithText(newText).Project;
+            //    return project;
+            //}
+        }
+
+        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp, string name = "TestProject")
+        {
+            var id = ProjectId.CreateNewId();
+            return solution.AddProject(
+                ProjectInfo.Create(
+                    id,
+                    VersionStamp.Default,
+                    name: name,
+                    assemblyName: name,
+                    language: languageName)).GetRequiredProject(id);
         }
 
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(
