@@ -692,7 +692,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         wasCompilerGenerated: true,
                         destination: elementType,
                         diagnostics);
-                    convertedElement.WasCompilerGenerated = true;
                     builder.Add(convertedElement!);
                 }
             }

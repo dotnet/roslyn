@@ -6798,6 +6798,163 @@ partial class Program
         }
 
         [Fact]
+        public void NestedCollection_SemanticModel()
+        {
+            string src = """
+Program.M().Report();
+
+partial class Program
+{
+    static int[][] M()
+    {
+        return [[1], [2]];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1], [2]],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       33 (0x21)
+  .maxstack  7
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     "int[]"
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newarr     "int"
+  IL_000e:  dup
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  stelem.i4
+  IL_0012:  stelem.ref
+  IL_0013:  dup
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  newarr     "int"
+  IL_001b:  dup
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldc.i4.2
+  IL_001e:  stelem.i4
+  IL_001f:  stelem.ref
+  IL_0020:  ret
+}
+""");
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var nestedCollection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Last();
+            Assert.Equal("[2]", nestedCollection.ToFullString());
+
+            var conversion = model.GetConversion(nestedCollection);
+            Assert.True(conversion.IsValid);
+            Assert.False(conversion.IsIdentity);
+            Assert.True(conversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(nestedCollection);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Int32[]", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NestedCollection_Nullable_SemanticModel()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<MyCollection<int>?> M()
+    {
+        return [[1], [2]];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            // TODO2
+            // ILVerify failure:
+            //[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1], [2]],"), verify: Verification.Fails);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       88 (0x58)
+  .maxstack  2
+  .locals init (<>y__InlineArray2<MyCollection<int>?> V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "<>y__InlineArray2<MyCollection<int>?>"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(ref <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_0010:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA4504"
+  IL_0015:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_001a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_001f:  newobj     "MyCollection<int>?..ctor(MyCollection<int>)"
+  IL_0024:  stobj      "MyCollection<int>?"
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       "InlineArrayElementRef<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(ref <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_0031:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE4"
+  IL_0036:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_003b:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_0040:  newobj     "MyCollection<int>?..ctor(MyCollection<int>)"
+  IL_0045:  stobj      "MyCollection<int>?"
+  IL_004a:  ldloca.s   V_0
+  IL_004c:  ldc.i4.2
+  IL_004d:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(in <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_0052:  call       "MyCollection<MyCollection<int>?> MyCollectionBuilder.Create<MyCollection<int>?>(System.ReadOnlySpan<MyCollection<int>?>)"
+  IL_0057:  ret
+}
+""");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var nestedCollection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Last();
+            Assert.Equal("[2]", nestedCollection.ToFullString());
+
+            var conversion = model.GetConversion(nestedCollection);
+            Assert.True(conversion.IsValid);
+            Assert.False(conversion.IsIdentity);
+            Assert.True(conversion.IsNullable);
+
+            Assert.Equal(1, conversion.UnderlyingConversions.Length);
+            var underlyingConversion = conversion.UnderlyingConversions[0];
+            Assert.True(underlyingConversion.IsValid);
+            Assert.False(underlyingConversion.IsNullable);
+            Assert.True(underlyingConversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(nestedCollection);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("MyCollection<System.Int32>?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
         public void OrderOfEvaluation()
         {
             string source = """
@@ -14613,9 +14770,9 @@ partial class Program
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 IOperation:  (OperationKind.None, Type: T[]) (Syntax: '[a, b]')
-                  Children(2):
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                Children(2):
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -14635,8 +14792,8 @@ partial class Program
                           Operand:
                             IOperation:  (OperationKind.None, Type: T[]) (Syntax: '[a, b]')
                               Children(2):
-                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)
@@ -14663,9 +14820,9 @@ partial class Program
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 IOperation:  (OperationKind.None, Type: System.Span<T>) (Syntax: '[a, b]')
-                  Children(2):
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                Children(2):
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -14692,8 +14849,8 @@ partial class Program
                                   Operand:
                                     IOperation:  (OperationKind.None, Type: System.Span<T>) (Syntax: '[a, b]')
                                       Children(2):
-                                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                                          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                                          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
                         Next (Regular) Block[B2]
                             Leaving: {R1}
                 }
