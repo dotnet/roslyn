@@ -1371,7 +1371,7 @@ symIsHidden:;
                     if (binder is BuckStopsHereBinder lastBinder)
                     {
                         // we never expect to bind a file type in a context where the BuckStopsHereBinder lacks an AssociatedFileIdentifier
-                        return lastBinder.AssociatedFileIdentifier;
+                        return lastBinder.AssociatedFileIdentifier ?? throw ExceptionUtilities.Unreachable();
                     }
                 }
 
