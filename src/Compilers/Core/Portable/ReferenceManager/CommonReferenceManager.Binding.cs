@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
+        private static readonly ObjectPool<MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>> s_pool = new(() => new(AssemblyIdentityComparer.SimpleNameComparer));
+        
         /// <summary>
         /// For the given set of AssemblyData objects, do the following:
         ///    1) Resolve references from each assembly against other assemblies in the set.
@@ -108,9 +110,11 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(explicitReferences.Length == explicitReferenceMap.Length);
 
             var referenceBindings = ArrayBuilder<AssemblyReferenceBinding[]>.GetInstance();
+            var explicitAssembliesMap = s_pool.Allocate();
+            explicitAssembliesMap.EnsureCapacity(explicitAssemblies.Length);
+
             try
             {
-                var explicitAssembliesMap = new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(explicitAssemblies.Length, AssemblyIdentityComparer.SimpleNameComparer);
 
                 for (int i = 0; i < explicitAssemblies.Length; i++)
                 {
@@ -193,6 +197,8 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
+                s_pool.Free(explicitAssembliesMap);
+
                 referenceBindings.Free();
             }
         }
@@ -238,6 +244,7 @@ namespace Microsoft.CodeAnalysis
 
             // NB: includes the assembly being built:
             int explicitAssemblyCount = explicitAssemblies.Length;
+            MultiDictionary<string, (CommonReferenceManager<TCompilation, TAssemblySymbol>.AssemblyData DefinitionData, int DefinitionIndex)>? implicitAssembliesMap = null;
 
             try
             {
@@ -321,7 +328,8 @@ namespace Microsoft.CodeAnalysis
 
                 // We only need to resolve against implicitly resolved assemblies,
                 // since we already resolved against explicitly specified ones.
-                var implicitAssembliesMap = new MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>(implicitAssemblies.Count, AssemblyIdentityComparer.SimpleNameComparer);
+                implicitAssembliesMap = s_pool.Allocate();
+                implicitAssembliesMap.EnsureCapacity(implicitAssemblies.Count);
 
                 for (int i = 0; i < implicitAssemblies.Count; i++)
                 {
@@ -363,6 +371,9 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
+                if (implicitAssembliesMap is not null)
+                    s_pool.Free(implicitAssembliesMap);
+
                 implicitAssemblies.Free();
                 referenceBindingsToProcess.Free();
                 metadataReferencesBuilder.Free();
