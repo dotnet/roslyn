@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (preprocessingInfo.Symbol is not null)
                 return preprocessingInfo.Symbol;
 
-            return null;
+            return null!;
         }
 
         internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
@@ -110,7 +110,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (token != default &&
                 token.Span.IntersectsWith(position))
             {
-                return semanticModel.GetPreprocessingSymbolInfo(token.Parent);
+                Debug.Assert(token.Parent is not null);
+                return semanticModel.GetPreprocessingSymbolInfo(token.Parent!);
             }
 
             return default;
