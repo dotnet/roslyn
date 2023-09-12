@@ -124,6 +124,55 @@ public class UseCollectionExpressionForCreateTests
     }
 
     [Fact]
+    public async Task TestCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var i = (MyCollection<int>)[|MyCollection.[|Create|]<int>(|]);
+                    }
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var i = (MyCollection<int>)[];
+                    }
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestIdentifierCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using X = MyCollection<int>;
+
+                class C
+                {
+                    void M()
+                    {
+                        var i = (X)MyCollection.Create<int>();
+                    }
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestOneElement()
     {
         await new VerifyCS.Test

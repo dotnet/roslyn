@@ -627,6 +627,24 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
+    public async Task TestTargetTypedToComplexCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var c = {|CS0030:(int)new int[] { 1 }|};
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotTargetTypedWithIdentifierCast()
     {
         await new VerifyCS.Test
