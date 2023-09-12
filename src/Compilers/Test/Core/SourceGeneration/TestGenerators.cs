@@ -76,11 +76,14 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-    internal class CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<string?> computeSource)
+    internal class CallbackGenerator(
+        Action<GeneratorInitializationContext> onInit,
+        Action<GeneratorExecutionContext> onExecute,
+        Func<(string hintName, string? source)> computeSource)
         : ISourceGenerator
     {
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "")
-            : this(onInit, onExecute, () => source)
+            : this(onInit, onExecute, () => ("source", source))
         {
         }
 
@@ -90,9 +93,9 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public void Execute(GeneratorExecutionContext context)
         {
             onExecute(context);
-            var source = computeSource();
+            var (hintName, source) = computeSource();
             if (!string.IsNullOrWhiteSpace(source))
-                context.AddSource("source", SourceText.From(source, Encoding.UTF8));
+                context.AddSource(hintName, SourceText.From(source, Encoding.UTF8));
         }
     }
 
