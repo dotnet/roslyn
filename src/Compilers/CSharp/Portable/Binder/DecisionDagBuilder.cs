@@ -1756,12 +1756,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(arrayBuilder != null);
                 if (arrayBuilder.Capacity >= ArrayBuilder<T>.PooledArrayLengthLimitExclusive
                     && arrayBuilder.Count < ArrayBuilder<T>.PooledArrayLengthLimitExclusive
-                    && arrayBuilder.Capacity > arrayBuilder.Count * 2)
+                    && arrayBuilder.Capacity >= arrayBuilder.Count * 2)
                 {
                     // An ArrayBuilder<T> meeting these conditions will satisfy the following:
                     //
-                    // 1. The current backing array is too large to be returned to the pool (i.e. it will be GC whenever
-                    //    no longer used).
+                    // 1. The current backing array is too large to be returned to the pool (i.e. it will be garbage
+                    //    collected whenever no longer used).
                     // 2. The resized backing array from trimming is small enough to be returned to the pool (i.e. it
                     //    will not be wasted after this builder is freed).
                     // 3. At least half of the storage of the current builder is unused.
