@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -81,10 +82,24 @@ namespace Microsoft.CodeAnalysis
         protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
             => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
 
+        private bool TryGetTextChecksum([NotNullWhen(true)] out Checksum? checksum)
+        {
+            if (_lazyTextChecksum.TryGetValue(out checksum))
+                return true;
+
+            if (this.TryGetText(out var existingText))
+            {
+                checksum = Checksum.From(existingText.GetChecksum());
+                return true;
+            }
+
+            return false;
+        }
+
         public SourceGeneratedDocumentState WithUpdatedGeneratedContent(SourceText sourceText, ParseOptions parseOptions)
         {
-            if (this.TryGetText(out var existingText) &&
-                Checksum.From(existingText.GetChecksum()) == Checksum.From(sourceText.GetChecksum()) &&
+            if (TryGetTextChecksum(out var existingChecksum) &&
+                existingChecksum == Checksum.From(sourceText.GetChecksum()) &&
                 ParseOptions.Equals(parseOptions))
             {
                 // We can reuse this instance directly
