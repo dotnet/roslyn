@@ -51,9 +51,9 @@ internal class FileIdentifier
             var displayFilePath = GeneratedNames.GetDisplayFilePath(filePath);
 
             _encoderFallbackErrorMessage = encoderFallbackErrorMessage;
-            _filePathChecksumOpt = hash;
             _displayFilePath = displayFilePath;
 
+            ImmutableInterlocked.InterlockedInitialize(ref _filePathChecksumOpt, hash);
             _filePath = null;
         }
     }
