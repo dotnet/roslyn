@@ -72,7 +72,7 @@ internal static class UseCollectionExpressionHelpers
                 return false;
         }
 
-        // Hack: Workaround lack of compiler information for collection expression conversions with casts.
+        // HACK: Workaround lack of compiler information for collection expression conversions with casts.
         // Specifically, hardcode in knowledge that a cast to a constructible collection type of the empty collection
         // expression will always succeed, and there's no need to actually validate semantics there.
         if (!IsAlwaysSafeCastReplacement())
