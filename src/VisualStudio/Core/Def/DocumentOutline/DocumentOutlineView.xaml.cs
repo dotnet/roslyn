@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Outlining;
 using InternalUtilities = Microsoft.Internal.VisualStudio.PlatformUI.Utilities;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptionService;
+        private readonly IOutliningManagerService _outliningManagerService;
         private readonly VsCodeWindowViewTracker _viewTracker;
         private readonly DocumentOutlineViewModel _viewModel;
         private readonly IVsToolbarTrayHost _toolbarTrayHost;
@@ -44,11 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             IVsWindowSearchHostFactory windowSearchHostFactory,
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptionService,
+            IOutliningManagerService outliningManagerService,
             VsCodeWindowViewTracker viewTracker,
             DocumentOutlineViewModel viewModel)
         {
             _threadingContext = threadingContext;
             _globalOptionService = globalOptionService;
+            _outliningManagerService = outliningManagerService;
             _viewTracker = viewTracker;
             _viewModel = viewModel;
 
@@ -289,7 +293,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 {
                     var textView = _viewTracker.GetActiveView();
                     textView.TryMoveCaretToAndEnsureVisible(
-                        symbolModel.Data.SelectionRangeSpan.TranslateTo(textView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start);
+                        symbolModel.Data.SelectionRangeSpan.TranslateTo(textView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start,
+                        _outliningManagerService);
                 }
                 finally
                 {
