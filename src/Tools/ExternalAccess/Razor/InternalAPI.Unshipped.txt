@@ -18,7 +18,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentPropertiesService.Diag
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider.GetService<TService>() -> TService?
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider
-Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.GetDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo!>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.GetDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo?>!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.RemoveDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.Updated -> System.EventHandler<string!>!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerFactoryWrapper

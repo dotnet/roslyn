@@ -79,12 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan &&
                     ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
                 {
-                    var conversionMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_ReadOnlySpan_T_Array)).AsMember(spanType);
-                    return new BoundReadOnlySpanFromArray(
-                        syntax,
-                        _factory.Array(elementType.Type, elements),
-                        conversionMethod,
-                        spanType);
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
+                    return _factory.New(constructor, _factory.Array(elementType.Type, elements));
                 }
 
                 if (ShouldUseInlineArray(node) &&
@@ -228,11 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
+            Debug.Assert(node.CollectionBuilderMethod is { });
+            Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
+            Debug.Assert(node.CollectionBuilderInvocationConversion is { });
 
             var constructMethod = node.CollectionBuilderMethod;
-
-            Debug.Assert(constructMethod is { });
-            Debug.Assert(constructMethod.ReturnType.Equals(node.Type, TypeCompareKind.AllIgnoreOptions));
 
             var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
@@ -240,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
             BoundExpression span = VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
-            return new BoundCall(
+            var invocation = new BoundCall(
                 node.Syntax,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
@@ -255,6 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: default,
                 resultKind: LookupResultKind.Viable,
                 type: constructMethod.ReturnType);
+
+            var invocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
+            AddPlaceholderReplacement(invocationPlaceholder, invocation);
+            var result = VisitExpression(node.CollectionBuilderInvocationConversion);
+            RemovePlaceholderReplacement(invocationPlaceholder);
+            return result;
         }
 
         internal static bool ShouldUseRuntimeHelpersCreateSpan(BoundCollectionExpression node, TypeSymbol elementType)

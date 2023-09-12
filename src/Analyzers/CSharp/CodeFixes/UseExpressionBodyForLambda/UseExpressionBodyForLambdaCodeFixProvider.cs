@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             editor.ReplaceNode(
                 originalDeclaration,
-                (current, _) => UseExpressionBodyForLambdaCodeActionHelpers.Update(semanticModel, originalDeclaration, (LambdaExpressionSyntax)current));
+                (current, _) => UseExpressionBodyForLambdaCodeActionHelpers.Update(semanticModel, originalDeclaration, (LambdaExpressionSyntax)current, cancellationToken));
         }
     }
 }

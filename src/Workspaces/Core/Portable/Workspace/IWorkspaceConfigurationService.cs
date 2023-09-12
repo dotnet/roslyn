@@ -41,7 +41,14 @@ namespace Microsoft.CodeAnalysis.Host
         [property: DataMember(Order = 0)] StorageDatabase CacheStorage = StorageDatabase.SQLite,
         [property: DataMember(Order = 1)] bool EnableOpeningSourceGeneratedFiles = false,
         [property: DataMember(Order = 2)] bool DisableSharedSyntaxTrees = false,
-        [property: DataMember(Order = 3)] bool DisableRecoverableText = false)
+        [property: DataMember(Order = 3)] bool DisableRecoverableText = false,
+        [property: DataMember(Order = 4)] bool ValidateCompilationTrackerStates =
+#if DEBUG // We will default this on in DEBUG builds
+            true
+#else
+            false
+#endif
+        )
     {
         public WorkspaceConfigurationOptions()
             : this(CacheStorage: StorageDatabase.SQLite)
@@ -52,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         /// <summary>
         /// These values are such that the correctness of remote services is not affected if these options are changed from defaults
-        /// to non-defauls while the services have already been executing.
+        /// to non-defaults while the services have already been executing.
         /// </summary>
         public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
             CacheStorage: StorageDatabase.None,

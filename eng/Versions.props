@@ -26,9 +26,6 @@
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.6.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>17.7.188</VisualStudioEditorPackagesVersion>
-    <!-- This should generally be set to $(VisualStudioEditorPackagesVersion),
-         but sometimes EditorFeatures.Cocoa specifically requires a newer editor build. -->
-    <VisualStudioMacEditorPackagesVersion>$(VisualStudioEditorPackagesVersion)</VisualStudioMacEditorPackagesVersion>
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.7.4-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
@@ -61,9 +58,9 @@
     <DiffPlexVersion>1.5.0</DiffPlexVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.14.1</HumanizerCoreVersion>
-    <ICSharpCodeDecompilerVersion>7.2.1.6856</ICSharpCodeDecompilerVersion>
+    <ICSharpCodeDecompilerVersion>8.1.0.7455</ICSharpCodeDecompilerVersion>
     <InputSimulatorPlusVersion>1.0.7</InputSimulatorPlusVersion>
-    <MicrosoftBuildLocatorVersion>1.5.5</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildLocatorVersion>1.6.1</MicrosoftBuildLocatorVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>6.0.0</MicrosoftExtensionsDependencyInjectionVersion>
     <!--
       SourceBuild will requires that all dependencies also be source buildable. We are referencing a
@@ -116,7 +113,6 @@
     <MicrosoftInternalVisualStudioInteropVersion>17.7.37349</MicrosoftInternalVisualStudioInteropVersion>
     <MicrosoftInternalVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftInternalVisualStudioShellFrameworkVersion>
     <MicrosoftIORedistVersion>6.0.0</MicrosoftIORedistVersion>
-    <MicrosoftmacOSRefVersion>12.3.300-rc.3.83</MicrosoftmacOSRefVersion>
     <MicrosoftIORedistVersion>6.0.0</MicrosoftIORedistVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta3.21075.2</MicrosoftMetadataVisualizerVersion>
     <MicrosoftNETBuildExtensionsVersion>2.2.101</MicrosoftNETBuildExtensionsVersion>
@@ -155,9 +151,6 @@
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>
     <MicrosoftVisualStudioExtensibilityTestingXunitVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingXunitVersion>
-    <MicrosoftVisualStudioFPFPresentationCoreVersion>$(VisualStudioMacEditorPackagesVersion)</MicrosoftVisualStudioFPFPresentationCoreVersion>
-    <MicrosoftVisualStudioFPFPresentationFrameworkVersion>$(VisualStudioMacEditorPackagesVersion)</MicrosoftVisualStudioFPFPresentationFrameworkVersion>
-    <MicrosoftVisualStudioFPFWindowsBaseVersion>$(VisualStudioMacEditorPackagesVersion)</MicrosoftVisualStudioFPFWindowsBaseVersion>
     <MicrosoftVisualStudioGraphModelVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImagingVersion>
@@ -190,18 +183,17 @@
     <MicrosoftVisualStudioShell150Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShell150Version>
     <MicrosoftVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellDesignVersion>
-    <MicrosoftVisualStudioTelemetryVersion>17.8.9</MicrosoftVisualStudioTelemetryVersion>
+    <MicrosoftVisualStudioTelemetryVersion>17.8.138</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
     <MicrosoftVisualStudioTextDataVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextDataVersion>
     <MicrosoftVisualStudioTextInternalVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextInternalVersion>
     <MicrosoftVisualStudioTextLogicVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextLogicVersion>
     <MicrosoftVisualStudioTextUIVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUIVersion>
     <MicrosoftVisualStudioTextUIWpfVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUIWpfVersion>
-    <MicrosoftVisualStudioTextUICocoaVersion>$(VisualStudioMacEditorPackagesVersion)</MicrosoftVisualStudioTextUICocoaVersion>
     <MicrosoftVisualStudioThreadingAnalyzersVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingAnalyzersVersion>
     <MicrosoftVisualStudioThreadingVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
-    <MicrosoftVisualStudioUtilitiesInternalVersion>16.3.42</MicrosoftVisualStudioUtilitiesInternalVersion>
+    <MicrosoftVisualStudioUtilitiesInternalVersion>16.3.53</MicrosoftVisualStudioUtilitiesInternalVersion>
     <MicrosoftVisualStudioValidationVersion>17.6.11</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>4.0.0</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>4.0.0</MicrosoftVisualStudioVsInteractiveWindowVersion>
@@ -227,7 +219,7 @@
       is expected by the NET SDK used in the Workspace.MSBuild UnitTests. In order to test against the same verion of NuGet
       as our configured SDK, we must set the version to be the same.
      -->
-    <NuGetCommonVersion>6.7.0-rc.127</NuGetCommonVersion>
+    <NuGetCommonVersion>6.8.0-preview.1.69</NuGetCommonVersion>
     <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
     <NuGetFrameworksVersion>$(NuGetCommonVersion)</NuGetFrameworksVersion>
     <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>
@@ -270,7 +262,6 @@
     <MicrosoftVSSDKVSDConfigToolVersion>17.0.1051901-preview</MicrosoftVSSDKVSDConfigToolVersion>
     <VsWebsiteInteropVersion>8.0.50727</VsWebsiteInteropVersion>
     <vswhereVersion>2.4.1</vswhereVersion>
-    <XamarinMacVersion>1.0.0</XamarinMacVersion>
     <xunitVersion>2.4.1</xunitVersion>
     <xunitanalyzersVersion>0.12.0-pre.20</xunitanalyzersVersion>
     <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
