@@ -559,6 +559,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = (ExpressionSyntax)node.Syntax;
             MethodSymbol? collectionBuilderMethod = null;
+            BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
+            BoundExpression? collectionBuilderInvocationConversion = null;
 
             switch (collectionTypeKind)
             {
@@ -583,13 +585,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(result);
 
                         var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                        collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo);
+                        Conversion collectionBuilderReturnTypeConversion;
+                        collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo, out collectionBuilderReturnTypeConversion);
                         diagnostics.Add(syntax, useSiteInfo);
                         if (collectionBuilderMethod is null)
                         {
                             diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
                             return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
                         }
+
+                        Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
+                        collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType);
+                        collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
 
                         ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
 
@@ -634,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
                 }
             }
-            else if (collectionTypeKind == CollectionExpressionTypeKind.ListInterface ||
+            else if ((collectionTypeKind == CollectionExpressionTypeKind.ListInterface && isListInterfaceThatRequiresList(targetType)) ||
                 elements.Any(e => e is BoundCollectionExpressionSpreadElement)) // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
             {
                 Debug.Assert(elementType is { });
@@ -702,8 +709,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderMethod,
+                collectionBuilderInvocationPlaceholder,
+                collectionBuilderInvocationConversion,
                 builder.ToImmutableAndFree(),
                 targetType);
+
+            static bool isListInterfaceThatRequiresList(TypeSymbol targetType)
+            {
+                return targetType is not
+                {
+                    OriginalDefinition.SpecialType:
+                        SpecialType.System_Collections_Generic_IEnumerable_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyList_T
+                };
+            }
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
@@ -736,6 +756,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderMethod: null,
+                collectionBuilderInvocationPlaceholder: null,
+                collectionBuilderInvocationConversion: null,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors: true);
@@ -821,8 +843,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementTypeOriginalDefinition,
             TypeSymbol? builderType,
             string? methodName,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out Conversion returnTypeConversion)
         {
+            returnTypeConversion = default;
+
             if (!SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType))
             {
                 return null;
@@ -842,8 +867,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var accessibilityInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
-                if (!IsAccessible(method, ref accessibilityInfo))
+                var candidateUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
+                if (!IsAccessible(method, ref candidateUseSiteInfo))
                 {
                     continue;
                 }
@@ -863,36 +888,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
+                MethodSymbol methodWithTargetTypeParameters; // builder method substituted with type parameters from target type
                 if (allTypeArguments.Length > 0)
                 {
                     var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
-                    var mDef = method.OriginalDefinition.Construct(allTypeParameters);
-                    var spanElementType = ((NamedTypeSymbol)mDef.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                    if (!elementTypeOriginalDefinition.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        continue;
-                    }
-                    if (!targetType.OriginalDefinition.Equals(mDef.ReturnType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        continue;
-                    }
+                    methodWithTargetTypeParameters = method.OriginalDefinition.Construct(allTypeParameters);
                     method = method.Construct(allTypeArguments);
                 }
                 else
                 {
-                    var spanElementType = ((NamedTypeSymbol)parameterType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                    if (!elementTypeOriginalDefinition.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        continue;
-                    }
+                    methodWithTargetTypeParameters = method;
                 }
 
-                if (!targetType.Equals(method.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                var spanTypeArg = ((NamedTypeSymbol)methodWithTargetTypeParameters.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                var conversion = Conversions.ClassifyImplicitConversionFromType(elementTypeOriginalDefinition, spanTypeArg, ref candidateUseSiteInfo);
+                if (!conversion.IsIdentity)
                 {
                     continue;
                 }
 
-                useSiteInfo.AddDiagnostics(accessibilityInfo.Diagnostics);
+                conversion = Conversions.ClassifyImplicitConversionFromType(methodWithTargetTypeParameters.ReturnType, targetType.OriginalDefinition, ref candidateUseSiteInfo);
+                switch (conversion.Kind)
+                {
+                    case ConversionKind.Identity:
+                    case ConversionKind.ImplicitReference:
+                    case ConversionKind.Boxing:
+                        break;
+                    default:
+                        continue;
+                }
+
+                useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
+                returnTypeConversion = conversion;
                 return method;
             }
 

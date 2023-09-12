@@ -69148,5 +69148,76 @@ public interface I1
                 }
             }
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69413")]
+        public void IsBeforeFieldInit_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2
+{
+    public static int F2;
+}
+
+public interface I3
+{
+    public static int F3 = 9;
+}
+
+public interface I4
+{
+    public static int F4;
+
+    static I4()
+    {
+        F4 = 10;
+    }
+}
+
+public interface I5
+{
+    static I5()
+    {
+        System.Console.WriteLine();
+    }
+}
+
+public interface I6
+{
+    public static int F6 = 18;
+    
+    static I6()
+    {
+        System.Console.WriteLine();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(compilation1, symbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                Assert.True(hasBeforeFieldInitFlag(module, "I1"));
+                Assert.True(hasBeforeFieldInitFlag(module, "I2"));
+                Assert.True(hasBeforeFieldInitFlag(module, "I3"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I4"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I5"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I6"));
+            }
+
+            static bool hasBeforeFieldInitFlag(ModuleSymbol module, string name)
+            {
+                return (((PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember(name)).Flags & System.Reflection.TypeAttributes.BeforeFieldInit) != 0;
+            }
+        }
     }
 }
