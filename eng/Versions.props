@@ -139,6 +139,7 @@
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>17.7.187</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>17.7.18</MicrosoftVisualStudioCompositionVersion>
+    <MicrosoftVisualStudioCopilotVersion>0.1.1423-beta</MicrosoftVisualStudioCopilotVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.6.0-beta.23252.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
     <MicrosoftVisualStudioDebuggerContractsVersion>17.6.0-beta.23252.1</MicrosoftVisualStudioDebuggerContractsVersion>
