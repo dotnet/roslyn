@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
         private static readonly ObjectPool<MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)>> s_pool = new(() => new(AssemblyIdentityComparer.SimpleNameComparer));
-        
+
         /// <summary>
         /// For the given set of AssemblyData objects, do the following:
         ///    1) Resolve references from each assembly against other assemblies in the set.
