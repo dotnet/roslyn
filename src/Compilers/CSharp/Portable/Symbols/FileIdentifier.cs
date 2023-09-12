@@ -32,13 +32,14 @@ internal struct FileIdentifier
 
     private void EnsureInitialized()
     {
-        if (_filePath is not null)
+        var filePath = _filePath;
+        if (filePath is not null)
         {
             string? encoderFallbackErrorMessage = null;
             ImmutableArray<byte> hash = default;
             try
             {
-                var encodedFilePath = s_encoding.GetBytes(_filePath);
+                var encodedFilePath = s_encoding.GetBytes(filePath);
                 using var hashAlgorithm = SourceHashAlgorithms.CreateDefaultInstance();
                 hash = hashAlgorithm.ComputeHash(encodedFilePath).ToImmutableArray();
             }
@@ -47,7 +48,7 @@ internal struct FileIdentifier
                 encoderFallbackErrorMessage = ex.Message;
             }
 
-            var displayFilePath = GeneratedNames.GetDisplayFilePath(_filePath);
+            var displayFilePath = GeneratedNames.GetDisplayFilePath(filePath);
 
             _encoderFallbackErrorMessage = encoderFallbackErrorMessage;
             _filePathChecksumOpt = hash;
