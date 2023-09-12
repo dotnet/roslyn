@@ -649,6 +649,31 @@ namespace Analyzer.Utilities.Extensions
             return symbol.GetAttributes(attributesToMatch: attributeTypesToMatch);
         }
 
+        #region "Overloads to avoid array allocations"
+        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, INamedTypeSymbol? attributeTypeToMatch1)
+        {
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeTypeToMatch1))
+                {
+                    yield return attribute;
+                }
+            }
+        }
+
+        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, INamedTypeSymbol? attributeTypeToMatch1, INamedTypeSymbol? attributeTypeToMatch2)
+        {
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeTypeToMatch1) ||
+                    SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeTypeToMatch2))
+                {
+                    yield return attribute;
+                }
+            }
+        }
+        #endregion
+
         public static bool HasAnyAttribute(this ISymbol symbol, IEnumerable<INamedTypeSymbol> attributesToMatch)
         {
             return symbol.GetAttributes(attributesToMatch).Any();
