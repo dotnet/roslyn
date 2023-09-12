@@ -465,6 +465,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (generation > 0) ? name + GenerationSeparator + generation : name;
         }
 
+        internal static string MakeSynthesizedReadOnlyListName(bool hasKnownLength, int generation)
+        {
+            Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');
+            string name = hasKnownLength ? "<>z__ReadOnlyArray" : "<>z__ReadOnlyList";
+
+            // Synthesized list types need to have unique name across generations because they are not reused.
+            return (generation > 0) ? name + GenerationSeparator + generation : name;
+        }
+
         internal static string AsyncBuilderFieldName()
         {
             // Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on this name.

@@ -8,8 +8,6 @@
     <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
     <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
     <UseAppHost>false</UseAppHost>
-    <!-- List of runtime identifiers that we want to publish an executable for -->
-    <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;alpine-x64;alpine-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
     <SelfContained>false</SelfContained>
   </PropertyGroup>
@@ -24,7 +22,7 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" PrivateAssets="All" />
     <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
   </ItemGroup>
