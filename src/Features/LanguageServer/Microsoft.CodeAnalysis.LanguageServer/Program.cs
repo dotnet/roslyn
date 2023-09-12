@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -35,8 +36,6 @@ return await parser.Parse(args).InvokeAsync(CancellationToken.None);
 
 static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
-    const string NamedPipeKey = "NamedPipeInformation";
-
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
@@ -105,11 +104,14 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
 
     var (clientPipeName, serverPipeName) = CreateNewPipeNames();
-    var pipeServer = new NamedPipeServerStream(serverPipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+    var pipeServer = new NamedPipeServerStream(serverPipeName,
+        PipeDirection.InOut,
+        maxNumberOfServerInstances: 1,
+        PipeTransmissionMode.Byte,
+        PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
     // Send the named pipe connection info to the client 
-    var clientPipeTransmissionInformation = new KeyValuePair<string, string>(NamedPipeKey, clientPipeName);
-    languageServerLogger.LogInformation(JsonConvert.SerializeObject(clientPipeTransmissionInformation));
+    Console.WriteLine(JsonConvert.SerializeObject(new NamedPipeInformation(clientPipeName)));
 
     // Wait for connection from client
     await pipeServer.WaitForConnectionAsync(cancellationToken);
