@@ -197,6 +197,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
+                explicitAssembliesMap.Clear();
                 s_pool.Free(explicitAssembliesMap);
 
                 referenceBindings.Free();
@@ -372,7 +373,10 @@ namespace Microsoft.CodeAnalysis
             finally
             {
                 if (implicitAssembliesMap is not null)
+                {
+                    implicitAssembliesMap.Clear();
                     s_pool.Free(implicitAssembliesMap);
+                }
 
                 implicitAssemblies.Free();
                 referenceBindingsToProcess.Free();
