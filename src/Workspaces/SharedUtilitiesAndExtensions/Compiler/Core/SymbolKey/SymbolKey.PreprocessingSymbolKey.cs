@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial struct SymbolKey
 {
-    private class PreprocessingSymbolKey : AbstractSymbolKey<IPreprocessingSymbol>
+    private sealed class PreprocessingSymbolKey : AbstractSymbolKey<IPreprocessingSymbol>
     {
         public static readonly PreprocessingSymbolKey Instance = new PreprocessingSymbolKey();
 
