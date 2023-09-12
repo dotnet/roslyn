@@ -7040,10 +7040,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        int[] x = [];
+                        IEnumerable<int> x = EmptyEnumerable<int>();
                         object[] y = [1, 2, null];
                         Report<int>([..x]);
                         Report<object>([..x, ..y]);
+                    }
+                    static IEnumerable<T> EmptyEnumerable<T>()
+                    {
+                        yield break;
                     }
                     static void Report<T>({{targetType}} x)
                     {

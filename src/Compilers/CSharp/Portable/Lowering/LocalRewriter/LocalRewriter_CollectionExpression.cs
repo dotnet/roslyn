@@ -101,50 +101,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression array;
-
-            switch (node.GetKnownLength(out bool hasSpreadElements))
+            if (node.GetKnownLength(out _) is null)
             {
-                case null:
-                    {
-                        // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
-                        // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
-                        var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(ImmutableArray.Create(elementType));
-                        var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
-                        var list = VisitCollectionInitializerCollectionExpression(node, listType);
-                        array = _factory.Call(list, listToArray);
-                    }
-                    break;
-
-                case 0:
-                    array = CreateEmptyArray(syntax, arrayType);
-                    break;
-
-                case int arrayLength:
-                    {
-                        var elements = node.Elements;
-                        if (!hasSpreadElements)
-                        {
-                            var initialization = new BoundArrayInitialization(
-                                    syntax,
-                                    isInferred: false,
-                                    elements.SelectAsArray(e => VisitExpression(e)));
-                            array = new BoundArrayCreation(
-                                syntax,
-                                ImmutableArray.Create<BoundExpression>(
-                                    new BoundLiteral(
-                                        syntax,
-                                        ConstantValue.Create(arrayLength),
-                                        _compilation.GetSpecialType(SpecialType.System_Int32))),
-                                initialization,
-                                arrayType)
-                            { WasCompilerGenerated = true };
-                        }
-                        else
-                        {
-                            array = CreateAndPopulateArray(node, arrayType);
-                        }
-                    }
-                    break;
+                // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
+                // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
+                var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(ImmutableArray.Create(elementType));
+                var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
+                var list = VisitCollectionInitializerCollectionExpression(node, listType);
+                array = _factory.Call(list, listToArray);
+            }
+            else
+            {
+                array = CreateAndPopulateArray(node, arrayType);
             }
 
             if (spanConstructor is null)
@@ -223,7 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var elementType]
                 })
             {
-                var elements = node.Elements;
                 int? lengthOpt = node.GetKnownLength(out _);
 
                 if (lengthOpt == 0)
@@ -233,31 +200,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    bool hasKnownLength = lengthOpt.HasValue;
                     var typeArgs = ImmutableArray.Create(elementType);
-                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, hasKnownLength: lengthOpt.HasValue, _diagnostics.DiagnosticBag).Construct(typeArgs);
+                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, hasKnownLength: hasKnownLength, _diagnostics.DiagnosticBag).Construct(typeArgs);
                     if (synthesizedType.IsErrorType())
                     {
                         return BadExpression(node);
                     }
 
                     BoundExpression fieldValue;
-                    if (lengthOpt.HasValue)
+                    if (hasKnownLength)
                     {
                         // fieldValue = new ElementType[] { e1, ..., eN };
-                        var initialization = new BoundArrayInitialization(
-                            syntax,
-                            isInferred: false,
-                            elements.SelectAsArray(e => VisitExpression(e)));
                         var arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
-                        fieldValue = new BoundArrayCreation(
-                            syntax,
-                            ImmutableArray.Create<BoundExpression>(
-                                new BoundLiteral(
-                                    syntax,
-                                    ConstantValue.Create(lengthOpt.GetValueOrDefault()),
-                                    _compilation.GetSpecialType(SpecialType.System_Int32))),
-                            initialization,
-                            arrayType);
+                        fieldValue = CreateAndPopulateArray(node, arrayType);
                     }
                     else
                     {
@@ -410,12 +366,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Create and populate an array from a collection expression where the
-        /// collection has a known length at runtime but not known at compile time.
+        /// collection has a known length, although possibly including spreads.
         /// </summary>
         private BoundExpression CreateAndPopulateArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
         {
             var syntax = node.Syntax;
             var elements = node.Elements;
+
+            if (node.GetKnownLength(out bool hasSpreadElements) is not int knownLength)
+            {
+                // Should have been handled by the caller.
+                throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            if (knownLength == 0)
+            {
+                return CreateEmptyArray(syntax, arrayType);
+            }
+
+            if (!hasSpreadElements)
+            {
+                var initialization = new BoundArrayInitialization(
+                        syntax,
+                        isInferred: false,
+                        elements.SelectAsArray(e => VisitExpression(e)));
+                return new BoundArrayCreation(
+                    syntax,
+                    ImmutableArray.Create<BoundExpression>(
+                        new BoundLiteral(
+                            syntax,
+                            ConstantValue.Create(knownLength),
+                            _compilation.GetSpecialType(SpecialType.System_Int32))),
+                    initialization,
+                    arrayType)
+                { WasCompilerGenerated = true };
+            }
 
             NamedTypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             BoundAssignmentOperator assignmentToTemp;
