@@ -341,8 +341,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var localProject = localWorkspace.CurrentSolution.Projects.Single();
             var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
 
-            // Ensure we already have a compilation created
+            // Run generators locally
             var localCompilation = await localProject.GetCompilationAsync();
+
+            // Now run them remotely
             var remoteCompilation = await remoteProject.GetCompilationAsync();
 
             var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
@@ -358,6 +360,92 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.NotEqual(localDoc.HintName, remoteDoc.HintName);
             // This is a bug.  These should be equal.
             Assert.NotEqual(localDoc.GetTextSynchronously(default).ToString(), remoteDoc.GetTextSynchronously(default).ToString());
+        }
+
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgreeOnFilesGenerated()
+        {
+            using var localWorkspace = CreateWorkspace();
+
+            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
+            var generateSource = true;
+            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { },
+                computeSource: () => generateSource ? (hintName: Guid.NewGuid().ToString(), source: Guid.NewGuid().ToString()) : default);
+
+            var analyzerReference = new TestGeneratorReference(generator);
+            var project = AddEmptyProject(localWorkspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference);
+
+            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+
+            var localProject = localWorkspace.CurrentSolution.Projects.Single();
+            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+
+            // Run generators locally.  This should force them to run remotely as well. Which means we will generate on
+            // the remote side and sync to the local side.
+            var localCompilation = await localProject.GetCompilationAsync();
+
+            // Now run them remotely.  This should be a no-op and will be unaffected by this flag.
+            generateSource = false;
+            var remoteCompilation = await remoteProject.GetCompilationAsync();
+
+            var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+            var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+
+            // This is a bug, we should have generated the same number of documents on both sides.
+            Assert.NotEqual(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
+            Assert.Equal(1, localGeneratedDocs.Length);
+
+            //var localDoc = localGeneratedDocs.Single();
+            //var remoteDoc = remoteGeneratedDocs.Single();
+
+            //// This is a bug.  These should be equal.
+            //Assert.NotEqual(localDoc.HintName, remoteDoc.HintName);
+            //// This is a bug.  These should be equal.
+            //Assert.NotEqual(localDoc.GetTextSynchronously(default).ToString(), remoteDoc.GetTextSynchronously(default).ToString());
+        }
+
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgreeOnNoFilesGenerated()
+        {
+            using var localWorkspace = CreateWorkspace();
+
+            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
+            var generateSource = false;
+            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { },
+                computeSource: () => generateSource ? (hintName: Guid.NewGuid().ToString(), source: Guid.NewGuid().ToString()) : default);
+
+            var analyzerReference = new TestGeneratorReference(generator);
+            var project = AddEmptyProject(localWorkspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference);
+
+            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+
+            var localProject = localWorkspace.CurrentSolution.Projects.Single();
+            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+
+            // Run generators locally.  This should force them to run remotely as well. Which means we will generate
+            // nothing the remote side and sync that the local side.
+            var localCompilation = await localProject.GetCompilationAsync();
+
+            // Now run them remotely.  This should be a no-op and will be unaffected by this flag.
+            generateSource = true;
+            var remoteCompilation = await remoteProject.GetCompilationAsync();
+
+            var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+            var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+
+            // This is a bug, we should have generated the same number of documents on both sides.
+            Assert.NotEqual(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
+            Assert.Equal(0, localGeneratedDocs.Length);
         }
 
         public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp, string name = "TestProject")
