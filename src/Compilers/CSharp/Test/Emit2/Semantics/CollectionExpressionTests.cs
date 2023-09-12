@@ -6138,23 +6138,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         ((IEnumerable<object>)x).Report(includeType: true);
                         WriteLine();
                         WriteLine("IReadOnlyCollection<object>.Count: {0}", ((IReadOnlyCollection<object>)x).Count);
-                        WriteLine("IReadOnlyList<object>.this[]: {0}", ((IReadOnlyList<object>)x)[1]);
+                        WriteLine("IReadOnlyList<object>.this[1]: {0}", ((IReadOnlyList<object>)x)[1]);
                         WriteLine("ICollection<object>.Count: {0}", ((ICollection<object>)x).Count);
                         WriteLine("ICollection<object>.IsReadOnly: {0}", ((ICollection<object>)x).IsReadOnly);
-                        WriteLine("ICollection<object>.Add: {0}", Invoke(() => ((ICollection<object>)x).Add(-1)));
-                        WriteLine("ICollection<object>.Clear: {0}", Invoke(() => ((ICollection<object>)x).Clear()));
-                        WriteLine("ICollection<object>.Contains: {0}", ((ICollection<object>)x).Contains(2));
-                        Write("ICollection<object>.CopyTo: ");
+                        WriteLine("ICollection<object>.Add(-1): {0}", Invoke(() => ((ICollection<object>)x).Add(-1)));
+                        WriteLine("ICollection<object>.Clear(): {0}", Invoke(() => ((ICollection<object>)x).Clear()));
+                        WriteLine("ICollection<object>.Contains(2): {0}", ((ICollection<object>)x).Contains(2));
+                        Write("ICollection<object>.CopyTo(..., 0): ");
                         object[] a = new object[3];
                         ((ICollection<object>)x).CopyTo(a, 0);
                         a.Report(includeType: true);
                         WriteLine();
-                        WriteLine("ICollection<object>.Remove: {0}", Invoke(() => ((ICollection<object>)x).Remove(2)));
-                        WriteLine("IList<object>.this[].get: {0}", ((IList<object>)x)[1]);
-                        WriteLine("IList<object>.this[].set: {0}", Invoke(() => ((IList<object>)x)[1] = -1));
-                        WriteLine("IList<object>.IndexOf: {0}", ((IList<object>)x).IndexOf(2));
-                        WriteLine("IList<object>.Insert: {0}", Invoke(() => ((IList<object>)x).Insert(1, -1)));
-                        WriteLine("IList<object>.RemoveAt: {0}", Invoke(() => ((IList<object>)x).RemoveAt(1)));
+                        WriteLine("ICollection<object>.Remove(2): {0}", Invoke(() => ((ICollection<object>)x).Remove(2)));
+                        WriteLine("IList<object>.this[1].get: {0}", ((IList<object>)x)[1]);
+                        WriteLine("IList<object>.this[1].set: {0}", Invoke(() => ((IList<object>)x)[1] = -1));
+                        WriteLine("IList<object>.IndexOf(2): {0}", ((IList<object>)x).IndexOf(2));
+                        WriteLine("IList<object>.Insert(1, -1): {0}", Invoke(() => ((IList<object>)x).Insert(1, -1)));
+                        WriteLine("IList<object>.RemoveAt(1): {0}", Invoke(() => ((IList<object>)x).RemoveAt(1)));
                     }
                     static string Invoke(Action a)
                     {
@@ -6182,19 +6182,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IEnumerable.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
                     IEnumerable<object>.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
                     IReadOnlyCollection<object>.Count: 3
-                    IReadOnlyList<object>.this[]: 2
+                    IReadOnlyList<object>.this[1]: 2
                     ICollection<object>.Count: 3
                     ICollection<object>.IsReadOnly: True
-                    ICollection<object>.Add: System.NotSupportedException
-                    ICollection<object>.Clear: System.NotSupportedException
-                    ICollection<object>.Contains: True
-                    ICollection<object>.CopyTo: (System.Object[]) [1, 2, null], 
-                    ICollection<object>.Remove: System.NotSupportedException
-                    IList<object>.this[].get: 2
-                    IList<object>.this[].set: System.NotSupportedException
-                    IList<object>.IndexOf: 1
-                    IList<object>.Insert: System.NotSupportedException
-                    IList<object>.RemoveAt: System.NotSupportedException
+                    ICollection<object>.Add(-1): System.NotSupportedException
+                    ICollection<object>.Clear(): System.NotSupportedException
+                    ICollection<object>.Contains(2): True
+                    ICollection<object>.CopyTo(..., 0): (System.Object[]) [1, 2, null], 
+                    ICollection<object>.Remove(2): System.NotSupportedException
+                    IList<object>.this[1].get: 2
+                    IList<object>.this[1].set: System.NotSupportedException
+                    IList<object>.IndexOf(2): 1
+                    IList<object>.Insert(1, -1): System.NotSupportedException
+                    IList<object>.RemoveAt(1): System.NotSupportedException
                     """);
 
             string expectedNotSupportedIL = """
@@ -6360,23 +6360,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         ((IEnumerable<T>)x).Report(includeType: true);
                         WriteLine();
                         WriteLine("IReadOnlyCollection<T>.Count: {0}", ((IReadOnlyCollection<T>)x).Count);
-                        if (length > 1) WriteLine("IReadOnlyList<T>.this[]: {0}", ((IReadOnlyList<T>)x)[1]);
+                        if (length > 1) WriteLine("IReadOnlyList<T>.this[1]: {0}", ((IReadOnlyList<T>)x)[1]);
                         WriteLine("ICollection<T>.Count: {0}", ((ICollection<T>)x).Count);
                         WriteLine("ICollection<T>.IsReadOnly: {0}", ((ICollection<T>)x).IsReadOnly);
-                        WriteLine("ICollection<T>.Add: {0}", Invoke(() => ((ICollection<T>)x).Add(default)));
-                        WriteLine("ICollection<T>.Clear: {0}", Invoke(() => ((ICollection<T>)x).Clear()));
-                        WriteLine("ICollection<T>.Contains: {0}", ((ICollection<T>)x).Contains(default));
-                        Write("ICollection<T>.CopyTo: ");
+                        WriteLine("ICollection<T>.Add(default): {0}", Invoke(() => ((ICollection<T>)x).Add(default)));
+                        WriteLine("ICollection<T>.Clear(): {0}", Invoke(() => ((ICollection<T>)x).Clear()));
+                        WriteLine("ICollection<T>.Contains(default): {0}", ((ICollection<T>)x).Contains(default));
+                        Write("ICollection<T>.CopyTo(..., 0): ");
                         T[] a = new T[length];
                         ((ICollection<T>)x).CopyTo(a, 0);
                         a.Report(includeType: true);
                         WriteLine();
-                        WriteLine("ICollection<T>.Remove: {0}", Invoke(() => ((ICollection<T>)x).Remove(default)));
-                        if (length > 1) WriteLine("IList<T>.this[].get: {0}", ((IList<T>)x)[1]);
-                        if (length > 1) WriteLine("IList<T>.this[].set: {0}", Invoke(() => ((IList<T>)x)[1] = default));
-                        WriteLine("IList<T>.IndexOf: {0}", ((IList<T>)x).IndexOf(default));
-                        WriteLine("IList<T>.Insert: {0}", Invoke(() => ((IList<T>)x).Insert(0, default)));
-                        if (length > 1) WriteLine("IList<T>.RemoveAt: {0}", Invoke(() => ((IList<T>)x).RemoveAt(1)));
+                        WriteLine("ICollection<T>.Remove(default): {0}", Invoke(() => ((ICollection<T>)x).Remove(default)));
+                        if (length > 1) WriteLine("IList<T>.this[1].get: {0}", ((IList<T>)x)[1]);
+                        if (length > 1) WriteLine("IList<T>.this[1].set: {0}", Invoke(() => ((IList<T>)x)[1] = default));
+                        WriteLine("IList<T>.IndexOf(default): {0}", ((IList<T>)x).IndexOf(default));
+                        WriteLine("IList<T>.Insert(0, default): {0}", Invoke(() => ((IList<T>)x).Insert(0, default)));
+                        if (length > 1) WriteLine("IList<T>.RemoveAt(1): {0}", Invoke(() => ((IList<T>)x).RemoveAt(1)));
                     }
                     static string Invoke(Action a)
                     {
@@ -6400,29 +6400,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IReadOnlyCollection<T>.Count: 0
                     ICollection<T>.Count: 0
                     ICollection<T>.IsReadOnly: True
-                    ICollection<T>.Add: System.NotSupportedException
-                    ICollection<T>.Clear: System.NotSupportedException
-                    ICollection<T>.Contains: False
-                    ICollection<T>.CopyTo: (System.Int32[]) [], 
-                    ICollection<T>.Remove: System.NotSupportedException
-                    IList<T>.IndexOf: -1
-                    IList<T>.Insert: System.NotSupportedException
+                    ICollection<T>.Add(default): System.NotSupportedException
+                    ICollection<T>.Clear(): System.NotSupportedException
+                    ICollection<T>.Contains(default): False
+                    ICollection<T>.CopyTo(..., 0): (System.Int32[]) [], 
+                    ICollection<T>.Remove(default): System.NotSupportedException
+                    IList<T>.IndexOf(default): -1
+                    IList<T>.Insert(0, default): System.NotSupportedException
                     IEnumerable.GetEnumerator(): (<>z__ReadOnlyList<System.Object>) [1, 2, null], 
                     IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlyList<System.Object>) [1, 2, null], 
                     IReadOnlyCollection<T>.Count: 3
-                    IReadOnlyList<T>.this[]: 2
+                    IReadOnlyList<T>.this[1]: 2
                     ICollection<T>.Count: 3
                     ICollection<T>.IsReadOnly: True
-                    ICollection<T>.Add: System.NotSupportedException
-                    ICollection<T>.Clear: System.NotSupportedException
-                    ICollection<T>.Contains: True
-                    ICollection<T>.CopyTo: (System.Object[]) [1, 2, null], 
-                    ICollection<T>.Remove: System.NotSupportedException
-                    IList<T>.this[].get: 2
-                    IList<T>.this[].set: System.NotSupportedException
-                    IList<T>.IndexOf: 2
-                    IList<T>.Insert: System.NotSupportedException
-                    IList<T>.RemoveAt: System.NotSupportedException
+                    ICollection<T>.Add(default): System.NotSupportedException
+                    ICollection<T>.Clear(): System.NotSupportedException
+                    ICollection<T>.Contains(default): True
+                    ICollection<T>.CopyTo(..., 0): (System.Object[]) [1, 2, null], 
+                    ICollection<T>.Remove(default): System.NotSupportedException
+                    IList<T>.this[1].get: 2
+                    IList<T>.this[1].set: System.NotSupportedException
+                    IList<T>.IndexOf(default): 2
+                    IList<T>.Insert(0, default): System.NotSupportedException
+                    IList<T>.RemoveAt(1): System.NotSupportedException
                     """);
 
             string expectedNotSupportedIL = """
@@ -6646,6 +6646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
                 }
                 """;
+            // Collection expressions below ensure the types are synthesized.
             string sourceB = """
                 using System.Collections.Generic;
                 class Program
@@ -14685,6 +14686,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_005f:  endfinally
                   }
                   IL_0060:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpanUpdate()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Span<object> x = [1, 2];
+                        x[0] = null;
+                        Span<int> y = [3, 4];
+                        y[1] = 5;
+                        x.Report();
+                        y.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[null, 2], [3, 5], "));
+            verifier.VerifyIL("Program.Main", """
+                {
+                    // Code size      119 (0x77)
+                    .maxstack  2
+                    .locals init (System.Span<object> V_0, //x
+                                System.Span<int> V_1, //y
+                                <>y__InlineArray2<object> V_2,
+                                <>y__InlineArray2<int> V_3)
+                    IL_0000:  ldloca.s   V_2
+                    IL_0002:  initobj    "<>y__InlineArray2<object>"
+                    IL_0008:  ldloca.s   V_2
+                    IL_000a:  ldc.i4.0
+                    IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                    IL_0010:  ldc.i4.1
+                    IL_0011:  box        "int"
+                    IL_0016:  stind.ref
+                    IL_0017:  ldloca.s   V_2
+                    IL_0019:  ldc.i4.1
+                    IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                    IL_001f:  ldc.i4.2
+                    IL_0020:  box        "int"
+                    IL_0025:  stind.ref
+                    IL_0026:  ldloca.s   V_2
+                    IL_0028:  ldc.i4.2
+                    IL_0029:  call       "InlineArrayAsSpan<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                    IL_002e:  stloc.0
+                    IL_002f:  ldloca.s   V_0
+                    IL_0031:  ldc.i4.0
+                    IL_0032:  call       "ref object System.Span<object>.this[int].get"
+                    IL_0037:  ldnull
+                    IL_0038:  stind.ref
+                    IL_0039:  ldloca.s   V_3
+                    IL_003b:  initobj    "<>y__InlineArray2<int>"
+                    IL_0041:  ldloca.s   V_3
+                    IL_0043:  ldc.i4.0
+                    IL_0044:  call       "InlineArrayElementRef<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
+                    IL_0049:  ldc.i4.3
+                    IL_004a:  stind.i4
+                    IL_004b:  ldloca.s   V_3
+                    IL_004d:  ldc.i4.1
+                    IL_004e:  call       "InlineArrayElementRef<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
+                    IL_0053:  ldc.i4.4
+                    IL_0054:  stind.i4
+                    IL_0055:  ldloca.s   V_3
+                    IL_0057:  ldc.i4.2
+                    IL_0058:  call       "InlineArrayAsSpan<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
+                    IL_005d:  stloc.1
+                    IL_005e:  ldloca.s   V_1
+                    IL_0060:  ldc.i4.1
+                    IL_0061:  call       "ref int System.Span<int>.this[int].get"
+                    IL_0066:  ldc.i4.5
+                    IL_0067:  stind.i4
+                    IL_0068:  ldloca.s   V_0
+                    IL_006a:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
+                    IL_006f:  ldloca.s   V_1
+                    IL_0071:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
+                    IL_0076:  ret
                 }
                 """);
         }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A synthesized type used during emit to allow temp locals of Span&lt;T&gt;
     /// of a specific length where the span storage is on the stack.
     /// <code>
-    /// [InlineArray(N)] struct &lt;&gt;y__InlineArrayN&lt;T&gt; { private readonly T _element0; }
+    /// [InlineArray(N)] struct &lt;&gt;y__InlineArrayN&lt;T&gt; { private T _element0; }
     /// </code>
     /// </summary>
     internal sealed class SynthesizedInlineArrayTypeSymbol : NamedTypeSymbol
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arrayLength > 0);
 
             var typeParameter = new InlineArrayTypeParameterSymbol(this);
-            var field = new SynthesizedFieldSymbol(this, typeParameter, "_element0", isReadOnly: true);
+            var field = new SynthesizedFieldSymbol(this, typeParameter, "_element0");
 
             _containingModule = containingModule;
             _arrayLength = arrayLength;
