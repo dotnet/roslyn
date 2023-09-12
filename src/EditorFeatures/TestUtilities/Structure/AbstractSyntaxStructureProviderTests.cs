@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
                 isCollapsible: true,
                 textSpan: textSpan,
                 hintSpan: hintSpan,
-                primarySpans: primaryTextSpan is null || primaryHintSpan is null
-                    ? null
-                    : (primaryTextSpan.Value, primaryHintSpan.Value),
+                //primarySpans: primaryTextSpan is null || primaryHintSpan is null
+                //    ? null
+                //    : (primaryTextSpan.Value, primaryHintSpan.Value),
                 type: BlockTypes.Nonstructural,
                 bannerText: bannerText,
                 autoCollapse: autoCollapse,
