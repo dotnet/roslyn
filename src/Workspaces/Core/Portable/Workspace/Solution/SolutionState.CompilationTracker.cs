@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis
 
                     this.WriteState(finalState);
 
-                    return new CompilationInfo(compilationWithGeneratedFiles, hasSuccessfullyLoaded, generatorInfo);
+                    return new CompilationInfo(compilationWithGeneratedFiles, hasSuccessfullyLoaded, nextGeneratorInfo);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
