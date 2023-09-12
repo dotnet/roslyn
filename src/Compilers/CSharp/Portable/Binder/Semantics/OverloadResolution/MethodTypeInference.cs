@@ -682,8 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // https://github.com/dotnet/roslyn/issues/68786: Ignoring top-level nullability of enumeratorInfo.ElementType.
-            LowerBoundInference(TypeWithAnnotations.Create(enumeratorInfo.ElementType), target, ref useSiteInfo);
+            LowerBoundInference(enumeratorInfo.ElementTypeWithAnnotations, target, ref useSiteInfo);
         }
 #nullable disable
 

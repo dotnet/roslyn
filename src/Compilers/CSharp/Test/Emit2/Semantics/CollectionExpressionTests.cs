@@ -2685,12 +2685,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         int[] x = [1, 2];
-                        int[] y = F([..x]);
-                        y.Report();
+                        object[] y = [3];
+                        F([..x]).Report(includeType: true);
+                        F([..x, ..y]).Report(includeType: true);
+                        F([..y, ..x]).Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1, 2], (System.Object[]) [1, 2, 3], (System.Object[]) [3, 1, 2], ");
         }
 
         [Fact]
@@ -2802,6 +2804,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { source, s_collectionExtensions },
                 references: new[] { CSharpRef },
                 expectedOutput: "(System.Object[]) [2, 3], (System.Object[]) [1, 2, 3], ");
+        }
+
+        [Fact]
+        public void TypeInference_Spread_07()
+        {
+            string source = """
+                #nullable enable
+                class Program
+                {
+                    static void Main()
+                    {
+                        string[] a = [];
+                        string?[] b = [];
+                        object[] aa = [..a, ..a];
+                        object[] ab = [..a, ..b]; // 1
+                        object[] bb = [..b, ..b]; // 2
+                    }
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/68786: Infer nullability from collection expressions in type inference.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_Spread_08()
+        {
+            string source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<string>[] a = [];
+                        IEnumerable<string?>[] b = [];
+                        IEnumerable<object>[] aa = [..a, ..a];
+                        IEnumerable<object>[] ab = [..a, ..b]; // 1
+                        IEnumerable<object>[] bb = [..b, ..b]; // 2
+                    }
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/68786: Infer nullability from collection expressions in type inference.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
