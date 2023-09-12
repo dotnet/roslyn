@@ -85,13 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If VisualBasicSyntaxFacts.Instance.IsExecutableStatement(ancestor) Then
                         Return Nothing
                     End If
-
-                    Select Case ancestor.Kind()
-                        Case SyntaxKind.IfDirectiveTrivia,
-                             SyntaxKind.ElseIfDirectiveTrivia,
-                             SyntaxKind.ConstDirectiveTrivia
-                            Return semanticModel.Compilation.CreatePreprocessingSymbol(token.Text)
-                    End Select
                 End If
             Next
 

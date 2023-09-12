@@ -70,7 +70,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var semanticInfo = await GetSemanticInfoAtPositionAsync(
                 semanticModel, position, services, cancellationToken).ConfigureAwait(false);
-            return semanticInfo.GetAnySymbol(includeType: false);
+            var symbol = semanticInfo.GetAnySymbol(includeType: false);
+            if (symbol is not null)
+                return symbol;
+
+            var preprocessingInfo = await GetPreprocessingSymbolInfoAtPositionAsync(
+                semanticModel, position, services, cancellationToken).ConfigureAwait(false);
+            if (preprocessingInfo.Symbol is not null)
+                return preprocessingInfo.Symbol;
+
+            return null;
         }
 
         internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
@@ -88,6 +97,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return TokenSemanticInfo.Empty;
+        }
+
+        internal static async Task<PreprocessingSymbolInfo> GetPreprocessingSymbolInfoAtPositionAsync(
+            SemanticModel semanticModel,
+            int position,
+            SolutionServices services,
+            CancellationToken cancellationToken)
+        {
+            var token = await GetTokenAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
+
+            if (token != default &&
+                token.Span.IntersectsWith(position))
+            {
+                return semanticModel.GetPreprocessingSymbolInfo(token.Parent);
+            }
+
+            return default;
         }
 
         private static Task<SyntaxToken> GetTokenAtPositionAsync(

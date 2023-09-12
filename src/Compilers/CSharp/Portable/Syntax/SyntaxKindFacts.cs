@@ -249,6 +249,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool IsPreprocessorDirectiveAcceptingPreprocessingSymbols(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                case SyntaxKind.DefineDirectiveTrivia:
+                case SyntaxKind.UndefDirectiveTrivia:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static bool IsPreprocessorDirective(SyntaxKind kind)
         {
             switch (kind)

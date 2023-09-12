@@ -4854,7 +4854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
 
-            if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
+            if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirectiveAcceptingPreprocessingSymbols(n.Kind())))
             {
                 return CreatePreprocessingSymbolInfo(node.Identifier);
             }

@@ -8,7 +8,7 @@ internal partial struct SymbolKey
 {
     private class PreprocessingSymbolKey : AbstractSymbolKey<IPreprocessingSymbol>
     {
-        public static readonly PreprocessingSymbolKey Instance = new();
+        public static readonly PreprocessingSymbolKey Instance = new PreprocessingSymbolKey();
 
         public sealed override void Create(IPreprocessingSymbol symbol, SymbolKeyWriter visitor)
         {
@@ -20,7 +20,7 @@ internal partial struct SymbolKey
             failureReason = null;
             var preprocessingName = reader.ReadRequiredString();
             var preprocessingSymbol = reader.Compilation.CreatePreprocessingSymbol(preprocessingName);
-            return new(preprocessingSymbol);
+            return new SymbolKeyResolution(preprocessingSymbol);
         }
     }
 }
