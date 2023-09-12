@@ -2676,6 +2676,182 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_Spread_01()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static void Main()
+                    {
+                        int[] x = [1, 2];
+                        object[] y = [3];
+                        F([..x]).Report(includeType: true);
+                        F([..x, ..y]).Report(includeType: true);
+                        F([..y, ..x]).Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1, 2], (System.Object[]) [1, 2, 3], (System.Object[]) [3, 1, 2], ");
+        }
+
+        [Fact]
+        public void TypeInference_Spread_02()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static void Main()
+                    {
+                        object[] x = [1, 2];
+                        var y = F([..x, 3]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Object[]) [1, 2, 3], ");
+        }
+
+        [Fact]
+        public void TypeInference_Spread_03()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static void Main()
+                    {
+                        int[] x = [1, 2];
+                        var y = F([..x, (object)3]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Object[]) [1, 2, 3], ");
+        }
+
+        // If we allow inference from a spread element _expression_ rather than simply
+        // from the spread element _type_, and if we allow spread element expressions to
+        // be collection expressions, then MethodTypeInferrer.MakeOutputTypeInferences
+        // will probably need to make an output type inference from each element within
+        // the nested spread element collection expression.
+        [Fact]
+        public void TypeInference_Spread_04()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static Func<T>[] F<T>(Func<T>[] arg) => arg;
+                    static void Main()
+                    {
+                        var x = F([null, .. [() => 1]]);
+                        x.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,29): error CS9176: There is no target type for the collection expression.
+                //         var x = F([null, .. [() => 1]]);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[() => 1]").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void TypeInference_Spread_05()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static void Main()
+                    {
+                        object x = new[] { 2, 3 };
+                        var y = F([..x]);
+                        var z = F([1, ..x]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,22): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         var y = F([..x]);
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(7, 22),
+                // 0.cs(8,25): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         var z = F([1, ..x]);
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(8, 25));
+        }
+
+        [Fact]
+        public void TypeInference_Spread_06()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static void Main()
+                    {
+                        dynamic x = new[] { 2, 3 };
+                        var y = F([..x]);
+                        y.Report(includeType: true);
+                        var z = F([1, ..x]);
+                        z.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                references: new[] { CSharpRef },
+                expectedOutput: "(System.Object[]) [2, 3], (System.Object[]) [1, 2, 3], ");
+        }
+
+        [Fact]
+        public void TypeInference_Spread_07()
+        {
+            string source = """
+                #nullable enable
+                class Program
+                {
+                    static void Main()
+                    {
+                        string[] a = [];
+                        string?[] b = [];
+                        object[] aa = [..a, ..a];
+                        object[] ab = [..a, ..b]; // 1
+                        object[] bb = [..b, ..b]; // 2
+                    }
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/68786: Infer nullability from collection expressions in type inference.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_Spread_08()
+        {
+            string source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<string>[] a = [];
+                        IEnumerable<string?>[] b = [];
+                        IEnumerable<object>[] aa = [..a, ..a];
+                        IEnumerable<object>[] ab = [..a, ..b]; // 1
+                        IEnumerable<object>[] bb = [..b, ..b]; // 2
+                    }
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/68786: Infer nullability from collection expressions in type inference.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void MemberAccess_01()
         {
             string source = """
