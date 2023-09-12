@@ -4,12 +4,23 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Emit;
-
-[DebuggerDisplay("{Name, nq}")]
-internal readonly struct AnonymousTypeValue(string name, int uniqueIndex, Cci.ITypeDefinition type)
+namespace Microsoft.CodeAnalysis.Emit
 {
-    public readonly string Name = name;
-    public readonly int UniqueIndex = uniqueIndex;
-    public readonly Cci.ITypeDefinition Type = type;
+    [DebuggerDisplay("{Name, nq}")]
+    internal readonly struct AnonymousTypeValue
+    {
+        public readonly string Name;
+        public readonly int UniqueIndex;
+        public readonly Cci.ITypeDefinition Type;
+
+        public AnonymousTypeValue(string name, int uniqueIndex, Cci.ITypeDefinition type)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(name));
+            Debug.Assert(uniqueIndex >= 0);
+
+            this.Name = name;
+            this.UniqueIndex = uniqueIndex;
+            this.Type = type;
+        }
+    }
 }

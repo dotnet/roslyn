@@ -8,6 +8,7 @@ Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -128,12 +129,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         ' friend for testing
-        Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As ImmutableDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+        Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As ImmutableSegmentedDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             ' In general, the anonymous type name Is 'VB$Anonymous' ('Type'|'Delegate') '_' (submission-index '_')? index module-id
             ' but EnC Is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index:
             ' e.g. VB$AnonymousType_123, VB$AnonymousDelegate_123
 
-            Dim builder = ImmutableDictionary.CreateBuilder(Of AnonymousTypeKey, AnonymousTypeValue)
+            Dim builder = ImmutableSegmentedDictionary.CreateBuilder(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
                 If Not def.Namespace.IsNil Then

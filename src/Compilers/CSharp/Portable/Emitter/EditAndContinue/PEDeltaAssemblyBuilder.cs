@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
@@ -129,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // internal for testing
         internal static SynthesizedTypeMaps GetSynthesizedTypesFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
         {
-            var anonymousTypes = ImmutableDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
-            var anonymousDelegatesWithIndexedNames = ImmutableDictionary.CreateBuilder<string, AnonymousTypeValue>();
-            var anonymousDelegates = ImmutableDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
+            var anonymousTypes = ImmutableSegmentedDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
+            var anonymousDelegatesWithIndexedNames = ImmutableSegmentedDictionary.CreateBuilder<string, AnonymousTypeValue>();
+            var anonymousDelegates = ImmutableSegmentedDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
             foreach (var handle in reader.TypeDefinitions)
             {
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     continue;
                 }
 
-                // In general, the anonymous type name is "<{module-id}>f__AnonymousDelegate{index}#{submission-index}",
+                // In general, the anonymous delegate name is "<{module-id}>f__AnonymousDelegate{index}#{submission-index}",
                 // but EnC is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index.
                 if (reader.StringComparer.StartsWith(def.Name, GeneratedNames.AnonymousDelegateNameWithoutModulePrefix))
                 {

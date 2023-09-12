@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -104,9 +105,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private ImmutableDictionary<AnonymousTypeKey, AnonymousTypeValue> MapAnonymousTypes(ImmutableDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap)
+        private ImmutableSegmentedDictionary<AnonymousTypeKey, AnonymousTypeValue> MapAnonymousTypes(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap)
         {
-            var builder = ImmutableDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
 
             foreach (var (key, value) in anonymousTypeMap)
             {
@@ -118,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return builder.ToImmutable();
         }
 
-        private ImmutableDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(ImmutableDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates)
+        private ImmutableSegmentedDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates)
         {
-            var builder = ImmutableDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
             foreach (var (key, value) in anonymousDelegates)
             {
@@ -132,9 +133,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return builder.ToImmutable();
         }
 
-        private ImmutableDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithIndexedNames(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
+        private ImmutableSegmentedDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithIndexedNames(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, AnonymousTypeValue>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<string, AnonymousTypeValue>();
 
             foreach (var (key, value) in anonymousDelegates)
             {

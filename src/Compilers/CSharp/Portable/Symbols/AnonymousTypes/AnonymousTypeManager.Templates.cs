@@ -11,6 +11,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -676,12 +677,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableDictionary<CodeAnalysis.Emit.SynthesizedDelegateKey, CodeAnalysis.Emit.SynthesizedDelegateValue> GetAnonymousDelegates()
+        internal ImmutableSegmentedDictionary<CodeAnalysis.Emit.SynthesizedDelegateKey, CodeAnalysis.Emit.SynthesizedDelegateValue> GetAnonymousDelegates()
         {
             var anonymousDelegates = ArrayBuilder<AnonymousDelegateTemplateSymbol>.GetInstance();
             GetCreatedAnonymousDelegates(anonymousDelegates);
 
-            var result = anonymousDelegates.ToImmutableDictionary(
+            var result = anonymousDelegates.ToImmutableSegmentedDictionary(
                 keySelector: delegateSymbol => new CodeAnalysis.Emit.SynthesizedDelegateKey(delegateSymbol.MetadataName),
                 elementSelector: delegateSymbol => new CodeAnalysis.Emit.SynthesizedDelegateValue(delegateSymbol.GetCciAdapter()));
 
@@ -689,13 +690,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal ImmutableDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMap()
+        internal ImmutableSegmentedDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMap()
         {
             // Get anonymous types.
             var templates = ArrayBuilder<AnonymousTypeTemplateSymbol>.GetInstance();
             GetCreatedAnonymousTypeTemplates(templates);
 
-            var result = templates.ToImmutableDictionary(
+            var result = templates.ToImmutableSegmentedDictionary(
                 keySelector: template => template.GetAnonymousTypeKey(),
                 elementSelector: template => new AnonymousTypeValue(template.NameAndIndex.Name, template.NameAndIndex.Index, template.GetCciAdapter()));
 
@@ -703,14 +704,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal ImmutableDictionary<string, AnonymousTypeValue> GetAnonymousDelegatesWithIndexedNames()
+        internal ImmutableSegmentedDictionary<string, AnonymousTypeValue> GetAnonymousDelegatesWithIndexedNames()
         {
             // Get anonymous delegates with indexed names (distinct from
             // anonymous delegates from GetAnonymousDelegates() above).
             var templates = ArrayBuilder<AnonymousDelegateTemplateSymbol>.GetInstance();
             GetCreatedAnonymousDelegatesWithIndexedNames(templates);
             
-            var result = templates.ToImmutableDictionary(
+            var result = templates.ToImmutableSegmentedDictionary(
                 keySelector: template => template.NameAndIndex.Name,
                 elementSelector: template => new AnonymousTypeValue(template.NameAndIndex.Name, template.NameAndIndex.Index, template.GetCciAdapter()));
             

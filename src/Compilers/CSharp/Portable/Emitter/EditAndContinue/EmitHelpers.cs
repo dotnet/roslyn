@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private static bool ContainsPreviousAnonymousDelegates(
             CSharpDefinitionMap definitionMap,
-            ImmutableDictionary<string, AnonymousTypeValue> previousDictionary,
+            ImmutableSegmentedDictionary<string, AnonymousTypeValue> previousDictionary,
             IEnumerable<Cci.ITypeDefinition> currentTypes)
         {
             if (previousDictionary.Count == 0)

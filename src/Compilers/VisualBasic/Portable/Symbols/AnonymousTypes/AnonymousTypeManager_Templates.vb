@@ -8,6 +8,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -247,11 +248,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.Free()
         End Sub
 
-        Friend Function GetAnonymousTypeMap() As ImmutableDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
+        Friend Function GetAnonymousTypeMap() As ImmutableSegmentedDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
             Dim templates = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
             GetAllCreatedTemplates(templates)
 
-            Dim result = templates.ToImmutableDictionary(
+            Dim result = templates.ToImmutableSegmentedDictionary(
                 keySelector:=Function(template) template.GetAnonymousTypeKey(),
                 elementSelector:=Function(template) New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(template.NameAndIndex.Name, template.NameAndIndex.Index, template.GetCciAdapter()))
 

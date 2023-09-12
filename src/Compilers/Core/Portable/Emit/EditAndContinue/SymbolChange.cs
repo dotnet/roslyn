@@ -2,27 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
-internal enum SymbolChange
+namespace Microsoft.CodeAnalysis.Emit
 {
-    /// <summary>
-    /// No change to symbol or members.
-    /// </summary>
-    None = 0,
+    internal enum SymbolChange
+    {
+        /// <summary>
+        /// No change to symbol or members.
+        /// </summary>
+        None = 0,
 
-    /// <summary>
-    /// No change to symbol but may contain changed symbols.
-    /// </summary>
-    ContainsChanges,
+        /// <summary>
+        /// No change to symbol but may contain changed symbols.
+        /// </summary>
+        ContainsChanges,
 
-    /// <summary>
-    /// Symbol updated.
-    /// </summary>
-    Updated,
+        /// <summary>
+        /// Symbol updated.
+        /// </summary>
+        Updated,
 
-    /// <summary>
-    /// Symbol added.
-    /// </summary>
-    Added,
+        /// <summary>
+        /// Symbol added.
+        /// </summary>
+        Added,
+    }
 }
