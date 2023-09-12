@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
@@ -645,6 +646,8 @@ class p$$rogram
         [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68880")]
         public async Task VerifyTextSync()
         {
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
 @"
 public class Class2
@@ -663,14 +666,56 @@ public class Class2
 {
     public int Fi$$;
 }", HangMitigatingCancellationToken);
+            await TestServices.InlineRename.VerifyStringInFlyout("Fi", HangMitigatingCancellationToken);
             await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "e", "l", "d", "3", "2", "1" }, HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+
             await TestServices.EditorVerifier.TextEqualsAsync(
                 @"
 public class Class2
 {
     public int Field321$$;
+}", HangMitigatingCancellationToken);
+            await TestServices.InlineRename.VerifyStringInFlyout("Field321", HangMitigatingCancellationToken);
+        }
+
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68374")]
+        public async Task VerifySelectionAsync()
+        {
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
+            var startCode = @"
+public class Class2
+{
+    public int LongLongField;
+}";
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
+startCode, cancellationToken: HangMitigatingCancellationToken);
+
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("LongLongField", charsOffset: 0, HangMitigatingCancellationToken);
+            await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
+
+            await TestServices.Editor.SendExplicitFocusAsync(HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("LongLongField", charsOffset: "Long".Length, HangMitigatingCancellationToken);
+
+            var markedCode = @"
+public class Class2
+{
+    public int Long{|selection:Long|}Field;
+}";
+            MarkupTestFile.GetPositionAndSpans(markedCode, out var _, out int? _, out var spans);
+            var selectedSpan = spans["selection"].Single();
+            await TestServices.Editor.SetSelectionAsync(selectedSpan, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(
+                new InputKey(VirtualKeyCode.BACK, ImmutableArray<VirtualKeyCode>.Empty), HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "Other", "Stuff" }, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync(
+                @"
+public class Class2
+{
+    public int LongOtherStuff$$Field;
 }", HangMitigatingCancellationToken);
         }
     }
