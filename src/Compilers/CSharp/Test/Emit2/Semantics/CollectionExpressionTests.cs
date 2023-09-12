@@ -7841,7 +7841,6 @@ partial class Program
             var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics();
 
-            // TODO2
             // ILVerify failure:
             //[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }
             var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1], [2]],"), verify: Verification.Fails);
