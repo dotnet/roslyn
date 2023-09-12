@@ -7674,7 +7674,7 @@ partial class Program
 {
     static MyCollection<int> M()
     {
-        return (MyCollection<int>)[1, 2, 3];
+        return (MyCollection<int>)/*<bind>*/[1, 2, 3]/*</bind>*/;
     }
 }
 """;
@@ -7692,6 +7692,17 @@ partial class Program
   IL_000f:  ret
 }
 """);
+            // We should extend IOperation conversions to represent IsCollectionExpression
+            // Tracked by https://github.com/dotnet/roslyn/issues/68826
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                IOperation:  (OperationKind.None, Type: MyCollection<System.Int32>) (Syntax: '[1, 2, 3]')
+                Children(3):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                """);
+
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
@@ -7721,7 +7732,7 @@ partial class Program
 {
     static int[][] M()
     {
-        return [[1], [2]];
+        return /*<bind>*/[[1], [2]]/*</bind>*/;
     }
 }
 """;
@@ -7756,6 +7767,25 @@ partial class Program
   IL_0020:  ret
 }
 """);
+            // We should extend IOperation conversions to represent IsCollectionExpression
+            // Tracked by https://github.com/dotnet/roslyn/issues/68826
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                IOperation:  (OperationKind.None, Type: System.Int32[][]) (Syntax: '[[1], [2]]')
+                Children(2):
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], IsImplicit) (Syntax: '[1]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        IOperation:  (OperationKind.None, Type: System.Int32[]) (Syntax: '[1]')
+                          Children(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], IsImplicit) (Syntax: '[2]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        IOperation:  (OperationKind.None, Type: System.Int32[]) (Syntax: '[2]')
+                          Children(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                """);
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
