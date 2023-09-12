@@ -7707,12 +7707,12 @@ partial class Program
             var model = comp.GetSemanticModel(tree);
 
             var cast = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
-            Assert.Equal("(MyCollection<int>)[1, 2, 3]", cast.ToFullString());
+            Assert.Equal("(MyCollection<int>)/*<bind>*/[1, 2, 3]/*</bind>*/", cast.ToFullString());
             var castConversion = model.GetConversion(cast);
             Assert.True(castConversion.IsIdentity);
 
             var value = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Last().Expression;
-            Assert.Equal("[1, 2, 3]", value.ToFullString());
+            Assert.Equal("[1, 2, 3]/*</bind>*/", value.ToFullString());
             var conversion = model.GetConversion(value);
             Assert.True(conversion.IsValid);
             Assert.True(conversion.IsIdentity);
