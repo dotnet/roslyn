@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -347,19 +348,52 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Now run them remotely
             var remoteCompilation = await remoteProject.GetCompilationAsync();
 
+            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
+            var localGeneratedDocs1 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+
+            // Now make a trivial change to the workspace, resync and confirm things are the same.
+            Assert.True(localWorkspace.SetCurrentSolution(_ => project.AddDocument("X.cs", SourceText.From("// X")).Project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
+
+            localProject = localWorkspace.CurrentSolution.Projects.Single();
+            remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+
+            // Run generators locally
+            localCompilation = await localProject.GetCompilationAsync();
+
+            // Now run them remotely
+            remoteCompilation = await remoteProject.GetCompilationAsync();
+
+            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
+            var localGeneratedDocs2 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+
+            // We should have generated different doc contents the second time around.
+            Assert.NotEqual((await localGeneratedDocs1.Single().GetTextAsync()).ToString(), (await localGeneratedDocs2.Single().GetTextAsync()).ToString());
+        }
+
+        private static async Task AssertSourceGeneratedDocumentsAreSame(Project localProject, Project remoteProject, int expectedCount)
+        {
             var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
             var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
 
             Assert.Equal(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
-            Assert.Equal(1, localGeneratedDocs.Length);
+            Assert.Equal(expectedCount, localGeneratedDocs.Length);
 
-            var localDoc = localGeneratedDocs.Single();
-            var remoteDoc = remoteGeneratedDocs.Single();
+            for (var i = 0; i < expectedCount; i++)
+            {
+                var localDoc = localGeneratedDocs[i];
+                var remoteDoc = remoteGeneratedDocs[i];
 
-            // This is a bug.  These should be equal.
-            Assert.NotEqual(localDoc.HintName, remoteDoc.HintName);
-            // This is a bug.  These should be equal.
-            Assert.NotEqual(localDoc.GetTextSynchronously(default).ToString(), remoteDoc.GetTextSynchronously(default).ToString());
+                Assert.Equal(localDoc.HintName, remoteDoc.HintName);
+                Assert.Equal(localDoc.DocumentState.Id, remoteDoc.DocumentState.Id);
+
+                var localText = await localDoc.GetTextAsync();
+                var remoteText = await localDoc.GetTextAsync();
+                Assert.Equal(localText.ToString(), remoteText.ToString());
+                Assert.Equal(localText.Encoding, remoteText.Encoding);
+                Assert.Equal(localText.ChecksumAlgorithm, remoteText.ChecksumAlgorithm);
+            }
         }
 
         [Fact]
@@ -393,20 +427,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             generateSource = false;
             var remoteCompilation = await remoteProject.GetCompilationAsync();
 
-            var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-            var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // This is a bug, we should have generated the same number of documents on both sides.
-            Assert.NotEqual(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
-            Assert.Equal(1, localGeneratedDocs.Length);
-
-            //var localDoc = localGeneratedDocs.Single();
-            //var remoteDoc = remoteGeneratedDocs.Single();
-
-            //// This is a bug.  These should be equal.
-            //Assert.NotEqual(localDoc.HintName, remoteDoc.HintName);
-            //// This is a bug.  These should be equal.
-            //Assert.NotEqual(localDoc.GetTextSynchronously(default).ToString(), remoteDoc.GetTextSynchronously(default).ToString());
+            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
         }
 
         [Fact]
@@ -440,12 +461,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             generateSource = true;
             var remoteCompilation = await remoteProject.GetCompilationAsync();
 
-            var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-            var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // This is a bug, we should have generated the same number of documents on both sides.
-            Assert.NotEqual(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
-            Assert.Equal(0, localGeneratedDocs.Length);
+            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 0);
         }
 
         public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp, string name = "TestProject")
