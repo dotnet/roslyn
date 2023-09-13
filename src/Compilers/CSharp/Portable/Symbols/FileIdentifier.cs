@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -18,7 +19,7 @@ internal sealed class FileIdentifier
 
     private string? _encoderFallbackErrorMessage;
     private string? _displayFilePath;
-    private ImmutableArray<byte> _filePathChecksumOpt;
+    private StrongBox<ImmutableArray<byte>>? _filePathChecksumOpt;
 
     private FileIdentifier(string filePath)
     {
@@ -27,7 +28,7 @@ internal sealed class FileIdentifier
 
     private FileIdentifier(ImmutableArray<byte> filePathChecksumOpt, string displayFilePath)
     {
-        _filePathChecksumOpt = filePathChecksumOpt;
+        _filePathChecksumOpt = new(filePathChecksumOpt);
         _displayFilePath = displayFilePath;
     }
 
@@ -53,8 +54,7 @@ internal sealed class FileIdentifier
 
             _encoderFallbackErrorMessage = encoderFallbackErrorMessage;
             _displayFilePath = displayFilePath;
-
-            ImmutableInterlocked.InterlockedInitialize(ref _filePathChecksumOpt, hash);
+            _filePathChecksumOpt = new(hash);
 
             Volatile.Write(ref _filePath, null);
         }
@@ -86,7 +86,7 @@ internal sealed class FileIdentifier
         {
             EnsureInitialized();
 
-            return _filePathChecksumOpt;
+            return _filePathChecksumOpt!.Value;
         }
     }
 
