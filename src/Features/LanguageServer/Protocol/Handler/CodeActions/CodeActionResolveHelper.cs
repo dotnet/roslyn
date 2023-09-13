@@ -191,7 +191,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             return new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
 
-
             Task AddTextDocumentDeletionsAsync<TTextDocument>(
                 IEnumerable<DocumentId> removedDocuments,
                 Func<DocumentId, TTextDocument?> getOldDocument)

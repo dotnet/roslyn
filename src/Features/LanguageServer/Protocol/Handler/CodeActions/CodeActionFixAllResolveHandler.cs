@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         public bool RequiresLSPSolution => true;
 
-
         public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynFixAllCodeAction request)
             => ((JToken)request.Data!).ToObject<CodeActionResolveData>()!.TextDocument;
 
