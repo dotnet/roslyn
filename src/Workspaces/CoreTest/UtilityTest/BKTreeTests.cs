@@ -134,12 +134,12 @@ public class BKTreeTests
     [Fact]
     public void TestSpillover()
     {
-        string[] testValues = [
+        string[] testValues = {
             /*root:*/ "Four",
             /*d=1*/ "Fou", "For", "Fur", "Our", "FourA", "FouAr", "FoAur", "FAour", "AFour", "Tour",
             /*d=2*/ "Fo", "Fu", "Fr", "or", "ur", "ou", "FourAb", "FouAbr", "FoAbur", "FAbour", "AbFour", "oFour", "Fuor", "Foru", "ours",
             /*d=3*/ "F", "o", "u", "r", "Fob", "Fox", "bur", "urn", "hur", "foraa", "found"
-        ];
+        };
         TestTreeInvariants(testValues);
     }
 
