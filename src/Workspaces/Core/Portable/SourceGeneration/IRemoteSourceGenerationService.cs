@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration;
@@ -31,6 +32,13 @@ internal interface IRemoteSourceGenerationService
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Information that uniquely identifies the content of a source-generated document and ensures the remote and local
+/// hosts are in agreement on them.
+/// </summary>
+/// <param name="Checksum">Checksum produced from <see cref="SourceText.GetChecksum"/>.</param>
+/// <param name="EncodingName">Result of <see cref="SourceText.Encoding"/>'s <see cref="Encoding.WebName"/>.</param>
+/// <param name="ChecksumAlgorithm">Result of <see cref="SourceText.ChecksumAlgorithm"/>.</param>
 [DataContract]
 internal readonly record struct SourceGeneratedDocumentContentIdentity(
     [property: DataMember(Order = 0)] Checksum Checksum,
