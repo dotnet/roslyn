@@ -15986,7 +15986,7 @@ public class Class
 
         [Fact]
         [WorkItem(48566, "https://github.com/dotnet/roslyn/issues/48566")]
-        public void MissingClosingAngleBracket_Opeartor01()
+        public void MissingClosingAngleBracket_Operator01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -16112,7 +16112,7 @@ public class Class
 
         [Fact]
         [WorkItem(48566, "https://github.com/dotnet/roslyn/issues/48566")]
-        public void MissingClosingAngleBracket_Opeartor02()
+        public void MissingClosingAngleBracket_Operator02()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -16238,7 +16238,7 @@ public class Class
 
         [Fact]
         [WorkItem(48566, "https://github.com/dotnet/roslyn/issues/48566")]
-        public void MissingClosingAngleBracket_ConversionOpeartor01()
+        public void MissingClosingAngleBracket_ConversionOperator01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -16310,7 +16310,7 @@ public class Class
 
         [Fact]
         [WorkItem(48566, "https://github.com/dotnet/roslyn/issues/48566")]
-        public void MissingClosingAngleBracket_ConversionOpeartor02()
+        public void MissingClosingAngleBracket_ConversionOperator02()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
