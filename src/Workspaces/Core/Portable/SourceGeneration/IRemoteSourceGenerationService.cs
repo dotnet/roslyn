@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +19,7 @@ internal interface IRemoteSourceGenerationService
     /// compare that to the prior generated documents it has to see if it can reuse those directly, or if it needs to
     /// remove any documents no longer around, add any new documents, or change the contents of any existing documents.
     /// </summary>
-    ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity identity, Checksum checksum)>> GetSourceGenerationInfoAsync(
+    ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>> GetSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
     /// <summary>
@@ -26,6 +27,12 @@ internal interface IRemoteSourceGenerationService
     /// Should only be called by the host for documents it does not know about, or documents whose checksum contents are
     /// different than the last time the document was queried.
     /// </summary>
-    ValueTask<ImmutableArray<(string contents, string? encodingName, SourceHashAlgorithm checksumAlgorithm)>> GetContentsAsync(
+    ValueTask<ImmutableArray<string>> GetContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
 }
+
+[DataContract]
+internal readonly record struct SourceGeneratedDocumentContentIdentity(
+    [property: DataMember(Order = 0)] Checksum Checksum,
+    [property: DataMember(Order = 1)] string? EncodingName,
+    [property: DataMember(Order = 2)] SourceHashAlgorithm ChecksumAlgorithm);
