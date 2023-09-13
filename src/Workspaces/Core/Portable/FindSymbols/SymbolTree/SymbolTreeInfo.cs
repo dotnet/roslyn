@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -70,16 +69,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
-        private SpellChecker? _spellChecker;
-        private SpellChecker SpellChecker
-        {
-            get
-            {
-                _spellChecker ??= CreateSpellChecker(Checksum, _nodes);
-
-                return _spellChecker.Value;
-            }
-        }
+        /// <summary>
+        /// Explicitly boxed so that we can safely initialize/read this across threads without the need for a lock.
+        /// </summary>
+        private StrongBox<SpellChecker>? _spellChecker;
 
         private SymbolTreeInfo(
             Checksum checksum,
@@ -96,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            SpellChecker? spellChecker,
+            StrongBox<SpellChecker>? spellChecker,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
@@ -178,14 +171,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
             AsyncLazy<IAssemblySymbol?> lazyAssembly, string name, CancellationToken cancellationToken)
         {
+
             using var similarNames = TemporaryArray<string>.Empty;
             using var result = TemporaryArray<ISymbol>.Empty;
 
-            SpellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
+            // Ensure the spell checker is initialized.  This is concurrency safe.  Technically multiple threads may end
+            // up overwriting the field, but even if that happens, we are sure to see a fully written spell checker as
+            // the runtime guarantees that the strongbox .Value field will be completely written when we read out field.
+            _spellChecker ??= CreateSpellChecker(Checksum, _nodes);
+            _spellChecker.Value.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
 
             foreach (var similarName in similarNames)
             {
-                var symbols = await FindAsync(lazyAssembly, similarName, ignoreCase: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var symbols = await FindAsync(lazyAssembly, similarName, ignoreCase: true, cancellationToken).ConfigureAwait(false);
                 result.AddRange(symbols);
             }
 
@@ -302,8 +300,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         #region Construction
 
-        private static SpellChecker CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
-            => new(checksum, sortedNodes.Select(n => n.Name));
+        private static StrongBox<SpellChecker> CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
+            => new(new(checksum, sortedNodes.Select(n => n.Name)));
 
         private static ImmutableArray<Node> SortNodes(ImmutableArray<BuilderNode> unsortedNodes)
         {
