@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal interface ICopilotConfigService : IWorkspaceService
 {
+    public Task<ImmutableDictionary<string, string>> GetCopilotConfigAsync(Project project, CancellationToken cancellationToken);
     public Task<ImmutableArray<string>?> TryGetCopilotConfigPromptAsync(string feature, Project project, CancellationToken cancellationToken);
     public Task<ImmutableArray<(string, ImmutableArray<string>)>> ParsePromptResponseAsync(ImmutableArray<string> response, string feature, Project project, CancellationToken cancellationToken);
 }
@@ -31,6 +32,11 @@ internal sealed class DefaultCopilotConfigService : ICopilotConfigService
         => Task.FromResult<ImmutableArray<string>?>(null);
 
     public Task<ImmutableArray<(string, ImmutableArray<string>)>> ParsePromptResponseAsync(ImmutableArray<string> response, string feature, Project project, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<ImmutableDictionary<string, string>> GetCopilotConfigAsync(Project project, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

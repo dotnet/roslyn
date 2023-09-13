@@ -3,13 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -21,13 +25,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioCopilotConfigService()
+        public VisualStudioCopilotConfigService(IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
         }
+
+        private const string CopilotConfigFileName = ".copilotconfig";
+
+        private readonly string _defaultDescription = @"I am interested in all the categories that are mentioned in the 'Categories' list below.";
+
+        private readonly ConcurrentDictionary<string, (Checksum checksum, Task<ImmutableDictionary<string, string>> readConfigTask)> _copilotConfigCache = new();
 
         // TODO: Either complete the below hard-coded categories list OR populate it from all analyzers loaded for current project.
         private static readonly ImmutableArray<string> s_codeAnalysisSuggestionCategories = ImmutableArray.Create(
             "Security", "Performance", "Design", "Reliability", "Maintenance", "Style");
+        private readonly IThreadingContext _threadingContext;
 
         public async Task<ImmutableArray<string>?> TryGetCopilotConfigPromptAsync(string feature, Project project, CancellationToken cancellationToken)
         {
@@ -38,9 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             return ImmutableArray.Create(prompt!);
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        private static Task<string?> ReadCopilotConfigFileAndGetPromptAsync(string feature, Project project, CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
+        private async Task<string?> ReadCopilotConfigFileAndGetPromptAsync(string feature, Project project, CancellationToken cancellationToken)
         {
             // TODO: Implement the following pieces:
             //       1. Parse ".copilotconfig" additional files from the project as validated content matches schema.
@@ -55,8 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             switch (feature)
             {
                 case CopilotConfigFeatures.CodeAnalysisSuggestions:
-                    // TODO: Replace the below dummy "Description" with description read from .copilotconfig file
-                    var description = @"I am interested in all the categories that are mentioned in the 'Categories' list below.";
+                    var config = await GetCopilotConfigAsync(project, cancellationToken).ConfigureAwait(false);
+                    var description = config.TryGetValue("Description", out var value) ? value : _defaultDescription;
                     builder.Add(description);
 
                     var categories = string.Join(",", s_codeAnalysisSuggestionCategories);
@@ -64,11 +74,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
                     break;
 
                 default:
-                    return Task.FromResult<string?>(null);
+                    return null;
             }
 
             var prompt = CopilotConfigFeatures.GetPrompt(feature, builder.ToArray());
-            return Task.FromResult(prompt);
+            return prompt;
         }
 
         public Task<ImmutableArray<(string, ImmutableArray<string>)>> ParsePromptResponseAsync(ImmutableArray<string> response, string feature, Project project, CancellationToken cancellationToken)
@@ -118,5 +128,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
 
             return Task.FromResult(builder.ToImmutable());
         }
+
+        public async Task<ImmutableDictionary<string, string>> GetCopilotConfigAsync(Project project, CancellationToken cancellationToken)
+        {
+            if (project.AdditionalDocuments.FirstOrDefault(d => d.Name == CopilotConfigFileName && d.FilePath != null) is TextDocument configFile)
+            {
+                Contract.ThrowIfNull(configFile.FilePath);
+
+                var checksum = await configFile.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                if (_copilotConfigCache.TryGetValue(configFile.FilePath!, out var value))
+                {
+                    var (cachedChecksum, task) = value;
+                    if (!checksum.Equals(cachedChecksum))
+                    {
+                        task = ReadConfigAsync(configFile.FilePath, _threadingContext.DisposalToken);
+                        _copilotConfigCache.AddOrUpdate(configFile.FilePath, (checksum, task), (_, _) => (checksum, task));
+                    }
+
+                    if (task.IsCompleted)
+                        return await value.readConfigTask.ConfigureAwait(false);
+
+                }
+            }
+
+            return ImmutableDictionary<string, string>.Empty;
+
+            static async Task<ImmutableDictionary<string, string>> ReadConfigAsync(string path, CancellationToken cancellationToken)
+            {
+                try
+                {
+                    var builder = ImmutableDictionary.CreateBuilder<string, string>();
+                    using var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+                    var jsonDocument = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    foreach (var obj in jsonDocument.RootElement.EnumerateObject())
+                        builder.Add(obj.Name, obj.Value.ToString());
+
+                    return builder.ToImmutable();
+                }
+                catch (JsonException)
+                {
+                    return ImmutableDictionary<string, string>.Empty;
+                }
+            }
+        }
     }
-}
