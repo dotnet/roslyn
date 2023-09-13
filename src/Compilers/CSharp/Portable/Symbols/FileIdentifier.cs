@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
@@ -54,7 +55,8 @@ internal sealed class FileIdentifier
             _displayFilePath = displayFilePath;
 
             ImmutableInterlocked.InterlockedInitialize(ref _filePathChecksumOpt, hash);
-            _filePath = null;
+
+            Volatile.Write(ref _filePath, null);
         }
     }
 
