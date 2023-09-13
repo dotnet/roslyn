@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         Title = "Fix All: " + currentTitle,
                         Kind = codeActionKind,
                         Diagnostics = diagnosticsForFix,
-                        Data = new CodeActionResolveData("Fix All: " + currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToImmutableArray())
+                        Data = new CodeActionResolveData("Fix All: " + currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray())
                     });
                 }
             }
