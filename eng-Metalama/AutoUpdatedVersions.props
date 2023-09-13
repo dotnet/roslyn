@@ -1,8 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+
 <Project>
 
     <PropertyGroup>
-        <MetalamaBackstageVersion></MetalamaBackstageVersion>
+        <MetalamaBackstageVersion>2023.4.1-preview</MetalamaBackstageVersion>
     </PropertyGroup>
 
 </Project>
