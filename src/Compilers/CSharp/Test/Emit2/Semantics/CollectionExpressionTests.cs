@@ -2852,7 +2852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TypeInference_Nullable()
+        public void TypeInference_NullableValueType()
         {
             string source = """
 using System.Collections;
@@ -2895,7 +2895,7 @@ static partial class Program
         }
 
         [Fact]
-        public void TypeInference_Nullable_ExtensionMethod()
+        public void TypeInference_NullableValueType_ExtensionMethod()
         {
             string source = """
 using System.Collections;
@@ -7318,7 +7318,7 @@ static class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
-        public void Nullable_ImplicitConversion()
+        public void NullableValueType_ImplicitConversion()
         {
             string src = """
 using System;
@@ -7388,7 +7388,7 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
-        public void Nullable_ImplicitConversion_Byte()
+        public void NullableValueType_ImplicitConversion_Byte()
         {
             string src = """
 using System;
@@ -7464,7 +7464,7 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
-        public void Nullable_ImplicitConversion_Nullability()
+        public void NullableValueType_ImplicitConversion_Nullability()
         {
             string src = """
 #nullable enable
@@ -7505,7 +7505,7 @@ public class MyCollectionBuilder
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
-        public void Nullable_BadConversion()
+        public void NullableValueType_BadConversion()
         {
             string src = """
 int? x = [1, 2, 3];
@@ -7529,7 +7529,7 @@ int? x = [1, 2, 3];
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
-        public void Nullable_ExplicitCast()
+        public void NullableValueType_ExplicitCast()
         {
             string src = """
 using System;
@@ -7803,7 +7803,7 @@ partial class Program
         }
 
         [Fact]
-        public void NestedCollection_Nullable_SemanticModel()
+        public void NestedCollection_NullableValueType_SemanticModel()
         {
             string src = """
 using System;

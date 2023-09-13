@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetNullableUnderlyingTypeWithAnnotations().Type;
         }
 
-        public static bool IsSystemNullable(this TypeSymbol? type, [NotNullWhen(true)] out TypeSymbol? underlyingType)
+        public static bool IsNullableType(this TypeSymbol? type, [NotNullWhen(true)] out TypeSymbol? underlyingType)
         {
             if (type is NamedTypeSymbol nt
                 && nt.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)

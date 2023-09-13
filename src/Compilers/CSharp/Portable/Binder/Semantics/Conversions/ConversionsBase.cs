@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ObjectCreation;
 
                 case BoundKind.UnconvertedCollectionExpression:
-                    var collectionExpressionConversion = GetImplicitCollectionExpressionConversion((BoundUnconvertedCollectionExpression)sourceExpression, destination, useSiteInfo);
+                    var collectionExpressionConversion = GetImplicitCollectionExpressionConversion((BoundUnconvertedCollectionExpression)sourceExpression, destination, ref useSiteInfo);
                     if (collectionExpressionConversion.Exists)
                     {
                         return collectionExpressionConversion;
@@ -1130,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private Conversion GetImplicitCollectionExpressionConversion(BoundUnconvertedCollectionExpression collectionExpression, TypeSymbol destination, CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetImplicitCollectionExpressionConversion(BoundUnconvertedCollectionExpression collectionExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var collectionExpressionConversion = GetCollectionExpressionConversion(collectionExpression, destination, ref useSiteInfo);
             if (collectionExpressionConversion.Exists)
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // the following should work and it is an ImplicitNullable conversion
             //    ImmutableArray<int>? x = [1, 2];
-            if (destination.IsSystemNullable(out var underlyingDestination))
+            if (destination.IsNullableType(out var underlyingDestination))
             {
                 var underlyingConversion = GetCollectionExpressionConversion(collectionExpression, underlyingDestination, ref useSiteInfo);
                 if (underlyingConversion.Exists)
@@ -1254,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    int? x = 1;
             if (destination.Kind == SymbolKind.NamedType)
             {
-                if (destination.IsSystemNullable(out var underlyingDestination) &&
+                if (destination.IsNullableType(out var underlyingDestination) &&
                     HasImplicitConstantExpressionConversion(source, underlyingDestination))
                 {
                     return Conversion.ImplicitNullableWithImplicitConstantUnderlying;
@@ -1278,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // the following should work and it is an ImplicitNullable conversion
             //    (int, double)? x = (1,2);
-            if (destination.IsSystemNullable(out var underlyingDestination))
+            if (destination.IsNullableType(out var underlyingDestination))
             {
                 var underlyingTupleConversion = GetImplicitTupleLiteralConversion(source, underlyingDestination, ref useSiteInfo);
                 if (underlyingTupleConversion.Exists)
@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    var x = ((byte, string)?)(1,null);
             if (destination.Kind == SymbolKind.NamedType)
             {
-                if (destination.IsSystemNullable(out var underlyingDestination))
+                if (destination.IsNullableType(out var underlyingDestination))
                 {
                     var underlyingTupleConversion = GetExplicitTupleLiteralConversion(source, underlyingDestination, isChecked: isChecked, ref useSiteInfo, forCast);
 
