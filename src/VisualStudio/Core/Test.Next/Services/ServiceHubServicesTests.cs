@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -394,6 +395,50 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal(localText.Encoding, remoteText.Encoding);
                 Assert.Equal(localText.ChecksumAlgorithm, remoteText.ChecksumAlgorithm);
             }
+        }
+
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgreeOnSourceTextEncodingSha()
+        {
+            using var localWorkspace = CreateWorkspace();
+
+            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
+            var generator = new CallbackGenerator(
+                onInit: _ => { }, onExecute: _ => { },
+                computeSourceText: () => (hintName: Guid.NewGuid().ToString(), SourceText.From(Guid.NewGuid().ToString(), Encoding.ASCII, SourceHashAlgorithm.Sha256)));
+
+            var analyzerReference = new TestGeneratorReference(generator);
+            var project = AddEmptyProject(localWorkspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference);
+
+            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+
+            var localProject = localWorkspace.CurrentSolution.Projects.Single();
+            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+
+            // Run generators locally
+            var localCompilation = await localProject.GetCompilationAsync();
+
+            // Now run them remotely
+            var remoteCompilation = await remoteProject.GetCompilationAsync();
+
+            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
+
+            var localGeneratedDocs1 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+            var remoteGeneratedDocs1 = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+
+            var localDoc1 = localGeneratedDocs1.Single();
+            var remoteDoc1 = remoteGeneratedDocs1.Single();
+
+            var localText1 = await localDoc1.GetTextAsync();
+            var remoteText1 = await remoteDoc1.GetTextAsync();
+
+            Assert.Equal(localText1.Encoding, remoteText1.Encoding);
+            Assert.Equal(localText1.ChecksumAlgorithm, remoteText1.ChecksumAlgorithm);
         }
 
         [Fact]

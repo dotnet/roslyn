@@ -79,11 +79,22 @@ namespace Roslyn.Test.Utilities.TestGenerators
     internal class CallbackGenerator(
         Action<GeneratorInitializationContext> onInit,
         Action<GeneratorExecutionContext> onExecute,
-        Func<(string hintName, string? source)> computeSource)
+        Func<(string hintName, string? source)>? computeSource,
+        Func<(string hintName, SourceText sourceText)>? computeSourceText)
         : ISourceGenerator
     {
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "")
             : this(onInit, onExecute, () => ("source", source))
+        {
+        }
+
+        public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<(string hintName, string? source)> computeSource)
+            : this(onInit, onExecute, computeSource, computeSourceText: null)
+        {
+        }
+
+        public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<(string hintName, SourceText sourceText)> computeSourceText)
+            : this(onInit, onExecute, computeSource: null, computeSourceText)
         {
         }
 
@@ -93,9 +104,18 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public void Execute(GeneratorExecutionContext context)
         {
             onExecute(context);
-            var (hintName, source) = computeSource();
-            if (!string.IsNullOrWhiteSpace(source))
-                context.AddSource(hintName, SourceText.From(source, Encoding.UTF8));
+
+            if (computeSourceText != null)
+            {
+                var (hintName, sourceText) = computeSourceText();
+                context.AddSource(hintName, sourceText);
+            }
+            else
+            {
+                var (hintName, source) = computeSource!();
+                if (!string.IsNullOrWhiteSpace(source))
+                    context.AddSource(hintName, SourceText.From(source, Encoding.UTF8));
+            }
         }
     }
 
