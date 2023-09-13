@@ -12219,8 +12219,6 @@ public class Class
                     N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
-
-                AssertEx.Fail("We need better error recovery here");
             }
         }
 
@@ -12355,8 +12353,6 @@ public class Class
                     N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
-
-                AssertEx.Fail("We need better error recovery here");
             }
         }
 
@@ -12415,8 +12411,6 @@ public class Class
                     }
                 }
                 EOF();
-
-                AssertEx.Fail("We need better error recovery here");
             }
         }
 
@@ -12428,15 +12422,15 @@ public class Class
             {
                 const string source =
                     """
-                    static IDictionary<(string Value, string Description) (X, X.X, X.X.X)> GetAllValues(Type t);
+                    static IDictionary<(string Value, string Description) (X, X.X, X.X.X)> GetAllValues<T(Type t);
                     """;
 
                 UsingDeclaration(source, options,
                     // (1,1): error CS1073: Unexpected token '('
-                    // static IDictionary<(string Value, string Description) (A<B, C.D)> GetAllValues(Type t);
+                    // static IDictionary<(string Value, string Description) (X, X.X, X.X.X)> GetAllValues<T(Type t);
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "static IDictionary<(string Value, string Description) ").WithArguments("(").WithLocation(1, 1),
                     // (1,55): error CS1003: Syntax error, '>' expected
-                    // static IDictionary<(string Value, string Description) (A<B, C.D)> GetAllValues(Type t);
+                    // static IDictionary<(string Value, string Description) (X, X.X, X.X.X)> GetAllValues<T(Type t);
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 55));
 
                 N(SyntaxKind.IncompleteMember);
@@ -12475,8 +12469,6 @@ public class Class
                     }
                 }
                 EOF();
-
-                AssertEx.Fail("We need better error recovery here");
             }
         }
 
@@ -12535,8 +12527,6 @@ public class Class
                     }
                 }
                 EOF();
-
-                AssertEx.Fail("We need better error recovery here");
             }
         }
 
@@ -12595,8 +12585,6 @@ public class Class
                     }
                 }
                 EOF();
-
-                AssertEx.Fail("We need better error recovery here");
             }
         }
 
