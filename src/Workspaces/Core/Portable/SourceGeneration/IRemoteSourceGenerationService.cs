@@ -26,10 +26,10 @@ internal interface IRemoteSourceGenerationService
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Given a particular set of generated document identies, returns the fully generated content for those documents.
+    /// Given a particular set of generated document ids, returns the fully generated content for those documents.
     /// Should only be called by the host for documents it does not know about, or documents whose checksum contents are
     /// different than the last time the document was queried.
     /// </summary>
     ValueTask<ImmutableArray<string>> GetContentsAsync(
-        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<SourceGeneratedDocumentIdentity> identities, CancellationToken cancellationToken);
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> identities, CancellationToken cancellationToken);
 }

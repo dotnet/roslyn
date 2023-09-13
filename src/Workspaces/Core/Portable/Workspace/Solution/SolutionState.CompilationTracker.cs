@@ -897,22 +897,22 @@ namespace Microsoft.CodeAnalysis
                 if (infosOpt.HasValue)
                     return null;
 
-                using var _1 = ArrayBuilder<SourceGeneratedDocumentIdentity>.GetInstance(out var documentsToAddOrUpdate);
+                using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var documentsToAddOrUpdate);
 
                 var infos = infosOpt.Value;
                 foreach (var (identity, textChecksum) in infos)
                 {
-                    var existing = FindExistingGeneratedDocumentState(generatorInfo.Documents, identity);
-                    if (existing != null)
+                    var existingDocument = generatorInfo.Documents.TryGetState(identity.DocumentId, out var state) && state.Identity == identity ? state : null;
+                    if (existingDocument != null)
                     {
                         // ensure that the doc we have matches the checksum expected.
-                        var localChecksum = await existing.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false);
+                        var localChecksum = await existingDocument.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false);
                         if (localChecksum == textChecksum)
                             continue;
                     }
 
                     // Couldn't find a matching generated doc.  Add this to the list to pull down.
-                    documentsToAddOrUpdate.Add(identity);
+                    documentsToAddOrUpdate.Add(identity.DocumentId);
                 }
 
                 // We produced just as many documents as before, and none of them required any changes.  So we can reuse
@@ -927,21 +927,17 @@ namespace Microsoft.CodeAnalysis
                 var generatedSourcesOpt = await connection.TryInvokeAsync(
                     solution,
                     this.ProjectState.Id,
-                    (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(,
+                    (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(
+                        solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
-                    TextDocumentStates<SourceGeneratedDocumentState> states,
-                    SourceGeneratedDocumentIdentity identity)
-                {
-                    foreach (var (_, state) in states.States)
-                    {
-                        if (state.Identity == identity)
-                            return state;
-                    }
-
+                if (!generatedSourcesOpt.HasValue)
                     return null;
-                }
+
+                var generatedSources = generatedSourcesOpt.Value;
+                Contract.ThrowIfTrue(generatedSources.Length != documentsToAddOrUpdate.Count);
+
+
             }
 
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoInCurrentProcessAsync(
