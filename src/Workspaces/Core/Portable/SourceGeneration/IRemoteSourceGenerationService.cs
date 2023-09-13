@@ -30,6 +30,6 @@ internal interface IRemoteSourceGenerationService
     /// Should only be called by the host for documents it does not know about, or documents whose checksum contents are
     /// different than the last time the document was queried.
     /// </summary>
-    ValueTask<ImmutableArray<string>> GetContentsAsync(
+    ValueTask<ImmutableArray<(string contents, string encodingName, SourceHashAlgorithm checksumAlgorithm)>> GetContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> identities, CancellationToken cancellationToken);
 }

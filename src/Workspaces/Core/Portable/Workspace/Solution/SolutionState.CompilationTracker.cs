@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,6 +22,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -867,7 +869,7 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
-                    solution, cancellationToken).ConfigureAwait(false);
+                    solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
                 if (result.HasValue)
                     return result.Value;
 
@@ -877,6 +879,7 @@ namespace Microsoft.CodeAnalysis
 
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
                 SolutionState solution,
+                Compilation compilationWithoutGeneratedFiles,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
@@ -887,6 +890,7 @@ namespace Microsoft.CodeAnalysis
 
                 using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
 
+                // First, grab the info from our external host about the generated documents it has for this project.
                 var projectId = this.ProjectState.Id;
                 var infosOpt = await connection.TryInvokeAsync(
                     solution,
@@ -897,13 +901,18 @@ namespace Microsoft.CodeAnalysis
                 if (infosOpt.HasValue)
                     return null;
 
+                // Next, figure out what is different locally.  Specifically, what documents we don't know about, or we
+                // know about but whose text contents are different.
                 using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var documentsToAddOrUpdate);
+                using var _2 = PooledHashSet<DocumentId>.GetInstance(out var allGeneratedDocumentIds);
 
                 var infos = infosOpt.Value;
                 foreach (var (identity, textChecksum) in infos)
                 {
-                    var existingDocument = generatorInfo.Documents.TryGetState(identity.DocumentId, out var state) && state.Identity == identity ? state : null;
-                    if (existingDocument != null)
+                    allGeneratedDocumentIds.Add(identity.DocumentId);
+
+                    var existingDocument = generatorInfo.Documents.GetState(identity.DocumentId);
+                    if (existingDocument?.Identity == identity)
                     {
                         // ensure that the doc we have matches the checksum expected.
                         var localChecksum = await existingDocument.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false);
@@ -915,8 +924,8 @@ namespace Microsoft.CodeAnalysis
                     documentsToAddOrUpdate.Add(identity.DocumentId);
                 }
 
-                // We produced just as many documents as before, and none of them required any changes.  So we can reuse
-                // the prior compilation.
+                // If we produced just as many documents as before, and none of them required any changes, then we can
+                // reuse the prior compilation.
                 if (infos.Length == generatorInfo.Documents.Count &&
                     documentsToAddOrUpdate.Count == 0 &&
                     compilationWithStaleGeneratedTrees != null)
@@ -924,6 +933,8 @@ namespace Microsoft.CodeAnalysis
                     return (compilationWithStaleGeneratedTrees, generatorInfo.WithDocumentsAreFinal(true));
                 }
 
+                // Either we generated a different number of files, and/or we had contents of files that changed. Ensure
+                // we know the contents of any new/changed files.
                 var generatedSourcesOpt = await connection.TryInvokeAsync(
                     solution,
                     this.ProjectState.Id,
@@ -937,7 +948,41 @@ namespace Microsoft.CodeAnalysis
                 var generatedSources = generatedSourcesOpt.Value;
                 Contract.ThrowIfTrue(generatedSources.Length != documentsToAddOrUpdate.Count);
 
+                // Now go through and produce the new document states, using what we have already if it is unchanged, or
+                // what we have retrieved for anything new/changed.
+                using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
+                foreach (var (identity, checksum) in infos)
+                {
+                    var addOrUpdateIndex = documentsToAddOrUpdate.IndexOf(identity.DocumentId);
+                    if (addOrUpdateIndex >= 0)
+                    {
+                        // a document whose content we fetched from the remote side.
+                        var (generatedSource, encodingName, checksumAlgorithm) = generatedSources[addOrUpdateIndex];
+                        var sourceText = SourceText.From(generatedSource, Encoding.GetEncoding(encodingName), checksumAlgorithm);
 
+                        var generatedDocument = SourceGeneratedDocumentState.Create(
+                            identity,
+                            sourceText,
+                            ProjectState.ParseOptions!,
+                            ProjectState.LanguageServices);
+                        Contract.ThrowIfTrue(await generatedDocument.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false) != checksum, "Checksums must match!");
+                        generatedDocumentsBuilder.Add(generatedDocument);
+                    }
+                    else
+                    {
+                        // a document that already matched something locally.
+                        var existingDocument = generatorInfo.Documents.GetState(identity.DocumentId);
+                        Contract.ThrowIfNull(existingDocument, "Must have this existing document!");
+                        Contract.ThrowIfTrue(existingDocument.Identity != identity, "Identies must match!");
+                        Contract.ThrowIfTrue(await existingDocument.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false) != checksum, "Checksums must match!");
+                        generatedDocumentsBuilder.Add(existingDocument);
+                    }
+                }
+
+                var generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
+                var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
+                    await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                return (compilationWithGeneratedFiles, new CompilationTrackerGeneratorInfo(generatedDocuments, generatorInfo.Driver, documentsAreFinal: true));
             }
 
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoInCurrentProcessAsync(
@@ -1020,7 +1065,7 @@ namespace Microsoft.CodeAnalysis
                         compilationWithStaleGeneratedTrees = null;
                 }
 
-                using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
+                using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
                 foreach (var generatorResult in runResult.Results)
                 {
                     if (IsGeneratorRunResultToIgnore(generatorResult))
