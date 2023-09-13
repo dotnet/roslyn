@@ -69,10 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
-        /// <summary>
-        /// Explicitly boxed so that we can safely initialize/read this across threads without the need for a lock.
-        /// </summary>
-        private StrongBox<SpellChecker>? _spellChecker;
+        private SpellChecker? _spellChecker;
 
         private SymbolTreeInfo(
             Checksum checksum,
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            StrongBox<SpellChecker>? spellChecker,
+            SpellChecker? spellChecker,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
@@ -176,9 +173,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Ensure the spell checker is initialized.  This is concurrency safe.  Technically multiple threads may end
             // up overwriting the field, but even if that happens, we are sure to see a fully written spell checker as
-            // the runtime guarantees that the strongbox .Value field will be completely written when we read out field.
+            // the runtime guarantees that the initialize of the SpellChecker instnace completely written when we read
+            // our field.
             _spellChecker ??= CreateSpellChecker(Checksum, _nodes);
-            _spellChecker.Value.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
+            _spellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
 
             foreach (var similarName in similarNames)
             {
@@ -299,8 +297,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         #region Construction
 
-        private static StrongBox<SpellChecker> CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
-            => new(new(checksum, sortedNodes.Select(n => n.Name)));
+        private static SpellChecker CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
+            => new(checksum, sortedNodes.Select(n => n.Name));
 
         private static ImmutableArray<Node> SortNodes(ImmutableArray<BuilderNode> unsortedNodes)
         {

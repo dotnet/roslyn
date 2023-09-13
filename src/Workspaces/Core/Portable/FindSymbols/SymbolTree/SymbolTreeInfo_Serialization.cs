@@ -164,7 +164,7 @@ internal partial class SymbolTreeInfo : IObjectWritable
         else
         {
             writer.WriteBoolean(true);
-            spellChecker.Value.WriteTo(writer);
+            spellChecker.WriteTo(writer);
         }
 
         return;
@@ -255,18 +255,13 @@ internal partial class SymbolTreeInfo : IObjectWritable
                 }
             }
 
-            StrongBox<SpellChecker>? spellChecker = null;
-
+            // if we can't read in the spell checker, that's ok.  This should never happen in practice (it would
+            // mean someone tweaked the data in the database), and we can just regenerate it from the information
+            // stored in 'nodes' anyways.
             var spellCheckerPersisted = reader.ReadBoolean();
-            if (spellCheckerPersisted)
-            {
-                var rawSpellChecker = SpellChecker.TryReadFrom(reader);
-
-                // if we can't read in the spell checker, that's ok.  This should never happen in practice (it would
-                // mean someone tweaked the data in the database), and we can just regenerate it from the information
-                // stored in 'nodes' anyways.
-                spellChecker = rawSpellChecker is null ? null : new(rawSpellChecker.Value);
-            }
+            var spellChecker = spellCheckerPersisted
+                ? SpellChecker.TryReadFrom(reader)
+                : null;
 
             return new SymbolTreeInfo(
                 checksum, nodes.ToImmutableAndClear(), spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
