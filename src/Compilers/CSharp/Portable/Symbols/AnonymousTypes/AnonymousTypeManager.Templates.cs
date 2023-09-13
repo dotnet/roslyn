@@ -710,11 +710,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // anonymous delegates from GetAnonymousDelegates() above).
             var templates = ArrayBuilder<AnonymousDelegateTemplateSymbol>.GetInstance();
             GetCreatedAnonymousDelegatesWithIndexedNames(templates);
-            
+
             var result = templates.ToImmutableSegmentedDictionary(
                 keySelector: template => template.NameAndIndex.Name,
                 elementSelector: template => new AnonymousTypeValue(template.NameAndIndex.Name, template.NameAndIndex.Index, template.GetCciAdapter()));
-            
+
             templates.Free();
             return result;
         }
