@@ -34,7 +34,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             foreach (var id in documentStates.Ids)
             {
                 var state = documentStates.GetRequiredState(id);
-                result.Add((state.Identity, await state.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false)));
+                result.Add((state.Identity, state.GetTextChecksum()));
             }
 
             return result.ToImmutableAndClear();

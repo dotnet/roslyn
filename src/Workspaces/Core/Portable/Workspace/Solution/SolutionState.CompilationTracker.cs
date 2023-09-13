@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis
                     if (existingDocument?.Identity == identity)
                     {
                         // ensure that the doc we have matches the checksum expected.
-                        var localChecksum = await existingDocument.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false);
+                        var localChecksum = existingDocument.GetTextChecksum();
                         if (localChecksum == textChecksum)
                             continue;
                     }
@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis
                             sourceText,
                             ProjectState.ParseOptions!,
                             ProjectState.LanguageServices);
-                        Contract.ThrowIfTrue(await generatedDocument.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false) != checksum, "Checksums must match!");
+                        Contract.ThrowIfTrue(generatedDocument.GetTextChecksum() != checksum, "Checksums must match!");
                         generatedDocumentsBuilder.Add(generatedDocument);
                     }
                     else
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis
                         // a document that already matched something locally.
                         var existingDocument = generatorInfo.Documents.GetRequiredState(identity.DocumentId);
                         Contract.ThrowIfTrue(existingDocument.Identity != identity, "Identies must match!");
-                        Contract.ThrowIfTrue(await existingDocument.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false) != checksum, "Checksums must match!");
+                        Contract.ThrowIfTrue(existingDocument.GetTextChecksum() != checksum, "Checksums must match!");
                         generatedDocumentsBuilder.Add(existingDocument);
                     }
                 }
