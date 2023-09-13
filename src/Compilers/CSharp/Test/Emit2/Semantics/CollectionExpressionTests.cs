@@ -7598,7 +7598,7 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
-        public void Nullable_MissingSystemNullableCtor()
+        public void NullableValueType_MissingSystemNullableCtor()
         {
             string src = """
 using System;
