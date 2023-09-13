@@ -26,8 +26,8 @@
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.6.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>17.7.188</VisualStudioEditorPackagesVersion>
-    <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
-    <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
+    <ILAsmPackageVersion>6.0.0</ILAsmPackageVersion>
+    <ILDAsmPackageVersion>6.0.0</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.7.4-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.8.9-preview</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.7.37349</MicrosoftVisualStudioShellPackagesVersion>
@@ -37,7 +37,7 @@
          but not higher than our minimum dogfoodable Visual Studio version, or else
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>4.1.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
-    <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
+    <MicrosoftILVerificationVersion>7.0.0-preview.1.22076.8</MicrosoftILVerificationVersion>
     <MicrosoftVisualStudioThreadingPackagesVersion>17.7.30</MicrosoftVisualStudioThreadingPackagesVersion>
     <MicrosoftTestPlatformVersion>17.4.1</MicrosoftTestPlatformVersion>
   </PropertyGroup>
@@ -95,7 +95,7 @@
     <MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
-    <MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>3.3.4-beta1.22504.1</MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>
+    <MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>3.11.0-beta1.23464.2</MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>
     <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.339</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
