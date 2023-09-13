@@ -171,7 +171,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
             AsyncLazy<IAssemblySymbol?> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-
             using var similarNames = TemporaryArray<string>.Empty;
             using var result = TemporaryArray<ISymbol>.Empty;
 
