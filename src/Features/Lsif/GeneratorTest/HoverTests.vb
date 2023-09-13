@@ -75,7 +75,7 @@ class C
 void C.M()
 ```
   
-Doc&nbsp;Comment  "
+Doc Comment  "
                 Case Else
                     Throw TestExceptionUtilities.UnexpectedValue(code)
             End Select
