@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         // a document whose content we fetched from the remote side.
                         var (generatedSource, encodingName, checksumAlgorithm) = generatedSources[addOrUpdateIndex];
-                        var sourceText = SourceText.From(generatedSource, Encoding.GetEncoding(encodingName), checksumAlgorithm);
+                        var sourceText = SourceText.From(generatedSource, encodingName is null ? null : Encoding.GetEncoding(encodingName), checksumAlgorithm);
 
                         var generatedDocument = SourceGeneratedDocumentState.Create(
                             identity,
@@ -971,8 +971,7 @@ namespace Microsoft.CodeAnalysis
                     else
                     {
                         // a document that already matched something locally.
-                        var existingDocument = generatorInfo.Documents.GetState(identity.DocumentId);
-                        Contract.ThrowIfNull(existingDocument, "Must have this existing document!");
+                        var existingDocument = generatorInfo.Documents.GetRequiredState(identity.DocumentId);
                         Contract.ThrowIfTrue(existingDocument.Identity != identity, "Identies must match!");
                         Contract.ThrowIfTrue(await existingDocument.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false) != checksum, "Checksums must match!");
                         generatedDocumentsBuilder.Add(existingDocument);
