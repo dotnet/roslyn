@@ -55,9 +55,6 @@ namespace Roslyn.Utilities
             _edges = edges;
         }
 
-        public static BKTree Create(params string[] values)
-            => Create((IEnumerable<string>)values);
-
         public static BKTree Create(IEnumerable<string> values)
             => new Builder(values).Create();
 
