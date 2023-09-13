@@ -117,24 +117,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, assemblyReferenceIdentityMap)
             Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
 
-            ' VB anonymous delegates are handled as anonymous types.
-            Dim synthesizedTypes = New SynthesizedTypeMaps(
-                GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder),
-                anonymousDelegates:=Nothing,
-                anonymousDelegatesWithIndexedNames:=Nothing)
-
+            Dim synthesizedTypes = GetSynthesizedTypesFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
             Dim metadataSymbols = New EmitBaseline.MetadataSymbols(synthesizedTypes, metadataDecoder, assemblyReferenceIdentityMap)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function
 
         ' friend for testing
-        Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As ImmutableSegmentedDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+        Friend Overloads Shared Function GetSynthesizedTypesFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As SynthesizedTypeMaps
             ' In general, the anonymous type name Is 'VB$Anonymous' ('Type'|'Delegate') '_' (submission-index '_')? index module-id
             ' but EnC Is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index:
             ' e.g. VB$AnonymousType_123, VB$AnonymousDelegate_123
 
-            Dim builder = ImmutableSegmentedDictionary.CreateBuilder(Of AnonymousTypeKey, AnonymousTypeValue)
+            Dim anonymousTypes = ImmutableSegmentedDictionary.CreateBuilder(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
                 If Not def.Namespace.IsNil Then
@@ -154,15 +149,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousTypeKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
-                    builder.Add(key, value)
+                    anonymousTypes.Add(key, value)
                 ElseIf TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
-                    builder.Add(key, value)
+                    anonymousTypes.Add(key, value)
                 End If
             Next
-            Return builder.ToImmutable()
+
+            ' VB anonymous delegates are handled as anonymous types
+            Return New SynthesizedTypeMaps(
+                anonymousTypes.ToImmutable(),
+                anonymousDelegates:=Nothing,
+                anonymousDelegatesWithIndexedNames:=Nothing)
         End Function
 
         Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean

@@ -22,21 +22,21 @@ internal readonly struct SynthesizedTypeMaps(
     /// In C#, this is the set of anonymous types only; in VB, this is the set of anonymous types and delegates.
     /// </summary>
     public ImmutableSegmentedDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes { get; }
-        = anonymousTypeMap ?? [];
+        = anonymousTypeMap ?? ImmutableSegmentedDictionary<AnonymousTypeKey, AnonymousTypeValue>.Empty;
 
     /// <summary>
     /// In C#, the set of anonymous delegates with name fully determined by signature;
     /// in VB, this set is unused and empty.
     /// </summary>
     public ImmutableSegmentedDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> AnonymousDelegates { get; }
-        = anonymousDelegates ?? [];
+        = anonymousDelegates ?? ImmutableSegmentedDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>.Empty;
 
     /// <summary>
     /// A map of the assembly identities of the baseline compilation to the identities of the original metadata AssemblyRefs.
     /// Only includes identities that differ between these two.
     /// </summary>
     public ImmutableSegmentedDictionary<string, AnonymousTypeValue> AnonymousDelegatesWithIndexedNames { get; }
-        = anonymousDelegatesWithIndexedNames ?? [];
+        = anonymousDelegatesWithIndexedNames ?? ImmutableSegmentedDictionary<string, AnonymousTypeValue>.Empty;
 
     public bool IsSubsetOf(SynthesizedTypeMaps other)
         => AnonymousTypes.Keys.All(static (key, other) => other.AnonymousTypes.ContainsKey(key), other) &&

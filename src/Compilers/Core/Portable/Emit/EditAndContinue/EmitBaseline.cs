@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(module != null);
             Debug.Assert(ordinal is 0 == (encId == default));
             Debug.Assert(ordinal is 0 == initialBaseline is null);
-            Debug.Assert(ordinal is 0 == synthesizedTypes.IsEmpty);
+            Debug.Assert(synthesizedTypes.IsEmpty || ordinal > 0);
             Debug.Assert(encId != module.GetModuleVersionId());
             Debug.Assert(debugInformationProvider != null);
             Debug.Assert(localSignatureProvider != null);
