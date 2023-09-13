@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => this;
 
-
         protected override async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
             CodeAction codeAction,
             bool showPreviewChangesDialog,
