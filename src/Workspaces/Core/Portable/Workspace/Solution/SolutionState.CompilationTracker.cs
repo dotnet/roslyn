@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
 
-
+                    if (await connection.TryInvokeAsync()
                 }
                 else
                 {
