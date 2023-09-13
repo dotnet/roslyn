@@ -5948,14 +5948,14 @@ parse_member_name:;
 
                 // We prefer early terminating the argument list over parsing until exhaustion
                 // for better error recovery
-                if (tokenKindBreaksTypeArgumentList(this.CurrentToken.Kind))
+                if (tokenBreaksTypeArgumentList(this.CurrentToken))
                     break;
 
                 // We are currently past parsing a type and we encounter an unexpected identifier token
                 // followed by tokens that are not part of a type argument list
                 // Example: List<(string a, string b) Method() { }
                 //                 current token:     ^^^^^^
-                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenKindBreaksTypeArgumentList(this.PeekToken(1).Kind))
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenBreaksTypeArgumentList(this.PeekToken(1)))
                 {
                     break;
                 }
@@ -5966,7 +5966,7 @@ parse_member_name:;
                 //                 current token:     ^^^^^^^^^
                 if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken
                     && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken
-                    && tokenKindBreaksTypeArgumentList(this.PeekToken(2).Kind))
+                    && tokenBreaksTypeArgumentList(this.PeekToken(2)))
                 {
                     break;
                 }
@@ -5984,9 +5984,18 @@ parse_member_name:;
 
             close = this.EatToken(SyntaxKind.GreaterThanToken);
 
-            static bool tokenKindBreaksTypeArgumentList(SyntaxKind kind)
+            static bool tokenBreaksTypeArgumentList(SyntaxToken token)
             {
-                return kind
+                var contextualKind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
+                switch (contextualKind)
+                {
+                    case SyntaxKind.OrKeyword:
+                    case SyntaxKind.AndKeyword:
+                    case SyntaxKind.NotKeyword:
+                        return true;
+                }
+
+                return token.Kind
                     // Example: IEnumerable<string Method<T>()
                     is SyntaxKind.LessThanToken
                     // Example: Method<string(argument)

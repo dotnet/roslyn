@@ -945,5 +945,421 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        #region Missing > in type parameter list
+
+        [Fact]
+        public void MissingClosingAngleBracket01()
+        {
+            UsingExpression(@"e is List<int",
+                // (1,11): error CS1525: Invalid expression term 'int'
+                // e is List<int
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 11));
+
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                    }
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingClosingAngleBracket02()
+        {
+            UsingExpression(@"e is List<int or IEnumerable<int",
+                // (1,15): error CS1003: Syntax error, '>' expected
+                // e is List<int or IEnumerable<int
+                Diagnostic(ErrorCode.ERR_SyntaxError, "or").WithArguments(">").WithLocation(1, 15),
+                // (1,30): error CS1525: Invalid expression term 'int'
+                // e is List<int or IEnumerable<int
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 30));
+
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.OrPattern);
+                    {
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.OrKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "IEnumerable");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingClosingAngleBracket03()
+        {
+            UsingExpression(@"e is List<int { Count: 4 }",
+                // (1,1): error CS1073: Unexpected token '{'
+                // e is List<int { Count: 4 }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "e is List<int").WithArguments("{").WithLocation(1, 1),
+                // (1,11): error CS1525: Invalid expression term 'int'
+                // e is List<int { Count: 4 }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 11));
+
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "List");
+                    }
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingClosingAngleBracket04()
+        {
+            UsingExpression(@"e is not List<int and not IEnumerable<int",
+                // (1,19): error CS1003: Syntax error, '>' expected
+                // e is not List<int and not IEnumerable<int
+                Diagnostic(ErrorCode.ERR_SyntaxError, "and").WithArguments(">").WithLocation(1, 19),
+                // (1,39): error CS1525: Invalid expression term 'int'
+                // e is not List<int and not IEnumerable<int
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 39));
+
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.AndPattern);
+                    {
+                        N(SyntaxKind.NotPattern);
+                        {
+                            N(SyntaxKind.NotKeyword);
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.AndKeyword);
+                        N(SyntaxKind.NotPattern);
+                        {
+                            N(SyntaxKind.NotKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "IEnumerable");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingClosingAngleBracket05()
+        {
+            UsingExpression(@"e is (not List<int and not IEnumerable<int) or List<int or (not IEnumerable<int)",
+                // (1,20): error CS1003: Syntax error, '>' expected
+                // e is (not List<int and not IEnumerable<int) or List<int or (not IEnumerable<int)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "and").WithArguments(">").WithLocation(1, 20),
+                // (1,40): error CS1525: Invalid expression term 'int'
+                // e is (not List<int and not IEnumerable<int) or List<int or (not IEnumerable<int)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 40),
+                // (1,57): error CS1003: Syntax error, '>' expected
+                // e is (not List<int and not IEnumerable<int) or List<int or (not IEnumerable<int)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "or").WithArguments(">").WithLocation(1, 57),
+                // (1,77): error CS1525: Invalid expression term 'int'
+                // e is (not List<int and not IEnumerable<int) or List<int or (not IEnumerable<int)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 77));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.OrPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedPattern);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.AndPattern);
+                            {
+                                N(SyntaxKind.NotPattern);
+                                {
+                                    N(SyntaxKind.NotKeyword);
+                                    N(SyntaxKind.TypePattern);
+                                    {
+                                        N(SyntaxKind.GenericName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "List");
+                                            N(SyntaxKind.TypeArgumentList);
+                                            {
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                M(SyntaxKind.GreaterThanToken);
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.AndKeyword);
+                                N(SyntaxKind.NotPattern);
+                                {
+                                    N(SyntaxKind.NotKeyword);
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "IEnumerable");
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OrKeyword);
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "List");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.ParenthesizedPattern);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NotPattern);
+                        {
+                            N(SyntaxKind.NotKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.LessThanExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "IEnumerable");
+                                    }
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingClosingAngleBracket06()
+        {
+            UsingExpression(@"e is X<Y { Property: A<B a }",
+                // (1,1): error CS1073: Unexpected token '{'
+                // e is X<Y { Property: A<B a }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "e is X<Y").WithArguments("{").WithLocation(1, 1));
+
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Y");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingClosingAngleBracket07()
+        {
+            UsingExpression(@"e is A.B<X or C.D<Y",
+                // (1,12): error CS1003: Syntax error, '>' expected
+                // e is A.B<X or C.D<Y
+                Diagnostic(ErrorCode.ERR_SyntaxError, "or").WithArguments(">").WithLocation(1, 12));
+
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.OrPattern);
+                    {
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "X");
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.OrKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "C");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "D");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Y");
+                }
+            }
+            EOF();
+        }
+
+        #endregion
     }
 }
