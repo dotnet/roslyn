@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,13 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal sealed class FileIdentifier
 {
+    private record FileIdentifierData(string? EncoderFallbackErrorMessage, string DisplayFilePath, ImmutableArray<byte> FilePathChecksumOpt);
+
     private static readonly Encoding s_encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-    private string? _filePath;
-
-    private string? _encoderFallbackErrorMessage;
-    private string? _displayFilePath;
-    private StrongBox<ImmutableArray<byte>>? _filePathChecksumOpt;
+    private readonly string _filePath;
+    private FileIdentifierData? _data;
 
     private FileIdentifier(string filePath)
     {
@@ -28,20 +26,20 @@ internal sealed class FileIdentifier
 
     private FileIdentifier(ImmutableArray<byte> filePathChecksumOpt, string displayFilePath)
     {
-        _filePathChecksumOpt = new(filePathChecksumOpt);
-        _displayFilePath = displayFilePath;
+        _data = new FileIdentifierData(EncoderFallbackErrorMessage: null, displayFilePath, filePathChecksumOpt);
+        _filePath = string.Empty;
     }
 
+    [MemberNotNull(nameof(_data))]
     private void EnsureInitialized()
     {
-        var filePath = _filePath;
-        if (filePath is not null)
+        if (_data is null)
         {
             string? encoderFallbackErrorMessage = null;
             ImmutableArray<byte> hash = default;
             try
             {
-                var encodedFilePath = s_encoding.GetBytes(filePath);
+                var encodedFilePath = s_encoding.GetBytes(_filePath);
                 using var hashAlgorithm = SourceHashAlgorithms.CreateDefaultInstance();
                 hash = hashAlgorithm.ComputeHash(encodedFilePath).ToImmutableArray();
             }
@@ -50,13 +48,9 @@ internal sealed class FileIdentifier
                 encoderFallbackErrorMessage = ex.Message;
             }
 
-            var displayFilePath = GeneratedNames.GetDisplayFilePath(filePath);
+            var displayFilePath = GeneratedNames.GetDisplayFilePath(_filePath);
 
-            _encoderFallbackErrorMessage = encoderFallbackErrorMessage;
-            _displayFilePath = displayFilePath;
-            _filePathChecksumOpt = new(hash);
-
-            Volatile.Write(ref _filePath, null);
+            _data = new FileIdentifierData(encoderFallbackErrorMessage, displayFilePath, hash);
         }
     }
 
@@ -66,7 +60,7 @@ internal sealed class FileIdentifier
         {
             EnsureInitialized();
 
-            return _displayFilePath!;
+            return _data.DisplayFilePath;
         }
     }
 
@@ -76,7 +70,7 @@ internal sealed class FileIdentifier
         {
             EnsureInitialized();
 
-            return _encoderFallbackErrorMessage;
+            return _data.EncoderFallbackErrorMessage;
         }
     }
 
@@ -86,7 +80,7 @@ internal sealed class FileIdentifier
         {
             EnsureInitialized();
 
-            return _filePathChecksumOpt!.Value;
+            return _data.FilePathChecksumOpt;
         }
     }
 
