@@ -585,6 +585,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Преобразовать в кортеж</target>
         <note />
       </trans-unit>
+      <trans-unit id="Copilot_code_analysis_suggestions">
+        <source>Copilot code analysis suggestions</source>
+        <target state="new">Copilot code analysis suggestions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">Не удалось найти переносимый PDB-файл на диске или во внедренном источнике.</target>

@@ -10,11 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+namespace Microsoft.CodeAnalysis.Copilot;
+
 internal interface ICopilotServiceProvider : IWorkspaceService
 {
     public Task<ImmutableArray<string>?> SendOneOffRequestAsync(ImmutableArray<string> promptParts, CancellationToken cancellationToken);
 }
-
 
 [ExportWorkspaceService(typeof(ICopilotServiceProvider), ServiceLayer.Default), Shared]
 internal sealed class DefaultCopilotServiceProvider : ICopilotServiceProvider
