@@ -907,21 +907,24 @@ namespace Microsoft.CodeAnalysis
                 using var _2 = PooledHashSet<DocumentId>.GetInstance(out var allGeneratedDocumentIds);
 
                 var infos = infosOpt.Value;
-                foreach (var (identity, textChecksum) in infos)
+                foreach (var (documentIdentity, contentIdentity) in infos)
                 {
-                    allGeneratedDocumentIds.Add(identity.DocumentId);
+                    allGeneratedDocumentIds.Add(documentIdentity.DocumentId);
 
-                    var existingDocument = generatorInfo.Documents.GetState(identity.DocumentId);
-                    if (existingDocument?.Identity == identity)
+                    var existingDocument = generatorInfo.Documents.GetState(documentIdentity.DocumentId);
+                    if (existingDocument?.Identity == documentIdentity)
                     {
-                        // ensure that the doc we have matches the checksum expected.
-                        var localChecksum = existingDocument.GetTextChecksum();
-                        if (localChecksum == textChecksum)
+                        // ensure that the doc we have matches the content expected.
+                        if (existingDocument.GetTextChecksum() == contentIdentity.Checksum &&
+                            existingDocument.SourceText.Encoding?.WebName == contentIdentity.EncodingName &&
+                            existingDocument.SourceText.ChecksumAlgorithm == contentIdentity.ChecksumAlgorithm)
+                        {
                             continue;
+                        }
                     }
 
                     // Couldn't find a matching generated doc.  Add this to the list to pull down.
-                    documentsToAddOrUpdate.Add(identity.DocumentId);
+                    documentsToAddOrUpdate.Add(documentIdentity.DocumentId);
                 }
 
                 // If we produced just as many documents as before, and none of them required any changes, then we can
@@ -951,29 +954,30 @@ namespace Microsoft.CodeAnalysis
                 // Now go through and produce the new document states, using what we have already if it is unchanged, or
                 // what we have retrieved for anything new/changed.
                 using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
-                foreach (var (identity, checksum) in infos)
+                foreach (var (documentIdentity, contentIdentity) in infos)
                 {
-                    var addOrUpdateIndex = documentsToAddOrUpdate.IndexOf(identity.DocumentId);
+                    var addOrUpdateIndex = documentsToAddOrUpdate.IndexOf(documentIdentity.DocumentId);
                     if (addOrUpdateIndex >= 0)
                     {
                         // a document whose content we fetched from the remote side.
-                        var (generatedSource, encodingName, checksumAlgorithm) = generatedSources[addOrUpdateIndex];
-                        var sourceText = SourceText.From(generatedSource, encodingName is null ? null : Encoding.GetEncoding(encodingName), checksumAlgorithm);
+                        var generatedSource = generatedSources[addOrUpdateIndex];
+                        var sourceText = SourceText.From(
+                            generatedSource, contentIdentity.EncodingName is null ? null : Encoding.GetEncoding(contentIdentity.EncodingName), contentIdentity.ChecksumAlgorithm);
 
                         var generatedDocument = SourceGeneratedDocumentState.Create(
-                            identity,
+                            documentIdentity,
                             sourceText,
                             ProjectState.ParseOptions!,
                             ProjectState.LanguageServices);
-                        Contract.ThrowIfTrue(generatedDocument.GetTextChecksum() != checksum, "Checksums must match!");
+                        Contract.ThrowIfTrue(generatedDocument.GetTextChecksum() != contentIdentity.Checksum, "Checksums must match!");
                         generatedDocumentsBuilder.Add(generatedDocument);
                     }
                     else
                     {
                         // a document that already matched something locally.
-                        var existingDocument = generatorInfo.Documents.GetRequiredState(identity.DocumentId);
-                        Contract.ThrowIfTrue(existingDocument.Identity != identity, "Identies must match!");
-                        Contract.ThrowIfTrue(existingDocument.GetTextChecksum() != checksum, "Checksums must match!");
+                        var existingDocument = generatorInfo.Documents.GetRequiredState(documentIdentity.DocumentId);
+                        Contract.ThrowIfTrue(existingDocument.Identity != documentIdentity, "Identies must match!");
+                        Contract.ThrowIfTrue(existingDocument.GetTextChecksum() != contentIdentity.Checksum, "Checksums must match!");
                         generatedDocumentsBuilder.Add(existingDocument);
                     }
                 }

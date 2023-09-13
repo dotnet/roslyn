@@ -21,7 +21,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             => new RemoteSourceGenerationService(arguments);
     }
 
-    public ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity identity, Checksum checksum)>> GetSourceGenerationInfoAsync(
+    public ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>> GetSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -29,19 +29,22 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, Checksum checksum)>.GetInstance(out var result);
+            using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>.GetInstance(out var result);
 
             foreach (var id in documentStates.Ids)
             {
                 var state = documentStates.GetRequiredState(id);
-                result.Add((state.Identity, state.GetTextChecksum()));
+                var documentIdentity = state.Identity;
+                var contentIdentity = new SourceGeneratedDocumentContentIdentity(
+                    state.GetTextChecksum(), state.SourceText.Encoding?.WebName, state.SourceText.ChecksumAlgorithm);
+                result.Add((documentIdentity, contentIdentity));
             }
 
             return result.ToImmutableAndClear();
         }, cancellationToken);
     }
 
-    public ValueTask<ImmutableArray<(string contents, string? encodingName, SourceHashAlgorithm checksumAlgorithm)>> GetContentsAsync(
+    public ValueTask<ImmutableArray<string>> GetContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -49,13 +52,13 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<(string contents, string? encodingName, SourceHashAlgorithm checksumAlgorithm)>.GetInstance(out var result);
+            using var _ = ArrayBuilder<string>.GetInstance(out var result);
 
             foreach (var id in documentIds)
             {
                 var state = documentStates.GetRequiredState(id);
                 var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                result.Add((text.ToString(), text.Encoding?.WebName, text.ChecksumAlgorithm));
+                result.Add(text.ToString());
             }
 
             return result.ToImmutableAndClear();

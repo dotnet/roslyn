@@ -17,6 +17,12 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
 
     public string HintName => Identity.HintName;
 
+    /// <summary>
+    /// It's reasonable to capture 'text' here and keep it alive.  We're already holding onto the generated text
+    /// strongly in the ConstantTextAndVersionSource we're passing to our base type. 
+    /// </summary>
+    public SourceText SourceText { get; }
+
     public static SourceGeneratedDocumentState Create(
         SourceGeneratedDocumentIdentity documentIdentity,
         SourceText generatedSourceText,
@@ -66,9 +72,9 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
     {
         Identity = documentIdentity;
 
-        // It's reasonable to capture 'text' here and keep it alive.  We're already holding onto the generated text
-        // strongly in the ConstantTextAndVersionSource we're passing to our base type.
-        _lazyTextChecksum = new Lazy<Checksum>(() => Checksum.From(text.GetChecksum()));
+        SourceText = text;
+
+        _lazyTextChecksum = new Lazy<Checksum>(() => Checksum.From(SourceText.GetChecksum()));
     }
 
     // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
