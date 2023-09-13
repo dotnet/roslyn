@@ -335,7 +335,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
-            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
             await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
             var remoteWorkspace = client.GetRemoteWorkspace();
 
@@ -412,7 +412,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
-            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
             await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
             var remoteWorkspace = client.GetRemoteWorkspace();
 
@@ -467,7 +467,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
-            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
             await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
             var remoteWorkspace = client.GetRemoteWorkspace();
 
