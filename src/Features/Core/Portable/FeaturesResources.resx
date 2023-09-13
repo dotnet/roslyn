@@ -1141,6 +1141,9 @@ This version used in: {2}</value>
   <data name="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
     <value>Warning: Changing namespace may produce invalid code and change code meaning.</value>
   </data>
+  <data name="Copilot_code_analysis_suggestions" xml:space="preserve">
+    <value>Copilot code analysis suggestions</value>
+  </data>
   <data name="Invert_conditional" xml:space="preserve">
     <value>Invert conditional</value>
   </data>

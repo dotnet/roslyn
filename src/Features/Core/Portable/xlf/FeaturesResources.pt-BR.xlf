@@ -585,6 +585,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Converter a tupla</target>
         <note />
       </trans-unit>
+      <trans-unit id="Copilot_code_analysis_suggestions">
+        <source>Copilot code analysis suggestions</source>
+        <target state="new">Copilot code analysis suggestions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">Não foi possível encontrar PDB portátil no disco ou incorporado.</target>

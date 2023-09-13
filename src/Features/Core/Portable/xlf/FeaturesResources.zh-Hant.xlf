@@ -585,6 +585,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">轉換為元組</target>
         <note />
       </trans-unit>
+      <trans-unit id="Copilot_code_analysis_suggestions">
+        <source>Copilot code analysis suggestions</source>
+        <target state="new">Copilot code analysis suggestions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">磁碟或內嵌上找不到可攜式 PDB。</target>

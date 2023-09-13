@@ -585,6 +585,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">튜플로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Copilot_code_analysis_suggestions">
+        <source>Copilot code analysis suggestions</source>
+        <target state="new">Copilot code analysis suggestions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">디스크 또는 포함에서 이식 가능한 PDB를 찾을 수 없습니다.</target>
