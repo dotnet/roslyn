@@ -498,7 +498,6 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
         System_ReadOnlySpan_T__Slice_Int_Int,
-        System_ReadOnlySpan_T__op_Implicit_ReadOnlySpan_T_Array,
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
@@ -586,9 +585,29 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
+        System_NotSupportedException__ctor,
         System_MissingMethodException__ctor,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
+        System_Collections_Generic_IReadOnlyCollection_T__Count,
+        System_Collections_Generic_IReadOnlyList_T__get_Item,
+        System_Collections_Generic_ICollection_T__Count,
+        System_Collections_Generic_ICollection_T__IsReadOnly,
+        System_Collections_Generic_ICollection_T__Add,
+        System_Collections_Generic_ICollection_T__Clear,
+        System_Collections_Generic_ICollection_T__Contains,
+        System_Collections_Generic_ICollection_T__CopyTo,
+        System_Collections_Generic_ICollection_T__Remove,
+        System_Collections_Generic_IList_T__get_Item,
+        System_Collections_Generic_IList_T__IndexOf,
+        System_Collections_Generic_IList_T__Insert,
+        System_Collections_Generic_IList_T__RemoveAt,
+
+        System_Collections_Generic_List_T__Count,
+        System_Collections_Generic_List_T__Contains,
+        System_Collections_Generic_List_T__CopyTo,
+        System_Collections_Generic_List_T__get_Item,
+        System_Collections_Generic_List_T__IndexOf,
         System_Collections_Generic_List_T__ToArray,
 
         Count

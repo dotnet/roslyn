@@ -74,6 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
+#nullable enable
+        protected abstract Conversion GetCollectionExpressionConversion(BoundUnconvertedCollectionExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+#nullable disable
+
         protected abstract bool IsAttributeArgumentBinding { get; }
 
         protected abstract bool IsParameterDefaultValueBinding { get; }
@@ -1103,9 +1107,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ObjectCreation;
 
                 case BoundKind.UnconvertedCollectionExpression:
-                    if (GetCollectionExpressionTypeKind(Compilation, destination, out _) != CollectionExpressionTypeKind.None)
+                    var collectionExpressionConversion = GetCollectionExpressionConversion((BoundUnconvertedCollectionExpression)sourceExpression, destination, ref useSiteInfo);
+                    if (collectionExpressionConversion.Exists)
                     {
-                        return Conversion.CollectionExpression;
+                        return collectionExpressionConversion;
                     }
                     break;
             }
@@ -1677,21 +1682,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
-                if (targetType is NamedTypeSymbol { TypeKind: TypeKind.Interface, Arity: 1 } namedType)
-                {
-                    var definition = namedType.OriginalDefinition;
-                    var listType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T);
-                    foreach (var listInterface in listType.AllInterfacesNoUseSiteDiagnostics)
+                if (targetType is NamedTypeSymbol
                     {
-                        // Is the interface implemented by List<T>?
-                        if (areEqual(listInterface.OriginalDefinition, definition) &&
-                            // Is the implementation with type argument T?
-                            areEqual(listType.TypeParameters[0], listInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
-                        {
-                            elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                            return true;
-                        }
-                    }
+                        OriginalDefinition.SpecialType:
+                            SpecialType.System_Collections_Generic_IEnumerable_T or
+                            SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                            SpecialType.System_Collections_Generic_IReadOnlyList_T or
+                            SpecialType.System_Collections_Generic_ICollection_T or
+                            SpecialType.System_Collections_Generic_IList_T,
+                        TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
+                    })
+                {
+                    elementType = typeArg.Type;
+                    return true;
                 }
                 elementType = null;
                 return false;

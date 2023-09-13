@@ -4,7 +4,10 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -155,29 +158,27 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
 
                 // First split the string into constituent lines.
-                var split = rawText.Split(new[] { "\r\n" }, System.StringSplitOptions.None);
+                var split = Split(rawText.AsMemory(), "\r\n".AsSpan());
+
                 // Now split each line into multiple lines.
                 foreach (var item in split)
                     SplitRawLineIntoFormattedLines(item, result);
             }
 
             private static void SplitRawLineIntoFormattedLines(
-                string line, ArrayBuilder<string> formattedLines)
+                ReadOnlyMemory<char> line, ArrayBuilder<string> formattedLines)
             {
                 var firstInLine = true;
 
                 using var _ = PooledStringBuilder.GetInstance(out var sb);
 
-                for (var current = 0; current < line.Length;)
+                var span = line.Span;
+
+                while (span.Length > 0)
                 {
-                    while (current < line.Length && line[current] == ' ')
-                        current++;
+                    span = span.TrimStart(' ');
 
-                    var end = line.IndexOf(' ', current);
-                    if (end < 0)
-                        end = line.Length;
-
-                    if (current == end)
+                    if (span.Length == 0)
                         break;
 
                     // We must always append at least one word to ensure progress.
@@ -191,7 +192,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         sb.Append(' ');
                     }
 
-                    sb.Append(line, current, end - current);
+                    var end = span.IndexOf(" ".AsSpan());
+
+                    if (end < 0)
+                        end = span.Length;
+
+                    foreach (var c in span.Slice(0, end))
+                        sb.Append(c);
 
                     if (sb.Length >= s_wrapLength)
                     {
@@ -200,10 +207,32 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         firstInLine = true;
                     }
 
-                    current = end;
+                    span = span.Slice(end);
                 }
 
                 formattedLines.Add(sb.ToString());
+            }
+
+            public static ImmutableArray<ReadOnlyMemory<char>> Split(
+                ReadOnlyMemory<char> source,
+                ReadOnlySpan<char> separator)
+            {
+                var result = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+
+                var index = source.Span.IndexOf(separator);
+                while (index >= 0)
+                {
+                    var line = source.Slice(0, index);
+                    result.Add(line);
+
+                    source = source.Slice(index + separator.Length);
+                    index = source.Span.IndexOf(separator);
+                }
+
+                if (source.Length > 0)
+                    result.Add(source);
+
+                return result.ToImmutableAndFree();
             }
         }
     }

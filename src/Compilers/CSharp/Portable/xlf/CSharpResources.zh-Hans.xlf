@@ -577,6 +577,11 @@
         <target state="translated">不能在此上下文中使用变量 "{0}"，因为它可能会在其声明范围以外公开所引用的变量</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">用户定义的运算符“{0}”的显式实现必须声明为静态</target>

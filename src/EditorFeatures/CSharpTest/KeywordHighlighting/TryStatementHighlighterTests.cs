@@ -22,168 +22,182 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         public async Task TestExample1_1()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        {|Cursor:[|try|]|}
-        {
-            try
-            {
-            }
-            catch (Exception e)
-            {
-            }
-        }
-        [|finally|]
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        {|Cursor:[|try|]|}
+                        {
+                            try
+                            {
+                            }
+                            catch (Exception e)
+                            {
+                            }
+                        }
+                        [|finally|]
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExample1_2()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        try
-        {
-            {|Cursor:[|try|]|}
-            {
-            }
-            [|catch|] (Exception e)
-            {
-            }
-        }
-        finally
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                            {|Cursor:[|try|]|}
+                            {
+                            }
+                            [|catch|] (Exception e)
+                            {
+                            }
+                        }
+                        finally
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExample1_3()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        try
-        {
-            [|try|]
-            {
-            }
-            {|Cursor:[|catch|]|} (Exception e)
-            {
-            }
-        }
-        finally
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                            [|try|]
+                            {
+                            }
+                            {|Cursor:[|catch|]|} (Exception e)
+                            {
+                            }
+                        }
+                        finally
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExample1_4()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        [|try|]
-        {
-            try
-            {
-            }
-            catch (Exception e)
-            {
-            }
-        }
-        {|Cursor:[|finally|]|}
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|try|]
+                        {
+                            try
+                            {
+                            }
+                            catch (Exception e)
+                            {
+                            }
+                        }
+                        {|Cursor:[|finally|]|}
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExceptionFilter1()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        try
-        {
-            {|Cursor:[|try|]|}
-            {
-            }
-            [|catch|] (Exception e) [|when|] (e != null)
-            {
-            }
-        }
-        finally
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                            {|Cursor:[|try|]|}
+                            {
+                            }
+                            [|catch|] (Exception e) [|when|] (e != null)
+                            {
+                            }
+                        }
+                        finally
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExceptionFilter2()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        try
-        {
-            [|try|]
-            {
-            }
-            {|Cursor:[|catch|]|} (Exception e) [|when|] (e != null)
-            {
-            }
-        }
-        finally
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                            [|try|]
+                            {
+                            }
+                            {|Cursor:[|catch|]|} (Exception e) [|when|] (e != null)
+                            {
+                            }
+                        }
+                        finally
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExceptionFilter3()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        try
-        {
-            [|try|]
-            {
-            }
-            [|catch|] (Exception e) {|Cursor:[|when|]|} (e != null)
-            {
-            }
-        }
-        finally
-        {
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                            [|try|]
+                            {
+                            }
+                            [|catch|] (Exception e) {|Cursor:[|when|]|} (e != null)
+                            {
+                            }
+                        }
+                        finally
+                        {
+                        }
+                    }
+                }
+                """);
         }
     }
 }

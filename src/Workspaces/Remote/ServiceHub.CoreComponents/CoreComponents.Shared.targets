@@ -109,6 +109,7 @@
       <_RspFileLines Include="--out:$(_R2ROptimizeAssemblyOutputPath)" />
       <_RspFileLines Include="--targetarch:$(TargetArch)" />
       <_RspFileLines Include="--optimize" />
+      <_RspFileLines Include="--opt-cross-module:*" />
       <_RspFileLines Include="@(_RuntimeLibraries->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_CrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_NonCrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />

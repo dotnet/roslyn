@@ -186,18 +186,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     : languageOpt == LanguageNames.CSharp
                         ? Glyph.CSharpProject
                         : Glyph.BasicProject;
-#if COCOA
-
-                var previewService = workspace.Services.GetService<IPreviewDialogService>();
-
-                // Until IPreviewDialogService is implemented, just execute all changes without user ability to pick and choose
-                if (previewService == null)
-                    return newSolution;
-#else
 
                 var previewService = workspace.Services.GetRequiredService<IPreviewDialogService>();
-
-#endif
 
                 var changedSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),

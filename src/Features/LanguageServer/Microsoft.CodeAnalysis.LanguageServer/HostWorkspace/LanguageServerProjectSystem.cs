@@ -6,18 +6,17 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.Build.Locator;
-using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -29,8 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export(typeof(LanguageServerProjectSystem)), Shared]
 internal sealed class LanguageServerProjectSystem
 {
-    private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
-
     /// <summary>
     /// A single gate for code that is adding work to <see cref="_projectsToLoadAndReload" /> and modifying <see cref="_msbuildLoaded" />.
     /// This is just we don't have code simultaneously trying to load and unload solutions at once.
@@ -53,6 +50,7 @@ internal sealed class LanguageServerProjectSystem
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly IFileChangeWatcher _fileChangeWatcher;
     private readonly IGlobalOptionService _globalOptionService;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
 
@@ -77,11 +75,9 @@ internal sealed class LanguageServerProjectSystem
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
         _globalOptionService = globalOptionService;
+        _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
-
-        // TODO: remove the DiagnosticReporter that's coupled to the Workspace here
-        _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(workspaceFactory.Workspace.Services.SolutionServices, new DiagnosticReporter(workspaceFactory.Workspace));
 
         _projectsToLoadAndReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
@@ -93,7 +89,6 @@ internal sealed class LanguageServerProjectSystem
 
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
-
         if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!))
             await OpenSolutionCoreAsync(solutionFilePath);
     }
@@ -128,13 +123,6 @@ internal sealed class LanguageServerProjectSystem
         if (!projectFilePaths.Any())
             return;
 
-        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(projectFilePaths.First())!))
-            await OpenProjectsCoreAsync(projectFilePaths);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
-    private async Task OpenProjectsCoreAsync(ImmutableArray<string> projectFilePaths)
-    {
         using (await _gate.DisposableWaitAsync())
         {
             _projectsToLoadAndReload.AddWork(projectFilePaths.Select(p => new ProjectToLoad(p, ProjectGuid: null)));
@@ -162,7 +150,7 @@ internal sealed class LanguageServerProjectSystem
                 if (msbuildInstance != null)
                 {
                     MSBuildLocator.RegisterInstance(msbuildInstance);
-                    _logger.LogInformation($"Loaded MSBuild at {msbuildInstance.MSBuildPath}");
+                    _logger.LogInformation($"Loaded MSBuild in-process from {msbuildInstance.MSBuildPath}");
                     _msbuildLoaded = true;
 
                     return true;
@@ -183,9 +171,15 @@ internal sealed class LanguageServerProjectSystem
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty, msbuildLogger: CreateMSBuildLogger());
 
-        projectBuildManager.StartBatchBuild();
+        var binaryLogPath = GetMSBuildBinaryLogPath();
+        var runBuildInProcess = _globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadInProcess);
+
+        if (runBuildInProcess)
+            _logger.LogInformation("In-process project loading is enabled.");
+
+        await using var buildHostProcessManager = !runBuildInProcess ? new BuildHostProcessManager(_loggerFactory, binaryLogPath) : null;
+        var inProcessBuildHost = runBuildInProcess ? new BuildHost(_loggerFactory, binaryLogPath) : null;
 
         var displayedToast = 0;
 
@@ -197,7 +191,7 @@ internal sealed class LanguageServerProjectSystem
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, projectBuildManager, cancellationToken);
+                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, inProcessBuildHost, cancellationToken);
                     if (errorKind is LSP.MessageType.Error)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
@@ -215,13 +209,14 @@ internal sealed class LanguageServerProjectSystem
         }
         finally
         {
-            projectBuildManager.EndBatchBuild();
-
             _logger.LogInformation($"Completed (re)load of all projects in {stopwatch.Elapsed}");
+
+            if (inProcessBuildHost != null)
+                await inProcessBuildHost.ShutdownAsync();
         }
     }
 
-    private Build.Framework.ILogger? CreateMSBuildLogger()
+    private string? GetMSBuildBinaryLogPath()
     {
         if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.BinaryLogPath) is not string binaryLogDirectory)
             return null;
@@ -231,18 +226,30 @@ internal sealed class LanguageServerProjectSystem
 
         _logger.LogInformation($"Logging design-time builds to {binaryLogPath}");
 
-        return new BinaryLogger { Parameters = binaryLogPath, Verbosity = Build.Framework.LoggerVerbosity.Diagnostic };
+        return binaryLogPath;
     }
 
-    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
+    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager? buildHostProcessManager, BuildHost? inProcessBuildHost, CancellationToken cancellationToken)
     {
         try
         {
             var projectPath = projectToLoad.Path;
-            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
+
+            // If we have a process manager, then get an OOP process; otherwise we're still using in-proc builds so just fetch one in-process
+            var buildHost = inProcessBuildHost ?? await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
+
+            if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
             {
-                var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, cancellationToken);
+                var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, cancellationToken);
                 var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
+
+                // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
+                // language.
+                var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
+                if (projectLanguage != null && _workspaceFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
+                {
+                    return null;
+                }
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
@@ -254,7 +261,6 @@ internal sealed class LanguageServerProjectSystem
 
                     if (existingProject != null)
                     {
-
                         projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                     else
@@ -278,15 +284,16 @@ internal sealed class LanguageServerProjectSystem
 
                 await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
 
-                if (loadedFile.Log.Any())
+                var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
+                if (diagnosticLogItems.Any())
                 {
-                    foreach (var logItem in loadedFile.Log)
+                    foreach (var logItem in diagnosticLogItems)
                     {
                         var projectName = Path.GetFileName(projectPath);
                         _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
                     }
 
-                    return loadedFile.Log.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
+                    return diagnosticLogItems.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
                 }
                 else
                 {
