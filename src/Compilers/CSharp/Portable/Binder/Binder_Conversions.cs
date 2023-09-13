@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             else if ((collectionTypeKind == CollectionExpressionTypeKind.ListInterface && isListInterfaceThatRequiresList(targetType)) ||
-                node.GetKnownLength(out _) is null)
+                node.GetKnownLength(hasSpreadElements: out _) is null)
             {
                 Debug.Assert(elementType is { });
 

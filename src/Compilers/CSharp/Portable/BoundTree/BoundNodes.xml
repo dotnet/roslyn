@@ -1916,7 +1916,7 @@
     <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
     <!-- Collection Length or Count property value. -->
     <Field Name="LengthOrCount" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
-    <!-- Collection element placeholder. -->
+    <!-- Collection element placeholder, used in IteratorBody. -->
     <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <!-- Statement executed for each collection element. -->
     <Field Name="IteratorBody" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>

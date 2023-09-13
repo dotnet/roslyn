@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression array;
-            if (node.GetKnownLength(out _) is null)
+            if (node.GetKnownLength(hasSpreadElements: out _) is null)
             {
                 // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
                 // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var elementType]
                 })
             {
-                int? lengthOpt = node.GetKnownLength(out _);
+                int? lengthOpt = node.GetKnownLength(hasSpreadElements: out _);
 
                 if (lengthOpt == 0)
                 {
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var initialization = new BoundArrayInitialization(
                         syntax,
                         isInferred: false,
-                        elements.SelectAsArray(e => VisitExpression(e)));
+                        elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression(element), this));
                 return new BoundArrayCreation(
                     syntax,
                     ImmutableArray.Create<BoundExpression>(
