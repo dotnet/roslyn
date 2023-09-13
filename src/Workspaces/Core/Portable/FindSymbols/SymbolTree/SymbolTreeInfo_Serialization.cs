@@ -261,6 +261,10 @@ internal partial class SymbolTreeInfo : IObjectWritable
             if (spellCheckerPersisted)
             {
                 var rawSpellChecker = SpellChecker.TryReadFrom(reader);
+
+                // if we can't read in the spell checker, that's ok.  This should never happen in practice (it would
+                // mean someone tweaked the data in the database), and we can just regenerate it from the information
+                // stored in 'nodes' anyways.
                 spellChecker = rawSpellChecker is null ? null : new(rawSpellChecker.Value);
             }
 
