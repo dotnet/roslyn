@@ -50,6 +50,9 @@ namespace Roslyn.Utilities
 
         private BKTree(char[] concatenatedLowerCaseWords, ImmutableArray<Node> nodes, ImmutableArray<Edge> edges)
         {
+            Contract.ThrowIfNull(concatenatedLowerCaseWords, nameof(_concatenatedLowerCaseWords));
+            Contract.ThrowIfTrue(nodes.IsDefault, $"{nameof(nodes)}.{nameof(nodes.IsDefault)}");
+            Contract.ThrowIfTrue(edges.IsDefault, $"{nameof(edges)}.{nameof(edges.IsDefault)}");
             _concatenatedLowerCaseWords = concatenatedLowerCaseWords;
             _nodes = nodes;
             _edges = edges;
