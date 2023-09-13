@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis
                     (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, this.ProjectState.Id, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                if (infosOpt.HasValue)
+                if (!infosOpt.HasValue)
                     return null;
 
                 // Next, figure out what is different locally.  Specifically, what documents we don't know about, or we
