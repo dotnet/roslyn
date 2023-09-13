@@ -866,17 +866,74 @@ namespace Microsoft.CodeAnalysis
                 Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
             {
-                using var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-                if (client is not null)
-                {
-                    using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
+                var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (result.HasValue)
+                    return result.Value;
 
-                    if (await connection.TryInvokeAsync()
-                }
-                else
+
+                return await ComputeNewGeneratorInfoInCurrentProcessAsync(
+                    solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
+                SolutionState solution,
+                CompilationTrackerGeneratorInfo generatorInfo,
+                CancellationToken cancellationToken)
+            {
+                using var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+                if (client is null)
+                    return null;
+
+                using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
+
+                var projectId = this.ProjectState.Id;
+                var infos = await connection.TryInvokeAsync(
+                    solution,
+                    this.ProjectState.Id,
+                    (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, this.ProjectState.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (infos.HasValue)
+                    return null;
+
+                using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var documentsToRemove);
+                using var _2 = ArrayBuilder<SourceGeneratedDocumentIdentity>.GetInstance(out var documentsToAddOrUpdate);
+
+                // First, find out which documents we currently know about should be 
+                foreach (var (documentId, _) in generatorInfo.Documents.States)
                 {
-                    return await ComputeNewGeneratorInfoInCurrentProcessAsync(
-                        solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+                    if (!infos.Value.Any(i => i.identity.DocumentId == documentId))
+                        documentsToRemove.Add(documentId)
+                }
+
+                foreach (var (identity, textChecksum) in infos.Value)
+                {
+                    var existing = FindExistingGeneratedDocumentState(generatorInfo.Documents, identity);
+                    if (existing != null)
+                    {
+                        // ensure that the doc we have matches the checksum expected.
+                        var localChecksum = await existing.GetTextChecksumAsync(cancellationToken).ConfigureAwait(false);
+                        if (localChecksum == textChecksum)
+                            continue;
+                    }
+
+                    // Couldn't find a matching generated doc.  Add this to the list to pull down.
+                    documentsToUpdate.Add(identity);
+                }
+
+
+
+                static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
+                    TextDocumentStates<SourceGeneratedDocumentState> states,
+                    SourceGeneratedDocumentIdentity identity)
+                {
+                    foreach (var (_, state) in states.States)
+                    {
+                        if (state.Identity == identity)
+                            return state;
+                    }
+
+                    return null;
                 }
             }
 
