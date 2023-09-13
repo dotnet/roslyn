@@ -75,6 +75,7 @@ internal static class UseCollectionExpressionHelpers
         // HACK: Workaround lack of compiler information for collection expression conversions with casts.
         // Specifically, hardcode in knowledge that a cast to a constructible collection type of the empty collection
         // expression will always succeed, and there's no need to actually validate semantics there.
+        // Tracked by https://github.com/dotnet/roslyn/issues/68826
         if (!IsAlwaysSafeCastReplacement())
         {
             // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
