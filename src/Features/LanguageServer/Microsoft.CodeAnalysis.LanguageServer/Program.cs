@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
