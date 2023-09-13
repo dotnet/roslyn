@@ -17,7 +17,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Roslyn.Utilities;
 
@@ -782,12 +784,11 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    var telemetryCollector = solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
                     var (compilationWithGeneratedFiles, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
+                        solution,
                         compilationWithoutGeneratedFiles,
                         generatorInfo,
                         compilationWithStaleGeneratedTrees,
-                        telemetryCollector,
                         cancellationToken).ConfigureAwait(false);
 
                     var finalState = FinalState.Create(
@@ -822,10 +823,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
+                SolutionState solution,
                 Compilation compilationWithoutGeneratedFiles,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? compilationWithStaleGeneratedTrees,
-                ISourceGeneratorTelemetryCollectorWorkspaceService? telemetryCollector,
                 CancellationToken cancellationToken)
             {
                 if (generatorInfo.DocumentsAreFinal)
@@ -851,18 +852,39 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return await ComputeNewGeneratorInfoAsync(
+                    solution,
                     compilationWithoutGeneratedFiles,
                     generatorInfo,
                     compilationWithStaleGeneratedTrees,
-                    telemetryCollector,
                     cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoAsync(
+                SolutionState solution,
                 Compilation compilationWithoutGeneratedFiles,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? compilationWithStaleGeneratedTrees,
-                ISourceGeneratorTelemetryCollectorWorkspaceService? telemetryCollector,
+                CancellationToken cancellationToken)
+            {
+                using var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+                if (client is not null)
+                {
+                    using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
+
+
+                }
+                else
+                {
+                    return await ComputeNewGeneratorInfoInCurrentProcessAsync(
+                        solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoInCurrentProcessAsync(
+                SolutionState solution,
+                Compilation compilationWithoutGeneratedFiles,
+                CompilationTrackerGeneratorInfo generatorInfo,
+                Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
             {
                 // We have at least one source generator. If we don't already have a generator driver, we'll have to
@@ -881,7 +903,6 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
 #if DEBUG
-
                     // Assert that the generator driver is in sync with our additional document states; there's not a public
                     // API to get this, but we'll reflect in DEBUG-only.
                     var driverType = generatorInfo.Driver.GetType();
@@ -893,7 +914,6 @@ namespace Microsoft.CodeAnalysis
                     var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
 
                     Contract.ThrowIfFalse(additionalTexts.Length == this.ProjectState.AdditionalDocumentStates.Count);
-
 #endif
                 }
 
@@ -922,6 +942,8 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfNull(generatorInfo.Driver);
 
                 var runResult = generatorInfo.Driver.GetRunResult();
+
+                var telemetryCollector = solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
                 telemetryCollector?.CollectRunResult(runResult, generatorInfo.Driver.GetTimingInfo(), ProjectState);
 
                 // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
