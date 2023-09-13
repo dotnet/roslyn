@@ -866,10 +866,10 @@ namespace Microsoft.CodeAnalysis
                 Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
             {
-                var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(solution, cancellationToken).ConfigureAwait(false);
+                var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
                 if (result.HasValue)
                     return result.Value;
-
 
                 return await ComputeNewGeneratorInfoInCurrentProcessAsync(
                     solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
@@ -878,6 +878,7 @@ namespace Microsoft.CodeAnalysis
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
                 SolutionState solution,
                 CompilationTrackerGeneratorInfo generatorInfo,
+                Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
             {
                 using var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
@@ -887,26 +888,19 @@ namespace Microsoft.CodeAnalysis
                 using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
 
                 var projectId = this.ProjectState.Id;
-                var infos = await connection.TryInvokeAsync(
+                var infosOpt = await connection.TryInvokeAsync(
                     solution,
                     this.ProjectState.Id,
                     (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, this.ProjectState.Id, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                if (infos.HasValue)
+                if (infosOpt.HasValue)
                     return null;
 
-                using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var documentsToRemove);
-                using var _2 = ArrayBuilder<SourceGeneratedDocumentIdentity>.GetInstance(out var documentsToAddOrUpdate);
+                using var _1 = ArrayBuilder<SourceGeneratedDocumentIdentity>.GetInstance(out var documentsToAddOrUpdate);
 
-                // First, find out which documents we currently know about should be 
-                foreach (var (documentId, _) in generatorInfo.Documents.States)
-                {
-                    if (!infos.Value.Any(i => i.identity.DocumentId == documentId))
-                        documentsToRemove.Add(documentId)
-                }
-
-                foreach (var (identity, textChecksum) in infos.Value)
+                var infos = infosOpt.Value;
+                foreach (var (identity, textChecksum) in infos)
                 {
                     var existing = FindExistingGeneratedDocumentState(generatorInfo.Documents, identity);
                     if (existing != null)
@@ -918,10 +912,23 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // Couldn't find a matching generated doc.  Add this to the list to pull down.
-                    documentsToUpdate.Add(identity);
+                    documentsToAddOrUpdate.Add(identity);
                 }
 
+                // We produced just as many documents as before, and none of them required any changes.  So we can reuse
+                // the prior compilation.
+                if (infos.Length == generatorInfo.Documents.Count &&
+                    documentsToAddOrUpdate.Count == 0 &&
+                    compilationWithStaleGeneratedTrees != null)
+                {
+                    return (compilationWithStaleGeneratedTrees, generatorInfo.WithDocumentsAreFinal(true));
+                }
 
+                var generatedSourcesOpt = await connection.TryInvokeAsync(
+                    solution,
+                    this.ProjectState.Id,
+                    (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(,
+                    cancellationToken).ConfigureAwait(false);
 
                 static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
                     TextDocumentStates<SourceGeneratedDocumentState> states,
