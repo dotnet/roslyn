@@ -41,10 +41,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMembers);
         }
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
-            => throw ExceptionUtilities.Unreachable();
-
-        private protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
             object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (options is not MoveStaticMembersOptions moveOptions || moveOptions.IsCancelled)

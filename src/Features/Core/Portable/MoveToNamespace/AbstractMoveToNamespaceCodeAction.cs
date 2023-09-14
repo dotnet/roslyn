@@ -40,10 +40,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 _moveToNamespaceAnalysisResult.Namespaces);
         }
 
-        protected sealed override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
-            => throw ExceptionUtilities.Unreachable();
-
-        private protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+        protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
             object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             // We won't get an empty target namespace from VS, but still should handle it w/o crashing.

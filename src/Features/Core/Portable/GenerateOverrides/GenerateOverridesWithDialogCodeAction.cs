@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     selectAll: globalOptionService?.GenerateOverrides ?? true);
             }
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable();
-
-            private protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                 object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
