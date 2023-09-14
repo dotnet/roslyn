@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         protected bool IsManagedTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
 
-        protected virtual string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
+        protected internal virtual string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
 
         private string PathToManagedToolWithoutExtension
         {
