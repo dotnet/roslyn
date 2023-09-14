@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal sealed partial class RenameTrackingTaggerProvider
     {
-        private class RenameTrackingCodeAction : CodeAction
+        private sealed class RenameTrackingCodeAction : CodeAction
         {
             private readonly string _title;
             private readonly IThreadingContext _threadingContext;
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             protected sealed override CodeActionPriority ComputePriority()
                 => CodeActionPriority.High;
 
-            private protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 // Invoked directly without previewing.

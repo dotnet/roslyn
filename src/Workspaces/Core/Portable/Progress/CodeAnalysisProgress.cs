@@ -29,6 +29,9 @@ public sealed class CodeAnalysisProgress
     /// <summary>
     /// Updates the UI showing the progress of the current operation to the specified <paramref name="description"/>.
     /// </summary>
+    /// <example>
+    /// progress.Report(CodeAnalysisProgress.Description("Renaming files"));
+    /// </example>
     public static CodeAnalysisProgress Description(string description)
         => new() { DescriptionValue = description ?? throw new ArgumentNullException(nameof(description)) };
 
@@ -37,6 +40,9 @@ public sealed class CodeAnalysisProgress
     /// commonly presented with a progress bar.  An optional <paramref name="description"/> can also be provided to
     /// update the UI accordingly (see <see cref="Description"/>).
     /// </summary>
+    /// <example>
+    /// progress.Report(CodeAnalysisProgress.AddIncompleteItems(20));
+    /// </example>
     public static CodeAnalysisProgress AddIncompleteItems(int count, string? description = null)
         => new()
         {
@@ -53,6 +59,9 @@ public sealed class CodeAnalysisProgress
     /// Multiple items of work can be transitioned to be complete by passing an explicit value to <paramref
     /// name="count"/>.
     /// </remarks>
+    /// <example>
+    /// progress.Report(CodeAnalysisProgress.CompleteItem());
+    /// </example>
     public static CodeAnalysisProgress CompleteItem(int count = 1, string? description = null)
         => new()
         {
