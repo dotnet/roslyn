@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             RoslynDebug.AssertNotNull(fixAllAction);
 
             var operations = await fixAllAction.GetOperationsAsync(
-                fixAllContext.Solution, fixAllContext.ProgressTracker, cancellationToken).ConfigureAwait(false);
+                fixAllContext.Solution, fixAllContext.Progress, cancellationToken).ConfigureAwait(false);
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
             RoslynDebug.AssertNotNull(applyChangesOperation);
 

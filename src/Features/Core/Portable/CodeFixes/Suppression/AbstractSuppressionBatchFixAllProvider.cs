@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var cancellationToken = fixAllContext.CancellationToken;
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
-                var progressTracker = fixAllContext.ProgressTracker;
+                var progressTracker = fixAllContext.Progress;
                 progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
                 var fixAllState = fixAllContext.State;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var progressTracker = fixAllContext.ProgressTracker;
+                var progressTracker = fixAllContext.Progress;
 
                 using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
                 using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToFix);
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             var cancellationToken = fixAllContext.CancellationToken;
             var fixAllState = fixAllContext.State;
-            var progressTracker = fixAllContext.ProgressTracker;
+            var progressTracker = fixAllContext.Progress;
 
             if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())
             {

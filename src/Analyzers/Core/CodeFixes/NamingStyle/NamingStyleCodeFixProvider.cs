@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 var codeAction = new ApplyChangesOperation(newSolution);
 
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
-                return SpecializedCollections.SingletonEnumerable(codeAction);
+                return ImmutableArray.Create<CodeActionOperation>(codeAction);
 #else
 
                 using var operations = TemporaryArray<CodeActionOperation>.Empty;
