@@ -233,7 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (source.Kind == BoundKind.UnconvertedCollectionExpression)
                 {
-                    Debug.Assert(conversion.IsCollectionExpression || !conversion.Exists);
+                    Debug.Assert(conversion.IsCollectionExpression
+                        || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsCollectionExpression)
+                        || !conversion.Exists);
 
                     var collectionExpression = ConvertCollectionExpression(
                         (BoundUnconvertedCollectionExpression)source,
@@ -541,6 +543,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             BindingDiagnosticBag diagnostics)
         {
+            if (conversion.IsNullable)
+            {
+                targetType = targetType.GetNullableUnderlyingType();
+                conversion = conversion.UnderlyingConversions[0];
+                _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);
+            }
+
             var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType);
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
@@ -690,7 +699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         wasCompilerGenerated: true,
                         destination: elementType,
                         diagnostics);
-                    convertedElement.WasCompilerGenerated = true;
                     builder.Add(convertedElement!);
                 }
             }
