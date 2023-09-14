@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     equivalenceKey: title);
             }
 
-            private class GlobalSuppressionSolutionChangeAction(
+            private sealed class GlobalSuppressionSolutionChangeAction(
                 string title,
                 Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
                 string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey)

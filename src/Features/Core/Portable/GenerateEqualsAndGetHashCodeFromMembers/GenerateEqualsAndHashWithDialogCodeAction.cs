@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
-        private class GenerateEqualsAndGetHashCodeWithDialogCodeAction(
+        private sealed class GenerateEqualsAndGetHashCodeWithDialogCodeAction(
             GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
             Document document,
             SyntaxNode typeDeclaration,
