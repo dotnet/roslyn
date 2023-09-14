@@ -19,17 +19,26 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerInfoCache;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
 {
     [ExportWorkspaceService(typeof(ICopilotConfigService), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService
+    [Export(typeof(VisualStudioCopilotConfigService))]
+    internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService, IDisposable
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioCopilotConfigService(IThreadingContext threadingContext)
+        public VisualStudioCopilotConfigService(
+            VisualStudioWorkspace workspace,
+            IThreadingContext threadingContext,
+            SharedGlobalCache sharedGlobalCache)
         {
+            _workspace = workspace;
             _threadingContext = threadingContext;
+            _copilotServiceProvider = workspace.Services.GetRequiredService<ICopilotServiceProvider>();
+            _diagnosticAnalyzerInfoCache = sharedGlobalCache.AnalyzerInfoCache;
+            workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
         }
 
         private const string CopilotConfigFileName = ".copilotconfig";
@@ -39,19 +48,94 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             "Security", "Performance", "Design", "Reliability", "Maintenance", "Style");
 
         private readonly ConcurrentDictionary<string, (Checksum checksum, Task<ImmutableDictionary<string, string>> readConfigTask)> _copilotConfigCache = new();
-        private readonly ConcurrentDictionary<IReadOnlyList<AnalyzerReference>, Task<ImmutableArray<DiagnosticDescriptor>>> _diagnosticDescriptorCache = new();
+        private readonly ConcurrentDictionary<string, ImmutableArray<string>?> _copilotConfigResponseCache = new();
+        private readonly ConcurrentDictionary<IReadOnlyList<AnalyzerReference>, Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>>> _diagnosticDescriptorCache = new();
+        private readonly VisualStudioWorkspace _workspace;
         private readonly IThreadingContext _threadingContext;
+        private readonly ICopilotServiceProvider _copilotServiceProvider;
+        private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache;
 
-        public async Task<ImmutableArray<string>?> TryGetCopilotConfigPromptAsync(string feature, Project project, CancellationToken cancellationToken)
+        public Task InitializeAsync(CancellationToken cancellationToken)
         {
-            var prompt = await ReadCopilotConfigFileAndGetPromptAsync(feature, project, cancellationToken).ConfigureAwait(false);
+            foreach (var project in _workspace.CurrentSolution.Projects)
+                KickOffBackgrundComputationOfCopilotConfigData(project, cancellationToken);
+
+            return Task.CompletedTask;
+        }
+
+        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionAdded:
+                case WorkspaceChangeKind.SolutionChanged:
+                case WorkspaceChangeKind.SolutionReloaded:
+                    foreach (var project in e.NewSolution.Projects)
+                        KickOffBackgrundComputationOfCopilotConfigData(project, CancellationToken.None);
+                    break;
+
+                case WorkspaceChangeKind.AdditionalDocumentAdded:
+                case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                case WorkspaceChangeKind.AdditionalDocumentChanged:
+                    KickOffBackgrundComputationOfCopilotConfigData(e.NewSolution.GetProject(e.ProjectId), CancellationToken.None);
+                    break;
+            }
+        }
+
+        private void KickOffBackgrundComputationOfCopilotConfigData(Project? project, CancellationToken cancellationToken)
+        {
+            if (project == null)
+                return;
+
+            Task.Run(async () =>
+            {
+                // Add tasks for copilot config data computation for all features here.
+                await GetCodeAnalysisSuggestionsConfigDataAsync(project, forceCompute: true, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
+        public Task<ImmutableArray<(string, ImmutableArray<string>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
+            => GetCodeAnalysisSuggestionsConfigDataAsync(project, forceCompute: false, cancellationToken);
+
+        private async Task<ImmutableArray<(string, ImmutableArray<string>)>> GetCodeAnalysisSuggestionsConfigDataAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
+        {
+            var response = await GetCopilotConfigResponseAsync(CopilotConfigFeatures.CodeAnalysisSuggestions, project, forceCompute, cancellationToken).ConfigureAwait(false);
+            if (!response.HasValue)
+                return ImmutableArray<(string, ImmutableArray<string>)>.Empty;
+
+            var descriptorsByCategory = await GetAvailableDiagnosticDescriptorsByCategoryAsync(project, forceCompute).ConfigureAwait(false);
+            if (descriptorsByCategory.IsEmpty)
+                return ImmutableArray<(string, ImmutableArray<string>)>.Empty;
+
+            return ParseCodeAnalysisSuggestionsResponse(response.Value, descriptorsByCategory);
+        }
+
+        private async Task<ImmutableArray<string>?> GetCopilotConfigResponseAsync(string feature, Project project, bool forceCompute, CancellationToken cancellationToken)
+        {
+            var prompt = await ReadCopilotConfigFileAndGetPromptAsync(feature, project, forceCompute, cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrEmpty(prompt))
                 return null;
 
-            return ImmutableArray.Create(prompt!);
+            return await GetCopilotConfigResponseAsync(prompt!, feature, project, forceCompute, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<string?> ReadCopilotConfigFileAndGetPromptAsync(string feature, Project project, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<string>?> GetCopilotConfigResponseAsync(string prompt, string feature, Project project, bool forceCompute, CancellationToken cancellationToken)
+        {
+            var requestKey = $"{feature}:{prompt}";
+            if (_copilotConfigResponseCache.TryGetValue(requestKey, out var response))
+                return response;
+
+            if (!forceCompute)
+            {
+                KickOffBackgrundComputationOfCopilotConfigData(project, cancellationToken);
+                return null;
+            }
+
+            response = await _copilotServiceProvider.SendOneOffRequestAsync(ImmutableArray.Create(prompt), cancellationToken).ConfigureAwait(false);
+            return _copilotConfigResponseCache.GetOrAdd(requestKey, response);
+        }
+
+        private async Task<string?> ReadCopilotConfigFileAndGetPromptAsync(string feature, Project project, bool forceCompute, CancellationToken cancellationToken)
         {
             // TODO: Implement the following pieces:
             //       1. Parse ".copilotconfig" additional files from the project as validated content matches schema.
@@ -66,14 +150,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             switch (feature)
             {
                 case CopilotConfigFeatures.CodeAnalysisSuggestions:
-                    var config = await GetCopilotConfigAsync(project, cancellationToken).ConfigureAwait(false);
+                    var config = await GetCopilotConfigAsync(project, forceCompute, cancellationToken).ConfigureAwait(false);
 
                     var description = config.TryGetValue("Description", out var value) ? value : _defaultDescription;
                     builder.Add(description);
 
                     // TODO: Provide the list of diagnostics in the form of (Id, category, description) for LLM to pick from.
-                    var availableDiagnostics = await GetAvailableDiagnosticDescriptorAsync(project).ConfigureAwait(false);
-                    IEnumerable<string> categories = availableDiagnostics.IsEmpty ? s_defaultCcodeAnalysisSuggestionCategories : availableDiagnostics.Select(d => d.Category).ToHashSet();
+                    var availableDiagnostics = await GetAvailableDiagnosticDescriptorsByCategoryAsync(project, forceCompute).ConfigureAwait(false);
+                    var categories = availableDiagnostics.IsEmpty ? s_defaultCcodeAnalysisSuggestionCategories : availableDiagnostics.Keys;
                     builder.Add(string.Join(",", categories));
                     break;
 
@@ -85,55 +169,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             return prompt;
         }
 
-        public Task<ImmutableArray<(string, ImmutableArray<string>)>> ParsePromptResponseAsync(ImmutableArray<string> response, string feature, Project project, CancellationToken cancellationToken)
+        private static ImmutableArray<(string, ImmutableArray<string>)> ParseCodeAnalysisSuggestionsResponse(
+            ImmutableArray<string> response,
+            ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> descriptorsByCategory)
         {
             using var _1 = ArrayBuilder<(string, ImmutableArray<string>)>.GetInstance(out var builder);
-
-            if (feature == CopilotConfigFeatures.CodeAnalysisSuggestions)
+            using var _2 = ArrayBuilder<string>.GetInstance(out var idsBuilder);
+            using var _3 = PooledHashSet<string>.GetInstance(out var uniqueIds);
+            foreach (var responsePart in response.Order())
             {
-                using var _2 = ArrayBuilder<string>.GetInstance(out var idsBuilder);
-                foreach (var responsePart in response.Order())
+                var trimmedResponsePart = responsePart;
+                var index = responsePart.IndexOf("Answer:");
+                if (index > 0)
                 {
-                    var trimmedResponsePart = responsePart;
-                    var index = responsePart.IndexOf("Step 3:");
-                    if (index > 0)
-                    {
-                        trimmedResponsePart = responsePart[index..];
-                    }
+                    trimmedResponsePart = responsePart[index..];
+                }
 
-                    var parts = trimmedResponsePart.Split('\n');
-                    foreach (var item in parts)
+                var parts = trimmedResponsePart.Split(',');
+                foreach (var item in parts)
+                {
+                    var trimmedItem = item.Trim();
+                    if (descriptorsByCategory.TryGetValue(trimmedItem, out var descriptors))
                     {
-                        index = item.IndexOf(':');
-                        if (index <= 0 || index >= item.Length - 1)
-                            continue;
-
-                        var prefix = item[..index].Trim();
-                        if (prefix.All(ch => char.IsLetterOrDigit(ch) || char.IsWhiteSpace(ch)))
+                        foreach (var descriptor in descriptors)
                         {
-                            var ids = item[(index + 1)..].Split(',');
-                            foreach (var id in ids)
-                            {
-                                var trimmedId = id.Trim();
-                                if (!string.IsNullOrEmpty(trimmedId) && trimmedId.All(char.IsLetterOrDigit))
-                                {
-                                    idsBuilder.Add(trimmedId);
-                                }
-                            }
-
-                            if (idsBuilder.Count > 0)
-                            {
-                                builder.Add((prefix, idsBuilder.ToImmutableAndClear()));
-                            }
+                            if (uniqueIds.Add(descriptor.Id))
+                                idsBuilder.Add(descriptor.Id);
                         }
+
+                        if (idsBuilder.Count > 0)
+                            builder.Add((trimmedItem, idsBuilder.ToImmutableAndClear()));
                     }
                 }
             }
 
-            return Task.FromResult(builder.ToImmutable());
+            return builder.ToImmutable();
         }
 
-        public async Task<ImmutableDictionary<string, string>> GetCopilotConfigAsync(Project project, CancellationToken cancellationToken)
+        private async Task<ImmutableDictionary<string, string>> GetCopilotConfigAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
         {
             if (project.AdditionalDocuments.FirstOrDefault(d => d.Name == CopilotConfigFileName && d.FilePath != null) is TextDocument configFile)
             {
@@ -149,9 +222,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
                         _copilotConfigCache.AddOrUpdate(configFile.FilePath, (checksum, task), (_, _) => (checksum, task));
                     }
 
-                    if (task.IsCompleted)
+                    if (task.IsCompleted || forceCompute)
                         return await value.readConfigTask.ConfigureAwait(false);
-
                 }
             }
 
@@ -176,11 +248,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             }
         }
 
-        private async Task<ImmutableArray<DiagnosticDescriptor>> GetAvailableDiagnosticDescriptorAsync(Project project)
+        private async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetAvailableDiagnosticDescriptorsByCategoryAsync(Project project, bool forceCompute)
         {
             if (!_diagnosticDescriptorCache.TryGetValue(project.AnalyzerReferences, out var task))
             {
-                task = new Task<ImmutableArray<DiagnosticDescriptor>>(() => GetAllAvailableAnalyzerDescriptors(project), _threadingContext.DisposalToken);
+                task = new Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>>(() => GetAllAvailableAnalyzerDescriptors(project), _threadingContext.DisposalToken);
 
                 var returnedTask = _diagnosticDescriptorCache.GetOrAdd(project.AnalyzerReferences, task);
                 if (returnedTask == task)
@@ -189,17 +261,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
                 task = returnedTask;
             }
 
-            if (task.IsCompleted)
+            if (task.IsCompleted || forceCompute)
                 return await task.ConfigureAwait(false);
 
-            return ImmutableArray<DiagnosticDescriptor>.Empty;
+            return ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>.Empty;
 
-
-            static ImmutableArray<DiagnosticDescriptor> GetAllAvailableAnalyzerDescriptors(Project project)
+            ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetAllAvailableAnalyzerDescriptors(Project project)
             {
                 var analyzers = project.AnalyzerReferences.SelectMany(reference => reference.GetAnalyzers(project.Language));
-                return analyzers.SelectMany(analyzer => analyzer.SupportedDiagnostics).ToImmutableArray();
+                var descriptors = analyzers.SelectMany(analyzer => analyzer.IsCompilerAnalyzer()
+                    ? ImmutableArray<DiagnosticDescriptor>.Empty
+                    : _diagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer));
+
+                var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>(StringComparer.OrdinalIgnoreCase);
+                foreach (var descriptorGroup in descriptors.GroupBy(d => d.Category))
+                {
+                    builder.Add(descriptorGroup.Key, descriptorGroup.OrderByDescending(d => d.Id).ToImmutableArray());
+                }
+
+                return builder.ToImmutable();
+                ;
+
             }
+        }
+
+        public void Dispose()
+        {
+            _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
         }
     }
 }
