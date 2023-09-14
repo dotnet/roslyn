@@ -28,11 +28,15 @@ internal partial class SolutionState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
+            // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
+            // back over to us to ensure that both processes are in total agreement about the SG docs and their
+            // contents.
             var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
                 solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
             if (result.HasValue)
                 return result.Value;
 
+            // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
             return await ComputeNewGeneratorInfoInCurrentProcessAsync(
                 solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
         }
