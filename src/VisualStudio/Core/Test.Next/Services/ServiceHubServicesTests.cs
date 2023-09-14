@@ -399,7 +399,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var throwIfCalled = false;
             ImmutableArray<(string hintName, SourceText text)> sourceTexts = default;
-            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
             var generator = new CallbackGenerator(
                 onInit: _ => { },
                 onExecute: _ => { },
