@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     internal partial class PackageInstallerService
     {
         private async Task<bool> TryInstallAndAddUndoActionAsync(
-            string source, string packageName, string? version, bool includePrerelease,
+            string? source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private async Task<bool> TryUninstallAndAddRedoActionAsync(
-            string source, string packageName, string? version, bool includePrerelease,
+            string? source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             protected readonly EnvDTE.DTE dte;
             protected readonly EnvDTE.Project dteProject;
             protected readonly PackageInstallerService packageInstallerService;
-            protected readonly string source;
+            protected readonly string? source;
             protected readonly string packageName;
             protected readonly IOleUndoManager undoManager;
             protected readonly string? version;
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             protected BaseUndoUnit(
                 PackageInstallerService packageInstallerService,
-                string source,
+                string? source,
                 string packageName,
                 string? version,
                 bool includePrerelease,
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             public UninstallPackageUndoUnit(
                 PackageInstallerService packageInstallerService,
-                string source,
+                string? source,
                 string packageName,
                 string? version,
                 bool includePrerelease,
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             public InstallPackageUndoUnit(
                 PackageInstallerService packageInstallerService,
-                string source,
+                string? source,
                 string packageName,
                 string? version,
                 bool includePrerelease,

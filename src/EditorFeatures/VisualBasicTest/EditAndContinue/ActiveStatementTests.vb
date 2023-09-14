@@ -1473,7 +1473,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Property P As Integer</AS:0>
+    <AS:0>Property P</AS:0> As Integer
 
     Sub Main
         Dim <AS:1>c = New C()</AS:1>
@@ -2521,7 +2521,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Shared Property a As Integer</AS:0>
+    <AS:0>Shared Property a</AS:0> As Integer
     Property b As Integer = 1
 End Class
 "

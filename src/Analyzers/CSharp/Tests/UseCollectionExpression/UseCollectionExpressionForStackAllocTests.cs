@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -528,6 +529,60 @@ public class UseCollectionExpressionForStackAllocTests
                     void M()
                     {
                         ReadOnlySpan<int> r = [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var r = (ReadOnlySpan<int>)[|[|stackalloc|] int[]|] { };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var r = (ReadOnlySpan<int>)[];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestIdentifierCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using X = System.ReadOnlySpan<int>;
+
+                class C
+                {
+                    void M()
+                    {
+                        var r = (X)stackalloc int[] { };
                     }
                 }
                 """,
@@ -1519,6 +1574,66 @@ public class UseCollectionExpressionForStackAllocTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                ReadOnlySpan<int> x = [|[|stackalloc|] int[]|] { 1, 2, 3 };
+                """,
+            FixedCode = """
+                using System;
+
+                ReadOnlySpan<int> x = [1, 2, 3];
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                Span<int> r = [|[|stackalloc|] int[2]|];
+                r[0] = 1 +
+                    2;
+                r[1] = 3 +
+                    4;
+
+                """,
+            FixedCode = """
+                using System;
+
+                Span<int> r =
+                [
+                    1 +
+                        2,
+                    3 +
+                        4,
+                ];
+
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
         }.RunAsync();
     }
 }

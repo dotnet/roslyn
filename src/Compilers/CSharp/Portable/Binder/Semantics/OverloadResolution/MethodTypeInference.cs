@@ -615,6 +615,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeCollectionExpressionTypeInferences(binder, (BoundUnconvertedCollectionExpression)argument, target, kind, ref useSiteInfo);
             }
+            else if (argument.Kind == BoundKind.CollectionExpressionSpreadElement)
+            {
+                MakeSpreadElementTypeInferences((BoundCollectionExpressionSpreadElement)argument, target, ref useSiteInfo);
+            }
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
             {
@@ -639,7 +643,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExactOrBoundsKind kind,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (target.Type is null)
+            TypeSymbol targetType = target.Type;
+            Debug.Assert(targetType is { });
+            if (targetType is null)
             {
                 return;
             }
@@ -649,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, targetType.StrippedType(), out TypeWithAnnotations targetElementType))
             {
                 return;
             }
@@ -658,6 +664,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeExplicitParameterTypeInferences(binder, element, targetElementType, kind, ref useSiteInfo);
             }
+        }
+
+        private void MakeSpreadElementTypeInferences(
+            BoundCollectionExpressionSpreadElement argument,
+            TypeWithAnnotations target,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(target.Type is { });
+            if (target.Type is null)
+            {
+                return;
+            }
+
+            var enumeratorInfo = argument.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return;
+            }
+
+            LowerBoundInference(enumeratorInfo.ElementTypeWithAnnotations, target, ref useSiteInfo);
         }
 #nullable disable
 

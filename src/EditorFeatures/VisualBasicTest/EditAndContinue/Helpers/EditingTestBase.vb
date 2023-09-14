@@ -102,6 +102,8 @@ End Namespace
                     Return FeaturesResources.auto_property
                 Case "property"
                     Return FeaturesResources.property_
+                Case "event"
+                    Return FeaturesResources.event_
                 Case "method"
                     Return FeaturesResources.method
                 Case "constructor"

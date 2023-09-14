@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         Task<bool> TryInstallPackageAsync(
             Workspace workspace, DocumentId documentId,
-            string source, string packageName,
+            string? source, string packageName,
             string? version, bool includePrerelease,
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 

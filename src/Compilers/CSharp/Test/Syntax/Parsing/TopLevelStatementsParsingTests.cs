@@ -3506,19 +3506,12 @@ global using Bar x;
                 // (2,15): error CS1001: Identifier expected
                 // 			       W   )b
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 15),
-                // (2,15): error CS1002: ; expected
+                // (2,15): error CS1003: Syntax error, ',' expected
                 // 			       W   )b
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 15),
-                // (2,15): error CS1022: Type or namespace definition, or end-of-file expected
-                // 			       W   )b
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 15),
-                // (2,17): error CS1001: Identifier expected
-                // 			       W   )b
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(2, 15),
                 // (2,17): error CS1002: ; expected
                 // 			       W   )b
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 17)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 17));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3540,15 +3533,55 @@ global using Bar x;
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67050")]
+        public void EmptyLocalDeclaration()
+        {
+            var text = """ 
+struct S { }
+partial ext X
+""";
+            UsingTree(text,
+                // (1,13): error CS1031: Type expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term 'partial'
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
+                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                // (2,14): error CS1002: ; expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
                 {
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                M(SyntaxKind.GlobalStatement);
+                {
+                    M(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        M(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "b");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             M(SyntaxKind.VariableDeclarator);
                             {

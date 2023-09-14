@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -51,11 +53,8 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (originalTypeInfo.ConvertedType.OriginalDefinition is INamedTypeSymbol { IsValueType: true } structType &&
-            !IsValidStructType(compilation, structType))
-        {
+        if (!IsConstructibleCollectionType(originalTypeInfo.ConvertedType.OriginalDefinition))
             return false;
-        }
 
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
         // example, `IEnumerable<string> x = new List<string>()`.  If we change that to `[]` we will still compile,
@@ -73,61 +72,109 @@ internal static class UseCollectionExpressionHelpers
                 return false;
         }
 
-        // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
-        // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
-        // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
-        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
-        // types that could accept the collection expression).
-        var speculationAnalyzer = new SpeculationAnalyzer(
-            topMostExpression,
-            s_emptyCollectionExpression,
-            semanticModel,
-            cancellationToken,
-            skipVerificationForReplacedNode,
-            failOnOverloadResolutionFailuresInOriginalCode: true);
+        // HACK: Workaround lack of compiler information for collection expression conversions with casts.
+        // Specifically, hardcode in knowledge that a cast to a constructible collection type of the empty collection
+        // expression will always succeed, and there's no need to actually validate semantics there.
+        // Tracked by https://github.com/dotnet/roslyn/issues/68826
+        if (!IsAlwaysSafeCastReplacement())
+        {
+            // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
+            // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
+            // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
+            // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
+            // types that could accept the collection expression).
+            var speculationAnalyzer = new SpeculationAnalyzer(
+                topMostExpression,
+                s_emptyCollectionExpression,
+                semanticModel,
+                cancellationToken,
+                skipVerificationForReplacedNode,
+                failOnOverloadResolutionFailuresInOriginalCode: true);
 
-        if (speculationAnalyzer.ReplacementChangesSemantics())
-            return false;
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+                return false;
 
-        // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
-        // (for example, we're trying to replace an expression that is converted to something that isn't even a
-        // collection type).
-        var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
-        if (!conversion.IsCollectionExpression)
-            return false;
+            // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
+            // (for example, we're trying to replace an expression that is converted to something that isn't even a
+            // collection type).
+            //
+            // Note: an identity conversion is always legal without needing any more checks.
+            var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
+            if (conversion.IsIdentity)
+                return true;
 
-        // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
-        // converting this to some different collection type unintentionally.
-        var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
-        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
-            return false;
+            if (!conversion.IsCollectionExpression)
+                return false;
+
+            // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
+            // converting this to some different collection type unintentionally.
+            var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
+            if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
+                return false;
+        }
 
         return true;
 
-        // Special case.  Block value types without an explicit no-arg constructor, which also do not have the
-        // collection-builder-attribute on them.  This prevents us from offering to convert value-type-collections who
-        // are invalid in their `default` state (like ImmutableArray<T>).  The presumption is that if the
-        // collection-initializer pattern is valid for these value types that they will supply an explicit constructor
-        // to initialize themselves.
-        static bool IsValidStructType(Compilation compilation, INamedTypeSymbol structType)
+        bool IsAlwaysSafeCastReplacement()
+            => parent is CastExpressionSyntax && IsConstructibleCollectionType(semanticModel.GetTypeInfo(parent, cancellationToken).Type);
+
+        bool IsConstructibleCollectionType(ITypeSymbol? type)
         {
-            // Span<> and ReadOnlySpan<> are always valid targets.
-            if (structType.Equals(compilation.SpanOfTType()) || structType.Equals(compilation.ReadOnlySpanOfTType()))
+            // Arrays are always a valid collection expression type.
+            if (type is IArrayTypeSymbol)
                 return true;
 
-            // If we have a real no-arg constructor, then presume the type is intended to be new-ed up and used as a
-            // collection initializer.
-            var noArgConstructor = structType.Constructors.FirstOrDefault(c => !c.IsStatic && c.Parameters.Length == 0);
-            if (noArgConstructor is { IsImplicitlyDeclared: false })
-                return true;
+            // Has to be a real named type at this point.
+            if (type is INamedTypeSymbol namedType)
+            {
+                // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
+                if (namedType.Equals(compilation.SpanOfTType()) || namedType.Equals(compilation.ReadOnlySpanOfTType()))
+                    return true;
 
-            // If it has a [CollectionBuilder] attribute on it, it can definitely be used for a collection expression.
-            var collectionBuilderType = compilation.CollectionBuilderAttribute();
-            if (structType.GetAttributes().Any(a => a.AttributeClass?.Equals(collectionBuilderType) is true))
-                return true;
+                // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
+                var collectionBuilderType = compilation.CollectionBuilderAttribute();
+                if (namedType.GetAttributes().Any(a => a.AttributeClass?.Equals(collectionBuilderType) is true))
+                    return true;
 
-            // Otherwise, presume this is unsafe to use with collection expressions.
+                // At this point, all that is left are collection-initializer types.  These need to derive from
+                // System.Collections.IEnumerable, and have an invokable no-arg constructor.
+
+                // Abstract type don't have invokable constructors at all.
+                if (namedType.IsAbstract)
+                    return false;
+
+                if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
+                {
+                    // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
+                    var constructors = namedType.Constructors;
+                    var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
+                    if (capacityConstructor != null)
+                        return true;
+
+                    var noArgConstructor =
+                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
+                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
+                    if (noArgConstructor != null)
+                    {
+                        // If we have a struct, and the constructor we find is implicitly declared, don't consider this
+                        // a constructible type.  It's likely the user would just get the `default` instance of the
+                        // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
+                        // does have an explicit constructor though, that's a good sign it can actually be constructed
+                        // safely with the no-arg `new S()` call.
+                        if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
+                            return true;
+                    }
+                }
+            }
+
+            // Anything else is not constructible.
             return false;
+        }
+
+        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
+        {
+            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
+            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
         }
     }
 
@@ -145,6 +192,7 @@ internal static class UseCollectionExpressionHelpers
             // Similar rules for switches.
             SwitchExpressionArmSyntax switchExpressionArm => IsInTargetTypedSwitchExpressionArm(switchExpressionArm),
             InitializerExpressionSyntax initializerExpression => IsInTargetTypedInitializerExpression(initializerExpression, topExpression),
+            CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement),
             AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
             ArgumentSyntax or AttributeArgumentSyntax => true,
@@ -186,6 +234,17 @@ internal static class UseCollectionExpressionHelpers
 
             // All arms do not have a type, this is target typed if the switch itself is target typed.
             return IsInTargetTypedLocation(semanticModel, switchExpression, cancellationToken);
+        }
+
+        bool IsInTargetTypedCollectionElement(CollectionElementSyntax collectionElement)
+        {
+            // We do not currently target type spread expressions in a collection expression.
+            if (collectionElement is not ExpressionElementSyntax)
+                return false;
+
+            // The element it target typed if the parent collection is itself target typed.
+            var collectionExpression = (CollectionExpressionSyntax)collectionElement.GetRequiredParent();
+            return IsInTargetTypedLocation(semanticModel, collectionExpression, cancellationToken);
         }
 
         bool IsInTargetTypedInitializerExpression(InitializerExpressionSyntax initializerExpression, ExpressionSyntax expression)
@@ -428,5 +487,309 @@ internal static class UseCollectionExpressionHelpers
         }
 
         return matches.ToImmutable();
+    }
+
+    public static bool IsCollectionFactoryCreate(
+        SemanticModel semanticModel,
+        InvocationExpressionSyntax invocationExpression,
+        [NotNullWhen(true)] out MemberAccessExpressionSyntax? memberAccess,
+        out bool unwrapArgument,
+        CancellationToken cancellationToken)
+    {
+        const string CreateName = nameof(ImmutableArray.Create);
+        const string CreateRangeName = nameof(ImmutableArray.CreateRange);
+
+        unwrapArgument = false;
+        memberAccess = null;
+
+        // Looking for `XXX.Create(...)`
+        if (invocationExpression.Expression is not MemberAccessExpressionSyntax
+            {
+                RawKind: (int)SyntaxKind.SimpleMemberAccessExpression,
+                Name.Identifier.Value: CreateName or CreateRangeName,
+            } memberAccessExpression)
+        {
+            return false;
+        }
+
+        memberAccess = memberAccessExpression;
+        var createMethod = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol as IMethodSymbol;
+        if (createMethod is not { IsStatic: true })
+            return false;
+
+        var factoryType = semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol as INamedTypeSymbol;
+        if (factoryType is null)
+            return false;
+
+        var compilation = semanticModel.Compilation;
+
+        // The pattern is a type like `ImmutableArray` (non-generic), returning an instance of `ImmutableArray<T>`.  The
+        // actual collection type (`ImmutableArray<T>`) has to have a `[CollectionBuilder(...)]` attribute on it that
+        // then points at the factory type.
+        var collectionBuilderAttribute = compilation.CollectionBuilderAttribute()!;
+        var collectionBuilderAttributeData = createMethod.ReturnType.OriginalDefinition
+            .GetAttributes()
+            .FirstOrDefault(a => collectionBuilderAttribute.Equals(a.AttributeClass));
+        if (collectionBuilderAttributeData?.ConstructorArguments is not [{ Value: ITypeSymbol collectionBuilderType }, { Value: CreateName }])
+            return false;
+
+        if (!factoryType.OriginalDefinition.Equals(collectionBuilderType.OriginalDefinition))
+            return false;
+
+        // Ok, this is type that has a collection-builder option available.  We can switch over if the current method
+        // we're calling has one of the following signatures:
+        //
+        //  `Create()`.  Trivial case, can be replaced with `[]`.
+        //  `Create(T), Create(T, T), Create(T, T, T)` etc.
+        //  `Create(params T[])` (passing as individual elements, or an array with an initializer)
+        //  `Create(ReadOnlySpan<T>)` (passing as a stack-alloc with an initializer)
+        //  `Create(IEnumerable<T>)` (passing as something with an initializer.
+        if (!IsCompatibleSignatureAndArguments(createMethod.OriginalDefinition, out unwrapArgument))
+            return false;
+
+        return true;
+
+        bool IsCompatibleSignatureAndArguments(
+            IMethodSymbol originalCreateMethod,
+            out bool unwrapArgument)
+        {
+            unwrapArgument = false;
+
+            var arguments = invocationExpression.ArgumentList.Arguments;
+
+            // Don't bother offering if any of the arguments are named.  It's unlikely for this to occur in practice, and it
+            // means we do not have to worry about order of operations.
+            if (arguments.Any(static a => a.NameColon != null))
+                return false;
+
+            if (originalCreateMethod.Name is CreateRangeName)
+            {
+                // If we have `CreateRange<T>(IEnumerable<T> values)` this is legal if we have an array, or no-arg object creation.
+                if (originalCreateMethod.Parameters is [
+                    {
+                        Type: INamedTypeSymbol
+                        {
+                            Name: nameof(IEnumerable<int>),
+                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                        } enumerableType
+                    }] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
+                {
+                    var argExpression = arguments[0].Expression;
+                    if (argExpression
+                            is ArrayCreationExpressionSyntax { Initializer: not null }
+                            or ImplicitArrayCreationExpressionSyntax)
+                    {
+                        unwrapArgument = true;
+                        return true;
+                    }
+
+                    if (argExpression is ObjectCreationExpressionSyntax objectCreation)
+                    {
+                        // Can't have any arguments, as we cannot preserve them once we grab out all the elements.
+                        if (objectCreation.ArgumentList != null && objectCreation.ArgumentList.Arguments.Count > 0)
+                            return false;
+
+                        // If it's got an initializer, it has to be a collection initializer (or an empty object initializer);
+                        if (objectCreation.Initializer.IsKind(SyntaxKind.ObjectCreationExpression) && objectCreation.Initializer.Expressions.Count > 0)
+                            return false;
+
+                        unwrapArgument = true;
+                        return true;
+                    }
+                }
+            }
+            else if (originalCreateMethod.Name is CreateName)
+            {
+                // `XXX.Create()` can be converted to `[]`
+                if (originalCreateMethod.Parameters.Length == 0)
+                    return arguments.Count == 0;
+
+                // If we have `Create<T>(T)`, `Create<T>(T, T)` etc., then this is convertible.
+                if (originalCreateMethod.Parameters.All(static p => p.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }))
+                    return arguments.Count == originalCreateMethod.Parameters.Length;
+
+                // If we have `Create<T>(params T[])` this is legal if there are multiple arguments.  Or a single argument that
+                // is an array literal.
+                if (originalCreateMethod.Parameters is [{ IsParams: true, Type: IArrayTypeSymbol { ElementType: ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } } }])
+                {
+                    if (arguments.Count >= 2)
+                        return true;
+
+                    if (arguments is [{ Expression: ArrayCreationExpressionSyntax { Initializer: not null } or ImplicitArrayCreationExpressionSyntax }])
+                    {
+                        unwrapArgument = true;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                // If we have `Create<T>(ReadOnlySpan<T> values)` this is legal if a stack-alloc expression is passed along.
+                //
+                // Runtime needs to support inline arrays in order for this to be ok.  Otherwise compiler will change the
+                // stack alloc to a heap alloc, which could be very bad for user perf.
+
+                if (arguments.Count == 1 &&
+                    compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
+                    originalCreateMethod.Parameters is [
+                        {
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
+                {
+                    if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
+                        spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
+                    {
+                        if (arguments[0].Expression
+                                is StackAllocArrayCreationExpressionSyntax { Initializer: not null }
+                                or ImplicitStackAllocArrayCreationExpressionSyntax)
+                        {
+                            unwrapArgument = true;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public static bool IsCollectionEmptyAccess(
+        SemanticModel semanticModel,
+        ExpressionSyntax expression,
+        CancellationToken cancellationToken)
+    {
+        const string EmptyName = nameof(Array.Empty);
+
+        if (expression is MemberAccessExpressionSyntax memberAccess)
+        {
+            // X<T>.Empty
+            return IsEmptyProperty(memberAccess);
+        }
+        else if (expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax innerMemberAccess } invocation)
+        {
+            // X.Empty<T>()
+            return IsEmptyMethodCall(invocation, innerMemberAccess);
+        }
+        else
+        {
+            return false;
+        }
+
+        // X<T>.Empty
+        bool IsEmptyProperty(MemberAccessExpressionSyntax memberAccess)
+        {
+            if (!IsPossiblyDottedGenericName(memberAccess.Expression))
+                return false;
+
+            if (memberAccess.Name is not IdentifierNameSyntax { Identifier.ValueText: EmptyName })
+                return false;
+
+            var expressionSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).Symbol;
+            if (expressionSymbol is not INamedTypeSymbol)
+                return false;
+
+            var emptySymbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
+            if (emptySymbol is not { IsStatic: true })
+                return false;
+
+            if (emptySymbol is not IFieldSymbol and not IPropertySymbol)
+                return false;
+
+            return true;
+        }
+
+        // X.Empty<T>()
+        bool IsEmptyMethodCall(InvocationExpressionSyntax invocation, MemberAccessExpressionSyntax memberAccess)
+        {
+            if (invocation.ArgumentList.Arguments.Count != 0)
+                return false;
+
+            if (memberAccess.Name is not GenericNameSyntax
+                {
+                    TypeArgumentList.Arguments.Count: 1,
+                    Identifier.ValueText: EmptyName,
+                })
+            {
+                return false;
+            }
+
+            if (!IsPossiblyDottedName(memberAccess.Expression))
+                return false;
+
+            var expressionSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).Symbol;
+            if (expressionSymbol is not INamedTypeSymbol)
+                return false;
+
+            var emptySymbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
+            if (emptySymbol is not { IsStatic: true })
+                return false;
+
+            if (emptySymbol is not IMethodSymbol)
+                return false;
+
+            return true;
+        }
+
+        static bool IsPossiblyDottedGenericName(ExpressionSyntax expression)
+        {
+            if (expression is GenericNameSyntax)
+                return true;
+
+            if (expression is MemberAccessExpressionSyntax { Expression: ExpressionSyntax childName, Name: GenericNameSyntax } &&
+                IsPossiblyDottedName(childName))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        static bool IsPossiblyDottedName(ExpressionSyntax name)
+        {
+            if (name is IdentifierNameSyntax)
+                return true;
+
+            if (name is MemberAccessExpressionSyntax { Expression: ExpressionSyntax childName, Name: IdentifierNameSyntax } &&
+                IsPossiblyDottedName(childName))
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    public static SeparatedSyntaxList<ArgumentSyntax> GetArguments(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
+    {
+        var arguments = invocationExpression.ArgumentList.Arguments;
+
+        // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
+        // expressions the user wrote out.
+        if (!unwrapArgument)
+            return arguments;
+
+        Contract.ThrowIfTrue(arguments.Count != 1);
+        var expression = arguments.Single().Expression;
+
+        var initializer = expression switch
+        {
+            ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer,
+            ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc => implicitStackAlloc.Initializer,
+            ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+            StackAllocArrayCreationExpressionSyntax stackAllocCreation => stackAllocCreation.Initializer,
+            ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.Initializer,
+            ObjectCreationExpressionSyntax objectCreation => objectCreation.Initializer,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        return initializer is null
+            ? default
+            : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
+                nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
     }
 }

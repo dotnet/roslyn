@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -58,6 +59,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
             // Code lens options
             LspOptionsStorage.LspEnableReferencesCodeLens,
-            LspOptionsStorage.LspEnableTestsCodeLens);
+            LspOptionsStorage.LspEnableTestsCodeLens,
+            // Project system
+            LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
+            LanguageServerProjectSystemOptionsStorage.LoadInProcess);
     }
 }

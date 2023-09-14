@@ -245,20 +245,20 @@ $@"<Workspace>
 void A.AMethod(int i)
 ```
   
-A&nbsp;cref&nbsp;A\.AMethod\(int\)  
-**strong&nbsp;text**  
-_italic&nbsp;text_  
-<u>underline&nbsp;text</u>  
+A cref&nbsp;A\.AMethod\(int\)  
+**strong text**  
+_italic text_  
+<u>underline text</u>  
   
-•&nbsp;Item&nbsp;1\.  
-•&nbsp;Item&nbsp;2\.  
+•&nbsp;Item 1\.  
+•&nbsp;Item 2\.  
   
 [link text](https://google.com)  
   
-Remarks&nbsp;are&nbsp;cool&nbsp;too\.  
+Remarks are cool too\.  
   
 {FeaturesResources.Returns_colon}  
-&nbsp;&nbsp;a&nbsp;string  
+&nbsp;&nbsp;a string  
   
 {FeaturesResources.Exceptions_colon}  
 &nbsp;&nbsp;System\.NullReferenceException  
@@ -375,14 +375,51 @@ Remarks are cool too.
 void A.AMethod(int i)
 ```
   
-Some&nbsp;\{curly\}&nbsp;\[braces\]&nbsp;and&nbsp;\(parens\)  
+Some \{curly\} \[braces\] and \(parens\)  
 \#Hashtag  
-1&nbsp;\+&nbsp;1&nbsp;\-&nbsp;1  
+1 \+ 1 \- 1  
 Period\.  
 Exclaim\!  
-**strong\\\*\*&nbsp;text**  
-_italic\_&nbsp;\*\*text\*\*_  
+**strong\\\*\* text**  
+_italic\_ \*\*text\*\*_  
 [closing\] link](https://google.com)  
+";
+
+            var results = await RunGetHoverAsync(
+                testLspServer,
+                expectedLocation).ConfigureAwait(false);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync_UsingMarkupContentDoesNotEscapeCode(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// <c>
+    /// if (true) {
+    ///     Console.WriteLine(""hello"");
+    /// }
+    /// </c>
+    /// </summary>
+    void {|caret:AMethod|}(int i)
+    {
+    }
+}";
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+            };
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+            var expectedLocation = testLspServer.GetLocations("caret").Single();
+
+            var expectedMarkdown = @"```csharp
+void A.AMethod(int i)
+```
+  
+`if (true) { Console.WriteLine(""hello""); }`  
 ";
 
             var results = await RunGetHoverAsync(

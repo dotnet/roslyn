@@ -291,14 +291,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenCall;
 
-            if (node.ReceiverOpt is BoundCall receiver1)
+            if (tryGetReceiver(node, out BoundCall? receiver1))
             {
+                // Handle long call chain of both instance and extension method invocations.
                 var calls = ArrayBuilder<BoundCall>.GetInstance();
 
                 calls.Push(node);
                 node = receiver1;
 
-                while (node.ReceiverOpt is BoundCall receiver2)
+                while (tryGetReceiver(node, out BoundCall? receiver2))
                 {
                     calls.Push(node);
                     node = receiver2;
@@ -325,23 +326,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenCall;
 
+            // Gets the instance or extension invocation receiver if any.
+            static bool tryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
+            {
+                if (node.ReceiverOpt is BoundCall instanceReceiver)
+                {
+                    receiver = instanceReceiver;
+                    return true;
+                }
+
+                if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..])
+                {
+                    Debug.Assert(node.ReceiverOpt is null);
+                    receiver = extensionReceiver;
+                    return true;
+                }
+
+                receiver = null;
+                return false;
+            }
+
             BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
             {
                 MethodSymbol method = node.Method;
                 ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
                 ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
+                ImmutableArray<BoundExpression> arguments = node.Arguments;
                 bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
+
+                // Rewritten receiver can be actually the first argument of an extension invocation.
+                BoundExpression? firstRewrittenArgument = null;
+                if (rewrittenReceiver is not null && node.ReceiverOpt is null)
+                {
+                    Debug.Assert(invokedAsExtensionMethod && !arguments.IsEmpty);
+                    firstRewrittenArgument = rewrittenReceiver;
+                    rewrittenReceiver = null;
+                }
 
                 ArrayBuilder<LocalSymbol>? temps = null;
                 var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
                     captureReceiverMode: ReceiverCaptureMode.Default,
-                    node.Arguments,
+                    arguments,
                     method,
                     argsToParamsOpt,
                     argRefKindsOpt,
                     storesOpt: null,
-                    ref temps);
+                    ref temps,
+                    firstRewrittenArgument: firstRewrittenArgument);
 
                 rewrittenArguments = MakeArguments(
                     node.Syntax,
@@ -432,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBoundCall = new BoundCall(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -448,6 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewrittenBoundCall = node.Update(
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -614,7 +648,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ArrayBuilder<BoundExpression>? storesOpt,
-            ref ArrayBuilder<LocalSymbol>? tempsOpt)
+            ref ArrayBuilder<LocalSymbol>? tempsOpt,
+            BoundExpression? firstRewrittenArgument = null)
         {
             Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == arguments.Length);
             var requiresInstanceReceiver = methodOrIndexer.RequiresInstanceReceiver() && methodOrIndexer is not MethodSymbol { MethodKind: MethodKind.Constructor } and not FunctionPointerMethodSymbol;
@@ -702,7 +737,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ref tempsOpt,
                         ref argumentsAssignedToTemp);
 
-                    visitedArgumentsBuilder.Add(VisitExpression(argument));
+                    visitedArgumentsBuilder.Add(i == 0 && firstRewrittenArgument is not null
+                        ? firstRewrittenArgument
+                        : VisitExpression(argument));
 
                     foreach (var placeholder in argumentPlaceholders)
                     {
@@ -1522,7 +1559,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
             return new BoundCall(
                 syntax,
-                null,
+                receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 arrayEmpty,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),

@@ -318,6 +318,58 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact]
+    public async Task TestCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var v = (int[])Array.[|Empty|]<int>();
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var v = (int[])[];
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestIdentifierCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using X = int[];
+
+            class C
+            {
+                void M()
+                {
+                    var v = (X)Array.Empty<int>();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestTrivia()
     {
         await new VerifyCS.Test
@@ -659,7 +711,6 @@ public class UseCollectionExpressionForEmptyTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
     public async Task NotForImmutableListNet70()
     {
-        // This should fail once https://github.com/dotnet/roslyn/issues/69521 is fixed
         await new VerifyCS.Test
         {
             TestCode = """
@@ -670,19 +721,7 @@ public class UseCollectionExpressionForEmptyTests
                 {
                     void M()
                     {
-                        ImmutableList<int> v = ImmutableList<int>.[|Empty|];
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-                using System.Collections.Immutable;
-
-                class C
-                {
-                    void M()
-                    {
-                        ImmutableList<int> v = {|CS1729:[]|};
+                        ImmutableList<int> v = ImmutableList<int>.Empty;
                     }
                 }
                 """,
@@ -794,6 +833,147 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task ForValueTypeWithCapacityConstructor()
+    {
+        var collectionDefinition = """
+
+            struct V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = default;
+            
+                public V(int capacity) { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionDefinition,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = [];
+                    }
+                }
+                """ + collectionDefinition,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForValueTypeWithInvalidCapacityConstructor()
+    {
+        var collectionDefinition = """
+
+            struct V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = default;
+            
+                public V(string capacity) { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.Empty;
+                    }
+                }
+                """ + collectionDefinition,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task ForValueTypeWithInvalidCapacityButValidEmptyConstructor()
+    {
+        var collectionDefinition = """
+
+            struct V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = default;
+            
+                public V(string capacity) { }
+                public V() { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionDefinition,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = [];
+                    }
+                }
+                """ + collectionDefinition,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
     public async Task ForValueTypeWithNoArgConstructorAndWithoutCollectionBuilderAttribute()
     {
         var collectionDefinition = """
@@ -898,6 +1078,148 @@ public class UseCollectionExpressionForEmptyTests
                 """ + collectionDefinition,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task NotForAbstractClassWithoutCollectionBuilderAttribute()
+    {
+        var collectionDefinition = """
+            
+            abstract class V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = null;
+
+                public V() { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.Empty;
+                    }
+                }
+                """ + collectionDefinition,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69507")]
+    public async Task ForAbstractClassWithCollectionBuilderAttribute()
+    {
+        var collectionDefinition = """
+
+            [System.Runtime.CompilerServices.CollectionBuilder(typeof(V), "Create")]
+            abstract class V<T> : IEnumerable<T>
+            {
+                public static readonly V<T> Empty = null;
+
+                public V() { }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            
+                public void Add(T x) { }
+            }
+            
+            static class V
+            {
+                public static V<T> Create<T>(ReadOnlySpan<T> values) => default;
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = V<int>.[|Empty|];
+                    }
+                }
+                """ + collectionDefinition,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        V<int> v = [];
+                    }
+                }
+                """ + collectionDefinition,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWhenChildOfInvocation()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        // Handled by the fluent chain analyzer.
+                        List<int> list = Array.Empty<int>().ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            int[] v = Array.[|Empty|]<int>();
+            """,
+            FixedCode = """
+            using System;
+
+            int[] v = [];
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
         }.RunAsync();
     }
 }
