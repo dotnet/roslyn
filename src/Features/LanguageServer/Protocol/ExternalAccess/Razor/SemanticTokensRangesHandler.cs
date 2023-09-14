@@ -48,13 +48,14 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
             return new SemanticTokens() { Data = Array.Empty<int>() };
         }
 
+        var contextDocument = context.GetRequiredDocument();
+        var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
+        var project = document.Project;
+        var options = _globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
+        var capabilities = context.GetRequiredClientCapabilities();
         var responseData = new List<int[]>();
         foreach (var range in request.Ranges)
         {
-            var contextDocument = context.GetRequiredDocument();
-            var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
-            var options = _globalOptions.GetClassificationOptions(document.Project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
-            var capabilities = context.GetRequiredClientCapabilities();
             var semanticTokens = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 capabilities,
                 document,
@@ -68,6 +69,7 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
             }
         }
 
+        await _semanticTokenRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
         return new SemanticTokens() { Data = StitchSemanticTokenResponsesTogether(responseData) };
     }
 
