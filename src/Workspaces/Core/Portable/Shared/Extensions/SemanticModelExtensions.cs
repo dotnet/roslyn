@@ -104,6 +104,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(overriddenSymbol);
             }
+            else if (token.RawKind == syntaxKinds.IdentifierToken && syntaxFacts.IsInContextAcceptingPreprocessingNames(token))
+            {
+                var tokenParent = token.GetRequiredParent();
+                var preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(tokenParent).Symbol;
+                allSymbols = preprocessingSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(preprocessingSymbol);
+            }
             else
             {
                 aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
