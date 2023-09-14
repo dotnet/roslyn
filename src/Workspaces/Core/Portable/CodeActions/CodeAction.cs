@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// cref="GetChangedSolutionAsync(CancellationToken)"/> when computation is long running and progress should be
         /// shown to the user.
         /// </summary>
-        protected internal virtual async Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        protected virtual async Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             // If the subclass overrode `GetChangedSolutionAsync(CancellationToken)` then we must call into that in
             // order to preserve whatever logic our subclass had had for determining the new solution.
@@ -309,6 +309,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // this time pass the progress information along so it is not lost.
             var changedDocument = await GetChangedDocumentAsync(progress, cancellationToken).ConfigureAwait(false);
             return changedDocument?.Project.Solution;
+        }
+
+        internal async Task<Solution> GetRequiredChangedSolutionAsync(IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+        {
+            var solution = await this.GetChangedSolutionAsync(progressTracker, cancellationToken).ConfigureAwait(false);
+            return solution ?? throw new InvalidOperationException(string.Format(WorkspacesResources.CodeAction__0__did_not_produce_a_changed_solution, this.Title));
         }
 
         /// <summary>
@@ -720,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 CodeActionPriority priority = CodeActionPriority.Default)
                 => new(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: true);
 
-            protected internal sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            protected sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 => _createChangedSolution(progress, cancellationToken).AsNullable();
         }
 
@@ -741,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 CodeActionPriority priority = CodeActionPriority.Default)
                 => new(title, equivalenceKey, priority, createdFromFactoryMethod: true);
 
-            protected internal sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            protected sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                  => SpecializedTasks.Null<Solution>();
         }
 

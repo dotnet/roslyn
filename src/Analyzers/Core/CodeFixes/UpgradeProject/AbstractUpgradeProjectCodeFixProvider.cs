@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
 #if CODE_STYLE
 
-    internal class ProjectOptionsChangeAction : CodeAction
+    internal sealed class ProjectOptionsChangeAction : CodeAction
     {
         public override string Title { get; }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
 #else
 
-    internal class ProjectOptionsChangeAction : SolutionChangeAction
+    internal sealed class ProjectOptionsChangeAction : SolutionChangeAction
     {
         public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
