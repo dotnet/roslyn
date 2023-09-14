@@ -180,7 +180,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact]
         public async Task TestUnknownProject()
         {
-            var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
+            var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -408,7 +408,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     return sourceTexts;
                 });
 
-            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? [] : [typeof(NoSyncWorkspaceConfigurationService)]);
+            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() : new[] { typeof(NoSyncWorkspaceConfigurationService) });
 
             var projectId = ProjectId.CreateNewId();
             var analyzerReference = new TestGeneratorReference(generator);
@@ -819,65 +819,65 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static Solution Populate(Solution solution)
         {
-            solution = AddProject(solution, LanguageNames.CSharp,
-            [
+            solution = AddProject(solution, LanguageNames.CSharp, new[]
+            {
                 "class CS { }",
                 "class CS2 { }"
-            ],
-            [
+            }, new[]
+            {
                 "cs additional file content"
-            ], Array.Empty<ProjectId>());
+            }, Array.Empty<ProjectId>());
 
-            solution = AddProject(solution, LanguageNames.VisualBasic,
-            [
+            solution = AddProject(solution, LanguageNames.VisualBasic, new[]
+            {
                 "Class VB\r\nEnd Class",
                 "Class VB2\r\nEnd Class"
-            ],
-            [
+            }, new[]
+            {
                 "vb additional file content"
-            ], [solution.ProjectIds.First()]);
+            }, new ProjectId[] { solution.ProjectIds.First() });
 
-            solution = AddProject(solution, LanguageNames.CSharp,
-            [
+            solution = AddProject(solution, LanguageNames.CSharp, new[]
+            {
                 "class Top { }"
-            ],
-            [
+            }, new[]
+            {
                 "cs additional file content"
-            ], solution.ProjectIds.ToArray());
+            }, solution.ProjectIds.ToArray());
 
-            solution = AddProject(solution, LanguageNames.CSharp,
-            [
+            solution = AddProject(solution, LanguageNames.CSharp, new[]
+            {
                 "class OrphanCS { }",
                 "class OrphanCS2 { }"
-            ],
-            [
+            }, new[]
+            {
                 "cs additional file content",
                 "cs additional file content2"
-            ], Array.Empty<ProjectId>());
+            }, Array.Empty<ProjectId>());
 
-            solution = AddProject(solution, LanguageNames.CSharp,
-            [
+            solution = AddProject(solution, LanguageNames.CSharp, new[]
+            {
                 "class CS { }",
                 "class CS2 { }",
                 "class CS3 { }",
                 "class CS4 { }",
                 "class CS5 { }",
-            ],
-            [
+            }, new[]
+            {
                 "cs additional file content"
-            ], Array.Empty<ProjectId>());
+            }, Array.Empty<ProjectId>());
 
-            solution = AddProject(solution, LanguageNames.VisualBasic,
-            [
+            solution = AddProject(solution, LanguageNames.VisualBasic, new[]
+            {
                 "Class VB\r\nEnd Class",
                 "Class VB2\r\nEnd Class",
                 "Class VB3\r\nEnd Class",
                 "Class VB4\r\nEnd Class",
                 "Class VB5\r\nEnd Class",
-            ],
-            [
+            }, new[]
+            {
                 "vb additional file content"
-            ], Array.Empty<ProjectId>());
+            }, Array.Empty<ProjectId>());
 
             return solution;
         }
