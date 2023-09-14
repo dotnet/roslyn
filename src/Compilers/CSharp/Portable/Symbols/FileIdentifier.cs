@@ -12,7 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal sealed class FileIdentifier
 {
-    private record FileIdentifierData(string? EncoderFallbackErrorMessage, string DisplayFilePath, ImmutableArray<byte> FilePathChecksumOpt);
+    private class FileIdentifierData(string? encoderFallbackErrorMessage, string displayFilePath, ImmutableArray<byte> filePathChecksumOpt)
+    {
+        public readonly string? EncoderFallbackErrorMessage = encoderFallbackErrorMessage;
+        public readonly string DisplayFilePath = displayFilePath;
+        public readonly ImmutableArray<byte> FilePathChecksumOpt = filePathChecksumOpt;
+    }
 
     private static readonly Encoding s_encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
@@ -26,7 +31,7 @@ internal sealed class FileIdentifier
 
     private FileIdentifier(ImmutableArray<byte> filePathChecksumOpt, string displayFilePath)
     {
-        _data = new FileIdentifierData(EncoderFallbackErrorMessage: null, displayFilePath, filePathChecksumOpt);
+        _data = new FileIdentifierData(encoderFallbackErrorMessage: null, displayFilePath, filePathChecksumOpt);
         _filePath = string.Empty;
     }
 
