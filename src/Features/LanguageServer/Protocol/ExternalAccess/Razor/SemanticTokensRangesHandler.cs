@@ -8,8 +8,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -20,16 +22,20 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
 {
     private const int TokenSize = 5;
     public const string SemanticRangesMethodName = "textDocument/semanticTokens/ranges";
-    private readonly SemanticTokensRangeHandler _semanticTokensRangeHandler;
-
-    public SemanticTokensRangesHandler(SemanticTokensRangeHandler semanticTokensRangeHandler)
-    {
-        _semanticTokensRangeHandler = semanticTokensRangeHandler;
-    }
+    private readonly IGlobalOptionService _globalOptions;
+    private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue;
 
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
+
+    public SemanticTokensRangesHandler(
+        IGlobalOptionService globalOptions,
+        SemanticTokensRefreshQueue semanticTokensRefreshQueue)
+    {
+        _globalOptions = globalOptions;
+        _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
+    }
 
     public async Task<SemanticTokens> HandleRequestAsync(
             SemanticTokensRangesParams request,
@@ -45,16 +51,20 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
         var responseData = new List<int[]>();
         foreach (var range in request.Ranges)
         {
-            var newParams = new SemanticTokensRangeParams
-            {
-                TextDocument = request.TextDocument,
-                Range = range,
-            };
+            var contextDocument = context.GetRequiredDocument();
+            var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
+            var options = _globalOptions.GetClassificationOptions(document.Project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
+            var capabilities = context.GetRequiredClientCapabilities();
+            var semanticTokens = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                capabilities,
+                document,
+                range,
+                options,
+                cancellationToken).ConfigureAwait(false);
 
-            var semanticTokens = await _semanticTokensRangeHandler.HandleRequestAsync(newParams, context, cancellationToken).ConfigureAwait(false);
-            if (semanticTokens is not null)
+            if (semanticTokens is not null && semanticTokens.Length != 0)
             {
-                responseData.Add(semanticTokens.Data);
+                responseData.Add(semanticTokens);
             }
         }
 

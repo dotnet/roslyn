@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
             }
             else
             {
-                var result = await testLspServer.ExecuteRequestAsync<SemanticTokensParams, LSP.SemanticTokens>(SemanticTokensRangesHandler.SemanticRangesMethodName,
+                var result = await testLspServer.ExecuteRequestAsync<SemanticTokensRangesParams, LSP.SemanticTokens>(SemanticTokensRangesHandler.SemanticRangesMethodName,
                     CreateSemanticTokensRangesParams(caret, ranges!), CancellationToken.None);
                 Contract.ThrowIfNull(result);
                 return result;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 Range = range
             };
 
-        private static SemanticTokensParams CreateSemanticTokensRangesParams(LSP.Location caret, Range[] ranges)
+        private static SemanticTokensRangesParams CreateSemanticTokensRangesParams(LSP.Location caret, Range[] ranges)
             => new SemanticTokensRangesParams
             {
                 TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
