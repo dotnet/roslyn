@@ -4,6 +4,8 @@
 *REMOVED*static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 *REMOVED*static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeAnalysisProgress
+Microsoft.CodeAnalysis.CodeAnalysisProgress.CodeAnalysisProgress() -> void
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.CodeActions.CodeAction.Priority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
@@ -23,6 +25,9 @@ static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeAnalysisProgress.AddIncompleteItems(int count, string description = null) -> Microsoft.CodeAnalysis.CodeAnalysisProgress
+static Microsoft.CodeAnalysis.CodeAnalysisProgress.CompleteItem(int count = 1, string description = null) -> Microsoft.CodeAnalysis.CodeAnalysisProgress
+static Microsoft.CodeAnalysis.CodeAnalysisProgress.Description(string description) -> Microsoft.CodeAnalysis.CodeAnalysisProgress
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputePriority() -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 virtual Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.ComputeRequestPriority() -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 virtual Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.ComputeRequestPriority() -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
