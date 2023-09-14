@@ -884,6 +884,10 @@ namespace Microsoft.CodeAnalysis
                 Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
             {
+                var options = solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+                if (options.RunSourceGeneratorsInProcessOnly)
+                    return null;
+
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client is null)
                     return null;

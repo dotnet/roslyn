@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,6 +16,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -28,6 +32,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
@@ -351,13 +356,46 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static async Task TestInProcAndRemoteWorkspace(
             params ImmutableArray<(string hintName, SourceText text)>[] values)
         {
+            await TestInProcAndRemoteWorkspace(syncWithRemoteServer: true, values);
+        }
+
+        private static async Task TestInProcAndRemoteWorkspace(
+            bool syncWithRemoteServer, params ImmutableArray<(string hintName, SourceText text)>[] values)
+        {
             // Try every permutation of these values.
             foreach (var permutation in Permute(values))
-                await TestInProcAndRemoteWorkspaceWorker(permutation);
+            {
+                var gotException = false;
+                try
+                {
+                    await TestInProcAndRemoteWorkspaceWorker(syncWithRemoteServer, permutation);
+                }
+                catch (XunitException)
+                {
+                    gotException = true;
+                }
+
+                // If we're syncing to the remove server, we should get no exceptions, since the data should be matched
+                // between both.  If we're not syncing, we should see a failure since the two processes will disagree on
+                // the contents.
+                Assert.Equal(syncWithRemoteServer, !gotException);
+            }
+        }
+
+        [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), SharedAttribute, PartNotDiscoverable]
+        private sealed class NoSyncWorkspaceConfigurationService : IWorkspaceConfigurationService
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public NoSyncWorkspaceConfigurationService()
+            {
+            }
+
+            public WorkspaceConfigurationOptions Options => WorkspaceConfigurationOptions.Default with { RunSourceGeneratorsInProcessOnly = true };
         }
 
         private static async Task TestInProcAndRemoteWorkspaceWorker(
-            ImmutableArray<ImmutableArray<(string hintName, SourceText text)>> values)
+            bool syncWithRemoteServer, ImmutableArray<ImmutableArray<(string hintName, SourceText text)>> values)
         {
             var throwIfCalled = false;
             ImmutableArray<(string hintName, SourceText text)> sourceTexts = default;
@@ -371,7 +409,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     return sourceTexts;
                 });
 
-            using var localWorkspace = CreateWorkspace();
+            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? [] : [typeof(NoSyncWorkspaceConfigurationService)]);
 
             var projectId = ProjectId.CreateNewId();
             var analyzerReference = new TestGeneratorReference(generator);
@@ -436,10 +474,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static SourceText CreateText(string content, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
             => SourceText.From(content, encoding ?? Encoding.UTF8, checksumAlgorithm);
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree1()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree1(bool syncWithRemoteServer)
         {
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
