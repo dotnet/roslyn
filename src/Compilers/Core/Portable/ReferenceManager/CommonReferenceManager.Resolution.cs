@@ -939,10 +939,7 @@ namespace Microsoft.CodeAnalysis
 
                 AssemblyIdentity definition = definitionData.Identity;
 
-                if (!AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definition.Name))
-                {
-                    continue;
-                }
+                Debug.Assert(AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definition.Name));
 
                 switch (assemblyIdentityComparer.Compare(reference, definition))
                 {
