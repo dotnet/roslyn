@@ -3813,7 +3813,7 @@ class C
 
     static void M3()
     {
-        System.Console.Write("M2");
+        System.Console.Write("M3");
     }
 
     static void M4()
@@ -3825,9 +3825,10 @@ class C
 
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "M1M4M1M2Catch",
                 // False PEVerify failure:
-                // PEVerify failed for assembly
-                // [ : C::M][mdToken=0x6000004][offset 0x0000000E] Stack not empty when leaving an exception filter.
-                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+                verify: Verification.FailsPEVerify with
+                {
+                    PEVerifyMessage = "[ : C::M][offset 0x0000000E] Stack not empty when leaving an exception filter."
+                }).VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
 {
   // Code size       30 (0x1e)
@@ -3856,9 +3857,10 @@ class C
 
             verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "M1M4M1M2Catch",
                 // False PEVerify failure:
-                // PEVerify failed for assembly
-                // [ : C::M][mdToken=0x6000004][offset 0x00000012] Stack not empty when leaving an exception filter.
-                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+                verify: Verification.FailsPEVerify with
+                {
+                    PEVerifyMessage = "[ : C::M][offset 0x00000012] Stack not empty when leaving an exception filter."
+                }).VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
 {
   // Code size       38 (0x26)
