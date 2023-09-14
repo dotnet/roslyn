@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAnalyzerReference(analyzerReference);
 
             if (assertRightAway)
-                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: []);
+                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: Array.Empty<string>());
 
             project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
             var additionalDocumentId = project.AdditionalDocumentIds.Single();
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             project = project.RemoveAdditionalDocument(additionalDocumentId);
 
-            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: []);
+            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: Array.Empty<string>());
 
             static async Task AssertCompilationContainsGeneratedFilesAsync(Project project, params string[] expectedGeneratedContents)
             {
