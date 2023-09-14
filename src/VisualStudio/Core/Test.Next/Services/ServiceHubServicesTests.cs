@@ -445,29 +445,32 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: sourceTexts.Length);
             }
-        }
 
-        private static async Task AssertSourceGeneratedDocumentsAreSame(Project localProject, Project remoteProject, int expectedCount)
-        {
-            var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-            var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            Assert.Equal(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
-            Assert.Equal(expectedCount, localGeneratedDocs.Length);
-
-            for (var i = 0; i < expectedCount; i++)
+            static async Task AssertSourceGeneratedDocumentsAreSame(Project localProject, Project remoteProject, int expectedCount)
             {
-                var localDoc = localGeneratedDocs[i];
-                var remoteDoc = remoteGeneratedDocs[i];
+                // The docs on both sides must be in the exact same order, and with identical contents (including
+                // source-text encoding/hash-algorithm).
 
-                Assert.Equal(localDoc.HintName, remoteDoc.HintName);
-                Assert.Equal(localDoc.DocumentState.Id, remoteDoc.DocumentState.Id);
+                var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+                var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
 
-                var localText = await localDoc.GetTextAsync();
-                var remoteText = await localDoc.GetTextAsync();
-                Assert.Equal(localText.ToString(), remoteText.ToString());
-                Assert.Equal(localText.Encoding, remoteText.Encoding);
-                Assert.Equal(localText.ChecksumAlgorithm, remoteText.ChecksumAlgorithm);
+                Assert.Equal(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
+                Assert.Equal(expectedCount, localGeneratedDocs.Length);
+
+                for (var i = 0; i < expectedCount; i++)
+                {
+                    var localDoc = localGeneratedDocs[i];
+                    var remoteDoc = remoteGeneratedDocs[i];
+
+                    Assert.Equal(localDoc.HintName, remoteDoc.HintName);
+                    Assert.Equal(localDoc.DocumentState.Id, remoteDoc.DocumentState.Id);
+
+                    var localText = await localDoc.GetTextAsync();
+                    var remoteText = await localDoc.GetTextAsync();
+                    Assert.Equal(localText.ToString(), remoteText.ToString());
+                    Assert.Equal(localText.Encoding, remoteText.Encoding);
+                    Assert.Equal(localText.ChecksumAlgorithm, remoteText.ChecksumAlgorithm);
+                }
             }
         }
 
