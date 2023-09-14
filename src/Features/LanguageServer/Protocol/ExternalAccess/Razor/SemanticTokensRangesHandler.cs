@@ -4,8 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -13,7 +11,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -23,7 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 [Method(SemanticRangesMethodName)]
 internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticTokensRangesParams, SemanticTokens>
 {
-    private const int TokenSize = 5;
     public const string SemanticRangesMethodName = "textDocument/semanticTokens/ranges";
     private readonly IGlobalOptionService _globalOptions;
     private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue;
@@ -58,96 +54,14 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
         var project = document.Project;
         var options = _globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
         var capabilities = context.GetRequiredClientCapabilities();
-        using var _ = ArrayBuilder<int[]>.GetInstance(request.Ranges.Length, out var responseData);
-        foreach (var range in request.Ranges)
-        {
-            var semanticTokens = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                capabilities,
-                document,
-                range,
-                options,
-                cancellationToken).ConfigureAwait(false);
-
-            if (semanticTokens is not null && semanticTokens.Length != 0)
-            {
-                responseData.Add(semanticTokens);
-            }
-        }
+        var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+            capabilities,
+            document,
+            request.Ranges,
+            options,
+            cancellationToken).ConfigureAwait(false); 
 
         await _semanticTokenRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
-        return new SemanticTokens() { Data = StitchSemanticTokenResponsesTogether(responseData.ToArray()) };
-    }
-
-    // Internal for testing purposes.
-    internal static int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
-    {
-        // Each inner array in `responseData` represents a single C# document that is broken down into a list of tokens.
-        // This method stitches these lists of tokens together into a single, coherent list of semantic tokens.
-        // The resulting array is a flattened version of the input array, and is in the precise format expected by the Microsoft Language Server Protocol.
-        if (responseData.Length == 0)
-        {
-            return Array.Empty<int>();
-        }
-
-        if (responseData.Length == 1)
-        {
-            return responseData[0];
-        }
-
-        var count = responseData.Sum(r => r.Length);
-        var data = new int[count];
-        var dataIndex = 0;
-        var lastTokenLine = 0;
-
-        for (var i = 0; i < responseData.Length; i++)
-        {
-            var curData = responseData[i];
-
-            if (curData.Length == 0)
-            {
-                continue;
-            }
-
-            Array.Copy(curData, 0, data, dataIndex, curData.Length);
-            if (i != 0)
-            {
-                // The first two items in result.Data will potentially need it's line/col offset modified
-                var lineDelta = data[dataIndex] - lastTokenLine;
-                Debug.Assert(lineDelta >= 0);
-
-                // Update the first line copied over from curData
-                data[dataIndex] = lineDelta;
-
-                // Update the first column copied over from curData if on the same line as the previous token
-                if (lineDelta == 0)
-                {
-                    var lastTokenCol = 0;
-
-                    // Walk back accumulating column deltas until we find a start column (indicated by it's line offset being non-zero)
-                    for (var j = dataIndex - TokenSize; j >= 0; j -= TokenSize)
-                    {
-                        lastTokenCol += data[j + 1];
-                        if (data[j] != 0)
-                        {
-                            break;
-                        }
-                    }
-
-                    Debug.Assert(lastTokenCol >= 0);
-                    data[dataIndex + 1] -= lastTokenCol;
-                    Debug.Assert(data[dataIndex + 1] >= 0);
-                }
-            }
-
-            lastTokenLine = 0;
-            for (var j = 0; j < curData.Length; j += TokenSize)
-            {
-                lastTokenLine += curData[j];
-            }
-
-            dataIndex += curData.Length;
-        }
-
-        return data;
+        return new SemanticTokens() { Data = tokensData };
     }
 }
