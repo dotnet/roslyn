@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
+[ExportCSharpVisualBasicStatelessLspService(typeof(SemanticTokensRangesHandler)), Shared]
 [Method(SemanticRangesMethodName)]
 internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticTokensRangesParams, SemanticTokens>
 {
