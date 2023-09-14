@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -53,7 +53,7 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
         var project = document.Project;
         var options = _globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
         var capabilities = context.GetRequiredClientCapabilities();
-        var responseData = new List<int[]>();
+        using var _ = ArrayBuilder<int[]>.GetInstance(request.Ranges.Length, out var responseData);
         foreach (var range in request.Ranges)
         {
             var semanticTokens = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
@@ -70,20 +70,21 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
         }
 
         await _semanticTokenRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
-        return new SemanticTokens() { Data = StitchSemanticTokenResponsesTogether(responseData) };
+        return new SemanticTokens() { Data = StitchSemanticTokenResponsesTogether(responseData.ToArray()) };
     }
 
-    private static int[] StitchSemanticTokenResponsesTogether(List<int[]> responseData)
+    // Internal for testing purposes.
+    internal static int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
     {
         // Each inner array in `responseData` represents a single C# document that is broken down into a list of tokens.
         // This method stitches these lists of tokens together into a single, coherent list of semantic tokens.
         // The resulting array is a flattened version of the input array, and is in the precise format expected by the Microsoft Language Server Protocol.
-        if (responseData.Count == 0)
+        if (responseData.Length == 0)
         {
             return Array.Empty<int>();
         }
 
-        if (responseData.Count == 1)
+        if (responseData.Length == 1)
         {
             return responseData[0];
         }
@@ -93,7 +94,7 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
         var dataIndex = 0;
         var lastTokenLine = 0;
 
-        for (var i = 0; i < responseData.Count; i++)
+        for (var i = 0; i < responseData.Length; i++)
         {
             var curData = responseData[i];
 
