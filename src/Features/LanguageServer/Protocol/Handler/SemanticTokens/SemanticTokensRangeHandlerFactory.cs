@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
             var semanticTokensRefreshQueue = lspServices.GetRequiredService<SemanticTokensRefreshQueue>();
-            var rangesHandler = new SemanticTokensRangesHandler(_globalOptions, semanticTokensRefreshQueue);
-            return new SemanticTokensRangeHandler(rangesHandler);
+            return new SemanticTokensRangeHandler(_globalOptions, semanticTokensRefreshQueue);
         }
     }
 }
