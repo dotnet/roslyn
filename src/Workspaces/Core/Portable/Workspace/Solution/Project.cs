@@ -295,7 +295,13 @@ namespace Microsoft.CodeAnalysis
 
         public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
         {
+            // Immediately shortcircuit out if we know this is not a doc-id corresponding to an SG document.
             if (!documentId.IsSourceGenerated)
+                return null;
+
+            // User incorrect called into us with a doc id for a different project.  Ideally we'd throw here, but we've
+            // always been resilient to this misuse since the start of roslyn, so we just quick-bail instead.
+            if (this.Id != documentId.ProjectId)
                 return null;
 
             // Quick check first: if we already have created a SourceGeneratedDocument wrapper, we're good
@@ -324,7 +330,13 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal SourceGeneratedDocument? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
         {
+            // Immediately shortcircuit out if we know this is not a doc-id corresponding to an SG document.
             if (!documentId.IsSourceGenerated)
+                return null;
+
+            // User incorrect called into us with a doc id for a different project.  Ideally we'd throw here, but we've
+            // always been resilient to this misuse since the start of roslyn, so we just quick-bail instead.
+            if (this.Id != documentId.ProjectId)
                 return null;
 
             // Easy case: do we already have the SourceGeneratedDocument created?
