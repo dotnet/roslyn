@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
@@ -30,6 +32,8 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
 
     public bool RequiresLSPSolution => true;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public SemanticTokensRangesHandler(
         IGlobalOptionService globalOptions,
         SemanticTokensRefreshQueue semanticTokensRefreshQueue)
