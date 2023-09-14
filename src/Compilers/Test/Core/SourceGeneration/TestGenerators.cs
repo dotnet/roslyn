@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -80,7 +81,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         Action<GeneratorInitializationContext> onInit,
         Action<GeneratorExecutionContext> onExecute,
         Func<(string hintName, string? source)>? computeSource,
-        Func<(string hintName, SourceText sourceText)>? computeSourceText)
+        Func<ImmutableArray<(string hintName, SourceText sourceText)>>? computeSourceTexts)
         : ISourceGenerator
     {
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "")
@@ -89,12 +90,15 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
 
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<(string hintName, string? source)> computeSource)
-            : this(onInit, onExecute, computeSource, computeSourceText: null)
+            : this(onInit, onExecute, computeSource, computeSourceTexts: null)
         {
         }
 
-        public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<(string hintName, SourceText sourceText)> computeSourceText)
-            : this(onInit, onExecute, computeSource: null, computeSourceText)
+        public CallbackGenerator(
+            Action<GeneratorInitializationContext> onInit,
+            Action<GeneratorExecutionContext> onExecute,
+            Func<ImmutableArray<(string hintName, SourceText sourceText)>> computeSourceTexts)
+            : this(onInit, onExecute, computeSource: null, computeSourceTexts)
         {
         }
 
@@ -105,10 +109,10 @@ namespace Roslyn.Test.Utilities.TestGenerators
         {
             onExecute(context);
 
-            if (computeSourceText != null)
+            if (computeSourceTexts != null)
             {
-                var (hintName, sourceText) = computeSourceText();
-                context.AddSource(hintName, sourceText);
+                foreach (var (hintName, sourceText) in computeSourceTexts())
+                    context.AddSource(hintName, sourceText);
             }
             else
             {

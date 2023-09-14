@@ -321,13 +321,22 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.NotNull(solution);
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgreeOnContents()
+        private async Task TestInProcAndRemoteWorkspace(
+            params ImmutableArray<(string hintName, SourceText text)>[] values)
         {
-            using var localWorkspace = CreateWorkspace();
-
+            var throwIfCalled = false;
+            ImmutableArray<(string hintName, SourceText text)> sourceTexts = default;
             // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
-            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { }, computeSource: () => (hintName: "SG.cs", source: Guid.NewGuid().ToString()));
+            var generator = new CallbackGenerator(
+                onInit: _ => { },
+                onExecute: _ => { },
+                computeSourceTexts: () =>
+                {
+                    Contract.ThrowIfTrue(throwIfCalled);
+                    return sourceTexts;
+                });
+
+            using var localWorkspace = CreateWorkspace();
 
             var analyzerReference = new TestGeneratorReference(generator);
             var project = AddEmptyProject(localWorkspace.CurrentSolution)
@@ -336,91 +345,30 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
             var remoteWorkspace = client.GetRemoteWorkspace();
 
-            var localProject = localWorkspace.CurrentSolution.Projects.Single();
-            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+            for (var i = 0; i < values.Length; i++)
+            {
+                sourceTexts = values[i];
 
-            // Run generators locally
-            var localCompilation = await localProject.GetCompilationAsync();
+                // make a change to the project to force a change between the local and oop solutions.
+                var currentProject = project.AddDocument("X.cs", SourceText.From("// " + i)).Project;
+                Assert.True(localWorkspace.SetCurrentSolution(_ => currentProject.Solution, WorkspaceChangeKind.SolutionChanged));
+                await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
 
-            // Now run them remotely
-            var remoteCompilation = await remoteProject.GetCompilationAsync();
+                var localProject = localWorkspace.CurrentSolution.Projects.Single();
+                var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
 
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
-            var localGeneratedDocs1 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+                // Run generators locally
+                throwIfCalled = false;
+                var localCompilation = await localProject.GetCompilationAsync();
 
-            // Now make a trivial change to the workspace, resync and confirm things are the same.
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.AddDocument("X.cs", SourceText.From("// X")).Project.Solution, WorkspaceChangeKind.SolutionChanged));
+                // Now run them remotely.  This must not actually call into the generator since nothing has changed.
+                throwIfCalled = true;
+                var remoteCompilation = await remoteProject.GetCompilationAsync();
 
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-
-            localProject = localWorkspace.CurrentSolution.Projects.Single();
-            remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            // Run generators locally
-            localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely
-            remoteCompilation = await remoteProject.GetCompilationAsync();
-
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
-            var localGeneratedDocs2 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // We should have generated different doc contents the second time around.
-            Assert.NotEqual((await localGeneratedDocs1.Single().GetTextAsync()).ToString(), (await localGeneratedDocs2.Single().GetTextAsync()).ToString());
-        }
-
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgreeOnFileNamesAndContents()
-        {
-            using var localWorkspace = CreateWorkspace();
-
-            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
-            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { }, computeSource: () => (hintName: Guid.NewGuid().ToString(), source: Guid.NewGuid().ToString()));
-
-            var analyzerReference = new TestGeneratorReference(generator);
-            var project = AddEmptyProject(localWorkspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference);
-
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
-
-            using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-            var remoteWorkspace = client.GetRemoteWorkspace();
-
-            var localProject = localWorkspace.CurrentSolution.Projects.Single();
-            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            // Run generators locally
-            var localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely
-            var remoteCompilation = await remoteProject.GetCompilationAsync();
-
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
-            var localGeneratedDocs1 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // Now make a trivial change to the workspace, resync and confirm things are the same.
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.AddDocument("X.cs", SourceText.From("// X")).Project.Solution, WorkspaceChangeKind.SolutionChanged));
-
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-
-            localProject = localWorkspace.CurrentSolution.Projects.Single();
-            remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            // Run generators locally
-            localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely
-            remoteCompilation = await remoteProject.GetCompilationAsync();
-
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
-            var localGeneratedDocs2 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // We should have generated different doc contents the second time around.
-            Assert.NotEqual((await localGeneratedDocs1.Single().GetTextAsync()).ToString(), (await localGeneratedDocs2.Single().GetTextAsync()).ToString());
+                await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: sourceTexts.Length);
+            }
         }
 
         private static async Task AssertSourceGeneratedDocumentsAreSame(Project localProject, Project remoteProject, int expectedCount)
@@ -448,181 +396,141 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact]
-        public async Task InProcAndRemoteWorkspaceAgreeOnSourceTextHashAlgorithm()
+        public async Task InProcAndRemoteWorkspaceAgree1()
         {
-            using var localWorkspace = CreateWorkspace();
-
-            var hashAlgorithm = SourceHashAlgorithm.Sha256;
-            var generator = new CallbackGenerator(
-                onInit: _ => { }, onExecute: _ => { },
-                computeSourceText: () => (hintName: Guid.NewGuid().ToString(), SourceText.From(Guid.NewGuid().ToString(), Encoding.ASCII, hashAlgorithm)));
-
-            var analyzerReference = new TestGeneratorReference(generator);
-            var project = AddEmptyProject(localWorkspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference);
-
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
-
-            using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-            var remoteWorkspace = client.GetRemoteWorkspace();
-
-            var localProject = localWorkspace.CurrentSolution.Projects.Single();
-            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            // Run generators locally.  This should force them to run remotely as well. Which means we will generate on
-            // the remote side and sync to the local side.
-            var localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely.  This should be a no-op and will be unaffected by this flag.
-            hashAlgorithm = SourceHashAlgorithm.Sha1;
-            var remoteCompilation = await remoteProject.GetCompilationAsync();
-
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
-            var localGeneratedDocs1 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // Now make a trivial change to the workspace, resync and confirm things are the same.
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.AddDocument("X.cs", SourceText.From("// X")).Project.Solution, WorkspaceChangeKind.SolutionChanged));
-
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-
-            localProject = localWorkspace.CurrentSolution.Projects.Single();
-            remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            // Run generators locally
-            localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely
-            remoteCompilation = await remoteProject.GetCompilationAsync();
-
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
-            var localGeneratedDocs2 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // We should have generated different doc contents the second time around.
-            Assert.NotEqual((await localGeneratedDocs1.Single().GetTextAsync()).ChecksumAlgorithm, (await localGeneratedDocs2.Single().GetTextAsync()).ChecksumAlgorithm);
+            // Base case
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
         }
 
         [Fact]
-        public async Task InProcAndRemoteWorkspaceAgreeOnSourceTextEncoding()
+        public async Task InProcAndRemoteWorkspaceAgree2()
         {
-            using var localWorkspace = CreateWorkspace();
-
-            var encoding = Encoding.ASCII;
-            var generator = new CallbackGenerator(
-                onInit: _ => { }, onExecute: _ => { },
-                computeSourceText: () => (hintName: Guid.NewGuid().ToString(), SourceText.From(Guid.NewGuid().ToString(), encoding)));
-
-            var analyzerReference = new TestGeneratorReference(generator);
-            var project = AddEmptyProject(localWorkspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference);
-
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
-
-            using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-            var remoteWorkspace = client.GetRemoteWorkspace();
-
-            var localProject = localWorkspace.CurrentSolution.Projects.Single();
-            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            // Run generators locally.  This should force them to run remotely as well. Which means we will generate on
-            // the remote side and sync to the local side.
-            var localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely.  This should be a no-op and will be unaffected by this flag.
-            encoding = Encoding.UTF8;
-            var remoteCompilation = await remoteProject.GetCompilationAsync();
-
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
-            var localGeneratedDocs1 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // Now make a trivial change to the workspace, resync and confirm things are the same.
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.AddDocument("X.cs", SourceText.From("// X")).Project.Solution, WorkspaceChangeKind.SolutionChanged));
-
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-
-            localProject = localWorkspace.CurrentSolution.Projects.Single();
-            remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            // Run generators locally
-            localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely
-            remoteCompilation = await remoteProject.GetCompilationAsync();
-
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
-            var localGeneratedDocs2 = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
-
-            // We should have generated different doc contents the second time around.
-            Assert.NotEqual((await localGeneratedDocs1.Single().GetTextAsync()).Encoding, (await localGeneratedDocs2.Single().GetTextAsync()).Encoding);
+            // Produce the same contents twice
+            var sourceText = SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8);
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", sourceText)),
+                ImmutableArray.Create(("SG.cs", sourceText)));
         }
 
         [Fact]
-        public async Task InProcAndRemoteWorkspaceAgreeOnFilesGenerated()
+        public async Task InProcAndRemoteWorkspaceAgree3()
         {
-            using var localWorkspace = CreateWorkspace();
-
-            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
-            var generateSource = true;
-            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { },
-                computeSource: () => generateSource ? (hintName: Guid.NewGuid().ToString(), source: Guid.NewGuid().ToString()) : default);
-
-            var analyzerReference = new TestGeneratorReference(generator);
-            var project = AddEmptyProject(localWorkspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference);
-
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
-
-            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-            var remoteWorkspace = client.GetRemoteWorkspace();
-
-            var localProject = localWorkspace.CurrentSolution.Projects.Single();
-            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
-
-            // Run generators locally.  This should force them to run remotely as well. Which means we will generate on
-            // the remote side and sync to the local side.
-            var localCompilation = await localProject.GetCompilationAsync();
-
-            // Now run them remotely.  This should be a no-op and will be unaffected by this flag.
-            generateSource = false;
-            var remoteCompilation = await remoteProject.GetCompilationAsync();
-
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 1);
+            // Produce the same contents twice
+            var sourceText = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(sourceText, Encoding.UTF8))),
+                ImmutableArray.Create(("SG.cs", SourceText.From(sourceText, Encoding.UTF8))));
         }
 
         [Fact]
-        public async Task InProcAndRemoteWorkspaceAgreeOnNoFilesGenerated()
+        public async Task InProcAndRemoteWorkspaceAgree4()
         {
-            using var localWorkspace = CreateWorkspace();
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))),
+                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+        }
 
-            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
-            var generateSource = false;
-            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { },
-                computeSource: () => generateSource ? (hintName: Guid.NewGuid().ToString(), source: Guid.NewGuid().ToString()) : default);
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree5()
+        {
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))),
+                ImmutableArray.Create(("NewName.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+        }
 
-            var analyzerReference = new TestGeneratorReference(generator);
-            var project = AddEmptyProject(localWorkspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference);
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree6()
+        {
+            var sourceText = SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8);
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", sourceText)),
+                ImmutableArray.Create(("NewName.cs", sourceText)));
+        }
 
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree7()
+        {
+            var sourceText = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(sourceText, Encoding.UTF8))),
+                ImmutableArray.Create(("NewName.cs", SourceText.From(sourceText, Encoding.UTF8))));
+        }
 
-            var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
-            await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
-            var remoteWorkspace = client.GetRemoteWorkspace();
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree8()
+        {
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))),
+                ImmutableArray.Create(("NewName.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+        }
 
-            var localProject = localWorkspace.CurrentSolution.Projects.Single();
-            var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree9()
+        {
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From("X", Encoding.ASCII))),
+                ImmutableArray.Create(("SG.cs", SourceText.From("X", Encoding.UTF8))));
+        }
 
-            // Run generators locally.  This should force them to run remotely as well. Which means we will generate
-            // nothing the remote side and sync that the local side.
-            var localCompilation = await localProject.GetCompilationAsync();
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree10()
+        {
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From("X", checksumAlgorithm: SourceHashAlgorithm.Sha1))),
+                ImmutableArray.Create(("SG.cs", SourceText.From("X", checksumAlgorithm: SourceHashAlgorithm.Sha256))));
+        }
 
-            // Now run them remotely.  This should be a no-op and will be unaffected by this flag.
-            generateSource = true;
-            var remoteCompilation = await remoteProject.GetCompilationAsync();
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree11()
+        {
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))),
+                ImmutableArray<(string, SourceText)>.Empty);
+        }
 
-            await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: 0);
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree12()
+        {
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray<(string, SourceText)>.Empty,
+                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+        }
+
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree13()
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
+                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8)), ("SG1.cs", SourceText.From(contents, Encoding.UTF8))));
+        }
+
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree14()
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
+                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8)), ("SG1.cs", SourceText.From("Other", Encoding.UTF8))));
+        }
+
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree15()
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
+                ImmutableArray.Create(("SG1.cs", SourceText.From(contents, Encoding.UTF8)), ("SG.cs", SourceText.From("Other", Encoding.UTF8))));
+        }
+
+        [Fact]
+        public async Task InProcAndRemoteWorkspaceAgree16()
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
+                ImmutableArray.Create(("SG1.cs", SourceText.From("Other", Encoding.UTF8)), ("SG.cs", SourceText.From(contents, Encoding.UTF8))));
         }
 
         public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp, string name = "TestProject")
