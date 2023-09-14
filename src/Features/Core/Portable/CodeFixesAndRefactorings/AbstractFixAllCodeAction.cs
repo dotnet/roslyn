@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
         }
 
-        protected internal sealed override Task<Solution?> GetChangedSolutionAsync(
+        protected sealed override Task<Solution?> GetChangedSolutionAsync(
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            protected internal override Task<Solution?> GetChangedSolutionAsync(
+            protected override Task<Solution?> GetChangedSolutionAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 return AddParameterService.AddParameterAsync(

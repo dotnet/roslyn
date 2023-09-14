@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         : attributeNode;
                 }
 
-                protected internal override async Task<Solution> GetChangedSolutionAsync(
+                protected override async Task<Solution> GetChangedSolutionAsync(
                     IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var attributeNode = await GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);

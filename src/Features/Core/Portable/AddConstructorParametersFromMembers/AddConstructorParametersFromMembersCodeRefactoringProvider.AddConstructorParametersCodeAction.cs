@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             /// </summary>
             private readonly bool _useSubMenuName = useSubMenuName;
 
-            protected internal override Task<Solution?> GetChangedSolutionAsync(
+            protected override Task<Solution?> GetChangedSolutionAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var services = _document.Project.Solution.Services;
