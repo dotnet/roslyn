@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             => CreateFromSerialized(projectId, Guid.NewGuid(), isSourceGenerated: false, debugName);
 
         public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string? debugName = null)
-            => CreateFromSerialized(projectId, id, isSourceGenerated: true, debugName);
+            => CreateFromSerialized(projectId, id, isSourceGenerated: false, debugName);
 
         internal static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, bool isSourceGenerated, string? debugName)
         {
