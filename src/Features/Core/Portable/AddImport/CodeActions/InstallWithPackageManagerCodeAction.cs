@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class InstallWithPackageManagerCodeAction(
+        private sealed class InstallWithPackageManagerCodeAction(
             IPackageInstallerService installerService,
             string packageName) : CodeAction
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public override string Title => FeaturesResources.Install_with_package_manager;
 
-            private protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(

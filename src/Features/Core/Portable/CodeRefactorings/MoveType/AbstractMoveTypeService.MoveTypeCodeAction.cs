@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private class MoveTypeCodeAction : CodeAction
+        private sealed class MoveTypeCodeAction : CodeAction
         {
             private readonly State _state;
             private readonly TService _service;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             public override string Title => _title;
 
-            private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var editor = Editor.GetEditor(_operationKind, _service, _state, _fileName, cancellationToken);

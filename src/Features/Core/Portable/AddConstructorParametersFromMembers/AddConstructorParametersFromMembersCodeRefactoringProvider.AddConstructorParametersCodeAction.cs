@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        private class AddConstructorParametersCodeAction(
+        private sealed class AddConstructorParametersCodeAction(
             Document document,
             CodeGenerationContextInfo info,
             ConstructorCandidate constructorCandidate,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             /// </summary>
             private readonly bool _useSubMenuName = useSubMenuName;
 
-            internal override Task<Solution?> GetChangedSolutionAsync(
+            protected internal override Task<Solution?> GetChangedSolutionAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var services = _document.Project.Solution.Services;

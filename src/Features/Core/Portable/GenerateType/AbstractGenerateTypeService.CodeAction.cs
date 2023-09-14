@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);

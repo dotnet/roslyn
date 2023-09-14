@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Packaging;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
-    internal class InstallWithPackageManagerCodeAction(
+    internal sealed class InstallWithPackageManagerCodeAction(
         IPackageInstallerService installerService, string packageName) : CodeAction
     {
         private readonly IPackageInstallerService _installerService = installerService;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         public override string Title => FeaturesResources.Install_with_package_manager;
 
-        private protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(

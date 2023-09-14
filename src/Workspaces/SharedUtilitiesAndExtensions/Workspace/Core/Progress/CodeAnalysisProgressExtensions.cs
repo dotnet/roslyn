@@ -22,12 +22,6 @@ internal static class CodeAnalysisProgressExtensions
         => progress.Report(CodeAnalysisProgress.CompleteItem());
 
     /// <summary>
-    /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
-    /// </summary>
-    public static void Clear(this IProgress<CodeAnalysisProgress> progress)
-        => progress.Report(CodeAnalysisProgress.Clear());
-
-    /// <summary>
     /// Opens a scope that will call <see cref="IProgress{T}.Report(T)"/> with an instance of <see
     /// cref="CodeAnalysisProgress.CompleteItem"/> on <paramref name="progress"/> once disposed. This is useful to easily
     /// wrap a series of operations and now that progress will be reported no matter how it completes.

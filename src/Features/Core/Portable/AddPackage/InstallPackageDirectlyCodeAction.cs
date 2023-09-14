@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Packaging;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
-    internal class InstallPackageDirectlyCodeAction(
+    internal sealed class InstallPackageDirectlyCodeAction(
         IPackageInstallerService installerService,
         Document document,
         string source,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                     ? string.Format(FeaturesResources.Use_local_version_0, versionOpt)
                     : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
-        private protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => Task.FromResult(ImmutableArray.Create(_installPackageOperation));
     }
 }

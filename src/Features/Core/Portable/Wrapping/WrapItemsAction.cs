@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
     /// also update the wrapping most-recently-used list when the code action is actually
     /// invoked.
     /// </summary>
-    internal class WrapItemsAction(string title, string parentTitle, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument)
+    internal sealed class WrapItemsAction(string title, string parentTitle, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument)
         : DocumentChangeAction(title, createChangedDocument, title, CodeActionPriority.Low)
     {
         // Keeps track of the invoked code actions.  That way we can prioritize those code actions 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             return base.ComputeOperationsAsync(cancellationToken);
         }
 
-        private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var operations = await base.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
             return operations.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));

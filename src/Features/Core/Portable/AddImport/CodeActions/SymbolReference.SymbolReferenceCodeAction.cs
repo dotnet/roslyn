@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return SpecializedCollections.SingletonEnumerable(operation);
             }
 
-            private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var operation = await GetChangeSolutionOperationAsync(isPreview: false, cancellationToken).ConfigureAwait(false);

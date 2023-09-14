@@ -9,14 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class AssemblyReferenceCodeAction : AddImportCodeAction
+        private sealed class AssemblyReferenceCodeAction : AddImportCodeAction
         {
             /// <summary>
             /// This code action only works by adding a reference.  As such, it requires a non document change (and is
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
                 => await ComputeOperationsAsync(isPreview: true, cancellationToken).ConfigureAwait(false);
 
-            private protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 => ComputeOperationsAsync(isPreview: false, cancellationToken);
 
             private async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(bool isPreview, CancellationToken cancellationToken)

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
+        private sealed class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
         {
             private readonly State _state = state;
             private readonly ImmutableArray<string> _newfolders = newFolders;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
 
-            private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var document = _state.Document;

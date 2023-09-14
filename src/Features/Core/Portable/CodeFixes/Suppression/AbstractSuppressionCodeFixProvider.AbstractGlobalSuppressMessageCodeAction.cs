@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 _project = project;
             }
 
-            private protected sealed override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            protected sealed override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var changedSuppressionDocument = await GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);

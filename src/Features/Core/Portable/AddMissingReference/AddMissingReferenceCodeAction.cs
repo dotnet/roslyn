@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
-    internal class AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity) : CodeAction
+    internal sealed class AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity) : CodeAction
     {
         private readonly Project _project = project;
         private readonly ProjectReference? _projectReferenceToAdd = projectReferenceToAdd;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             return new AddMissingReferenceCodeAction(project, description, null, missingAssemblyIdentity);
         }
 
-        private protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             // If we have a project reference to add, then add it

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
 #endif
-    internal class NamingStyleCodeFixProvider : CodeFixProvider
+    internal sealed class NamingStyleCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -157,11 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                     new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
             }
 
-#if CODE_STYLE
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-#else
-            private protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-#endif
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
                 var codeAction = new ApplyChangesOperation(newSolution);

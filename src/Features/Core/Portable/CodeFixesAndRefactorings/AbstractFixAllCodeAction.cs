@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 
         internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
 
-        private protected sealed override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        protected sealed override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
         }
 
-        internal sealed override Task<Solution?> GetChangedSolutionAsync(
+        protected internal sealed override Task<Solution?> GetChangedSolutionAsync(
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
