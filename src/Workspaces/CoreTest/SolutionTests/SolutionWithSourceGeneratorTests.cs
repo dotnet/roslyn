@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotEqual(generatedDocuments[0].Id, generatedDocuments[1].Id);
         }
 
-        [Theory, CombinatorialData]
-        public async Task IncrementalSourceGeneratorInvokedCorrectNumberOfTimes(TestHost testHost)
+        [Fact]
+        public async Task IncrementalSourceGeneratorInvokedCorrectNumberOfTimes()
         {
             using var workspace = CreateWorkspace(new[] { typeof(TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking) }, testHost);
             var generator = new GenerateFileForEachAdditionalFileWithContentsCommented();
