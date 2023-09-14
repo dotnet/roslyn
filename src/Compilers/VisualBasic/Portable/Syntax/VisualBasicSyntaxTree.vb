@@ -598,7 +598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetPreprocessingSymbolInfo(token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
-            Dim conditionalSymbolName As String = token.ValueText
+            Dim conditionalSymbolName = token.ValueText
             Dim conditionalSymbols As ConditionalSymbolsMap = Me.ConditionalSymbols
 
             Return If(conditionalSymbols Is Nothing, VisualBasicPreprocessingSymbolInfo.None, conditionalSymbols.GetPreprocessingSymbolInfo(conditionalSymbolName, token))

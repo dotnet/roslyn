@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -66,8 +65,8 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var matched = await PreprocessingSymbolsMatchAsync(symbol, state, token, cancellationToken)
-                .ConfigureAwait(false);
+            var targetSymbol = state.SemanticModel.GetPreprocessingSymbolInfo(token.GetRequiredParent()).Symbol;
+            var matched = await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, symbol, targetSymbol, cancellationToken).ConfigureAwait(false);
 
             if (matched)
             {
@@ -76,12 +75,5 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
         }
 
         return locations.ToImmutable();
-    }
-
-    private static async ValueTask<bool> PreprocessingSymbolsMatchAsync(
-        IPreprocessingSymbol searchSymbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
-    {
-        var symbol = state.SemanticModel.GetPreprocessingSymbolInfo(token.GetRequiredParent()).Symbol;
-        return await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbol, cancellationToken).ConfigureAwait(false);
     }
 }

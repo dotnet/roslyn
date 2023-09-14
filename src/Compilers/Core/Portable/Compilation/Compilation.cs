@@ -372,14 +372,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new IPreprocessingSymbol representing a preprocessing symbol with the given name.
         /// </summary>
         public IPreprocessingSymbol CreatePreprocessingSymbol(string name)
-        {
-            if (name is null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            return CommonCreatePreprocessingSymbol(name);
-        }
+            => CommonCreatePreprocessingSymbol(name ?? throw new ArgumentNullException(nameof(name)));
 
         protected abstract IPreprocessingSymbol CommonCreatePreprocessingSymbol(string name);
 

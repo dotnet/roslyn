@@ -4854,7 +4854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
 
-            if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirectiveAcceptingPreprocessingSymbols(n.Kind())))
+            if (node.Ancestors().Any(n => IsPreprocessorDirectiveAcceptingPreprocessingSymbols(n.Kind())))
             {
                 return CreatePreprocessingSymbolInfo(node.Identifier);
             }
@@ -4873,6 +4873,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDefined = SyntaxTree.IsPreprocessorSymbolDefined(identifier.ValueText, identifier.SpanStart);
             var preprocessingSymbol = new Symbols.PublicModel.PreprocessingSymbol(identifier.ValueText);
             return new PreprocessingSymbolInfo(preprocessingSymbol, isDefined);
+        }
+
+        private static bool IsPreprocessorDirectiveAcceptingPreprocessingSymbols(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                case SyntaxKind.DefineDirectiveTrivia:
+                case SyntaxKind.UndefDirectiveTrivia:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>

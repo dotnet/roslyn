@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 return true;
             }
 
-            if (obj is not IPreprocessingSymbol other)
+            if (obj is not PreprocessingSymbol other)
             {
                 return false;
             }
 
-            return _name == other.Name;
+            return _name == other._name;
         }
 
         bool IEquatable<ISymbol?>.Equals(ISymbol? other)
