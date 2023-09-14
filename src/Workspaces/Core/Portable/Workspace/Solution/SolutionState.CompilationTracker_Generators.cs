@@ -99,7 +99,8 @@ internal partial class SolutionState
             // reuse the prior compilation.
             if (infos.Length == generatorInfo.Documents.Count &&
                 documentsToAddOrUpdate.Count == 0 &&
-                compilationWithStaleGeneratedTrees != null)
+                compilationWithStaleGeneratedTrees != null &&
+                generatorInfo.Documents.States.All(kvp => kvp.Value.ParseOptions.Equals(this.ProjectState.ParseOptions)))
             {
                 return (compilationWithStaleGeneratedTrees, generatorInfo.WithDocumentsAreFinal(true));
             }
@@ -146,7 +147,15 @@ internal partial class SolutionState
                     var existingDocument = generatorInfo.Documents.GetRequiredState(documentIdentity.DocumentId);
                     Contract.ThrowIfTrue(existingDocument.Identity != documentIdentity, "Identies must match!");
                     Contract.ThrowIfTrue(existingDocument.GetTextChecksum() != contentIdentity.Checksum, "Checksums must match!");
-                    generatedDocumentsBuilder.Add(existingDocument);
+
+                    if (existingDocument.ParseOptions.Equals(this.ProjectState.ParseOptions))
+                    {
+                        generatedDocumentsBuilder.Add(existingDocument);
+                    }
+                    else
+                    {
+                        generatedDocumentsBuilder.Add(existingDocument.WithUpdatedGeneratedContent(existingDocument.SourceText, this.ProjectState.ParseOptions!));
+                    }
                 }
             }
 
