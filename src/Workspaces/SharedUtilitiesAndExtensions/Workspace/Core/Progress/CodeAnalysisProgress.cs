@@ -46,14 +46,18 @@ internal sealed class CodeAnalysisProgress
         };
 
     /// <summary>
-    /// Indicates that one item of work has transitioned from being incomplete (see <see cref="AddIncompleteItems"/> to
-    /// complete.  This is commonly presented with a progress bar. An optional <paramref name="description"/> can also
-    /// be provided to update the UI accordingly (see <see cref="Description"/>).
+    /// By default, indicates that an item of work has transitioned from being incomplete (see <see
+    /// cref="AddIncompleteItems"/> to complete.  This is commonly presented with a progress bar. An optional <paramref
+    /// name="description"/> can also be provided to update the UI accordingly (see <see cref="Description"/>).
     /// </summary>
+    /// <remarks>
+    /// Multiple items of work can be transitioned to be complete by passing an explicit value to <paramref
+    /// name="count"/>.
+    /// </remarks>
     public static CodeAnalysisProgress CompleteItem(int count = 1, string? description = null)
         => new()
         {
-            CompleteItemValue = count,
+            CompleteItemValue = count >= 1 ? count : throw new ArgumentOutOfRangeException(nameof(count)),
             DescriptionValue = description,
         };
 
