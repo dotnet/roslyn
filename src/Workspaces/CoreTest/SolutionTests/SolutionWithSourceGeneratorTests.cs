@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory, CombinatorialData]
         public async Task IncrementalSourceGeneratorInvokedCorrectNumberOfTimes(TestHost testHost)
         {
-            using var workspace = CreateWorkspace([typeof(TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking)], testHost);
+            using var workspace = CreateWorkspace(new[] { typeof(TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking) }, testHost);
             var generator = new GenerateFileForEachAdditionalFileWithContentsCommented();
             var analyzerReference = new TestGeneratorReference(generator);
             var project = AddEmptyProject(workspace.CurrentSolution)
