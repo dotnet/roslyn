@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 vsServerCapabilities.Experimental ??= new Dictionary<string, bool>();
                 var experimental = (Dictionary<string, bool>)vsServerCapabilities.Experimental;
                 experimental[SimplifyMethodHandler.SimplifyMethodMethodName] = true;
+                experimental[FormatNewFileHandler.FormatNewFileMethodName] = true;
                 experimental[SemanticTokensRangesHandler.SemanticRangesMethodName] = true;
 
                 var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);

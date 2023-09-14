@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
                 }
             }
-            else if (collectionTypeKind == CollectionExpressionTypeKind.ListInterface ||
+            else if ((collectionTypeKind == CollectionExpressionTypeKind.ListInterface && isListInterfaceThatRequiresList(targetType)) ||
                 elements.Any(e => e is BoundCollectionExpressionSpreadElement)) // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
             {
                 Debug.Assert(elementType is { });
@@ -705,6 +705,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderInvocationConversion,
                 builder.ToImmutableAndFree(),
                 targetType);
+
+            static bool isListInterfaceThatRequiresList(TypeSymbol targetType)
+            {
+                return targetType is not
+                {
+                    OriginalDefinition.SpecialType:
+                        SpecialType.System_Collections_Generic_IEnumerable_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyList_T
+                };
+            }
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
