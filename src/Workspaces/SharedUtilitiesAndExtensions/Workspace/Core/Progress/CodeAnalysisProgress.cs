@@ -4,7 +4,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Progress;
 
 namespace Microsoft.CodeAnalysis;
