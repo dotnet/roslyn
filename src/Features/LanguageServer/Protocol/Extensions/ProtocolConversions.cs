@@ -892,15 +892,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             static string GetStyledText(TaggedText taggedText, bool isInCodeBlock)
             {
-                var text = isInCodeBlock ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
+                var isCode = isInCodeBlock || taggedText.Style is TaggedTextStyle.Code;
+                var text = isCode ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
 
                 // For non-cref links, the URI is present in both the hint and target.
                 if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
                     return $"[{text}]({taggedText.NavigationHint})";
 
                 // Markdown ignores spaces at the start of lines outside of code blocks, 
-                // so to get indented lines we replace the spaces with these.
-                if (!isInCodeBlock)
+                // so we replace regular spaces with non-breaking spaces to ensure structural space is retained.
+                // We want to use regular spaces everywhere else to allow the client to wrap long text.
+                if (!isCode && taggedText.Tag is TextTags.Space or TextTags.ContainerStart)
                     text = text.Replace(" ", "&nbsp;");
 
                 return taggedText.Style switch
