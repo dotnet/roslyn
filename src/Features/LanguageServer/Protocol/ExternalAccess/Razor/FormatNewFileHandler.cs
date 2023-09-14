@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(FormatNewFileHandler)), Shared]
 [Method(FormatNewFileMethodName)]
-internal class FormatNewFileHandler : ILspServiceRequestHandler<FormatNewFileParams, string?>
+internal sealed class FormatNewFileHandler : ILspServiceRequestHandler<FormatNewFileParams, string?>
 {
     public const string FormatNewFileMethodName = "roslyn/formatNewFile";
     private readonly IGlobalOptionService _globalOptions;
@@ -51,11 +51,11 @@ internal class FormatNewFileHandler : ILspServiceRequestHandler<FormatNewFilePar
         var fileLoader = new SourceTextLoader(source, filePath);
         var documentId = DocumentId.CreateNewId(project.Id);
         var solution = project.Solution.AddDocument(
-                DocumentInfo.Create(
-                    documentId,
-                    name: filePath,
-                    loader: fileLoader,
-                    filePath: filePath));
+            DocumentInfo.Create(
+                documentId,
+                name: filePath,
+                loader: fileLoader,
+                filePath: filePath));
 
         var document = solution.GetRequiredDocument(documentId);
 

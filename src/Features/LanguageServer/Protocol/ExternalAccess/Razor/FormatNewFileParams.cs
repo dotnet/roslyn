@@ -8,14 +8,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
 [DataContract]
-internal record FormatNewFileParams
+internal sealed record FormatNewFileParams
 {
     [DataMember(Name = "document")]
-    public required TextDocumentIdentifier Document { get; set; }
+    public required TextDocumentIdentifier Document { get; init; }
 
     [DataMember(Name = "project")]
-    public required TextDocumentIdentifier Project { get; set; }
+    public required TextDocumentIdentifier Project { get; init; }
 
     [DataMember(Name = "contents")]
-    public required string Contents { get; set; }
+    public required string Contents { get; init; }
 }
