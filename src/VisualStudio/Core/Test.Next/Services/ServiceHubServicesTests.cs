@@ -482,166 +482,185 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree2()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree2(bool syncWithRemoteServer)
         {
             var sourceText = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", sourceText)),
                 ImmutableArray.Create(("SG.cs", sourceText)));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree3()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree3(bool syncWithRemoteServer)
         {
             var sourceText = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(sourceText))),
                 ImmutableArray.Create(("SG.cs", CreateText(sourceText))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree4()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree4(bool syncWithRemoteServer)
         {
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree5()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree5(bool syncWithRemoteServer)
         {
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
                 ImmutableArray.Create(("NewName.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree6()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree6(bool syncWithRemoteServer)
         {
             var sourceText = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", sourceText)),
                 ImmutableArray.Create(("NewName.cs", sourceText)));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree7()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree7(bool syncWithRemoteServer)
         {
             var sourceText = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(sourceText))),
                 ImmutableArray.Create(("NewName.cs", CreateText(sourceText))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree8()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree8(bool syncWithRemoteServer)
         {
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
                 ImmutableArray.Create(("NewName.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree9()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree9(bool syncWithRemoteServer)
         {
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.ASCII))),
                 ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree10()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree10(bool syncWithRemoteServer)
         {
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1))),
                 ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree11()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree11(bool syncWithRemoteServer)
         {
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
                 ImmutableArray<(string, SourceText)>.Empty);
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree12()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree12(bool syncWithRemoteServer)
         {
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray<(string, SourceText)>.Empty,
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree13()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree13(bool syncWithRemoteServer)
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree14()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree14(bool syncWithRemoteServer)
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG.cs", CreateText(contents)), ("SG1.cs", CreateText("Other"))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree15()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree15(bool syncWithRemoteServer)
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG.cs", CreateText("Other"))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree16()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree16(bool syncWithRemoteServer)
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree17()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree17(bool syncWithRemoteServer)
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))),
                 ImmutableArray<(string, SourceText)>.Empty);
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree18()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree18(bool syncWithRemoteServer)
         {
             var contents = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG1.cs", contents), ("SG2.cs", contents)));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree19()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree19(bool syncWithRemoteServer)
         {
             var contents = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG1.cs", contents), ("SG2.cs", contents)),
                 ImmutableArray.Create(("SG2.cs", contents), ("SG1.cs", contents)));
         }
 
-        [Fact]
-        public async Task InProcAndRemoteWorkspaceAgree20()
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree20(bool syncWithRemoteServer)
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
                 ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG2.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG2.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
         }
