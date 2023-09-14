@@ -23,7 +23,7 @@ internal sealed class CodeAnalysisProgress
     internal static readonly IProgress<CodeAnalysisProgress> None = NullProgress<CodeAnalysisProgress>.Instance;
 
     internal bool ClearValue { get; init; }
-    internal bool CompletedItemValue { get; init; }
+    internal int? CompleteItemValue { get; init; }
     internal int? IncompleteItemsValue { get; init; }
     internal string? DescriptionValue { get; init; }
 
@@ -35,23 +35,33 @@ internal sealed class CodeAnalysisProgress
 
     /// <summary>
     /// Adds the requested number of incomplete items to the UI showing the progress of the current operation.  This is
-    /// commonly presented with a progress bar.
+    /// commonly presented with a progress bar.  An optional <paramref name="description"/> can also be provided to
+    /// update the UI accordingly (see <see cref="Description"/>).
     /// </summary>
-    public static CodeAnalysisProgress IncompleteItems(int count)
-        => new() { IncompleteItemsValue = count >= 0 ? count : throw new ArgumentOutOfRangeException(nameof(count)) };
+    public static CodeAnalysisProgress AddIncompleteItems(int count, string? description = null)
+        => new()
+        {
+            IncompleteItemsValue = count >= 0 ? count : throw new ArgumentOutOfRangeException(nameof(count)),
+            DescriptionValue = description,
+        };
 
     /// <summary>
-    /// Indicates that one item of work has transitioned from being incomplete (see <see cref="IncompleteItems"/> to
-    /// complete.  This is commonly presented with a progress bar.
+    /// Indicates that one item of work has transitioned from being incomplete (see <see cref="AddIncompleteItems"/> to
+    /// complete.  This is commonly presented with a progress bar. An optional <paramref name="description"/> can also
+    /// be provided to update the UI accordingly (see <see cref="Description"/>).
     /// </summary>
-    public static CodeAnalysisProgress CompletedItem()
-        => new() { CompletedItemValue = true };
+    public static CodeAnalysisProgress CompleteItem(int count = 1, string? description = null)
+        => new()
+        {
+            CompleteItemValue = count,
+            DescriptionValue = description,
+        };
 
     /// <summary>
     /// Indicates that all progress should be reset for the current operation. This is normally done when the code
     /// action is performing some new phase and wishes for the UI progress bar to restart from the beginning.
     /// </summary>
-    public static CodeAnalysisProgress Clear()
+    internal static CodeAnalysisProgress Clear()
         => new() { ClearValue = true };
 }
 
@@ -86,9 +96,9 @@ internal sealed class CodeAnalysisProgressTracker(Action<string?, int, int>? upd
         Update();
     }
 
-    public void ItemCompleted()
+    public void CompleteItems(int count)
     {
-        Interlocked.Increment(ref _completedItems);
+        Interlocked.Add(ref _completedItems, count);
         Update();
     }
 
@@ -111,7 +121,7 @@ internal sealed class CodeAnalysisProgressTracker(Action<string?, int, int>? upd
         if (value.IncompleteItemsValue != null)
             this.AddItems(value.IncompleteItemsValue.Value);
 
-        if (value.CompletedItemValue)
-            this.ItemCompleted();
+        if (value.CompleteItemValue != null)
+            this.CompleteItems(value.CompleteItemValue.Value);
     }
 }
