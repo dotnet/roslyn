@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
@@ -13,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -33,12 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
         private const string CopilotConfigFileName = ".copilotconfig";
 
         private readonly string _defaultDescription = @"I am interested in all the categories that are mentioned in the 'Categories' list below.";
+        private static readonly ImmutableArray<string> s_defaultCcodeAnalysisSuggestionCategories = ImmutableArray.Create(
+            "Security", "Performance", "Design", "Reliability", "Maintenance", "Style");
 
         private readonly ConcurrentDictionary<string, (Checksum checksum, Task<ImmutableDictionary<string, string>> readConfigTask)> _copilotConfigCache = new();
-
-        // TODO: Either complete the below hard-coded categories list OR populate it from all analyzers loaded for current project.
-        private static readonly ImmutableArray<string> s_codeAnalysisSuggestionCategories = ImmutableArray.Create(
-            "Security", "Performance", "Design", "Reliability", "Maintenance", "Style");
+        private readonly ConcurrentDictionary<IReadOnlyList<AnalyzerReference>, Task<ImmutableArray<DiagnosticDescriptor>>> _diagnosticDescriptorCache = new();
         private readonly IThreadingContext _threadingContext;
 
         public async Task<ImmutableArray<string>?> TryGetCopilotConfigPromptAsync(string feature, Project project, CancellationToken cancellationToken)
@@ -66,11 +67,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             {
                 case CopilotConfigFeatures.CodeAnalysisSuggestions:
                     var config = await GetCopilotConfigAsync(project, cancellationToken).ConfigureAwait(false);
+
                     var description = config.TryGetValue("Description", out var value) ? value : _defaultDescription;
                     builder.Add(description);
 
-                    var categories = string.Join(",", s_codeAnalysisSuggestionCategories);
-                    builder.Add(categories);
+                    // TODO: Provide the list of diagnostics in the form of (Id, category, description) for LLM to pick from.
+                    var availableDiagnostics = await GetAvailableDiagnosticDescriptorAsync(project).ConfigureAwait(false);
+                    IEnumerable<string> categories = availableDiagnostics.IsEmpty ? s_defaultCcodeAnalysisSuggestionCategories : availableDiagnostics.Select(d => d.Category).ToHashSet();
+                    builder.Add(string.Join(",", categories));
                     break;
 
                 default:
@@ -171,4 +175,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
                 }
             }
         }
+
+        private async Task<ImmutableArray<DiagnosticDescriptor>> GetAvailableDiagnosticDescriptorAsync(Project project)
+        {
+            if (!_diagnosticDescriptorCache.TryGetValue(project.AnalyzerReferences, out var task))
+            {
+                task = new Task<ImmutableArray<DiagnosticDescriptor>>(() => GetAllAvailableAnalyzerDescriptors(project), _threadingContext.DisposalToken);
+
+                var returnedTask = _diagnosticDescriptorCache.GetOrAdd(project.AnalyzerReferences, task);
+                if (returnedTask == task)
+                    task.Start();
+
+                task = returnedTask;
+            }
+
+            if (task.IsCompleted)
+                return await task.ConfigureAwait(false);
+
+            return ImmutableArray<DiagnosticDescriptor>.Empty;
+
+
+            static ImmutableArray<DiagnosticDescriptor> GetAllAvailableAnalyzerDescriptors(Project project)
+            {
+                var analyzers = project.AnalyzerReferences.SelectMany(reference => reference.GetAnalyzers(project.Language));
+                return analyzers.SelectMany(analyzer => analyzer.SupportedDiagnostics).ToImmutableArray();
+            }
+        }
     }
+}
