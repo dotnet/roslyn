@@ -939,8 +939,6 @@ namespace Microsoft.CodeAnalysis
 
                 AssemblyIdentity definition = definitionData.Identity;
 
-                Debug.Assert(AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definition.Name));
-
                 switch (assemblyIdentityComparer.Compare(reference, definition))
                 {
                     case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
