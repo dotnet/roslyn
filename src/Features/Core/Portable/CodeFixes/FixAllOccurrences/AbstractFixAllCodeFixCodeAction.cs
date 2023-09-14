@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -26,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
-        protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+        protected sealed override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
 
-        protected override bool IsInternalProvider(IFixAllState fixAllState)
+        protected sealed override bool IsInternalProvider(IFixAllState fixAllState)
         {
             var exportAttributes = fixAllState.Provider.GetType().GetTypeInfo().GetCustomAttributes(typeof(ExportCodeFixProviderAttribute), false);
             if (exportAttributes?.Any() == true)
