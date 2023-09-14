@@ -643,8 +643,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExactOrBoundsKind kind,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(target.Type is { });
-            if (target.Type is null)
+            TypeSymbol targetType = target.Type;
+            Debug.Assert(targetType is { });
+            if (targetType is null)
             {
                 return;
             }
@@ -654,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, targetType.StrippedType(), out TypeWithAnnotations targetElementType))
             {
                 return;
             }

@@ -318,6 +318,58 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact]
+    public async Task TestCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var v = (int[])Array.[|Empty|]<int>();
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var v = (int[])[];
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestIdentifierCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using X = int[];
+
+            class C
+            {
+                void M()
+                {
+                    var v = (X)Array.Empty<int>();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestTrivia()
     {
         await new VerifyCS.Test
