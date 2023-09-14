@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     {
         private const int TokenSize = 5;
 
+        /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
         public static async Task<int[]> ComputeSemanticTokensDataAsync(
