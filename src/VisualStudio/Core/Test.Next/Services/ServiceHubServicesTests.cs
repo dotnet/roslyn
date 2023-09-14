@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: [code], openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { code }, openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
 
@@ -65,7 +65,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: [code], openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { code }, openDocuments: false);
 
             var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
 
@@ -118,7 +118,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var source = @"[System.ComponentModel.DesignerCategory(""Form"")] class Test { }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: [source], openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { source }, openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
@@ -321,7 +321,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.NotNull(solution);
         }
 
-        private async Task TestInProcAndRemoteWorkspace(
+        private static async Task TestInProcAndRemoteWorkspace(
             params ImmutableArray<(string hintName, SourceText text)>[] values)
         {
             var throwIfCalled = false;
@@ -395,19 +395,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        private static SourceText CreateText(string content, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+            => SourceText.From(content, encoding ?? Encoding.UTF8, checksumAlgorithm);
+
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree1()
         {
-            // Base case
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree2()
         {
-            // Produce the same contents twice
-            var sourceText = SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8);
+            var sourceText = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray.Create(("SG.cs", sourceText)),
                 ImmutableArray.Create(("SG.cs", sourceText)));
@@ -416,33 +417,32 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree3()
         {
-            // Produce the same contents twice
             var sourceText = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(sourceText, Encoding.UTF8))),
-                ImmutableArray.Create(("SG.cs", SourceText.From(sourceText, Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(sourceText))),
+                ImmutableArray.Create(("SG.cs", CreateText(sourceText))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree4()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))),
-                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree5()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))),
-                ImmutableArray.Create(("NewName.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
+                ImmutableArray.Create(("NewName.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree6()
         {
-            var sourceText = SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8);
+            var sourceText = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray.Create(("SG.cs", sourceText)),
                 ImmutableArray.Create(("NewName.cs", sourceText)));
@@ -453,39 +453,39 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var sourceText = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(sourceText, Encoding.UTF8))),
-                ImmutableArray.Create(("NewName.cs", SourceText.From(sourceText, Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(sourceText))),
+                ImmutableArray.Create(("NewName.cs", CreateText(sourceText))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree8()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))),
-                ImmutableArray.Create(("NewName.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
+                ImmutableArray.Create(("NewName.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree9()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From("X", Encoding.ASCII))),
-                ImmutableArray.Create(("SG.cs", SourceText.From("X", Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.ASCII))),
+                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree10()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1))),
-                ImmutableArray.Create(("SG.cs", SourceText.From("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256))));
+                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1))),
+                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree11()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))),
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
                 ImmutableArray<(string, SourceText)>.Empty);
         }
 
@@ -494,7 +494,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray<(string, SourceText)>.Empty,
-                ImmutableArray.Create(("SG.cs", SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
         [Fact]
@@ -502,8 +502,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8)), ("SG1.cs", SourceText.From(contents, Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
         }
 
         [Fact]
@@ -511,8 +511,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8)), ("SG1.cs", SourceText.From("Other", Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG.cs", CreateText(contents)), ("SG1.cs", CreateText("Other"))));
         }
 
         [Fact]
@@ -520,8 +520,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
-                ImmutableArray.Create(("SG1.cs", SourceText.From(contents, Encoding.UTF8)), ("SG.cs", SourceText.From("Other", Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG.cs", CreateText("Other"))));
         }
 
         [Fact]
@@ -529,8 +529,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
-                ImmutableArray.Create(("SG1.cs", SourceText.From("Other", Encoding.UTF8)), ("SG.cs", SourceText.From(contents, Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))));
         }
 
         [Fact]
@@ -538,8 +538,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
-                ImmutableArray.Create(("SG1.cs", SourceText.From("Other", Encoding.UTF8)), ("SG.cs", SourceText.From(contents, Encoding.UTF8))),
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))),
                 ImmutableArray<(string, SourceText)>.Empty);
         }
 
@@ -548,9 +548,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
                 ImmutableArray<(string, SourceText)>.Empty,
-                ImmutableArray.Create(("SG1.cs", SourceText.From("Other", Encoding.UTF8)), ("SG.cs", SourceText.From(contents, Encoding.UTF8))));
+                ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))));
         }
 
         [Fact]
@@ -559,14 +559,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray<(string, SourceText)>.Empty,
-                ImmutableArray.Create(("SG.cs", SourceText.From(contents, Encoding.UTF8))),
-                ImmutableArray.Create(("SG1.cs", SourceText.From("Other", Encoding.UTF8)), ("SG.cs", SourceText.From(contents, Encoding.UTF8))));
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))));
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree20()
         {
-            var contents = SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8);
+            var contents = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray.Create(("SG1.cs", contents), ("SG2.cs", contents)));
         }
@@ -574,7 +574,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree21()
         {
-            var contents = SourceText.From(Guid.NewGuid().ToString(), Encoding.UTF8);
+            var contents = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray.Create(("SG1.cs", contents), ("SG2.cs", contents)),
                 ImmutableArray.Create(("SG2.cs", contents), ("SG1.cs", contents)));
@@ -585,8 +585,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG1.cs", SourceText.From(contents, Encoding.UTF8)), ("SG2.cs", SourceText.From(contents, Encoding.UTF8))),
-                ImmutableArray.Create(("SG2.cs", SourceText.From(contents, Encoding.UTF8)), ("SG1.cs", SourceText.From(contents, Encoding.UTF8))));
+                ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG2.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG2.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
         }
 
         public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp, string name = "TestProject")
