@@ -820,6 +820,43 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
+                SolutionState solution,
+                Compilation compilationWithoutGeneratedFiles,
+                CompilationTrackerGeneratorInfo generatorInfo,
+                Compilation? compilationWithStaleGeneratedTrees,
+                CancellationToken cancellationToken)
+            {
+                if (generatorInfo.DocumentsAreFinal)
+                {
+                    // We must have ran generators before, but for some reason had to remake the compilation from
+                    // scratch. This could happen if the trees were strongly held, but the compilation was entirely
+                    // garbage collected. Just add in the trees we already have. We don't want to rerun since the
+                    // consumer of this Solution snapshot has already seen the trees and thus needs to ensure identity
+                    // of them.
+                    var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
+                        await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+
+                    // Will reuse the generator info since we're reusing all the trees from within it.
+                    return (compilationWithGeneratedFiles, generatorInfo);
+                }
+
+                if (!this.ProjectState.SourceGenerators.Any())
+                {
+                    // We don't have any source generators.  Trivially bail out.
+                    var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles;
+                    return (compilationWithGeneratedFiles, new CompilationTrackerGeneratorInfo(
+                        TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorInfo.Driver, documentsAreFinal: true));
+                }
+
+                return await ComputeNewGeneratorInfoAsync(
+                    solution,
+                    compilationWithoutGeneratedFiles,
+                    generatorInfo,
+                    compilationWithStaleGeneratedTrees,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoInCurrentProcessAsync(
                 SolutionState solution,
                 Compilation compilationWithoutGeneratedFiles,
