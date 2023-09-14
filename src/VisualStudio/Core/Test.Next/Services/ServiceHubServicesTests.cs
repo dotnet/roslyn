@@ -354,12 +354,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         private static async Task TestInProcAndRemoteWorkspace(
-            params ImmutableArray<(string hintName, SourceText text)>[] values)
-        {
-            await TestInProcAndRemoteWorkspace(syncWithRemoteServer: true, values);
-        }
-
-        private static async Task TestInProcAndRemoteWorkspace(
             bool syncWithRemoteServer, params ImmutableArray<(string hintName, SourceText text)>[] values)
         {
             // Try every permutation of these values.
