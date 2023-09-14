@@ -6,20 +6,13 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
-{
-    internal static class FixAllContextExtensions
-    {
-        public static IProgress<CodeAnalysisProgress> GetProgressTracker(this FixAllContext context)
-        {
-#if CODE_STYLE
-            return CodeAnalysisProgress.None;
-#else
-            return context.ProgressTracker;
-#endif
-        }
+namespace Microsoft.CodeAnalysis.CodeFixes;
 
-        public static string GetDefaultFixAllTitle(this FixAllContext context)
-            => FixAllHelper.GetDefaultFixAllTitle(context.Scope, title: context.DiagnosticIds.First(), context.Document!, context.Project);
-    }
+internal static class FixAllContextExtensions
+{
+    public static IProgress<CodeAnalysisProgress> GetProgressTracker(this FixAllContext context)
+        => context.Progress;
+
+    public static string GetDefaultFixAllTitle(this FixAllContext context)
+        => FixAllHelper.GetDefaultFixAllTitle(context.Scope, title: context.DiagnosticIds.First(), context.Document!, context.Project);
 }
