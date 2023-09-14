@@ -17,12 +17,11 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
-    internal class MoveStaticMembersWithDialogCodeAction(
+    internal sealed class MoveStaticMembersWithDialogCodeAction(
         Document document,
         IMoveStaticMembersOptionsService service,
         INamedTypeSymbol selectedType,
