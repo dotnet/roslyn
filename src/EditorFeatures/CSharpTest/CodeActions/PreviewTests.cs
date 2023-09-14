@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MyCodeRefactoringProvider();
 
-        private class MyCodeRefactoringProvider : CodeRefactoringProvider
+        private sealed class MyCodeRefactoringProvider : CodeRefactoringProvider
         {
             public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                     }
                 }
 
-                internal override Task<Solution> GetChangedSolutionAsync(
+                protected internal override Task<Solution> GetChangedSolutionAsync(
                     IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var solution = _oldDocument.Project.Solution;
