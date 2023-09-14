@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
     {
-        private class GenerateTypeCodeAction : CodeAction
+        private sealed class GenerateTypeCodeAction : CodeAction
         {
             private readonly bool _intoNamespace;
             private readonly bool _inNewFile;
