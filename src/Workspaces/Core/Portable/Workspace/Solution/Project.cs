@@ -271,9 +271,7 @@ namespace Microsoft.CodeAnalysis
         {
             var document = GetDocument(documentId) ?? GetAdditionalDocument(documentId) ?? GetAnalyzerConfigDocument(documentId);
             if (document != null)
-            {
                 return document;
-            }
 
             return await GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
         }
@@ -297,21 +295,20 @@ namespace Microsoft.CodeAnalysis
 
         public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
         {
+            if (!documentId.IsSourceGenerated)
+                return null;
+
             // Quick check first: if we already have created a SourceGeneratedDocument wrapper, we're good
             if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var sourceGeneratedDocument))
-            {
                 return sourceGeneratedDocument;
-            }
 
             // We'll have to run generators if we haven't already and now try to find it.
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
             var generatedDocumentState = generatedDocumentStates.GetState(documentId);
-            if (generatedDocumentState != null)
-            {
-                return GetOrCreateSourceGeneratedDocument(generatedDocumentState);
-            }
+            if (generatedDocumentState is null)
+                return null;
 
-            return null;
+            return GetOrCreateSourceGeneratedDocument(generatedDocumentState);
         }
 
         internal SourceGeneratedDocument GetOrCreateSourceGeneratedDocument(SourceGeneratedDocumentState state)
@@ -327,20 +324,18 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal SourceGeneratedDocument? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
         {
+            if (!documentId.IsSourceGenerated)
+                return null;
+
             // Easy case: do we already have the SourceGeneratedDocument created?
             if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var document))
-            {
                 return document;
-            }
 
             // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
             // try to fetch the state.
             var documentState = _solution.State.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
-
             if (documentState == null)
-            {
                 return null;
-            }
 
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
         }
