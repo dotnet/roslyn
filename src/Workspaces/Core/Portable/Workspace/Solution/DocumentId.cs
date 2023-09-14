@@ -92,19 +92,17 @@ namespace Microsoft.CodeAnalysis
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             ProjectId.WriteTo(writer);
-
             writer.WriteGuid(Id);
-            writer.WriteString(DebugName);
             writer.WriteBoolean(IsSourceGenerated);
+            writer.WriteString(DebugName);
         }
 
         internal static DocumentId ReadFrom(ObjectReader reader)
         {
             var projectId = ProjectId.ReadFrom(reader);
-
             var guid = reader.ReadGuid();
-            var debugName = reader.ReadString();
             var isSourceGenerated = reader.ReadBoolean();
+            var debugName = reader.ReadString();
 
             return CreateFromSerialized(projectId, guid, isSourceGenerated, debugName);
         }
