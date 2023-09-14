@@ -19,11 +19,6 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionState
 {
-    /// <summary>
-    /// Tracks the changes made to a project and provides the facility to get a lazily built
-    /// compilation for that project.  As the compilation is being built, the partial results are
-    /// stored as well so that they can be used in the 'in progress' workspace snapshot.
-    /// </summary>
     private partial class CompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
