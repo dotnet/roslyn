@@ -373,8 +373,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var localWorkspace = CreateWorkspace();
 
+            var projectId = ProjectId.CreateNewId();
             var analyzerReference = new TestGeneratorReference(generator);
-            var project = AddEmptyProject(localWorkspace.CurrentSolution)
+            var project = localWorkspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+                .GetRequiredProject(projectId)
                 .AddAnalyzerReference(analyzerReference);
 
             Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
@@ -602,18 +605,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG2.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG2.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
-        }
-
-        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp, string name = "TestProject")
-        {
-            var id = ProjectId.CreateNewId();
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    id,
-                    VersionStamp.Default,
-                    name: name,
-                    assemblyName: name,
-                    language: languageName)).GetRequiredProject(id);
         }
 
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(
