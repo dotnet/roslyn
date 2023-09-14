@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -321,8 +322,42 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.NotNull(solution);
         }
 
+        private static ImmutableArray<ImmutableArray<T>> Permute<T>(T[] values)
+        {
+            using var _ = ArrayBuilder<ImmutableArray<T>>.GetInstance(out var result);
+            DoPermute(0, values.Length - 1);
+            return result.ToImmutable();
+
+            void DoPermute(int start, int end)
+            {
+                if (start == end)
+                {
+                    // We have one of our possible n! solutions,
+                    // add it to the list.
+                    result.Add(values.ToImmutableArray());
+                }
+                else
+                {
+                    for (var i = start; i <= end; i++)
+                    {
+                        (values[start], values[i]) = (values[i], values[start]);
+                        DoPermute(start + 1, end);
+                        (values[start], values[i]) = (values[i], values[start]);
+                    }
+                }
+            }
+        }
+
         private static async Task TestInProcAndRemoteWorkspace(
             params ImmutableArray<(string hintName, SourceText text)>[] values)
+        {
+            // Try every permutation of these values.
+            foreach (var permutation in Permute(values))
+                await TestInProcAndRemoteWorkspaceWorker(permutation);
+        }
+
+        private static async Task TestInProcAndRemoteWorkspaceWorker(
+            ImmutableArray<ImmutableArray<(string hintName, SourceText text)>> values)
         {
             var throwIfCalled = false;
             ImmutableArray<(string hintName, SourceText text)> sourceTexts = default;
