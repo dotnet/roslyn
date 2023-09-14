@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
@@ -25,7 +26,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
             var semanticTokensRefreshQueue = lspServices.GetRequiredService<SemanticTokensRefreshQueue>();
-            return new SemanticTokensRangeHandler(_globalOptions, semanticTokensRefreshQueue);
+            var rangesHandler = new SemanticTokensRangesHandler(_globalOptions, semanticTokensRefreshQueue);
+            return new SemanticTokensRangeHandler(rangesHandler);
         }
     }
 }
