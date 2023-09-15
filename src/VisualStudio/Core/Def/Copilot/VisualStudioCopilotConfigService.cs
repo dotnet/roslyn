@@ -335,7 +335,9 @@ internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService, 
 
         ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetAllAvailableAnalyzerDescriptors(Project project)
         {
-            var analyzers = project.AnalyzerReferences.SelectMany(reference => reference.GetAnalyzers(project.Language));
+            // include host analyzers
+            var refToAnalyzersMap = project.Solution.State.Analyzers.CreateDiagnosticAnalyzersPerReference(project);
+            var analyzers = refToAnalyzersMap.SelectMany(kvp => kvp.Value);
             var descriptors = analyzers.SelectMany(analyzer => analyzer.IsCompilerAnalyzer()
                 ? ImmutableArray<DiagnosticDescriptor>.Empty
                 : _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(analyzer));
