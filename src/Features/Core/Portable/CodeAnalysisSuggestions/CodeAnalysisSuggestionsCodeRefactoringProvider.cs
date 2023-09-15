@@ -6,15 +6,20 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
+using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
 {
@@ -37,8 +42,9 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
 
             var ruleConfigData = await configService.TryGetCodeAnalysisSuggestionsConfigDataAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (!ruleConfigData.IsEmpty)
-            { 
-                actionsBuilder.AddRange(GetCodeAnalysisSuggestionActions(ruleConfigData, document));
+            {
+                var actions = await GetCodeAnalysisSuggestionActionsAsync(ruleConfigData, document, cancellationToken).ConfigureAwait(false);
+                actionsBuilder.AddRange(actions);
             }
 
             var workspaceServices = document.Project.Solution.Services;
@@ -64,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
             }
         }
 
-
         private static CodeAction GetCodeAnalysisPackageSuggestionAction(
             string packageName,
             Document document, IPackageInstallerService installerService)
@@ -72,13 +77,17 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
             return new InstallPackageParentCodeAction(installerService, source: null, packageName, includePrerelease: true, document);
         }
 
-        private static ImmutableArray<CodeAction> GetCodeAnalysisSuggestionActions(
+        private static async Task<ImmutableArray<CodeAction>> GetCodeAnalysisSuggestionActionsAsync(
             ImmutableArray<(string, ImmutableArray<string>)> configData,
-            Document document)
+            Document document,
+            CancellationToken cancellationToken)
         {
             var infoCache = document.Project.Solution.Workspace.Services.SolutionServices.ExportProvider.GetExports<DiagnosticAnalyzerInfoCache.SharedGlobalCache>().FirstOrDefault();
             if (infoCache == null)
                 return ImmutableArray<CodeAction>.Empty;
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var location = root.GetLocation();
 
             var analyzerInfoCache = infoCache.Value.AnalyzerInfoCache;
             using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actionsBuilder);
@@ -92,19 +101,18 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
                         if (!string.Equals(descriptor.Category, category, StringComparison.OrdinalIgnoreCase))
                             continue;
 
-                        // TODO: Add logic for createChangedSolution.
-                        //       We should also make sure that the ID isn't already configured to warning/error severity.
-                        var title = "Enforce as build warning";
-                        var nestedNestedAction = CodeAction.Create(title,
-                            createChangedSolution: _ => Task.FromResult(document.Project.Solution),
-                            equivalenceKey: id + title);
+                        var diagnostic = Diagnostic.Create(descriptor, location);
+                        if (SuppressionHelpers.IsNotConfigurableDiagnostic(diagnostic))
+                            continue;
+
+                        var nestedNestedAction = ConfigureSeverityLevelCodeFixProvider.CreateSeverityConfigurationCodeAction(diagnostic, document.Project);
 
                         // TODO: Add actions to ignore all the rules here by adding them to .editorconfig and set to None or Silent.
                         // Further, None could be used to filter out rules to suggest as they indicate user is aware of them and explicitly disabled them.
 
                         // TODO: Add nested nested actions for FixAll
 
-                        title = $"{id}: {descriptor.Title}";
+                        var title = $"{id}: {descriptor.Title}";
                         var nestedAction = CodeAction.Create(title, ImmutableArray.Create(nestedNestedAction), isInlinable: false);
                         nestedActionsBuilder.Add(nestedAction);
                     }
@@ -112,6 +120,10 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
 
                 if (nestedActionsBuilder.Count == 0)
                     continue;
+
+                // Add code action to Configure severity for the entire 'Category'
+                var categoryConfigurationAction = ConfigureSeverityLevelCodeFixProvider.CreateBulkSeverityConfigurationCodeAction(category, document.Project);
+                nestedActionsBuilder.Add(categoryConfigurationAction);
 
                 var action = CodeAction.Create($"'{category}' improvements", nestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
                 actionsBuilder.Add(action);

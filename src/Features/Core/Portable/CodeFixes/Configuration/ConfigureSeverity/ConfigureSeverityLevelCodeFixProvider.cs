@@ -44,29 +44,51 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             => null;
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(document.Project, diagnostics));
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
+            => Task.FromResult(GetConfigurations(project, diagnostics));
 
-        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        internal static CodeAction CreateSeverityConfigurationCodeAction(Diagnostic diagnostic, Project project)
+        {
+            var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+            foreach (var (value, title) in s_editorConfigSeverityStrings)
+            {
+                nestedActions.Add(
+                    SolutionChangeAction.Create(
+                        title,
+                        cancellationToken => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
+                        value));
+            }
+
+            return new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
+        }
+
+        internal static CodeAction CreateBulkSeverityConfigurationCodeAction(string? category, Project project)
+        {
+            var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+            foreach (var (value, title) in s_editorConfigSeverityStrings)
+            {
+                nestedActions.Add(
+                    SolutionChangeAction.Create(
+                        title,
+                        cancellationToken => category != null
+                            ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
+                            : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken),
+                        value));
+            }
+
+            return new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutableAndFree(), category);
+        }
+
+        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics)
         {
             var result = ArrayBuilder<CodeFix>.GetInstance();
             var analyzerDiagnosticsByCategory = new SortedDictionary<string, ArrayBuilder<Diagnostic>>();
             using var disposer = ArrayBuilder<Diagnostic>.GetInstance(out var analyzerDiagnostics);
             foreach (var diagnostic in diagnostics)
             {
-                var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var (value, title) in s_editorConfigSeverityStrings)
-                {
-                    nestedActions.Add(
-                        SolutionChangeAction.Create(
-                            title,
-                            cancellationToken => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
-                            value));
-                }
-
-                var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
+                var codeAction = CreateSeverityConfigurationCodeAction(diagnostic, project);
                 result.Add(new CodeFix(project, codeAction, diagnostic));
 
                 // Bulk configuration is only supported for analyzer diagnostics.
@@ -97,19 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 
             void AddBulkConfigurationCodeFixes(ImmutableArray<Diagnostic> diagnostics, string? category)
             {
-                var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var (value, title) in s_editorConfigSeverityStrings)
-                {
-                    nestedActions.Add(
-                        SolutionChangeAction.Create(
-                            title,
-                            solution => category != null
-                                ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
-                                : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken),
-                            value));
-                }
-
-                var codeAction = new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutableAndFree(), category);
+                var codeAction = CreateBulkSeverityConfigurationCodeAction(category, project);
                 result.Add(new CodeFix(project, codeAction, diagnostics));
             }
         }
