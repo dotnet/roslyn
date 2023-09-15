@@ -128,24 +128,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
         End Function
 
-        Public Function IsInContextAcceptingPreprocessingNames(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsInContextAcceptingPreprocessingNames
-            Dim directive = token.GetAncestor(Of DirectiveTriviaSyntax)()
-            If directive Is Nothing Then
-                Return False
-            End If
-
-            Select Case directive.Kind()
-                Case SyntaxKind.IfDirectiveTrivia,
-                    SyntaxKind.ElseIfDirectiveTrivia,
-                    SyntaxKind.ConstDirectiveTrivia
-                    Exit Select
-                Case Else
-                    Return False
-            End Select
-
-            Return directive.FullSpan.Contains(token.Span)
-        End Function
-
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral
             If syntaxTree Is Nothing Then
                 Return False

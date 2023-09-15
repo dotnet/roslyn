@@ -116,28 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => syntaxTree.IsPreProcessorDirectiveContext(
                 position, syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true), cancellationToken);
 
-        public bool IsInContextAcceptingPreprocessingNames(SyntaxToken token)
-        {
-            var directive = token.GetAncestor<DirectiveTriviaSyntax>();
-            if (directive is null)
-            {
-                return false;
-            }
-
-            switch (directive.Kind())
-            {
-                case SyntaxKind.IfDirectiveTrivia:
-                case SyntaxKind.ElifDirectiveTrivia:
-                case SyntaxKind.DefineDirectiveTrivia:
-                case SyntaxKind.UndefDirectiveTrivia:
-                    break;
-                default:
-                    return false;
-            }
-
-            return directive.FullSpan.Contains(token.Span);
-        }
-
         public bool IsEntirelyWithinStringOrCharOrNumericLiteral([NotNullWhen(true)] SyntaxTree? syntaxTree, int position, CancellationToken cancellationToken)
         {
             if (syntaxTree == null)
