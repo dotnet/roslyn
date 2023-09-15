@@ -361,6 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        internal const string AnonymousTypeNameWithoutModulePrefix = "<>f__AnonymousType";
+        internal const string AnonymousDelegateNameWithoutModulePrefix = "<>f__AnonymousDelegate";
         internal const string ActionDelegateNamePrefix = "<>A";
         internal const string FuncDelegateNamePrefix = "<>F";
         private const int DelegateNamePrefixLength = 3;
