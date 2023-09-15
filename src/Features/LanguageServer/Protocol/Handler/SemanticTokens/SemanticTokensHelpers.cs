@@ -32,12 +32,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            if (ranges is not null)
-            {
-                // Expecting sorted ranges within the document
-                Array.Sort(ranges, static (r1, r2) => r1.CompareTo(r2));
-            }
-
             var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -51,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             {
                 var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
 
-                var spansForRange = await GetClassifiedSpansForDocumentAsync(
+                await GetClassifiedSpansForDocumentAsync(
                     classifiedSpans, document, textSpan, options, cancellationToken).ConfigureAwait(false);
             }
 
@@ -60,14 +54,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
-            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans.ToArray());
+            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans);
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
             return ComputeTokens(capabilities, text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
         }
 
-        private static async Task<SegmentedList<ClassifiedSpan>> GetClassifiedSpansForDocumentAsync(
+        private static async Task GetClassifiedSpansForDocumentAsync(
             SegmentedList<ClassifiedSpan> classifiedSpans,
             Document document,
             TextSpan textSpan,
@@ -89,14 +83,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // semantic tokens as it just wastes space in the result.
             var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
             classifiedSpans.AddRange(nonEmptySpans);
-            return classifiedSpans;
         }
 
-        public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
+        public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, SegmentedList<ClassifiedSpan> classifiedSpans)
         {
             using var _ = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
-            for (var spanIndex = 0; spanIndex < classifiedSpans.Length; spanIndex++)
+            for (var spanIndex = 0; spanIndex < classifiedSpans.Count; spanIndex++)
             {
                 var span = classifiedSpans[spanIndex];
                 text.GetLinesAndOffsets(span.TextSpan, out var startLine, out var startOffset, out var endLine, out var endOffSet);
@@ -120,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             static void ConvertToSingleLineSpan(
                 SourceText text,
-                ClassifiedSpan[] originalClassifiedSpans,
+                SegmentedList<ClassifiedSpan> originalClassifiedSpans,
                 SegmentedList<ClassifiedSpan> updatedClassifiedSpans,
                 ref int spanIndex,
                 string classificationType,
@@ -171,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     //     var x = @"one ""
                     //               two";
                     // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
-                    while (spanIndex + 1 < originalClassifiedSpans.Length &&
+                    while (spanIndex + 1 < originalClassifiedSpans.Count &&
                         textSpan.Contains(originalClassifiedSpans[spanIndex + 1].TextSpan))
                     {
                         updatedClassifiedSpans.Add(originalClassifiedSpans[spanIndex + 1]);

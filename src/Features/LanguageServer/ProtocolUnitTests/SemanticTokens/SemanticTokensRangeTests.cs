@@ -136,13 +136,13 @@ var z = 1;
                 expectedResults.Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                               | Modifier
-                       12,    0,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
-                       0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.LocalName],             0, // 'z'
+                       12,    0,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],           0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.LocalName],         0, // 'z'
                        0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
-                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Number],               0, // '1'
-                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],               0, // ';'
-                       17,    3,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],               0, // 'var'
-                       0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.LocalName],             0, // 'x'
+                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Number],                 0, // '1'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],       0, // ';'
+                       17,    3,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],           0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.LocalName],         0, // 'x'
                        0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
                 };
             }
@@ -151,13 +151,13 @@ var z = 1;
                 expectedResults.Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                               | Modifier
-                       12,    0,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],               0, // 'var'
-                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'z'
+                       12,    0,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],               0, // 'z'
                        0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
-                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Number],               0, // '1'
-                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],               0, // ';'
-                       17,    3,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],               0, // 'var'
-                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],             0, // 'x'
+                       0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Number],                 0, // '1'
+                       0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],       0, // ';'
+                       17,    3,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'var'
+                       0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],               0, // 'x'
                        0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
                 };
             }
