@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPreprocessingSymbol>
 {
-    protected override bool CanFind(IPreprocessingSymbol symbol) => true;
+    protected override bool CanFind(IPreprocessingSymbol symbol)
+        => true;
 
     protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
         IPreprocessingSymbol symbol,
