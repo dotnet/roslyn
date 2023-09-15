@@ -144,6 +144,11 @@
   <data name="306" xml:space="preserve">
     <value>Underline reassigned variables;
 Display inline hints;
+Display inline parameter name hints;
+Display inline type hints;
+Color hints;
+Show hints;
+Suppress hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
