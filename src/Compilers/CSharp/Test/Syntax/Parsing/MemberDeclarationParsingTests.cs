@@ -15996,113 +15996,68 @@ public class Class
                     """;
 
                 UsingDeclaration(source, options,
-                    // (1,1): error CS1073: Unexpected token '{'
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "public IEnumerable<(string Value, string Description) this[string index] ").WithArguments("{").WithLocation(1, 1),
-                    // (1,55): error CS1003: Syntax error, ',' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",").WithLocation(1, 55),
-                    // (1,60): error CS1003: Syntax error, ',' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "string").WithArguments(",").WithLocation(1, 60),
-                    // (1,67): error CS1003: Syntax error, ',' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "index").WithArguments(",").WithLocation(1, 67),
-                    // (1,72): error CS1003: Syntax error, ',' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 72),
-                    // (1,74): error CS1003: Syntax error, '>' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">").WithLocation(1, 74));
+                    // (1,62): error CS1003: Syntax error, '>' expected
+                    // public static IEnumerable<(string Value, string Description) operator +(X left, X right);
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(">").WithLocation(1, 62));
 
-                N(SyntaxKind.RecordDeclaration);
+                N(SyntaxKind.OperatorDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.RecordKeyword);
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.TypeParameterList);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.GenericName);
                     {
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TypeParameter);
+                        N(SyntaxKind.IdentifierToken, "IEnumerable");
+                        N(SyntaxKind.TypeArgumentList);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Value");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Description");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PlusToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.GenericName);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
-                                N(SyntaxKind.TypeArgumentList);
-                                {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "T");
-                                    }
-                                    M(SyntaxKind.GreaterThanToken);
-                                }
+                                N(SyntaxKind.IdentifierToken, "X");
                             }
-                            N(SyntaxKind.IdentifierToken, "Array");
+                            N(SyntaxKind.IdentifierToken, "left");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.IdentifierToken, "right");
                         }
                         N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.BaseList);
-                    {
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.PrimaryConstructorBaseType);
-                        {
-                            N(SyntaxKind.GenericName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Other");
-                                N(SyntaxKind.TypeArgumentList);
-                                {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "T");
-                                    }
-                                    M(SyntaxKind.GreaterThanToken);
-                                }
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.ParenthesizedExpression);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.LessThanExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
-                                            }
-                                            N(SyntaxKind.LessThanToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "T");
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Array");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -16122,113 +16077,69 @@ public class Class
                     """;
 
                 UsingDeclaration(source, options,
-                    // (1,1): error CS1073: Unexpected token '{'
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "public IEnumerable<(string Value, string Description) this[string index] ").WithArguments("{").WithLocation(1, 1),
-                    // (1,55): error CS1003: Syntax error, ',' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",").WithLocation(1, 55),
-                    // (1,60): error CS1003: Syntax error, ',' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "string").WithArguments(",").WithLocation(1, 60),
-                    // (1,67): error CS1003: Syntax error, ',' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "index").WithArguments(",").WithLocation(1, 67),
-                    // (1,72): error CS1003: Syntax error, ',' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 72),
-                    // (1,74): error CS1003: Syntax error, '>' expected
-                    // public IEnumerable<(string Value, string Description) this[string index] { get; }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">").WithLocation(1, 74));
+                    // (1,62): error CS1003: Syntax error, '>' expected
+                    // public static IEnumerable<(string Value, string Description) operator checked +(X left, X right);
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(">").WithLocation(1, 62));
 
-                N(SyntaxKind.RecordDeclaration);
+                N(SyntaxKind.OperatorDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.RecordKeyword);
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.TypeParameterList);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.GenericName);
                     {
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TypeParameter);
+                        N(SyntaxKind.IdentifierToken, "IEnumerable");
+                        N(SyntaxKind.TypeArgumentList);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Value");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Description");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.CheckedKeyword);
+                    N(SyntaxKind.PlusToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.GenericName);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
-                                N(SyntaxKind.TypeArgumentList);
-                                {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "T");
-                                    }
-                                    M(SyntaxKind.GreaterThanToken);
-                                }
+                                N(SyntaxKind.IdentifierToken, "X");
                             }
-                            N(SyntaxKind.IdentifierToken, "Array");
+                            N(SyntaxKind.IdentifierToken, "left");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.IdentifierToken, "right");
                         }
                         N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.BaseList);
-                    {
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.PrimaryConstructorBaseType);
-                        {
-                            N(SyntaxKind.GenericName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Other");
-                                N(SyntaxKind.TypeArgumentList);
-                                {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "T");
-                                    }
-                                    M(SyntaxKind.GreaterThanToken);
-                                }
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.ParenthesizedExpression);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.LessThanExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "ImmutableArray");
-                                            }
-                                            N(SyntaxKind.LessThanToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "T");
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Array");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
