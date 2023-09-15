@@ -22,138 +22,50 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
-        private const int TokenSize = 5;
-
         /// <summary>
-        /// Returns the semantic tokens data for a given document with an optional range.
+        /// Returns the semantic tokens data for a given document with an optional ranges.
         /// </summary>
         public static async Task<int[]> ComputeSemanticTokensDataAsync(
             ClientCapabilities capabilities,
             Document document,
-            LSP.Range? range,
+            LSP.Range[]? ranges,
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
+            if (ranges is not null)
+            {
+                // Expecting sorted ranges within the document
+                Array.Sort(ranges, static (r1, r2) => r1.CompareTo(r2));
+            }
 
+            var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var classifiedSpansLength = ranges?.Length ?? 1;
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(classifiedSpansLength, out var classifiedSpans);
 
-            // By default we calculate the tokens for the full document span, although the user 
-            // can pass in a range if they wish.
-            var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
+            for (var i = 0; i < classifiedSpansLength; i++)
+            {
+                // By default we calculate the tokens for the full document span, although the user 
+                // can pass in a range if they wish.
+                var textSpan = ranges is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(ranges[i], text);
 
-            var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
-                document, textSpan, options, cancellationToken).ConfigureAwait(false);
+                var spansForRange = await GetClassifiedSpansForDocumentAsync(
+                    document, textSpan, options, cancellationToken).ConfigureAwait(false);
+
+                if (spansForRange is not null && spansForRange.Length != 0)
+                {
+                    classifiedSpans.AddRange(spansForRange);
+                }
+            }
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
-            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans);
+            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans.ToArray());
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
             return ComputeTokens(capabilities, text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
-        }
-
-        /// <summary>
-        /// Returns the semantic tokens data for a given document with an optional range.
-        /// </summary>
-        public static async Task<int[]> ComputeSemanticTokensDataAsync(
-            ClientCapabilities capabilities,
-            Document document,
-            LSP.Range?[] ranges,
-            ClassificationOptions options,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<int[]>.GetInstance(ranges.Length, out var responseData);
-            foreach (var range in ranges)
-            {
-                var semanticTokens = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                    capabilities,
-                    document,
-                    range,
-                    options,
-                    cancellationToken).ConfigureAwait(false);
-
-                if (semanticTokens is not null && semanticTokens.Length != 0)
-                {
-                    responseData.Add(semanticTokens);
-                }
-            }
-
-            return StitchSemanticTokenResponsesTogether(responseData.ToArray());
-        }
-
-        internal static int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
-        {
-            // Each inner array in `responseData` represents a single C# document that is broken down into a list of tokens.
-            // This method stitches these lists of tokens together into a single, coherent list of semantic tokens.
-            // The resulting array is a flattened version of the input array, and is in the precise format expected by the Microsoft Language Server Protocol.
-            if (responseData.Length == 0)
-            {
-                return Array.Empty<int>();
-            }
-
-            if (responseData.Length == 1)
-            {
-                return responseData[0];
-            }
-
-            var count = responseData.Sum(r => r.Length);
-            var data = new int[count];
-            var dataIndex = 0;
-            var lastTokenLine = 0;
-
-            for (var i = 0; i < responseData.Length; i++)
-            {
-                var curData = responseData[i];
-
-                if (curData.Length == 0)
-                {
-                    continue;
-                }
-
-                Array.Copy(curData, 0, data, dataIndex, curData.Length);
-                if (i != 0)
-                {
-                    // The first two items in result.Data will potentially need it's line/col offset modified
-                    var lineDelta = data[dataIndex] - lastTokenLine;
-                    Debug.Assert(lineDelta >= 0);
-
-                    // Update the first line copied over from curData
-                    data[dataIndex] = lineDelta;
-
-                    // Update the first column copied over from curData if on the same line as the previous token
-                    if (lineDelta == 0)
-                    {
-                        var lastTokenCol = 0;
-
-                        // Walk back accumulating column deltas until we find a start column (indicated by it's line offset being non-zero)
-                        for (var j = dataIndex - TokenSize; j >= 0; j -= TokenSize)
-                        {
-                            lastTokenCol += data[j + 1];
-                            if (data[j] != 0)
-                            {
-                                break;
-                            }
-                        }
-
-                        Debug.Assert(lastTokenCol >= 0);
-                        data[dataIndex + 1] -= lastTokenCol;
-                        Debug.Assert(data[dataIndex + 1] >= 0);
-                    }
-                }
-
-                lastTokenLine = 0;
-                for (var j = 0; j < curData.Length; j += TokenSize)
-                {
-                    lastTokenLine += curData[j];
-                }
-
-                dataIndex += curData.Length;
-            }
-
-            return data;
         }
 
         private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
