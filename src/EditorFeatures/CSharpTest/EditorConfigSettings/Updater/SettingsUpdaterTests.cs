@@ -356,7 +356,6 @@ csharp_new_line_before_else = true";
             var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, "description", options, updater);
             setting.ChangeSeverity(ReportDiagnostic.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
-            Assert.NotNull(updates);
             var update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:error", update.NewText);
             value = "false:error";
@@ -370,7 +369,6 @@ csharp_new_line_before_else = true";
 
             setting.ChangeValue(0);
             updates = await updater.GetChangedEditorConfigAsync(default);
-            Assert.NotNull(updates);
             update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:error", update.NewText);
         }
@@ -391,7 +389,6 @@ csharp_new_line_before_else = true";
             var setting = Setting.Create(CSharpFormattingOptions2.NewLineForElse, "description", options, updater);
             setting.SetValue(false);
             var updates = await updater.GetChangedEditorConfigAsync(default);
-            Assert.NotNull(updates);
             var update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else = false", update.NewText);
         }
