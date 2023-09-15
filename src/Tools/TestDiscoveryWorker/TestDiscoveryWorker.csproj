@@ -10,8 +10,8 @@
     <PackageReference Include="xunit.abstractions" Version="$(xunitabstractionsVersion)" />
     <PackageReference Include="xunit.runner.utility" Version="$(xunitrunnerutilityVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
-    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Private.Uri" Version="$(SystemPrivateUriVersion)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
   </ItemGroup>
     
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
