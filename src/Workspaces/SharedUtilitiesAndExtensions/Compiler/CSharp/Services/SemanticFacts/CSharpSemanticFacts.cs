@@ -359,6 +359,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (token.IsKind(SyntaxKind.IdentifierToken))
+            {
+                var tokenParent = token.GetRequiredParent();
+                var preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(tokenParent).Symbol;
+                if (preprocessingSymbol != null)
+                    return ImmutableArray.Create<ISymbol>(preprocessingSymbol);
+            }
+
             return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
         }
 

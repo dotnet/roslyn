@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -39,8 +39,8 @@ class PREPROCESSING_SYMBOL
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestNotPreprocessingSymbol(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -69,8 +69,8 @@ class {|Definition:PREPROCES$$SING_SYMBOL|}
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolRegion(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -94,8 +94,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolPragmaWarning(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -119,8 +119,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolMultipleDocuments(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -154,8 +154,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolMultipleProjects1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -186,8 +186,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolMultipleProjects2HoverCSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -215,8 +215,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolMultipleProjects2HoverVB(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -244,8 +244,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolUsedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -269,8 +269,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolHoverDefine(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -284,8 +284,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolHoverUndef(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -299,8 +299,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolHoverConst(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -317,8 +317,8 @@ class Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66009")>
         Public Async Function TestPreprocessingSymbolHoverAssignedConst(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

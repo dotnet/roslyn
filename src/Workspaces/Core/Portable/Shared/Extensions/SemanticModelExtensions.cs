@@ -106,31 +106,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                IPreprocessingSymbol? preprocessingSymbol = null;
-                if (token.RawKind == syntaxKinds.IdentifierToken)
-                {
-                    var tokenParent = token.GetRequiredParent();
-                    preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(tokenParent).Symbol;
-                    allSymbols = preprocessingSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(preprocessingSymbol);
-                }
+                aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
+                var bindableParent = syntaxFacts.TryGetBindableParent(token);
+                var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
+                type = typeInfo.Type;
+                convertedType = typeInfo.ConvertedType;
+                declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
 
-                if (preprocessingSymbol is null)
-                {
-                    aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
-                    var bindableParent = syntaxFacts.TryGetBindableParent(token);
-                    var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
-                    type = typeInfo.Type;
-                    convertedType = typeInfo.ConvertedType;
-                    declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
-
-                    var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
-                    allSymbols = skipSymbolInfoLookup
-                        ? ImmutableArray<ISymbol?>.Empty
-                        : semanticFacts
-                            .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
-                            .WhereAsArray(s => !s.Equals(declaredSymbol))
-                            .SelectAsArray(s => MapSymbol(s, type));
-                }
+                var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
+                allSymbols = skipSymbolInfoLookup
+                    ? ImmutableArray<ISymbol?>.Empty
+                    : semanticFacts
+                        .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
+                        .WhereAsArray(s => !s.Equals(declaredSymbol))
+                        .SelectAsArray(s => MapSymbol(s, type));
             }
 
             // NOTE(cyrusn): This is a workaround to how the semantic model binds and returns
