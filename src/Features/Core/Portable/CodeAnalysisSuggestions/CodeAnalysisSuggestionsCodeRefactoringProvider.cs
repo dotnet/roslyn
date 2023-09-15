@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
 {
@@ -107,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
 
                     if (documentForFix != null && codeFixService != null)
                     {
-                        // var span = (await documentForFix.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).FullSpan;
                         var codeFixCollection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(documentForFix, diagnostic.Location.SourceSpan, id, CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
                         if (codeFixCollection != null)
                         {
@@ -121,6 +119,8 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
                     }
                     else
                     {
+                        // This is either a project diagnostic with no location OR a dummy diagnostic created from descriptor without background analysis.
+                        // Append this document's span as it location so we can show configure severity code fix for it.
                         diagnostic = Diagnostic.Create(diagnostic.Descriptor, location);
                     }
 
@@ -129,8 +129,6 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
 
                     // TODO: Add actions to ignore all the rules here by adding them to .editorconfig and set to None or Silent.
                     // Further, None could be used to filter out rules to suggest as they indicate user is aware of them and explicitly disabled them.
-
-                    // TODO: Add nested nested actions for FixAll
 
                     var title = $"{diagnostic.Id}: {diagnostic.Descriptor.Title}";
                     var nestedAction = CodeAction.Create(title, nestedNestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
