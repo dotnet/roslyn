@@ -127,13 +127,16 @@ internal sealed class CodeAnalysisSuggestionsCodeRefactoringProvider
                     diagnostic = Diagnostic.Create(diagnostic.Descriptor, location);
                 }
 
+                var totalInInCurrentProject = diagnostics.Where(dd => dd.ProjectId == document.Project.Id).Count();
+                var idCountText = totalInInCurrentProject > 0 ? $" (Found {totalInInCurrentProject} instances in current project)" : string.Empty;
+
                 var nestedNestedAction = ConfigureSeverityLevelCodeFixProvider.CreateSeverityConfigurationCodeAction(diagnostic, document.Project);
                 nestedNestedActionsBuilder.Add(nestedNestedAction);
 
                 // TODO: Add actions to ignore all the rules here by adding them to .editorconfig and set to None or Silent.
                 // Further, None could be used to filter out rules to suggest as they indicate user is aware of them and explicitly disabled them.
 
-                var title = $"{diagnostic.Id}: {diagnostic.Descriptor.Title}";
+                var title = $"{diagnostic.Id}: {diagnostic.Descriptor.Title}{idCountText}";
                 var nestedAction = CodeAction.Create(title, nestedNestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
                 nestedActionsBuilder.Add(nestedAction);
             }
@@ -145,7 +148,9 @@ internal sealed class CodeAnalysisSuggestionsCodeRefactoringProvider
             var categoryConfigurationAction = ConfigureSeverityLevelCodeFixProvider.CreateBulkSeverityConfigurationCodeAction(category, document.Project);
             nestedActionsBuilder.Add(categoryConfigurationAction);
 
-            var action = CodeAction.Create($"'{category}' improvements", nestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
+            var totalInThisCategoryInCurrentProject = diagnosticsById.SelectMany(ds => ds.Value).Where(dd => dd.ProjectId == document.Project.Id).Count();
+            var categoryCountText = totalInThisCategoryInCurrentProject > 0 ? $" (Found {totalInThisCategoryInCurrentProject} instances in current project)" : string.Empty;
+            var action = CodeAction.Create($"'{category}' improvements{categoryCountText}", nestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
             actionsBuilder.Add(action);
         }
 
