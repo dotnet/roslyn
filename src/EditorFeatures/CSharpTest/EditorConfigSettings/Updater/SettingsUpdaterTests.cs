@@ -333,7 +333,6 @@ csharp_new_line_before_else = true";
             var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
             analyzerSetting.ChangeSeverity(ReportDiagnostic.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
-            Assert.NotNull(updates);
             var update = Assert.Single(updates);
             Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity = error", update.NewText);
         }
