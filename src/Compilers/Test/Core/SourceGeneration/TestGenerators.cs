@@ -80,8 +80,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
     internal class CallbackGenerator(
         Action<GeneratorInitializationContext> onInit,
         Action<GeneratorExecutionContext> onExecute,
-        Func<(string hintName, string? source)>? computeSource,
-        Func<ImmutableArray<(string hintName, SourceText sourceText)>>? computeSourceTexts)
+        Func<ImmutableArray<(string hintName, SourceText? sourceText)>> computeSourceTexts)
         : ISourceGenerator
     {
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "")
@@ -90,15 +89,13 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
 
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<(string hintName, string? source)> computeSource)
-            : this(onInit, onExecute, computeSource, computeSourceTexts: null)
-        {
-        }
-
-        public CallbackGenerator(
-            Action<GeneratorInitializationContext> onInit,
-            Action<GeneratorExecutionContext> onExecute,
-            Func<ImmutableArray<(string hintName, SourceText sourceText)>> computeSourceTexts)
-            : this(onInit, onExecute, computeSource: null, computeSourceTexts)
+            : this(onInit, onExecute, () =>
+            {
+                var (hint, source) = computeSource();
+                return ImmutableArray.Create((hint, string.IsNullOrWhiteSpace(source)
+                    ? null
+                    : SourceText.From(source, Encoding.UTF8)));
+            })
         {
         }
 
@@ -109,16 +106,10 @@ namespace Roslyn.Test.Utilities.TestGenerators
         {
             onExecute(context);
 
-            if (computeSourceTexts != null)
+            foreach (var (hintName, sourceText) in computeSourceTexts())
             {
-                foreach (var (hintName, sourceText) in computeSourceTexts())
+                if (sourceText != null)
                     context.AddSource(hintName, sourceText);
-            }
-            else
-            {
-                var (hintName, source) = computeSource!();
-                if (!string.IsNullOrWhiteSpace(source))
-                    context.AddSource(hintName, SourceText.From(source, Encoding.UTF8));
             }
         }
     }
