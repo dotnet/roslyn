@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         {
             // For option based code style diagnostic, try to find the .editorconfig key-value pair for the
             // option setting.
-            var codeStyleOptionValues = GetCodeStyleOptionValuesForDiagnostic(diagnostic, project);
+            var codeStyleOptionValues = GetCodeStyleOptionValuesForDiagnostic(diagnostic.Id, project);
 
             ConfigurationUpdater updater;
             if (!codeStyleOptionValues.IsEmpty)
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         }
 
         private static ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)> GetCodeStyleOptionValuesForDiagnostic(
-            Diagnostic diagnostic,
+            string diagnosticId,
             Project project)
         {
             // For option based code style diagnostic, try to find the .editorconfig key-value pair for the
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             // For example, IDE diagnostics which are configurable with following code style option based .editorconfig entry:
             //      "%option_name% = %option_value%:%severity%
             // we return '(option_name, new_option_value, new_severity)'
-            var codeStyleOptions = GetCodeStyleOptionsForDiagnostic(diagnostic, project);
+            var codeStyleOptions = GetCodeStyleOptionsForDiagnostic(diagnosticId, project);
             if (!codeStyleOptions.IsEmpty)
             {
                 var builder = ArrayBuilder<(string optionName, string currentOptionValue, bool isPerLanguage)>.GetInstance();
@@ -397,9 +397,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return false;
         }
 
-        internal static ImmutableArray<IOption2> GetCodeStyleOptionsForDiagnostic(Diagnostic diagnostic, Project project)
+        internal static ImmutableArray<IOption2> GetCodeStyleOptionsForDiagnostic(string diagnosticId, Project project)
         {
-            if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
+            if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, project.Language, out var options))
             {
                 return (from option in options
                         where option.DefaultValue is ICodeStyleOption

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             foreach (var diagnostic in diagnostics)
             {
                 // First get all the relevant code style options for the diagnostic.
-                var codeStyleOptions = ConfigurationUpdater.GetCodeStyleOptionsForDiagnostic(diagnostic, project);
+                var codeStyleOptions = ConfigurationUpdater.GetCodeStyleOptionsForDiagnostic(diagnostic.Id, project);
                 if (codeStyleOptions.IsEmpty)
                 {
                     continue;

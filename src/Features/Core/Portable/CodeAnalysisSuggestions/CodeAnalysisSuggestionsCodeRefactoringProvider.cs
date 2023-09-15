@@ -128,7 +128,7 @@ internal sealed class CodeAnalysisSuggestionsCodeRefactoringProvider
                 }
 
                 var totalInInCurrentProject = diagnostics.Where(dd => dd.ProjectId == document.Project.Id).Count();
-                var idCountText = totalInInCurrentProject > 0 ? $" (Found {totalInInCurrentProject} instances in current project)" : string.Empty;
+                var idCountText = totalInInCurrentProject > 0 ? $" (Found {totalInInCurrentProject} would-be violations in current project)" : string.Empty;
 
                 var nestedNestedAction = ConfigureSeverityLevelCodeFixProvider.CreateSeverityConfigurationCodeAction(diagnostic, document.Project);
                 nestedNestedActionsBuilder.Add(nestedNestedAction);
@@ -149,7 +149,7 @@ internal sealed class CodeAnalysisSuggestionsCodeRefactoringProvider
             nestedActionsBuilder.Add(categoryConfigurationAction);
 
             var totalInThisCategoryInCurrentProject = diagnosticsById.SelectMany(ds => ds.Value).Where(dd => dd.ProjectId == document.Project.Id).Count();
-            var categoryCountText = totalInThisCategoryInCurrentProject > 0 ? $" (Found {totalInThisCategoryInCurrentProject} instances in current project)" : string.Empty;
+            var categoryCountText = totalInThisCategoryInCurrentProject > 0 ? $" (Found {totalInThisCategoryInCurrentProject} would-be violations in current project)" : string.Empty;
             var action = CodeAction.Create($"'{category}' improvements{categoryCountText}", nestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
             actionsBuilder.Add(action);
         }

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal interface ICopilotServiceProvider : IWorkspaceService
 {
+    // return null to indicate service isn't ready yet, but should retry.
     public Task<ImmutableArray<string>?> SendOneOffRequestAsync(ImmutableArray<string> promptParts, CancellationToken cancellationToken);
 }
 

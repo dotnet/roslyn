@@ -27,16 +27,16 @@ Below you will find examples of how you should respond. Please follow the exampl
 # EXAMPLE 1
 Description: I am passionate about code style and performance.
 
-Categories: Design, Performance, Security, Maintenance, Code Style
+Categories: Design, Performance, Security, Maintenance, Style
 
-Answer: Code Style, Performance
+Answer: Style, Performance
 
 # EXAMPLE 2
 Description: I am interested in all categories.
 
-Categories: Design, Performance, Security, Maintenance, Code Style
+Categories: Design, Performance, Security, Maintenance, Style
 
-Answer: Design, Performance, Security, Maintenance, Code Style
+Answer: Design, Performance, Security, Maintenance, Style
 ";
 
     // TODO: 

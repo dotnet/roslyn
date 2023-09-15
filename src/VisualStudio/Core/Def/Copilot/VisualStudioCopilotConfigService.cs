@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -128,7 +129,7 @@ internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService, 
             return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
 
         var computedDiagnostics = await GetAvailableDiagnosticsAsync(project, forceCompute, cancellationToken).ConfigureAwait(false);
-        return ParseCodeAnalysisSuggestionsResponse(response.Value, project, descriptorsByCategory, computedDiagnostics);
+        return await ParseCodeAnalysisSuggestionsResponseAsync(response.Value, project, descriptorsByCategory, computedDiagnostics, cancellationToken).ConfigureAwait(false);
     }
 
     public Task<string?> TryGetCodeAnalysisPackageSuggestionConfigDataAsync(Project project, CancellationToken cancellationToken)
@@ -166,7 +167,13 @@ internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService, 
         }
 
         response = await _copilotServiceProvider.SendOneOffRequestAsync(ImmutableArray.Create(prompt), cancellationToken).ConfigureAwait(false);
-        return _copilotConfigResponseCache.GetOrAdd(requestKey, response);
+        if (response != null)
+        {
+            // Don't cache if service wasn't available
+            return _copilotConfigResponseCache.GetOrAdd(requestKey, response);
+        }
+
+        return null;
     }
 
     private async Task<string?> ReadCopilotConfigFileAndGetPromptAsync(string feature, Project project, bool forceCompute, CancellationToken cancellationToken)
@@ -200,20 +207,20 @@ internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService, 
     }
 
     // TODO: We could run computed diagnostics in a snapshot use the results to show some sample diagnostics from actual user code as a preview.
-    private static ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)> ParseCodeAnalysisSuggestionsResponse(
+    private static async Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> ParseCodeAnalysisSuggestionsResponseAsync(
         ImmutableArray<string> response,
         Project project,
         ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> descriptorsByCategory,
-        ImmutableArray<DiagnosticData> computedDiagnostics)
+        ImmutableArray<DiagnosticData> computedDiagnostics,
+        CancellationToken cancellationToken)
     {
         const string AnswerPrefix = "Answer:";
         const int MaxIdsToSuggestPerCategoryWhenNoComputedDiagnostics = 5;
 
         var diagnosticsByCategory = computedDiagnostics.GroupBy(d => d.Category).ToImmutableDictionary(group => group.Key);
-
         using var _1 = ArrayBuilder<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.GetInstance(out var builder);
         using var _2 = PooledDictionary<string, ImmutableArray<DiagnosticData>>.GetInstance(out var diagnosticsByIdBuilder);
-        using var _3 = PooledHashSet<string>.GetInstance(out var uniqueIds);
+        using var _3 = PooledDictionary<string, bool>.GetInstance(out var uniqueIds);
         foreach (var responsePart in response.Order())
         {
             var trimmedResponsePart = responsePart;
@@ -234,7 +241,8 @@ internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService, 
                         var orderedDiagnostics = diagnosticsForCategory.GroupBy(d => d.Id).OrderByDescending(group => group.Count());
                         foreach (var (id, diagnostics) in orderedDiagnostics)
                         {
-                            if (uniqueIds.Add(id))
+                            // only suggest diagnostics that are not explicitly configured in analyzer config files
+                            if (!await IsIdAlreadyProcessedOrExplicitlyConfigured(id, diagnostics.First().Category).ConfigureAwait(false))
                             {
                                 diagnosticsByIdBuilder.Add(id, diagnostics.ToImmutableArray());
                             }
@@ -245,7 +253,8 @@ internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService, 
                 {
                     foreach (var descriptor in descriptors)
                     {
-                        if (uniqueIds.Add(descriptor.Id))
+                        // only suggest diagnostics that are not explicitly configured in analyzer config files
+                        if (!await IsIdAlreadyProcessedOrExplicitlyConfigured(descriptor.Id, descriptor.Category).ConfigureAwait(false))
                         {
                             var diagnostic = Diagnostic.Create(descriptor, Location.None);
                             var diagnosticData = DiagnosticData.Create(project.Solution, diagnostic, project);
@@ -266,6 +275,19 @@ internal sealed class VisualStudioCopilotConfigService : ICopilotConfigService, 
         }
 
         return builder.ToImmutable();
+
+        async Task<bool> IsIdAlreadyProcessedOrExplicitlyConfigured(string id, string category)
+        {
+            if (uniqueIds.ContainsKey(id))
+            {
+                return true;
+            }
+
+            var configKind = await ConfigurationUpdater.CheckIfConfigExistsAsync(project, id, category, cancellationToken).ConfigureAwait(false);
+            var explicitlyConfigured = configKind == ConfigurationUpdater.ConfigKind.Id;
+            uniqueIds[id] = explicitlyConfigured;
+            return explicitlyConfigured;
+        }
     }
 
     private async Task<ImmutableDictionary<string, string>> GetCopilotConfigAsync(Project project, bool forceCompute, CancellationToken cancellationToken)

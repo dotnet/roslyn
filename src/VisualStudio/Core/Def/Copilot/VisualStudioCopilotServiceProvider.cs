@@ -44,7 +44,11 @@ internal sealed class VisualStudioCopilotServiceProvider : ICopilotServiceProvid
 
             using (var copilotService = await serviceBroker.GetProxyAsync<ICopilotService>(CopilotDescriptors.CopilotService, cancellationToken).ConfigureAwait(false))
             {
-                if (copilotService is null || !await copilotService.CheckAvailabilityAsync(cancellationToken).ConfigureAwait(false))
+                if (copilotService is null)
+                    return ImmutableArray<string>.Empty;
+
+                // return null to indicate service isn't available yet, but should retry
+                if (!await copilotService.CheckAvailabilityAsync(cancellationToken).ConfigureAwait(false))
                     return null;
 
                 using var session = await copilotService.GetCopilotSessionAsync(options: new() { ProvideUI = false }, cancellationToken).ConfigureAwait(false);
@@ -69,7 +73,7 @@ internal sealed class VisualStudioCopilotServiceProvider : ICopilotServiceProvid
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
-            return null;
+            return ImmutableArray<string>.Empty;
         }
     }
 }
