@@ -7,11 +7,13 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
@@ -30,21 +32,44 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
         {
             var (document, span, cancellationToken) = context;
             var configService = document.Project.Solution.Services.GetRequiredService<ICopilotConfigService>();
-            var configData = await configService.TryGetCodeAnalysisSuggestionsConfigDataAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (configData.IsEmpty)
-                return;
 
-            var nestedActions = GetCodeAnalysisSuggestionActions(configData, document);
-            if (nestedActions.IsEmpty)
-                return;
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actionsBuilder);
 
-            context.RegisterRefactoring(
-                CodeAction.Create(
-                    FeaturesResources.Copilot_code_analysis_suggestions,
-                    nestedActions,
-                    isInlinable: false,
-                    CodeActionPriority.Low),
-                span);
+            var ruleConfigData = await configService.TryGetCodeAnalysisSuggestionsConfigDataAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (!ruleConfigData.IsEmpty)
+            { 
+                actionsBuilder.AddRange(GetCodeAnalysisSuggestionActions(ruleConfigData, document));
+            }
+
+            var workspaceServices = document.Project.Solution.Services;
+            var installerService = workspaceServices.GetService<IPackageInstallerService>();
+            if (installerService is not null)
+            {
+                var packageConfigData = await configService.TryGetCodeAnalysisPackageSuggestionConfigDataAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                if (packageConfigData is not null)
+                {
+                    actionsBuilder.Add(GetCodeAnalysisPackageSuggestionAction(packageConfigData, document, installerService));
+                }
+            }
+
+            if (actionsBuilder.Count > 0)
+            {
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        FeaturesResources.Copilot_code_analysis_suggestions,
+                        actionsBuilder.ToImmutable(),
+                        isInlinable: false,
+                        CodeActionPriority.Low),
+                    span);
+            }
+        }
+
+
+        private static CodeAction GetCodeAnalysisPackageSuggestionAction(
+            string packageName,
+            Document document, IPackageInstallerService installerService)
+        {
+            return new InstallPackageParentCodeAction(installerService, source: null, packageName, includePrerelease: true, document);
         }
 
         private static ImmutableArray<CodeAction> GetCodeAnalysisSuggestionActions(

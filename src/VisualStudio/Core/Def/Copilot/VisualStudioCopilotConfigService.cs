@@ -42,14 +42,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
         }
 
         private const string CopilotConfigFileName = ".copilotconfig";
+        private const string DefaultDescription = @"I am interested in all the categories that are mentioned in the 'Categories' list below.";
 
-        private readonly string _defaultDescription = @"I am interested in all the categories that are mentioned in the 'Categories' list below.";
-        private static readonly ImmutableArray<string> s_defaultCcodeAnalysisSuggestionCategories = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_defaultCodeAnalysisSuggestionCategories = ImmutableArray.Create(
             "Security", "Performance", "Design", "Reliability", "Maintenance", "Style");
 
-        private readonly ConcurrentDictionary<string, (Checksum checksum, Task<ImmutableDictionary<string, string>> readConfigTask)> _copilotConfigCache = new();
+        private const string PackageNamesJson = """
+            {
+                "packages" :
+                [
+                    "CodeCracker.CSharp",
+                    "SonarAnalyzer.CSharp",
+                    "Roslynator.Formatting.Analyzers",
+                    "Roslynator.Analyzers",
+                    "StyleCop.Analyzers"
+                ]
+            }
+            """;
+
+        private readonly ImmutableHashSet<string> s_validPackageNames =
+            JsonDocument.Parse(PackageNamesJson).RootElement.GetProperty("packages").EnumerateArray().Select(p => p.ToString()).ToImmutableHashSet();
+
         private readonly ConcurrentDictionary<string, ImmutableArray<string>?> _copilotConfigResponseCache = new();
+        private readonly ConcurrentDictionary<string, (Checksum checksum, Task<ImmutableDictionary<string, string>> readConfigTask)> _copilotConfigCache = new();
         private readonly ConcurrentDictionary<IReadOnlyList<AnalyzerReference>, Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>>> _diagnosticDescriptorCache = new();
+
         private readonly VisualStudioWorkspace _workspace;
         private readonly IThreadingContext _threadingContext;
         private readonly ICopilotServiceProvider _copilotServiceProvider;
@@ -58,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
         public Task InitializeAsync(CancellationToken cancellationToken)
         {
             foreach (var project in _workspace.CurrentSolution.Projects)
-                KickOffBackgrundComputationOfCopilotConfigData(project, cancellationToken);
+                KickOffBackgroundComputationOfCopilotConfigData(project, cancellationToken);
 
             return Task.CompletedTask;
         }
@@ -71,18 +88,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.SolutionReloaded:
                     foreach (var project in e.NewSolution.Projects)
-                        KickOffBackgrundComputationOfCopilotConfigData(project, CancellationToken.None);
+                        KickOffBackgroundComputationOfCopilotConfigData(project, CancellationToken.None);
                     break;
 
                 case WorkspaceChangeKind.AdditionalDocumentAdded:
                 case WorkspaceChangeKind.AdditionalDocumentReloaded:
                 case WorkspaceChangeKind.AdditionalDocumentChanged:
-                    KickOffBackgrundComputationOfCopilotConfigData(e.NewSolution.GetProject(e.ProjectId), CancellationToken.None);
+                    KickOffBackgroundComputationOfCopilotConfigData(e.NewSolution.GetProject(e.ProjectId), CancellationToken.None);
                     break;
             }
         }
 
-        private void KickOffBackgrundComputationOfCopilotConfigData(Project? project, CancellationToken cancellationToken)
+        private void KickOffBackgroundComputationOfCopilotConfigData(Project? project, CancellationToken cancellationToken)
         {
             if (project == null)
                 return;
@@ -91,6 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             {
                 // Add tasks for copilot config data computation for all features here.
                 await GetCodeAnalysisSuggestionsConfigDataAsync(project, forceCompute: true, cancellationToken).ConfigureAwait(false);
+                await GetCodeAnalysisPackageSuggestionsConfigDataAsync(project, forceCompute: true, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -99,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
 
         private async Task<ImmutableArray<(string, ImmutableArray<string>)>> GetCodeAnalysisSuggestionsConfigDataAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
         {
-            var response = await GetCopilotConfigResponseAsync(CopilotConfigFeatures.CodeAnalysisSuggestions, project, forceCompute, cancellationToken).ConfigureAwait(false);
+            var response = await GetCopilotConfigResponseAsync(CopilotConfigFeatures.CodeAnalysisRuleSuggestions, project, forceCompute, cancellationToken).ConfigureAwait(false);
             if (!response.HasValue)
                 return ImmutableArray<(string, ImmutableArray<string>)>.Empty;
 
@@ -110,24 +128,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             return ParseCodeAnalysisSuggestionsResponse(response.Value, descriptorsByCategory);
         }
 
+        public Task<string?> TryGetCodeAnalysisPackageSuggestionConfigDataAsync(Project project, CancellationToken cancellationToken)
+            => GetCodeAnalysisPackageSuggestionsConfigDataAsync(project, forceCompute: false, cancellationToken);
+
+        private async Task<string?> GetCodeAnalysisPackageSuggestionsConfigDataAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
+        {
+            var response = await GetCopilotConfigResponseAsync(CopilotConfigFeatures.CodeAnalysisPackageSuggestions, project, forceCompute, cancellationToken).ConfigureAwait(false);
+            if (!response.HasValue)
+                return null;
+
+            return response.Value.Select(n => n.Trim()).FirstOrDefault(n => IsValidPackage(n));
+
+            // hack: filter out package we are already referencing
+            bool IsValidPackage(string packageName)
+                => s_validPackageNames.Contains(packageName) && project.AnalyzerReferences.All(r => (r.FullPath ?? "").IndexOf(packageName, StringComparison.OrdinalIgnoreCase) < 0);
+        }
+
         private async Task<ImmutableArray<string>?> GetCopilotConfigResponseAsync(string feature, Project project, bool forceCompute, CancellationToken cancellationToken)
         {
             var prompt = await ReadCopilotConfigFileAndGetPromptAsync(feature, project, forceCompute, cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrEmpty(prompt))
                 return null;
 
-            return await GetCopilotConfigResponseAsync(prompt!, feature, project, forceCompute, cancellationToken).ConfigureAwait(false);
-        }
+            Contract.ThrowIfNull(prompt);
 
-        private async Task<ImmutableArray<string>?> GetCopilotConfigResponseAsync(string prompt, string feature, Project project, bool forceCompute, CancellationToken cancellationToken)
-        {
             var requestKey = $"{feature}:{prompt}";
             if (_copilotConfigResponseCache.TryGetValue(requestKey, out var response))
                 return response;
 
             if (!forceCompute)
             {
-                KickOffBackgrundComputationOfCopilotConfigData(project, cancellationToken);
+                KickOffBackgroundComputationOfCopilotConfigData(project, cancellationToken);
                 return null;
             }
 
@@ -137,28 +168,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
 
         private async Task<string?> ReadCopilotConfigFileAndGetPromptAsync(string feature, Project project, bool forceCompute, CancellationToken cancellationToken)
         {
-            // TODO: Implement the following pieces:
-            //       1. Parse ".copilotconfig" additional files from the project as validated content matches schema.
-            //       2. Find relevant sections in these files for the given 'feature'
-            //          For example, for "CodeAnalysisSuggestions" feature, we expect a "Description" section
-            //          containing natural language description of the categories of desired code analysis suggestions
-            //          The final prompt is created by substituting the "Description" section in the prompt and a
-            //          "Categories" list for available categories of code analysis suggestions.
-            //
+            var config = await GetCopilotConfigAsync(project, forceCompute, cancellationToken).ConfigureAwait(false);
+            var description = config.TryGetValue("Description", out var value) ? value : DefaultDescription;
 
             using var _ = ArrayBuilder<string>.GetInstance(out var builder);
             switch (feature)
             {
-                case CopilotConfigFeatures.CodeAnalysisSuggestions:
-                    var config = await GetCopilotConfigAsync(project, forceCompute, cancellationToken).ConfigureAwait(false);
-
-                    var description = config.TryGetValue("Description", out var value) ? value : _defaultDescription;
+                case CopilotConfigFeatures.CodeAnalysisRuleSuggestions:
                     builder.Add(description);
 
                     // TODO: Provide the list of diagnostics in the form of (Id, category, description) for LLM to pick from.
                     var availableDiagnostics = await GetAvailableDiagnosticDescriptorsByCategoryAsync(project, forceCompute).ConfigureAwait(false);
-                    var categories = availableDiagnostics.IsEmpty ? s_defaultCcodeAnalysisSuggestionCategories : availableDiagnostics.Keys;
+                    var categories = availableDiagnostics.IsEmpty ? s_defaultCodeAnalysisSuggestionCategories : availableDiagnostics.Keys;
                     builder.Add(string.Join(",", categories));
+                    break;
+
+                case CopilotConfigFeatures.CodeAnalysisPackageSuggestions:
+                    builder.Add(PackageNamesJson);
+                    builder.Add(description);
                     break;
 
                 default:
@@ -169,20 +196,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             return prompt;
         }
 
+        // TODO: We need sort and filter to only show the most interesting and limit the suggestions we provide to a reasonable number.
         private static ImmutableArray<(string, ImmutableArray<string>)> ParseCodeAnalysisSuggestionsResponse(
             ImmutableArray<string> response,
             ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> descriptorsByCategory)
         {
+            var answerPrefix = "Answer:";
             using var _1 = ArrayBuilder<(string, ImmutableArray<string>)>.GetInstance(out var builder);
             using var _2 = ArrayBuilder<string>.GetInstance(out var idsBuilder);
             using var _3 = PooledHashSet<string>.GetInstance(out var uniqueIds);
             foreach (var responsePart in response.Order())
             {
                 var trimmedResponsePart = responsePart;
-                var index = responsePart.IndexOf("Answer:");
-                if (index > 0)
+                var index = responsePart.IndexOf(answerPrefix);
+                if (index >= 0)
                 {
-                    trimmedResponsePart = responsePart[index..];
+                    trimmedResponsePart = responsePart[(index + answerPrefix.Length)..];
                 }
 
                 var parts = trimmedResponsePart.Split(',');
@@ -213,7 +242,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
                 Contract.ThrowIfNull(configFile.FilePath);
 
                 var checksum = await configFile.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                if (_copilotConfigCache.TryGetValue(configFile.FilePath!, out var value))
+                if (!_copilotConfigCache.TryGetValue(configFile.FilePath!, out var value))
+                {
+                    var task = ReadConfigAsync(configFile.FilePath, _threadingContext.DisposalToken);
+                    value = _copilotConfigCache.AddOrUpdate(configFile.FilePath, (checksum, task), (_, _) => (checksum, task));
+                }
+                else
                 {
                     var (cachedChecksum, task) = value;
                     if (!checksum.Equals(cachedChecksum))
@@ -221,10 +255,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
                         task = ReadConfigAsync(configFile.FilePath, _threadingContext.DisposalToken);
                         _copilotConfigCache.AddOrUpdate(configFile.FilePath, (checksum, task), (_, _) => (checksum, task));
                     }
-
-                    if (task.IsCompleted || forceCompute)
-                        return await value.readConfigTask.ConfigureAwait(false);
                 }
+
+                if (value.readConfigTask.IsCompleted || forceCompute)
+                    return await value.readConfigTask.ConfigureAwait(false);
             }
 
             return ImmutableDictionary<string, string>.Empty;

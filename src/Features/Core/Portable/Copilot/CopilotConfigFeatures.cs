@@ -8,8 +8,10 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal static class CopilotConfigFeatures
 {
-    public const string CodeAnalysisSuggestions = nameof(CodeAnalysisSuggestions);
-    private const string CodeAnalysisSuggestionsPrompt = @"
+    public const string CodeAnalysisRuleSuggestions = nameof(CodeAnalysisRuleSuggestions);
+    public const string CodeAnalysisPackageSuggestions = nameof(CodeAnalysisPackageSuggestions);
+
+    private const string CodeAnalysisRuleSuggestionsPrompt = @"
 Read the text after 'Description:' part and list of available category intent tags after 'Categories:' part:
 
 Description: {0}
@@ -80,11 +82,47 @@ Answer: Design, Performance, Security, Maintenance, Code Style
         [RESPONSE START]
         """;
 
+    private const string CodeAnalysisPackageSuggestionPrompt = """
+        You are an expert in C# code analysis and code style analyzer available for .NET developers. Given a short description of user preferences you will be able to suggest a single analyzer NuGet packages that they might be interested the most. You should only choose one package from the list below. Do not suggest package not in this list.
+
+        {0}
+
+        Your task is to suggest one Roslyn analyzer NuGet package based on the preference provided by a developer. Your should only suggest a single package, and the answer should only contain the name of suggested package and nothing else. However, if the developer indicated that they are not interested in installing any new analyzer package, you should not suggest any package and the answer should contain a single word "None".
+
+        Below you will find examples of how you should respond. Please follow the examples as closely as possible:
+
+        # EXAMPLE 1
+        [Developer Preference] I am passionate about code style.
+
+        [Suggestion]
+        StyleCop.Analyzers
+
+        # EXAMPLE 2
+        [Developer Preference] I am interested in writing correct code.
+
+        [Suggestion]
+        SonarAnalyzer.CSharp
+        
+        # EXAMPLE 2
+        [Developer Preference] I am interested in writing correct code. But I don't want to install any new analyzer package at the moment.
+        
+        [Suggestion]
+        None
+
+        # END OF EXAMPLES
+
+        [Developer Preference] {1}
+
+        <|endofprompt|>
+        [Suggestion]
+        """;
+
     public static string? GetPrompt(string feature, params string[] arguments)
     {
         var promptFormat = feature switch
         {
-            CodeAnalysisSuggestions => CodeAnalysisSuggestionsPrompt,
+            CodeAnalysisRuleSuggestions => CodeAnalysisRuleSuggestionsPrompt,
+            CodeAnalysisPackageSuggestions => CodeAnalysisPackageSuggestionPrompt,
             _ => null
         };
 
