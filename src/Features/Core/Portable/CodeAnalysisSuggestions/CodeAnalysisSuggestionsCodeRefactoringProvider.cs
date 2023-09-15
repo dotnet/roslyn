@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
         {
         }
 
+        protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.Low;
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
