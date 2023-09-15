@@ -332,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool needNullCheck = !initializerType.IsValueType || initializerType.IsNullableType();
             BoundAssignmentOperator? nullableTempAssignment = null;
             BoundLocal? nullableBoundTemp = null;
+
             if (needNullCheck)
             {
                 if (initializerType.IsNullableType())
