@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
@@ -44,24 +43,13 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
             CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
-        if (request.Ranges.Length == 0)
+
+        var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, _semanticTokenRefreshQueue, request.Ranges, context, cancellationToken).ConfigureAwait(false);
+        if (tokensData is null)
         {
-            return new SemanticTokens() { Data = Array.Empty<int>() };
+            return new SemanticTokens { Data = Array.Empty<int>() };
         }
 
-        var contextDocument = context.GetRequiredDocument();
-        var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
-        var project = document.Project;
-        var options = _globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
-        var capabilities = context.GetRequiredClientCapabilities();
-        var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-            capabilities,
-            document,
-            request.Ranges,
-            options,
-            cancellationToken).ConfigureAwait(false); 
-
-        await _semanticTokenRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
-        return new SemanticTokens() { Data = tokensData };
+        return new SemanticTokens { Data = tokensData };
     }
 }
