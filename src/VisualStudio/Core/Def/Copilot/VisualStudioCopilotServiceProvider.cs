@@ -16,61 +16,60 @@ using Microsoft.VisualStudio.Copilot;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot;
+
+[ExportWorkspaceService(typeof(ICopilotServiceProvider), ServiceLayer.Host), Shared]
+internal sealed class VisualStudioCopilotServiceProvider : ICopilotServiceProvider
 {
-    [ExportWorkspaceService(typeof(ICopilotServiceProvider), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioCopilotServiceProvider : ICopilotServiceProvider
+    private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioCopilotServiceProvider(IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
     {
-        private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
+        _brokeredServiceContainer = brokeredServiceContainer;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioCopilotServiceProvider(IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
+    public Task<ImmutableArray<string>?> SendOneOffRequestAsync(ImmutableArray<string> promptParts, CancellationToken cancellationToken)
+        => SendOneOffRequestSafeAsync(promptParts, cancellationToken);
+
+    // Guard against when Copilot chat is not installed
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private async Task<ImmutableArray<string>?> SendOneOffRequestSafeAsync(ImmutableArray<string> promptParts, CancellationToken cancellationToken)
+    {
+        try
         {
-            _brokeredServiceContainer = brokeredServiceContainer;
-        }
+            var serviceContainer = await _brokeredServiceContainer.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
 
-        public Task<ImmutableArray<string>?> SendOneOffRequestAsync(ImmutableArray<string> promptParts, CancellationToken cancellationToken)
-            => SendOneOffRequestSafeAsync(promptParts, cancellationToken);
-
-        // Guard against when Copilot chat is not installed
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private async Task<ImmutableArray<string>?> SendOneOffRequestSafeAsync(ImmutableArray<string> promptParts, CancellationToken cancellationToken)
-        {
-            try
+            using (var copilotService = await serviceBroker.GetProxyAsync<ICopilotService>(CopilotDescriptors.CopilotService, cancellationToken).ConfigureAwait(false))
             {
-                var serviceContainer = await _brokeredServiceContainer.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
-
-                using (var copilotService = await serviceBroker.GetProxyAsync<ICopilotService>(CopilotDescriptors.CopilotService, cancellationToken).ConfigureAwait(false))
-                {
-                    if (copilotService is null || !await copilotService.CheckAvailabilityAsync(cancellationToken).ConfigureAwait(false))
-                        return null;
-
-                    using var session = await copilotService.GetCopilotSessionAsync(options: new() { ProvideUI = false }, cancellationToken).ConfigureAwait(false);
-                    var request = new CopilotRequest()
-                    {
-                        Intent = CopilotIntent.None,
-                        Content = promptParts.SelectAsArray((s, i) => new CopilotContentTextPart(new CopilotContentPartId(i), s))
-                    };
-
-                    var response = await session.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
-                    if (response.Status == CopilotResponseStatus.Success)
-                    {
-                        return response.Content.SelectAsArray(c => c switch
-                        {
-                            CopilotContentTextPart textPart => textPart.Content,
-                            _ => string.Empty
-                        });
-                    }
-
+                if (copilotService is null || !await copilotService.CheckAvailabilityAsync(cancellationToken).ConfigureAwait(false))
                     return null;
+
+                using var session = await copilotService.GetCopilotSessionAsync(options: new() { ProvideUI = false }, cancellationToken).ConfigureAwait(false);
+                var request = new CopilotRequest()
+                {
+                    Intent = CopilotIntent.None,
+                    Content = promptParts.SelectAsArray((s, i) => new CopilotContentTextPart(new CopilotContentPartId(i), s))
+                };
+
+                var response = await session.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+                if (response.Status == CopilotResponseStatus.Success)
+                {
+                    return response.Content.SelectAsArray(c => c switch
+                    {
+                        CopilotContentTextPart textPart => textPart.Content,
+                        _ => string.Empty
+                    });
                 }
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
+
                 return null;
             }
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            return null;
         }
     }
 }
