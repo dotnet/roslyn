@@ -292,6 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void VisitPreprocessing(IPreprocessingSymbol symbol)
         {
+            // Currently using 'Text' part kind as there is no kind specific to preprocessing symbols.
             var part = new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol, symbol.Name);
             builder.Add(part);
         }
