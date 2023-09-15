@@ -835,7 +835,8 @@ namespace Microsoft.CodeAnalysis
                     // consumer of this Solution snapshot has already seen the trees and thus needs to ensure identity
                     // of them.
                     var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
-                        await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                        await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
+                            static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false));
 
                     // Will reuse the generator info since we're reusing all the trees from within it.
                     return (compilationWithGeneratedFiles, generatorInfo);
@@ -997,7 +998,8 @@ namespace Microsoft.CodeAnalysis
                 // We produced new documents, so time to create new state for it
                 var generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
                 var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
-                    await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                    await generatedDocuments.States.Values.SelectAsArrayAsync(
+                        static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false));
                 return (compilationWithGeneratedFiles, new CompilationTrackerGeneratorInfo(generatedDocuments, generatorInfo.Driver, documentsAreFinal: true));
 
                 static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(

@@ -165,7 +165,8 @@ internal partial class SolutionState
 
             var generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
             var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
-                await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                await generatedDocuments.States.Values.SelectAsArrayAsync(
+                    static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false));
             return (compilationWithGeneratedFiles, new CompilationTrackerGeneratorInfo(generatedDocuments, generatorInfo.Driver, documentsAreFinal: true));
         }
     }
