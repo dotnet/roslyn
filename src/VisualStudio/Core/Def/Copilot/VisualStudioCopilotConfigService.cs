@@ -197,6 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
         }
 
         // TODO: We need sort and filter to only show the most interesting and limit the suggestions we provide to a reasonable number.
+        //       Also we could run them in a snapshot use the results to show some sample diagnostics from actual user code as a preview.
         private static ImmutableArray<(string, ImmutableArray<string>)> ParseCodeAnalysisSuggestionsResponse(
             ImmutableArray<string> response,
             ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> descriptorsByCategory)

@@ -99,6 +99,9 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
                             createChangedSolution: _ => Task.FromResult(document.Project.Solution),
                             equivalenceKey: id + title);
 
+                        // TODO: Add actions to ignore all the rules here by adding them to .editorconfig and set to None or Silent.
+                        // Further, None could be used to filter out rules to suggest as they indicate user is aware of them and explicitly disabled them.
+
                         // TODO: Add nested nested actions for FixAll
 
                         title = $"{id}: {descriptor.Title}";
