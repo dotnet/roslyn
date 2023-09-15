@@ -601,7 +601,7 @@ class Bad : Bad
                     source: """
                     class C
                     {
-                        public int F(ref int x) => x = 1;
+                        public int F(ref int x) => throw null;
                     }
                     """,
                     validator: g =>
@@ -612,7 +612,7 @@ class Bad : Bad
                     source: $$"""
                     class C
                     {
-                       public int F({{newModifier}} int x) => x = 1;
+                       public int F({{newModifier}} int x) => throw null;
                     }
                     """,
                     edits: new[]

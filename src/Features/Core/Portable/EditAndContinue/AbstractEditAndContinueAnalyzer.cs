@@ -4880,9 +4880,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var node = GetDiagnosticNode(out var distance, cancellationToken);
 
-                span ??= diagnosticSpan.IsEmpty ?
-                    analyzer.GetDiagnosticSpan(node, (distance > 0 || kind == RudeEditKind.ChangeImplicitMainReturnType) ? EditKind.Delete : EditKind.Update) :
-                    diagnosticSpan;
+                span ??= diagnosticSpan.IsEmpty
+                    ? analyzer.GetDiagnosticSpan(node, (distance > 0 || kind == RudeEditKind.ChangeImplicitMainReturnType) ? EditKind.Delete : EditKind.Update)
+                    : diagnosticSpan;
 
                 diagnostics.Add(new RudeEditDiagnostic(
                     kind,
