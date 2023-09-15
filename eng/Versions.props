@@ -262,7 +262,7 @@
     <MicrosoftVSSDKVSDConfigToolVersion>17.0.1051901-preview</MicrosoftVSSDKVSDConfigToolVersion>
     <VsWebsiteInteropVersion>8.0.50727</VsWebsiteInteropVersion>
     <vswhereVersion>2.4.1</vswhereVersion>
-    <xunitVersion>2.5.0</xunitVersion>
+    <xunitVersion>2.4.1</xunitVersion>
     <xunitanalyzersVersion>0.12.0-pre.20</xunitanalyzersVersion>
     <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
     <XunitCombinatorialVersion>1.3.2</XunitCombinatorialVersion>
