@@ -24,12 +24,19 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
     {
         var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
 
-        var normalReferences = await FindPreprocessingReferencesInTokensAsync(
-            symbol, state,
-            tokens,
-            cancellationToken).ConfigureAwait(false);
+        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
+        foreach (var token in tokens)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
-        return normalReferences;
+            var targetSymbol = state.SemanticModel.GetPreprocessingSymbolInfo(token.GetRequiredParent()).Symbol;
+            var matched = await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, symbol, targetSymbol, cancellationToken).ConfigureAwait(false);
+
+            if (matched)
+                locations.Add(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken));
+        }
+
+        return locations.ToImmutable();
     }
 
     protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
@@ -53,28 +60,5 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
         }
 
         return resultDocuments.ToImmutable();
-    }
-
-    private static async ValueTask<ImmutableArray<FinderLocation>> FindPreprocessingReferencesInTokensAsync(
-        IPreprocessingSymbol symbol,
-        FindReferencesDocumentState state,
-        ImmutableArray<SyntaxToken> tokens,
-        CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
-        foreach (var token in tokens)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var targetSymbol = state.SemanticModel.GetPreprocessingSymbolInfo(token.GetRequiredParent()).Symbol;
-            var matched = await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, symbol, targetSymbol, cancellationToken).ConfigureAwait(false);
-
-            if (matched)
-            {
-                locations.Add(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken));
-            }
-        }
-
-        return locations.ToImmutable();
     }
 }
