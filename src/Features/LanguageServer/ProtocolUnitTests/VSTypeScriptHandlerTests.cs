@@ -77,7 +77,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         };
 
         var response = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(VSInternalMethods.DocumentPullDiagnosticName, documentPullRequest, CancellationToken.None);
-        Assert.NotNull(response);
         Assert.Empty(response);
     }
 

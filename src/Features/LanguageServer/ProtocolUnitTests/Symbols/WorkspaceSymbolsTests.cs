@@ -185,7 +185,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "NonExistingSymbol").ConfigureAwait(false);
-            Assert.NotNull(results);
             Assert.Empty(results);
         }
 

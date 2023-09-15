@@ -69,12 +69,10 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
 
-        Assert.NotNull(results[0].Diagnostics);
-        Assert.Empty(results[0].Diagnostics!);
+        Assert.Empty(results[0].Diagnostics);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
         Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
-        Assert.NotNull(results[2].Diagnostics);
-        Assert.Empty(results[2].Diagnostics!);
+        Assert.Empty(results[2].Diagnostics);
 
         var initialSolution = testLspServer.GetCurrentSolution();
         var newSolution = initialSolution.RemoveAdditionalDocument(initialSolution.Projects.Single().AdditionalDocumentIds.Single());
@@ -88,12 +86,9 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Null(results2[0].ResultId);
 
         // The other files should have new results since the solution changed.
-        Assert.NotNull(results2[1].Diagnostics);
-        Assert.Empty(results2[1].Diagnostics!);
+        Assert.Empty(results2[1].Diagnostics);
         Assert.NotNull(results2[1].ResultId);
-
-        Assert.NotNull(results2[2].Diagnostics);
-        Assert.Empty(results2[2].Diagnostics!);
+        Assert.Empty(results2[2].Diagnostics);
         Assert.NotNull(results2[2].ResultId);
     }
 
