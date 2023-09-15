@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SourceGeneration;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -33,6 +33,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
 
             foreach (var id in documentStates.Ids)
             {
+                Contract.ThrowIfFalse(id.IsSourceGenerated);
                 var state = documentStates.GetRequiredState(id);
                 var documentIdentity = state.Identity;
                 var contentIdentity = new SourceGeneratedDocumentContentIdentity(
@@ -56,6 +57,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
 
             foreach (var id in documentIds)
             {
+                Contract.ThrowIfFalse(id.IsSourceGenerated);
                 var state = documentStates.GetRequiredState(id);
                 var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 result.Add(text.ToString());

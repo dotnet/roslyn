@@ -77,6 +77,7 @@ internal partial class SolutionState
             var infos = infosOpt.Value;
             foreach (var (documentIdentity, contentIdentity) in infos)
             {
+                Contract.ThrowIfFalse(documentIdentity.DocumentId.IsSourceGenerated);
                 allGeneratedDocumentIds.Add(documentIdentity.DocumentId);
 
                 var existingDocument = generatorInfo.Documents.GetState(documentIdentity.DocumentId);
