@@ -41,23 +41,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var classifiedSpansLength = ranges?.Length ?? 1;
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(classifiedSpansLength, out var classifiedSpans);
+            using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
-            for (var i = 0; i < classifiedSpansLength; i++)
+            // We either calculate the tokens for the full document span, or the user 
+            // can pass in a range from the full document if they wish.
+            ranges ??= new[] { ProtocolConversions.TextSpanToRange(root.FullSpan, text) };
+
+            foreach (var range in ranges)
             {
-                // By default we calculate the tokens for the full document span, although the user 
-                // can pass in a range if they wish.
-                var textSpan = ranges is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(ranges[i], text);
+                var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
 
                 var spansForRange = await GetClassifiedSpansForDocumentAsync(
-                    document, textSpan, options, cancellationToken).ConfigureAwait(false);
-
-                if (spansForRange is not null && spansForRange.Length != 0)
-                {
-                    classifiedSpans.AddRange(spansForRange);
-                }
+                    classifiedSpans, document, textSpan, options, cancellationToken).ConfigureAwait(false);
             }
+
+            // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
+            classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
@@ -68,14 +67,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return ComputeTokens(capabilities, text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
         }
 
-        private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
+        private static async Task<SegmentedList<ClassifiedSpan>> GetClassifiedSpansForDocumentAsync(
+            SegmentedList<ClassifiedSpan> classifiedSpans,
             Document document,
             TextSpan textSpan,
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<IClassificationService>();
-            using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
             // We always return both syntactic and semantic classifications.  If there is a syntactic classifier running on the client
             // then the semantic token classifications will override them.
@@ -90,10 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // semantic tokens as it just wastes space in the result.
             var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
             classifiedSpans.AddRange(nonEmptySpans);
-
-            // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
-            classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
-            return classifiedSpans.ToArray();
+            return classifiedSpans;
         }
 
         public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)

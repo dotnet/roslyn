@@ -41,14 +41,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
-
             var ranges = new LSP.Range[1] { request.Range };
             var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, _semanticTokenRefreshQueue, ranges, context, cancellationToken).ConfigureAwait(false);
-            if (tokensData is null)
-            {
-                return new LSP.SemanticTokens() { Data = Array.Empty<int>() };
-            }
-
             return new LSP.SemanticTokens { Data = tokensData };
         }
     }
