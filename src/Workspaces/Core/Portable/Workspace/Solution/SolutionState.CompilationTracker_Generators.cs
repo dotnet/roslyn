@@ -72,15 +72,15 @@ internal partial class SolutionState
             // Next, figure out what is different locally.  Specifically, what documents we don't know about, or we
             // know about but whose text contents are different.
             using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var documentsToAddOrUpdate);
-            using var _2 = PooledHashSet<DocumentId>.GetInstance(out var allGeneratedDocumentIds);
+            using var _2 = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
 
             var infos = infosOpt.Value;
             foreach (var (documentIdentity, contentIdentity) in infos)
             {
-                Contract.ThrowIfFalse(documentIdentity.DocumentId.IsSourceGenerated);
-                allGeneratedDocumentIds.Add(documentIdentity.DocumentId);
+                var documentId = documentIdentity.DocumentId;
+                Contract.ThrowIfFalse(documentId.IsSourceGenerated);
 
-                var existingDocument = generatorInfo.Documents.GetState(documentIdentity.DocumentId);
+                var existingDocument = generatorInfo.Documents.GetState(documentId);
                 if (existingDocument?.Identity == documentIdentity)
                 {
                     // ensure that the doc we have matches the content expected.
@@ -93,7 +93,8 @@ internal partial class SolutionState
                 }
 
                 // Couldn't find a matching generated doc.  Add this to the list to pull down.
-                documentsToAddOrUpdate.Add(documentIdentity.DocumentId);
+                documentIdToIndex.Add(documentId, documentsToAddOrUpdate.Count);
+                documentsToAddOrUpdate.Add(documentId);
             }
 
             // If we produced just as many documents as before, and none of them required any changes, then we can
@@ -126,8 +127,10 @@ internal partial class SolutionState
             using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
             foreach (var (documentIdentity, contentIdentity) in infos)
             {
-                var addOrUpdateIndex = documentsToAddOrUpdate.IndexOf(documentIdentity.DocumentId);
-                if (addOrUpdateIndex >= 0)
+                var documentId = documentIdentity.DocumentId;
+                Contract.ThrowIfFalse(documentId.IsSourceGenerated);
+
+                if (documentIdToIndex.TryGetValue(documentId, out var addOrUpdateIndex))
                 {
                     // a document whose content we fetched from the remote side.
                     var generatedSource = generatedSources[addOrUpdateIndex];
@@ -145,7 +148,7 @@ internal partial class SolutionState
                 else
                 {
                     // a document that already matched something locally.
-                    var existingDocument = generatorInfo.Documents.GetRequiredState(documentIdentity.DocumentId);
+                    var existingDocument = generatorInfo.Documents.GetRequiredState(documentId);
                     Contract.ThrowIfTrue(existingDocument.Identity != documentIdentity, "Identies must match!");
                     Contract.ThrowIfTrue(existingDocument.GetTextChecksum() != contentIdentity.Checksum, "Checksums must match!");
 
