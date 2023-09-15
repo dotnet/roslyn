@@ -418,6 +418,7 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
             }
         });
         var actualCodeLenses = await GetCodeLensAsync(testLspServer);
+        Assert.NotNull(actualCodeLenses);
         Assert.Empty(actualCodeLenses);
     }
 

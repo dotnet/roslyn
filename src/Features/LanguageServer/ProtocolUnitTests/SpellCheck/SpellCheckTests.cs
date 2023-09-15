@@ -351,7 +351,9 @@ class {|Identifier:A|}
                 ResultId = "WorkspaceSpellCheckHandler:0",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
-            Assert.Empty(results[1].Ranges);
+
+            Assert.NotNull(results[1].Ranges);
+            Assert.Empty(results[1].Ranges!);
         }
 
         [Theory, CombinatorialData]
@@ -424,7 +426,8 @@ class {|Identifier:A|}
                 ResultId = "WorkspaceSpellCheckHandler:0",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
-            Assert.Empty(results[1].Ranges);
+            Assert.NotNull(results[1].Ranges);
+            Assert.Empty(results[1].Ranges!);
 
             testLspServer.TestWorkspace.OnDocumentRemoved(testLspServer.TestWorkspace.Documents.First().Id);
 
@@ -436,7 +439,8 @@ class {|Identifier:A|}
             Assert.Null(results2[0].ResultId);
 
             // Second doc should be unchanged
-            Assert.Empty(results[1].Ranges);
+            Assert.NotNull(results[1].Ranges);
+            Assert.Empty(results[1].Ranges!);
             Assert.Equal(results[1].ResultId, results2[1].ResultId);
         }
 
@@ -462,7 +466,8 @@ class {|Identifier:A|}
                 ResultId = "WorkspaceSpellCheckHandler:0",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
-            Assert.Empty(results[1].Ranges);
+            Assert.NotNull(results[1].Ranges);
+            Assert.Empty(results[1].Ranges!);
 
             var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateParamsFromPreviousReports(results));
 
@@ -498,7 +503,8 @@ class {|Identifier:A|}
                 ResultId = "WorkspaceSpellCheckHandler:0",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
-            Assert.Empty(results[1].Ranges);
+            Assert.NotNull(results[1].Ranges);
+            Assert.Empty(results[1].Ranges!);
 
             var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
             buffer.Insert(buffer.CurrentSnapshot.Length, "// comment");
@@ -551,7 +557,8 @@ class {|Identifier:A|}
                 ResultId = "WorkspaceSpellCheckHandler:0",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
-            Assert.Empty(results[1].Ranges);
+            Assert.NotNull(results[1].Ranges);
+            Assert.Empty(results[1].Ranges!);
 
             results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, CreateParamsFromPreviousReports(results), useProgress: true);
 

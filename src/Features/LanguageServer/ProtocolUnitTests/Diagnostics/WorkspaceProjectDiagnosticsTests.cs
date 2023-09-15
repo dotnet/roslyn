@@ -31,7 +31,8 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(2, results.Length);
-        Assert.Empty(results[0].Diagnostics);
+        Assert.NotNull(results[0].Diagnostics);
+        Assert.Empty(results[0].Diagnostics!);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
         Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
@@ -50,7 +51,8 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(2, results.Length);
-        Assert.Empty(results[0].Diagnostics);
+        Assert.NotNull(results[0].Diagnostics);
+        Assert.Empty(results[0].Diagnostics!);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
         Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
