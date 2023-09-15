@@ -249,7 +249,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         cancellationToken.ThrowIfCancellationRequested();
 
                         Debug.Assert(infos.Count > 0);
-                        var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+                        // https://github.com/dotnet/roslyn/issues/69964
+                        //
+                        // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                        var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                            documentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+                        if (document is null)
+                            continue;
+
                         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         cachedModels.Add(semanticModel);
 
@@ -276,7 +284,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                        // https://github.com/dotnet/roslyn/issues/69964
+                        //
+                        // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                        var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                            documentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+                        if (document is null)
+                            continue;
+
                         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         cachedModels.Add(semanticModel);
 

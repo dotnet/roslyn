@@ -35,5 +35,20 @@ namespace Roslyn.Utilities
 
             return result.ToImmutableAndClear();
         }
+
+        public static ImmutableArray<T> WhereNotNull<T>(this ImmutableArray<T?> array) where T : struct
+        {
+            var count = array.Count(static t => t != null);
+
+            using var _ = ArrayBuilder<T>.GetInstance(count, out var result);
+
+            foreach (var value in array)
+            {
+                if (value != null)
+                    result.Add(value.Value);
+            }
+
+            return result.ToImmutableAndClear();
+        }
     }
 }

@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 serializableLocations.Options,
                 fallbackOptions,
                 locations,
-                implicitLocations,
+                implicitLocations.WhereNotNull(),
                 referencedSymbols);
         }
     }

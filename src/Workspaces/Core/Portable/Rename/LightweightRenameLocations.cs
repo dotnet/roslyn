@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 Options,
                 FallbackOptions,
                 Locations,
-                implicitLocations,
+                implicitLocations.WhereNotNull(),
                 referencedSymbols);
         }
 

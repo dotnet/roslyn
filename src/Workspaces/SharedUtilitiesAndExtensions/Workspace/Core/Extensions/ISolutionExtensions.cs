@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -48,8 +50,48 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
 
 #if !CODE_STYLE
-        public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
-            => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
+        public static async ValueTask<Document?> GetRequiredDocumentIncludingSourceGeneratedAsync(
+            this Solution solution,
+            DocumentId documentId,
+            bool throwForMissingSourceGenerated = true,
+            CancellationToken cancellationToken = default)
+        {
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+            // https://github.com/dotnet/roslyn/issues/69964
+            //
+            // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+            if (document is null)
+            {
+                if (documentId.IsSourceGenerated && !throwForMissingSourceGenerated)
+                {
+                    // Create a crash report so we can better hunt this down.
+                    try
+                    {
+                        throw CreateDocumentNotFoundException();
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+                    {
+                    }
+
+                    return null;
+                }
+
+                throw CreateDocumentNotFoundException();
+            }
+
+            return document;
+        }
+
+        public static async ValueTask<Document> GetRequiredDocumentAsync(
+            this Solution solution,
+            DocumentId documentId,
+            bool includeSourceGenerated = false,
+            CancellationToken cancellationToken = default)
+        {
+            return await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false) ??
+                throw CreateDocumentNotFoundException();
+        }
 
         public static async ValueTask<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)
             => (await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();

@@ -42,7 +42,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 //
                 // Tracked by https://github.com/dotnet/roslyn/issues/67065.
                 frozenPartialSemantics = false;
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+                // https://github.com/dotnet/roslyn/issues/69964
+                //
+                // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(documentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+                if (document is null)
+                    return ImmutableArray<InheritanceMarginItem>.Empty;
+
                 var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
                 return await service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);

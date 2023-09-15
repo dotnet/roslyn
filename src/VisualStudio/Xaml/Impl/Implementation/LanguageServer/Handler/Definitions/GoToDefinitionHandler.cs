@@ -163,6 +163,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 foreach (var item in items)
                 {
                     var document = await item.Document.GetRequiredDocumentAsync(context.Solution, cancellationToken).ConfigureAwait(false);
+                    if (document is null)
+                        continue;
+
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
                         document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);

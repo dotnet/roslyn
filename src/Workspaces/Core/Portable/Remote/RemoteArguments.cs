@@ -169,10 +169,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 referenceLocation.CandidateReason);
         }
 
-        public async ValueTask<ReferenceLocation> RehydrateAsync(
+        public async ValueTask<ReferenceLocation?> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
-            var document = await solution.GetRequiredDocumentAsync(this.Document, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            // https://github.com/dotnet/roslyn/issues/69964
+            //
+            // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+            var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                this.Document, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+            if (document is null)
+                return null;
+
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
             var additionalProperties = this.AdditionalProperties;

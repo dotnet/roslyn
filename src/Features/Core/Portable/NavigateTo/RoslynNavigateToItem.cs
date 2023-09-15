@@ -91,8 +91,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             else
             {
-                var document = await solution.GetRequiredDocumentAsync(
-                    DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                // https://github.com/dotnet/roslyn/issues/69964
+                //
+                // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                    DocumentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+                if (document == null)
+                    return null;
+
                 return new NavigateToSearchResult(this, document, activeDocument);
             }
         }

@@ -31,8 +31,17 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             HighlightSpans = highlightSpans;
         }
 
-        public async ValueTask<DocumentHighlights> RehydrateAsync(Solution solution)
-            => new(await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true).ConfigureAwait(false), HighlightSpans);
+        public async ValueTask<DocumentHighlights?> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            // https://github.com/dotnet/roslyn/issues/69964
+            //
+            // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+            var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(DocumentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+            if (document is null)
+                return null;
+
+            return new(document, HighlightSpans);
+        }
 
         public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
             => new(highlights.Document.Id, highlights.HighlightSpans);

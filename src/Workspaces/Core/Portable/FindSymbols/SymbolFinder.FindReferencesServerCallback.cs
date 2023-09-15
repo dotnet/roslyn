@@ -42,13 +42,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public async ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                // https://github.com/dotnet/roslyn/issues/69964
+                //
+                // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                    documentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+                if (document is null)
+                    return;
+
                 await progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                // https://github.com/dotnet/roslyn/issues/69964
+                //
+                // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                    documentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+                if (document is null)
+                    return;
+
                 await progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
@@ -102,10 +116,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var referenceLocation = await reference.RehydrateAsync(
-                    solution, cancellationToken).ConfigureAwait(false);
+                var referenceLocation = await reference.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (referenceLocation is null)
+                    return;
 
-                await progress.OnReferenceFoundAsync(symbolGroup, symbol, referenceLocation, cancellationToken).ConfigureAwait(false);
+                await progress.OnReferenceFoundAsync(symbolGroup, symbol, referenceLocation.Value, cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.GoToDefinition
 {
@@ -17,10 +18,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.GoToDefinition
         {
             var service = document.GetRequiredLanguageService<IFindDefinitionService>();
             var result = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return await result.NullToEmpty().SelectAsArrayAsync(
-                async (original, solution, cancellationToken) => new OmniSharpNavigableItem(original.DisplayTaggedParts, await original.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false), original.SourceSpan),
+            var items = await result.NullToEmpty().SelectAsArrayAsync(
+                async (original, solution, cancellationToken) =>
+                {
+                    var document = await original.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
+                    if (document is null)
+                        return (OmniSharpNavigableItem?)null;
+
+                    return new OmniSharpNavigableItem(original.DisplayTaggedParts, document, original.SourceSpan);
+                },
                 document.Project.Solution,
                 cancellationToken).ConfigureAwait(false);
+            return items.WhereNotNull();
         }
     }
 }

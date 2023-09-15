@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
                 var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+                if (document is null)
+                    return;
 
                 var location = await ProtocolConversions.TextSpanToLocationAsync(
                     document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, _context, cancellationToken).ConfigureAwait(false);

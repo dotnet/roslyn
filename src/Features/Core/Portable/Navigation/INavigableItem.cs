@@ -65,8 +65,17 @@ namespace Microsoft.CodeAnalysis.Navigation
             /// this navigable item. The document is required to exist within the solution, e.g. a case where the
             /// navigable item was constructed during a Find Symbols operation on the same solution instance.
             /// </summary>
-            internal ValueTask<Document> GetRequiredDocumentAsync(Solution solution, CancellationToken cancellationToken)
-                => solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: IsSourceGeneratedDocument, cancellationToken);
+            internal async ValueTask<Document?> GetRequiredDocumentAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                if (!IsSourceGeneratedDocument)
+                    return solution.GetRequiredDocument(Id);
+
+                // https://github.com/dotnet/roslyn/issues/69964
+                //
+                // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                return await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                    Id, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+            }
 
             /// <summary>
             /// Get the <see cref="SourceText"/> of the <see cref="CodeAnalysis.Document"/> within
@@ -74,9 +83,12 @@ namespace Microsoft.CodeAnalysis.Navigation
             /// exist within the solution, e.g. a case where the navigable item was constructed during a Find Symbols
             /// operation on the same solution instance.
             /// </summary>
-            internal async ValueTask<SourceText> GetTextAsync(Solution solution, CancellationToken cancellationToken)
+            internal async ValueTask<SourceText?> GetTextAsync(Solution solution, CancellationToken cancellationToken)
             {
                 var document = await GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (document is null)
+                    return null;
+
                 return await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             }
 

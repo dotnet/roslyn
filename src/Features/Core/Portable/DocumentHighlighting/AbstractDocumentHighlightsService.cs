@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return ImmutableArray<DocumentHighlights>.Empty;
                 }
 
-                return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution)).ConfigureAwait(false);
+                var highlights = await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
+                return highlights.WhereNotNull();
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(

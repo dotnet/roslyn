@@ -29,8 +29,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(document);
+                // https://github.com/dotnet/roslyn/issues/69964
+                //
+                // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(documentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+                if (document is null)
+                    return ImmutableArray<SerializableNavigationBarItem>.Empty;
 
                 if (forceFrozenPartialSemanticsForCrossProcessOperations)
                 {

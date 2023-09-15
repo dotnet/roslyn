@@ -35,7 +35,14 @@ namespace Microsoft.CodeAnalysis.Remote
             // need to be revisited if we someday support FAR between these languages.
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                // https://github.com/dotnet/roslyn/issues/69964
+                //
+                // Remove this once we solve root cause issue of the hosts disagreeing on source generated documents.
+                var document = await solution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                    documentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+                if (document is null)
+                    return ImmutableArray<SerializableDocumentHighlights>.Empty;
+
                 var documentsToSearch = await documentIdsToSearch.SelectAsArrayAsync(id => solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken)).ConfigureAwait(false);
                 var documentsToSearchSet = ImmutableHashSet.CreateRange(documentsToSearch.WhereNotNull());
 

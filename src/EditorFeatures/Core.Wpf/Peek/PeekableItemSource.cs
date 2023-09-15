@@ -137,6 +137,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                             workspace, document.Id, item.SourceSpan.Start, cancellationToken).ConfigureAwait(false))
                     {
                         var text = await document.GetTextAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+                        if (text is null)
+                            continue;
+
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
                         if (document.FilePath != null)
                         {
