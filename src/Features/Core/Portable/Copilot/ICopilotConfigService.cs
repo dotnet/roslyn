@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal interface ICopilotConfigService : IWorkspaceService
 {
-    public Task<ImmutableArray<(string, ImmutableArray<string>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken);
+    public Task<ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken);
     public Task<string?> TryGetCodeAnalysisPackageSuggestionConfigDataAsync(Project project, CancellationToken cancellationToken);
 }
 
@@ -27,8 +27,8 @@ internal sealed class DefaultCopilotConfigService : ICopilotConfigService
     {
     }
 
-    public Task<ImmutableArray<(string, ImmutableArray<string>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
-        => Task.FromResult(ImmutableArray<(string, ImmutableArray<string>)>.Empty);
+    public Task<ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
+        => Task.FromResult(ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>.Empty);
 
     public Task<string?> TryGetCodeAnalysisPackageSuggestionConfigDataAsync(Project project, CancellationToken cancellationToken)
         => Task.FromResult<string?>(null);

@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddPackage;
@@ -14,12 +14,10 @@ using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Copilot;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
 {
@@ -78,44 +76,35 @@ namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions
         }
 
         private static async Task<ImmutableArray<CodeAction>> GetCodeAnalysisSuggestionActionsAsync(
-            ImmutableArray<(string, ImmutableArray<string>)> configData,
+            ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)> configData,
             Document document,
             CancellationToken cancellationToken)
         {
-            var infoCache = document.Project.Solution.Workspace.Services.SolutionServices.ExportProvider.GetExports<DiagnosticAnalyzerInfoCache.SharedGlobalCache>().FirstOrDefault();
-            if (infoCache == null)
-                return ImmutableArray<CodeAction>.Empty;
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var location = root.GetLocation();
 
-            var analyzerInfoCache = infoCache.Value.AnalyzerInfoCache;
             using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actionsBuilder);
             using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var nestedActionsBuilder);
-            foreach (var (category, ids) in configData)
+            foreach (var (category, descriptors) in configData)
             {
-                foreach (var id in ids)
+                foreach (var descriptor in descriptors)
                 {
-                    if (analyzerInfoCache.TryGetDescriptorForDiagnosticId(id, out var descriptor))
-                    {
-                        if (!string.Equals(descriptor.Category, category, StringComparison.OrdinalIgnoreCase))
-                            continue;
+                    Debug.Assert(string.Equals(descriptor.Category, category, StringComparison.OrdinalIgnoreCase));
 
-                        var diagnostic = Diagnostic.Create(descriptor, location);
-                        if (SuppressionHelpers.IsNotConfigurableDiagnostic(diagnostic))
-                            continue;
+                    var diagnostic = Diagnostic.Create(descriptor, location);
+                    if (SuppressionHelpers.IsNotConfigurableDiagnostic(diagnostic))
+                        continue;
 
-                        var nestedNestedAction = ConfigureSeverityLevelCodeFixProvider.CreateSeverityConfigurationCodeAction(diagnostic, document.Project);
+                    var nestedNestedAction = ConfigureSeverityLevelCodeFixProvider.CreateSeverityConfigurationCodeAction(diagnostic, document.Project);
 
-                        // TODO: Add actions to ignore all the rules here by adding them to .editorconfig and set to None or Silent.
-                        // Further, None could be used to filter out rules to suggest as they indicate user is aware of them and explicitly disabled them.
+                    // TODO: Add actions to ignore all the rules here by adding them to .editorconfig and set to None or Silent.
+                    // Further, None could be used to filter out rules to suggest as they indicate user is aware of them and explicitly disabled them.
 
-                        // TODO: Add nested nested actions for FixAll
+                    // TODO: Add nested nested actions for FixAll
 
-                        var title = $"{id}: {descriptor.Title}";
-                        var nestedAction = CodeAction.Create(title, ImmutableArray.Create(nestedNestedAction), isInlinable: false);
-                        nestedActionsBuilder.Add(nestedAction);
-                    }
+                    var title = $"{descriptor.Id}: {descriptor.Title}";
+                    var nestedAction = CodeAction.Create(title, ImmutableArray.Create(nestedNestedAction), isInlinable: false);
+                    nestedActionsBuilder.Add(nestedAction);
                 }
 
                 if (nestedActionsBuilder.Count == 0)
