@@ -70,17 +70,6 @@ namespace Microsoft.CodeAnalysis
             public abstract Compilation? SourceCompilation { get; }
 
             private string GetDebuggerDisplay() => $"{GetType().Name}: [{Identity.GetDisplayName()}]";
-#if DEBUG
-            public sealed override bool Equals(object? obj)
-            {
-                return base.Equals(obj);
-            }
-
-            public sealed override int GetHashCode()
-            {
-                return base.GetHashCode();
-            }
-#endif
         }
     }
 }
