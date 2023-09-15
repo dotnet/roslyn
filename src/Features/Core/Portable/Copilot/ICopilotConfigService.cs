@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal interface ICopilotConfigService : IWorkspaceService
 {
-    public Task<ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken);
+    public Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken);
     public Task<string?> TryGetCodeAnalysisPackageSuggestionConfigDataAsync(Project project, CancellationToken cancellationToken);
 }
 
@@ -27,8 +28,8 @@ internal sealed class DefaultCopilotConfigService : ICopilotConfigService
     {
     }
 
-    public Task<ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
-        => Task.FromResult(ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>.Empty);
+    public Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
+        => Task.FromResult(ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty);
 
     public Task<string?> TryGetCodeAnalysisPackageSuggestionConfigDataAsync(Project project, CancellationToken cancellationToken)
         => Task.FromResult<string?>(null);

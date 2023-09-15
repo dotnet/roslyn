@@ -114,21 +114,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
             }, cancellationToken);
         }
 
-        public Task<ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
+        public Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
             => GetCodeAnalysisSuggestionsConfigDataAsync(project, forceCompute: false, cancellationToken);
 
-        private async Task<ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>> GetCodeAnalysisSuggestionsConfigDataAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> GetCodeAnalysisSuggestionsConfigDataAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
         {
             var response = await GetCopilotConfigResponseAsync(CopilotConfigFeatures.CodeAnalysisRuleSuggestions, project, forceCompute, cancellationToken).ConfigureAwait(false);
             if (!response.HasValue)
-                return ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>.Empty;
+                return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
 
             var descriptorsByCategory = await GetAvailableDiagnosticDescriptorsByCategoryAsync(project, forceCompute).ConfigureAwait(false);
             if (descriptorsByCategory.IsEmpty)
-                return ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)>.Empty;
+                return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
 
             var computedDiagnostics = await GetAvailableDiagnosticsAsync(project, forceCompute, cancellationToken).ConfigureAwait(false);
-            return ParseCodeAnalysisSuggestionsResponse(response.Value, descriptorsByCategory, computedDiagnostics, _diagnosticAnalyzerService.AnalyzerInfoCache);
+            return ParseCodeAnalysisSuggestionsResponse(response.Value, project, descriptorsByCategory, computedDiagnostics);
         }
 
         public Task<string?> TryGetCodeAnalysisPackageSuggestionConfigDataAsync(Project project, CancellationToken cancellationToken)
@@ -200,19 +200,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
         }
 
         // TODO: We could run computed diagnostics in a snapshot use the results to show some sample diagnostics from actual user code as a preview.
-        private static ImmutableArray<(string, ImmutableArray<DiagnosticDescriptor>)> ParseCodeAnalysisSuggestionsResponse(
+        private static ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)> ParseCodeAnalysisSuggestionsResponse(
             ImmutableArray<string> response,
+            Project project,
             ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> descriptorsByCategory,
-            ImmutableArray<DiagnosticData> computedDiagnostics,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            ImmutableArray<DiagnosticData> computedDiagnostics)
         {
             const string AnswerPrefix = "Answer:";
             const int MaxIdsToSuggestPerCategoryWhenNoComputedDiagnostics = 5;
 
             var diagnosticsByCategory = computedDiagnostics.GroupBy(d => d.Category).ToImmutableDictionary(group => group.Key);
 
-            using var _1 = ArrayBuilder<(string, ImmutableArray<DiagnosticDescriptor>)>.GetInstance(out var builder);
-            using var _2 = ArrayBuilder<DiagnosticDescriptor>.GetInstance(out var descriptorsBuilder);
+            using var _1 = ArrayBuilder<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.GetInstance(out var builder);
+            using var _2 = PooledDictionary<string, ImmutableArray<DiagnosticData>>.GetInstance(out var diagnosticsByIdBuilder);
             using var _3 = PooledHashSet<string>.GetInstance(out var uniqueIds);
             foreach (var responsePart in response.Order())
             {
@@ -227,42 +227,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Copilot
                 foreach (var item in parts)
                 {
                     var category = item.Trim();
-                    if (descriptorsByCategory.TryGetValue(category, out var descriptors))
+                    if (!computedDiagnostics.IsEmpty)
                     {
-                        if (computedDiagnostics.IsEmpty)
-                        {
-                            foreach (var descriptor in descriptors)
-                            {
-                                if (uniqueIds.Add(descriptor.Id))
-                                {
-                                    descriptorsBuilder.Add(descriptor);
-
-                                    if (descriptorsBuilder.Count == MaxIdsToSuggestPerCategoryWhenNoComputedDiagnostics)
-                                        break;
-                                }
-                            }
-                        }
-                        else if (diagnosticsByCategory.TryGetValue(category, out var diagnosticsForCategory))
+                        if (diagnosticsByCategory.TryGetValue(category, out var diagnosticsForCategory))
                         {
                             var orderedDiagnostics = diagnosticsForCategory.GroupBy(d => d.Id).OrderByDescending(group => group.Count());
                             foreach (var (id, diagnostics) in orderedDiagnostics)
                             {
                                 if (uniqueIds.Add(id))
                                 {
-                                    if (!analyzerInfoCache.TryGetDescriptorForDiagnosticId(id, out var descriptor))
-                                    {
-                                        var diagnostic = diagnostics.First();
-                                        descriptor = new(diagnostic.Id, diagnostic.Title!, diagnostic.Message!, diagnostic.Category, diagnostic.DefaultSeverity,
-                                            diagnostic.IsEnabledByDefault, diagnostic.Description, diagnostic.HelpLink, diagnostic.CustomTags.AsArray());
-                                    }
-
-                                    descriptorsBuilder.Add(descriptor);
+                                    diagnosticsByIdBuilder.Add(id, diagnostics.ToImmutableArray());
                                 }
                             }
                         }
+                    }
+                    else if (descriptorsByCategory.TryGetValue(category, out var descriptors))
+                    {
+                        foreach (var descriptor in descriptors)
+                        {
+                            if (uniqueIds.Add(descriptor.Id))
+                            {
+                                var diagnostic = Diagnostic.Create(descriptor, Location.None);
+                                var diagnosticData = DiagnosticData.Create(project.Solution, diagnostic, project);
+                                diagnosticsByIdBuilder.Add(descriptor.Id, ImmutableArray.Create(diagnosticData));
 
-                        if (descriptorsBuilder.Count > 0)
-                            builder.Add((category, descriptorsBuilder.ToImmutableAndClear()));
+                                if (diagnosticsByIdBuilder.Count == MaxIdsToSuggestPerCategoryWhenNoComputedDiagnostics)
+                                    break;
+                            }
+                        }
+                    }
+
+                    if (diagnosticsByIdBuilder.Count > 0)
+                    {
+                        builder.Add((category, diagnosticsByIdBuilder.ToImmutableDictionary()));
+                        diagnosticsByIdBuilder.Clear();
                     }
                 }
             }
