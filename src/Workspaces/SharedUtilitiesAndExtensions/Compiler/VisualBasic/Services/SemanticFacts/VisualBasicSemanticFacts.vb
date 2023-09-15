@@ -262,15 +262,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ImmutableArray(Of ISymbol).Empty
             End If
 
-            If token.IsKind(SyntaxKind.IdentifierToken) Then
-                Dim tokenParent = token.GetRequiredParent()
-                Dim preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(tokenParent).Symbol
-                If preprocessingSymbol IsNot Nothing Then
-                    Return ImmutableArray.Create(Of ISymbol)(preprocessingSymbol)
-                End If
-            End If
-
-            Return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
+            Dim preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(node).Symbol
+            Return If(preprocessingSymbol IsNot Nothing,
+                ImmutableArray.Create(Of ISymbol)(preprocessingSymbol),
+                semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
         End Function
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInsideNameOfExpression
