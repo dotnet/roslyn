@@ -48,18 +48,20 @@ internal partial class SolutionAssetStorage
     /// <summary>
     /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
     /// </summary>
-    internal ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
+    public ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
+        => StoreAssetsAsync(solution.State, cancellationToken);
+
+    /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
+    public ValueTask<Scope> StoreAssetsAsync(Project project, CancellationToken cancellationToken)
+        => StoreAssetsAsync(project.Solution.State, project.Id, cancellationToken);
+
+    /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
+    public ValueTask<Scope> StoreAssetsAsync(SolutionState solution, CancellationToken cancellationToken)
         => StoreAssetsAsync(solution, projectId: null, cancellationToken);
 
-    /// <summary>
-    /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
-    /// </summary>
-    internal ValueTask<Scope> StoreAssetsAsync(Project project, CancellationToken cancellationToken)
-        => StoreAssetsAsync(project.Solution, project.Id, cancellationToken);
-
-    private async ValueTask<Scope> StoreAssetsAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
+    /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
+    public async ValueTask<Scope> StoreAssetsAsync(SolutionState solutionState, ProjectId? projectId, CancellationToken cancellationToken)
     {
-        var solutionState = solution.State;
         var checksum = projectId == null
             ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
             : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);

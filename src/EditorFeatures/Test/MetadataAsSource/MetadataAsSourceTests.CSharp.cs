@@ -239,7 +239,7 @@ public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, ISt
 
         if (!(other is ValueTuple))
         {{
-            throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, ""other"");
+            throw new ArgumentException(System.SR.ArgumentException_ValueTupleIncorrectType, ""other"");
         }}
 
         return 0;
@@ -259,7 +259,7 @@ public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, ISt
 
         if (!(other is ValueTuple))
         {{
-            throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, ""other"");
+            throw new ArgumentException(System.SR.ArgumentException_ValueTupleIncorrectType, ""other"");
         }}
 
         return 0;
@@ -496,65 +496,7 @@ public record [|R|] : IEquatable<R>
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-
-public record [|R|]
-{{
-    [CompilerGenerated]
-    protected virtual Type EqualityContract
-    {{
-        [CompilerGenerated]
-        get
-        {{
-            return typeof(R);
-        }}
-    }}
-
-    [CompilerGenerated]
-    public override string ToString()
-    {{
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.Append(""R"");
-        stringBuilder.Append("" {{ "");
-        if (PrintMembers(stringBuilder))
-        {{
-            stringBuilder.Append(' ');
-        }}
-
-        stringBuilder.Append('}}');
-        return stringBuilder.ToString();
-    }}
-
-    [CompilerGenerated]
-    protected virtual bool PrintMembers(StringBuilder builder)
-    {{
-        return false;
-    }}
-
-    [CompilerGenerated]
-    public override int GetHashCode()
-    {{
-        return EqualityComparer<Type>.Default.GetHashCode(EqualityContract);
-    }}
-
-    [CompilerGenerated]
-    public virtual bool Equals(R? other)
-    {{
-        return (object)this == other || ((object)other != null && EqualityContract == other!.EqualityContract);
-    }}
-
-    [CompilerGenerated]
-    protected R(R original)
-    {{
-    }}
-
-    public R()
-    {{
-    }}
-}}
+public record [|R|];
 #if false // {FeaturesResources.Decompilation_log}
 {string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
@@ -615,7 +557,6 @@ public class [|C|]
 #endregion
 
 using System;
-using System.Runtime.CompilerServices;
 
 public class [|C|]
 {{
@@ -624,8 +565,7 @@ public class [|C|]
         throw new Exception();
     }}
 
-    [SpecialName]
-    public static string op_CheckedExplicit(C x)
+    public static explicit operator checked string(C x)
     {{
         throw new Exception();
     }}
@@ -635,8 +575,7 @@ public class [|C|]
         throw new Exception();
     }}
 
-    [SpecialName]
-    public static C op_CheckedUnaryNegation(C x)
+    public static C operator checked -(C x)
     {{
         throw new Exception();
     }}
@@ -646,8 +585,7 @@ public class [|C|]
         throw new Exception();
     }}
 
-    [SpecialName]
-    public static C op_CheckedAddition(C x, C y)
+    public static C operator checked +(C x, C y)
     {{
         throw new Exception();
     }}
@@ -731,12 +669,9 @@ public class C
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
-using System.Runtime.CompilerServices;
-
 public class C
 {{
-    [SpecialName]
-    public static C [|op_UnsignedRightShift|](C x, int y)
+    public static C operator [|>>>|](C x, int y)
     {{
         return x;
     }}
@@ -799,23 +734,11 @@ public class [|C|]
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
-using System;
-using System.Runtime.CompilerServices;
-
-[RequiredMember]
 public class [|C|]
 {{
-    [RequiredMember]
-    public int Field;
+    public required int Field;
 
-    [RequiredMember]
-    public int Property {{ get; set; }}
-
-    [Obsolete(""Constructors of types with required members are not supported in this version of your compiler."", true)]
-    [CompilerFeatureRequired(""RequiredMembers"")]
-    public C()
-    {{
-    }}
+    public required int Property {{ get; set; }}
 }}
 #if false // {FeaturesResources.Decompilation_log}
 {string.Format(FeaturesResources._0_items_in_cache, 6)}

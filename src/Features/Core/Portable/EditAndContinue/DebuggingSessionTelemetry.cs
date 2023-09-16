@@ -115,6 +115,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     // Ids of all projects whose binaries were successfully updated during the session.
                     map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(ProjectIdToPii) : "";
+
+                    // Total milliseconds it took to emit the delta in this edit session.
+                    map["EmitDifferenceMilliseconds"] = (long)editSessionData.EmitDifferenceTime.TotalMilliseconds;
+
+                    // Total milliseconds it took to analyze all documents that contributed to the changes that were
+                    // attempted to be applied (whether or not the applications was successful) in this edit session.
+                    // Includes analysis that had been performed asynchronously before "apply changes" was triggered
+                    // (if we reused analysis results that were calculated by EnC analyzer for rude edit reporting).
+                    map["TotalAnalysisMilliseconds"] = (long)editSessionData.AnalysisTime.TotalMilliseconds;
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)

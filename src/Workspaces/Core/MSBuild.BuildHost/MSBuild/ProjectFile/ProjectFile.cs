@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (_loadedProject is null)
             {
-                return ImmutableArray.Create(ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath, Log));
+                return ImmutableArray.Create(ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath));
             }
 
             var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             else
             {
                 var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
-                projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath, Log);
+                projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
                 return ImmutableArray.Create(projectFileInfo);
             }
         }
@@ -101,14 +101,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (_loadedProject is null)
             {
-                return ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath, Log);
+                return ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
             }
 
             var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
                 ? CreateProjectFileInfo(project, _loadedProject)
-                : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath, Log);
+                : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath);
         }
 
         private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project, MSB.Evaluation.Project loadedProject)
@@ -181,8 +181,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project.GetProjectReferences().ToImmutableArray(),
                 projectCapabilities,
                 contentFileInfo,
-                isSdkStyle,
-                Log);
+                isSdkStyle);
         }
 
         private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)

@@ -204,5 +204,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         [DebuggerStepThrough]
         public static FormattedClassification VBXmlEntityReference(string text)
             => New(text, ClassificationTypeNames.XmlLiteralEntityReference);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification TestCode(string text)
+            => New(text, ClassificationTypeNames.TestCode);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification TestCodeMarkdown(string text)
+            => New(text, ClassificationTypeNames.TestCodeMarkdown);
     }
 }

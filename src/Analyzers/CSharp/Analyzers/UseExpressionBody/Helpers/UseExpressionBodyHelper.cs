@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -25,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public abstract ArrowExpressionClauseSyntax? GetExpressionBody(SyntaxNode declaration);
         public abstract bool IsRelevantDeclarationNode(SyntaxNode node);
 
-        public abstract bool CanOfferUseExpressionBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer);
+        public abstract bool CanOfferUseExpressionBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer, CancellationToken cancellationToken);
         public abstract bool CanOfferUseBlockBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody);
-        public abstract SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody);
+        public abstract SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody, CancellationToken cancellationToken);
 
         public abstract Location GetDiagnosticLocation(SyntaxNode declaration);
 
