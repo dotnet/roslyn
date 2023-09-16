@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = Classifier.GetPooledList(out var classifiedSpans);
+            using var _1 = Classifier.GetPooledList(out var classifiedSpans);
+            using var _2 = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
             // We either calculate the tokens for the full document span, or the user 
             // can pass in a range from the full document if they wish.
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
-            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans);
+            ConvertMultiLineToSingleLineSpans(text, classifiedSpans, updatedClassifiedSpans);
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
@@ -85,9 +86,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             classifiedSpans.AddRange(nonEmptySpans);
         }
 
-        public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, SegmentedList<ClassifiedSpan> classifiedSpans)
+        public static void ConvertMultiLineToSingleLineSpans(SourceText text, SegmentedList<ClassifiedSpan> classifiedSpans, SegmentedList<ClassifiedSpan> updatedClassifiedSpans)
         {
-            using var _ = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
             for (var spanIndex = 0; spanIndex < classifiedSpans.Count; spanIndex++)
             {
@@ -108,8 +108,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     updatedClassifiedSpans.Add(span);
                 }
             }
-
-            return updatedClassifiedSpans.ToArray();
 
             static void ConvertToSingleLineSpan(
                 SourceText text,
@@ -217,10 +215,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private static int[] ComputeTokens(
             ClientCapabilities capabilities,
             TextLineCollection lines,
-            ClassifiedSpan[] classifiedSpans,
+            SegmentedList<ClassifiedSpan> classifiedSpans,
             IReadOnlyDictionary<string, int> tokenTypesToIndex)
         {
-            using var _ = ArrayBuilder<int>.GetInstance(classifiedSpans.Length, out var data);
+            using var _ = ArrayBuilder<int>.GetInstance(classifiedSpans.Count, out var data);
 
             // We keep track of the last line number and last start character since tokens are
             // reported relative to each other.
@@ -229,7 +227,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var tokenTypeMap = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeMap;
 
-            for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
+            for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
             {
                 currentClassifiedSpanIndex = ComputeNextToken(
                     lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
@@ -247,7 +245,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             TextLineCollection lines,
             ref int lastLineNumber,
             ref int lastStartCharacter,
-            ClassifiedSpan[] classifiedSpans,
+            SegmentedList<ClassifiedSpan> classifiedSpans,
             int currentClassifiedSpanIndex,
             IReadOnlyDictionary<string, string> tokenTypeMap,
             IReadOnlyDictionary<string, int> tokenTypesToIndex,
@@ -316,7 +314,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
                 // Break out of the loop if we have no more classified spans left, or if the next classified span has
                 // a different text span than our current text span.
-                if (currentClassifiedSpanIndex + 1 >= classifiedSpans.Length || classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan != originalTextSpan)
+                if (currentClassifiedSpanIndex + 1 >= classifiedSpans.Count || classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan != originalTextSpan)
                 {
                     break;
                 }
