@@ -1544,7 +1544,7 @@ class F
 
             CompileAndVerify(compilation).VerifyIL("C.Main()", @"
 {
-  // Code size      180 (0xb4)
+  // Code size      170 (0xaa)
   .maxstack  2
   .locals init (int? V_0, //i1
                 int? V_1, //i2
@@ -1589,35 +1589,27 @@ class F
   IL_0067:  box        ""int""
   IL_006c:  call       ""void C.UseParam(object)""
   IL_0071:  ldnull
-  IL_0072:  dup
-  IL_0073:  brtrue.s   IL_0077
-  IL_0075:  pop
-  IL_0076:  ldnull
-  IL_0077:  call       ""void C.UseParam(object)""
-  IL_007c:  ldnull
-  IL_007d:  dup
-  IL_007e:  brtrue.s   IL_0082
-  IL_0080:  pop
-  IL_0081:  ldnull
-  IL_0082:  call       ""void C.UseParam(object)""
-  IL_0087:  ldloca.s   V_1
-  IL_0089:  initobj    ""int?""
-  IL_008f:  ldloca.s   V_1
-  IL_0091:  call       ""int int?.GetValueOrDefault()""
-  IL_0096:  stloc.2
-  IL_0097:  ldloca.s   V_1
-  IL_0099:  call       ""bool int?.HasValue.get""
-  IL_009e:  brtrue.s   IL_00ad
-  IL_00a0:  ldc.i4.0
-  IL_00a1:  stloc.2
-  IL_00a2:  ldloca.s   V_1
-  IL_00a4:  ldloc.2
-  IL_00a5:  call       ""int?..ctor(int)""
-  IL_00aa:  ldloc.2
-  IL_00ab:  br.s       IL_00ae
-  IL_00ad:  ldloc.2
-  IL_00ae:  call       ""void C.UseParamAsInt(int)""
-  IL_00b3:  ret
+  IL_0072:  call       ""void C.UseParam(object)""
+  IL_0077:  ldnull
+  IL_0078:  call       ""void C.UseParam(object)""
+  IL_007d:  ldloca.s   V_1
+  IL_007f:  initobj    ""int?""
+  IL_0085:  ldloca.s   V_1
+  IL_0087:  call       ""int int?.GetValueOrDefault()""
+  IL_008c:  stloc.2
+  IL_008d:  ldloca.s   V_1
+  IL_008f:  call       ""bool int?.HasValue.get""
+  IL_0094:  brtrue.s   IL_00a3
+  IL_0096:  ldc.i4.0
+  IL_0097:  stloc.2
+  IL_0098:  ldloca.s   V_1
+  IL_009a:  ldloc.2
+  IL_009b:  call       ""int?..ctor(int)""
+  IL_00a0:  ldloc.2
+  IL_00a1:  br.s       IL_00a4
+  IL_00a3:  ldloc.2
+  IL_00a4:  call       ""void C.UseParamAsInt(int)""
+  IL_00a9:  ret
 }");
         }
 
@@ -2915,6 +2907,199 @@ struct S
 }", expectedOutput: @"
 1
 1", options: TestOptions.DebugExe);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(object)")]
+        [InlineData("(object)null")]
+        [InlineData("(object)default")]
+        [InlineData("(object)default(object)")]
+        public void ReferenceTypeAndDefault_Parameter(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    object M(object o) => o ??= {{defaultSyntax}};
+                }
+                """;
+
+            CompileAndVerify(code).VerifyIL("Program.M", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(object)")]
+        [InlineData("(object)null")]
+        [InlineData("(object)default")]
+        [InlineData("(object)default(object)")]
+        public void ReferenceTypeAndDefault_RefParameter(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    object M(ref object o) => o ??= {{defaultSyntax}};
+                }
+                """;
+
+            CompileAndVerify(code).VerifyIL("Program.M", """
+                {
+                  // Code size        3 (0x3)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldind.ref
+                  IL_0002:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(object)")]
+        [InlineData("(object)null")]
+        [InlineData("(object)default")]
+        [InlineData("(object)default(object)")]
+        public void ReferenceTypeAndDefault_OutParameter(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    void M(out object o)
+                    {
+                        o = null;
+                        o ??= {{defaultSyntax}};
+                    }
+                }
+                """;
+
+            CompileAndVerify(code).VerifyIL("Program.M", """
+                {
+                  // Code size        4 (0x4)
+                  .maxstack  2
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldnull
+                  IL_0002:  stind.ref
+                  IL_0003:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(object)")]
+        [InlineData("(object)null")]
+        [InlineData("(object)default")]
+        [InlineData("(object)default(object)")]
+        public void ReferenceTypeAndDefault_Local(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    object M()
+                    {
+                        object o = null;
+                        o ??= {{defaultSyntax}};
+                        return o;
+                    }
+                }
+                """;
+
+            CompileAndVerify(code).VerifyIL("Program.M", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldnull
+                  IL_0001:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(object)")]
+        [InlineData("(object)null")]
+        [InlineData("(object)default")]
+        [InlineData("(object)default(object)")]
+        public void ReferenceTypeAndDefault_RefLocal(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    string M(ref object o)
+                    {
+                        ref object o2 = ref o;
+                        o2 ??= {{defaultSyntax}};
+                        return o2.ToString();
+                    }
+                }
+                """;
+
+            CompileAndVerify(code).VerifyIL("Program.M", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  2
+                  IL_0000:  ldarg.1
+                  IL_0001:  dup
+                  IL_0002:  ldind.ref
+                  IL_0003:  pop
+                  IL_0004:  ldind.ref
+                  IL_0005:  callvirt   "string object.ToString()"
+                  IL_000a:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/55919")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("default(string)")]
+        [InlineData("(string)null")]
+        [InlineData("(string)default")]
+        [InlineData("(string)default(string)")]
+        public void ReferenceTypeAndDefault_SideEffect(string defaultSyntax)
+        {
+            var code = $$"""
+                class Program
+                {
+                    string Prop
+                    {
+                        get
+                        {
+                            System.Console.WriteLine("get");
+                            return null;
+                        }
+                        set
+                        {
+                            System.Console.WriteLine("set");
+                        }
+                    }
+
+                    static void Main()
+                    {
+                        var p = new Program();
+                        p.Prop ??= {{defaultSyntax}};
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                get
+                set
+                """;
+
+            CompileAndVerify(code, expectedOutput: expectedOutput);
         }
     }
 }

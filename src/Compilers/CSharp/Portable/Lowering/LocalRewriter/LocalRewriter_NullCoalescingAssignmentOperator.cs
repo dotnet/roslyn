@@ -31,6 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewriteNullCoalescingAssignmentStandard()
             {
+                // Optimize `left ??= right` to just `left` when `left` has no side effects and is of a reference type and `right` is effectively `null`
+                if (transformedLHS is { Type.IsReferenceType: true, Kind: BoundKind.Parameter or BoundKind.Local } &&
+                    RemoveIdentityConversions(loweredRight).IsDefaultValue())
+                {
+                    // Skip optimization for implicit ref locals, since optimizing an assignment here might result in uninitialized local later
+                    if (transformedLHS.ExpressionSymbol is not LocalSymbol { IsRef: true, IsImplicitlyDeclared: true })
+                    {
+                        return lhsRead;
+                    }
+                }
+
                 // Now that LHS is transformed with temporaries, we rewrite this node into a coalesce expression:
                 // lhsRead ?? (transformedLHS = loweredRight)
 
