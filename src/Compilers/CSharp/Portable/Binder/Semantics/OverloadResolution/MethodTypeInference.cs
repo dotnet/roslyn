@@ -3153,7 +3153,7 @@ OuterBreak:
 
         private static void GetAllCandidates(Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates, ArrayBuilder<TypeWithAnnotations> builder)
         {
-            // Not using builder.AddRange here because the dictionary values enumerator is a struct, and calling AddRange will have to box the enumeartor.
+            // Not using builder.AddRange here because the dictionary values enumerator is a struct, and calling AddRange will have to box the enumerator.
             // Instead, we increase the builder capacity, then loop over the values.
             // Also, we don't access candidates.Values to avoid realizing the Dictionary's internal ValueCollection (it's created lazily when Values is accessed)
             builder.Count += candidates.Count;
