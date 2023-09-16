@@ -772,8 +772,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder &&
                 elementType is null)
             {
-                Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
-                return;
+                Debug.Assert(elementType is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
+                if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations))
+                {
+                    Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
+                    return;
+                }
+                Debug.Assert(elementTypeWithAnnotations.HasType);
+                elementType = elementTypeWithAnnotations.Type;
             }
 
             bool reportedErrors = false;
