@@ -592,9 +592,57 @@ class Bad : Bad
 
         [Theory]
         [InlineData("in")]
-        [InlineData("out")]
         [InlineData("ref readonly")]
-        public void ModifyMethod_ParameterModifiers_RefOut(string newModifier)
+        public void ModifyMethod_ParameterModifiers_Ref_In_RefReadonly(string newModifier)
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    class C
+                    {
+                        public int F(ref int x) => throw null;
+                        public int G(in int y, ref readonly int z) => throw null;
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: $$"""
+                    class C
+                    {
+                        public int F({{newModifier}} int x) => throw null;
+                        public int G(in int y, ref readonly int z) => throw null;
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(12, TableIndex.CustomAttribute)
+                        });
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ModifyMethod_ParameterModifiers_Ref_Out()
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
@@ -612,7 +660,7 @@ class Bad : Bad
                     source: $$"""
                     class C
                     {
-                       public int F({{newModifier}} int x) => throw null;
+                        public int F(out int x) => throw null;
                     }
                     """,
                     edits: new[]
@@ -621,19 +669,67 @@ class Bad : Bad
                     },
                     validator: g =>
                     {
+                        g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("F");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param)
+                        });
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ModifyMethod_ParameterModifiers_RefReadOnly()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    class C
+                    {
+                        public int F(ref int x) => throw null;
+                        public int G(ref readonly int x) => throw null;
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: $$"""
+                    class C
+                    {
+                        public int F(ref readonly int x) => throw null;
+                        public int G(ref readonly int x) => throw null;
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
-                            Handle(2, TableIndex.StandAloneSig)
+                            Handle(9, TableIndex.CustomAttribute)
                         });
                     })
                 .Verify();
