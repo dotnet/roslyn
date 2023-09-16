@@ -13024,42 +13024,6 @@ partial class Program
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69980")]
-        [Fact]
-        public void CollectionBuilder_ElementConversion()
-        {
-            string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                class MyCollection<T> : IEnumerable<T>
-                {
-                    public IEnumerator<T> GetEnumerator() => default;
-                    IEnumerator IEnumerable.GetEnumerator() => default;
-                }
-                class MyCollectionBuilder
-                {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
-                }
-                """;
-            string sourceB = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<int> c = [1, 2, null];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // 1.cs(5,38): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
-                //         MyCollection<int> c = [1, 2, null];
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(5, 38));
-        }
-
         [Fact]
         public void CollectionBuilder_AttributeCycle()
         {
@@ -13088,6 +13052,111 @@ partial class Program
                 // 0.cs(6,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [CollectionBuilder(typeof(MyCollectionBuilder), MyCollectionBuilder.GetName([1, 2, 3]))]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyCollectionBuilder.GetName([1, 2, 3])").WithLocation(6, 49));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69980")]
+        [Fact]
+        public void ElementConversion_CollectionBuilder()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = [string.Empty, 2, null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,32): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         MyCollection<int> c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(5, 32),
+                // 1.cs(5,49): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         MyCollection<int> c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(5, 49));
+        }
+
+        [Fact]
+        public void ElementConversion_CollectionInitializer()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = [string.Empty, 2, null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,32): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection<int> c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "string.Empty").WithArguments("MyCollection<int>.Add(int)").WithLocation(5, 32),
+                // 1.cs(5,32): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+                //         MyCollection<int> c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_BadArgType, "string.Empty").WithArguments("1", "string", "int").WithLocation(5, 32),
+                // 1.cs(5,49): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection<int> c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "null").WithArguments("MyCollection<int>.Add(int)").WithLocation(5, 49),
+                // 1.cs(5,49): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
+                //         MyCollection<int> c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(5, 49));
+        }
+
+        [InlineData("int[]")]
+        [InlineData("System.ReadOnlySpan<int>")]
+        [InlineData("System.Collections.Generic.IReadOnlyCollection<int>")]
+        [InlineData("System.Collections.Generic.ICollection<int>")]
+        [Theory]
+        public void ElementConversion_Other(string collectionType)
+        {
+            string source = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        {{collectionType}} c;
+                        c = [string.Empty, 2, null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,14): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(6, 14),
+                // (6,31): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(6, 31));
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
