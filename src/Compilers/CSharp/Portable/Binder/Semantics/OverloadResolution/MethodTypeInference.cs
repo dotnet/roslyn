@@ -3155,9 +3155,9 @@ OuterBreak:
         {
             // Not using builder.AddRange here because the dictionary values enumerator is a struct, and calling AddRange will have to box the enumeartor.
             // Instead, we increase the builder capacity, then loop over the values.
-            var values = candidates.Values;
-            builder.Count += values.Count;
-            foreach (var value in values)
+            // Also, we don't access candidates.Values to avoid realizing the Dictionary's internal ValueCollection (it's created lazily when Values is accessed)
+            builder.Count += candidates.Count;
+            foreach (var (_, value) in candidates)
             {
                 builder.Add(value);
             }
