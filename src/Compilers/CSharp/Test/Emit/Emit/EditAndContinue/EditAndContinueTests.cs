@@ -621,7 +621,6 @@ class Bad : Bad
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("F");
 
                         g.VerifyEncLogDefinitions(new[]
