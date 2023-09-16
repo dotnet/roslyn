@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -27,6 +28,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             return hashSet.Add(item);
+        }
+
+        internal static bool Any<T>(this HashSet<T> hashSet, Func<T, bool> predicate)
+        {
+            foreach (var item in hashSet)
+            {
+                if (predicate(item))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
