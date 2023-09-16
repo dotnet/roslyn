@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitializer
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
     public partial class UseCollectionInitializerTests
     {
         private static async Task TestInRegularAndScriptAsync(
-            string testCode,
-            string fixedCode,
+            [StringSyntax("C#-Test")] string testCode,
+            [StringSyntax("C#-Test")] string fixedCode,
             OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         {
             var test = new VerifyCS.Test
@@ -38,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
             await test.RunAsync();
         }
 
-        private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion? languageVersion = null)
+        private static async Task TestMissingInRegularAndScriptAsync(
+            [StringSyntax("C#-Test")] string testCode,
+            LanguageVersion? languageVersion = null)
         {
             var test = new VerifyCS.Test
             {
@@ -80,6 +83,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                             1
                         };
                     }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInField1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    List<int> v = new List<int>();
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInField2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    List<int> v = new List<int>() { 1, 2, 3 };
                 }
                 """);
         }

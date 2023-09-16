@@ -70,6 +70,82 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
+    public async Task TestInField1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>();
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>() { 1, 2, 3 };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [1, 2, 3];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>()
+                {
+                    1,
+                    2,
+                    3
+                };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c =
+                [
+                    1,
+                    2,
+                    3
+                ];
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestOnVariableDeclarator()
     {
         await TestInRegularAndScriptAsync(
