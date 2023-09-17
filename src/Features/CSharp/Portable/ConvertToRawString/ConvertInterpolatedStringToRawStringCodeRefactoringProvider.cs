@@ -453,10 +453,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             using var _1 = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
+            startDelimeter = startDelimeter + formattingOptions.NewLine + indentation;
+            endDelimeter = formattingOptions.NewLine + indentation + endDelimeter;
+
             var startToken = UpdateToken(
                 stringExpression.StringStartToken,
                 startDelimeter,
-                kind: SyntaxKind.InterpolatedSingleLineRawStringStartToken);
+                kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken);
             var endToken = UpdateToken(
                 stringExpression.StringEndToken,
                 endDelimeter,
@@ -465,22 +468,11 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var first = stringExpression.Contents.First();
             var last = stringExpression.Contents.Last();
 
-            var newLineAndIndentation = InterpolatedStringText(CreateToken(
-                SyntaxKind.InterpolatedStringTextToken,
-                formattingOptions.NewLine + indentation));
-
             var atStartOfLine = false;
             foreach (var content in stringExpression.Contents)
             {
-                var isFirst = content == first;
-                var isLast = content == last;
-
                 if (content is InterpolationSyntax interpolation)
                 {
-                    // Ensure a newline before the first content element
-                    if (isFirst)
-                        contents.Add(newLineAndIndentation);
-
                     // todo: add indentation to open/close braces if they are at the start of the lines.
 
                     contents.Add(interpolation
@@ -489,10 +481,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                         .WithFormatClause(RewriteFormatClause(interpolation.FormatClause))
                         .WithCloseBraceToken(UpdateToken(interpolation.CloseBraceToken, closeBraceString)));
 
-                    // Ensure a newline after the last content element
-                    if (isLast)
-                        contents.Add(newLineAndIndentation);
-
                     // an interpolation never ends and then starts a new line.  Any newlines will be in a text node that follows.
                     atStartOfLine = false;
                 }
@@ -500,16 +488,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 {
                     using var _2 = PooledStringBuilder.GetInstance(out var builder);
 
-                    // Ensure a newline before the first content element
-                    if (isFirst)
-                        builder.Append(formattingOptions.NewLine + indentation);
-
                     var characters = TryConvertToVirtualChars(stringText);
                     AppendCharacters(builder, characters, indentation, ref atStartOfLine);
-
-                    // Ensure a newline after the last content element
-                    if (isLast)
-                        builder.Append(formattingOptions.NewLine + indentation);
 
                     contents.Add(stringText.WithTextToken(UpdateToken(stringText.TextToken, builder.ToString())));
                 }
