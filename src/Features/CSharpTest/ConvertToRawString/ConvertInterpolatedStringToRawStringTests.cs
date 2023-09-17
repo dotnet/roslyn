@@ -632,8 +632,8 @@ public class ConvertInterpolatedStringToRawStringTests
                 {
                     var v = $"""
                         {0 +
-                        1}"{1 +
-                        2}
+                            1}"{1 +
+                            2}
                         """;
                 }
             }
@@ -828,8 +828,8 @@ public class ConvertInterpolatedStringToRawStringTests
                 {
                     var v = $"""
                         {
-                        0 + 1}"{
-                        1 + 2}
+                            0 + 1}"{
+                            1 + 2}
                         """;
                 }
             }
@@ -1058,10 +1058,10 @@ public class ConvertInterpolatedStringToRawStringTests
                     var v =
                         $"""
                         {
-                        0 + 1
+                            0 + 1
                         }"
                         {
-                        1 + 2
+                            1 + 2
                         }
                         """;
                 }
