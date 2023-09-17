@@ -8,15 +8,12 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -555,6 +552,10 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
                     builder.Append(text.ToString(line.SpanIncludingLineBreak));
                 }
+                else if (line == text.Lines[1])
+                {
+
+                }
                 else
                 {
                     // normal content. trim off of the common prefix.
@@ -1028,6 +1029,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 return commonLeadingWhitespace;
 
             var line = lines[i];
+
+            // If this is the first line, then we got this line by adding a newline at the start of the interpolated
+            // string, moving the contents after the quote to the next line.  In that case, the next line will start at
+            // the zero-column and should not contribute to the computation of the common whitespace prefix.
+            if (line == line.Text!.Lines[1])
+                continue;
 
             if (interpolationSpans.Any(s => s.Contains(line.Start)) ||
                 interpolationSpans.Any(s => s.Start - 1 == line.Start))

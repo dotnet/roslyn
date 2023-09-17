@@ -1920,6 +1920,63 @@ public class ConvertInterpolatedStringToRawStringTests
     }
 
     [Fact]
+    public async Task TestWithoutLeadingWhitespace7_A()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"from x in y
+                        where x > 0
+                        select x";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
+    public async Task TestWithoutLeadingWhitespace7_B()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"from x in y
+                        where x > 0
+                        select x  
+                        ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
     public async Task TestWithoutLeadingWhitespace8()
     {
         await VerifyRefactoringAsync("""
