@@ -876,6 +876,41 @@ public class ConvertInterpolatedStringToRawStringTests
     }
 
     [Fact]
+    public async Task TestInterpolation_MultiLine7()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v =
+            [||]$@"{
+                0 + 1
+            }""
+            {
+                1 + 2
+            }";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {
+                            0 + 1
+                        }"
+                        {
+                            1 + 2
+                        }
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
     public async Task TestVerbatimSimpleString1()
     {
         await VerifyRefactoringAsync("""
