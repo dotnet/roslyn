@@ -623,6 +623,117 @@ public class ConvertInterpolatedStringToRawStringTests
     }
 
     [Fact]
+    public async Task TestInterpolation_MultiLine1()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{0 +
+                        1}""{1 +
+                        2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {0 +
+                            1}"{1 +
+                        2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine2()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{
+                        0 + 1}""{
+                        1 + 2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {
+                            0 + 1}"{
+                            1 + 2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine3()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+                        {0 + 1}""
+                        {1 + 2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+
+                        {0 + 1}"
+                        {1 + 2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine4()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+                        {0 + 1}""
+                        {1 + 2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {0 + 1}"
+                        {1 + 2}
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
     public async Task TestVerbatimSimpleString1()
     {
         await VerifyRefactoringAsync("""

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -317,11 +318,9 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         if (kind == ConvertToRawKind.SingleLine)
             return ConvertToSingleLineRawString();
 
-        throw new NotImplementedException();
-#if false
-
         var indentationOptions = new IndentationOptions(formattingOptions);
 
+        var token = stringExpression.StringStartToken;
         var tokenLine = parsedDocument.Text.Lines.GetLineFromPosition(token.SpanStart);
         if (token.SpanStart == tokenLine.Start)
         {
@@ -345,8 +344,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
             return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false);
         }
-
-#endif
 
         InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
         {
@@ -421,9 +418,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 valueText == "" ? text : valueText,
                 token.TrailingTrivia);
 
-#if false
-
-        SyntaxToken ConvertToMultiLineRawIndentedString(
+        InterpolatedStringExpressionSyntax ConvertToMultiLineRawIndentedString(
             string indentation,
             bool addIndentationToStart)
         {
@@ -475,8 +470,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 characters.CreateString(),
                 token.TrailingTrivia);
         }
-
-#endif
     }
 
     private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
