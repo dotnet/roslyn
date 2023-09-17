@@ -15,12 +15,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -140,6 +138,15 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         {
             if (content is InterpolationSyntax interpolation)
             {
+                if (interpolation.FormatClause != null)
+                {
+                    var characters = TryConvertToVirtualChars(interpolation.FormatClause.FormatStringToken);
+
+                    // Ensure that all characters in the string are those we can convert.
+                    if (!CanConvert(characters))
+                        return false;
+                }
+
                 text ??= interpolatedString.SyntaxTree.GetText(cancellationToken);
                 if (canBeSingleLine && text.AreOnSameLine(interpolation.OpenBraceToken, interpolation.CloseBraceToken))
                     canBeSingleLine = false;
@@ -147,11 +154,9 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             else if (content is InterpolatedStringTextSyntax interpolatedStringText)
             {
                 var characters = TryConvertToVirtualChars(interpolatedStringText);
-                if (characters.IsDefault)
-                    return false;
 
                 // Ensure that all characters in the string are those we can convert.
-                if (!characters.All(static ch => CanConvert(ch)))
+                if (!CanConvert(characters))
                     return false;
 
                 if (canBeSingleLine)
@@ -376,18 +381,14 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 {
                     contents.Add(interpolation
                         .WithOpenBraceToken(WithText(interpolation.OpenBraceToken, openBraceString))
+                        .WithFormatClause(RewriteFormatClause(interpolation.FormatClause))
                         .WithCloseBraceToken(WithText(interpolation.CloseBraceToken, closeBraceString)));
                 }
                 else if (content is InterpolatedStringTextSyntax stringText)
                 {
-                    var token = stringText.TextToken;
                     var characters = TryConvertToVirtualChars(stringText);
-                    contents.Add(stringText.WithTextToken(Token(
-                        token.LeadingTrivia,
-                        SyntaxKind.InterpolatedStringTextToken,
-                        characters.CreateString(),
-                        valueText: "",
-                        token.TrailingTrivia)));
+                    contents.Add(stringText.WithTextToken(WithText(
+                        stringText.TextToken, characters.CreateString())));
                 }
             }
 
@@ -395,6 +396,15 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 .WithStringStartToken(startToken)
                 .WithContents(List(contents))
                 .WithStringEndToken(endToken);
+        }
+
+        static InterpolationFormatClauseSyntax? RewriteFormatClause(InterpolationFormatClauseSyntax? formatClause)
+        {
+            if (formatClause is null)
+                return null;
+
+            var characters = TryConvertToVirtualChars(formatClause.FormatStringToken);
+            return formatClause.WithFormatStringToken(WithText(formatClause.FormatStringToken, characters.CreateString()));
         }
 
         static SyntaxToken WithText(SyntaxToken token, string text, string valueText = "")

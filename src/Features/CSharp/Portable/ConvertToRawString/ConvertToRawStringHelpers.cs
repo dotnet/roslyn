@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             return false;
         }
 
+        public static bool CanConvert(VirtualCharSequence characters)
+            => !characters.IsDefault && characters.All(static ch => CanConvert(ch));
+
         public static bool CanConvert(VirtualChar ch)
         {
             // Don't bother with unpaired surrogates.  This is just a legacy language corner case that we don't care to
