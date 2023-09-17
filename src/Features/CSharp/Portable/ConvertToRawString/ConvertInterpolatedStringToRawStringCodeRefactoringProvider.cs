@@ -463,6 +463,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     formattingOptions.NewLine + endDelimeter,
                     kind: SyntaxKind.InterpolatedRawStringEndToken));
 
+
+
             // If requested, cleanup the whitespace in the expression.
             if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
             {
