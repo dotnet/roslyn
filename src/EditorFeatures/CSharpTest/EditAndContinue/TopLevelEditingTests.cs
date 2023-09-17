@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+#pragma warning disable IDE0055 // Collection expression formatting
 
 using System;
 using System.Collections.Generic;
@@ -1241,8 +1242,8 @@ public class A3 : System.Attribute { }
 
         [Fact]
         public void Type_Update_Attribute_Insert_Reloadable()
-        { 
-            var attributes = ReloadableAttributeSrc + 
+        {
+            var attributes = ReloadableAttributeSrc +
                 """
                 class A : System.Attribute { }
                 class B : System.Attribute { }
@@ -8525,7 +8526,7 @@ class C
         [Fact]
         public void Method_Update_Parameter_Partial()
         {
-            var src1 =  @"
+            var src1 = @"
 class C
 {
     partial void M(int a);
@@ -10354,7 +10355,7 @@ public class SubClass : BaseClass, IConflict
                        semanticEdits:
                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
-                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")
+                           SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")
                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
@@ -15278,7 +15279,7 @@ public class C
         }
 
         [Fact]
-        public void  MemberInitializer_Update_StackAllocInConstructor()
+        public void MemberInitializer_Update_StackAllocInConstructor()
         {
             var src1 = "unsafe class C { int a = 1; public C() { int* a = stackalloc int[10]; } }";
             var src2 = "unsafe class C { int a = 2; public C() { int* a = stackalloc int[10]; } }";
@@ -15293,7 +15294,7 @@ public class C
         }
 
         [Fact]
-        public void  MemberInitializer_Update_StackAllocInConstructor_ThisInitializer()
+        public void MemberInitializer_Update_StackAllocInConstructor_ThisInitializer()
         {
             var src1 = "class C { int a = 1; C() : this(stackalloc int[1]) { } C(System.Span<int> s) { } }";
             var src2 = "class C { int a = 2; C() : this(stackalloc int[1]) { } C(System.Span<int> s) { } }";

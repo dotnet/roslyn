@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+#pragma warning disable IDE0055 // Collection expression formatting
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;

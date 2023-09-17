@@ -4282,7 +4282,7 @@ End Class
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51011")>
-        public Sub PartialMember_RenameInsertDelete_SameFile()
+        Public Sub PartialMember_RenameInsertDelete_SameFile()
             Dim src1 = "
 Partial Class C 
     Sub F1(a As Integer) : End Sub
@@ -4357,7 +4357,7 @@ End Class
             Dim srcB2 = srcA1
 
             EditAndContinueValidation.VerifySemantics(
-                { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
                     DocumentResults(
                         semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMembers("C.F").Single(Function(m) m.GetParameters()(0).Type.SpecialType = SpecialType.System_Char))}),
