@@ -266,7 +266,7 @@ public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, ISt
 
         if (!(other is ValueTuple))
         {{
-            throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, ""other"");
+            throw new ArgumentException(System.SR.ArgumentException_ValueTupleIncorrectType, ""other"");
         }}
 
         return 0;
@@ -286,7 +286,7 @@ public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, ISt
 
         if (!(other is ValueTuple))
         {{
-            throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, ""other"");
+            throw new ArgumentException(System.SR.ArgumentException_ValueTupleIncorrectType, ""other"");
         }}
 
         return 0;

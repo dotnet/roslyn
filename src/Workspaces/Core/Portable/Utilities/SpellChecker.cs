@@ -10,7 +10,11 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities
 {
-    internal readonly struct SpellChecker(Checksum checksum, BKTree bKTree) : IObjectWritable, IChecksummedObject
+    /// <summary>
+    /// Explicitly a reference type so that the consumer of this in <see cref="BKTree"/> can safely operate on an
+    /// instance without having to lock to ensure it sees the entirety of the value written out.
+    /// </summary>>
+    internal sealed class SpellChecker(Checksum checksum, BKTree bKTree) : IObjectWritable, IChecksummedObject
     {
         private const string SerializationFormat = "3";
 

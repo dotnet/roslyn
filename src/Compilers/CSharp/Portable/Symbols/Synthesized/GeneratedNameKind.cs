@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
         DisposeModeField = 'w',
         CombinedTokensField = 'x',
-        InlineArrayType = 'y', // last
+        InlineArrayType = 'y',
+        ReadOnlyListType = 'z', // last
 
         // Deprecated - emitted by Dev12, but not by Roslyn.
         // Don't reuse the values because the debugger might encounter them when consuming old binaries.

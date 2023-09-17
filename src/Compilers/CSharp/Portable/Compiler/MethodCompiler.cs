@@ -671,7 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
-            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true)))
+            var context = new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true);
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelTypeMethods(context)))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
                 Debug.Assert(method.SynthesizesLoweredBoundBody);

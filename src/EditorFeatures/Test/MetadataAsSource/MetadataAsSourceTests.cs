@@ -2923,13 +2923,13 @@ using System.Runtime.InteropServices;
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
 public interface [|IComImport|]
 {{
-    int Prop {{ get; }}
-
     void MOverload();
 
     void X();
 
     void MOverload(int i);
+
+    int Prop {{ get; }}
 }}
 #if false // {FeaturesResources.Decompilation_log}
 {string.Format(FeaturesResources._0_items_in_cache, 6)}
@@ -2949,13 +2949,13 @@ using System.Runtime.InteropServices;
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
 public interface [|IComImport|]
 {{
-    int Prop {{ get; }}
-
     void MOverload();
 
     void X();
 
     void MOverload(int i);
+
+    int Prop {{ get; }}
 }}
 #if false // {FeaturesResources.Decompilation_log}
 {string.Format(FeaturesResources._0_items_in_cache, 9)}

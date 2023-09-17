@@ -432,7 +432,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = {|CS0826:{|CS0029:new[] { }|}|};
+                    string[] i = {|CS0826:new[] { }|};
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -619,6 +619,24 @@ public class UseCollectionExpressionForArrayTests
                     void M()
                     {
                         var c = (int[])[1];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedToComplexCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var c = {|CS0030:(int)new int[] { 1 }|};
                     }
                 }
                 """,

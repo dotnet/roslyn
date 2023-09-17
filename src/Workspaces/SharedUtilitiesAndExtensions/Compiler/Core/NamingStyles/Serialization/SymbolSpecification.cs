@@ -448,7 +448,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             internal static SymbolKindOrTypeKind AddSymbolKindFromXElement(XElement symbolKindElement)
-                => new((SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value));
+            {
+                var symbolKind = (SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value);
+                return symbolKind switch
+                {
+                    // Handle cases where SymbolKind.Method was persisted as SymbolCategory.Other by automatically
+                    // converting them to MethodKind.Ordinary.
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1861733
+                    CodeAnalysis.SymbolKind.Method => new(CodeAnalysis.MethodKind.Ordinary),
+                    _ => new(symbolKind),
+                };
+            }
 
             internal static SymbolKindOrTypeKind AddTypeKindFromXElement(XElement typeKindElement)
                 => new((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));

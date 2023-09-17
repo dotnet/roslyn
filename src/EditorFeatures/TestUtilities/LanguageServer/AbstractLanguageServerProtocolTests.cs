@@ -315,13 +315,15 @@ namespace Roslyn.Test.Utilities
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, mutatingLspWorkspace, initializationOptions);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(
-            string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions, List<Type>? excludedTypes = null, List<Type>? extraExportedTypes = null)
+            string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions, List<Type>? excludedTypes = null, List<Type>? extraExportedTypes = null, bool commonReferences = true)
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
             var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, excludedTypes, extraExportedTypes);
 
-            workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
+            workspace.InitializeDocuments(
+                TestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups, commonReferences: commonReferences),
+                openDocuments: false);
 
             return CreateTestLspServerAsync(workspace, lspOptions);
         }

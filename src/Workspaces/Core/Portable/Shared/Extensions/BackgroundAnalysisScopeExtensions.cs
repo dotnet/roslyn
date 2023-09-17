@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => backgroundAnalysisScope switch
             {
                 BackgroundAnalysisScope.None => CompilerDiagnosticsScope.None,
-                BackgroundAnalysisScope.ActiveFile => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics,
+                BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics,
                 BackgroundAnalysisScope.OpenFiles => CompilerDiagnosticsScope.OpenFiles,
                 BackgroundAnalysisScope.FullSolution => CompilerDiagnosticsScope.FullSolution,
                 _ => throw ExceptionUtilities.UnexpectedValue(backgroundAnalysisScope),

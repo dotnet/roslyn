@@ -144,6 +144,64 @@ public partial class UseCollectionExpressionForBuilderTests
     }
 
     [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    public async Task TestCast(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        {{pattern}}
+                        [|builder.Add(|]0);
+                        var v = (ImmutableArray<int>)builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = (ImmutableArray<int>)[0];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(FailureCreationPatterns))]
+    public async Task TestIdentifierCast(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+                using X = System.Collections.Immutable.ImmutableArray<int>;
+
+                class C
+                {
+                    void M()
+                    {
+                        {{pattern}}
+                        builder.Add(0);
+                        var v = (X)builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
     public async Task TestPassToArgument(string pattern)
     {
         await new VerifyCS.Test
