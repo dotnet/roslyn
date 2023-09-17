@@ -183,8 +183,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 // If we have escaped quotes or braces in the string, then this is a good option to bubble up as
                 // something to convert to a raw string. Otherwise, still offer this refactoring, but at low priority as
                 // the user may be invoking this on lots of strings that they have no interest in converting.
-                if (priority == CodeActionPriority.Low && AllEscapesAre(characters, static c => c is '"' or '{' or '}'))
+                if (priority == CodeActionPriority.Low &&
+                    AllEscapesAre(characters,
+                        static c => c.Utf16SequenceLength == 1 && (char)c.Value is '"' or '{' or '}'))
+                {
                     priority = CodeActionPriority.Default;
+                }
             }
         }
 
@@ -345,9 +349,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false);
         }
 
-        InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
+        (int longestQuoteSequence, int longestBraceSequence) GetLongestSequences()
         {
-            // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var longestQuoteSequence = 0;
             var longestBraceSequence = 0;
             foreach (var content in stringExpression.Contents)
@@ -360,20 +363,36 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 }
             }
 
+            return (longestQuoteSequence, longestBraceSequence);
+        }
+
+        (string startDelimeter, string endDelimeter, string openBraceString, string closeBraceString) GetDelimeters()
+        {
+            var (longestQuoteSequence, longestBraceSequence) = GetLongestSequences();
+
+            // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
             var dollarCount = longestBraceSequence + 1;
 
             var quoteString = new string('"', quoteDelimiterCount);
+            var startDelimeter = $"{new string('$', dollarCount)}{quoteString}"
             var openBraceString = new string('{', dollarCount);
             var closeBraceString = new string('}', dollarCount);
 
+            return (startDelimeter, quoteString, openBraceString, closeBraceString);
+        }
+
+        InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
+        {
+            var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
+
             var startToken = UpdateToken(
                 stringExpression.StringStartToken,
-                $"{new string('$', dollarCount)}{quoteString}",
+                startDelimeter,
                 kind: SyntaxKind.InterpolatedSingleLineRawStringStartToken);
             var endToken = UpdateToken(
                 stringExpression.StringEndToken,
-                quoteString,
+                endDelimeter,
                 kind: SyntaxKind.InterpolatedRawStringEndToken);
 
             using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
@@ -424,7 +443,10 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         {
             // If the user asked to remove whitespace then do so now.
             if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
-                characters = CleanupWhitespace(characters);
+            {
+                throw new NotImplementedException();
+                // characters = CleanupWhitespace(characters);
+            }
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var longestQuoteSequence = GetLongestQuoteSequence(characters);

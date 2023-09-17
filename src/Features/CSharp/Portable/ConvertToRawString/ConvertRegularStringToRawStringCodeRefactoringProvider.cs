@@ -426,38 +426,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 result.Add(c);
         }
 
-        private static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)
-        {
-            var commonLeadingWhitespace = GetLeadingWhitespace(lines.First());
-
-            for (var i = 1; i < lines.Count; i++)
-            {
-                if (commonLeadingWhitespace.IsEmpty)
-                    return 0;
-
-                var currentLine = lines[i];
-                if (AllWhitespace(currentLine))
-                    continue;
-
-                var currentLineLeadingWhitespace = GetLeadingWhitespace(currentLine);
-                commonLeadingWhitespace = ComputeCommonWhitespacePrefix(commonLeadingWhitespace, currentLineLeadingWhitespace);
-            }
-
-            return commonLeadingWhitespace.Length;
-        }
-
-        private static VirtualCharSequence ComputeCommonWhitespacePrefix(
-            VirtualCharSequence leadingWhitespace1, VirtualCharSequence leadingWhitespace2)
-        {
-            var length = Math.Min(leadingWhitespace1.Length, leadingWhitespace2.Length);
-
-            var current = 0;
-            while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Rune == leadingWhitespace2[current].Rune)
-                current++;
-
-            return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
-        }
-
         private static void BreakIntoLines(VirtualCharSequence characters, ArrayBuilder<VirtualCharSequence> lines)
         {
             var index = 0;
