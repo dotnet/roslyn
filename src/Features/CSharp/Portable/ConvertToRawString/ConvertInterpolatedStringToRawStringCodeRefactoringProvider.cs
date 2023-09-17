@@ -67,9 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (token.Parent is not InterpolatedStringExpressionSyntax interpolatedString)
                 return;
 
-            if (interpolatedString.StringStartToken.Kind() is not SyntaxKind.InterpolatedStringStartToken and not SyntaxKind.InterpolatedVerbatimStringStartToken)
-                return;
-
             if (!CanConvertStringLiteral(interpolatedString, out var convertParams))
                 return;
 
@@ -119,6 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             InterpolatedStringExpressionSyntax interpolatedString, out CanConvertParams convertParams)
         {
             convertParams = default;
+
+            if (interpolatedString.StringStartToken.Kind() is not SyntaxKind.InterpolatedStringStartToken and not SyntaxKind.InterpolatedVerbatimStringStartToken)
+                return false;
 
             // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic
             // three line alternative over just $""
@@ -208,9 +208,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 {
                     canBeMultiLineWithoutLeadingWhiteSpaces = true;
                 }
-                //canBeMultiLineWithoutLeadingWhiteSpaces = &&
-                //    (HasLeadingWhitespace(characters) || HasTrailingWhitespace(characters)) &&
-                //    CleanupWhitespace(characters).Length > 0;
             }
 
             convertParams = new CanConvertParams(priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
@@ -224,11 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
             Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
-            Contract.ThrowIfFalse(token.Kind() == SyntaxKind.StringLiteralToken);
+            Contract.ThrowIfFalse(token.Parent is InterpolatedStringExpressionSyntax interpolatedString);
 
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var replacement = GetReplacementToken(parsedDocument, token, kind, options, cancellationToken);
-            return document.WithSyntaxRoot(root.ReplaceToken(token, replacement));
+            var replacement = GetReplacementExpression(parsedDocument, interpolatedString, kind, options, cancellationToken);
+            return document.WithSyntaxRoot(root.ReplaceNode(interpolatedString, replacement));
         }
 
         protected override async Task FixAllAsync(
@@ -249,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             foreach (var fixSpan in fixAllSpans)
             {
                 var node = editor.OriginalRoot.FindNode(fixSpan);
-                foreach (var stringLiteral in node.DescendantTokens().Where(token => token.Kind() == SyntaxKind.StringLiteralToken))
+                foreach (var stringLiteral in node.DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
                 {
                     // Ensure we can convert the string literal
                     if (!CanConvertStringLiteral(stringLiteral, out var canConvertParams))
@@ -271,21 +268,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     if (!hasMatchingKind)
                         continue;
 
-                    if (stringLiteral.Parent is not LiteralExpressionSyntax literalExpression)
-                        continue;
-
                     editor.ReplaceNode(
-                        literalExpression,
+                        stringLiteral,
                         (current, _) =>
                         {
-                            if (current is not LiteralExpressionSyntax currentLiteralExpression)
+                            if (current is not LiteralExpressionSyntax currentStringLiteral)
                                 return current;
 
                             var currentParsedDocument = parsedDocument.WithChangedRoot(
                                 current.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
-                            var replacementToken = GetReplacementToken(
-                                currentParsedDocument, currentLiteralExpression.Token, kind, options, cancellationToken);
-                            return currentLiteralExpression.WithToken(replacementToken);
+                            var replacement = GetReplacementExpression(
+                                currentParsedDocument, currentStringLiteral, kind, options, cancellationToken);
+                            return replacement;
                         });
                 }
             }
