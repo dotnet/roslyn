@@ -121,13 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
 
-            // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic 
-            // three line alternative over just ""
-            if (characters.IsDefaultOrEmpty)
+            if (!CanConvert(characters))
                 return false;
 
-            // Ensure that all characters in the string are those we can convert.
-            if (!characters.All(static ch => CanConvert(ch)))
+            // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic 
+            // three line alternative over just ""
+            if (characters.IsEmpty)
                 return false;
 
             var canBeSingleLine = CanBeSingleLine(characters);
@@ -459,15 +458,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
         }
 
-        private static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
-        {
-            var current = 0;
-            while (current < line.Length && IsCSharpWhitespace(line[current]))
-                current++;
-
-            return line.GetSubSequence(TextSpan.FromBounds(0, current));
-        }
-
         private static void BreakIntoLines(VirtualCharSequence characters, ArrayBuilder<VirtualCharSequence> lines)
         {
             var index = 0;
@@ -490,15 +480,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             var result = characters.GetSubSequence(TextSpan.FromBounds(index, end));
             index = end;
             return result;
-        }
-
-        private static bool AllWhitespace(VirtualCharSequence line)
-        {
-            var index = 0;
-            while (index < line.Length && IsCSharpWhitespace(line[index]))
-                index++;
-
-            return index == line.Length || IsCSharpNewLine(line[index]);
         }
     }
 }

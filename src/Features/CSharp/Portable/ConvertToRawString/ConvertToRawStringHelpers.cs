@@ -4,132 +4,181 @@
 
 using System;
 using System.Globalization;
-using System.Reflection.PortableExecutable;
 using System.Text;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
+namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
+
+internal static class ConvertToRawStringHelpers
 {
-    internal static class ConvertToRawStringHelpers
+    public static bool IsCSharpNewLine(VirtualChar ch)
+        => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsNewLine((char)ch.Value);
+
+    public static bool IsCSharpWhitespace(VirtualChar ch)
+        => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsWhitespace((char)ch.Value);
+
+    public static bool IsCarriageReturnNewLine(VirtualCharSequence characters, int index)
     {
-        public static bool IsCSharpNewLine(VirtualChar ch)
-            => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsNewLine((char)ch.Value);
+        return index + 1 < characters.Length &&
+            characters[index].Rune is { Utf16SequenceLength: 1, Value: '\r' } &&
+            characters[index + 1].Rune is { Utf16SequenceLength: 1, Value: '\n' };
+    }
 
-        public static bool IsCSharpWhitespace(VirtualChar ch)
-            => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsWhitespace((char)ch.Value);
+    public static bool AllEscapesAreQuotes(VirtualCharSequence sequence)
+        => AllEscapesAre(sequence, static ch => ch.Value == '"');
 
-        public static bool IsCarriageReturnNewLine(VirtualCharSequence characters, int index)
+    private static bool AllEscapesAre(VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        var hasEscape = false;
+
+        foreach (var ch in sequence)
         {
-            return index + 1 < characters.Length &&
-                characters[index].Rune is { Utf16SequenceLength: 1, Value: '\r' } &&
-                characters[index + 1].Rune is { Utf16SequenceLength: 1, Value: '\n' };
-        }
-
-        public static bool AllEscapesAreQuotes(VirtualCharSequence sequence)
-            => AllEscapesAre(sequence, static ch => ch.Value == '"');
-
-        private static bool AllEscapesAre(VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
-        {
-            var hasEscape = false;
-
-            foreach (var ch in sequence)
-            {
-                if (ch.Span.Length > 1)
-                {
-                    hasEscape = true;
-                    if (!predicate(ch))
-                        return false;
-                }
-            }
-
-            return hasEscape;
-        }
-
-        public static bool IsInDirective(SyntaxNode? node)
-        {
-            while (node != null)
-            {
-                if (node is DirectiveTriviaSyntax)
-                    return true;
-
-                node = node.GetParent(ascendOutOfTrivia: true);
-            }
-
-            return false;
-        }
-
-        public static bool CanConvert(VirtualCharSequence characters)
-            => !characters.IsDefault && characters.All(static ch => CanConvert(ch));
-
-        public static bool CanConvert(VirtualChar ch)
-        {
-            // Don't bother with unpaired surrogates.  This is just a legacy language corner case that we don't care to
-            // even try having support for.
-            if (ch.SurrogateChar != 0)
-                return false;
-
-            // Can't ever encode a null value directly in a c# file as our lexer/parser/text apis will stop righ there.
-            if (ch.Rune.Value == 0)
-                return false;
-
-            // Check if we have an escaped character in the original string.
             if (ch.Span.Length > 1)
             {
-                // An escaped newline is fine to convert (to a multi-line raw string).
-                if (IsCSharpNewLine(ch))
-                    return true;
-
-                // Control/formatting unicode escapes should stay as escapes.  The user code will just be enormously
-                // difficult to read/reason about if we convert those to the actual corresponding non-escaped chars.
-                var category = Rune.GetUnicodeCategory(ch.Rune);
-                if (category is UnicodeCategory.Format or UnicodeCategory.Control)
+                hasEscape = true;
+                if (!predicate(ch))
                     return false;
             }
-
-            return true;
         }
 
-        public static int GetLongestQuoteSequence(VirtualCharSequence characters)
-            => GetLongestCharacterSequence(characters, '"');
+        return hasEscape;
+    }
 
-        public static int GetLongestBraceSequence(VirtualCharSequence characters)
-            => Math.Max(GetLongestCharacterSequence(characters, '{'), GetLongestCharacterSequence(characters, '}'));
-
-        public static int GetLongestCharacterSequence(VirtualCharSequence characters, char c)
+    public static bool IsInDirective(SyntaxNode? node)
+    {
+        while (node != null)
         {
-            var longestSequence = 0;
-            for (int i = 0, n = characters.Length; i < n;)
-            {
-                var j = i;
-                while (j < n && characters[j] == c)
-                    j++;
+            if (node is DirectiveTriviaSyntax)
+                return true;
 
-                longestSequence = Math.Max(longestSequence, j - i);
-                i = j + 1;
-            }
-
-            return longestSequence;
+            node = node.GetParent(ascendOutOfTrivia: true);
         }
 
-        public static bool HasLeadingWhitespace(VirtualCharSequence characters)
+        return false;
+    }
+
+    public static bool CanConvert(VirtualCharSequence characters)
+        => !characters.IsDefault && characters.All(static ch => CanConvert(ch));
+
+    public static bool CanConvert(VirtualChar ch)
+    {
+        // Don't bother with unpaired surrogates.  This is just a legacy language corner case that we don't care to
+        // even try having support for.
+        if (ch.SurrogateChar != 0)
+            return false;
+
+        // Can't ever encode a null value directly in a c# file as our lexer/parser/text apis will stop righ there.
+        if (ch.Rune.Value == 0)
+            return false;
+
+        // Check if we have an escaped character in the original string.
+        if (ch.Span.Length > 1)
         {
-            var index = 0;
-            while (index < characters.Length && IsCSharpWhitespace(characters[index]))
-                index++;
+            // An escaped newline is fine to convert (to a multi-line raw string).
+            if (IsCSharpNewLine(ch))
+                return true;
 
-            return index < characters.Length && IsCSharpNewLine(characters[index]);
+            // Control/formatting unicode escapes should stay as escapes.  The user code will just be enormously
+            // difficult to read/reason about if we convert those to the actual corresponding non-escaped chars.
+            var category = Rune.GetUnicodeCategory(ch.Rune);
+            if (category is UnicodeCategory.Format or UnicodeCategory.Control)
+                return false;
         }
 
-        public static bool HasTrailingWhitespace(VirtualCharSequence characters)
+        return true;
+    }
+
+    public static int GetLongestQuoteSequence(VirtualCharSequence characters)
+        => GetLongestCharacterSequence(characters, '"');
+
+    public static int GetLongestBraceSequence(VirtualCharSequence characters)
+        => Math.Max(GetLongestCharacterSequence(characters, '{'), GetLongestCharacterSequence(characters, '}'));
+
+    public static int GetLongestCharacterSequence(VirtualCharSequence characters, char c)
+    {
+        var longestSequence = 0;
+        for (int i = 0, n = characters.Length; i < n;)
         {
-            var index = characters.Length - 1;
-            while (index >= 0 && IsCSharpWhitespace(characters[index]))
-                index--;
+            var j = i;
+            while (j < n && characters[j] == c)
+                j++;
 
-            return index >= 0 && IsCSharpNewLine(characters[index]);
+            longestSequence = Math.Max(longestSequence, j - i);
+            i = j + 1;
         }
+
+        return longestSequence;
+    }
+
+    public static bool HasLeadingWhitespace(VirtualCharSequence characters)
+    {
+        var index = 0;
+        while (index < characters.Length && IsCSharpWhitespace(characters[index]))
+            index++;
+
+        return index < characters.Length && IsCSharpNewLine(characters[index]);
+    }
+
+    public static bool HasTrailingWhitespace(VirtualCharSequence characters)
+    {
+        var index = characters.Length - 1;
+        while (index >= 0 && IsCSharpWhitespace(characters[index]))
+            index--;
+
+        return index >= 0 && IsCSharpNewLine(characters[index]);
+    }
+
+    public static bool AllWhitespace(VirtualCharSequence line)
+    {
+        var index = 0;
+        while (index < line.Length && IsCSharpWhitespace(line[index]))
+            index++;
+
+        return index == line.Length || IsCSharpNewLine(line[index]);
+    }
+
+    public static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
+    {
+        var current = 0;
+        while (current < line.Length && IsCSharpWhitespace(line[current]))
+            current++;
+
+        return line.GetSubSequence(TextSpan.FromBounds(0, current));
+    }
+
+    public static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)
+    {
+        var commonLeadingWhitespace = GetLeadingWhitespace(lines.First());
+
+        for (var i = 1; i < lines.Count; i++)
+        {
+            if (commonLeadingWhitespace.IsEmpty)
+                return 0;
+
+            var currentLine = lines[i];
+            if (AllWhitespace(currentLine))
+                continue;
+
+            var currentLineLeadingWhitespace = GetLeadingWhitespace(currentLine);
+            commonLeadingWhitespace = ComputeCommonWhitespacePrefix(commonLeadingWhitespace, currentLineLeadingWhitespace);
+        }
+
+        return commonLeadingWhitespace.Length;
+    }
+
+    private static VirtualCharSequence ComputeCommonWhitespacePrefix(
+        VirtualCharSequence leadingWhitespace1, VirtualCharSequence leadingWhitespace2)
+    {
+        var length = Math.Min(leadingWhitespace1.Length, leadingWhitespace2.Length);
+
+        var current = 0;
+        while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Rune == leadingWhitespace2[current].Rune)
+            current++;
+
+        return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
     }
 }
