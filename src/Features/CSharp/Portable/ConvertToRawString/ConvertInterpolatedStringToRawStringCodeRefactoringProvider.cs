@@ -520,7 +520,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             string preferredIndentation)
         {
             var interpolation = (InterpolationSyntax)expression.GetRequiredParent();
-            var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(interpolation, expression).SpanStart);
+            var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(expression).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(parsedDocument.Root.FindToken(startLine.Start));
 
             var expressionFirstToken = expression.GetFirstToken();
@@ -537,7 +537,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             return updatedExpression;
 
-            SyntaxNode GetAnchorNode(InterpolationSyntax interpolation, ExpressionSyntax expression)
+            SyntaxNode GetAnchorNode(SyntaxNode node)
             {
                 // we're starting with something either like:
                 //
@@ -554,9 +554,17 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 // that we can accurately determine where the preferred indentation should move all of it.
                 //
                 // Otherwise, default to the indentation of the line the expression is on.
-                return parsedDocument.Text.AreOnSameLine(interpolation.OpenBraceToken, expression.GetFirstToken())
-                    ? interpolation
-                    : expression;
+                var firstToken = expression.GetFirstToken();
+                if (parsedDocument.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
+                {
+                    for (var current = node; current != null; current = current.Parent)
+                    {
+                        if (current is StatementSyntax or MemberDeclarationSyntax)
+                            return current;
+                    }
+                }
+
+                return node;
             }
         }
 

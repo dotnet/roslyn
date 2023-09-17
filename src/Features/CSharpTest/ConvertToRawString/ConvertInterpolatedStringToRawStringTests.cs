@@ -633,7 +633,7 @@ public class ConvertInterpolatedStringToRawStringTests
                     var v = $"""
                         {0 +
                             1}"{1 +
-                        2}
+                            2}
                         """;
                 }
             }
@@ -689,7 +689,7 @@ public class ConvertInterpolatedStringToRawStringTests
                     var v = $"""
                         A{0 +
                             1}"{1 +
-                        2}
+                            2}
                         """;
                 }
             }
@@ -716,8 +716,92 @@ public class ConvertInterpolatedStringToRawStringTests
                 {
                     var v = $"""
                         {0 +
+                        1}"{1 +
+                        2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine1_D()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{0 +
+                    1}""{1 +
+                    2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {0 +
+                        1}"{1 +
+                        2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine1_E()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{0 +
+                        1}""{1 +
+                        2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {0 +
                             1}"{1 +
                             2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine1_F()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{0 +
+                            1}""{1 +
+                            2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {0 +
+                                1}"{1 +
+                                2}
                         """;
                 }
             }
@@ -744,8 +828,8 @@ public class ConvertInterpolatedStringToRawStringTests
                 {
                     var v = $"""
                         {
-                            0 + 1}"{
-                            1 + 2}
+                        0 + 1}"{
+                        1 + 2}
                         """;
                 }
             }
@@ -772,8 +856,8 @@ public class ConvertInterpolatedStringToRawStringTests
                 {
                     var v = $"""
 
-                        {0 + 1}"
-                        {1 + 2}
+                                    {0 + 1}"
+                                    {1 + 2}
                         """;
                 }
             }
@@ -971,7 +1055,8 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = $"""
+                    var v =
+                        $"""
                         {
                             0 + 1
                         }"
