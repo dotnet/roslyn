@@ -24,7 +24,6 @@
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\ParenthesesOptionsProvider.cs" Link="ParenthesesOptionsProvider.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\NamingStyles\NamingStylesTestOptionSets.cs" Link="NamingStyles\NamingStylesTestOptionSets.cs" />
     <Compile Include="..\..\..\Workspaces\CoreTestUtilities\OptionsCollection.cs" Link="OptionsCollection.cs" />
-    <Compile Include="..\..\..\Workspaces\CoreTestUtilities\StringSyntaxAttribute.cs" Link="StringSyntaxAttribute.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
