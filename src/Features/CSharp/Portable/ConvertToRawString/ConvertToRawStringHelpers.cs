@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -180,5 +181,11 @@ internal static class ConvertToRawStringHelpers
             current++;
 
         return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
+    }
+
+    public static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
+    {
+        foreach (var c in sequence)
+            result.Add(c);
     }
 }

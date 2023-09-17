@@ -420,12 +420,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             return VirtualCharSequence.Create(result.ToImmutable());
         }
 
-        private static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
-        {
-            foreach (var c in sequence)
-                result.Add(c);
-        }
-
         private static void BreakIntoLines(VirtualCharSequence characters, ArrayBuilder<VirtualCharSequence> lines)
         {
             var index = 0;

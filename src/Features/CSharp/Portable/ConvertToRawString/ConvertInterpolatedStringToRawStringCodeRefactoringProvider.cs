@@ -375,7 +375,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var dollarCount = longestBraceSequence + 1;
 
             var quoteString = new string('"', quoteDelimiterCount);
-            var startDelimeter = $"{new string('$', dollarCount)}{quoteString}"
+            var startDelimeter = $"{new string('$', dollarCount)}{quoteString}";
             var openBraceString = new string('{', dollarCount);
             var closeBraceString = new string('}', dollarCount);
 
@@ -449,6 +449,23 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             }
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
+            var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
+
+            using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
+
+            // Add initial new line.
+            contents.Add(InterpolatedStringText(Token(
+                leading: default,
+                SyntaxKind.InterpolatedStringTextToken,
+                formattingOptions.NewLine,
+                formattingOptions.NewLine,
+                trailing: default)));
+
+            return stringExpression
+                .WithStringStartToken(startToken)
+                .WithContents(List(contents))
+                .WithStringEndToken(endToken);
+
             var longestQuoteSequence = GetLongestQuoteSequence(characters);
             var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
 
@@ -483,7 +500,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             var leadingTrivia = token.LeadingTrivia;
             if (addIndentationToStart)
-                leadingTrivia = leadingTrivia.Add(SyntaxFactory.Whitespace(indentation));
+                leadingTrivia = leadingTrivia.Add(Whitespace(indentation));
+
 
             return SyntaxFactory.Token(
                 leadingTrivia,
@@ -535,12 +553,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             result.RemoveAt(result.Count - 1);
 
         return VirtualCharSequence.Create(result.ToImmutable());
-    }
-
-    private static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
-    {
-        foreach (var c in sequence)
-            result.Add(c);
     }
 
     private static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)
