@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
     public partial class UseCollectionInitializerTests
     {
         private static async Task TestInRegularAndScriptAsync(
-            string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+            string testCode,
+            string fixedCode,
+            OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         {
             var test = new VerifyCS.Test
             {
@@ -37,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
             await test.RunAsync();
         }
 
-        private static async Task TestMissingInRegularAndScriptAsync(
-            string testCode, LanguageVersion? languageVersion = null)
+        private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion? languageVersion = null)
         {
             var test = new VerifyCS.Test
             {
