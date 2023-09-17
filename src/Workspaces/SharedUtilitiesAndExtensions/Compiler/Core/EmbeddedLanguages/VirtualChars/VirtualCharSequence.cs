@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -184,10 +185,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public string CreateString()
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
+            this.AppendTo(builder);
+            return builder.ToString();
+        }
+
+        public void AppendTo(StringBuilder builder)
+        {
             foreach (var ch in this)
                 ch.AppendTo(builder);
-
-            return builder.ToString();
         }
 
         [Conditional("DEBUG")]

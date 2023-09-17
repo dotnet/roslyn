@@ -109,6 +109,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         }
     }
 
+    private static VirtualCharSequence ConvertToVirtualChars(InterpolatedStringTextSyntax textSyntax)
+    {
+        var result = TryConvertToVirtualChars(textSyntax.TextToken);
+        Contract.ThrowIfTrue(result.IsDefault);
+        return result;
+    }
+
     private static VirtualCharSequence TryConvertToVirtualChars(InterpolatedStringTextSyntax textSyntax)
         => TryConvertToVirtualChars(textSyntax.TextToken);
 
@@ -221,12 +228,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
         {
             if (firstContent is InterpolatedStringTextSyntax firstStringText &&
-                HasLeadingWhitespace(TryConvertToVirtualChars(firstStringText)))
+                HasLeadingWhitespace(ConvertToVirtualChars(firstStringText)))
             {
                 canBeMultiLineWithoutLeadingWhiteSpaces = true;
             }
             else if (lastContent is InterpolatedStringTextSyntax lastStringText &&
-                HasTrailingWhitespace(TryConvertToVirtualChars(lastStringText)))
+                HasTrailingWhitespace(ConvertToVirtualChars(lastStringText)))
             {
                 canBeMultiLineWithoutLeadingWhiteSpaces = true;
             }
@@ -357,7 +364,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             {
                 if (content is InterpolatedStringTextSyntax stringText)
                 {
-                    var characters = TryConvertToVirtualChars(stringText);
+                    var characters = ConvertToVirtualChars(stringText);
                     longestQuoteSequence = Math.Max(longestQuoteSequence, GetLongestQuoteSequence(characters));
                     longestBraceSequence = Math.Max(longestBraceSequence, GetLongestBraceSequence(characters));
                 }
@@ -408,7 +415,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 }
                 else if (content is InterpolatedStringTextSyntax stringText)
                 {
-                    var characters = TryConvertToVirtualChars(stringText);
+                    var characters = ConvertToVirtualChars(stringText);
                     contents.Add(stringText.WithTextToken(UpdateToken(
                         stringText.TextToken, characters.CreateString())));
                 }
@@ -429,14 +436,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             return formatClause.WithFormatStringToken(UpdateToken(formatClause.FormatStringToken, characters.CreateString()));
         }
 
-        static SyntaxToken UpdateToken(SyntaxToken token, string text, string valueText = "", SyntaxKind? kind = null)
-            => Token(
-                token.LeadingTrivia,
-                kind ?? token.Kind(),
-                text,
-                valueText == "" ? text : valueText,
-                token.TrailingTrivia);
-
         InterpolatedStringExpressionSyntax ConvertToMultiLineRawIndentedString(
             string indentation,
             bool addIndentationToStart)
@@ -444,8 +443,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             // If the user asked to remove whitespace then do so now.
             if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
             {
-                throw new NotImplementedException();
-                // characters = CleanupWhitespace(characters);
+                stringExpression = CleanupWhitespace(stringExpression);
             }
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
@@ -498,9 +496,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 {
                     using var _2 = PooledStringBuilder.GetInstance(out var builder);
 
-                    var characters = TryConvertToVirtualChars(stringText);
+                    var characters = ConvertToVirtualChars(stringText);
                     AppendCharacters(builder, characters, indentation, ref atStartOfLine);
-
 
                     if (atStartOfLine && stringText != stringExpression.Contents.Last())
                     {
@@ -645,6 +642,91 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         }
     }
 
+    private static string CreateString(ArrayBuilder<VirtualCharSequence> lines)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var result);
+        foreach (var line in lines)
+            line.AppendTo(result);
+
+        return result.ToString();
+    }
+
+    private static InterpolatedStringExpressionSyntax CleanupWhitespace(
+        InterpolatedStringExpressionSyntax stringExpression)
+    {
+        using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
+
+        if (stringExpression.Contents.First() is InterpolatedStringTextSyntax stringText1)
+        {
+            lines.Clear();
+
+            var characters = ConvertToVirtualChars(stringText1);
+            BreakIntoLines(characters, lines);
+
+            // Remove the leading lines if they are all whitespace.
+            while (lines.Count > 0 && AllWhitespace(lines.First()))
+                lines.RemoveAt(0);
+
+            stringExpression = stringExpression.WithContents(stringExpression.Contents.Replace(
+                stringText1,
+                stringText1.WithTextToken(
+                    Token(SyntaxKind.InterpolatedStringTextToken,));
+        }
+
+        if (stringExpression.Contents.Last() is InterpolatedStringTextSyntax stringText2)
+        {
+            lines.Clear();
+
+            var characters = ConvertToVirtualChars(stringText2);
+            BreakIntoLines(characters, lines);
+
+            // Remove the trailing lines if they are all whitespace.
+            while (lines.Count > 0 && AllWhitespace(lines.Last()))
+                lines.RemoveAt(lines.Count - 1);
+
+            stringExpression = stringExpression.WithStringEndToken(
+                UpdateToken(stringExpression.StringEndToken,
+                    CreateString(lines)));
+        }
+
+        // First, determine all the lines in the content.
+        BreakIntoLines(characters, lines);
+
+        // Remove the leading and trailing line if they are all whitespace.
+        while (lines.Count > 0 && AllWhitespace(lines.First()))
+            lines.RemoveAt(0);
+
+
+        if (lines.Count == 0)
+            return VirtualCharSequence.Empty;
+
+        // Use the remaining lines to figure out what common whitespace we have.
+        var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines);
+
+        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+
+        foreach (var line in lines)
+        {
+            if (AllWhitespace(line))
+            {
+                // For an all-whitespace line, just add the trailing newlines on the line (if present).
+                AddRange(result, line.SkipWhile(IsCSharpWhitespace));
+            }
+            else
+            {
+                // Normal line.  Skip the common whitespace.
+                AddRange(result, line.Skip(commonWhitespacePrefix));
+            }
+        }
+
+        // Remove all trailing whitespace and newlines from the final string.
+        while (result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
+            result.RemoveAt(result.Count - 1);
+
+        return VirtualCharSequence.Create(result.ToImmutable());
+    }
+
+
     private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
     {
         using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
@@ -752,4 +834,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         index = end;
         return result;
     }
+
+    public static SyntaxToken UpdateToken(SyntaxToken token, string text, string valueText = "", SyntaxKind? kind = null)
+        => Token(
+            token.LeadingTrivia,
+            kind ?? token.Kind(),
+            text,
+            valueText == "" ? text : valueText,
+            token.TrailingTrivia);
 }
