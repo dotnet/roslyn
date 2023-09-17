@@ -1584,7 +1584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return true;
         }
 
-#endregion
+        #endregion
 
         #region Diagnostic Info
 
