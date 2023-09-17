@@ -463,8 +463,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     formattingOptions.NewLine + endDelimeter,
                     kind: SyntaxKind.InterpolatedRawStringEndToken));
 
-            var initialText = rawStringExpression.GetText();
-            var cleanedText = initialText;
+            var cleanedExpression = rawStringExpression;
             // If requested, cleanup the whitespace in the expression.
             if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
             {
@@ -473,16 +472,25 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             }
 
             // Now that the expression is cleaned, ensure every non-blank line gets the necessary indentation.
-            var indentedText = IndentSourceText(cleanedText, indentation);
+            var indentedText = Indent(cleanedExpression, indentation);
 
             // Finally, parse the text back into an interpolated string so that all the contents are correct.
             var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(indentedText.ToString(), options: stringExpression.SyntaxTree.Options);
             return parsed.WithTriviaFrom(stringExpression);
         }
 
-        string IndentSourceText(SourceText text, string indentation)
+        string Indent(InterpolatedStringExpressionSyntax stringExpression, string indentation)
         {
-            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            var text = stringExpression.GetText();
+
+            using var _1 = PooledStringBuilder.GetInstance(out var builder);
+            using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var interpolationSpans);
+
+            foreach (var content in stringExpression.Contents)
+            {
+                if (content is InterpolationSyntax interpolation)
+                    interpolationSpans.Add(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
+            }
 
             builder.Append(text.ToString(text.Lines[0].SpanIncludingLineBreak));
 
@@ -490,16 +498,22 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             {
                 var line = text.Lines[i];
 
-                // don't append the conents of blank lines.
-                if (!line.IsEmptyOrWhitespace())
+                if (interpolationSpans.Any(s => s.Contains(line.Start)))
                 {
-                    builder.Append(indentation);
-                    builder.Append(line.ToString());
+                    // inside an interpolation.  Don't touch this line.
+                    builder.Append(text.ToString(line.SpanIncludingLineBreak));
                 }
+                else {
+                    // don't append the conents of blank lines.
+                    if (!line.IsEmptyOrWhitespace())
+                    {
+                        builder.Append(indentation);
+                        builder.Append(line.ToString());
+                    }
 
-                // append the original newline.
-                builder.Append(text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)));
-
+                    // append the original newline.
+                    builder.Append(text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)));
+                }
                 // builder.Append(text.ToString(line.SpanIncludingLineBreak));
             }
 
