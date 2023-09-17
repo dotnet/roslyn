@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // Can't use a collection expression if the original object creation has arguments.
             if (_analyzeForCollectionExpression)
             {
-                var argumentList = this.SyntaxFacts.GetArgumentListOfObjectCreationExpression(_objectCreationExpression);
+                var argumentList = this.SyntaxFacts.GetArgumentListOfBaseObjectCreationExpression(_objectCreationExpression);
                 if (argumentList != null)
                 {
                     var arguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
