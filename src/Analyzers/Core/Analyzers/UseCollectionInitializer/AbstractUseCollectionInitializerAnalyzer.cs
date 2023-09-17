@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
         {
-            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
             if (state is null)
                 return default;
 

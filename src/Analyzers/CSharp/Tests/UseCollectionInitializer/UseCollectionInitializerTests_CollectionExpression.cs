@@ -67,6 +67,41 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
+    public async Task TestNotWithConstructorArguments1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>(new[] { 1, 2, 3 });
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWithConstructorArguments2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>(new[] { 1, 2, 3 });
+                    c.Add(1);
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestInField1()
     {
         await TestInRegularAndScriptAsync(

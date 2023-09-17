@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     : collectionInitializerMatches.Value;
 
             var nodes = containingStatement is null
-            ? ImmutableArray<SyntaxNode>.Empty
-            : ImmutableArray.Create<SyntaxNode>(containingStatement);
+                ? ImmutableArray<SyntaxNode>.Empty
+                : ImmutableArray.Create<SyntaxNode>(containingStatement);
             nodes = nodes.AddRange(matches.Select(static m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
                 return;

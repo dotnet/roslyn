@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
     {
         protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax> State;
 
-        protected TObjectCreationExpressionSyntax _objectCreationExpression;
+        protected TObjectCreationExpressionSyntax _objectCreationExpression = null!;
         protected bool _analyzeForCollectionExpression;
 
         protected ISyntaxFacts SyntaxFacts => this.State.SyntaxFacts;
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected void Clear()
         {
             State = default;
-            _objectCreationExpression = null;
+            _objectCreationExpression = null!;
             _analyzeForCollectionExpression = false;
         }
 
@@ -67,22 +65,35 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TExpressionSyntax rootExpression,
+            bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
         {
             var statement = rootExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
-            if (statement is null)
-                return null;
+            if (statement != null)
+            {
+                var result =
+                    TryInitializeVariableDeclarationCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken) ??
+                    TryInitializeAssignmentCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken);
+                if (result != null)
+                    return result;
+            }
 
-            return
-                TryInitializeVariableDeclarationCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken) ??
-                TryInitializeAssignmentCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken);
+            // Even if the above cases didn't work, we always support converting a `new List<int>()` collection over to
+            // a collection expression.  We just won't analyzer later statement.
+            if (analyzeForCollectionExpression)
+            {
+                return new UpdateExpressionState<TExpressionSyntax, TStatementSyntax>(
+                    semanticModel, syntaxFacts, rootExpression, valuePattern: default, initializedSymbol: null);
+            }
+
+            return null;
         }
 
         private static UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeVariableDeclarationCase(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TExpressionSyntax rootExpression,
-            TStatementSyntax containingStatement,
+            TStatementSyntax? containingStatement,
             CancellationToken cancellationToken)
         {
             if (!syntaxFacts.IsLocalDeclarationStatement(containingStatement))
@@ -112,7 +123,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TExpressionSyntax rootExpression,
-            TStatementSyntax containingStatement,
+            TStatementSyntax? containingStatement,
             CancellationToken cancellationToken)
         {
             if (!syntaxFacts.IsSimpleAssignmentStatement(containingStatement))
