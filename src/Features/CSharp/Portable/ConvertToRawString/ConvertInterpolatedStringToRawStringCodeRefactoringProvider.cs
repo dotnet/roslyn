@@ -26,6 +26,21 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 
@@ -542,7 +557,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             string preferredIndentation)
         {
             var interpolation = (InterpolationSyntax)expression.GetRequiredParent();
-            var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(expression).SpanStart);
+            var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(interpolation, expression).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(parsedDocument.Root.FindToken(startLine.Start));
 
             var expressionFirstToken = expression.GetFirstToken();
@@ -557,39 +572,28 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     return IndentToken(currentToken, preferredIndentation, firstTokenOnLineIndentationString);
                 });
 
-            // Now, once we've indented the expression, attempt to move comments on its containing statement to it.
-            return TransferParentStatementComments(parentStatement, updatedExpression, preferredIndentation);
+            return updatedExpression;
 
-            SyntaxNode GetAnchorNode(SyntaxNode node)
+            SyntaxNode GetAnchorNode(InterpolationSyntax interpolation, ExpressionSyntax expression)
             {
                 // we're starting with something either like:
                 //
-                //      collection.Add(some_expr +
-                //          cont);
+                //      {some_expr +
+                //          cont};
                 //
                 // or
                 //
-                //      collection.Add(
+                //      {
                 //          some_expr +
-                //              cont);
+                //              cont};
                 //
-                // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
+                // In the first, we want to consider the `some_expr + cont` to actually start where `{` starts so
                 // that we can accurately determine where the preferred indentation should move all of it.
-
-                // If the expression is parented by a statement or member-decl (like a field/prop), use that container
-                // to determine the indentation point. Otherwise, default to the indentation of the line the expression
-                // is on.
-                var firstToken = node.GetFirstToken();
-                if (document.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
-                {
-                    for (var current = node; current != null; current = current.Parent)
-                    {
-                        if (current is StatementSyntax or MemberDeclarationSyntax)
-                            return current;
-                    }
-                }
-
-                return node;
+                //
+                // Otherwise, default to the indentation of the line the expression is on.
+                return parsedDocument.Text.AreOnSameLine(interpolation.OpenBraceToken, expression.GetFirstToken())
+                    ? interpolation
+                    : expression;
             }
         }
 
@@ -640,6 +644,17 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             return Whitespace(positionIndentation.StartsWith(firstTokenOnLineIndentationString)
                 ? preferredIndentation + positionIndentation[firstTokenOnLineIndentationString.Length..]
                 : preferredIndentation);
+        }
+
+        string GetIndentationStringForToken(SyntaxToken token)
+            => GetIndentationStringForPosition(token.SpanStart);
+
+        string GetIndentationStringForPosition(int position)
+        {
+            var lineContainingPosition = parsedDocument.Text.Lines.GetLineFromPosition(position);
+            var lineText = lineContainingPosition.ToString();
+            var indentation = lineText.ConvertTabToSpace(formattingOptions.TabSize, initialColumn: 0, endPosition: position - lineContainingPosition.Start);
+            return indentation.CreateIndentationString(formattingOptions.UseTabs, formattingOptions.TabSize);
         }
     }
 
