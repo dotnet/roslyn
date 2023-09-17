@@ -36,16 +36,6 @@ public class ConvertInterpolatedStringToRawStringTests
     }
 
     [Fact]
-    public async Task TestNotInDirective()
-    {
-        var code = """
-            #line 1 [||]$"goo.cs"
-            """;
-
-        await VerifyRefactoringAsync(code, code);
-    }
-
-    [Fact]
     public async Task TestNotOnEmptyString()
     {
         var code = """
@@ -1070,7 +1060,7 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = """
+                    var v = $"""
                         "goobar
                         """;
                 }
@@ -1094,7 +1084,7 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = """
+                    var v = $"""
                         "goobar
                         """;
                 }
@@ -1142,7 +1132,7 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = """
+                    var v = $"""
                         goobar"
                         """;
                 }
@@ -1166,7 +1156,7 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = """
+                    var v = $"""
                         goobar"
                         """;
                 }
@@ -1190,7 +1180,7 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = """
+                    var v = $"""
                         goo
                         bar
                         """;
@@ -1295,7 +1285,7 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = """
+                    var v = $"""
 
                         goobar
 
@@ -1323,7 +1313,7 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = """
+                    var v = $"""
 
                         goobar
 

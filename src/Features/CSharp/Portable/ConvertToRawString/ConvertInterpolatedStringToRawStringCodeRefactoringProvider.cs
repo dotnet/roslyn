@@ -453,22 +453,19 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             using var _1 = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
-            startDelimeter = startDelimeter + formattingOptions.NewLine + indentation;
-            endDelimeter = formattingOptions.NewLine + indentation + endDelimeter;
-
             var startToken = UpdateToken(
                 stringExpression.StringStartToken,
-                startDelimeter,
+                startDelimeter + formattingOptions.NewLine,
                 kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken);
             var endToken = UpdateToken(
                 stringExpression.StringEndToken,
-                endDelimeter,
+                formattingOptions.NewLine + indentation + endDelimeter,
                 kind: SyntaxKind.InterpolatedRawStringEndToken);
 
             var first = stringExpression.Contents.First();
             var last = stringExpression.Contents.Last();
 
-            var atStartOfLine = false;
+            var atStartOfLine = true;
             foreach (var content in stringExpression.Contents)
             {
                 if (content is InterpolationSyntax interpolation)
@@ -491,7 +488,10 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     var characters = TryConvertToVirtualChars(stringText);
                     AppendCharacters(builder, characters, indentation, ref atStartOfLine);
 
-                    contents.Add(stringText.WithTextToken(UpdateToken(stringText.TextToken, builder.ToString())));
+                    contents.Add(stringText.WithTextToken(UpdateToken(
+                        stringText.TextToken,
+                        builder.ToString(),
+                        characters.CreateString())));
                 }
             }
 
