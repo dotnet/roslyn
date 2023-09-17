@@ -376,7 +376,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             return (longestQuoteSequence, longestBraceSequence);
         }
 
-        (string startDelimeter, string endDelimeter, string openBraceString, string closeBraceString) GetDelimeters()
+        (string startDelimiter, string endDelimiter, string openBraceString, string closeBraceString) GetDelimiters()
         {
             var (longestQuoteSequence, longestBraceSequence) = GetLongestSequences();
 
@@ -385,26 +385,26 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var dollarCount = longestBraceSequence + 1;
 
             var quoteString = new string('"', quoteDelimiterCount);
-            var startDelimeter = $"{new string('$', dollarCount)}{quoteString}";
+            var startDelimiter = $"{new string('$', dollarCount)}{quoteString}";
             var openBraceString = new string('{', dollarCount);
             var closeBraceString = new string('}', dollarCount);
 
-            return (startDelimeter, quoteString, openBraceString, closeBraceString);
+            return (startDelimiter, quoteString, openBraceString, closeBraceString);
         }
 
         InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
         {
-            var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
+            var (startDelimiter, endDelimiter, openBraceString, closeBraceString) = GetDelimiters();
 
             return stringExpression
                 .WithStringStartToken(UpdateToken(
                     stringExpression.StringStartToken,
-                    startDelimeter,
+                    startDelimiter,
                     kind: SyntaxKind.InterpolatedSingleLineRawStringStartToken))
                 .WithContents(ConvertContents(stringExpression, openBraceString, closeBraceString))
                 .WithStringEndToken(UpdateToken(
                     stringExpression.StringEndToken,
-                    endDelimeter,
+                    endDelimiter,
                     kind: SyntaxKind.InterpolatedRawStringEndToken));
         }
 
@@ -450,7 +450,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             // First, do the trivial conversion, just updating the start/end delimiters.  Adding the requisite newlines
             // at the start/end, and updating quotes/braces.
-            var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
+            var (startDelimiter, endDelimiter, openBraceString, closeBraceString) = GetDelimiters();
 
             var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(parsedDocument, stringExpression).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(
@@ -460,12 +460,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var rawStringExpression = stringExpression
                 .WithStringStartToken(UpdateToken(
                     stringExpression.StringStartToken,
-                    startDelimeter + formattingOptions.NewLine,
+                    startDelimiter + formattingOptions.NewLine,
                     kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken))
                 .WithContents(ConvertContents(stringExpression, openBraceString, closeBraceString))
                 .WithStringEndToken(UpdateToken(
                     stringExpression.StringEndToken,
-                    formattingOptions.NewLine + endDelimeter,
+                    formattingOptions.NewLine + endDelimiter,
                     kind: SyntaxKind.InterpolatedRawStringEndToken));
 
             var cleanedExpression = rawStringExpression;
@@ -523,9 +523,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             using var _1 = PooledStringBuilder.GetInstance(out var builder);
 
-            // Add all but the last line.
-            for (int i = 0, n = lines.Count - 1; i < n; i++)
+            // Add the line with the starting delimiter
+            builder.Append(text.ToString(lines[0].SpanIncludingLineBreak));
+
+            // Add the content lines
+            for (int i = 1, n = lines.Count - 1; i < n; i++)
             {
+                // ignore any blank lines we see.
                 var line = lines[i];
                 if (line.IsEmptyOrWhitespace())
                 {
@@ -544,7 +548,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                         var currentLineLeadingWhitespace = line.Text!.ToString(TextSpan.FromBounds(line.Start, pos));
                         if (currentLineLeadingWhitespace.StartsWith(commonWhitespacePrefix))
                         {
-                            builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak));
+                            builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak)));
                             continue;
                         }
                     }
@@ -554,11 +558,11 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 else
                 {
                     // normal content. trim off of the common prefix.
-                    builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak));
+                    builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak)));
                 }
             }
 
-            // For the line before the delimeter line, trim off any trailing whitespace if present.
+            // For the line before the delimiter line, trim off any trailing whitespace if present.
             var lastIndex = builder.Length;
             var beforeNewLines = lastIndex;
             while (SyntaxFacts.IsNewLine(builder[beforeNewLines - 1]))
@@ -570,9 +574,11 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             builder.Remove(beforeSpaces, beforeNewLines - beforeSpaces);
 
-            // Add the line with the final delimeter
+            // Add the line with the final delimiter
             builder.Append(text.ToString(lines[^1].SpanIncludingLineBreak));
 
+            var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(builder.ToString(), options: stringExpression.SyntaxTree.Options);
+            return parsed.WithTriviaFrom(stringExpression);
                 //// Remove all trailing whitespace and newlines from the final string.
                 //var lastContentLine = lines[^2];
                 //lastContentLine.
@@ -688,18 +694,18 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
-            var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
+            var (startDelimiter, endDelimiter, openBraceString, closeBraceString) = GetDelimiters();
             var indentationTrivia = Whitespace(indentation);
 
             using var _1 = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
             var startToken = UpdateToken(
                 stringExpression.StringStartToken,
-                startDelimeter + formattingOptions.NewLine,
+                startDelimiter + formattingOptions.NewLine,
                 kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken);
             var endToken = UpdateToken(
                 stringExpression.StringEndToken,
-                formattingOptions.NewLine + indentation + endDelimeter,
+                formattingOptions.NewLine + indentation + endDelimiter,
                 kind: SyntaxKind.InterpolatedRawStringEndToken);
 
             var first = stringExpression.Contents.First();
@@ -1015,10 +1021,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
     {
         string? commonLeadingWhitespace = null;
         
-        foreach (var line in lines)
+        // Walk all the lines between the delimiters.
+        for (int i = 1, n = lines.Count - 1; i < n; i++)
         {
             if (commonLeadingWhitespace is "")
                 return commonLeadingWhitespace;
+
+            var line = lines[i];
 
             if (interpolationSpans.Any(s => s.Contains(line.Start)) ||
                 interpolationSpans.Any(s => s.Start - 1 == line.Start))
