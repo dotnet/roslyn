@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 return;
 
             var options = context.Options;
+            var priority = convertParams.Priority;
 
             if (convertParams.CanBeSingleLine)
             {
@@ -108,6 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             }
         }
 
+        private static VirtualCharSequence TryConvertToVirtualChars(InterpolatedStringTextSyntax textSyntax)
+            => TryConvertToVirtualChars(textSyntax.TextToken);
+
+        private static VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
+            => CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
+
         private static bool CanConvertStringLiteral(
             InterpolatedStringExpressionSyntax interpolatedString, out CanConvertParams convertParams)
         {
@@ -118,13 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (interpolatedString.Contents.Count == 0)
                 return false;
 
+            var firstContent = interpolatedString.Contents.First();
+            var lastContent = interpolatedString.Contents.Last();
+
             var priority = CodeActionPriority.Low;
             var canBeSingleLine = true;
             foreach (var content in interpolatedString.Contents)
             {
                 if (content is InterpolatedStringTextSyntax interpolatedStringText)
                 {
-                    var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(interpolatedStringText.TextToken);
+                    var characters = TryConvertToVirtualChars(interpolatedStringText);
                     if (characters.IsDefault)
                         return false;
 
@@ -140,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                         {
                             canBeSingleLine = false;
                         }
-                        else if (interpolatedStringText == interpolatedString.Contents.First() &&
+                        else if (interpolatedStringText == firstContent &&
                             characters.First().Rune.Value == '"')
                         {
                             canBeSingleLine = false;
                         }
-                        else if (interpolatedStringText == interpolatedString.Contents.Last() &&
+                        else if (interpolatedStringText == lastContent &&
                             characters.Last().Rune.Value == '"')
                         {
                             canBeSingleLine = false;
@@ -155,63 +165,56 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     // If we have escaped quotes in the string, then this is a good option to bubble up as something to
                     // convert to a raw string. Otherwise, still offer this refactoring, but at low priority as the user
                     // may be invoking this on lots of strings that they have no interest in converting.
-                    if (AllEscapesAreQuotes(characters))
+                    if (priority == CodeActionPriority.Low && AllEscapesAreQuotes(characters))
                         priority = CodeActionPriority.Default;
                 }
             }
 
+            // Users sometimes write verbatim string literals with a extra starting newline (or indentation) purely
+            // for aesthetic reasons.  For example:
+            //
+            //      var v = @"
+            //          SELECT column1, column2, ...
+            //          FROM table_name";
+            //
+            // Converting this directly to a raw string will produce:
+            //
+            //      var v = """
+            //
+            //                  SELECT column1, column2, ...
+            //                  FROM table_name";
+            //          """
+            //
+            // Check for this and offer instead to generate:
+            //
+            //      var v = """
+            //          SELECT column1, column2, ...
+            //          FROM table_name";
+            //          """
+            //
+            // This changes the contents of the literal, but that can be fine for the domain the user is working in.
+            // Offer this, but let the user know that this will change runtime semantics.
             var canBeMultiLineWithoutLeadingWhiteSpaces = false;
-            if (!canBeSingleLine)
+            if (!canBeSingleLine &&
+                interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
             {
-                // Users sometimes write verbatim string literals with a extra starting newline (or indentation) purely
-                // for aesthetic reasons.  For example:
-                //
-                //      var v = @"
-                //          SELECT column1, column2, ...
-                //          FROM table_name";
-                //
-                // Converting this directly to a raw string will produce:
-                //
-                //      var v = """
-                //
-                //                  SELECT column1, column2, ...
-                //                  FROM table_name";
-                //          """
-                //
-                // Check for this and offer instead to generate:
-                //
-                //      var v = """
-                //          SELECT column1, column2, ...
-                //          FROM table_name";
-                //          """
-                //
-                // This changes the contents of the literal, but that can be fine for the domain the user is working in.
-                // Offer this, but let the user know that this will change runtime semantics.
-                canBeMultiLineWithoutLeadingWhiteSpaces = token.IsVerbatimStringLiteral() &&
-                    (HasLeadingWhitespace(characters) || HasTrailingWhitespace(characters)) &&
-                    CleanupWhitespace(characters).Length > 0;
+                if (firstContent is InterpolatedStringTextSyntax firstStringText &&
+                    HasLeadingWhitespace(TryConvertToVirtualChars(firstStringText)))
+                {
+                    canBeMultiLineWithoutLeadingWhiteSpaces = true;
+                }
+                else if (lastContent is InterpolatedStringTextSyntax lastStringText &&
+                    HasTrailingWhitespace(TryConvertToVirtualChars(lastStringText)))
+                {
+                    canBeMultiLineWithoutLeadingWhiteSpaces = true;
+                }
+                //canBeMultiLineWithoutLeadingWhiteSpaces = &&
+                //    (HasLeadingWhitespace(characters) || HasTrailingWhitespace(characters)) &&
+                //    CleanupWhitespace(characters).Length > 0;
             }
 
-            convertParams = new CanConvertParams(characters, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
+            convertParams = new CanConvertParams(priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
             return true;
-
-            static bool HasLeadingWhitespace(VirtualCharSequence characters)
-            {
-                var index = 0;
-                while (index < characters.Length && IsCSharpWhitespace(characters[index]))
-                    index++;
-
-                return index < characters.Length && IsCSharpNewLine(characters[index]);
-            }
-
-            static bool HasTrailingWhitespace(VirtualCharSequence characters)
-            {
-                var index = characters.Length - 1;
-                while (index >= 0 && IsCSharpWhitespace(characters[index]))
-                    index--;
-
-                return index >= 0 && IsCSharpNewLine(characters[index]);
-            }
         }
 
         private static async Task<Document> UpdateDocumentAsync(

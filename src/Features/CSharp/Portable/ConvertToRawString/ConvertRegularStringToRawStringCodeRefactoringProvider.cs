@@ -170,24 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             convertParams = new CanConvertParams(priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
             return true;
-
-            static bool HasLeadingWhitespace(VirtualCharSequence characters)
-            {
-                var index = 0;
-                while (index < characters.Length && IsCSharpWhitespace(characters[index]))
-                    index++;
-
-                return index < characters.Length && IsCSharpNewLine(characters[index]);
-            }
-
-            static bool HasTrailingWhitespace(VirtualCharSequence characters)
-            {
-                var index = characters.Length - 1;
-                while (index >= 0 && IsCSharpWhitespace(characters[index]))
-                    index--;
-
-                return index >= 0 && IsCSharpNewLine(characters[index]);
-            }
         }
 
         private static bool CanBeSingleLine(VirtualCharSequence characters)
