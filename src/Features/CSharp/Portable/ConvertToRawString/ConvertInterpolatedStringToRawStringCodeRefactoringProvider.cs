@@ -501,6 +501,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     var characters = TryConvertToVirtualChars(stringText);
                     AppendCharacters(builder, characters, indentation, ref atStartOfLine);
 
+
+                    if (atStartOfLine && stringText != stringExpression.Contents.Last())
+                    {
+                        builder.Append(indentation);
+                        atStartOfLine = false;
+                    }
+
                     contents.Add(stringText.WithTextToken(UpdateToken(
                         stringText.TextToken,
                         builder.ToString(),
@@ -541,36 +548,40 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 });
 
             return updatedExpression;
+        }
 
-            SyntaxNode GetAnchorNode(SyntaxNode node)
+        SyntaxNode GetAnchorNode(ExpressionSyntax node)
+        {
+            // we're starting with something either like:
+            //
+            //      {some_expr +
+            //          cont};
+            //
+            // or
+            //
+            //      {
+            //          some_expr +
+            //              cont};
+            //
+            // In the first, we want to consider the `some_expr + cont` to actually start where `{` starts so
+            // that we can accurately determine where the preferred indentation should move all of it.
+            //
+            // Otherwise, default to the indentation of the line the expression is on.
+            var firstToken = node.GetFirstToken();
+            if (parsedDocument.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
             {
-                // we're starting with something either like:
-                //
-                //      {some_expr +
-                //          cont};
-                //
-                // or
-                //
-                //      {
-                //          some_expr +
-                //              cont};
-                //
-                // In the first, we want to consider the `some_expr + cont` to actually start where `{` starts so
-                // that we can accurately determine where the preferred indentation should move all of it.
-                //
-                // Otherwise, default to the indentation of the line the expression is on.
-                var firstToken = expression.GetFirstToken();
-                if (parsedDocument.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
-                {
-                    for (var current = node; current != null; current = current.Parent)
-                    {
-                        if (current is StatementSyntax or MemberDeclarationSyntax)
-                            return current;
-                    }
-                }
+                return stringExpression;
 
-                return node;
+                //var interpolation = (InterpolationSyntax)node.GetRequiredParent();
+                //var stringEx
+                //for (var current = node; current != null; current = current.Parent)
+                //{
+                //    if (current is StatementSyntax or MemberDeclarationSyntax)
+                //        return current;
+                //}
             }
+
+            return node;
         }
 
         SyntaxToken IndentToken(
