@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var expression = (TExpressionSyntax?)this.SyntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
                 if (expression is null)
                     break;
-                
+
                 if (!this.State.ValuePatternMatches(expression))
                     break;
 
