@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -18,8 +17,10 @@ using VerifyCS = CSharpCodeRefactoringVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertInterpolatedToRawString)]
 public class ConvertInterpolatedStringToRawStringTests
 {
-    private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+    private static async Task VerifyRefactoringAsync(string testCode, string? fixedCode = null, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {
+        fixedCode ??= testCode;
+
         await new VerifyCS.Test
         {
             TestCode = testCode,
@@ -108,6 +109,38 @@ public class ConvertInterpolatedStringToRawStringTests
     }
 
     [Fact]
+    public async Task TestNotOnHighSurrogateChar1()
+    {
+        var code = """
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"\uD800{0}";
+                }
+            }
+            """;
+
+        await VerifyRefactoringAsync(code, code);
+    }
+
+    [Fact]
+    public async Task TestNotOnHighSurrogateChar2()
+    {
+        var code = """
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"{0}\uD800";
+                }
+            }
+            """;
+
+        await VerifyRefactoringAsync(code, code);
+    }
+
+    [Fact]
     public async Task TestNotOnLowSurrogateChar1()
     {
         var code = """
@@ -148,6 +181,21 @@ public class ConvertInterpolatedStringToRawStringTests
     }
 
     [Fact]
+    public async Task TestOnSplitSurrogate()
+    {
+        await VerifyRefactoringAsync(
+            """
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"\uD83D{0}\uDC69";
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestNotOnNullChar()
     {
         var code = """
@@ -164,6 +212,38 @@ public class ConvertInterpolatedStringToRawStringTests
     }
 
     [Fact]
+    public async Task TestNotOnNullChar1()
+    {
+        var code = """
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"\u0000{0}";
+                }
+            }
+            """;
+
+        await VerifyRefactoringAsync(code, code);
+    }
+
+    [Fact]
+    public async Task TestNotOnNullChar2()
+    {
+        var code = """
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"{0}\u0000";
+                }
+            }
+            """;
+
+        await VerifyRefactoringAsync(code, code);
+    }
+
+    [Fact]
     public async Task TestNotOnControlCharacter()
     {
         var code = """
@@ -172,6 +252,38 @@ public class ConvertInterpolatedStringToRawStringTests
                 void M()
                 {
                     var v = [||]$"\u007F";
+                }
+            }
+            """;
+
+        await VerifyRefactoringAsync(code, code);
+    }
+
+    [Fact]
+    public async Task TestNotOnControlCharacter1()
+    {
+        var code = """
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"\u007F{0}";
+                }
+            }
+            """;
+
+        await VerifyRefactoringAsync(code, code);
+    }
+
+    [Fact]
+    public async Task TestNotOnControlCharacter2()
+    {
+        var code = """
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"{0}\u007F";
                 }
             }
             """;
@@ -438,6 +550,50 @@ public class ConvertInterpolatedStringToRawStringTests
                 void M()
                 {
                     var v = $"""{0:A}""";
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_SingleLine5()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"{0}ab{1}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""{0}ab{1}""";
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_SingleLine6()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$"{0}""{1}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""{0}"{1}""";
                 }
             }
             """");
