@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -225,16 +226,25 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         if (!canBeSingleLine &&
             interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
         {
-            if (firstContent is InterpolatedStringTextSyntax firstStringText &&
-                HasLeadingWhitespace(ConvertToVirtualChars(firstStringText)))
-            {
-                canBeMultiLineWithoutLeadingWhiteSpaces = true;
-            }
-            else if (lastContent is InterpolatedStringTextSyntax lastStringText &&
-                HasTrailingWhitespace(ConvertToVirtualChars(lastStringText)))
-            {
-                canBeMultiLineWithoutLeadingWhiteSpaces = true;
-            }
+            var converted = GetInitialMultiLineRawInterpolatedString(interpolatedString);
+            var cleaned = CleanInterpolatedString(converted);
+
+            canBeMultiLineWithoutLeadingWhiteSpaces = !cleaned.IsEquivalentTo(converted);
+            //if (firstContent is InterpolatedStringTextSyntax firstStringText &&
+            //    HasLeadingWhitespace(ConvertToVirtualChars(firstStringText)))
+            //{
+            //    canBeMultiLineWithoutLeadingWhiteSpaces = true;
+            //}
+            //else if (lastContent is InterpolatedStringTextSyntax lastStringText &&
+            //    HasTrailingWhitespace(ConvertToVirtualChars(lastStringText)))
+            //{
+            //    canBeMultiLineWithoutLeadingWhiteSpaces = true;
+            //}
+
+            //if (canBeMultiLineWithoutLeadingWhiteSpaces)
+            //{
+            //    if (Clean)
+            //}
         }
 
         convertParams = new CanConvertParams(priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
@@ -356,39 +366,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             return ConvertToMultiLineRawIndentedString(indentation);
         }
 
-        (int longestQuoteSequence, int longestBraceSequence) GetLongestSequences()
-        {
-            var longestQuoteSequence = 0;
-            var longestBraceSequence = 0;
-            foreach (var content in stringExpression.Contents)
-            {
-                if (content is InterpolatedStringTextSyntax stringText)
-                {
-                    var characters = ConvertToVirtualChars(stringText);
-                    longestQuoteSequence = Math.Max(longestQuoteSequence, GetLongestQuoteSequence(characters));
-                    longestBraceSequence = Math.Max(longestBraceSequence, GetLongestBraceSequence(characters));
-                }
-            }
-
-            return (longestQuoteSequence, longestBraceSequence);
-        }
-
-        (string startDelimiter, string endDelimiter, string openBraceString, string closeBraceString) GetDelimiters()
-        {
-            var (longestQuoteSequence, longestBraceSequence) = GetLongestSequences();
-
-            // Have to make sure we have a delimiter longer than any quote sequence in the string.
-            var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
-            var dollarCount = longestBraceSequence + 1;
-
-            var quoteString = new string('"', quoteDelimiterCount);
-            var startDelimiter = $"{new string('$', dollarCount)}{quoteString}";
-            var openBraceString = new string('{', dollarCount);
-            var closeBraceString = new string('}', dollarCount);
-
-            return (startDelimiter, quoteString, openBraceString, closeBraceString);
-        }
-
         InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
         {
             var (startDelimiter, endDelimiter, openBraceString, closeBraceString) = GetDelimiters();
@@ -405,72 +382,16 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     kind: SyntaxKind.InterpolatedRawStringEndToken));
         }
 
-        static SyntaxList<InterpolatedStringContentSyntax> ConvertContents(
-            InterpolatedStringExpressionSyntax stringExpression,
-            string openBraceString,
-            string closeBraceString)
-        {
-            using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
-
-            foreach (var content in stringExpression.Contents)
-            {
-                if (content is InterpolationSyntax interpolation)
-                {
-                    contents.Add(interpolation
-                        .WithOpenBraceToken(UpdateToken(interpolation.OpenBraceToken, openBraceString))
-                        .WithFormatClause(RewriteFormatClause(interpolation.FormatClause))
-                        .WithCloseBraceToken(UpdateToken(interpolation.CloseBraceToken, closeBraceString)));
-                }
-                else if (content is InterpolatedStringTextSyntax stringText)
-                {
-                    var characters = ConvertToVirtualChars(stringText);
-                    contents.Add(stringText.WithTextToken(UpdateToken(
-                        stringText.TextToken, characters.CreateString())));
-                }
-            }
-
-            return List(contents);
-        }
-
-        static InterpolationFormatClauseSyntax? RewriteFormatClause(InterpolationFormatClauseSyntax? formatClause)
-        {
-            if (formatClause is null)
-                return null;
-
-            var characters = TryConvertToVirtualChars(formatClause.FormatStringToken);
-            return formatClause.WithFormatStringToken(UpdateToken(formatClause.FormatStringToken, characters.CreateString()));
-        }
-
         InterpolatedStringExpressionSyntax ConvertToMultiLineRawIndentedString(string indentation)
         {
-            // If the user asked to remove whitespace then do so now.
-
-            // First, do the trivial conversion, just updating the start/end delimiters.  Adding the requisite newlines
-            // at the start/end, and updating quotes/braces.
-            var (startDelimiter, endDelimiter, openBraceString, closeBraceString) = GetDelimiters();
-
-            var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(parsedDocument, stringExpression).SpanStart);
-            var firstTokenOnLineIndentationString = GetIndentationStringForToken(
-                parsedDocument.Text, formattingOptions, parsedDocument.Root.FindToken(startLine.Start));
-
-            // Once we have this, convert the node to text as it is much easier to process in string form.
-            var rawStringExpression = stringExpression
-                .WithStringStartToken(UpdateToken(
-                    stringExpression.StringStartToken,
-                    startDelimiter + formattingOptions.NewLine,
-                    kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken))
-                .WithContents(ConvertContents(stringExpression, openBraceString, closeBraceString))
-                .WithStringEndToken(UpdateToken(
-                    stringExpression.StringEndToken,
-                    formattingOptions.NewLine + endDelimiter,
-                    kind: SyntaxKind.InterpolatedRawStringEndToken));
+            var rawStringExpression = GetInitialMultiLineRawInterpolatedString(stringExpression);
 
             var cleanedExpression = rawStringExpression;
             // If requested, cleanup the whitespace in the expression.
             if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
             {
                 // stringExpression = CleanupWhitespace(stringExpression);
-                cleanedExpression = Clean(cleanedExpression);
+                cleanedExpression = CleanInterpolatedString(cleanedExpression);
             }
 
             // Now that the expression is cleaned, ensure every non-blank line gets the necessary indentation.
@@ -480,158 +401,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(indentedText.ToString(), options: stringExpression.SyntaxTree.Options);
             return parsed.WithTriviaFrom(stringExpression);
         }
-
-        static InterpolatedStringExpressionSyntax Clean(InterpolatedStringExpressionSyntax stringExpression)
-        {
-            var text = stringExpression.GetText();
-
-            using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var interpolationSpans);
-
-            foreach (var content in stringExpression.Contents)
-            {
-                if (content is InterpolationSyntax interpolation)
-                    interpolationSpans.Add(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
-            }
-
-            // Get all the lines of the string expression.  Note that the first/last lines will be the ones containing
-            // the delimiters.  So they can be ignored in all further processing.
-            using var _3 = ArrayBuilder<TextLine>.GetInstance(out var lines);
-            lines.AddRange(text.Lines);
-
-            // Remove the leading and trailing lines if they are all whitespace.
-            while (lines[1].IsEmptyOrWhitespace() &&
-                !interpolationSpans.Any(s => s.Contains(lines[1].Start)))
-            {
-                lines.RemoveAt(1);
-            }
-
-            while (lines[^2].IsEmptyOrWhitespace() &&
-                !interpolationSpans.Any(s => s.Contains(lines[^2].Start)))
-            {
-                lines.RemoveAt(lines.Count - 2);
-            }
-
-            // If we removed all the lines, don't do anything.
-            if (lines.Count == 2)
-                return stringExpression;
-
-            // Use the remaining lines to figure out what common whitespace we have.
-            var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines, interpolationSpans);
-
-            using var _1 = PooledStringBuilder.GetInstance(out var builder);
-
-            // Add the line with the starting delimiter
-            builder.Append(text.ToString(lines[0].SpanIncludingLineBreak));
-
-            // Add the content lines
-            for (int i = 1, n = lines.Count - 1; i < n; i++)
-            {
-                // ignore any blank lines we see.
-                var line = lines[i];
-                if (line.IsEmptyOrWhitespace())
-                {
-                    // append the original newline.
-                    builder.Append(text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)));
-                    continue;
-                }
-
-                // line with content on it.  It's either content of the string expression, or it's
-                // interpolation code.
-                if (interpolationSpans.Any(s => s.Contains(line.Start)))
-                {
-                    // Interpolation content.  Trim the prefix if present on that line, otherwise leave alone.
-                    if (line.GetFirstNonWhitespacePosition() is int pos)
-                    {
-                        var currentLineLeadingWhitespace = line.Text!.ToString(TextSpan.FromBounds(line.Start, pos));
-                        if (currentLineLeadingWhitespace.StartsWith(commonWhitespacePrefix))
-                        {
-                            builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak)));
-                            continue;
-                        }
-                    }
-
-                    builder.Append(text.ToString(line.SpanIncludingLineBreak));
-                }
-                else if (line == text.Lines[1])
-                {
-
-                }
-                else
-                {
-                    // normal content. trim off of the common prefix.
-                    builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak)));
-                }
-            }
-
-            // For the line before the delimiter line, trim off any trailing whitespace if present.
-            var lastIndex = builder.Length;
-            var beforeNewLines = lastIndex;
-            while (SyntaxFacts.IsNewLine(builder[beforeNewLines - 1]))
-                beforeNewLines--;
-
-            var beforeSpaces = beforeNewLines;
-            while (SyntaxFacts.IsWhitespace(builder[beforeNewLines - 1]))
-                beforeSpaces--;
-
-            builder.Remove(beforeSpaces, beforeNewLines - beforeSpaces);
-
-            // Add the line with the final delimiter
-            builder.Append(text.ToString(lines[^1].SpanIncludingLineBreak));
-
-            var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(builder.ToString(), options: stringExpression.SyntaxTree.Options);
-            return parsed.WithTriviaFrom(stringExpression);
-                //// Remove all trailing whitespace and newlines from the final string.
-                //var lastContentLine = lines[^2];
-                //lastContentLine.
-                //lastContentLine.GetLastNonWhitespacePosition()
-                //while (lines.Count result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
-                //    result.RemoveAt(result.Count - 1);
-
-
-#if false
-
-        using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
-
-        // First, determine all the lines in the content.
-        BreakIntoLines(characters, lines);
-
-        // Remove the leading and trailing line if they are all whitespace.
-        while (lines.Count > 0 && AllWhitespace(lines.First()))
-            lines.RemoveAt(0);
-
-        while (lines.Count > 0 && AllWhitespace(lines.Last()))
-            lines.RemoveAt(lines.Count - 1);
-
-        if (lines.Count == 0)
-            return VirtualCharSequence.Empty;
-
-        // Use the remaining lines to figure out what common whitespace we have.
-        var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines);
-
-        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-
-        foreach (var line in lines)
-        {
-            if (AllWhitespace(line))
-            {
-                // For an all-whitespace line, just add the trailing newlines on the line (if present).
-                AddRange(result, line.SkipWhile(IsCSharpWhitespace));
-            }
-            else
-            {
-                // Normal line.  Skip the common whitespace.
-                AddRange(result, line.Skip(commonWhitespacePrefix));
-            }
-        }
-
-        // Remove all trailing whitespace and newlines from the final string.
-        while (result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
-            result.RemoveAt(result.Count - 1);
-
-        return VirtualCharSequence.Create(result.ToImmutable());
-
-#endif
-            }
 
         static string Indent(
             InterpolatedStringExpressionSyntax stringExpression,
@@ -650,7 +419,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     interpolationSpans.Add(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
             }
 
-            builder.Append(text.ToString(text.Lines[0].SpanIncludingLineBreak));
+            AppendFullLine(builder, text.Lines[0]);
 
             for (int i = 1, n = text.Lines.Count; i < n; i++)
             {
@@ -682,11 +451,9 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 {
                     // Indent any content the right amount.
                     builder.Append(indentation);
-                    builder.Append(text.ToString(line.SpanIncludingLineBreak));
+                    AppendFullLine(builder, line);
                 }
             }
-
-            // builder.Append(text.Lines[^1].ToString());
 
             return builder.ToString();
         }
@@ -794,36 +561,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         //    return updatedExpression;
         //}
 
-        static SyntaxNode GetAnchorNode(ParsedDocument parsedDocument, SyntaxNode node)
-        {
-            // we're starting with something either like:
-            //
-            //      {some_expr +
-            //          cont};
-            //
-            // or
-            //
-            //      {
-            //          some_expr +
-            //              cont};
-            //
-            // In the first, we want to consider the `some_expr + cont` to actually start where `{` starts so
-            // that we can accurately determine where the preferred indentation should move all of it.
-            //
-            // Otherwise, default to the indentation of the line the expression is on.
-            var firstToken = node.GetFirstToken();
-            if (parsedDocument.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
-            {
-                for (var current = node; current != null; current = current.Parent)
-                {
-                    if (current is StatementSyntax or MemberDeclarationSyntax)
-                        return current;
-                }
-            }
-
-            return node;
-        }
-
         //SyntaxToken IndentToken(
         //    SyntaxToken token,
         //    string preferredIndentation,
@@ -872,17 +609,259 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         //        ? preferredIndentation + positionIndentation[firstTokenOnLineIndentationString.Length..]
         //        : preferredIndentation);
         //}
+    }
 
-        static string GetIndentationStringForToken(SourceText text, SyntaxFormattingOptions options, SyntaxToken token)
-            => GetIndentationStringForPosition(text, options, token.SpanStart);
+    private static InterpolatedStringExpressionSyntax GetInitialMultiLineRawInterpolatedString(
+        ParsedDocument document,
+        InterpolatedStringExpressionSyntax stringExpression,
+        SyntaxFormattingOptions formattingOptions)
+    {
+        // If the user asked to remove whitespace then do so now.
 
-        static string GetIndentationStringForPosition(SourceText text, SyntaxFormattingOptions options, int position)
+        // First, do the trivial conversion, just updating the start/end delimiters.  Adding the requisite newlines
+        // at the start/end, and updating quotes/braces.
+        var (startDelimiter, endDelimiter, openBraceString, closeBraceString) = GetDelimiters(stringExpression);
+
+        var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(document, stringExpression).SpanStart);
+        var firstTokenOnLineIndentationString = GetIndentationStringForToken(
+            document.Text, formattingOptions, document.Root.FindToken(startLine.Start));
+
+        // Once we have this, convert the node to text as it is much easier to process in string form.
+        var rawStringExpression = stringExpression
+            .WithStringStartToken(UpdateToken(
+                stringExpression.StringStartToken,
+                startDelimiter + formattingOptions.NewLine,
+                kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+            .WithContents(ConvertContents(stringExpression, openBraceString, closeBraceString))
+            .WithStringEndToken(UpdateToken(
+                stringExpression.StringEndToken,
+                formattingOptions.NewLine + endDelimiter,
+                kind: SyntaxKind.InterpolatedRawStringEndToken));
+
+        static SyntaxNode GetAnchorNode(ParsedDocument parsedDocument, SyntaxNode node)
         {
-            var lineContainingPosition = text.Lines.GetLineFromPosition(position);
-            var lineText = lineContainingPosition.ToString();
-            var indentation = lineText.ConvertTabToSpace(options.TabSize, initialColumn: 0, endPosition: position - lineContainingPosition.Start);
-            return indentation.CreateIndentationString(options.UseTabs, options.TabSize);
+            // we're starting with something either like:
+            //
+            //      {some_expr +
+            //          cont};
+            //
+            // or
+            //
+            //      {
+            //          some_expr +
+            //              cont};
+            //
+            // In the first, we want to consider the `some_expr + cont` to actually start where `{` starts so
+            // that we can accurately determine where the preferred indentation should move all of it.
+            //
+            // Otherwise, default to the indentation of the line the expression is on.
+            var firstToken = node.GetFirstToken();
+            if (parsedDocument.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
+            {
+                for (var current = node; current != null; current = current.Parent)
+                {
+                    if (current is StatementSyntax or MemberDeclarationSyntax)
+                        return current;
+                }
+            }
+
+            return node;
         }
+    }
+
+    private static (string startDelimiter, string endDelimiter, string openBraceString, string closeBraceString) GetDelimiters(
+        InterpolatedStringExpressionSyntax stringExpression)
+    {
+        var (longestQuoteSequence, longestBraceSequence) = GetLongestSequences(stringExpression);
+
+        // Have to make sure we have a delimiter longer than any quote sequence in the string.
+        var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
+        var dollarCount = longestBraceSequence + 1;
+
+        var quoteString = new string('"', quoteDelimiterCount);
+        var startDelimiter = $"{new string('$', dollarCount)}{quoteString}";
+        var openBraceString = new string('{', dollarCount);
+        var closeBraceString = new string('}', dollarCount);
+
+        return (startDelimiter, quoteString, openBraceString, closeBraceString);
+    }
+
+    private static (int longestQuoteSequence, int longestBraceSequence) GetLongestSequences(InterpolatedStringExpressionSyntax stringExpression)
+    {
+        var longestQuoteSequence = 0;
+        var longestBraceSequence = 0;
+        foreach (var content in stringExpression.Contents)
+        {
+            if (content is InterpolatedStringTextSyntax stringText)
+            {
+                var characters = ConvertToVirtualChars(stringText);
+                longestQuoteSequence = Math.Max(longestQuoteSequence, GetLongestQuoteSequence(characters));
+                longestBraceSequence = Math.Max(longestBraceSequence, GetLongestBraceSequence(characters));
+            }
+        }
+
+        return (longestQuoteSequence, longestBraceSequence);
+    }
+
+    private static SyntaxList<InterpolatedStringContentSyntax> ConvertContents(
+        InterpolatedStringExpressionSyntax stringExpression,
+        string openBraceString,
+        string closeBraceString)
+    {
+        using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
+
+        foreach (var content in stringExpression.Contents)
+        {
+            if (content is InterpolationSyntax interpolation)
+            {
+                contents.Add(interpolation
+                    .WithOpenBraceToken(UpdateToken(interpolation.OpenBraceToken, openBraceString))
+                    .WithFormatClause(RewriteFormatClause(interpolation.FormatClause))
+                    .WithCloseBraceToken(UpdateToken(interpolation.CloseBraceToken, closeBraceString)));
+            }
+            else if (content is InterpolatedStringTextSyntax stringText)
+            {
+                var characters = ConvertToVirtualChars(stringText);
+                contents.Add(stringText.WithTextToken(UpdateToken(
+                    stringText.TextToken, characters.CreateString())));
+            }
+        }
+
+        return List(contents);
+
+        static InterpolationFormatClauseSyntax? RewriteFormatClause(InterpolationFormatClauseSyntax? formatClause)
+        {
+            if (formatClause is null)
+                return null;
+
+            var characters = TryConvertToVirtualChars(formatClause.FormatStringToken);
+            return formatClause.WithFormatStringToken(UpdateToken(formatClause.FormatStringToken, characters.CreateString()));
+        }
+    }
+
+    private static string GetIndentationStringForToken(SourceText text, SyntaxFormattingOptions options, SyntaxToken token)
+        => GetIndentationStringForPosition(text, options, token.SpanStart);
+
+    private static string GetIndentationStringForPosition(SourceText text, SyntaxFormattingOptions options, int position)
+    {
+        var lineContainingPosition = text.Lines.GetLineFromPosition(position);
+        var lineText = lineContainingPosition.ToString();
+        var indentation = lineText.ConvertTabToSpace(options.TabSize, initialColumn: 0, endPosition: position - lineContainingPosition.Start);
+        return indentation.CreateIndentationString(options.UseTabs, options.TabSize);
+    }
+
+    private static void AppendFullLine(StringBuilder builder, TextLine line)
+        => builder.Append(line.Text!.ToString(line.SpanIncludingLineBreak));
+
+    private static InterpolatedStringExpressionSyntax CleanInterpolatedString(InterpolatedStringExpressionSyntax stringExpression)
+    {
+        var text = stringExpression.GetText();
+
+        using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var interpolationSpans);
+
+        foreach (var content in stringExpression.Contents)
+        {
+            if (content is InterpolationSyntax interpolation)
+                interpolationSpans.Add(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
+        }
+
+        // Get all the lines of the string expression.  Note that the first/last lines will be the ones containing
+        // the delimiters.  So they can be ignored in all further processing.
+        using var _3 = ArrayBuilder<TextLine>.GetInstance(out var lines);
+        lines.AddRange(text.Lines);
+
+        // Remove the leading and trailing lines if they are all whitespace.
+        while (lines[1].IsEmptyOrWhitespace() &&
+            !interpolationSpans.Any(s => s.Contains(lines[1].Start)))
+        {
+            lines.RemoveAt(1);
+        }
+
+        while (lines[^2].IsEmptyOrWhitespace() &&
+            !interpolationSpans.Any(s => s.Contains(lines[^2].Start)))
+        {
+            lines.RemoveAt(lines.Count - 2);
+        }
+
+        // If we removed all the lines, don't do anything.
+        if (lines.Count == 2)
+            return stringExpression;
+
+        // Use the remaining lines to figure out what common whitespace we have.
+        var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines, interpolationSpans);
+
+        using var _1 = PooledStringBuilder.GetInstance(out var builder);
+
+        // Add the line with the starting delimiter
+        AppendFullLine(builder, lines[0]);
+
+        // Add the content lines
+        for (int i = 1, n = lines.Count - 1; i < n; i++)
+        {
+            // ignore any blank lines we see.
+            var line = lines[i];
+            if (line.IsEmptyOrWhitespace())
+            {
+                // append the original newline.
+                builder.Append(text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)));
+                continue;
+            }
+
+            // line with content on it.  It's either content of the string expression, or it's
+            // interpolation code.
+            if (interpolationSpans.Any(s => s.Contains(line.Start)))
+            {
+                // Interpolation content.  Trim the prefix if present on that line, otherwise leave alone.
+                if (line.GetFirstNonWhitespacePosition() is int pos)
+                {
+                    var currentLineLeadingWhitespace = line.Text!.ToString(TextSpan.FromBounds(line.Start, pos));
+                    if (currentLineLeadingWhitespace.StartsWith(commonWhitespacePrefix))
+                    {
+                        builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak)));
+                        continue;
+                    }
+                }
+
+                AppendFullLine(builder, line);
+            }
+            else if (line == text.Lines[1])
+            {
+                // If this is the first line, then we got this line by adding a newline at the start of the
+                // interpolated string, moving the contents after the quote to the next line.  In that case, the
+                // next line will start at the zero-column and should not contribute to the common whitespace
+                // trimming.
+                AppendFullLine(builder, line);
+            }
+            else
+            {
+                // normal content. trim off of the common prefix.
+                builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak)));
+            }
+        }
+
+        // For the line before the delimiter line, trim off any trailing whitespace if present.
+        var lastIndex = builder.Length;
+        var beforeNewLines = lastIndex;
+        while (SyntaxFacts.IsNewLine(builder[beforeNewLines - 1]))
+            beforeNewLines--;
+
+        var beforeSpaces = beforeNewLines;
+        while (SyntaxFacts.IsWhitespace(builder[beforeSpaces - 1]))
+            beforeSpaces--;
+
+        builder.Remove(beforeSpaces, beforeNewLines - beforeSpaces);
+
+        // Add the line with the final delimiter
+        AppendFullLine(builder, lines[^1]);
+
+        var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(builder.ToString(), options: stringExpression.SyntaxTree.Options);
+        return parsed.WithTriviaFrom(stringExpression);
+        //// Remove all trailing whitespace and newlines from the final string.
+        //var lastContentLine = lines[^2];
+        //lastContentLine.
+        //lastContentLine.GetLastNonWhitespacePosition()
+        //while (lines.Count result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
+        //    result.RemoveAt(result.Count - 1);
     }
 
     private static string CreateString(ArrayBuilder<VirtualCharSequence> lines)
@@ -893,128 +872,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
         return result.ToString();
     }
-
-#if false
-
-    private static InterpolatedStringExpressionSyntax CleanupWhitespace(
-        InterpolatedStringExpressionSyntax stringExpression)
-    {
-        using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
-
-        if (stringExpression.Contents.First() is InterpolatedStringTextSyntax stringText1)
-        {
-            lines.Clear();
-
-            var characters = ConvertToVirtualChars(stringText1);
-            BreakIntoLines(characters, lines);
-
-            // Remove the leading lines if they are all whitespace.
-            while (lines.Count > 0 && AllWhitespace(lines.First()))
-                lines.RemoveAt(0);
-
-            stringExpression = stringExpression.WithContents(stringExpression.Contents.Replace(
-                stringText1,
-                stringText1.WithTextToken(
-                    Token(SyntaxKind.InterpolatedStringTextToken,));
-        }
-
-        if (stringExpression.Contents.Last() is InterpolatedStringTextSyntax stringText2)
-        {
-            lines.Clear();
-
-            var characters = ConvertToVirtualChars(stringText2);
-            BreakIntoLines(characters, lines);
-
-            // Remove the trailing lines if they are all whitespace.
-            while (lines.Count > 0 && AllWhitespace(lines.Last()))
-                lines.RemoveAt(lines.Count - 1);
-
-            stringExpression = stringExpression.WithStringEndToken(
-                UpdateToken(stringExpression.StringEndToken,
-                    CreateString(lines)));
-        }
-
-        // First, determine all the lines in the content.
-        BreakIntoLines(characters, lines);
-
-        // Remove the leading and trailing line if they are all whitespace.
-        while (lines.Count > 0 && AllWhitespace(lines.First()))
-            lines.RemoveAt(0);
-
-
-        if (lines.Count == 0)
-            return VirtualCharSequence.Empty;
-
-        // Use the remaining lines to figure out what common whitespace we have.
-        var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines);
-
-        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-
-        foreach (var line in lines)
-        {
-            if (AllWhitespace(line))
-            {
-                // For an all-whitespace line, just add the trailing newlines on the line (if present).
-                AddRange(result, line.SkipWhile(IsCSharpWhitespace));
-            }
-            else
-            {
-                // Normal line.  Skip the common whitespace.
-                AddRange(result, line.Skip(commonWhitespacePrefix));
-            }
-        }
-
-        // Remove all trailing whitespace and newlines from the final string.
-        while (result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
-            result.RemoveAt(result.Count - 1);
-
-        return VirtualCharSequence.Create(result.ToImmutable());
-    }
-
-    private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
-    {
-        using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
-
-        // First, determine all the lines in the content.
-        BreakIntoLines(characters, lines);
-
-        // Remove the leading and trailing line if they are all whitespace.
-        while (lines.Count > 0 && AllWhitespace(lines.First()))
-            lines.RemoveAt(0);
-
-        while (lines.Count > 0 && AllWhitespace(lines.Last()))
-            lines.RemoveAt(lines.Count - 1);
-
-        if (lines.Count == 0)
-            return VirtualCharSequence.Empty;
-
-        // Use the remaining lines to figure out what common whitespace we have.
-        var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines);
-
-        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-
-        foreach (var line in lines)
-        {
-            if (AllWhitespace(line))
-            {
-                // For an all-whitespace line, just add the trailing newlines on the line (if present).
-                AddRange(result, line.SkipWhile(IsCSharpWhitespace));
-            }
-            else
-            {
-                // Normal line.  Skip the common whitespace.
-                AddRange(result, line.Skip(commonWhitespacePrefix));
-            }
-        }
-
-        // Remove all trailing whitespace and newlines from the final string.
-        while (result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
-            result.RemoveAt(result.Count - 1);
-
-        return VirtualCharSequence.Create(result.ToImmutable());
-    }
-
-#endif
 
     private static string ComputeCommonWhitespacePrefix(
         ArrayBuilder<TextLine> lines,
