@@ -719,13 +719,4 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         index = end;
         return result;
     }
-
-    private static bool AllWhitespace(VirtualCharSequence line)
-    {
-        var index = 0;
-        while (index < line.Length && IsCSharpWhitespace(line[index]))
-            index++;
-
-        return index == line.Length || IsCSharpNewLine(line[index]);
-    }
 }
