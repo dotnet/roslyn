@@ -148,7 +148,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 }
 
                 text ??= interpolatedString.SyntaxTree.GetText(cancellationToken);
-                if (canBeSingleLine && text.AreOnSameLine(interpolation.OpenBraceToken, interpolation.CloseBraceToken))
+                if (canBeSingleLine && !text.AreOnSameLine(interpolation.OpenBraceToken, interpolation.CloseBraceToken))
                     canBeSingleLine = false;
             }
             else if (content is InterpolatedStringTextSyntax interpolatedStringText)
@@ -418,7 +418,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 token.LeadingTrivia,
                 kind ?? token.Kind(),
                 text,
-                valueText,
+                valueText == "" ? text : valueText,
                 token.TrailingTrivia);
 
 #if false

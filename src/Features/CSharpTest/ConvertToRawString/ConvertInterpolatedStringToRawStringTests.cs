@@ -542,7 +542,7 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = [||]$"{0:\u0065}";
+                    var v = [||]$"{0:\u0041}";
                 }
             }
             """, """"
@@ -586,7 +586,29 @@ public class ConvertInterpolatedStringToRawStringTests
             {
                 void M()
                 {
-                    var v = [||]$"{0}""{1}";
+                    var v = [||]$"{0}\"{1}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""{0}"{1}""";
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_SingleLine7()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{0}""{1}";
                 }
             }
             """, """"
