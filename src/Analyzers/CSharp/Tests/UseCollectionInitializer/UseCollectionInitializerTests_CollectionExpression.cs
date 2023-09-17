@@ -282,6 +282,57 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
+    public async Task TestInArgument1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X([|new|] List<int>());
+                }
+
+                void X(List<int> list) { }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    X([]);
+                }
+            
+                void X(List<int> list) { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInArgument2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X(new List<int>());
+                }
+
+                void X(IEnumerable<int> list) { }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestOnVariableDeclarator()
     {
         await TestInRegularAndScriptAsync(
