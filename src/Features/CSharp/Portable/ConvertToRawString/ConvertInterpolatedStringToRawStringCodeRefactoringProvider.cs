@@ -453,7 +453,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
 
             var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(parsedDocument, stringExpression).SpanStart);
-            var firstTokenOnLineIndentationString = GetIndentationStringForToken(parsedDocument.Text, parsedDocument.Root.FindToken(startLine.Start));
+            var firstTokenOnLineIndentationString = GetIndentationStringForToken(
+                parsedDocument.Text, formattingOptions, parsedDocument.Root.FindToken(startLine.Start));
 
             // Once we have this, convert the node to text as it is much easier to process in string form.
             var rawStringExpression = stringExpression
@@ -472,19 +473,112 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
             {
                 // stringExpression = CleanupWhitespace(stringExpression);
-                throw new NotImplementedException();
+                cleanedExpression = Clean(cleanedExpression);
             }
 
             // Now that the expression is cleaned, ensure every non-blank line gets the necessary indentation.
-            var indentedText = Indent(cleanedExpression, indentation, firstTokenOnLineIndentationString);
+            var indentedText = Indent(cleanedExpression, formattingOptions, indentation, firstTokenOnLineIndentationString);
 
             // Finally, parse the text back into an interpolated string so that all the contents are correct.
             var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(indentedText.ToString(), options: stringExpression.SyntaxTree.Options);
             return parsed.WithTriviaFrom(stringExpression);
         }
 
-        string Indent(
+        static InterpolatedStringExpressionSyntax Clean(InterpolatedStringExpressionSyntax stringExpression)
+        {
+            var text = stringExpression.GetText();
+
+            using var _1 = PooledStringBuilder.GetInstance(out var builder);
+            using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var interpolationSpans);
+
+            foreach (var content in stringExpression.Contents)
+            {
+                if (content is InterpolationSyntax interpolation)
+                    interpolationSpans.Add(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
+            }
+
+            // Get all the lines of the string expression.  Note that the first/last lines will be the ones containing
+            // the delimiters.  So they can be ignored in all further processing.
+            using var _3 = ArrayBuilder<TextLine>.GetInstance(out var lines);
+            lines.AddRange(text.Lines);
+
+            // Remove the leading and trailing lines if they are all whitespace.
+            while (lines[1].GetFirstNonWhitespaceOffset() is null &&
+                !interpolationSpans.Any(s => s.Contains(lines[1].Start)))
+            {
+                lines.RemoveAt(1);
+            }
+
+            while (lines[^2].GetFirstNonWhitespaceOffset() is null &&
+                !interpolationSpans.Any(s => s.Contains(lines[^2].Start)))
+            {
+                lines.RemoveAt(lines.Count - 2);
+            }
+
+            // If we removed all the lines, don't do anything.
+            if (lines.Count == 2)
+                return stringExpression;
+
+            // Use the remaining lines to figure out what common whitespace we have.
+            var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines, interpolationSpans);
+
+
+            //// Remove all trailing whitespace and newlines from the final string.
+            //var lastContentLine = lines[^2];
+            //lastContentLine.
+            //lastContentLine.GetLastNonWhitespacePosition()
+            //while (lines.Count result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
+            //    result.RemoveAt(result.Count - 1);
+
+
+#if false
+
+        using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
+
+        // First, determine all the lines in the content.
+        BreakIntoLines(characters, lines);
+
+        // Remove the leading and trailing line if they are all whitespace.
+        while (lines.Count > 0 && AllWhitespace(lines.First()))
+            lines.RemoveAt(0);
+
+        while (lines.Count > 0 && AllWhitespace(lines.Last()))
+            lines.RemoveAt(lines.Count - 1);
+
+        if (lines.Count == 0)
+            return VirtualCharSequence.Empty;
+
+        // Use the remaining lines to figure out what common whitespace we have.
+        var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines);
+
+        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+
+        foreach (var line in lines)
+        {
+            if (AllWhitespace(line))
+            {
+                // For an all-whitespace line, just add the trailing newlines on the line (if present).
+                AddRange(result, line.SkipWhile(IsCSharpWhitespace));
+            }
+            else
+            {
+                // Normal line.  Skip the common whitespace.
+                AddRange(result, line.Skip(commonWhitespacePrefix));
+            }
+        }
+
+        // Remove all trailing whitespace and newlines from the final string.
+        while (result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
+            result.RemoveAt(result.Count - 1);
+
+        return VirtualCharSequence.Create(result.ToImmutable());
+
+#endif
+        }
+
+        static string Indent(
             InterpolatedStringExpressionSyntax stringExpression,
+            SyntaxFormattingOptions formattingOptions,
             string indentation,
             string firstTokenOnLineIndentationString)
         {
@@ -520,7 +614,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     // preserve that indentation on top of whatever indentation is being added.
                     var firstNonWhitespacePos = line.GetFirstNonWhitespacePosition()!.Value;
 
-                    var positionIndentation = GetIndentationStringForPosition(text, firstNonWhitespacePos);
+                    var positionIndentation = GetIndentationStringForPosition(text, formattingOptions, firstNonWhitespacePos);
                     var preferredIndentation = positionIndentation.StartsWith(firstTokenOnLineIndentationString)
                         ? indentation + positionIndentation[firstTokenOnLineIndentationString.Length..]
                         : indentation;
@@ -722,15 +816,15 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         //        : preferredIndentation);
         //}
 
-        string GetIndentationStringForToken(SourceText text, SyntaxToken token)
-            => GetIndentationStringForPosition(text, token.SpanStart);
+        static string GetIndentationStringForToken(SourceText text, SyntaxFormattingOptions options, SyntaxToken token)
+            => GetIndentationStringForPosition(text, options, token.SpanStart);
 
-        string GetIndentationStringForPosition(SourceText text, int position)
+        static string GetIndentationStringForPosition(SourceText text, SyntaxFormattingOptions options, int position)
         {
             var lineContainingPosition = text.Lines.GetLineFromPosition(position);
             var lineText = lineContainingPosition.ToString();
-            var indentation = lineText.ConvertTabToSpace(formattingOptions.TabSize, initialColumn: 0, endPosition: position - lineContainingPosition.Start);
-            return indentation.CreateIndentationString(formattingOptions.UseTabs, formattingOptions.TabSize);
+            var indentation = lineText.ConvertTabToSpace(options.TabSize, initialColumn: 0, endPosition: position - lineContainingPosition.Start);
+            return indentation.CreateIndentationString(options.UseTabs, options.TabSize);
         }
     }
 
@@ -820,8 +914,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         return VirtualCharSequence.Create(result.ToImmutable());
     }
 
-#endif
-
     private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
     {
         using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
@@ -865,36 +957,50 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         return VirtualCharSequence.Create(result.ToImmutable());
     }
 
-    private static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)
-    {
-        var commonLeadingWhitespace = GetLeadingWhitespace(lines.First());
+#endif
 
-        for (var i = 1; i < lines.Count; i++)
+    private static int ComputeCommonWhitespacePrefix(
+        ArrayBuilder<TextLine> lines,
+        ArrayBuilder<TextSpan> interpolationSpans)
+    {
+        string? commonLeadingWhitespace = null;
+        
+        foreach (var line in lines)
         {
-            if (commonLeadingWhitespace.IsEmpty)
+            if (commonLeadingWhitespace is "")
                 return 0;
 
-            var currentLine = lines[i];
-            if (AllWhitespace(currentLine))
+            if (interpolationSpans.Any(s => s.Contains(line.Start)) ||
+                interpolationSpans.Any(s => s.Start - 1 == line.Start))
+            {
+                // ignore any lines where we're inside the interpolation, or the interpolation starts at the beginning
+                // of the line.
+                continue;
+            }
+
+            if (line.GetFirstNonWhitespacePosition() is not int pos)
                 continue;
 
-            var currentLineLeadingWhitespace = GetLeadingWhitespace(currentLine);
+            var currentLineLeadingWhitespace = line.Text!.ToString(TextSpan.FromBounds(line.Start, pos));
             commonLeadingWhitespace = ComputeCommonWhitespacePrefix(commonLeadingWhitespace, currentLineLeadingWhitespace);
         }
 
-        return commonLeadingWhitespace.Length;
+        return commonLeadingWhitespace?.Length ?? 0;
     }
 
-    private static VirtualCharSequence ComputeCommonWhitespacePrefix(
-        VirtualCharSequence leadingWhitespace1, VirtualCharSequence leadingWhitespace2)
+    private static string ComputeCommonWhitespacePrefix(
+        string? leadingWhitespace1, string leadingWhitespace2)
     {
+        if (leadingWhitespace1 is null)
+            return leadingWhitespace2;
+
         var length = Math.Min(leadingWhitespace1.Length, leadingWhitespace2.Length);
 
         var current = 0;
-        while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Rune == leadingWhitespace2[current].Rune)
+        while (current < length && SyntaxFacts.IsWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current] == leadingWhitespace2[current])
             current++;
 
-        return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
+        return leadingWhitespace1[..current];
     }
 
     private static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
