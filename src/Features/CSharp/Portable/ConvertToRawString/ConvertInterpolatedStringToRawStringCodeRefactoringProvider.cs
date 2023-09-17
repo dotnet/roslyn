@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
     using static ConvertToRawStringHelpers;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRawString), Shared]
-    internal partial class ConvertRegularStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+    internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
     {
         private enum ConvertToRawKind
         {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public ConvertRegularStringToRawStringCodeRefactoringProvider()
+        public ConvertInterpolatedStringToRawStringCodeRefactoringProvider()
         {
         }
 
@@ -64,14 +64,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (!context.Span.IntersectsWith(token.Span))
                 return;
 
-            if (token.Kind() != SyntaxKind.StringLiteralToken)
+            if (token.Parent is not InterpolatedStringExpressionSyntax interpolatedString)
                 return;
 
-            if (!CanConvertStringLiteral(token, out var convertParams))
+            if (interpolatedString.StringStartToken.Kind() is not SyntaxKind.InterpolatedStringStartToken and not SyntaxKind.InterpolatedVerbatimStringStartToken)
                 return;
+
+            if (!CanConvertStringLiteral(interpolatedString, out var convertParams))
+                return;
+
+            // If we have escaped quotes in the string, then this is a good option to bubble up as something to convert
+            // to a raw string.  Otherwise, still offer this refactoring, but at low priority as the user may be
+            // invoking this on lots of strings that they have no interest in converting.
+            var priority = AllEscapesAreQuotes(convertParams.Characters) ? CodeActionPriority.Default : CodeActionPriority.Low;
 
             var options = context.Options;
-            var priority = convertParams.Priority;
 
             if (convertParams.CanBeSingleLine)
             {
@@ -106,18 +113,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             }
         }
 
-        private static bool CanConvertStringLiteral(SyntaxToken token, out CanConvertParams convertParams)
+        private static bool CanConvertStringLiteral(
+            InterpolatedStringExpressionSyntax interpolatedString, out CanConvertParams convertParams)
         {
-            Debug.Assert(token.Kind() == SyntaxKind.StringLiteralToken);
-
             convertParams = default;
 
-            // Can't convert a string literal in a directive to a raw string.
-            if (IsInDirective(token.Parent))
+            // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic
+            // three line alternative over just $""
+            if (interpolatedString.Contents.Count == 0)
                 return false;
 
-            if (token.Parent is not LiteralExpressionSyntax)
-                return false;
+            foreach (var content in interpolatedString.Contents)
+            {
+                if (content is InterpolatedStringTextSyntax interpolatedStringText)
+                {
+                    var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(interpolatedStringText.TextToken);
+                    if (characters.IsDefault)
+                        return false;
+
+                    // Ensure that all characters in the string are those we can convert.
+                    if (!characters.All(static ch => CanConvert(ch)))
+                        return false;
+                }
+            }
 
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
 
@@ -163,12 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     CleanupWhitespace(characters).Length > 0;
             }
 
-            // If we have escaped quotes in the string, then this is a good option to bubble up as something to convert
-            // to a raw string.  Otherwise, still offer this refactoring, but at low priority as the user may be
-            // invoking this on lots of strings that they have no interest in converting.
-            var priority = AllEscapesAreQuotes(characters) ? CodeActionPriority.Default : CodeActionPriority.Low;
-
-            convertParams = new CanConvertParams(priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
+            convertParams = new CanConvertParams(characters, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
             return true;
 
             static bool HasLeadingWhitespace(VirtualCharSequence characters)

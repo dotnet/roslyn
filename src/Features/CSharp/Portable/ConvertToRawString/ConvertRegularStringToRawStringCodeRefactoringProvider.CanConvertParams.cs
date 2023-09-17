@@ -2,17 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
+namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
+
+internal readonly struct CanConvertParams(CodeActionPriority priority, bool canBeSingleLine, bool canBeMultiLineWithoutLeadingWhiteSpaces)
 {
-    internal partial class ConvertRegularStringToRawStringCodeRefactoringProvider
-    {
-        private readonly struct CanConvertParams(VirtualCharSequence characters, bool canBeSingleLine, bool canBeMultiLineWithoutLeadingWhiteSpaces)
-        {
-            public VirtualCharSequence Characters { get; } = characters;
-            public bool CanBeSingleLine { get; } = canBeSingleLine;
-            public bool CanBeMultiLineWithoutLeadingWhiteSpaces { get; } = canBeMultiLineWithoutLeadingWhiteSpaces;
-        }
-    }
+    public CodeActionPriority Priority { get; } = priority;
+    public bool CanBeSingleLine { get; } = canBeSingleLine;
+    public bool CanBeMultiLineWithoutLeadingWhiteSpaces { get; } = canBeMultiLineWithoutLeadingWhiteSpaces;
 }
