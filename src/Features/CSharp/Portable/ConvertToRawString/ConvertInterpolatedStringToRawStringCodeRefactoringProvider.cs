@@ -8,8 +8,10 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -453,6 +455,15 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
+            var startToken = UpdateToken(
+                stringExpression.StringStartToken,
+                startDelimeter,
+                kind: SyntaxKind.InterpolatedSingleLineRawStringStartToken);
+            var endToken = UpdateToken(
+                stringExpression.StringEndToken,
+                endDelimeter,
+                kind: SyntaxKind.InterpolatedRawStringEndToken);
+
             // Add initial new line.
             contents.Add(InterpolatedStringText(Token(
                 leading: default,
@@ -460,6 +471,22 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 formattingOptions.NewLine,
                 formattingOptions.NewLine,
                 trailing: default)));
+
+            var atStartOfLine = true;
+            foreach (var content in stringExpression.Contents)
+            {
+                if (content is InterpolationSyntax interpolation)
+                {
+                    contents.Add(interpolation
+                        .WithOpenBraceToken(UpdateToken(interpolation.OpenBraceToken, openBraceString))
+                        .WithExpression(IndentExpression(interpolation.Expression, indentation))
+                        .WithFormatClause(RewriteFormatClause(interpolation.FormatClause))
+                        .WithCloseBraceToken(UpdateToken(interpolation.CloseBraceToken, closeBraceString)));
+                }
+            }
+
+            if (addIndentationToStart)
+                startToken = startToken.WithLeadingTrivia(startToken.LeadingTrivia.Add(Whitespace(indentation)));
 
             return stringExpression
                 .WithStringStartToken(startToken)
@@ -509,6 +536,111 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 builder.ToString(),
                 characters.CreateString(),
                 token.TrailingTrivia);
+        }
+
+        ExpressionSyntax IndentExpression(
+            ExpressionSyntax expression,
+            string preferredIndentation)
+        {
+            var interpolation = (InterpolationSyntax)expression.GetRequiredParent();
+            var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(expression).SpanStart);
+            var firstTokenOnLineIndentationString = GetIndentationStringForToken(parsedDocument.Root.FindToken(startLine.Start));
+
+            var expressionFirstToken = expression.GetFirstToken();
+            var updatedExpression = expression.ReplaceTokens(
+                expression.DescendantTokens(),
+                (currentToken, _) =>
+                {
+                    // Ensure the first token has the indentation we're moving the entire node to
+                    if (currentToken == expressionFirstToken)
+                        return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
+
+                    return IndentToken(currentToken, preferredIndentation, firstTokenOnLineIndentationString);
+                });
+
+            // Now, once we've indented the expression, attempt to move comments on its containing statement to it.
+            return TransferParentStatementComments(parentStatement, updatedExpression, preferredIndentation);
+
+            SyntaxNode GetAnchorNode(SyntaxNode node)
+            {
+                // we're starting with something either like:
+                //
+                //      collection.Add(some_expr +
+                //          cont);
+                //
+                // or
+                //
+                //      collection.Add(
+                //          some_expr +
+                //              cont);
+                //
+                // In the first, we want to consider the `some_expr + cont` to actually start where `collection` starts so
+                // that we can accurately determine where the preferred indentation should move all of it.
+
+                // If the expression is parented by a statement or member-decl (like a field/prop), use that container
+                // to determine the indentation point. Otherwise, default to the indentation of the line the expression
+                // is on.
+                var firstToken = node.GetFirstToken();
+                if (document.Text.AreOnSameLine(firstToken.GetPreviousToken(), firstToken))
+                {
+                    for (var current = node; current != null; current = current.Parent)
+                    {
+                        if (current is StatementSyntax or MemberDeclarationSyntax)
+                            return current;
+                    }
+                }
+
+                return node;
+            }
+        }
+
+        SyntaxToken IndentToken(
+            SyntaxToken token,
+            string preferredIndentation,
+            string firstTokenOnLineIndentationString)
+        {
+            // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
+            // otherwise always consumed as trailing trivia if it comes after a token.
+            if (token.LeadingTrivia is not [.., (kind: SyntaxKind.WhitespaceTrivia)])
+                return token;
+
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+
+            // Walk all trivia (except the final whitespace).  If we hit any comments within at the start of a line
+            // indent them as well.
+            for (int i = 0, n = token.LeadingTrivia.Count - 1; i < n; i++)
+            {
+                var currentTrivia = token.LeadingTrivia[i];
+                var nextTrivia = token.LeadingTrivia[i + 1];
+
+                var afterNewLine = i == 0 || token.LeadingTrivia[i - 1].IsEndOfLine();
+                if (afterNewLine &&
+                    currentTrivia.IsWhitespace() &&
+                    nextTrivia.IsSingleOrMultiLineComment())
+                {
+                    result.Add(GetIndentedWhitespaceTrivia(
+                        preferredIndentation, firstTokenOnLineIndentationString, nextTrivia.SpanStart));
+                }
+                else
+                {
+                    result.Add(currentTrivia);
+                }
+            }
+
+            // Finally, figure out how much this token is indented *from the line* the first token was on.
+            // Then adjust the preferred indentation that amount for this token.
+            result.Add(GetIndentedWhitespaceTrivia(
+                preferredIndentation, firstTokenOnLineIndentationString, token.SpanStart));
+
+            return token.WithLeadingTrivia(TriviaList(result));
+        }
+
+        SyntaxTrivia GetIndentedWhitespaceTrivia(string preferredIndentation, string firstTokenOnLineIndentationString, int pos)
+        {
+            var positionIndentation = GetIndentationStringForPosition(pos);
+            return Whitespace(positionIndentation.StartsWith(firstTokenOnLineIndentationString)
+                ? preferredIndentation + positionIndentation[firstTokenOnLineIndentationString.Length..]
+                : preferredIndentation);
         }
     }
 
