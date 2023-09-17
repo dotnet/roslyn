@@ -17210,6 +17210,78 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_Params()
+        {
+            string source = """
+                using System;
+
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                Console.Write($"{attr._values[0]} {attr._values[1]} {attr._values[2]} {attr._values.Length}");
+
+                [X([42, 43, 44])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public int[] _values;
+                    public XAttribute(params int[] values) { _values = values; }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42 43 44 3");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_StringConstants()
+        {
+            string source = """
+                using System;
+
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                Console.Write($"{attr._values[0]} {attr._values[1] is null} {attr._values.Length}");
+
+                [X(["hi", null])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public string[] _values;
+                    public XAttribute(string[] values) { _values = values; }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "hi True 2");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NestedArray()
+        {
+            string source = """
+                [X([[1], [2]])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int[][] values) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (1,2): error CS0181: Attribute constructor parameter 'values' has type 'int[][]', which is not a valid attribute parameter type
+                // [X([[1], [2]])]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("values", "int[][]").WithLocation(1, 2)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
         public void InAttribute_Empty()
         {
             string source = """
@@ -17230,7 +17302,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics( );
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
 
