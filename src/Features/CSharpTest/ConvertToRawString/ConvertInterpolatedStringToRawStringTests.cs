@@ -660,7 +660,7 @@ public class ConvertInterpolatedStringToRawStringTests
                 {
                     var v = $"""
                         {0 +
-                            1}"{1 +
+                        1}"{1 +
                         2}
                         """;
                 }
@@ -690,6 +690,34 @@ public class ConvertInterpolatedStringToRawStringTests
                         A{0 +
                             1}"{1 +
                         2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine1_C()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{0 +
+                1}""{1 +
+                2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {0 +
+                            1}"{1 +
+                            2}
                         """;
                 }
             }

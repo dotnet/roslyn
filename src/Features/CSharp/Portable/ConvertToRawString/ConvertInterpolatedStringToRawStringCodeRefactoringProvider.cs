@@ -567,7 +567,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         {
             // If a token has any leading whitespace, it must be at the start of a line.  Whitespace is
             // otherwise always consumed as trailing trivia if it comes after a token.
-            if (token.LeadingTrivia is not [.., (kind: SyntaxKind.WhitespaceTrivia)])
+            if (token.GetPreviousToken().TrailingTrivia is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
                 return token;
 
             using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
