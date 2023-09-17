@@ -463,8 +463,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     formattingOptions.NewLine + endDelimeter,
                     kind: SyntaxKind.InterpolatedRawStringEndToken));
 
-
-
+            var initialText = rawStringExpression.GetText();
+            var cleanedText = initialText;
             // If requested, cleanup the whitespace in the expression.
             if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
             {
@@ -473,12 +473,43 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             }
 
             // Now that the expression is cleaned, ensure every non-blank line gets the necessary indentation.
+            var indentedText = IndentSourceText(cleanedText, indentation);
 
             // Finally, parse the text back into an interpolated string so that all the contents are correct.
-            var parsed = (InterpolatedStringContentSyntax)ParseExpression(finalText, stringExpression.SyntaxTree.Options);
+            var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(indentedText.ToString(), options: stringExpression.SyntaxTree.Options);
             return parsed.WithTriviaFrom(stringExpression);
+        }
+
+        string IndentSourceText(SourceText text, string indentation)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            builder.Append(text.ToString(text.Lines[0].SpanIncludingLineBreak));
+
+            for (int i = 1, n = text.Lines.Count; i < n; i++)
+            {
+                var line = text.Lines[i];
+
+                // don't append the conents of blank lines.
+                if (!line.IsEmptyOrWhitespace())
+                {
+                    builder.Append(indentation);
+                    builder.Append(line.ToString());
+                }
+
+                // append the original newline.
+                builder.Append(text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)));
+
+                // builder.Append(text.ToString(line.SpanIncludingLineBreak));
+            }
+
+            // builder.Append(text.Lines[^1].ToString());
+
+            return builder.ToString();
+        }
 
 #if false
+
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
@@ -552,7 +583,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 .WithStringEndToken(endToken);
 
 #endif
-        }
+        // }
 
         SyntaxToken CreateToken(SyntaxKind kind, string text)
             => Token(leading: default, kind, text, text, trailing: default);
