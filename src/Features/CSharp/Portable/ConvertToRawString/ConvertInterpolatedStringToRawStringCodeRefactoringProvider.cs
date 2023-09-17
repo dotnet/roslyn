@@ -488,7 +488,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         {
             var text = stringExpression.GetText();
 
-            using var _1 = PooledStringBuilder.GetInstance(out var builder);
             using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var interpolationSpans);
 
             foreach (var content in stringExpression.Contents)
@@ -503,13 +502,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             lines.AddRange(text.Lines);
 
             // Remove the leading and trailing lines if they are all whitespace.
-            while (lines[1].GetFirstNonWhitespaceOffset() is null &&
+            while (lines[1].IsEmptyOrWhitespace() &&
                 !interpolationSpans.Any(s => s.Contains(lines[1].Start)))
             {
                 lines.RemoveAt(1);
             }
 
-            while (lines[^2].GetFirstNonWhitespaceOffset() is null &&
+            while (lines[^2].IsEmptyOrWhitespace() &&
                 !interpolationSpans.Any(s => s.Contains(lines[^2].Start)))
             {
                 lines.RemoveAt(lines.Count - 2);
@@ -522,13 +521,64 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             // Use the remaining lines to figure out what common whitespace we have.
             var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines, interpolationSpans);
 
+            using var _1 = PooledStringBuilder.GetInstance(out var builder);
 
-            //// Remove all trailing whitespace and newlines from the final string.
-            //var lastContentLine = lines[^2];
-            //lastContentLine.
-            //lastContentLine.GetLastNonWhitespacePosition()
-            //while (lines.Count result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
-            //    result.RemoveAt(result.Count - 1);
+            // Add all but the last line.
+            for (int i = 0, n = lines.Count - 1; i < n; i++)
+            {
+                var line = lines[i];
+                if (line.IsEmptyOrWhitespace())
+                {
+                    // append the original newline.
+                    builder.Append(text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)));
+                    continue;
+                }
+
+                // line with content on it.  It's either content of the string expression, or it's
+                // interpolation code.
+                if (interpolationSpans.Any(s => s.Contains(line.Start)))
+                {
+                    // Interpolation content.  Trim the prefix if present on that line, otherwise leave alone.
+                    if (line.GetFirstNonWhitespacePosition() is int pos)
+                    {
+                        var currentLineLeadingWhitespace = line.Text!.ToString(TextSpan.FromBounds(line.Start, pos));
+                        if (currentLineLeadingWhitespace.StartsWith(commonWhitespacePrefix))
+                        {
+                            builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak));
+                            continue;
+                        }
+                    }
+
+                    builder.Append(text.ToString(line.SpanIncludingLineBreak));
+                }
+                else
+                {
+                    // normal content. trim off of the common prefix.
+                    builder.Append(text.ToString(TextSpan.FromBounds(line.Start + commonWhitespacePrefix.Length, line.EndIncludingLineBreak));
+                }
+            }
+
+            // For the line before the delimeter line, trim off any trailing whitespace if present.
+            var lastIndex = builder.Length;
+            var beforeNewLines = lastIndex;
+            while (SyntaxFacts.IsNewLine(builder[beforeNewLines - 1]))
+                beforeNewLines--;
+
+            var beforeSpaces = beforeNewLines;
+            while (SyntaxFacts.IsWhitespace(builder[beforeNewLines - 1]))
+                beforeSpaces--;
+
+            builder.Remove(beforeSpaces, beforeNewLines - beforeSpaces);
+
+            // Add the line with the final delimeter
+            builder.Append(text.ToString(lines[^1].SpanIncludingLineBreak));
+
+                //// Remove all trailing whitespace and newlines from the final string.
+                //var lastContentLine = lines[^2];
+                //lastContentLine.
+                //lastContentLine.GetLastNonWhitespacePosition()
+                //while (lines.Count result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
+                //    result.RemoveAt(result.Count - 1);
 
 
 #if false
@@ -574,7 +624,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         return VirtualCharSequence.Create(result.ToImmutable());
 
 #endif
-        }
+            }
 
         static string Indent(
             InterpolatedStringExpressionSyntax stringExpression,
@@ -959,7 +1009,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
 #endif
 
-    private static int ComputeCommonWhitespacePrefix(
+    private static string ComputeCommonWhitespacePrefix(
         ArrayBuilder<TextLine> lines,
         ArrayBuilder<TextSpan> interpolationSpans)
     {
@@ -968,7 +1018,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         foreach (var line in lines)
         {
             if (commonLeadingWhitespace is "")
-                return 0;
+                return commonLeadingWhitespace;
 
             if (interpolationSpans.Any(s => s.Contains(line.Start)) ||
                 interpolationSpans.Any(s => s.Start - 1 == line.Start))
@@ -985,7 +1035,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             commonLeadingWhitespace = ComputeCommonWhitespacePrefix(commonLeadingWhitespace, currentLineLeadingWhitespace);
         }
 
-        return commonLeadingWhitespace?.Length ?? 0;
+        return commonLeadingWhitespace ?? "";
     }
 
     private static string ComputeCommonWhitespacePrefix(
