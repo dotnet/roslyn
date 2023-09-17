@@ -90,19 +90,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
         }
 
         public static int GetLongestQuoteSequence(VirtualCharSequence characters)
+            => GetLongestCharacterSequence(characters, '"');
+
+        public static int GetLongestBraceSequence(VirtualCharSequence characters)
+            => Math.Max(GetLongestCharacterSequence(characters, '{'), GetLongestCharacterSequence(characters, '}'));
+
+        public static int GetLongestCharacterSequence(VirtualCharSequence characters, char c)
         {
-            var longestQuoteSequence = 0;
+            var longestSequence = 0;
             for (int i = 0, n = characters.Length; i < n;)
             {
                 var j = i;
-                while (j < n && characters[j] == '"')
+                while (j < n && characters[j] == c)
                     j++;
 
-                longestQuoteSequence = Math.Max(longestQuoteSequence, j - i);
+                longestSequence = Math.Max(longestSequence, j - i);
                 i = j + 1;
             }
 
-            return longestQuoteSequence;
+            return longestSequence;
         }
 
         public static bool HasLeadingWhitespace(VirtualCharSequence characters)
