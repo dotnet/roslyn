@@ -289,7 +289,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 var indentationVal = indenter.GetIndentation(parsedDocument, tokenLine.LineNumber, indentationOptions, cancellationToken);
 
                 var indentation = indentationVal.GetIndentationString(parsedDocument.Text, indentationOptions);
-                return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: true);
+                var newToken = ConvertToMultiLineRawIndentedString(indentation);
+
+                newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(SyntaxFactory.Whitespace(indentation)));
+                return newToken;
             }
             else
             {
@@ -297,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 // literal on its own line, but indented some amount.  Figure out the indentation of the contents from
                 // this, but leave the string literal starting at whatever position it's at.
                 var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-                return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false);
+                return ConvertToMultiLineRawIndentedString(indentation);
             }
 
             SyntaxToken ConvertToSingleLineRawString()
@@ -323,9 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     token.TrailingTrivia);
             }
 
-            SyntaxToken ConvertToMultiLineRawIndentedString(
-                string indentation,
-                bool addIndentationToStart)
+            SyntaxToken ConvertToMultiLineRawIndentedString(string indentation)
             {
                 // If the user asked to remove whitespace then do so now.
                 if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
@@ -347,12 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 builder.Append(indentation);
                 builder.Append('"', quoteDelimiterCount);
 
-                var leadingTrivia = token.LeadingTrivia;
-                if (addIndentationToStart)
-                    leadingTrivia = leadingTrivia.Add(SyntaxFactory.Whitespace(indentation));
-
                 return SyntaxFactory.Token(
-                    leadingTrivia,
+                    token.LeadingTrivia,
                     SyntaxKind.MultiLineRawStringLiteralToken,
                     builder.ToString(),
                     characters.CreateString(),
