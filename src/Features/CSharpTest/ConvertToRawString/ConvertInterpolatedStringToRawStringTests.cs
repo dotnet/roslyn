@@ -641,6 +641,62 @@ public class ConvertInterpolatedStringToRawStringTests
     }
 
     [Fact]
+    public async Task TestInterpolation_MultiLine1_A()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{0 +
+            1}""{1 +
+            2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {0 +
+                            1}"{1 +
+                        2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine1_B()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"A{0 +
+                        1}""{1 +
+                        2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        A{0 +
+                            1}"{1 +
+                        2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
     public async Task TestInterpolation_MultiLine2()
     {
         await VerifyRefactoringAsync("""
@@ -894,6 +950,60 @@ public class ConvertInterpolatedStringToRawStringTests
                         {
                             1 + 2
                         }
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine8()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v =
+            [||]$@"{0 + 1}""
+            {1 + 2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v =
+                        $"""
+                        {0 + 1}"
+                        {1 + 2}
+                        """;
+                }
+            }
+            """");
+    }
+
+    [Fact]
+    public async Task TestInterpolation_MultiLine9()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"{0 + 1}""
+            {1 + 2}";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        {0 + 1}"
+                        {1 + 2}
                         """;
                 }
             }

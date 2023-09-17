@@ -470,7 +470,15 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             {
                 if (content is InterpolationSyntax interpolation)
                 {
-                    // todo: add indentation to open/close braces if they are at the start of the lines.
+                    if (atStartOfLine)
+                    {
+                        contents.Add(InterpolatedStringText(Token(
+                            leading: default,
+                            SyntaxKind.InterpolatedStringTextToken,
+                            indentation,
+                            valueText: "",
+                            trailing: default)));
+                    }
 
                     contents.Add(interpolation
                         .WithOpenBraceToken(UpdateToken(interpolation.OpenBraceToken, openBraceString))
@@ -520,9 +528,9 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 expression.DescendantTokens(),
                 (currentToken, _) =>
                 {
-                    // Ensure the first token has the indentation we're moving the entire node to
-                    if (currentToken == expressionFirstToken)
-                        return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
+                    //// Ensure the first token has the indentation we're moving the entire node to
+                    //if (currentToken == expressionFirstToken)
+                    //    return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
 
                     return IndentToken(currentToken, preferredIndentation, firstTokenOnLineIndentationString);
                 });
