@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             // Even if the above cases didn't work, we always support converting a `new List<int>()` collection over to
-            // a collection expression.  We just won't analyzer later statement.
+            // a collection expression.  We just won't analyze later statements.
             if (analyzeForCollectionExpression)
             {
                 return new UpdateExpressionState<TExpressionSyntax, TStatementSyntax>(
