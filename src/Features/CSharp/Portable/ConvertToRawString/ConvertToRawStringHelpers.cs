@@ -188,4 +188,27 @@ internal static class ConvertToRawStringHelpers
         foreach (var c in sequence)
             result.Add(c);
     }
+
+    public static void AppendCharacters(
+        StringBuilder builder, VirtualCharSequence characters, string indentation, ref bool atStartOfLine)
+    {
+        for (int i = 0, n = characters.Length; i < n; i++)
+        {
+            var ch = characters[i];
+            if (IsCSharpNewLine(ch))
+            {
+                ch.AppendTo(builder);
+                atStartOfLine = true;
+                continue;
+            }
+
+            if (atStartOfLine)
+            {
+                builder.Append(indentation);
+                atStartOfLine = false;
+            }
+
+            ch.AppendTo(builder);
+        }
+    }
 }

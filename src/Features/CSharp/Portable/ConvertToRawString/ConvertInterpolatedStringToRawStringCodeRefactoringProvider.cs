@@ -496,6 +496,14 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                         .WithExpression(IndentExpression(interpolation.Expression, indentation))
                         .WithFormatClause(RewriteFormatClause(interpolation.FormatClause))
                         .WithCloseBraceToken(UpdateToken(interpolation.CloseBraceToken, closeBraceString)));
+
+                    // an interpolation never ends and then starts a new line.  Any newlines will be in a text node that follows.
+                    atStartOfLine = false;
+                }
+                else if (content is InterpolatedStringTextSyntax stringText)
+                {
+                    var characters = TryConvertToVirtualChars(stringText);
+
                 }
             }
 
