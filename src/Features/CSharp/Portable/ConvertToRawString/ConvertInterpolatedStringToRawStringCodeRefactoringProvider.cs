@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (!CanConvertStringLiteral(interpolatedString, out var convertParams))
                 return;
 
-            // If we have escaped quotes in the string, then this is a good option to bubble up as something to convert
-            // to a raw string.  Otherwise, still offer this refactoring, but at low priority as the user may be
-            // invoking this on lots of strings that they have no interest in converting.
-            var priority = AllEscapesAreQuotes(convertParams.Characters) ? CodeActionPriority.Default : CodeActionPriority.Low;
-
             var options = context.Options;
 
             if (convertParams.CanBeSingleLine)
@@ -123,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (interpolatedString.Contents.Count == 0)
                 return false;
 
+            var priority = CodeActionPriority.Low;
+            var canBeSingleLine = true;
             foreach (var content in interpolatedString.Contents)
             {
                 if (content is InterpolatedStringTextSyntax interpolatedStringText)
@@ -134,21 +131,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     // Ensure that all characters in the string are those we can convert.
                     if (!characters.All(static ch => CanConvert(ch)))
                         return false;
+
+                    if (canBeSingleLine)
+                    {
+                        // a single line raw string cannot contain a newline.
+                        // Single line raw strings cannot start/end with quote.
+                        if (characters.Any(static ch => IsCSharpNewLine(ch)))
+                        {
+                            canBeSingleLine = false;
+                        }
+                        else if (interpolatedStringText == interpolatedString.Contents.First() &&
+                            characters.First().Rune.Value == '"')
+                        {
+                            canBeSingleLine = false;
+                        }
+                        else if (interpolatedStringText == interpolatedString.Contents.Last() &&
+                            characters.Last().Rune.Value == '"')
+                        {
+                            canBeSingleLine = false;
+                        }
+                    }
+
+                    // If we have escaped quotes in the string, then this is a good option to bubble up as something to
+                    // convert to a raw string. Otherwise, still offer this refactoring, but at low priority as the user
+                    // may be invoking this on lots of strings that they have no interest in converting.
+                    if (AllEscapesAreQuotes(characters))
+                        priority = CodeActionPriority.Default;
                 }
             }
 
-            var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-
-            // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic 
-            // three line alternative over just ""
-            if (characters.IsDefaultOrEmpty)
-                return false;
-
-            // Ensure that all characters in the string are those we can convert.
-            if (!characters.All(static ch => CanConvert(ch)))
-                return false;
-
-            var canBeSingleLine = CanBeSingleLine(characters);
             var canBeMultiLineWithoutLeadingWhiteSpaces = false;
             if (!canBeSingleLine)
             {
