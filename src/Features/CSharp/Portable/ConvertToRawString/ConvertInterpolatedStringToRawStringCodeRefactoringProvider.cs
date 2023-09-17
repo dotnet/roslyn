@@ -180,10 +180,10 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     }
                 }
 
-                // If we have escaped quotes in the string, then this is a good option to bubble up as something to
-                // convert to a raw string. Otherwise, still offer this refactoring, but at low priority as the user
-                // may be invoking this on lots of strings that they have no interest in converting.
-                if (priority == CodeActionPriority.Low && AllEscapesAreQuotes(characters))
+                // If we have escaped quotes or braces in the string, then this is a good option to bubble up as
+                // something to convert to a raw string. Otherwise, still offer this refactoring, but at low priority as
+                // the user may be invoking this on lots of strings that they have no interest in converting.
+                if (priority == CodeActionPriority.Low && AllEscapesAre(characters, static c => c is '"' or '{' or '}'))
                     priority = CodeActionPriority.Default;
             }
         }

@@ -31,7 +31,7 @@ internal static class ConvertToRawStringHelpers
     public static bool AllEscapesAreQuotes(VirtualCharSequence sequence)
         => AllEscapesAre(sequence, static ch => ch.Value == '"');
 
-    private static bool AllEscapesAre(VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    public static bool AllEscapesAre(VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
     {
         var hasEscape = false;
 
