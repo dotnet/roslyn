@@ -84,9 +84,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
-    public async Task TestNotWithConstructorArguments2()
+    public async Task TestWithConstructorArguments2()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -94,8 +94,22 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    var c = new List<int>(new[] { 1, 2, 3 });
-                    c.Add(1);
+                    var c = [|new|] List<int>(new[] { 1, 2, 3 });
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>(new[] { 1, 2, 3 })
+                    {
+                        1
+                    };
                 }
             }
             """);
@@ -155,6 +169,96 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             class C
             {
                 List<int> c = [|new|] List<int>()
+                {
+                    1,
+                    2,
+                    3
+                };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c =
+                [
+                    1,
+                    2,
+                    3
+                ];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField4()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = new List<int>(new[] { 1, 2, 3 });
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int> { };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int> { 1, 2, 3 };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [1, 2, 3];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>
                 {
                     1,
                     2,
@@ -1945,9 +2049,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16241")]
     public async Task TestNestedCollectionInitializer()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
-                    using System.Collections.Generic;
+            using System.Collections.Generic;
             using System.Linq;
 
             class Program
@@ -1955,7 +2059,21 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 static void Main(string[] args)
                 {
                     string[] myStringArray = new string[] { "Test", "123", "ABC" };
-                    List<string> myStringList = myStringArray?.ToList() ?? new List<string>();
+                    List<string> myStringList = myStringArray?.ToList() ?? [|new|] List<string>();
+                    myStringList.Add("Done");
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    string[] myStringArray = new string[] { "Test", "123", "ABC" };
+                    List<string> myStringList = myStringArray?.ToList() ?? [];
                     myStringList.Add("Done");
                 }
             }
