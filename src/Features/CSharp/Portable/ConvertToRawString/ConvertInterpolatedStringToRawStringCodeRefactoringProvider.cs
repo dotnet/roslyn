@@ -467,7 +467,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
 
-            using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
+            using var _1 = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
             var startToken = UpdateToken(
                 stringExpression.StringStartToken,
@@ -491,6 +491,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             {
                 if (content is InterpolationSyntax interpolation)
                 {
+                    // todo: add indentation to open/close braces if they are at the start of the lines.
+
                     contents.Add(interpolation
                         .WithOpenBraceToken(UpdateToken(interpolation.OpenBraceToken, openBraceString))
                         .WithExpression(IndentExpression(interpolation.Expression, indentation))
@@ -502,8 +504,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 }
                 else if (content is InterpolatedStringTextSyntax stringText)
                 {
-                    var characters = TryConvertToVirtualChars(stringText);
+                    using var _2 = PooledStringBuilder.GetInstance(out var builder);
 
+                    var characters = TryConvertToVirtualChars(stringText);
+                    AppendCharacters(builder, characters, indentation, ref atStartOfLine);
+
+                    contents.Add(stringText.WithTextToken(UpdateToken(stringText.TextToken, builder.ToString())));
                 }
             }
 
@@ -514,50 +520,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 .WithStringStartToken(startToken)
                 .WithContents(List(contents))
                 .WithStringEndToken(endToken);
-
-            var longestQuoteSequence = GetLongestQuoteSequence(characters);
-            var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
-
-            using var _ = PooledStringBuilder.GetInstance(out var builder);
-
-            builder.Append('"', quoteDelimiterCount);
-            builder.Append(formattingOptions.NewLine);
-
-            var atStartOfLine = true;
-            for (int i = 0, n = characters.Length; i < n; i++)
-            {
-                var ch = characters[i];
-                if (IsCSharpNewLine(ch))
-                {
-                    ch.AppendTo(builder);
-                    atStartOfLine = true;
-                    continue;
-                }
-
-                if (atStartOfLine)
-                {
-                    builder.Append(indentation);
-                    atStartOfLine = false;
-                }
-
-                ch.AppendTo(builder);
-            }
-
-            builder.Append(formattingOptions.NewLine);
-            builder.Append(indentation);
-            builder.Append('"', quoteDelimiterCount);
-
-            var leadingTrivia = token.LeadingTrivia;
-            if (addIndentationToStart)
-                leadingTrivia = leadingTrivia.Add(Whitespace(indentation));
-
-
-            return SyntaxFactory.Token(
-                leadingTrivia,
-                SyntaxKind.MultiLineRawStringLiteralToken,
-                builder.ToString(),
-                characters.CreateString(),
-                token.TrailingTrivia);
         }
 
         ExpressionSyntax IndentExpression(
