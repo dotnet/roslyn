@@ -370,8 +370,14 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var openBraceString = new string('{', dollarCount);
             var closeBraceString = new string('}', dollarCount);
 
-            var startToken = WithText(stringExpression.StringStartToken, $"{new string('$', dollarCount)}{quoteString}");
-            var endToken = WithText(stringExpression.StringEndToken, quoteString);
+            var startToken = UpdateToken(
+                stringExpression.StringStartToken,
+                $"{new string('$', dollarCount)}{quoteString}",
+                kind: SyntaxKind.InterpolatedSingleLineRawStringStartToken);
+            var endToken = UpdateToken(
+                stringExpression.StringEndToken,
+                quoteString,
+                kind: SyntaxKind.InterpolatedRawStringEndToken);
 
             using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
@@ -380,14 +386,14 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 if (content is InterpolationSyntax interpolation)
                 {
                     contents.Add(interpolation
-                        .WithOpenBraceToken(WithText(interpolation.OpenBraceToken, openBraceString))
+                        .WithOpenBraceToken(UpdateToken(interpolation.OpenBraceToken, openBraceString))
                         .WithFormatClause(RewriteFormatClause(interpolation.FormatClause))
-                        .WithCloseBraceToken(WithText(interpolation.CloseBraceToken, closeBraceString)));
+                        .WithCloseBraceToken(UpdateToken(interpolation.CloseBraceToken, closeBraceString)));
                 }
                 else if (content is InterpolatedStringTextSyntax stringText)
                 {
                     var characters = TryConvertToVirtualChars(stringText);
-                    contents.Add(stringText.WithTextToken(WithText(
+                    contents.Add(stringText.WithTextToken(UpdateToken(
                         stringText.TextToken, characters.CreateString())));
                 }
             }
@@ -404,13 +410,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 return null;
 
             var characters = TryConvertToVirtualChars(formatClause.FormatStringToken);
-            return formatClause.WithFormatStringToken(WithText(formatClause.FormatStringToken, characters.CreateString()));
+            return formatClause.WithFormatStringToken(UpdateToken(formatClause.FormatStringToken, characters.CreateString()));
         }
 
-        static SyntaxToken WithText(SyntaxToken token, string text, string valueText = "")
+        static SyntaxToken UpdateToken(SyntaxToken token, string text, string valueText = "", SyntaxKind? kind = null)
             => Token(
                 token.LeadingTrivia,
-                token.Kind(),
+                kind ?? token.Kind(),
                 text,
                 valueText,
                 token.TrailingTrivia);

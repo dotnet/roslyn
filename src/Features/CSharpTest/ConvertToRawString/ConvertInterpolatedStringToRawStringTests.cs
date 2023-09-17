@@ -23,6 +23,7 @@ public class ConvertInterpolatedStringToRawStringTests
 
         await new VerifyCS.Test
         {
+            MarkupOptions = Testing.MarkupOptions.TreatPositionIndicatorsAsCode,
             TestCode = testCode,
             FixedCode = fixedCode,
             LanguageVersion = LanguageVersion.CSharp11,
