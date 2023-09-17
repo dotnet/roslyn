@@ -235,21 +235,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var cleaned = CleanInterpolatedString(converted);
 
             canBeMultiLineWithoutLeadingWhiteSpaces = !cleaned.IsEquivalentTo(converted);
-            //if (firstContent is InterpolatedStringTextSyntax firstStringText &&
-            //    HasLeadingWhitespace(ConvertToVirtualChars(firstStringText)))
-            //{
-            //    canBeMultiLineWithoutLeadingWhiteSpaces = true;
-            //}
-            //else if (lastContent is InterpolatedStringTextSyntax lastStringText &&
-            //    HasTrailingWhitespace(ConvertToVirtualChars(lastStringText)))
-            //{
-            //    canBeMultiLineWithoutLeadingWhiteSpaces = true;
-            //}
-
-            //if (canBeMultiLineWithoutLeadingWhiteSpaces)
-            //{
-            //    if (Clean)
-            //}
         }
 
         convertParams = new CanConvertParams(priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
@@ -396,7 +381,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var cleanedExpression = kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace
                 ? CleanInterpolatedString(rawStringExpression)
                 : rawStringExpression;
-    
+
             var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(parsedDocument, stringExpression).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(
                 parsedDocument.Text, formattingOptions, parsedDocument.Root.FindToken(startLine.Start));
@@ -709,12 +694,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
         var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(builder.ToString(), options: stringExpression.SyntaxTree.Options);
         return parsed.WithTriviaFrom(stringExpression);
-        //// Remove all trailing whitespace and newlines from the final string.
-        //var lastContentLine = lines[^2];
-        //lastContentLine.
-        //lastContentLine.GetLastNonWhitespacePosition()
-        //while (lines.Count result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
-        //    result.RemoveAt(result.Count - 1);
     }
 
     private static string CreateString(ArrayBuilder<VirtualCharSequence> lines)
@@ -731,7 +710,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         ArrayBuilder<TextSpan> interpolationSpans)
     {
         string? commonLeadingWhitespace = null;
-        
+
         // Walk all the lines between the delimiters.
         for (int i = 1, n = lines.Count - 1; i < n; i++)
         {
@@ -777,39 +756,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             current++;
 
         return leadingWhitespace1[..current];
-    }
-
-    private static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
-    {
-        var current = 0;
-        while (current < line.Length && IsCSharpWhitespace(line[current]))
-            current++;
-
-        return line.GetSubSequence(TextSpan.FromBounds(0, current));
-    }
-
-    private static void BreakIntoLines(VirtualCharSequence characters, ArrayBuilder<VirtualCharSequence> lines)
-    {
-        var index = 0;
-
-        while (index < characters.Length)
-            lines.Add(GetNextLine(characters, ref index));
-    }
-
-    private static VirtualCharSequence GetNextLine(
-        VirtualCharSequence characters,
-        ref int index)
-    {
-        var end = index;
-        while (end < characters.Length && !IsCSharpNewLine(characters[end]))
-            end++;
-
-        if (end != characters.Length)
-            end += IsCarriageReturnNewLine(characters, end) ? 2 : 1;
-
-        var result = characters.GetSubSequence(TextSpan.FromBounds(index, end));
-        index = end;
-        return result;
     }
 
     public static SyntaxToken UpdateToken(SyntaxToken token, string text, string valueText = "", SyntaxKind? kind = null)
