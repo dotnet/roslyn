@@ -62,7 +62,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
     {
         var (document, span, cancellationToken) = context;
 
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+        var root = parsedDocument.Root;
         var token = root.FindToken(span.Start);
         if (!context.Span.IntersectsWith(token.Span))
             return;
@@ -70,7 +71,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         if (token.Parent is not InterpolatedStringExpressionSyntax interpolatedString)
             return;
 
-        if (!CanConvertStringLiteral(interpolatedString, out var convertParams, cancellationToken))
+        if (!CanConvertInterpolatedString(parsedDocument, interpolatedString, out var convertParams))
             return;
 
         var options = context.Options;
@@ -115,8 +116,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
     private static VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
         => CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
 
-    private static bool CanConvertStringLiteral(
-        InterpolatedStringExpressionSyntax interpolatedString, out CanConvertParams convertParams, CancellationToken cancellationToken)
+    private static bool CanConvertInterpolatedString(
+        ParsedDocument document, InterpolatedStringExpressionSyntax interpolatedString, out CanConvertParams convertParams)
     {
         convertParams = default;
 
@@ -136,7 +137,6 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
         var priority = CodeActionPriority.Low;
         var canBeSingleLine = true;
-        SourceText? text = null;
         foreach (var content in interpolatedString.Contents)
         {
             if (content is InterpolationSyntax interpolation)
@@ -150,8 +150,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                         return false;
                 }
 
-                text ??= interpolatedString.SyntaxTree.GetText(cancellationToken);
-                if (canBeSingleLine && !text.AreOnSameLine(interpolation.OpenBraceToken, interpolation.CloseBraceToken))
+                if (canBeSingleLine && !document.Text.AreOnSameLine(interpolation.OpenBraceToken, interpolation.CloseBraceToken))
                     canBeSingleLine = false;
             }
             else if (content is InterpolatedStringTextSyntax interpolatedStringText)
@@ -275,7 +274,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             foreach (var stringLiteral in node.DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
             {
                 // Ensure we can convert the string literal
-                if (!CanConvertStringLiteral(stringLiteral, out var canConvertParams, cancellationToken))
+                if (!CanConvertInterpolatedString(parsedDocument, stringLiteral, out var canConvertParams))
                     continue;
 
                 // Ensure we have a matching kind to fix for this literal
