@@ -28,6 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 {
     using static ConvertToRawStringHelpers;
+    using static SyntaxFactory;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRawString), Shared]
     internal partial class ConvertRegularStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
@@ -291,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 var indentation = indentationVal.GetIndentationString(parsedDocument.Text, indentationOptions);
                 var newToken = ConvertToMultiLineRawIndentedString(indentation);
 
-                newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(SyntaxFactory.Whitespace(indentation)));
+                newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(Whitespace(indentation)));
                 return newToken;
             }
             else
@@ -318,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
                 builder.Append('"', quoteDelimiterCount);
 
-                return SyntaxFactory.Token(
+                return Token(
                     token.LeadingTrivia,
                     SyntaxKind.SingleLineRawStringLiteralToken,
                     builder.ToString(),
@@ -348,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 builder.Append(indentation);
                 builder.Append('"', quoteDelimiterCount);
 
-                return SyntaxFactory.Token(
+                return Token(
                     token.LeadingTrivia,
                     SyntaxKind.MultiLineRawStringLiteralToken,
                     builder.ToString(),

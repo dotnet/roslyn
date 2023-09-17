@@ -345,7 +345,9 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var indentationVal = indenter.GetIndentation(parsedDocument, tokenLine.LineNumber, indentationOptions, cancellationToken);
 
             var indentation = indentationVal.GetIndentationString(parsedDocument.Text, indentationOptions);
-            return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: true);
+            var newNode = ConvertToMultiLineRawIndentedString(indentation);
+            newNode = newNode.WithLeadingTrivia(newNode.GetLeadingTrivia().Add(Whitespace(indentation)));
+            return newNode;
         }
         else
         {
@@ -353,7 +355,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             // literal on its own line, but indented some amount.  Figure out the indentation of the contents from
             // this, but leave the string literal starting at whatever position it's at.
             var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-            return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false);
+            return ConvertToMultiLineRawIndentedString(indentation);
         }
 
         (int longestQuoteSequence, int longestBraceSequence) GetLongestSequences()
@@ -393,15 +395,23 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         {
             var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
 
-            var startToken = UpdateToken(
-                stringExpression.StringStartToken,
-                startDelimeter,
-                kind: SyntaxKind.InterpolatedSingleLineRawStringStartToken);
-            var endToken = UpdateToken(
-                stringExpression.StringEndToken,
-                endDelimeter,
-                kind: SyntaxKind.InterpolatedRawStringEndToken);
+            return stringExpression
+                .WithStringStartToken(UpdateToken(
+                    stringExpression.StringStartToken,
+                    startDelimeter,
+                    kind: SyntaxKind.InterpolatedSingleLineRawStringStartToken))
+                .WithContents(ConvertContents(stringExpression, openBraceString, closeBraceString))
+                .WithStringEndToken(UpdateToken(
+                    stringExpression.StringEndToken,
+                    endDelimeter,
+                    kind: SyntaxKind.InterpolatedRawStringEndToken));
+        }
 
+        static SyntaxList<InterpolatedStringContentSyntax> ConvertContents(
+            InterpolatedStringExpressionSyntax stringExpression,
+            string openBraceString,
+            string closeBraceString)
+        {
             using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
             foreach (var content in stringExpression.Contents)
@@ -421,10 +431,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 }
             }
 
-            return stringExpression
-                .WithStringStartToken(startToken)
-                .WithContents(List(contents))
-                .WithStringEndToken(endToken);
+            return List(contents);
         }
 
         static InterpolationFormatClauseSyntax? RewriteFormatClause(InterpolationFormatClauseSyntax? formatClause)
@@ -436,15 +443,40 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             return formatClause.WithFormatStringToken(UpdateToken(formatClause.FormatStringToken, characters.CreateString()));
         }
 
-        InterpolatedStringExpressionSyntax ConvertToMultiLineRawIndentedString(
-            string indentation,
-            bool addIndentationToStart)
+        InterpolatedStringExpressionSyntax ConvertToMultiLineRawIndentedString(string indentation)
         {
             // If the user asked to remove whitespace then do so now.
+
+            // First, do the trivial conversion, just updating the start/end delimiters.  Adding the requisite newlines
+            // at the start/end, and updating quotes/braces.
+            var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
+
+            // Once we have this, convert the node to text as it is much easier to process in string form.
+            var rawStringExpression = stringExpression
+                .WithStringStartToken(UpdateToken(
+                    stringExpression.StringStartToken,
+                    startDelimeter + formattingOptions.NewLine,
+                    kind: SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+                .WithContents(ConvertContents(stringExpression, openBraceString, closeBraceString))
+                .WithStringEndToken(UpdateToken(
+                    stringExpression.StringEndToken,
+                    formattingOptions.NewLine + endDelimeter,
+                    kind: SyntaxKind.InterpolatedRawStringEndToken));
+
+            // If requested, cleanup the whitespace in the expression.
             if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
             {
-                stringExpression = CleanupWhitespace(stringExpression);
+                // stringExpression = CleanupWhitespace(stringExpression);
+                throw new NotImplementedException();
             }
+
+            // Now that the expression is cleaned, ensure every non-blank line gets the necessary indentation.
+
+            // Finally, parse the text back into an interpolated string so that all the contents are correct.
+            var parsed = (InterpolatedStringContentSyntax)ParseExpression(finalText, stringExpression.SyntaxTree.Options);
+            return parsed.WithTriviaFrom(stringExpression);
+
+#if false
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
@@ -512,13 +544,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 }
             }
 
-            if (addIndentationToStart)
-                startToken = startToken.WithLeadingTrivia(startToken.LeadingTrivia.Add(indentationTrivia));
-
             return stringExpression
                 .WithStringStartToken(startToken)
                 .WithContents(List(contents))
                 .WithStringEndToken(endToken);
+
+#endif
         }
 
         SyntaxToken CreateToken(SyntaxKind kind, string text)
@@ -651,6 +682,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         return result.ToString();
     }
 
+#if false
+
     private static InterpolatedStringExpressionSyntax CleanupWhitespace(
         InterpolatedStringExpressionSyntax stringExpression)
     {
@@ -726,6 +759,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         return VirtualCharSequence.Create(result.ToImmutable());
     }
 
+#endif
 
     private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
     {
