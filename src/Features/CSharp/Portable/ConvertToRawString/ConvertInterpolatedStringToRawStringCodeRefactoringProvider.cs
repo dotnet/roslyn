@@ -450,6 +450,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var (startDelimeter, endDelimeter, openBraceString, closeBraceString) = GetDelimeters();
+            var indentationTrivia = Whitespace(indentation);
 
             using var _1 = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
@@ -480,11 +481,15 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                             trailing: default)));
                     }
 
+                    var closeBrace = UpdateToken(interpolation.CloseBraceToken, closeBraceString);
+                    if (!parsedDocument.Text.AreOnSameLine(interpolation.CloseBraceToken, interpolation.CloseBraceToken.GetPreviousToken()))
+                        closeBrace = closeBrace.WithLeadingTrivia(closeBrace.LeadingTrivia.Add(indentationTrivia));
+
                     contents.Add(interpolation
                         .WithOpenBraceToken(UpdateToken(interpolation.OpenBraceToken, openBraceString))
                         .WithExpression(IndentExpression(interpolation.Expression, indentation))
                         .WithFormatClause(RewriteFormatClause(interpolation.FormatClause))
-                        .WithCloseBraceToken(UpdateToken(interpolation.CloseBraceToken, closeBraceString)));
+                        .WithCloseBraceToken(closeBrace));
 
                     // an interpolation never ends and then starts a new line.  Any newlines will be in a text node that follows.
                     atStartOfLine = false;
@@ -504,7 +509,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             }
 
             if (addIndentationToStart)
-                startToken = startToken.WithLeadingTrivia(startToken.LeadingTrivia.Add(Whitespace(indentation)));
+                startToken = startToken.WithLeadingTrivia(startToken.LeadingTrivia.Add(indentationTrivia));
 
             return stringExpression
                 .WithStringStartToken(startToken)
