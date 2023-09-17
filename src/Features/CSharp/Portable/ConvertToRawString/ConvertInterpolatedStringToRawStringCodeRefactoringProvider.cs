@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (token.Parent is not InterpolatedStringExpressionSyntax interpolatedString)
                 return;
 
-            if (!CanConvertStringLiteral(interpolatedString, out var convertParams))
+            if (!CanConvertStringLiteral(interpolatedString, out var convertParams, cancellationToken))
                 return;
 
             var options = context.Options;
@@ -113,9 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             => CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
 
         private static bool CanConvertStringLiteral(
-            InterpolatedStringExpressionSyntax interpolatedString, out CanConvertParams convertParams)
+            InterpolatedStringExpressionSyntax interpolatedString, out CanConvertParams convertParams, CancellationToken cancellationToken)
         {
             convertParams = default;
+
+            if (interpolatedString.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
+                return false;
 
             if (interpolatedString.StringStartToken.Kind() is not SyntaxKind.InterpolatedStringStartToken and not SyntaxKind.InterpolatedVerbatimStringStartToken)
                 return false;
@@ -130,9 +134,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             var priority = CodeActionPriority.Low;
             var canBeSingleLine = true;
+            SourceText? text = null;
             foreach (var content in interpolatedString.Contents)
             {
-                if (content is InterpolatedStringTextSyntax interpolatedStringText)
+                if (content is InterpolationSyntax interpolation)
+                {
+                    text ??= interpolatedString.SyntaxTree.GetText(cancellationToken);
+                    if (canBeSingleLine && text.AreOnSameLine(interpolation.OpenBraceToken, interpolation.CloseBraceToken))
+                        canBeSingleLine = false;
+                }
+                else if (content is InterpolatedStringTextSyntax interpolatedStringText)
                 {
                     var characters = TryConvertToVirtualChars(interpolatedStringText);
                     if (characters.IsDefault)
@@ -221,7 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
             Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
-            Contract.ThrowIfFalse(token.Parent is InterpolatedStringExpressionSyntax interpolatedString);
+
+            if (token.Parent is not InterpolatedStringExpressionSyntax interpolatedString)
+                return document;
 
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var replacement = GetReplacementExpression(parsedDocument, interpolatedString, kind, options, cancellationToken);
@@ -249,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 foreach (var stringLiteral in node.DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
                 {
                     // Ensure we can convert the string literal
-                    if (!CanConvertStringLiteral(stringLiteral, out var canConvertParams))
+                    if (!CanConvertStringLiteral(stringLiteral, out var canConvertParams, cancellationToken))
                         continue;
 
                     // Ensure we have a matching kind to fix for this literal
@@ -272,28 +285,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                         stringLiteral,
                         (current, _) =>
                         {
-                            if (current is not LiteralExpressionSyntax currentStringLiteral)
+                            if (current is not InterpolatedStringExpressionSyntax currentStringExpression)
                                 return current;
 
                             var currentParsedDocument = parsedDocument.WithChangedRoot(
                                 current.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
                             var replacement = GetReplacementExpression(
-                                currentParsedDocument, currentStringLiteral, kind, options, cancellationToken);
+                                currentParsedDocument, currentStringExpression, kind, options, cancellationToken);
                             return replacement;
                         });
                 }
             }
         }
 
-        private static SyntaxToken GetReplacementToken(
+        private static InterpolatedStringExpressionSyntax GetReplacementExpression(
             ParsedDocument parsedDocument,
-            SyntaxToken token,
+            InterpolatedStringExpressionSyntax stringExpression,
             ConvertToRawKind kind,
             SyntaxFormattingOptions formattingOptions,
             CancellationToken cancellationToken)
         {
-            var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-            Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
+            //var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
+            //Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
 
             if (kind == ConvertToRawKind.SingleLine)
                 return ConvertToSingleLineRawString();
@@ -324,10 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false);
             }
 
-            SyntaxToken ConvertToSingleLineRawString()
+            InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
             {
                 // Have to make sure we have a delimiter longer than any quote sequence in the string.
-                var longestQuoteSequence = GetLongestQuoteSequence(characters);
+                var longestQuoteSequence = GetLongestQuoteSequence(stringExpression);
                 var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
 
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
