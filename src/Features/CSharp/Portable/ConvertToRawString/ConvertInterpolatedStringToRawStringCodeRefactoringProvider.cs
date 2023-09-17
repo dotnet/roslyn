@@ -312,6 +312,9 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         if (kind == ConvertToRawKind.SingleLine)
             return ConvertToSingleLineRawString();
 
+        throw new NotImplementedException();
+#if false
+
         var indentationOptions = new IndentationOptions(formattingOptions);
 
         var tokenLine = parsedDocument.Text.Lines.GetLineFromPosition(token.SpanStart);
@@ -338,45 +341,71 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false);
         }
 
+#endif
+
         InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
         {
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var longestQuoteSequence = 0;
+            var longestBraceSequence = 0;
             foreach (var content in stringExpression.Contents)
             {
                 if (content is InterpolatedStringTextSyntax stringText)
-                    longestQuoteSequence = Math.Max(longestQuoteSequence, GetLongestQuoteSequence(TryConvertToVirtualChars(stringText)));
+                {
+                    var characters = TryConvertToVirtualChars(stringText);
+                    longestQuoteSequence = Math.Max(longestQuoteSequence, GetLongestQuoteSequence(characters));
+                    longestBraceSequence = Math.Max(longestBraceSequence, GetLongestBraceSequence(characters));
+                }
             }
 
             var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
+            var dollarCount = longestBraceSequence + 1;
+
+            var quoteString = new string('"', quoteDelimiterCount);
+            var openBraceString = new string('{', dollarCount);
+            var closeBraceString = new string('}', dollarCount);
+
+            var startToken = WithText(stringExpression.StringStartToken, $"{new string('$', dollarCount)}{quoteString}");
+            var endToken = WithText(stringExpression.StringEndToken, quoteString);
 
             using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var contents);
 
-            var startToken = 
+            foreach (var content in stringExpression.Contents)
+            {
+                if (content is InterpolationSyntax interpolation)
+                {
+                    contents.Add(interpolation
+                        .WithOpenBraceToken(WithText(interpolation.OpenBraceToken, openBraceString))
+                        .WithCloseBraceToken(WithText(interpolation.CloseBraceToken, closeBraceString)));
+                }
+                else if (content is InterpolatedStringTextSyntax stringText)
+                {
+                    var token = stringText.TextToken;
+                    var characters = TryConvertToVirtualChars(stringText);
+                    contents.Add(stringText.WithTextToken(Token(
+                        token.LeadingTrivia,
+                        SyntaxKind.InterpolatedStringTextToken,
+                        characters.CreateString(),
+                        valueText: "",
+                        token.TrailingTrivia)));
+                }
+            }
 
             return stringExpression
-                .WithStringStartToken()
+                .WithStringStartToken(startToken)
                 .WithContents(List(contents))
-                .WithStringEndToken();
-
-
-
-            using var _ = PooledStringBuilder.GetInstance(out var builder);
-
-            builder.Append('"', quoteDelimiterCount);
-
-            foreach (var ch in characters)
-                ch.AppendTo(builder);
-
-            builder.Append('"', quoteDelimiterCount);
-
-            return SyntaxFactory.Token(
-                token.LeadingTrivia,
-                SyntaxKind.SingleLineRawStringLiteralToken,
-                builder.ToString(),
-                characters.CreateString(),
-                token.TrailingTrivia);
+                .WithStringEndToken(endToken);
         }
+
+        static SyntaxToken WithText(SyntaxToken token, string text, string valueText = "")
+            => Token(
+                token.LeadingTrivia,
+                token.Kind(),
+                text,
+                valueText,
+                token.TrailingTrivia);
+
+#if false
 
         SyntaxToken ConvertToMultiLineRawIndentedString(
             string indentation,
@@ -430,6 +459,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 characters.CreateString(),
                 token.TrailingTrivia);
         }
+
+#endif
     }
 
     private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
