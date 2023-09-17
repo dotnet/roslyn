@@ -12,6 +12,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
 
-        private readonly Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>> _deletedTypeMembers;
+        private readonly Dictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>> _deletedTypeMembers;
 
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
         private readonly DefinitionIndex<IEventDefinition> _eventDefs;
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             _changedTypeDefs = new List<ITypeDefinition>();
             _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedTypeDefinition>(ReferenceEqualityComparer.Instance);
-            _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
+            _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -540,24 +541,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
             int typeRowId = _typeDefs.GetRowId(typeDef);
 
-            // First we find the deleted methods, and add them to our dictionary. This is used later when
-            // processing events, properties, methods, and references.
-            ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>? deletedMethodDefinitions = null;
-
-            var deletedMethods = _changes.GetDeletedMethods(typeDef);
-            if (deletedMethods.Length > 0)
-            {
-                var deletedTypeMembers = ImmutableDictionary.CreateBuilder<IMethodDefinition, DeletedMethodDefinition>(ReferenceEqualityComparer.Instance);
-                foreach (var methodDef in deletedMethods)
-                {
-                    var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
-                    deletedTypeMembers.Add(oldMethodDef, new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
-                }
-
-                deletedMethodDefinitions = deletedTypeMembers.ToImmutableDictionary();
-                _deletedTypeMembers.Add(typeDef, deletedMethodDefinitions);
-            }
-
             foreach (var eventDef in typeDef.GetEvents(this.Context))
             {
                 if (!_eventMap.Contains(typeRowId))
@@ -582,15 +565,22 @@ namespace Microsoft.CodeAnalysis.Emit
                 CreateIndicesForMethod(methodDef, methodChange);
             }
 
-            // Because we already processed the deleted methods above, this is a bit easier than
-            // properties and events, and we just need to make sure we add the right indices
-            if (deletedMethodDefinitions is not null)
+            var deletedMethods = _changes.GetDeletedMethods(typeDef);
+            if (deletedMethods.Length > 0)
             {
-                foreach (var (_, newMethodDef) in deletedMethodDefinitions)
+                // create representations of the old deleted methods in this compilation:
+                var newMethodDefs = deletedMethods.SelectAsArray(
+                    static (m, args) => new DeletedMethodDefinition((IMethodDefinition)m.GetCciAdapter(), args.typeDef, args._typesUsedByDeletedMembers),
+                    (typeDef, _typesUsedByDeletedMembers));
+
+                // Assign the deleted method and its parameters row ids in the delta metadata:
+                foreach (var newMethodDef in newMethodDefs)
                 {
                     _methodDefs.AddUpdated(newMethodDef);
                     CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
                 }
+
+                _deletedTypeMembers.Add(typeDef, newMethodDefs);
             }
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))
@@ -1714,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private sealed class DeltaReferenceIndexer : ReferenceIndexer
         {
             private readonly SymbolChanges _changes;
-            private readonly Dictionary<ITypeDefinition, ImmutableDictionary<IMethodDefinition, DeletedMethodDefinition>> _deletedTypeMembers;
+            private readonly IReadOnlyDictionary<ITypeDefinition, ImmutableArray<DeletedMethodDefinition>> _deletedTypeMembers;
 
             public DeltaReferenceIndexer(DeltaMetadataWriter writer)
                 : base(writer)
@@ -1794,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     // We need to visit deleted members to ensure attribute method references are recorded
                     if (_deletedTypeMembers.TryGetValue(typeDefinition, out var deletedMembers))
                     {
-                        this.Visit(deletedMembers.Values);
+                        this.Visit(deletedMembers);
                     }
                 }
             }
