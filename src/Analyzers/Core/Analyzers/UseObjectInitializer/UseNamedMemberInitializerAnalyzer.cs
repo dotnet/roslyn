@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
 
                 var leftSymbol = this.SemanticModel.GetSymbolInfo(leftMemberAccess, cancellationToken).GetAnySymbol();
-                if (leftSymbol?.IsStatic != false)
+                if (leftSymbol?.IsStatic is true)
                 {
                     // Static members cannot be initialized through an object initializer.
                     break;
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         private static bool IsExplicitlyImplemented(
             ITypeSymbol classOrStructType,
-            ISymbol member,
+            ISymbol? member,
             [NotNullWhen(true)] out ISymbol? typeMember)
         {
             if (member != null && member.ContainingType.IsInterfaceType())
