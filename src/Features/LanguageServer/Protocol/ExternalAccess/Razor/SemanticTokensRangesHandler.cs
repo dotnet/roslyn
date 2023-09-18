@@ -16,9 +16,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
 [Method(SemanticRangesMethodName)]
-internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticTokensRangesParams, SemanticTokens>
+internal class SemanticTokensRangesHandler : ILspServiceDocumentRequestHandler<SemanticTokensRangesParams, SemanticTokens>
 {
-    public const string SemanticRangesMethodName = "textDocument/semanticTokens/ranges";
+    public const string SemanticRangesMethodName = "roslyn/semanticTokenRanges";
     private readonly IGlobalOptionService _globalOptions;
     private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue;
 
@@ -32,6 +32,12 @@ internal class SemanticTokensRangesHandler : ILspServiceRequestHandler<SemanticT
     {
         _globalOptions = globalOptions;
         _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
+    }
+
+    public TextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangesParams request)
+    {
+        Contract.ThrowIfNull(request.TextDocument);
+        return request.TextDocument;
     }
 
     public async Task<SemanticTokens> HandleRequestAsync(
