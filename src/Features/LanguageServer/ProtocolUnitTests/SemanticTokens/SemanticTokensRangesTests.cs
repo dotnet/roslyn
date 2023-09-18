@@ -32,12 +32,11 @@ static class C { }
             await using var testLspServer = await CreateTestLspServerAsync(
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
-            var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
-            var ranges = new LSP.Range[1] { range };
+            var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) } };
             var results = await RunGetSemanticTokensAsync(testLspServer, testLspServer.GetLocations("caret").First(), ranges: ranges);
 
-            var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             var expectedResults = new LSP.SemanticTokens();
+            var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
                 expectedResults.Data = new int[]

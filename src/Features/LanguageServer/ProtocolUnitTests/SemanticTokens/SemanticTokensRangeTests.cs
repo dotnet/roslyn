@@ -178,7 +178,7 @@ static class C { }
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new LSP.Range[1] { new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) } };
+            var ranges = new[] { new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) } };
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
@@ -228,7 +228,7 @@ three */ }
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new LSP.Range[1] { new LSP.Range { Start = new Position(0, 0), End = new Position(4, 0) } };
+            var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(4, 0) } };
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
@@ -287,7 +287,7 @@ three"";
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new LSP.Range[1] { new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) } };
+            var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) } };
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
@@ -368,7 +368,7 @@ class C
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new LSP.Range[1] { new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) } };
+            var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) } };
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
