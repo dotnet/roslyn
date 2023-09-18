@@ -68,7 +68,8 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
     {
         foreach (var convertProvider in s_convertStringProviders)
         {
-            if (convertProvider.CanConvert(parsedDocument, expression, formattingOptions, out canConvertParams, cancellationToken))
+            if (convertProvider.CheckSyntax(expression) &&
+                convertProvider.CanConvert(parsedDocument, expression, formattingOptions, out canConvertParams, cancellationToken))
             {
                 provider = convertProvider;
                 return true;
@@ -134,22 +135,6 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         }
     }
 
-    private static bool CanBeSingleLine(VirtualCharSequence characters)
-    {
-        // Single line raw strings cannot start/end with quote.
-        if (characters.First().Rune.Value == '"' ||
-            characters.Last().Rune.Value == '"')
-        {
-            return false;
-        }
-
-        // a single line raw string cannot contain a newline.
-        if (characters.Any(static ch => IsCSharpNewLine(ch)))
-            return false;
-
-        return true;
-    }
-
     private static async Task<Document> UpdateDocumentAsync(
         Document document, 
         ExpressionSyntax expression,
@@ -162,7 +147,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-        var replacement = provider.GetReplacement(parsedDocument, expression, kind, options, cancellationToken);
+        var replacement = provider.Convert(parsedDocument, expression, kind, options, cancellationToken);
         return document.WithSyntaxRoot(root.ReplaceNode(expression, replacement));
     }
 
@@ -215,8 +200,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
 
                         var currentParsedDocument = parsedDocument.WithChangedRoot(
                             current.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
-                        var replacement = provider.GetReplacement(
-                            currentParsedDocument, currentExpression, kind, formattingOptions, cancellationToken);
+                        var replacement = provider.Convert(currentParsedDocument, currentExpression, kind, formattingOptions, cancellationToken);
                         return replacement;
                     });
             }

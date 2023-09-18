@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
 
 using VerifyCS = CSharpCodeRefactoringVerifier<
-    ConvertInterpolatedStringToRawStringCodeRefactoringProvider>;
+    ConvertStringToRawStringCodeRefactoringProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertInterpolatedToRawString)]
 public class ConvertInterpolatedStringToRawStringTests
