@@ -2083,4 +2083,244 @@ public class ConvertInterpolatedStringToRawStringTests
             }
             """", index: 1);
     }
+
+    [Fact]
+    public async Task TestWithNestedVerbatimString3()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"
+                                    
+                                The whitespace above/below me needs to stay
+                                    
+                            "
+                        }
+                        ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"
+                                    
+                                The whitespace above/below me needs to stay
+                                    
+                            "
+                        }
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
+    public async Task TestWithNestedVerbatimString4()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"
+                    
+                The whitespace above/below me needs to stay
+                    
+                            "
+                        }
+                        ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"
+                    
+                The whitespace above/below me needs to stay
+                    
+                            "
+                        }
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
+    public async Task TestWithNestedVerbatimString5()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+            from x in y
+            where x > 0
+            select x
+            {
+                @"
+                    This needs to stay put
+                "
+            }
+            ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                @"
+                    This needs to stay put
+                "
+                        }
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
+    public async Task TestWithNestedVerbatimString6()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+            from x in y
+            where x > 0
+            select x
+            {
+            @"
+                This needs to stay put
+            "
+            }
+            ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+            @"
+                This needs to stay put
+            "
+                        }
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
+    public async Task TestWithNestedVerbatimString7()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+            from x in y
+            where x > 0
+            select x
+            {
+            @"This can move"
+            }
+            ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                        @"This can move"
+                        }
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
+    public async Task TestWithNestedVerbatimString8()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+            from x in y
+            where x > 0
+            select x
+            {
+                @"This can move"
+            }
+            ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"This can move"
+                        }
+                        """;
+                }
+            }
+            """", index: 1);
+    }
 }
