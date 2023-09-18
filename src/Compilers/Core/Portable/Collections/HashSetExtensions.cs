@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis
             return hashSet.Add(item);
         }
 
+        /// <summary>
+        /// This extension method is added so that it's preferred over LINQ's Any.
+        /// This is more efficient than LINQ, especially in that it avoids the enumerator boxing allocation.
+        /// </summary>
         internal static bool Any<T>(this HashSet<T> hashSet, Func<T, bool> predicate)
         {
             foreach (var item in hashSet)
