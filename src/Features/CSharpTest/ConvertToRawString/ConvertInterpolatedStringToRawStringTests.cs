@@ -2003,4 +2003,84 @@ public class ConvertInterpolatedStringToRawStringTests
             }
             """", index: 1);
     }
+
+    [Fact]
+    public async Task TestWithNestedVerbatimString1()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"
+                                This needs stay indented
+                            "
+                        }
+                        ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"
+                                This needs stay indented
+                            "
+                        }
+                        """;
+                }
+            }
+            """", index: 1);
+    }
+
+    [Fact]
+    public async Task TestWithNestedVerbatimString2()
+    {
+        await VerifyRefactoringAsync("""
+            public class C
+            {
+                void M()
+                {
+                    var v = [||]$@"
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"
+            This should not prevent dedentation
+                            "
+                        }
+                        ";
+                }
+            }
+            """, """"
+            public class C
+            {
+                void M()
+                {
+                    var v = $"""
+                        from x in y
+                        where x > 0
+                        select x
+                        {
+                            @"
+            This should not prevent dedentation
+                            "
+                        }
+                        """;
+                }
+            }
+            """", index: 1);
+    }
 }
