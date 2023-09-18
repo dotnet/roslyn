@@ -1150,7 +1150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim baseAllRequiredMembers = If(BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers, ImmutableSegmentedDictionary(Of String, Symbol).Empty)
             Dim typeHasDeclaredRequiredMembers = HasAnyDeclaredRequiredMembers
 
-            If (Not typeHasDeclaredRequiredMembers) AndAlso baseAllRequiredMembers.IsEmpty Then
+            ' Fast check: avoid realizing GetMembersUnordered() for substituted symbols when the original
+            ' definition doesn't contain any required members or any members with the same name as a required
+            ' member from the base type.
+            If Not ReferenceEquals(OriginalDefinition, Me) AndAlso
+                Not OriginalDefinition.GetMembersUnordered().Any(Function(member, capturedBaseAllRequiredMembers) member.IsRequired() OrElse capturedBaseAllRequiredMembers.ContainsKey(member.Name), baseAllRequiredMembers) Then
                 Return True
             End If
 
