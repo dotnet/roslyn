@@ -103,7 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return true;
             }
 
-            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
+            var document = await workspace.CurrentSolution.GetRequiredDocumentIncludingSourceGeneratedAsync(
+                documentId, throwForMissingSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+            if (document is null)
+                return false;
+
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
