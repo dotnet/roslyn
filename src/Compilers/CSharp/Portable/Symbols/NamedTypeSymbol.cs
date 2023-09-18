@@ -599,6 +599,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var baseAllRequiredMembers = BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
                 var hasDeclaredRequiredMembers = HasDeclaredRequiredMembers;
 
+                // Fast check: avoid realizing GetMembersUnordered() for substituted symbols when the original
+                // definition doesn't contain any required members or any members with the same name as a required
+                // member from the base type.
+                if (!ReferenceEquals(OriginalDefinition, this)
+                    && !OriginalDefinition.GetMembersUnordered().Any(static (member, baseAllRequiredMembers) => member.IsRequired() || baseAllRequiredMembers.ContainsKey(member.Name), baseAllRequiredMembers))
+                {
+                    return true;
+                }
+
                 foreach (var member in GetMembersUnordered())
                 {
                     if (member is PropertySymbol { ParameterCount: > 0 } prop)
