@@ -384,12 +384,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 : rawStringExpression;
 
             var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(parsedDocument, stringExpression).SpanStart);
-            var firstTokenOnLineIndentationString = GetIndentationStringForToken(
+            var rootAnchorIndentation = GetIndentationStringForToken(
                 parsedDocument.Text, formattingOptions, parsedDocument.Root.FindToken(startLine.Start));
 
             // Now that the expression is cleaned, ensure every non-blank line gets the necessary indentation.
             var indentedText = Indent(
-                cleanedExpression, formattingOptions, indentation, firstTokenOnLineIndentationString, cancellationToken);
+                cleanedExpression, formattingOptions, indentation, rootAnchorIndentation, cancellationToken);
 
             // Finally, parse the text back into an interpolated string so that all the contents are correct.
             var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(indentedText.ToString(), options: stringExpression.SyntaxTree.Options);
@@ -430,7 +430,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             InterpolatedStringExpressionSyntax stringExpression,
             SyntaxFormattingOptions formattingOptions,
             string indentation,
-            string firstTokenOnLineIndentationString,
+            string rootAnchorIndentation,
             CancellationToken cancellationToken)
         {
             var text = stringExpression.GetText();
@@ -466,22 +466,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     // inside an interpolation.  Figure out the original indentation against the appropriate anchor, and
                     // preserve that indentation on top of whatever indentation is being added.
                     var firstNonWhitespacePos = line.GetFirstNonWhitespacePosition()!.Value;
-                    //if (restrictedSpans.HasIntervalThatIntersectsWith(firstNonWhitespacePos + 1))
-                    //{
-                    //    // we're on a line that has construct that *starts* a restricted section.  like `@"..."`
-                    //    // somewhere in this line.  If the construct spans lines, then do not touch it.  However, if
-                    //    // it's all on this line, it's ok to indent it to the preferred level.
-                    //    var intervals = restrictedSpans.GetIntervalsThatIntersectWith(firstNonWhitespacePos + 1, length: 0);
-                    //    if (intervals.Any(t => text.Lines.GetLineFromPosition(t.Start) != text.Lines.GetLineFromPosition(t.End)))
-                    //    {
-                    //        AppendFullLine(builder, line);
-                    //        continue;
-                    //    }
-                    //}
+
+                    var anchorIndentation = DetermineAnchorIndentation(
+                        rootAnchorIndentation, text, formattingOptions, stringExpression, line.Start);
 
                     var positionIndentation = GetIndentationStringForPosition(text, formattingOptions, firstNonWhitespacePos);
-                    var preferredIndentation = positionIndentation.StartsWith(firstTokenOnLineIndentationString)
-                        ? indentation + positionIndentation[firstTokenOnLineIndentationString.Length..]
+                    var preferredIndentation = positionIndentation.StartsWith(anchorIndentation)
+                        ? indentation + positionIndentation[anchorIndentation.Length..]
                         : indentation;
                     builder.Append(preferredIndentation);
                     builder.Append(text.ToString(TextSpan.FromBounds(firstNonWhitespacePos, line.EndIncludingLineBreak)));
@@ -496,6 +487,31 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             return builder.ToString();
         }
+    }
+
+    private static string DetermineAnchorIndentation(
+        string rootAnchorIndentation,
+        SourceText text,
+        SyntaxFormattingOptions formattingOptions,
+        InterpolatedStringExpressionSyntax stringExpression,
+        int start)
+    {
+        var interpolation = stringExpression.Contents.OfType<InterpolationSyntax>().Single(i => i.Span.Contains(start));
+        var interpolationLine = text.Lines.GetLineFromPosition(interpolation.SpanStart);
+
+        // We only want to do this past the first line.  The first line actually contains the contents following the
+        // `"""` after we inserted the newline.  So if we have an interpolation starting there, we actually want to use
+        // the indentation of string expression itself.
+        if (interpolationLine.LineNumber > 1 &&
+            interpolationLine.GetFirstNonWhitespacePosition() == interpolation.SpanStart)
+        {
+            // interpolation itself was on its own line.  We want to preserve code indentation relative to that.
+            return GetIndentationStringForPosition(text, formattingOptions, interpolation.SpanStart);
+        }
+
+        // Otherwise, determine indentation based on this part of the interpolation expression relative to the string
+        // literal itself.
+        return rootAnchorIndentation;
     }
 
     private static InterpolatedStringExpressionSyntax GetInitialMultiLineRawInterpolatedString(

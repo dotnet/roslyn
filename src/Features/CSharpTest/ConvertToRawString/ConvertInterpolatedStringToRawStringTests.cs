@@ -2316,7 +2316,7 @@ public class ConvertInterpolatedStringToRawStringTests
                         where x > 0
                         select x
                         {
-                        @"This can move"
+                            @"This can move"
                         }
                         """;
                 }
