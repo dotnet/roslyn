@@ -22,9 +22,11 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 
@@ -591,17 +593,45 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
     private static void AppendFullLine(StringBuilder builder, TextLine line)
         => builder.Append(line.Text!.ToString(line.SpanIncludingLineBreak));
 
-    private static InterpolatedStringExpressionSyntax CleanInterpolatedString(InterpolatedStringExpressionSyntax stringExpression)
+    private static (TextSpanIntervalTree interpolationExteriorSpans, TextSpanIntervalTree interpolationInteriorSpans, TextSpanIntervalTree restrictedSpans) GetInterpolationSpans(
+        InterpolatedStringExpressionSyntax stringExpression)
     {
-        var text = stringExpression.GetText();
+        var interpolationExteriorSpans = new TextSpanIntervalTree();
+        var interpolationInteriorSpans = new TextSpanIntervalTree();
+        var restrictedSpans = new TextSpanIntervalTree();
 
-        using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var interpolationSpans);
 
         foreach (var content in stringExpression.Contents)
         {
             if (content is InterpolationSyntax interpolation)
-                interpolationSpans.Add(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
+            {
+                interpolationExteriorSpans.AddIntervalInPlace(interpolation.Span);
+                interpolationInteriorSpans.AddIntervalInPlace(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
+
+                // We don't want to touch any nested strings within us, mark them as off limits
+                foreach (var descendant in interpolation.DescendantNodes().OfType<ExpressionSyntax>())
+                {
+                    if (descendant is LiteralExpressionSyntax(kind: SyntaxKind.StringLiteralExpression) ||
+                        descendant is InterpolatedStringExpressionSyntax)
+                    {
+                        var descendantSpan = descendant.Span;
+
+                        // note, this math is safe.  we know the tree has no syntax diagnostics.  So that means the
+                        // string literals are complete.  Which means they're always at least 
+                        restrictedSpans.AddIntervalInPlace(TextSpan.FromBounds(descendantSpan.Start + 1, descendantSpan.End - 1));
+                    }
+                }
+            }
         }
+
+        return (interpolationExteriorSpans, interpolationInteriorSpans, restrictedSpans);
+    }
+
+    private static InterpolatedStringExpressionSyntax CleanInterpolatedString(InterpolatedStringExpressionSyntax stringExpression)
+    {
+        var text = stringExpression.GetText();
+
+        var (interpolationExteriorSpans, interpolationInteriorSpans, restrictedSpans) = GetInterpolationSpans(stringExpression);
 
         // Get all the lines of the string expression.  Note that the first/last lines will be the ones containing
         // the delimiters.  So they can be ignored in all further processing.
@@ -610,13 +640,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
         // Remove the leading and trailing lines if they are all whitespace.
         while (lines[1].IsEmptyOrWhitespace() &&
-            !interpolationSpans.Any(s => s.Contains(lines[1].Start)))
+            !interpolationInteriorSpans.Any(s => s.Contains(lines[1].Start)))
         {
             lines.RemoveAt(1);
         }
 
         while (lines[^2].IsEmptyOrWhitespace() &&
-            !interpolationSpans.Any(s => s.Contains(lines[^2].Start)))
+            !interpolationInteriorSpans.Any(s => s.Contains(lines[^2].Start)))
         {
             lines.RemoveAt(lines.Count - 2);
         }
@@ -626,7 +656,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             return stringExpression;
 
         // Use the remaining lines to figure out what common whitespace we have.
-        var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines, interpolationSpans);
+        var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines, interpolationInteriorSpans, restrictedSpans);
 
         using var _1 = PooledStringBuilder.GetInstance(out var builder);
 
@@ -638,7 +668,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         {
             // ignore any blank lines we see.
             var line = lines[i];
-            if (line.IsEmptyOrWhitespace())
+            if (line.IsEmptyOrWhitespace() && !restrictedSpans.HasIntervalThatIntersectsWith(line.Start))
             {
                 // append the original newline.
                 builder.Append(text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)));
@@ -647,10 +677,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
             // line with content on it.  It's either content of the string expression, or it's
             // interpolation code.
-            if (interpolationSpans.Any(s => s.Contains(line.Start)))
+            if (interpolationInteriorSpans.Any(s => s.Contains(line.Start)))
             {
-                // Interpolation content.  Trim the prefix if present on that line, otherwise leave alone.
-                if (line.GetFirstNonWhitespacePosition() is int pos)
+                // Interpolation content.  Trim the prefix if present on that line, otherwise leave alone. Don't do this
+                // though for restricted content as we never want to touch that.
+                if (!restrictedSpans.HasIntervalThatIntersectsWith(line.Start) &&
+                    line.GetFirstNonWhitespacePosition() is int pos)
                 {
                     var currentLineLeadingWhitespace = line.Text!.ToString(TextSpan.FromBounds(line.Start, pos));
                     if (currentLineLeadingWhitespace.StartsWith(commonWhitespacePrefix))
@@ -707,7 +739,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
     private static string ComputeCommonWhitespacePrefix(
         ArrayBuilder<TextLine> lines,
-        ArrayBuilder<TextSpan> interpolationSpans)
+        TextSpanIntervalTree interpolationInteriorSpans)
     {
         string? commonLeadingWhitespace = null;
 
