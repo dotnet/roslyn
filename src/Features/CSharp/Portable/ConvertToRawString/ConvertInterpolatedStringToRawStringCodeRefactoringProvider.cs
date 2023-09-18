@@ -73,7 +73,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
 
         var options = context.Options;
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(options, cancellationToken).ConfigureAwait(false);
-        if (!CanConvertInterpolatedString(parsedDocument, interpolatedString, formattingOptions, out var convertParams))
+        if (!CanConvertInterpolatedString(parsedDocument, interpolatedString, formattingOptions, out var convertParams, cancellationToken))
             return;
 
         var priority = convertParams.Priority;
@@ -128,7 +128,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         ParsedDocument document,
         InterpolatedStringExpressionSyntax interpolatedString,
         SyntaxFormattingOptions formattingOptions,
-        out CanConvertParams convertParams)
+        out CanConvertParams convertParams,
+        CancellationToken cancellationToken)
     {
         convertParams = default;
 
@@ -233,7 +234,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
         {
             var converted = GetInitialMultiLineRawInterpolatedString(interpolatedString, formattingOptions);
-            var cleaned = CleanInterpolatedString(converted);
+            var cleaned = CleanInterpolatedString(converted, cancellationToken);
 
             canBeMultiLineWithoutLeadingWhiteSpaces = !cleaned.IsEquivalentTo(converted);
         }
@@ -279,7 +280,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             foreach (var stringLiteral in node.DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
             {
                 // Ensure we can convert the string literal
-                if (!CanConvertInterpolatedString(parsedDocument, stringLiteral, options, out var canConvertParams))
+                if (!CanConvertInterpolatedString(parsedDocument, stringLiteral, options, out var canConvertParams, cancellationToken))
                     continue;
 
                 // Ensure we have a matching kind to fix for this literal
@@ -344,7 +345,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             var indentationVal = indenter.GetIndentation(parsedDocument, tokenLine.LineNumber, indentationOptions, cancellationToken);
 
             var indentation = indentationVal.GetIndentationString(parsedDocument.Text, indentationOptions);
-            var newNode = ConvertToMultiLineRawIndentedString(indentation);
+            var newNode = ConvertToMultiLineRawIndentedString(parsedDocument, indentation);
             newNode = newNode.WithLeadingTrivia(newNode.GetLeadingTrivia().Add(Whitespace(indentation)));
             return newNode;
         }
@@ -354,7 +355,7 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             // literal on its own line, but indented some amount.  Figure out the indentation of the contents from
             // this, but leave the string literal starting at whatever position it's at.
             var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-            return ConvertToMultiLineRawIndentedString(indentation);
+            return ConvertToMultiLineRawIndentedString(parsedDocument, indentation);
         }
 
         InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
@@ -373,13 +374,13 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     kind: SyntaxKind.InterpolatedRawStringEndToken));
         }
 
-        InterpolatedStringExpressionSyntax ConvertToMultiLineRawIndentedString(string indentation)
+        InterpolatedStringExpressionSyntax ConvertToMultiLineRawIndentedString(ParsedDocument document, string indentation)
         {
             var rawStringExpression = GetInitialMultiLineRawInterpolatedString(stringExpression, formattingOptions);
 
             // If requested, cleanup the whitespace in the expression.
             var cleanedExpression = kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace
-                ? CleanInterpolatedString(rawStringExpression)
+                ? CleanInterpolatedString(rawStringExpression, cancellationToken)
                 : rawStringExpression;
 
             var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(parsedDocument, stringExpression).SpanStart);
@@ -387,7 +388,8 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                 parsedDocument.Text, formattingOptions, parsedDocument.Root.FindToken(startLine.Start));
 
             // Now that the expression is cleaned, ensure every non-blank line gets the necessary indentation.
-            var indentedText = Indent(cleanedExpression, formattingOptions, indentation, firstTokenOnLineIndentationString);
+            var indentedText = Indent(
+                cleanedExpression, formattingOptions, indentation, firstTokenOnLineIndentationString, cancellationToken);
 
             // Finally, parse the text back into an interpolated string so that all the contents are correct.
             var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(indentedText.ToString(), options: stringExpression.SyntaxTree.Options);
@@ -428,13 +430,14 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
             InterpolatedStringExpressionSyntax stringExpression,
             SyntaxFormattingOptions formattingOptions,
             string indentation,
-            string firstTokenOnLineIndentationString)
+            string firstTokenOnLineIndentationString,
+            CancellationToken cancellationToken)
         {
             var text = stringExpression.GetText();
 
             using var _1 = PooledStringBuilder.GetInstance(out var builder);
 
-            var (interpolationInteriorSpans, restrictedSpans) = GetInterpolationSpans(stringExpression);
+            var (interpolationInteriorSpans, restrictedSpans) = GetInterpolationSpans(stringExpression, cancellationToken);
 
             AppendFullLine(builder, text.Lines[0]);
 
@@ -463,18 +466,18 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     // inside an interpolation.  Figure out the original indentation against the appropriate anchor, and
                     // preserve that indentation on top of whatever indentation is being added.
                     var firstNonWhitespacePos = line.GetFirstNonWhitespacePosition()!.Value;
-                    if (restrictedSpans.HasIntervalThatIntersectsWith(firstNonWhitespacePos + 1))
-                    {
-                        // we're on a line that has construct that *starts* a restricted section.  like `@"..."`
-                        // somewhere in this line.  If the construct spans lines, then do not touch it.  However, if
-                        // it's all on this line, it's ok to indent it to the preferred level.
-                        var intervals = restrictedSpans.GetIntervalsThatIntersectWith(firstNonWhitespacePos + 1, length: 0);
-                        if (intervals.Any(t => text.Lines.GetLineFromPosition(t.Start) != text.Lines.GetLineFromPosition(t.End)))
-                        {
-                            AppendFullLine(builder, line);
-                            continue;
-                        }
-                    }
+                    //if (restrictedSpans.HasIntervalThatIntersectsWith(firstNonWhitespacePos + 1))
+                    //{
+                    //    // we're on a line that has construct that *starts* a restricted section.  like `@"..."`
+                    //    // somewhere in this line.  If the construct spans lines, then do not touch it.  However, if
+                    //    // it's all on this line, it's ok to indent it to the preferred level.
+                    //    var intervals = restrictedSpans.GetIntervalsThatIntersectWith(firstNonWhitespacePos + 1, length: 0);
+                    //    if (intervals.Any(t => text.Lines.GetLineFromPosition(t.Start) != text.Lines.GetLineFromPosition(t.End)))
+                    //    {
+                    //        AppendFullLine(builder, line);
+                    //        continue;
+                    //    }
+                    //}
 
                     var positionIndentation = GetIndentationStringForPosition(text, formattingOptions, firstNonWhitespacePos);
                     var preferredIndentation = positionIndentation.StartsWith(firstTokenOnLineIndentationString)
@@ -605,18 +608,21 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         => builder.Append(line.Text!.ToString(line.SpanIncludingLineBreak));
 
     private static (TextSpanIntervalTree interpolationInteriorSpans, TextSpanIntervalTree restrictedSpans) GetInterpolationSpans(
-        InterpolatedStringExpressionSyntax stringExpression)
+        InterpolatedStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
     {
         var interpolationInteriorSpans = new TextSpanIntervalTree();
         var restrictedSpans = new TextSpanIntervalTree();
 
+        SourceText? text = null;
         foreach (var content in stringExpression.Contents)
         {
             if (content is InterpolationSyntax interpolation)
             {
                 interpolationInteriorSpans.AddIntervalInPlace(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
 
-                // We don't want to touch any nested strings within us, mark them as off limits
+                // We don't want to touch any nested strings within us, mark them as off limits.  note, we only care if
+                // the nested strings actually span multiple lines.  A nested string on a single line is safe to move
+                // forward/back on that line without affecting runtime semantics.
                 foreach (var descendant in interpolation.DescendantNodes().OfType<ExpressionSyntax>())
                 {
                     if (descendant is LiteralExpressionSyntax(kind: SyntaxKind.StringLiteralExpression) ||
@@ -624,9 +630,17 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
                     {
                         var descendantSpan = descendant.Span;
 
-                        // note, this math is safe.  we know the tree has no syntax diagnostics.  So that means the
-                        // string literals are complete.  Which means they're always at least 
-                        restrictedSpans.AddIntervalInPlace(TextSpan.FromBounds(descendantSpan.Start + 1, descendantSpan.End - 1));
+                        text ??= stringExpression.SyntaxTree.GetText(cancellationToken);
+                        var startLine = text.Lines.GetLineFromPosition(descendantSpan.Start);
+                        if (startLine != text.Lines.GetLineFromPosition(descendantSpan.End))
+                        {
+                            // If the string is the first thing on this line, then expand the restricted span to the
+                            // start of the line.  We don't want to move it around at all.
+                            var start = startLine.GetFirstNonWhitespacePosition() == descendantSpan.Start
+                                ? startLine.Start
+                                : descendantSpan.Start;
+                            restrictedSpans.AddIntervalInPlace(TextSpan.FromBounds(start, descendantSpan.End));
+                        }
                     }
                 }
             }
@@ -635,11 +649,12 @@ internal partial class ConvertInterpolatedStringToRawStringCodeRefactoringProvid
         return (interpolationInteriorSpans, restrictedSpans);
     }
 
-    private static InterpolatedStringExpressionSyntax CleanInterpolatedString(InterpolatedStringExpressionSyntax stringExpression)
+    private static InterpolatedStringExpressionSyntax CleanInterpolatedString(
+        InterpolatedStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
     {
         var text = stringExpression.GetText();
 
-        var (interpolationInteriorSpans, restrictedSpans) = GetInterpolationSpans(stringExpression);
+        var (interpolationInteriorSpans, restrictedSpans) = GetInterpolationSpans(stringExpression, cancellationToken);
 
         // Get all the lines of the string expression.  Note that the first/last lines will be the ones containing
         // the delimiters.  So they can be ignored in all further processing.
