@@ -33,7 +33,7 @@ static class C { }
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) } };
-            var results = await RunGetSemanticTokensAsync(testLspServer, testLspServer.GetLocations("caret").First(), ranges: ranges);
+            var results = await RunGetSemanticTokensRangesAsync(testLspServer, testLspServer.GetLocations("caret").First(), ranges);
 
             var expectedResults = new LSP.SemanticTokens();
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);

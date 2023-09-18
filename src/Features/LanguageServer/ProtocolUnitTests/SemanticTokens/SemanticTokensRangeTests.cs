@@ -4,9 +4,6 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +34,7 @@ static class C { }
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
-            var results = await RunGetSemanticTokensAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
+            var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
 
             var expectedResults = new LSP.SemanticTokens();
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);

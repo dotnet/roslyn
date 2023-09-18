@@ -31,22 +31,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         private protected static IReadOnlyDictionary<string, int> GetTokenTypeToIndex(TestLspServer server)
             => SemanticTokensSchema.GetSchema(server.ClientCapabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
 
-        private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range? range = null, Range[]? ranges = null)
+        private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
-            if (range != null)
-            {
-                var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
-                    CreateSemanticTokensRangeParams(caret, range), CancellationToken.None);
-                Contract.ThrowIfNull(result);
-                return result;
-            }
-            else
-            {
-                var result = await testLspServer.ExecuteRequestAsync<SemanticTokensRangesParams, LSP.SemanticTokens>(SemanticTokensRangesHandler.SemanticRangesMethodName,
-                    CreateSemanticTokensRangesParams(caret, ranges!), CancellationToken.None);
-                Contract.ThrowIfNull(result);
-                return result;
-            }
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
+                CreateSemanticTokensRangeParams(caret, range), CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
+        }
+
+        private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangesAsync(TestLspServer testLspServer, LSP.Location caret, Range[] ranges)
+        {
+            var result = await testLspServer.ExecuteRequestAsync<SemanticTokensRangesParams, LSP.SemanticTokens>(SemanticTokensRangesHandler.SemanticRangesMethodName,
+                CreateSemanticTokensRangesParams(caret, ranges!), CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
         private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location caret, LSP.Range range)
