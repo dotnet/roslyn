@@ -3,25 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -30,81 +22,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
     using static ConvertToRawStringHelpers;
     using static SyntaxFactory;
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRawString), Shared]
-    internal partial class ConvertRegularStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+    internal partial class ConvertRegularStringToRawStringProvider : IConvertStringProvider
     {
-        private enum ConvertToRawKind
-        {
-            SingleLine,
-            MultiLineIndented,
-            MultiLineWithoutLeadingWhitespace,
-        }
+        public static readonly IConvertStringProvider Instance = new ConvertRegularStringToRawStringProvider();
 
-        private static readonly BidirectionalMap<ConvertToRawKind, string> s_kindToEquivalenceKeyMap =
-            new(new[]
-            {
-                KeyValuePairUtil.Create(ConvertToRawKind.SingleLine, nameof(ConvertToRawKind.SingleLine)),
-                KeyValuePairUtil.Create(ConvertToRawKind.MultiLineIndented, nameof(ConvertToRawKind.MultiLineIndented)),
-                KeyValuePairUtil.Create(ConvertToRawKind.MultiLineWithoutLeadingWhitespace, nameof(ConvertToRawKind.MultiLineWithoutLeadingWhitespace)),
-            });
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public ConvertRegularStringToRawStringCodeRefactoringProvider()
+        private ConvertRegularStringToRawStringProvider()
         {
         }
 
-        protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+        public bool CheckSyntax(ExpressionSyntax expression)
+            => expression is LiteralExpressionSyntax(kind: SyntaxKind.StringLiteralExpression);
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public bool CanConvert(
+            ParsedDocument document,
+            ExpressionSyntax expression,
+            SyntaxFormattingOptions formattingOptions,
+            out CanConvertParams convertParams,
+            CancellationToken cancellationToken)
         {
-            var (document, span, cancellationToken) = context;
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start);
-            if (!context.Span.IntersectsWith(token.Span))
-                return;
-
-            if (token.Kind() != SyntaxKind.StringLiteralToken)
-                return;
-
-            if (!CanConvertStringLiteral(token, out var convertParams))
-                return;
-
-            var options = context.Options;
-            var priority = convertParams.Priority;
-
-            if (convertParams.CanBeSingleLine)
-            {
-                context.RegisterRefactoring(
-                    CodeAction.Create(
-                        CSharpFeaturesResources.Convert_to_raw_string,
-                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, options, c),
-                        s_kindToEquivalenceKeyMap[ConvertToRawKind.SingleLine],
-                        priority),
-                    token.Span);
-            }
-            else
-            {
-                context.RegisterRefactoring(
-                    CodeAction.Create(
-                        CSharpFeaturesResources.Convert_to_raw_string,
-                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, options, c),
-                        s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineIndented],
-                        priority),
-                    token.Span);
-
-                if (convertParams.CanBeMultiLineWithoutLeadingWhiteSpaces)
-                {
-                    context.RegisterRefactoring(
-                        CodeAction.Create(
-                            CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
-                            c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, options, c),
-                            s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineWithoutLeadingWhitespace],
-                            priority),
-                        token.Span);
-                }
-            }
+            Contract.ThrowIfFalse(CheckSyntax(expression));
+            var token = ((LiteralExpressionSyntax)expression).Token;
+            return CanConvertStringLiteral(token, out convertParams);
         }
 
         private static bool CanConvertStringLiteral(SyntaxToken token, out CanConvertParams convertParams)
@@ -122,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
 
-            if (!CanConvert(characters))
+            if (!ConvertToRawStringHelpers.CanConvert(characters))
                 return false;
 
             // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic 
@@ -188,78 +126,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             return true;
         }
 
-        private static async Task<Document> UpdateDocumentAsync(
-            Document document, TextSpan span, ConvertToRawKind kind, CodeActionOptionsProvider optionsProvider, CancellationToken cancellationToken)
-        {
-            var options = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start);
-            Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
-            Contract.ThrowIfFalse(token.Kind() == SyntaxKind.StringLiteralToken);
-
-            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var replacement = GetReplacementToken(parsedDocument, token, kind, options, cancellationToken);
-            return document.WithSyntaxRoot(root.ReplaceToken(token, replacement));
-        }
-
-        protected override async Task FixAllAsync(
-            Document document,
-            ImmutableArray<TextSpan> fixAllSpans,
-            SyntaxEditor editor,
-            CodeActionOptionsProvider optionsProvider,
-            string? equivalenceKey,
+        public ExpressionSyntax Convert(
+            ParsedDocument document,
+            ExpressionSyntax expression,
+            ConvertToRawKind kind,
+            SyntaxFormattingOptions options,
             CancellationToken cancellationToken)
         {
-            // Get the kind to be fixed from the equivalenceKey for the FixAll operation
-            Debug.Assert(equivalenceKey != null);
-            var kind = s_kindToEquivalenceKeyMap[equivalenceKey];
-
-            var options = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
-            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-
-            foreach (var fixSpan in fixAllSpans)
-            {
-                var node = editor.OriginalRoot.FindNode(fixSpan);
-                foreach (var stringLiteral in node.DescendantTokens().Where(token => token.Kind() == SyntaxKind.StringLiteralToken))
-                {
-                    // Ensure we can convert the string literal
-                    if (!CanConvertStringLiteral(stringLiteral, out var canConvertParams))
-                        continue;
-
-                    // Ensure we have a matching kind to fix for this literal
-                    var hasMatchingKind = kind switch
-                    {
-                        ConvertToRawKind.SingleLine => canConvertParams.CanBeSingleLine,
-                        ConvertToRawKind.MultiLineIndented => !canConvertParams.CanBeSingleLine,
-                        // If we started with a multi-line string that we're changing semantics for.  Then any
-                        // multi-line matches are something we can proceed with.  After all, we're updating all other
-                        // ones that might change semantics, so we can def update the ones that won't change semantics.
-                        ConvertToRawKind.MultiLineWithoutLeadingWhitespace =>
-                            !canConvertParams.CanBeSingleLine || canConvertParams.CanBeMultiLineWithoutLeadingWhiteSpaces,
-                        _ => throw ExceptionUtilities.UnexpectedValue(kind),
-                    };
-
-                    if (!hasMatchingKind)
-                        continue;
-
-                    if (stringLiteral.Parent is not LiteralExpressionSyntax literalExpression)
-                        continue;
-
-                    editor.ReplaceNode(
-                        literalExpression,
-                        (current, _) =>
-                        {
-                            if (current is not LiteralExpressionSyntax currentLiteralExpression)
-                                return current;
-
-                            var currentParsedDocument = parsedDocument.WithChangedRoot(
-                                current.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
-                            var replacementToken = GetReplacementToken(
-                                currentParsedDocument, currentLiteralExpression.Token, kind, options, cancellationToken);
-                            return currentLiteralExpression.WithToken(replacementToken);
-                        });
-                }
-            }
+            Contract.ThrowIfFalse(CheckSyntax(expression));
+            var stringExpression = (LiteralExpressionSyntax)expression;
+            var newToken = GetReplacementToken(
+                document, stringExpression.Token, kind, options, cancellationToken);
+            return stringExpression.WithToken(newToken);
         }
 
         private static SyntaxToken GetReplacementToken(

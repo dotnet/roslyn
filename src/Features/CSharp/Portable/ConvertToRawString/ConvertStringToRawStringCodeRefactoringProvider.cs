@@ -242,5 +242,10 @@ internal interface IConvertStringProvider
         out CanConvertParams convertParams,
         CancellationToken cancellationToken);
 
-    ExpressionSyntax GetReplacement(ParsedDocument currentParsedDocument, ExpressionSyntax currentExpression, ConvertToRawKind kind, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+    ExpressionSyntax Convert(
+        ParsedDocument document,
+        ExpressionSyntax expression,
+        ConvertToRawKind kind,
+        SyntaxFormattingOptions options,
+        CancellationToken cancellationToken);
 }
