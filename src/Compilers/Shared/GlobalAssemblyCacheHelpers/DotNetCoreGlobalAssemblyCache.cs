@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis;
 /// However it isn't extremely straightforward to implement and we don't need it at this time so leaving it as a no-op.
 /// More info on how this might be possible under a .net core runtime can be found https://github.com/dotnet/core/issues/3048#issuecomment-725781811
 /// </summary>
-internal class DotNetCoreGlobalAssemblyCache : GlobalAssemblyCache
+internal sealed class DotNetCoreGlobalAssemblyCache : GlobalAssemblyCache
 {
     public override IEnumerable<AssemblyIdentity> GetAssemblyIdentities(AssemblyName partialName, ImmutableArray<ProcessorArchitecture> architectureFilter = default)
     {
