@@ -76,16 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
                 case SyntaxKind.CaseKeyword:
                     {
                         var foundAccessibleLabel = TryFindAccessibleLabel(node);
-                        if (foundAccessibleLabel is null)
-                        {
                             return null;
-                        }
 
                         var symbol = semanticModel.GetDeclaredSymbol(foundAccessibleLabel);
                         if (symbol is null)
-                        {
                             return null;
-                        }
 
                         return symbol.Locations.FirstOrDefault()?.SourceSpan.Start ?? 0;
                     }
