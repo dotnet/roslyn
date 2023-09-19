@@ -6,6 +6,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
@@ -47,6 +48,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
                 ' Exit Select, Exit While, Exit For, Exit ForEach, ...
                 Return exitTarget.GetLastToken().Span.End
             End If
+
+            Dim labelTarget = TryGetLabelTarget(semanticModel, node)
+            If labelTarget IsNot Nothing Then
+                Return labelTarget.GetFirstToken().Span.Start
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Shared Function TryGetLabelTarget(semanticModel As SemanticModel, node As SyntaxNode) As SyntaxNode
+            Select Case node.Kind()
+                Case SyntaxKind.GoToStatement
+                    Dim goToStatement = DirectCast(node, GoToStatementSyntax)
+                    Dim labelToken = goToStatement.Label.LabelToken
+                    Dim labelIdentifier As String = labelToken.ValueText
+
+                    If labelIdentifier Is Nothing Then
+                        Return Nothing
+                    End If
+
+                    Dim labels = semanticModel.LookupLabels(node.SpanStart, labelIdentifier)
+                    If labels.Length = 0 Then
+                        Return Nothing
+                    End If
+
+                    Dim label = labels.First()
+                    Return label.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
+            End Select
 
             Return Nothing
         End Function

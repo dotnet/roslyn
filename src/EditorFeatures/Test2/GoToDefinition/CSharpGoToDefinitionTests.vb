@@ -3531,7 +3531,7 @@ namespace System
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
         Public Async Function TestCSharpGoToDefinition_GotoLabel01() As Task
             Dim workspace =
 <Workspace>
@@ -3560,7 +3560,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
         Public Async Function TestCSharpGoToDefinition_GotoSwitchDefaultLabel01() As Task
             Dim workspace =
 <Workspace>
@@ -3588,7 +3588,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
         Public Async Function TestCSharpGoToDefinition_GotoSwitchDefaultLabel02() As Task
             Dim workspace =
 <Workspace>
@@ -3616,7 +3616,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
         Public Async Function TestCSharpGoToDefinition_GotoSwitchCaseLabel01() As Task
             Dim workspace =
 <Workspace>
@@ -3644,7 +3644,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
         Public Async Function TestCSharpGoToDefinition_GotoSwitchCaseLabel02() As Task
             Dim workspace =
 <Workspace>
