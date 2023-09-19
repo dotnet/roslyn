@@ -112,7 +112,7 @@ internal static class ConvertToRawStringHelpers
     public static int GetLongestBraceSequence(VirtualCharSequence characters)
         => Math.Max(GetLongestCharacterSequence(characters, '{'), GetLongestCharacterSequence(characters, '}'));
 
-    public static int GetLongestCharacterSequence(VirtualCharSequence characters, char c)
+    private static int GetLongestCharacterSequence(VirtualCharSequence characters, char c)
     {
         var longestSequence = 0;
         for (int i = 0, n = characters.Length; i < n;)
