@@ -182,7 +182,7 @@ class C
     void M(string {|Definition:a|})
     {
         int length = [|a|].Length;
-        var r = new { [|a|], Length = 1 };
+        var r = new { [|{|Definition:a|}|], Length = 1 };
         r = new { $$[|a|], [|a|].Length };
         r = new { [|a|] = string.Empty, Length = [|a|].Length };
     }
@@ -207,9 +207,9 @@ class C
     void M(string $${|Definition:a|})
     {
         int length = [|a|].Length;
-        var r = new { [|a|], Length = 1 };
+        var r = new { [|{|Definition:a|}|], Length = 1 };
         r = new { [|a|], [|a|].Length };
-        r = new { a = string.Empty, Length = [|a|].Length };
+        r = new { [|a|] = string.Empty, Length = [|a|].Length };
     }
 }
 ]]>
@@ -232,9 +232,9 @@ class C
     void M(string a)
     {
         int length = a.Length;
-        var r = new { [|a|], Length = 1 };
-        r = new { [|a|], a.Length };
-        r = new { $$[|a|] = string.Empty, Length = a.Length };
+        var r = new { a, Length = 1 };
+        r = new { a, a.Length };
+        r = new { $$[|{|Definition:a|}|] = string.Empty, Length = a.Length };
     }
 }
 ]]>
@@ -258,7 +258,7 @@ class C
     {
         int length = a.[|Length|];
         var r = new { a, [|Length|] = 1 };
-        r = new { a, a.$$[|Length|] };
+        r = new { a, a.$$[|{|Definition:Length|}|] };
         r = new { a, [|Length|] = a.[|Length|] };
     }
 }
@@ -283,8 +283,8 @@ class C
     {
         int length = a.Length;
         var r = new { a, [|Length|] = 1 };
-        r = new { a, a.[|Length|] };
-        r = new { a, $$[|Length|] = a.Length };
+        r = new { a, a.Length };
+        r = new { a, $$[|{|Definition:Length|}|] = a.Length };
     }
 }
 ]]>

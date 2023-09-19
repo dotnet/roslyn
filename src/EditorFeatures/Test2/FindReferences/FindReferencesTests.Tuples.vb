@@ -427,7 +427,7 @@ class Program
     static void Main()
     {
         int {|Definition:x|} = 4, y = 5;
-        var z = ($$[|x|], y);
+        var z = ($$[|{|Definition:x|}|], y);
         z = ([|x|]: 0, y: 1);
         z = ([|x|]: y, y: [|x|]);
     }
@@ -454,7 +454,7 @@ class Program
     {
         int {|Definition:x|} = 4, y = 5;
         int z = 3;
-        switch ($$[|x|], y)
+        switch ($$[|{|Definition:x|}|], y)
         {
             case (1, 0):
                 z += [|x|];
@@ -495,7 +495,7 @@ class C
         int {|Definition:x|};
         int y;
 
-        ($$[|x|], y) = M();
+        ($$[|{|Definition:x|}|], y) = M();
 
         [|x|] = 0;
     }
@@ -520,8 +520,8 @@ class C
 {
     void M(int {|Definition:left|}, int right)
     {
-        var r = ($$[|left|], right);
-        r = (right, [|left|]);
+        var r = ($$[|{|Definition:left|}|], right);
+        r = (right, [|{|Definition:left|}|]);
     }
 }
 ]]>
@@ -546,7 +546,7 @@ class C
 
     void M(string a)
     {
-        var r = (a.Length, $$[|Property|]);
+        var r = (a.Length, $$[|{|Definition:Property|}|]);
         r = ([|Property|], [|Property|]: [|Property|]);
     }
 }

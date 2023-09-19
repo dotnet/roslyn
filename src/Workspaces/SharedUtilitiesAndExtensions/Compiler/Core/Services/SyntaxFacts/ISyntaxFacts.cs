@@ -220,6 +220,11 @@ namespace Microsoft.CodeAnalysis.LanguageService
         SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node);
 
         bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node);
+        bool IsInferredTupleMemberDeclarator([NotNullWhen(true)] SyntaxNode? node);
+
+        SyntaxNode? GetAssignedExpressionForAnonymousTypeDeclarator([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode? GetAssignedExpressionForTupleMemberDeclarator([NotNullWhen(true)] SyntaxNode? node);
+
         bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsOperandOfIncrementOrDecrementExpression([NotNullWhen(true)] SyntaxNode? node);
 
@@ -234,8 +239,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
         /// following forms:
         ///     1) new With { .a = 1, .b = .a      .a refers to the anonymous type
         ///     2) With obj : .m                   .m refers to the obj type
-        ///     3) new T() With { .a = 1, .b = .a  'a refers to the T type
-        /// If `allowImplicitTarget` is set to true, the returned node will be set to approperiate node, otherwise, it will return null.
+        ///     3) new T() With { .a = 1, .b = .a  .a refers to the T type
+        /// If `allowImplicitTarget` is set to true, the returned node will be set to appropriate node, otherwise, it will return null.
         /// This parameter has no affect on C# node.
         /// </param>
         SyntaxNode? GetLeftSideOfDot(SyntaxNode? node, bool allowImplicitTarget = false);

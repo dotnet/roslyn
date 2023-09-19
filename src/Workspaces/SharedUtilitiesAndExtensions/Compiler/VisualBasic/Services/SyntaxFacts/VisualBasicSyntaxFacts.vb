@@ -1197,6 +1197,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return node.IsKind(SyntaxKind.InferredFieldInitializer)
         End Function
 
+        Public Function IsInferredTupleMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInferredTupleMemberDeclarator
+            ' TODO: Evaluate if we need any further processing
+            Return node.IsKind(SyntaxKind.TypedTupleElement)
+        End Function
+
+        Public Function GetAssignedExpressionForAnonymousTypeDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetAssignedExpressionForAnonymousTypeDeclarator
+            ' TODO: Implement
+            Return Nothing
+        End Function
+
+        Public Function GetAssignedExpressionForTupleMemberDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetAssignedExpressionForTupleMemberDeclarator
+            ' TODO: Implement
+            Return Nothing
+        End Function
+
         Public Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOperandOfIncrementExpression
             Return False
         End Function

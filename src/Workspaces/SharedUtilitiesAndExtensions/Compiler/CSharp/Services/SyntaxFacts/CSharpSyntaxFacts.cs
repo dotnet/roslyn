@@ -1167,6 +1167,25 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => node is AnonymousObjectMemberDeclaratorSyntax anonObject &&
                anonObject.NameEquals == null;
 
+        public bool IsInferredTupleMemberDeclarator([NotNullWhen(true)] SyntaxNode? node)
+            => node is not null
+            && (node is ArgumentSyntax { Parent: TupleExpressionSyntax, NameColon: null }
+            || IsInferredTupleMemberDeclarator(node.Parent));
+
+        public SyntaxNode? GetAssignedExpressionForAnonymousTypeDeclarator(SyntaxNode? node)
+            => (node as AnonymousObjectMemberDeclaratorSyntax)?.Expression;
+
+        public SyntaxNode? GetAssignedExpressionForTupleMemberDeclarator(SyntaxNode? node)
+        {
+            if (node is ExpressionSyntax)
+                return node;
+
+            if (node is ArgumentSyntax argument)
+                return GetExpressionOfArgument(argument);
+
+            return null;
+        }
+
         public bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent?.Kind() is SyntaxKind.PostIncrementExpression or SyntaxKind.PreIncrementExpression;
 

@@ -114,6 +114,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
         }
 
+        internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
+            Document document,
+            int position,
+            CancellationToken cancellationToken = default)
+        {
+            if (document is null)
+                throw new ArgumentNullException(nameof(document));
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await GetSemanticInfoAtPositionAsync(semanticModel, position, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Finds the definition symbol declared in source code for a corresponding reference symbol. 
         /// Returns null if no such symbol can be found in the specified solution.
