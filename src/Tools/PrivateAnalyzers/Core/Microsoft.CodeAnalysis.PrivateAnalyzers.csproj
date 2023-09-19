@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Microsoft.CodeAnalysis.PrivateAnalyzers</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsShipping>false</IsShipping>
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PrivateAnalyzers.CodeFixes" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PrivateAnalyzers.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PrivateAnalyzers.VisualBasic" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="Debug.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Hash.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs" Link="Index.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="IsExternalInit.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs" Link="Range.cs" />
+  </ItemGroup>
+</Project>
