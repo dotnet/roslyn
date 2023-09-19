@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
     using VerifyCS = CSharpCodeRefactoringVerifier<
         ConvertStringToRawStringCodeRefactoringProvider>;
 
-    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
     public class ConvertRegularStringToRawStringTests
     {
         private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)

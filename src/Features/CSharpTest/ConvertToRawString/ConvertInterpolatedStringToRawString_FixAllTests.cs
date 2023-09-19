@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCodeActionTest
     {
