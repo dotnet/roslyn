@@ -345,6 +345,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
         }
 
+        private static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
+        {
+            var current = 0;
+            while (current < line.Length && IsCSharpWhitespace(line[current]))
+                current++;
+
+            return line.GetSubSequence(TextSpan.FromBounds(0, current));
+        }
+
         private static void BreakIntoLines(VirtualCharSequence characters, ArrayBuilder<VirtualCharSequence> lines)
         {
             var index = 0;
@@ -367,6 +376,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             var result = characters.GetSubSequence(TextSpan.FromBounds(index, end));
             index = end;
             return result;
+        }
+
+        private static bool AllWhitespace(VirtualCharSequence line)
+        {
+            var index = 0;
+            while (index < line.Length && IsCSharpWhitespace(line[index]))
+                index++;
+
+            return index == line.Length || IsCSharpNewLine(line[index]);
         }
     }
 }

@@ -114,22 +114,4 @@ internal static class ConvertToRawStringHelpers
 
         return longestSequence;
     }
-
-    public static bool AllWhitespace(VirtualCharSequence line)
-    {
-        var index = 0;
-        while (index < line.Length && IsCSharpWhitespace(line[index]))
-            index++;
-
-        return index == line.Length || IsCSharpNewLine(line[index]);
-    }
-
-    public static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
-    {
-        var current = 0;
-        while (current < line.Length && IsCSharpWhitespace(line[current]))
-            current++;
-
-        return line.GetSubSequence(TextSpan.FromBounds(0, current));
-    }
 }
