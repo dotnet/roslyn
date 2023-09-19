@@ -5,17 +5,30 @@
 using System;
 using System.Globalization;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 
 internal static class ConvertToRawStringHelpers
 {
+    public static bool CanBeSingleLine(VirtualCharSequence characters)
+    {
+        // Single line raw strings cannot start/end with quote.
+        if (characters.First().Rune.Value == '"' ||
+            characters.Last().Rune.Value == '"')
+        {
+            return false;
+        }
+
+        // a single line raw string cannot contain a newline.
+        if (characters.Any(static ch => IsCSharpNewLine(ch)))
+            return false;
+
+        return true;
+    }
+
     public static bool IsCSharpNewLine(VirtualChar ch)
         => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsNewLine((char)ch.Value);
 

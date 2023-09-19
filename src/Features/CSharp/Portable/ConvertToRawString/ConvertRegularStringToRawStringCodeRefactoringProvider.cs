@@ -123,22 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             }
         }
 
-        private static bool CanBeSingleLine(VirtualCharSequence characters)
-        {
-            // Single line raw strings cannot start/end with quote.
-            if (characters.First().Rune.Value == '"' ||
-                characters.Last().Rune.Value == '"')
-            {
-                return false;
-            }
-
-            // a single line raw string cannot contain a newline.
-            if (characters.Any(static ch => IsCSharpNewLine(ch)))
-                return false;
-
-            return true;
-        }
-
         protected override LiteralExpressionSyntax Convert(
             ParsedDocument document,
             LiteralExpressionSyntax stringExpression,
