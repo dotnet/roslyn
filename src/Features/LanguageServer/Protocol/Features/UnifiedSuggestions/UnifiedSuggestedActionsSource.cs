@@ -609,11 +609,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
             foreach (var scope in fixAllProviderInfo.SupportedScopes)
             {
-#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 var fixAllState = new CodeRefactorings.FixAllState(
                     (CodeRefactorings.FixAllProvider)fixAllProviderInfo.FixAllProvider,
                     document, selection, provider, optionsProvider, scope, action);
-#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
                 if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
                 {

@@ -15,4 +15,6 @@ internal static class PrivateDiagnosticIds
     /// Prefer <c>argument: value</c> syntax to <c>value /*argument*/</c>.
     /// </summary>
     public const string UseNamedArguments = "RP0002";
+
+    public const string AllowInternalExperiments = "RP0003";
 }

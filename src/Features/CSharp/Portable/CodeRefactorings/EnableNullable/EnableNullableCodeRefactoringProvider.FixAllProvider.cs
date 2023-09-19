@@ -17,14 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 {
     internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
     {
-#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         public sealed override CodeAnalysis.CodeRefactorings.FixAllProvider? GetFixAllProvider()
-#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             => FixAllProvider.Instance;
 
-#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         private sealed class FixAllProvider : CodeAnalysis.CodeRefactorings.FixAllProvider
-#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         {
             public static readonly FixAllProvider Instance = new();
 
@@ -35,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
                 => ImmutableArray.Create(FixAllScope.Solution);
 
-#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             {
                 Debug.Assert(fixAllContext.Scope == FixAllScope.Solution);
                 return Task.FromResult<CodeAction?>(new FixAllCodeAction(EnableNullableReferenceTypesInSolutionAsync));

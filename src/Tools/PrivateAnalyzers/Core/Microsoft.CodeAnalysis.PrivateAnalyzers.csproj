@@ -21,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="Debug.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExperimentalApis.cs" Link="ExperimentalApis.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Hash.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs" Link="Index.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="IsExternalInit.cs" />

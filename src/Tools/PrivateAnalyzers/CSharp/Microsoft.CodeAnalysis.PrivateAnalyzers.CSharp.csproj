@@ -19,6 +19,16 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PrivateAnalyzers.CodeFixes" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.PrivateAnalyzers.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.PrivateAnalyzers.csproj" Private="true" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetDependencyTargetPaths">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(OutputPath)Microsoft.CodeAnalysis.PrivateAnalyzers.dll" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+  </Target>
 </Project>

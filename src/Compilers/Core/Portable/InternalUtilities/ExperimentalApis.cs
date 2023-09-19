@@ -4,6 +4,12 @@
 
 namespace Roslyn.Utilities;
 
+/// <summary>
+/// Roslyn experimental APIs.
+/// </summary>
+/// <remarks>
+/// Make sure to add new experimental APIs to <c>SuppressInternalExperimentalApiDiagnostics</c>.
+/// </remarks>
 internal static class ExperimentalApis
 {
     public const string FixAllRefactoring = nameof(FixAllRefactoring);

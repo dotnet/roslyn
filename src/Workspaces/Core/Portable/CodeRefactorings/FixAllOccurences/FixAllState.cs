@@ -17,9 +17,7 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, FixAllProvider, FixAllState>
-#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     {
         /// <summary>
         /// Original selection span from which FixAll was invoked.
@@ -34,9 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public string CodeActionTitle { get; }
 
         public FixAllState(
-#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             FixAllProvider fixAllProvider,
-#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             Document document,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
@@ -49,9 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         private FixAllState(
-#pragma warning disable FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             FixAllProvider fixAllProvider,
-#pragma warning restore FixAllRefactoring // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             Document document,
             Project project,
             TextSpan selectionSpan,
