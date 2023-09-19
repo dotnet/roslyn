@@ -121,7 +121,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
     }
 
     private static async Task<Document> UpdateDocumentAsync(
-        Document document, 
+        Document document,
         ExpressionSyntax expression,
         ConvertToRawKind kind,
         CodeActionOptionsProvider optionsProvider,
