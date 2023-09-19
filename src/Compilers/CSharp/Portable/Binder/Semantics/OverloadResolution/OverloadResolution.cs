@@ -3723,7 +3723,7 @@ outerDefault:
                     }
                     else
                     {
-                        if (badArguments == default)
+                        if (badArguments.IsNull)
                         {
                             badArguments = BitVector.Create(paramCount);
                         }
