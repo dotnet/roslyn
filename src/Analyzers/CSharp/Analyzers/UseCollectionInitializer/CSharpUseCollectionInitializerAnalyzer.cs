@@ -14,11 +14,15 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     MemberAccessExpressionSyntax,
     InvocationExpressionSyntax,
     ExpressionStatementSyntax,
+    LocalDeclarationStatementSyntax,
     VariableDeclaratorSyntax,
     CSharpUseCollectionInitializerAnalyzer>
 {
     protected override IUpdateExpressionSyntaxHelper<ExpressionSyntax, StatementSyntax> SyntaxHelper
         => CSharpUpdateExpressionSyntaxHelper.Instance;
+
+    protected override bool IsInitializerOfLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement, BaseObjectCreationExpressionSyntax rootExpression, out VariableDeclaratorSyntax variableDeclarator)
+        => throw new System.NotImplementedException();
 
     protected override bool IsComplexElementInitializer(SyntaxNode expression)
         => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression);

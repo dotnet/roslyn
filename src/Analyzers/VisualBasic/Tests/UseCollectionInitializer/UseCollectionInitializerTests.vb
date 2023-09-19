@@ -39,6 +39,19 @@ End Class")
         End Function
 
         <Fact>
+        Public Async Function TestNotParenthesized() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||](New List(Of Integer)())
+        c.Add(1)
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
         Public Async Function TestDoNotRemoveNonEmptyArgumentList() As Task
             Await TestInRegularAndScriptAsync(
 "

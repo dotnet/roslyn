@@ -9,8 +9,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
+
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicUseObjectInitializerDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicUseObjectInitializerDiagnosticAnalyzer
         Inherits AbstractUseObjectInitializerDiagnosticAnalyzer(Of
             SyntaxKind,
             ExpressionSyntax,
@@ -18,13 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             ObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             AssignmentStatementSyntax,
-            VariableDeclaratorSyntax)
+            LocalDeclarationStatementSyntax,
+            VariableDeclaratorSyntax,
+            VisualBasicUseNamedMemberInitializerAnalyzer)
 
-        Protected Overrides ReadOnly Property FadeOutOperatorToken As Boolean
-            Get
-                Return False
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property FadeOutOperatorToken As Boolean = False
 
         Protected Overrides Function AreObjectInitializersSupported(compilation As Compilation) As Boolean
             'Object Initializers are supported in all the versions of Visual Basic we support
@@ -37,6 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
         Protected Overrides Function IsValidContainingStatement(node As StatementSyntax) As Boolean
             Return True
+        End Function
+
+        Protected Overrides Function GetAnalyzer() As VisualBasicUseNamedMemberInitializerAnalyzer
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace
