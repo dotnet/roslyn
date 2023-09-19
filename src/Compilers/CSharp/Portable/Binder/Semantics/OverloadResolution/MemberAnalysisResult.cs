@@ -89,21 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ArgsToParamsOpt[arg];
         }
 
-        public int FirstBadArgument
-        {
-            get
-            {
-                for (int i = 0; i < BadArguments.Capacity; i++)
-                {
-                    if (BadArguments[i])
-                    {
-                        return i;
-                    }
-                }
-
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
+        public int FirstBadArgument => BadArguments.TrueBits().First();
 
         // A method may be applicable, but worse than another method.
         public bool IsApplicable
