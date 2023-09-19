@@ -4,10 +4,13 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
@@ -67,6 +70,25 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
 
                         return symbol.Locations.FirstOrDefault()?.SourceSpan.Start ?? 0;
                     }
+
+                case SyntaxKind.GotoKeyword:
+                case SyntaxKind.DefaultKeyword:
+                case SyntaxKind.CaseKeyword:
+                    {
+                        var foundAccessibleLabel = TryFindAccessibleLabel(node);
+                        if (foundAccessibleLabel is null)
+                        {
+                            return null;
+                        }
+
+                        var symbol = semanticModel.GetDeclaredSymbol(foundAccessibleLabel);
+                        if (symbol is null)
+                        {
+                            return null;
+                        }
+
+                        return symbol.Locations.FirstOrDefault()?.SourceSpan.Start ?? 0;
+                    }
             }
 
             return null;
@@ -118,6 +140,38 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
                 }
 
                 return node;
+            }
+
+            SyntaxNode? TryFindAccessibleLabel(SyntaxNode? node)
+            {
+                var statement = node?.FirstAncestorOrSelf<GotoStatementSyntax>();
+                if (statement is null)
+                {
+                    return null;
+                }
+
+                var gotoOperation = semanticModel.GetOperation(statement) as IBranchOperation;
+                Debug.Assert(gotoOperation is { BranchKind: BranchKind.GoTo });
+                var target = gotoOperation.Target;
+
+                var expression = statement.Expression;
+                string? name = null;
+                switch (expression)
+                {
+                    case IdentifierNameSyntax identifier:
+                        name = identifier.Identifier.ValueText;
+                        break;
+                }
+
+                var availableLabels = semanticModel.LookupLabels(node!.SpanStart, name);
+
+                if (availableLabels.Contains(target))
+                {
+                    var syntax = target.DeclaringSyntaxReferences.First().GetSyntax();
+                    return syntax;
+                }
+
+                return null;
             }
         }
     }
