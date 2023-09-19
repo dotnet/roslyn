@@ -115,24 +115,6 @@ internal static class ConvertToRawStringHelpers
         return longestSequence;
     }
 
-    public static bool HasLeadingWhitespace(VirtualCharSequence characters)
-    {
-        var index = 0;
-        while (index < characters.Length && IsCSharpWhitespace(characters[index]))
-            index++;
-
-        return index < characters.Length && IsCSharpNewLine(characters[index]);
-    }
-
-    public static bool HasTrailingWhitespace(VirtualCharSequence characters)
-    {
-        var index = characters.Length - 1;
-        while (index >= 0 && IsCSharpWhitespace(characters[index]))
-            index--;
-
-        return index >= 0 && IsCSharpNewLine(characters[index]);
-    }
-
     public static bool AllWhitespace(VirtualCharSequence line)
     {
         var index = 0;
@@ -149,44 +131,6 @@ internal static class ConvertToRawStringHelpers
             current++;
 
         return line.GetSubSequence(TextSpan.FromBounds(0, current));
-    }
-
-    public static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)
-    {
-        var commonLeadingWhitespace = GetLeadingWhitespace(lines.First());
-
-        for (var i = 1; i < lines.Count; i++)
-        {
-            if (commonLeadingWhitespace.IsEmpty)
-                return 0;
-
-            var currentLine = lines[i];
-            if (AllWhitespace(currentLine))
-                continue;
-
-            var currentLineLeadingWhitespace = GetLeadingWhitespace(currentLine);
-            commonLeadingWhitespace = ComputeCommonWhitespacePrefix(commonLeadingWhitespace, currentLineLeadingWhitespace);
-        }
-
-        return commonLeadingWhitespace.Length;
-    }
-
-    private static VirtualCharSequence ComputeCommonWhitespacePrefix(
-        VirtualCharSequence leadingWhitespace1, VirtualCharSequence leadingWhitespace2)
-    {
-        var length = Math.Min(leadingWhitespace1.Length, leadingWhitespace2.Length);
-
-        var current = 0;
-        while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Rune == leadingWhitespace2[current].Rune)
-            current++;
-
-        return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
-    }
-
-    public static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
-    {
-        foreach (var c in sequence)
-            result.Add(c);
     }
 
     public static void AppendCharacters(
