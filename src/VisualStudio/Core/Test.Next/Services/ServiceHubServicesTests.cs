@@ -405,6 +405,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() : new[] { typeof(NoSyncWorkspaceConfigurationService) });
 
             DocumentId tempDocId;
+
+            // Keep this all in a nested scope so we don't accidentally access this data inside the loop below.  We only
+            // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             {
                 var projectId = ProjectId.CreateNewId();
                 var analyzerReference = new TestGeneratorReference(generator);
