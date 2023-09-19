@@ -22,6 +22,46 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
+        internal static async Task<int[]> HandleRequestHelperAsync(
+            IGlobalOptionService globalOptions,
+            SemanticTokensRefreshQueue semanticTokensRefreshQueue,
+            LSP.Range[] ranges,
+            RequestContext context,
+            CancellationToken cancellationToken)
+        {
+            if (ranges.Length == 0)
+            {
+                return Array.Empty<int>();
+            }
+
+            var contextDocument = context.GetRequiredDocument();
+
+            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
+            // results but will speed up how quickly we can respond to the client's request.
+            var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
+            var project = document.Project;
+            var options = globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
+
+            // The results from the range handler should not be cached since we don't want to cache
+            // partial token results. In addition, a range request is only ever called with a whole
+            // document request, so caching range results is unnecessary since the whole document
+            // handler will cache the results anyway.
+            var capabilities = context.GetRequiredClientCapabilities();
+            var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                capabilities,
+                document,
+                ranges,
+                options,
+                cancellationToken).ConfigureAwait(false);
+
+            // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick
+            // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
+            // we can optionally choose to notify our caller to do a refresh if we computed a compilation for a new
+            // solution snapshot.
+            await semanticTokensRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
+            return tokensData;
+        }
+
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional ranges.
         /// </summary>
@@ -86,7 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             classifiedSpans.AddRange(nonEmptySpans);
         }
 
-        public static void ConvertMultiLineToSingleLineSpans(SourceText text, SegmentedList<ClassifiedSpan> classifiedSpans, SegmentedList<ClassifiedSpan> updatedClassifiedSpans)
+        private static void ConvertMultiLineToSingleLineSpans(SourceText text, SegmentedList<ClassifiedSpan> classifiedSpans, SegmentedList<ClassifiedSpan> updatedClassifiedSpans)
         {
 
             for (var spanIndex = 0; spanIndex < classifiedSpans.Count; spanIndex++)
@@ -170,46 +210,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     }
                 }
             }
-        }
-
-        internal static async Task<int[]> HandleRequestHelperAsync(
-                IGlobalOptionService globalOptions,
-                SemanticTokensRefreshQueue semanticTokensRefreshQueue,
-                LSP.Range[] ranges,
-                RequestContext context,
-                CancellationToken cancellationToken)
-        {
-            if (ranges.Length == 0)
-            {
-                return Array.Empty<int>();
-            }
-
-            var contextDocument = context.GetRequiredDocument();
-
-            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
-            // results but will speed up how quickly we can respond to the client's request.
-            var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
-            var project = document.Project;
-            var options = globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
-
-            // The results from the range handler should not be cached since we don't want to cache
-            // partial token results. In addition, a range request is only ever called with a whole
-            // document request, so caching range results is unnecessary since the whole document
-            // handler will cache the results anyway.
-            var capabilities = context.GetRequiredClientCapabilities();
-            var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                capabilities,
-                document,
-                ranges,
-                options,
-                cancellationToken).ConfigureAwait(false);
-
-            // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick
-            // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
-            // we can optionally choose to notify our caller to do a refresh if we computed a compilation for a new
-            // solution snapshot.
-            await semanticTokensRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
-            return tokensData;
         }
 
         private static int[] ComputeTokens(
