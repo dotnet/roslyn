@@ -428,6 +428,8 @@ class Program
     {
         int {|Definition:x|} = 4, y = 5;
         var z = ($$[|x|], y);
+        z = ([|x|]: 0, y: 1);
+        z = ([|x|]: y, y: [|x|]);
     }
 }
 ]]>
@@ -545,7 +547,7 @@ class C
     void M(string a)
     {
         var r = (a.Length, $$[|Property|]);
-        r = ([|Property|], Property: [|Property|]);
+        r = ([|Property|], [|Property|]: [|Property|]);
     }
 }
 ]]>

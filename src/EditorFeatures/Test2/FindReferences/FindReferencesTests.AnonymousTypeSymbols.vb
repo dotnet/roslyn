@@ -171,7 +171,7 @@ End Class
 #Region "C#"
         <WorkItem("https://github.com/dotnet/roslyn/issues/20115")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestAnonymousTypesCSharp_SimpleExpression(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestAnonymousTypesCSharp_SimpleExpressionHoverNameImplication(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -184,6 +184,7 @@ class C
         int length = [|a|].Length;
         var r = new { [|a|], Length = 1 };
         r = new { $$[|a|], [|a|].Length };
+        r = new { [|a|] = string.Empty, Length = [|a|].Length };
     }
 }
 ]]>
@@ -195,7 +196,57 @@ class C
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/20115")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestAnonymousTypesCSharp_PropertyAccess(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestAnonymousTypesCSharp_SimpleExpressionHoverParameterDeclaration(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+class C
+{
+    void M(string $${|Definition:a|})
+    {
+        int length = [|a|].Length;
+        var r = new { [|a|], Length = 1 };
+        r = new { [|a|], [|a|].Length };
+        r = new { a = string.Empty, Length = [|a|].Length };
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20115")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAnonymousTypesCSharp_SimpleExpressionHoverAnonymousTypeProperty(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+class C
+{
+    void M(string a)
+    {
+        int length = a.Length;
+        var r = new { [|a|], Length = 1 };
+        r = new { [|a|], a.Length };
+        r = new { $$[|a|] = string.Empty, Length = a.Length };
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20115")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAnonymousTypesCSharp_PropertyAccessHoverAccessedProperty(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -206,9 +257,34 @@ class C
     void M(string a)
     {
         int length = a.[|Length|];
-        var r = new { a, Length = 1 };
+        var r = new { a, [|Length|] = 1 };
         r = new { a, a.$$[|Length|] };
-        r = new { a, Length = a.[|Length|] };
+        r = new { a, [|Length|] = a.[|Length|] };
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/20115")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAnonymousTypesCSharp_PropertyAccessHoverAnonymousTypeProperty(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+class C
+{
+    void M(string a)
+    {
+        int length = a.Length;
+        var r = new { a, [|Length|] = 1 };
+        r = new { a, a.[|Length|] };
+        r = new { a, $$[|Length|] = a.Length };
     }
 }
 ]]>

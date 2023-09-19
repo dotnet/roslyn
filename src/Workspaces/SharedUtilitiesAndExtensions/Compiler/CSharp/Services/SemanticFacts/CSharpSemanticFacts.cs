@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var location = token.GetLocation();
 
-            var tokenParent = token.Parent;
-            var sourceAncestor = tokenParent;
+            var sourceAncestor = token.Parent;
             // Skip the tuple expression if the identifier is part of the simple identifier expression inside a tuple,
             // but not the identifier of the field
             // For example, we are evaluating `x` in `(x, y)`, or the expression after the colon in `(x: x, y: y)`
             // but not the name of the field
-            if (tokenParent is IdentifierNameSyntax { Parent: ArgumentSyntax { Parent: TupleExpressionSyntax parentTuple } })
+            // We want to handle the implicit declaration of the tuple field when finding its references, not via its name implication
+            if (sourceAncestor is IdentifierNameSyntax { Parent: ArgumentSyntax { Parent: TupleExpressionSyntax parentTuple } })
             {
                 sourceAncestor = parentTuple.Parent;
             }
@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // If the span is part of the property's assignment expression, it's not our target result
                                 // For example, we are evaluating `a.Length` in `new { a.Length }`, or in `new { Length = a.Length }`
+                                // We want to handle the implicit declaration of the property when finding its references, not via its name implication
                                 if (ancestor is AnonymousObjectMemberDeclaratorSyntax declarator &&
                                     declarator.Expression.Span.Contains(location.SourceSpan))
                                 {
@@ -372,7 +373,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return semanticModel.GetSymbolInfo(baseType, cancellationToken).GetBestOrAllSymbols();
             }
 
-            //Only in the orderby clause a comma can bind to a symbol.
+            // In the following cases, we want to return the tuple field or the anonymous object property too, as we imply its name
+            var impliedSymbols = ImmutableArray<ISymbol>.Empty;
+            if (node is IdentifierNameSyntax identifier)
+            {
+                var implyingNameNode = node;
+
+                if (identifier.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) simpleMemberAccessExpression
+                    && simpleMemberAccessExpression.Name == node)
+                {
+                    implyingNameNode = simpleMemberAccessExpression;
+                }
+
+                var implyingNameNodeParent = implyingNameNode.Parent;
+
+                switch (implyingNameNodeParent)
+                {
+                    case ArgumentSyntax { NameColon: null, Parent: TupleExpressionSyntax tuple }:
+                        {
+                            var tupleType = semanticModel.GetTypeInfo(tuple, cancellationToken).Type;
+                            if (tupleType is not null)
+                            {
+                                var field = tupleType.GetMembers().FirstOrDefault(s => s.Name == token.ValueText);
+                                if (field is IFieldSymbol)
+                                {
+                                    impliedSymbols = ImmutableArray.Create(field);
+                                }
+                            }
+
+                            break;
+                        }
+
+                    case AnonymousObjectMemberDeclaratorSyntax { NameEquals: null, Parent: AnonymousObjectCreationExpressionSyntax anonymousObject }:
+                        {
+                            var anonymousObjectConstructorSymbol = semanticModel.GetSymbolInfo(anonymousObject, cancellationToken).Symbol;
+                            if (anonymousObjectConstructorSymbol is IMethodSymbol anonymousObjectConstructor)
+                            {
+                                var anonymousType = anonymousObjectConstructorSymbol.ContainingType;
+                                var property = anonymousType.GetMembers().FirstOrDefault(s => s.Name == token.ValueText);
+                                if (property is IPropertySymbol)
+                                {
+                                    impliedSymbols = ImmutableArray.Create(property);
+                                }
+                            }
+
+                            break;
+                        }
+                }
+            }
+
+            // Only in the orderby clause a comma can bind to a symbol.
             if (token.IsKind(SyntaxKind.CommaToken))
                 return ImmutableArray<ISymbol>.Empty;
 
@@ -390,7 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
+            return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
+                .Concat(impliedSymbols);
         }
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
