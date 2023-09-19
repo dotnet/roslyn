@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
@@ -22,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
     using static ConvertToRawStringHelpers;
     using static SyntaxFactory;
 
-    internal partial class ConvertRegularStringToRawStringProvider : IConvertStringProvider
+    internal partial class ConvertRegularStringToRawStringProvider
+        : AbstractConvertStringProvider<LiteralExpressionSyntax>
     {
         public static readonly IConvertStringProvider Instance = new ConvertRegularStringToRawStringProvider();
 
@@ -30,19 +30,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
         {
         }
 
-        public bool CheckSyntax(ExpressionSyntax expression)
-            => expression is LiteralExpressionSyntax(kind: SyntaxKind.StringLiteralExpression);
+        protected override bool CheckSyntax(LiteralExpressionSyntax stringExpression)
+            => stringExpression.Kind() is SyntaxKind.StringLiteralExpression;
 
-        public bool CanConvert(
+        protected override bool CanConvert(
             ParsedDocument document,
-            ExpressionSyntax expression,
+            LiteralExpressionSyntax stringExpression,
             SyntaxFormattingOptions formattingOptions,
             out CanConvertParams convertParams,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(CheckSyntax(expression));
-            var token = ((LiteralExpressionSyntax)expression).Token;
-            return CanConvertStringLiteral(token, out convertParams);
+            return CanConvertStringLiteral(stringExpression.Token, out convertParams);
         }
 
         private static bool CanConvertStringLiteral(SyntaxToken token, out CanConvertParams convertParams)
@@ -53,9 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             // Can't convert a string literal in a directive to a raw string.
             if (IsInDirective(token.Parent))
-                return false;
-
-            if (token.Parent is not LiteralExpressionSyntax)
                 return false;
 
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
@@ -126,15 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             return true;
         }
 
-        public ExpressionSyntax Convert(
+        protected override LiteralExpressionSyntax Convert(
             ParsedDocument document,
-            ExpressionSyntax expression,
+            LiteralExpressionSyntax stringExpression,
             ConvertToRawKind kind,
             SyntaxFormattingOptions options,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(CheckSyntax(expression));
-            var stringExpression = (LiteralExpressionSyntax)expression;
             var newToken = GetReplacementToken(
                 document, stringExpression.Token, kind, options, cancellationToken);
             return stringExpression.WithToken(newToken);

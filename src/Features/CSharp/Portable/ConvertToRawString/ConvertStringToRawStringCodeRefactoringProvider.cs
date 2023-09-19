@@ -54,8 +54,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
     {
         foreach (var convertProvider in s_convertStringProviders)
         {
-            if (convertProvider.CheckSyntax(expression) &&
-                convertProvider.CanConvert(parsedDocument, expression, formattingOptions, out canConvertParams, cancellationToken))
+            if (convertProvider.CanConvert(parsedDocument, expression, formattingOptions, out canConvertParams, cancellationToken))
             {
                 provider = convertProvider;
                 return true;
@@ -203,8 +202,6 @@ internal enum ConvertToRawKind
 
 internal interface IConvertStringProvider
 {
-    bool CheckSyntax(ExpressionSyntax expression);
-
     bool CanConvert(
         ParsedDocument document,
         ExpressionSyntax expression,
@@ -216,6 +213,43 @@ internal interface IConvertStringProvider
         ParsedDocument document,
         ExpressionSyntax expression,
         ConvertToRawKind kind,
-        SyntaxFormattingOptions options,
+        SyntaxFormattingOptions formattingOptions,
+        CancellationToken cancellationToken);
+}
+
+internal abstract class AbstractConvertStringProvider<TStringExpression> : IConvertStringProvider
+    where TStringExpression : ExpressionSyntax
+{
+    protected abstract bool CheckSyntax(TStringExpression expression);
+
+    public bool CanConvert(ParsedDocument document, ExpressionSyntax expression, SyntaxFormattingOptions formattingOptions, out CanConvertParams convertParams, CancellationToken cancellationToken)
+    {
+        convertParams = default;
+        return expression is TStringExpression stringExpression &&
+            CheckSyntax(stringExpression) &&
+            CanConvert(document, stringExpression, formattingOptions, out convertParams, cancellationToken);
+    }
+
+    public ExpressionSyntax Convert(ParsedDocument document, ExpressionSyntax expression, ConvertToRawKind kind, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    {
+        var stringExpression = (TStringExpression)expression;
+
+        Contract.ThrowIfFalse(CheckSyntax(stringExpression));
+
+        return Convert(document, stringExpression, kind, formattingOptions, cancellationToken);
+    }
+
+    protected abstract bool CanConvert(
+        ParsedDocument document,
+        TStringExpression expression,
+        SyntaxFormattingOptions formattingOptions,
+        out CanConvertParams convertParams,
+        CancellationToken cancellationToken);
+
+    protected abstract TStringExpression Convert(
+        ParsedDocument document,
+        TStringExpression expression,
+        ConvertToRawKind kind,
+        SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken);
 }

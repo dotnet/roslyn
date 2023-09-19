@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using static ConvertToRawStringHelpers;
 using static SyntaxFactory;
 
-internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertStringProvider
+internal partial class ConvertInterpolatedStringToRawStringProvider
+    : AbstractConvertStringProvider<InterpolatedStringExpressionSyntax>
 {
     public static readonly IConvertStringProvider Instance = new ConvertInterpolatedStringToRawStringProvider();
 
@@ -32,8 +33,8 @@ internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertSt
     {
     }
 
-    public bool CheckSyntax(ExpressionSyntax expression)
-        => expression is InterpolatedStringExpressionSyntax
+    protected override bool CheckSyntax(InterpolatedStringExpressionSyntax stringExpression)
+        => stringExpression is
         {
             StringStartToken: (kind: SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedVerbatimStringStartToken),
             // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic
@@ -54,28 +55,25 @@ internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertSt
     private static VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
         => CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
 
-    public bool CanConvert(
+    protected override bool CanConvert(
         ParsedDocument document,
-        ExpressionSyntax expression,
+        InterpolatedStringExpressionSyntax stringExpression,
         SyntaxFormattingOptions formattingOptions,
         out CanConvertParams convertParams,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfFalse(CheckSyntax(expression));
-        var interpolatedString = (InterpolatedStringExpressionSyntax)expression;
-
         convertParams = default;
 
         // Check up front for syntax errors.  Knowing there are none means we don't have a sanity checks later on.
-        if (interpolatedString.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
+        if (stringExpression.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
             return false;
 
-        var firstContent = interpolatedString.Contents.First();
-        var lastContent = interpolatedString.Contents.Last();
+        var firstContent = stringExpression.Contents.First();
+        var lastContent = stringExpression.Contents.Last();
 
         var priority = CodeActionPriority.Low;
         var canBeSingleLine = true;
-        foreach (var content in interpolatedString.Contents)
+        foreach (var content in stringExpression.Contents)
         {
             if (content is InterpolationSyntax interpolation)
             {
@@ -157,9 +155,9 @@ internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertSt
         // Offer this, but let the user know that this will change runtime semantics.
         var canBeMultiLineWithoutLeadingWhiteSpaces = false;
         if (!canBeSingleLine &&
-            interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
+            stringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
         {
-            var converted = GetInitialMultiLineRawInterpolatedString(interpolatedString, formattingOptions);
+            var converted = GetInitialMultiLineRawInterpolatedString(stringExpression, formattingOptions);
             var cleaned = CleanInterpolatedString(converted, cancellationToken);
 
             canBeMultiLineWithoutLeadingWhiteSpaces = !cleaned.IsEquivalentTo(converted);
@@ -169,34 +167,20 @@ internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertSt
         return true;
     }
 
-    public ExpressionSyntax Convert(
+    protected override InterpolatedStringExpressionSyntax Convert(
         ParsedDocument document,
-        ExpressionSyntax expression,
-        ConvertToRawKind kind,
-        SyntaxFormattingOptions options,
-        CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfFalse(CheckSyntax(expression));
-        return GetReplacementExpression(document, (InterpolatedStringExpressionSyntax)expression, kind, options, cancellationToken);
-    }
-
-    private static InterpolatedStringExpressionSyntax GetReplacementExpression(
-        ParsedDocument parsedDocument,
         InterpolatedStringExpressionSyntax stringExpression,
         ConvertToRawKind kind,
         SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
-        //var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-        //Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
-
         if (kind == ConvertToRawKind.SingleLine)
             return ConvertToSingleLineRawString();
 
         var indentationOptions = new IndentationOptions(formattingOptions);
 
         var token = stringExpression.StringStartToken;
-        var tokenLine = parsedDocument.Text.Lines.GetLineFromPosition(token.SpanStart);
+        var tokenLine = document.Text.Lines.GetLineFromPosition(token.SpanStart);
         if (token.SpanStart == tokenLine.Start)
         {
             // Special case.  string token starting at the start of the line.  This is a common pattern used for
@@ -205,11 +189,11 @@ internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertSt
             //
             // In this case, figure out what indentation we're normally like to put this string.  Update *both* the
             // contents *and* the starting quotes of the raw string.
-            var indenter = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
-            var indentationVal = indenter.GetIndentation(parsedDocument, tokenLine.LineNumber, indentationOptions, cancellationToken);
+            var indenter = document.LanguageServices.GetRequiredService<IIndentationService>();
+            var indentationVal = indenter.GetIndentation(document, tokenLine.LineNumber, indentationOptions, cancellationToken);
 
-            var indentation = indentationVal.GetIndentationString(parsedDocument.Text, indentationOptions);
-            var newNode = ConvertToMultiLineRawIndentedString(parsedDocument, indentation);
+            var indentation = indentationVal.GetIndentationString(document.Text, indentationOptions);
+            var newNode = ConvertToMultiLineRawIndentedString(document, indentation);
             newNode = newNode.WithLeadingTrivia(newNode.GetLeadingTrivia().Add(Whitespace(indentation)));
             return newNode;
         }
@@ -218,8 +202,8 @@ internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertSt
             // otherwise this was a string literal on a line that already contains contents.  Or it's a string
             // literal on its own line, but indented some amount.  Figure out the indentation of the contents from
             // this, but leave the string literal starting at whatever position it's at.
-            var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-            return ConvertToMultiLineRawIndentedString(parsedDocument, indentation);
+            var indentation = token.GetPreferredIndentation(document, indentationOptions, cancellationToken);
+            return ConvertToMultiLineRawIndentedString(document, indentation);
         }
 
         InterpolatedStringExpressionSyntax ConvertToSingleLineRawString()
@@ -247,9 +231,9 @@ internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertSt
                 ? CleanInterpolatedString(rawStringExpression, cancellationToken)
                 : rawStringExpression;
 
-            var startLine = parsedDocument.Text.Lines.GetLineFromPosition(GetAnchorNode(parsedDocument, stringExpression).SpanStart);
+            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(document, stringExpression).SpanStart);
             var rootAnchorIndentation = GetIndentationStringForToken(
-                parsedDocument.Text, formattingOptions, parsedDocument.Root.FindToken(startLine.Start));
+                document.Text, formattingOptions, document.Root.FindToken(startLine.Start));
 
             // Now that the expression is cleaned, ensure every non-blank line gets the necessary indentation.
             var indentedText = Indent(
