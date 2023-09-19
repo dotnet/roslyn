@@ -61,9 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
             Select Case node.Kind()
                 Case SyntaxKind.GoToStatement
                     Dim goToStatement = DirectCast(node, GoToStatementSyntax)
-                    Dim labelToken = goToStatement.Label.LabelToken
-                    Dim labelIdentifier As String = labelToken.ValueText
-
+                    Dim labelIdentifier = goToStatement.Label.LabelToken.ValueText
                     If labelIdentifier Is Nothing Then
                         Return Nothing
                     End If
