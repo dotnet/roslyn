@@ -780,6 +780,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">"Localizar Todas as Referências" não invocado no símbolo aplicável</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All">
+        <source>Fix All</source>
+        <target state="new">Fix All</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corrigir erro de digitação '{0}'</target>

@@ -780,6 +780,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Uygulanabilir sembolde 'Tüm Referansları Bul' çağrılmadı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All">
+        <source>Fix All</source>
+        <target state="new">Fix All</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">'{0}' yazım hatasını düzeltin</target>

@@ -63,11 +63,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.GetRequiredDocument();
-            var solution = document.Project.Solution;
-
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             Assumes.Present(data);
+
+            if (data.FixAllFlavors is not null)
+            {
+                return codeAction;
+            }
+
+            var document = context.GetRequiredDocument();
+            var solution = document.Project.Solution;
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
 

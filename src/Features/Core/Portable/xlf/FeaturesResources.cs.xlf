@@ -780,6 +780,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Funkce Najít všechny odkazy se nevyvolala u použitelného symbolu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All">
+        <source>Fix All</source>
+        <target state="new">Fix All</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Opravit překlep {0}</target>

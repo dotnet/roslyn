@@ -152,12 +152,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     var fixAllFlavors = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Select(action => action.FixAllState.Scope.ToString());
 
+                    var title = FeaturesResources.Fix_All + ": " + currentTitle;
+                    var command = new LSP.Command
+                    {
+                        CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
+                        Title = title,
+                        Arguments = new object[] { new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray()) }
+                    };
+
                     builder.Add(new LSP.CodeAction
                     {
-                        Title = "Fix All: " + currentTitle,
+                        Title = title,
+                        Command = command,
                         Kind = codeActionKind,
                         Diagnostics = diagnosticsForFix,
-                        Data = new CodeActionResolveData("Fix All: " + currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray())
+                        Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray())
                     });
                 }
             }
@@ -333,7 +342,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
 
             var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
-            return new FixAllCodeAction("Fix All: " + codeAction.Title, fixAllFlavor.FixAllState, false);
+            return new FixAllCodeAction(FeaturesResources.Fix_All + ": " + codeAction.Title, fixAllFlavor.FixAllState, false);
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
