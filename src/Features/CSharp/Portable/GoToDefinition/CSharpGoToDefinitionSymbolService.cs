@@ -75,7 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
                 case SyntaxKind.DefaultKeyword:
                 case SyntaxKind.CaseKeyword:
                     {
-                        return TryFindAccessibleLabel(node)?.SpanStart;
+                        if (node.FirstAncestorOrSelf<GotoStatementSyntax>() is not GotoStatementSyntax gotoStatement)
+                            return null;
+
+                        if (semanticModel.GetOperation(gotoStatement) is not IBranchOperation gotoOperation)
+                            return null;
+
+                        Debug.Assert(gotoOperation is { BranchKind: BranchKind.GoTo });
+                        var target = gotoOperation.Target;
+                        return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.SpanStart;
                     }
             }
 
@@ -128,20 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
                 }
 
                 return node;
-            }
-
-            SyntaxNode? TryFindAccessibleLabel(SyntaxNode node)
-            {
-                var statement = node.FirstAncestorOrSelf<GotoStatementSyntax>();
-                if (statement is null)
-                    return null;
-
-                if (semanticModel.GetOperation(statement) is not IBranchOperation gotoOperation)
-                    return null;
-
-                Debug.Assert(gotoOperation is { BranchKind: BranchKind.GoTo });
-                var target = gotoOperation.Target;
-                return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
             }
         }
     }

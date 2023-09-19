@@ -50,28 +50,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
                 Return exitTarget.GetLastToken().Span.End
             End If
 
-            Dim labelTarget = TryGetLabelTarget(semanticModel, node)
-            If labelTarget IsNot Nothing Then
-                Return labelTarget.SpanStart
+            If node.IsKind(SyntaxKind.GoToStatement) Then
+                Dim goToStatement = DirectCast(node, GoToStatementSyntax)
+
+                Dim gotoOperation = DirectCast(semanticModel.GetOperation(goToStatement), IBranchOperation)
+                If gotoOperation Is Nothing Then
+                    Return Nothing
+                End If
+
+                Debug.Assert(gotoOperation.BranchKind = BranchKind.GoTo)
+                Dim target = gotoOperation.Target
+                Return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.SpanStart
             End If
-
-            Return Nothing
-        End Function
-
-        Private Shared Function TryGetLabelTarget(semanticModel As SemanticModel, node As SyntaxNode) As SyntaxNode
-            Select Case node.Kind()
-                Case SyntaxKind.GoToStatement
-                    Dim goToStatement = DirectCast(node, GoToStatementSyntax)
-
-                    Dim gotoOperation = DirectCast(semanticModel.GetOperation(goToStatement), IBranchOperation)
-                    If gotoOperation Is Nothing Then
-                        Return Nothing
-                    End If
-
-                    Debug.Assert(gotoOperation.BranchKind = BranchKind.GoTo)
-                    Dim target = gotoOperation.Target
-                    Return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
-            End Select
 
             Return Nothing
         End Function
