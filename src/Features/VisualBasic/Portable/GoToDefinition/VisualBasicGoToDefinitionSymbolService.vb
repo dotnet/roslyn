@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
 
             Dim labelTarget = TryGetLabelTarget(semanticModel, node)
             If labelTarget IsNot Nothing Then
-                Return labelTarget.GetFirstToken().Span.Start
+                Return labelTarget.SpanStart
             End If
 
             Return Nothing
