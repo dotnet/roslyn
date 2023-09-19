@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -61,18 +62,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
             Select Case node.Kind()
                 Case SyntaxKind.GoToStatement
                     Dim goToStatement = DirectCast(node, GoToStatementSyntax)
-                    Dim labelIdentifier = goToStatement.Label.LabelToken.ValueText
-                    If labelIdentifier Is Nothing Then
+
+                    Dim gotoOperation = DirectCast(semanticModel.GetOperation(goToStatement), IBranchOperation)
+                    If gotoOperation Is Nothing Then
                         Return Nothing
                     End If
 
-                    Dim labels = semanticModel.LookupLabels(node.SpanStart, labelIdentifier)
-                    If labels.Length = 0 Then
-                        Return Nothing
-                    End If
-
-                    Dim label = labels.First()
-                    Return label.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
+                    Debug.Assert(gotoOperation.BranchKind = BranchKind.GoTo)
+                    Dim target = gotoOperation.Target
+                    Return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
             End Select
 
             Return Nothing
