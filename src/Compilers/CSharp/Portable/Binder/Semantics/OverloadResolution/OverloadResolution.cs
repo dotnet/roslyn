@@ -3788,9 +3788,9 @@ outerDefault:
 
                     if (!conversion.Exists)
                     {
-                        if (badArguments == default)
+                        if (badArguments.IsNull)
                         {
-                            badArguments = BitVector.Create(paramCount);
+                            badArguments = BitVector.Create(argumentPosition + 1);
                         }
 
                         badArguments[argumentPosition] = true;
@@ -3808,7 +3808,7 @@ outerDefault:
                     conversions.Add(conversion);
                 }
 
-                if (badArguments != default && !completeResults)
+                if (!badArguments.IsNull && !completeResults)
                 {
                     break;
                 }
@@ -3816,7 +3816,7 @@ outerDefault:
 
             MemberAnalysisResult result;
             var conversionsArray = conversions != null ? conversions.ToImmutableAndFree() : default(ImmutableArray<Conversion>);
-            if (badArguments != default)
+            if (!badArguments.IsNull)
             {
                 result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments, conversionsArray);
             }
