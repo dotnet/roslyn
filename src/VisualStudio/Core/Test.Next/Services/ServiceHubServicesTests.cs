@@ -414,10 +414,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     .AddAnalyzerReference(analyzerReference);
                 var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
                 tempDocId = tempDoc.Id;
-                project = tempDoc.Project;
-                var solution = project.Solution;
 
-                Assert.True(localWorkspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionChanged));
+                Assert.True(localWorkspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
             }
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
