@@ -41,7 +41,6 @@ internal partial class ConvertInterpolatedStringToRawStringProvider : IConvertSt
             Contents.Count: > 0,
         };
 
-
     private static VirtualCharSequence ConvertToVirtualChars(InterpolatedStringTextSyntax textSyntax)
     {
         var result = TryConvertToVirtualChars(textSyntax.TextToken);

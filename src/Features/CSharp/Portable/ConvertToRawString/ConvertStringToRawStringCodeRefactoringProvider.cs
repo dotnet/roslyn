@@ -14,15 +14,12 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
-
-using static ConvertToRawStringHelpers;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRawString), Shared]
 internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
@@ -46,17 +43,6 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
     }
 
     protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
-
-    private static bool CheckExpression(ExpressionSyntax expression)
-    {
-        foreach (var provider in s_convertStringProviders)
-        {
-            if (provider.CheckSyntax(expression))
-                return true;
-        }
-
-        return false;
-    }
 
     private static bool CanConvert(
         ParsedDocument parsedDocument,
@@ -169,7 +155,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         foreach (var fixSpan in fixAllSpans)
         {
             var node = editor.OriginalRoot.FindNode(fixSpan);
-            foreach (var expression in node.DescendantNodes().OfType<ExpressionSyntax>().Where(CheckExpression).OrderByDescending(e => e.SpanStart))
+            foreach (var expression in node.DepthFirstTraversalNodes().OfType<ExpressionSyntax>())
             {
                 // Ensure we can convert the string literal
                 if (!CanConvert(parsedDocument, expression, formattingOptions, out var canConvertParams, out var provider, cancellationToken))
@@ -199,7 +185,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
                             return current;
 
                         var currentParsedDocument = parsedDocument.WithChangedRoot(
-                            current.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
+                            currentExpression.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
                         var replacement = provider.Convert(currentParsedDocument, currentExpression, kind, formattingOptions, cancellationToken);
                         return replacement;
                     });
