@@ -1150,6 +1150,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim baseAllRequiredMembers = If(BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers, ImmutableSegmentedDictionary(Of String, Symbol).Empty)
             Dim typeHasDeclaredRequiredMembers = HasAnyDeclaredRequiredMembers
 
+            If (Not typeHasDeclaredRequiredMembers) AndAlso baseAllRequiredMembers.IsEmpty Then
+                Return True
+            End If
+
             ' Iterate over members of the original definition to avoid realizing GetMembersUnordered() for
             ' substituted symbols. Substituted symbols are only realized for uncommon cases where they are
             ' necessary for checks against members from the base type.
