@@ -232,7 +232,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 builder.Append(formattingOptions.NewLine);
 
                 var atStartOfLine = true;
-                AppendCharacters(builder, characters, indentation, ref atStartOfLine);
+                for (int i = 0, n = characters.Length; i < n; i++)
+                {
+                    var ch = characters[i];
+                    if (IsCSharpNewLine(ch))
+                    {
+                        ch.AppendTo(builder);
+                        atStartOfLine = true;
+                        continue;
+                    }
+
+                    if (atStartOfLine)
+                    {
+                        builder.Append(indentation);
+                        atStartOfLine = false;
+                    }
+
+                    ch.AppendTo(builder);
+                }
 
                 builder.Append(formattingOptions.NewLine);
                 builder.Append(indentation);
