@@ -410,8 +410,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
                 .GetRequiredProject(projectId)
                 .AddAnalyzerReference(analyzerReference);
+            var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+            project = tempDoc.Project;
+            var solution = project.Solution;
 
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+            Assert.True(localWorkspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionChanged));
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
             var remoteWorkspace = client.GetRemoteWorkspace();
@@ -421,8 +424,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 sourceTexts = values[i];
 
                 // make a change to the project to force a change between the local and oop solutions.
-                var currentProject = project.AddDocument("X.cs", SourceText.From("// " + i)).Project;
-                Assert.True(localWorkspace.SetCurrentSolution(_ => currentProject.Solution, WorkspaceChangeKind.SolutionChanged));
+                solution = solution.WithDocumentText(tempDoc.Id, SourceText.From("// " + i));
+                Assert.True(localWorkspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionChanged));
                 await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
 
                 var localProject = localWorkspace.CurrentSolution.Projects.Single();
