@@ -103,24 +103,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             convertParams = new CanConvertParams(priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
             return true;
-        }
 
-        private static bool HasLeadingWhitespace(VirtualCharSequence characters)
-        {
-            var index = 0;
-            while (index < characters.Length && IsCSharpWhitespace(characters[index]))
-                index++;
+            static bool HasLeadingWhitespace(VirtualCharSequence characters)
+            {
+                var index = 0;
+                while (index < characters.Length && IsCSharpWhitespace(characters[index]))
+                    index++;
 
-            return index < characters.Length && IsCSharpNewLine(characters[index]);
-        }
+                return index < characters.Length && IsCSharpNewLine(characters[index]);
+            }
 
-        private static bool HasTrailingWhitespace(VirtualCharSequence characters)
-        {
-            var index = characters.Length - 1;
-            while (index >= 0 && IsCSharpWhitespace(characters[index]))
-                index--;
+            static bool HasTrailingWhitespace(VirtualCharSequence characters)
+            {
+                var index = characters.Length - 1;
+                while (index >= 0 && IsCSharpWhitespace(characters[index]))
+                    index--;
 
-            return index >= 0 && IsCSharpNewLine(characters[index]);
+                return index >= 0 && IsCSharpNewLine(characters[index]);
+            }
         }
 
         private static bool CanBeSingleLine(VirtualCharSequence characters)
@@ -290,13 +290,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             return VirtualCharSequence.Create(result.ToImmutable());
         }
 
-        public static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
+        private static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
         {
             foreach (var c in sequence)
                 result.Add(c);
         }
 
-        public static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)
+        private static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)
         {
             var commonLeadingWhitespace = GetLeadingWhitespace(lines.First());
 
