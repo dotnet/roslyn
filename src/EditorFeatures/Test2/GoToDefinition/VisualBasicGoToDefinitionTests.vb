@@ -1565,5 +1565,93 @@ end class
 
             Await TestAsync(workspace)
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestVisualBasicGoToDefinition_GoToLabel01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Using System
+
+Public Class C
+    Public Sub Method(parameter As Integer)
+
+        If parameter = 1 Then
+            $$GoTo label
+        End If
+
+        Console.WriteLine(parameter)
+
+[||]label:
+        Return
+
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestVisualBasicGoToDefinition_GoToLabel02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Using System
+
+Public Class C
+    Public Sub Method(parameter As Integer)
+
+        If parameter = 1 Then
+            $$GoTo 150
+        End If
+
+        Console.WriteLine(parameter)
+
+[||]150:
+        Return
+
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestVisualBasicGoToDefinition_GoToLabel03() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Using System
+
+Public Class C
+    Public Sub Method(parameter As Integer)
+
+        If parameter = 1 Then
+            $$GoTo 150
+        End If
+
+        Console.WriteLine(parameter)
+
+label:
+[||]150:
+        Return
+
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace
