@@ -3725,7 +3725,7 @@ outerDefault:
                     {
                         if (badArguments.IsNull)
                         {
-                            badArguments = BitVector.Create(paramCount);
+                            badArguments = BitVector.Create(argumentPosition + 1);
                         }
 
                         badArguments[argumentPosition] = true;
