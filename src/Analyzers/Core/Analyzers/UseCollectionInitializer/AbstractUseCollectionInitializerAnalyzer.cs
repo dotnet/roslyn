@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
         {
-            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
             if (state is null)
                 return default;
 
@@ -119,14 +120,17 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
             }
 
-            foreach (var statement in this.State.GetSubsequentStatements())
+            if (State.ValuePattern != default)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var match = TryAnalyzeStatement(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
-                if (match is null)
-                    break;
+                foreach (var statement in this.State.GetSubsequentStatements())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var match = TryAnalyzeStatement(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
+                    if (match is null)
+                        break;
 
-                matches.Add(match.Value);
+                    matches.Add(match.Value);
+                }
             }
 
             return true;
@@ -184,6 +188,17 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (this.HasExistingInvalidInitializerForCollection(_objectCreationExpression))
                 return false;
 
+            // Can't use a collection expression if the original object creation has arguments.
+            if (_analyzeForCollectionExpression)
+            {
+                var argumentList = this.SyntaxFacts.GetArgumentListOfBaseObjectCreationExpression(_objectCreationExpression);
+                if (argumentList != null)
+                {
+                    var arguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
+                    if (arguments.Count > 0)
+                        return false;
+                }
+            }
             var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
             if (type == null)
                 return false;
