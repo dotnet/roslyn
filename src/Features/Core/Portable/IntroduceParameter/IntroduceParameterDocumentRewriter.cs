@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     var expressionEditor = new SyntaxEditor(_expression, _generator);
 
                     var argumentListSyntax = invocation is TObjectCreationExpressionSyntax
-                        ? _syntaxFacts.GetArgumentListOfObjectCreationExpression(invocation)
+                        ? _syntaxFacts.GetArgumentListOfBaseObjectCreationExpression(invocation)
                         : _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
 
                     if (argumentListSyntax == null)
