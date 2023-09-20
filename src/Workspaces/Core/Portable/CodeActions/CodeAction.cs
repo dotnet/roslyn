@@ -109,6 +109,29 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
         }
 
+        private bool IsNonProgressApiOverridden(Dictionary<Type, bool> dictionary, Func<CodeAction, bool> computeResult)
+        {
+            var type = this.GetType();
+            lock (dictionary)
+            {
+                return dictionary.GetOrAdd(type, computeResult(this));
+            }
+        }
+
+        private bool IsNonProgressComputeOperationsAsyncOverridden()
+        {
+            return IsNonProgressApiOverridden(
+                s_isNonProgressComputeOperationsAsyncOverridden,
+                static codeAction => new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(codeAction.ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction));
+        }
+
+        private bool IsNonProgressGetChangedSolutionAsyncOverridden()
+        {
+            return IsNonProgressApiOverridden(
+                s_isNonProgressGetChangedSolutionAsyncOverridden,
+                static codeAction => new Func<CancellationToken, Task<Solution?>>(codeAction.GetChangedSolutionAsync).Method.DeclaringType != typeof(CodeAction));
+        }
+
         /// <summary>
         /// Computes the <see cref="CodeActionPriority"/> group this code action should be presented in. Legal values
         /// this can be must be between <see cref="CodeActionPriority.Lowest"/> and <see cref="CodeActionPriority.High"/>.
@@ -235,29 +258,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return changedSolution == null
                 ? Array.Empty<CodeActionOperation>()
                 : SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
-        }
-
-        private bool IsNonProgressApiOverridden(Dictionary<Type, bool> dictionary, Func<CodeAction, bool> computeResult)
-        {
-            var type = this.GetType();
-            lock (dictionary)
-            {
-                return dictionary.GetOrAdd(type, computeResult(this));
-            }
-        }
-
-        private bool IsNonProgressComputeOperationsAsyncOverridden()
-        {
-            return IsNonProgressApiOverridden(
-                s_isNonProgressComputeOperationsAsyncOverridden,
-                static codeAction => new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(codeAction.ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction));
-        }
-
-        private bool IsNonProgressGetChangedSolutionAsyncOverridden()
-        {
-            return IsNonProgressApiOverridden(
-                s_isNonProgressGetChangedSolutionAsyncOverridden,
-                static codeAction => new Func<CancellationToken, Task<Solution?>>(codeAction.GetChangedSolutionAsync).Method.DeclaringType != typeof(CodeAction));
         }
 
         /// <summary>
