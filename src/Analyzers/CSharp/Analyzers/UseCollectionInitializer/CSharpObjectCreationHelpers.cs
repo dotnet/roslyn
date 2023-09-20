@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
 internal static class CSharpObjectCreationHelpers
 {
-    internal static bool IsInitializerOfLocalDeclarationStatement(
+    public static bool IsInitializerOfLocalDeclarationStatement(
         LocalDeclarationStatementSyntax localDeclarationStatement,
         BaseObjectCreationExpressionSyntax rootExpression,
         [NotNullWhen(true)] out VariableDeclaratorSyntax? variableDeclarator)
