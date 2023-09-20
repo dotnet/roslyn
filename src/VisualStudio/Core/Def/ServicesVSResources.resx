@@ -1563,8 +1563,8 @@ Additional information: {1}</value>
   <data name="Display_all_hints_while_pressing_Alt_F1" xml:space="preserve">
     <value>Display all hints while pressing Alt+F1</value>
   </data>
-  <data name="Enable_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
-    <value>Enable 'pull' diagnostics (experimental, requires restart)</value>
+  <data name="Enable_pull_diagnostics_requires_restart" xml:space="preserve">
+    <value>Enable 'pull' diagnostics (requires restart)</value>
   </data>
   <data name="Enable_Razor_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
     <value>Enable Razor 'pull' diagnostics (experimental, requires restart)</value>

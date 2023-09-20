@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             if (checkboxValue != null)
             {
                 // Update the actual value of the feature flag to ensure CPS is informed of the new feature flag value.
-                this.OptionStore.SetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
+                this.OptionStore.SetOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, checkboxValue.Value);
             }
 
             // Update the workspace option.
