@@ -1754,6 +1754,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             public FrozenArrayBuilder(ArrayBuilder<T> arrayBuilder)
             {
                 Debug.Assert(arrayBuilder != null);
+                if (arrayBuilder.Capacity >= ArrayBuilder<T>.PooledArrayLengthLimitExclusive
+                    && arrayBuilder.Count < ArrayBuilder<T>.PooledArrayLengthLimitExclusive
+                    && arrayBuilder.Capacity >= arrayBuilder.Count * 2)
+                {
+                    // An ArrayBuilder<T> meeting these conditions will satisfy the following:
+                    //
+                    // 1. The current backing array is too large to be returned to the pool (i.e. it will be garbage
+                    //    collected whenever no longer used).
+                    // 2. The resized backing array from trimming is small enough to be returned to the pool (i.e. it
+                    //    will not be wasted after this builder is freed).
+                    // 3. At least half of the storage of the current builder is unused.
+                    //
+                    // If we can save half the space without wasting an array that would fit in the pool, go ahead and
+                    // do so by trimming the array builder.
+                    arrayBuilder.Capacity = arrayBuilder.Count;
+                }
+
                 _arrayBuilder = arrayBuilder;
             }
 
