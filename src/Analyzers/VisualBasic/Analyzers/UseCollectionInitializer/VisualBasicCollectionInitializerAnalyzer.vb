@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
+
     Friend NotInheritable Class VisualBasicCollectionInitializerAnalyzer
         Inherits AbstractUseCollectionInitializerAnalyzer(Of
             ExpressionSyntax,
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             VisualBasicUpdateExpressionSyntaxHelper.Instance
 
         Protected Overrides Function IsInitializerOfLocalDeclarationStatement(localDeclarationStatement As LocalDeclarationStatementSyntax, rootExpression As ObjectCreationExpressionSyntax, ByRef variableDeclarator As VariableDeclaratorSyntax) As Boolean
-            Throw New NotImplementedException()
+            Return VisualBasicObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, variableDeclarator)
         End Function
 
         Protected Overrides Function IsComplexElementInitializer(expression As SyntaxNode) As Boolean

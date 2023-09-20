@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,7 +35,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
     protected abstract bool ShouldAnalyze(CancellationToken cancellationToken);
     protected abstract bool TryAddMatches(ArrayBuilder<TMatch> matches, CancellationToken cancellationToken);
     protected abstract bool IsInitializerOfLocalDeclarationStatement(
-        TLocalDeclarationStatementSyntax localDeclarationStatement, TObjectCreationExpressionSyntax rootExpression, out TVariableDeclaratorSyntax variableDeclarator);
+        TLocalDeclarationStatementSyntax localDeclarationStatement, TObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out TVariableDeclaratorSyntax? variableDeclarator);
 
     public void Initialize(
         UpdateExpressionState<TExpressionSyntax, TStatementSyntax> state,
@@ -90,7 +91,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         if (containingStatement is not TLocalDeclarationStatementSyntax localDeclarationStatement)
             return null;
 
-        if (this.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, out var variableDeclarator))
+        if (!this.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, out var variableDeclarator))
             return null;
 
         var valuePattern = syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator);
