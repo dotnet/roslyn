@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                             continue;
 
                         solution = await EnableNullableReferenceTypesAsync(project, purpose,
-                            fixAllContext.GetOptionsProvider(), fixAllContext.CancellationToken).ConfigureAwait(false);
+                            fixAllContext.GetOptionsProvider(), progress, fixAllContext.CancellationToken).ConfigureAwait(false);
                     }
 
                     return solution;
