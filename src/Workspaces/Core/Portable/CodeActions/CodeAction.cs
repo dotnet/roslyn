@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public abstract class CodeAction
     {
-        private static readonly ConditionalWeakTable<Type, StrongBox<bool>> s_isNonProgressGetChangedSolutionAsyncOverridden = new();
-        private static readonly ConditionalWeakTable<Type, StrongBox<bool>> s_isNonProgressComputeOperationsAsyncOverridden = new();
+        private static readonly Dictionary<Type, bool> s_isNonProgressGetChangedSolutionAsyncOverridden = new();
+        private static readonly Dictionary<Type, bool> s_isNonProgressComputeOperationsAsyncOverridden = new();
 
         /// <summary>
         /// Special tag that indicates that it's this is a privileged code action that is allowed to use the <see
@@ -232,12 +232,45 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
-            if (changedSolution == null)
+            return changedSolution == null
+                ? Array.Empty<CodeActionOperation>()
+                : SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
+        }
+
+        private bool IsNonProgressComputeOperationsAsyncOverridden()
+        {
+            var type = GetType();
+            lock (s_isNonProgressComputeOperationsAsyncOverridden)
             {
-                return Array.Empty<CodeActionOperation>();
+                if (!s_isNonProgressComputeOperationsAsyncOverridden.TryGetValue(type, out var result))
+                {
+                    result = ComputeIsNonProgressComputeOperationsAsyncOverridden(type);
+                    s_isNonProgressComputeOperationsAsyncOverridden.Add(type, result);
+                }
+
+                return result;
             }
 
-            return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
+            bool ComputeIsNonProgressComputeOperationsAsyncOverridden(Type type)
+                => new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction);
+        }
+
+        private bool IsNonProgressGetChangedSolutionAsyncOverridden()
+        {
+            var type = GetType();
+            lock (s_isNonProgressGetChangedSolutionAsyncOverridden)
+            {
+                if (!s_isNonProgressGetChangedSolutionAsyncOverridden.TryGetValue(type, out var result))
+                {
+                    result = ComputeIsNonProgressComputeOperationsAsyncOverridden(type);
+                    s_isNonProgressGetChangedSolutionAsyncOverridden.Add(type, result);
+                }
+
+                return result;
+            }
+
+            bool ComputeIsNonProgressComputeOperationsAsyncOverridden(Type type)
+                => new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction);
         }
 
         /// <summary>
@@ -251,21 +284,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             // If the subclass overrode `ComputeOperationsAsync(CancellationToken)` then we must call into that in
             // order to preserve whatever logic our subclass had had for determining the new solution.
-            if (s_isNonProgressComputeOperationsAsyncOverridden.GetValue(
-                GetType(),
-                _ => new StrongBox<bool>(new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction))).Value)
+            if (IsNonProgressComputeOperationsAsyncOverridden())
             {
                 var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
                 return operations.ToImmutableArrayOrEmpty();
             }
-
-            var changedSolution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
-            if (changedSolution == null)
+            else
             {
-                return ImmutableArray<CodeActionOperation>.Empty;
+                var changedSolution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
+                return changedSolution == null
+                    ? ImmutableArray<CodeActionOperation>.Empty
+                    : ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
             }
-
-            return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
         }
 
         /// <summary>
