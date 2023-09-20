@@ -237,40 +237,27 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 : SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
         }
 
+        private bool IsNonProgressApiOverridden(Dictionary<Type, bool> dictionary, Func<CodeAction, bool> computeResult)
+        {
+            var type = this.GetType();
+            lock (dictionary)
+            {
+                return dictionary.GetOrAdd(type, computeResult(this));
+            }
+        }
+
         private bool IsNonProgressComputeOperationsAsyncOverridden()
         {
-            var type = GetType();
-            lock (s_isNonProgressComputeOperationsAsyncOverridden)
-            {
-                if (!s_isNonProgressComputeOperationsAsyncOverridden.TryGetValue(type, out var result))
-                {
-                    result = ComputeIsNonProgressComputeOperationsAsyncOverridden(type);
-                    s_isNonProgressComputeOperationsAsyncOverridden.Add(type, result);
-                }
-
-                return result;
-            }
-
-            bool ComputeIsNonProgressComputeOperationsAsyncOverridden(Type type)
-                => new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction);
+            return IsNonProgressApiOverridden(
+                s_isNonProgressComputeOperationsAsyncOverridden,
+                static codeAction => new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(codeAction.ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction));
         }
 
         private bool IsNonProgressGetChangedSolutionAsyncOverridden()
         {
-            var type = GetType();
-            lock (s_isNonProgressGetChangedSolutionAsyncOverridden)
-            {
-                if (!s_isNonProgressGetChangedSolutionAsyncOverridden.TryGetValue(type, out var result))
-                {
-                    result = ComputeIsNonProgressComputeOperationsAsyncOverridden(type);
-                    s_isNonProgressGetChangedSolutionAsyncOverridden.Add(type, result);
-                }
-
-                return result;
-            }
-
-            bool ComputeIsNonProgressComputeOperationsAsyncOverridden(Type type)
-                => new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction);
+            return IsNonProgressApiOverridden(
+                s_isNonProgressGetChangedSolutionAsyncOverridden,
+                static codeAction => new Func<CancellationToken, Task<Solution?>>(codeAction.GetChangedSolutionAsync).Method.DeclaringType != typeof(CodeAction));
         }
 
         /// <summary>
@@ -327,17 +314,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             // If the subclass overrode `GetChangedSolutionAsync(CancellationToken)` then we must call into that in
             // order to preserve whatever logic our subclass had had for determining the new solution.
-            if (s_isNonProgressGetChangedSolutionAsyncOverridden.GetValue(
-                GetType(),
-                _ => new StrongBox<bool>(new Func<CancellationToken, Task<Solution?>>(GetChangedSolutionAsync).Method.DeclaringType != typeof(CodeAction))).Value)
+            if (IsNonProgressGetChangedSolutionAsyncOverridden())
             {
                 return await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
             }
-
-            // Otherwise, attempt to determine the changed document (the same logic as GetChangedSolutionAsync), but
-            // this time pass the progress information along so it is not lost.
-            var changedDocument = await GetChangedDocumentAsync(progress, cancellationToken).ConfigureAwait(false);
-            return changedDocument?.Project.Solution;
+            else
+            {
+                // Otherwise, attempt to determine the changed document (the same logic as GetChangedSolutionAsync), but
+                // this time pass the progress information along so it is not lost.
+                var changedDocument = await GetChangedDocumentAsync(progress, cancellationToken).ConfigureAwait(false);
+                return changedDocument?.Project.Solution;
+            }
         }
 
         internal async Task<Solution> GetRequiredChangedSolutionAsync(IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
