@@ -2,19 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -188,25 +186,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+        private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
         {
             AssertIfNull(e.Diagnostics);
 
             // all events are serialized by async event handler
-            RaiseDiagnosticsUpdated((IDiagnosticUpdateSource)sender, e);
+            RaiseDiagnosticsUpdated((IDiagnosticUpdateSource)sender!, e);
         }
 
-        private void OnCleared(object sender, EventArgs e)
+        private void OnCleared(object? sender, EventArgs e)
         {
             // all events are serialized by async event handler
-            RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
+            RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender!);
         }
 
         public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             Workspace workspace,
-            ProjectId projectId,
-            DocumentId documentId,
-            object id,
+            ProjectId? projectId,
+            DocumentId? documentId,
+            object? id,
             bool includeSuppressedDiagnostics,
             CancellationToken cancellationToken)
         {
@@ -220,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return GetDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken);
         }
 
-        private async ValueTask<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+        private async ValueTask<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Data>.GetInstance(out var buffer);
 
@@ -254,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private async ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
             using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
@@ -288,8 +286,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
             Workspace workspace,
-            ProjectId projectId,
-            DocumentId documentId,
+            ProjectId? projectId,
+            DocumentId? documentId,
             CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<DiagnosticBucket>.GetInstance(out var result);
@@ -309,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void AppendMatchingData(
-            IDiagnosticUpdateSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id, ArrayBuilder<Data> list)
+            IDiagnosticUpdateSource source, Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, ArrayBuilder<Data> list)
         {
             Contract.ThrowIfNull(workspace);
 
@@ -343,7 +341,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, ArrayBuilder<Data> result) where T : class
+        private static bool TryAddData<T>(Workspace workspace, [NotNullWhen(true)] T? key, Data data, Func<Data, T?> keyGetter, ArrayBuilder<Data> result)
+            where T : class
         {
             if (key == null)
             {
@@ -385,8 +384,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly struct Data
         {
             public readonly Workspace Workspace;
-            public readonly ProjectId ProjectId;
-            public readonly DocumentId DocumentId;
+            public readonly ProjectId? ProjectId;
+            public readonly DocumentId? DocumentId;
             public readonly object Id;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;
 

@@ -33,6 +33,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get diagnostics stored in the source.
         /// </summary>
-        ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
     }
 }

@@ -559,7 +559,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool SupportGetDiagnostics { get { return false; } }
 
         public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
         }

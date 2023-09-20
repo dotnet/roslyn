@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     {
         internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
-            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
+            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null)
         {
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
         }
@@ -57,6 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
         internal static DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
         {
+            Contract.ThrowIfNull(document.FilePath);
+
             var sourceText = document.GetTextBuffer().CurrentSnapshot.AsText();
             var linePosSpan = sourceText.Lines.GetLinePositionSpan(span);
             return new DiagnosticData(
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 warningLevel: 0,
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: ImmutableDictionary<string, string?>.Empty,
                 location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, linePosSpan), document.Id),
                 language: document.Project.Language);
         }
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 
-            public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+            public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
             public event EventHandler DiagnosticsCleared { add { } remove { } }
 
             public bool SupportGetDiagnostics => false;
 
-            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
                 => new(includeSuppressedDiagnostics ? _diagnostics : _diagnostics.WhereAsArray(d => !d.IsSuppressed));
         }
     }

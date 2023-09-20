@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -163,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private static DiagnosticData RaiseDiagnosticEvent(ManualResetEvent set, TestDiagnosticUpdateSource source, TestWorkspace workspace, ProjectId projectId, DocumentId documentId, object id)
+        private static DiagnosticData RaiseDiagnosticEvent(ManualResetEvent set, TestDiagnosticUpdateSource source, TestWorkspace workspace, ProjectId? projectId, DocumentId? documentId, object id)
         {
             set.Reset();
 
@@ -177,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return diagnostic;
         }
 
-        private static DiagnosticData CreateDiagnosticData(ProjectId projectId, DocumentId documentId)
+        private static DiagnosticData CreateDiagnosticData(ProjectId? projectId, DocumentId? documentId)
         {
             return new DiagnosticData(
                 id: "test1",
@@ -188,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 isEnabledByDefault: false,
                 warningLevel: 1,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: ImmutableDictionary<string, string?>.Empty,
                 projectId,
                 location: new DiagnosticDataLocation(new("originalFile1", new(10, 10), new(20, 20)), documentId));
         }
@@ -198,17 +196,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             private readonly bool _support;
             private readonly ImmutableArray<DiagnosticData> _diagnosticData;
 
-            public TestDiagnosticUpdateSource(bool support, DiagnosticData[] diagnosticData)
+            public TestDiagnosticUpdateSource(bool support, DiagnosticData[]? diagnosticData)
             {
                 _support = support;
                 _diagnosticData = (diagnosticData ?? Array.Empty<DiagnosticData>()).ToImmutableArray();
             }
 
             public bool SupportGetDiagnostics { get { return _support; } }
-            public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
-            public event EventHandler DiagnosticsCleared;
+            public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
+            public event EventHandler? DiagnosticsCleared;
 
-            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
                 => new(_support ? _diagnosticData : ImmutableArray<DiagnosticData>.Empty);
 
             public void RaiseDiagnosticsUpdatedEvent(DiagnosticsUpdatedArgs args)

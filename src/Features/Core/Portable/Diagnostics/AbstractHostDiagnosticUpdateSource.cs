@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool SupportGetDiagnostics => false;
 
-        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             => new(ImmutableArray<DiagnosticData>.Empty);
 
         public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
