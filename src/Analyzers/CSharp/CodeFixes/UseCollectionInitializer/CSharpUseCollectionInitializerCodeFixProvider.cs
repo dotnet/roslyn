@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionInitializer), Shared]
-internal partial class CSharpUseCollectionInitializerCodeFixProvider :
+internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider :
     AbstractUseCollectionInitializerCodeFixProvider<
         SyntaxKind,
         ExpressionSyntax,
