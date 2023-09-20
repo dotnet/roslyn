@@ -40,6 +40,8 @@ public sealed class CodeAnalysisProgress
     /// commonly presented with a progress bar.  An optional <paramref name="description"/> can also be provided to
     /// update the UI accordingly (see <see cref="Description"/>).
     /// </summary>
+    /// <param name="count">The number of incomplete items left to perform.</param>
+    /// <param name="description">Optional description to update the UI to.</param>
     /// <example>
     /// progress.Report(CodeAnalysisProgress.AddIncompleteItems(20));
     /// </example>
@@ -59,6 +61,9 @@ public sealed class CodeAnalysisProgress
     /// Multiple items of work can be transitioned to be complete by passing an explicit value to <paramref
     /// name="count"/>.
     /// </remarks>
+    /// <param name="count">The number of items that were completed.  Defaults to <c>1</c> for the trivial case where
+    /// only a single item has been completed.  Must be greater than or equal to 1.</param>
+    /// <param name="description">Optional description to update the UI to.</param>
     /// <example>
     /// progress.Report(CodeAnalysisProgress.CompleteItem());
     /// </example>
@@ -73,6 +78,11 @@ public sealed class CodeAnalysisProgress
     /// Indicates that all progress should be reset for the current operation. This is normally done when the code
     /// action is performing some new phase and wishes for the UI progress bar to restart from the beginning.
     /// </summary>
+    /// <remarks>
+    /// Currently internal as only roslyn needs this in the impl of our suggested action (we use a progress bar to
+    /// compute the work, then reset the progress to apply all the changes).  Could be exposed later to 3rd party code
+    /// if a demonstrable need is presented.
+    /// </remarks>
     internal static CodeAnalysisProgress Clear()
         => new() { ClearValue = true };
 }
