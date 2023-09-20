@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
@@ -19,7 +20,5 @@ internal sealed class CSharpUseNamedMemberInitializerAnalyzer :
         CSharpUseNamedMemberInitializerAnalyzer>
 {
     protected override bool IsInitializerOfLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement, BaseObjectCreationExpressionSyntax rootExpression, out VariableDeclaratorSyntax variableDeclarator)
-    {
-        throw new System.NotImplementedException();
-    }
+        => CSharpObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, out variableDeclarator);
 }

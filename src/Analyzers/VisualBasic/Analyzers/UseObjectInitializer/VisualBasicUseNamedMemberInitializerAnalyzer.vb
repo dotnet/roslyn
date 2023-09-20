@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
     Friend NotInheritable Class VisualBasicUseNamedMemberInitializerAnalyzer
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             VisualBasicUseNamedMemberInitializerAnalyzer)
 
         Protected Overrides Function IsInitializerOfLocalDeclarationStatement(localDeclarationStatement As LocalDeclarationStatementSyntax, rootExpression As ObjectCreationExpressionSyntax, ByRef variableDeclarator As VariableDeclaratorSyntax) As Boolean
-            Throw New NotImplementedException()
+            Return VisualBasicObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, variableDeclarator)
         End Function
     End Class
 End Namespace

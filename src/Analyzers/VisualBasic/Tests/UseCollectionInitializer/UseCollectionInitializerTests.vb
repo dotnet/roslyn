@@ -38,7 +38,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70015")>
         Public Async Function TestNotParenthesized() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
-
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicUseObjectInitializerDiagnosticAnalyzer
         Inherits AbstractUseObjectInitializerDiagnosticAnalyzer(Of
@@ -39,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         End Function
 
         Protected Overrides Function GetAnalyzer() As VisualBasicUseNamedMemberInitializerAnalyzer
-            Throw New NotImplementedException()
+            Return VisualBasicUseNamedMemberInitializerAnalyzer.Allocate()
         End Function
     End Class
 End Namespace
