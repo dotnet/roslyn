@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly ProjectDependencyGraph Empty = new(
             ImmutableHashSet<ProjectId>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            null,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableArray<ProjectId>.Empty,
