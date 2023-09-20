@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 
         protected static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<CodeActionOperation>.GetInstance();
+            using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(operations.Length, out var result);
             var foundApplyChanges = false;
             foreach (var operation in operations)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
                 result.Add(operation);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
     }
 }
