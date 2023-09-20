@@ -8275,7 +8275,7 @@ class Base
 ";
             var comp = CreateCompilation(src);
 
-            // Even though specification for the feature says that enclosing type type parameter should be found before 
+            // Even though specification for the feature says that enclosing type's type parameter should be found before 
             // primary constructor parameter, even in field initializers and base clause arguments, we already
             // have pre-existing behavior with records that is not consistent with that. Specifically, primary constructor
             // parameters come first in field initializers and base clause arguments for records.
