@@ -404,14 +404,22 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() : new[] { typeof(NoSyncWorkspaceConfigurationService) });
 
-            var projectId = ProjectId.CreateNewId();
-            var analyzerReference = new TestGeneratorReference(generator);
-            var project = localWorkspace.CurrentSolution
-                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
-                .GetRequiredProject(projectId)
-                .AddAnalyzerReference(analyzerReference);
+            DocumentId tempDocId;
 
-            Assert.True(localWorkspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+            // Keep this all in a nested scope so we don't accidentally access this data inside the loop below.  We only
+            // want to access the true workspace solution (which will be a fork of the solution we're producing here).
+            {
+                var projectId = ProjectId.CreateNewId();
+                var analyzerReference = new TestGeneratorReference(generator);
+                var project = localWorkspace.CurrentSolution
+                    .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+                    .GetRequiredProject(projectId)
+                    .AddAnalyzerReference(analyzerReference);
+                var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+                tempDocId = tempDoc.Id;
+
+                Assert.True(localWorkspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+            }
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
             var remoteWorkspace = client.GetRemoteWorkspace();
@@ -421,8 +429,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 sourceTexts = values[i];
 
                 // make a change to the project to force a change between the local and oop solutions.
-                var currentProject = project.AddDocument("X.cs", SourceText.From("// " + i)).Project;
-                Assert.True(localWorkspace.SetCurrentSolution(_ => currentProject.Solution, WorkspaceChangeKind.SolutionChanged));
+
+                Assert.True(localWorkspace.SetCurrentSolution(s => s.WithDocumentText(tempDocId, SourceText.From("// " + i)), WorkspaceChangeKind.SolutionChanged));
                 await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
 
                 var localProject = localWorkspace.CurrentSolution.Projects.Single();

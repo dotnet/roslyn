@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected abstract TAnalyzer GetAnalyzer();
 
-        protected abstract Task<TStatementSyntax> GetNewStatementAsync(
-            Document document, CodeActionOptionsProvider fallbackOptions, TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
+        protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
+            Document document, CodeActionOptionsProvider fallbackOptions, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
 
         protected sealed override async Task FixAsync(
             Document document,
@@ -87,13 +87,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (matches.IsDefault)
                 return;
 
-            var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-            Contract.ThrowIfNull(statement);
+            var (oldNode, newNode) = await GetReplacementNodesAsync(
+                document, fallbackOptions, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
 
-            var newStatement = await GetNewStatementAsync(
-                document, fallbackOptions, statement, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
-
-            editor.ReplaceNode(statement, newStatement);
+            editor.ReplaceNode(oldNode, newNode);
             foreach (var match in matches)
                 editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
         }

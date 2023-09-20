@@ -91,15 +91,28 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax rootExpression,
+            bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
         {
             var statement = rootExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
-            if (statement is null)
-                return null;
+            if (statement != null)
+            {
+                var result =
+                    TryInitializeVariableDeclarationCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken) ??
+                    TryInitializeAssignmentCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken);
+                if (result != null)
+                    return result;
+            }
 
-            return
-                TryInitializeVariableDeclarationCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken) ??
-                TryInitializeAssignmentCase(semanticModel, syntaxFacts, rootExpression, statement, cancellationToken);
+            // Even if the above cases didn't work, we always support converting a `new List<int>()` collection over to
+            // a collection expression.  We just won't analyze later statements.
+            if (analyzeForCollectionExpression)
+            {
+                return new UpdateExpressionState<TExpressionSyntax, TStatementSyntax>(
+                    semanticModel, syntaxFacts, rootExpression, valuePattern: default, initializedSymbol: null);
+            }
+
+            return null;
         }
 
         private UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeVariableDeclarationCase(

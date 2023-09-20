@@ -143,14 +143,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
                 return;
 
-            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
-            if (containingStatement == null)
-                return;
-
             // Analyze the surrounding statements. First, try a broader set of statements if the language supports
             // collection expressions. 
             var syntaxFacts = GetSyntaxFacts();
             using var analyzer = GetAnalyzer();
+
+            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
 
             var collectionExpressionMatches = GetCollectionExpressionMatches();
             var collectionInitializerMatches = GetCollectionInitializerMatches();
@@ -167,7 +165,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     ? collectionExpressionMatches.Value
                     : collectionInitializerMatches.Value;
 
-            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(static m => m.Statement));
+            var nodes = containingStatement is null
+                ? ImmutableArray<SyntaxNode>.Empty
+                : ImmutableArray.Create<SyntaxNode>(containingStatement);
+            nodes = nodes.AddRange(matches.Select(static m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
                 return;
 
@@ -188,6 +189,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
             {
+                if (containingStatement is null)
+                    return null;
+
                 if (!preferInitializerOption.Value)
                     return null;
 

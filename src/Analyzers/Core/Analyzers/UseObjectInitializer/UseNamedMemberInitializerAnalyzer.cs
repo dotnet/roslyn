@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             TObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
-            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
             if (state is null)
                 return default;
 
@@ -99,18 +98,21 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 this.SyntaxFacts.GetPartsOfAssignmentStatement(
                     statement, out var left, out var right);
 
-                var rightExpression = right as TExpressionSyntax;
+                var rightExpression = (TExpressionSyntax)right;
                 var leftMemberAccess = left as TMemberAccessExpressionSyntax;
 
                 if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
                     break;
 
-                var expression = (TExpressionSyntax)this.SyntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
+                var expression = (TExpressionSyntax?)this.SyntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
+                if (expression is null)
+                    break;
+
                 if (!this.State.ValuePatternMatches(expression))
                     break;
 
                 var leftSymbol = this.SemanticModel.GetSymbolInfo(leftMemberAccess, cancellationToken).GetAnySymbol();
-                if (leftSymbol?.IsStatic == true)
+                if (leftSymbol?.IsStatic is true)
                 {
                     // Static members cannot be initialized through an object initializer.
                     break;
@@ -170,15 +172,17 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         private static bool IsExplicitlyImplemented(
             ITypeSymbol classOrStructType,
-            ISymbol member,
-            out ISymbol typeMember)
+            ISymbol? member,
+            [NotNullWhen(true)] out ISymbol? typeMember)
         {
             if (member != null && member.ContainingType.IsInterfaceType())
             {
                 typeMember = classOrStructType?.FindImplementationForInterfaceMember(member);
-                return typeMember is IPropertySymbol property &&
-                    property.ExplicitInterfaceImplementations.Length > 0 &&
-                    property.DeclaredAccessibility == Accessibility.Private;
+                return typeMember is IPropertySymbol
+                {
+                    DeclaredAccessibility: Accessibility.Private,
+                    ExplicitInterfaceImplementations.Length: > 0,
+                };
             }
 
             typeMember = member;
@@ -191,12 +195,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             {
                 foreach (var child in node.ChildNodesAndTokens())
                 {
-                    if (child.IsNode)
+                    if (child.IsNode &&
+                        ImplicitMemberAccessWouldBeAffected(child.AsNode()!))
                     {
-                        if (ImplicitMemberAccessWouldBeAffected(child.AsNode()))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
 

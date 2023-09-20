@@ -15,7 +15,9 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionInitializer), Shared]
-internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider :
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
     AbstractUseCollectionInitializerCodeFixProvider<
         SyntaxKind,
         ExpressionSyntax,
@@ -28,19 +30,12 @@ internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider :
         VariableDeclaratorSyntax,
         CSharpUseCollectionInitializerAnalyzer>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUseCollectionInitializerCodeFixProvider()
-    {
-    }
-
     protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
         => CSharpUseCollectionInitializerAnalyzer.Allocate();
 
-    protected override async Task<StatementSyntax> GetNewStatementAsync(
+    protected override async Task<(SyntaxNode, SyntaxNode)> GetReplacementNodesAsync(
         Document document,
         CodeActionOptionsProvider fallbackOptions,
-        StatementSyntax statement,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
         ImmutableArray<Match<StatementSyntax>> matches,
@@ -48,7 +43,7 @@ internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider :
     {
         var newObjectCreation = await GetNewObjectCreationAsync(
             document, fallbackOptions, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
-        return statement.ReplaceNode(objectCreation, newObjectCreation);
+        return (objectCreation, newObjectCreation);
     }
 
     private static async Task<ExpressionSyntax> GetNewObjectCreationAsync(

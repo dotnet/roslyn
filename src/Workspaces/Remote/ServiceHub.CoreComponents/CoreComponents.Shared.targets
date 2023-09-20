@@ -149,7 +149,7 @@
         two would eventually be in sync. But we'd need to include those binaries during the out-of-sync period.
         Note, for the same reasone, we can't safely exclude shared dependencies from ServiceHub host folder.
       -->
-      <_PublishRuntimeLibraries>true</_PublishRuntimeLibraries>
+      <_PublishRuntimeLibraries>false</_PublishRuntimeLibraries>
     </PropertyGroup>
     <ItemGroup>
       <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
@@ -158,8 +158,8 @@
 
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
       <_ExcludedFiles Include="$(PublishDir)runtimes\**\*.*" />
-
-      <_ExcludedFiles Condition="'$(_PublishRuntimeLibraries)' == 'false'" Include="@(_RuntimeLibrariesInPublishDir)" />
+      <!-- Always include BCL in the vsix for CI build to avoid breakage. Since VS used on CI machines usually lags behind our insertion target -->
+      <_ExcludedFiles Condition="'$(_PublishRuntimeLibraries)' == 'false' and '$(ContinuousIntegrationBuild)' != 'true'" Include="@(_RuntimeLibrariesInPublishDir)" />
     </ItemGroup>
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
