@@ -2852,6 +2852,138 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_Spread_09()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static void Main()
+                    {
+                        dynamic[] x = new[] { "one", null };
+                        string[] y = [..x];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                references: new[] { CSharpRef },
+                expectedOutput: "(System.String[]) [one, null], ");
+        }
+
+        [Fact]
+        public void TypeInference_Spread_10()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static T[] F<T>(T[] arg) => arg;
+                    static void Main()
+                    {
+                        dynamic[] x = new[] { "one", null };
+                        var y = F([..x]);
+                        var z = F([..x, "three"]);
+                        y.Report(includeType: true);
+                        Console.Write("{0}, ", y[0].Length);
+                        z.Report(includeType: true);
+                        Console.Write("{0}, ", z[2].Length);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                references: new[] { CSharpRef },
+                expectedOutput: "(System.Object[]) [one, null], 3, (System.Object[]) [one, null, three], 5, ");
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void Spread_RefEnumerable(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T>
+                {
+                    private readonly T[] _items;
+                    public MyCollection(T[] items) { _items = items; }
+                    public MyEnumerator<T> GetEnumerator() => new(_items);
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new MyCollection<T>(items.ToArray());
+                }
+                public struct MyEnumerator<T>
+                {
+                    private readonly T[] _items;
+                    private int _index;
+                    public MyEnumerator(T[] items)
+                    {
+                        _items = items;
+                        _index = -1;
+                    }
+                    public bool MoveNext()
+                    {
+                        if (_index < _items.Length) _index++;
+                        return _index < _items.Length;
+                    }
+                    public ref T Current => ref _items[_index];
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [1, 2, 3];
+                        MyCollection<object> y = [..x, 4];
+                        foreach (int i in y) Console.Write("{0}, ", i);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                sourceB1,
+                references: new[] { refA },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: IncludeExpectedOutput("1, 2, 3, 4, "));
+
+            string sourceB2 = """
+                using System;
+                class Program
+                {
+                    static MyCollection<T> F<T>(MyCollection<T> c)
+                    {
+                        return c;
+                    }
+                    static void Main()
+                    {
+                        MyCollection<int> x = F([1, 2, 3]);
+                        foreach (int i in x) Console.Write("{0}, ", i);
+                        MyCollection<int> y = F([..x]);
+                        foreach (int i in y) Console.Write("{0}, ", i);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                sourceB2,
+                references: new[] { refA },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: IncludeExpectedOutput("1, 2, 3, 1, 2, 3, "));
+        }
+
+        [Fact]
         public void TypeInference_NullableValueType()
         {
             string source = """
