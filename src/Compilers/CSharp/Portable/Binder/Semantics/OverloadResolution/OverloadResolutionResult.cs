@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
-            Debug.Assert(result.Result.BadArguments.TrueBits().Count() == 1);
+            Debug.Assert(result.Result.BadArgumentsOpt.TrueBits().Count() == 1);
             Debug.Assert(arguments.Names[result.Result.FirstBadArgument].HasValue);
             (string name, Location location) = arguments.Names[result.Result.FirstBadArgument].GetValueOrDefault();
             Debug.Assert(name != null);
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadArgTypesForCollectionAdd, location, symbols, method);
             }
 
-            foreach (var arg in badArg.Result.BadArguments.TrueBits())
+            foreach (var arg in badArg.Result.BadArgumentsOpt.TrueBits())
             {
                 ReportBadArgumentError(diagnostics, binder, name, arguments, symbols, badArg, method, arg);
             }

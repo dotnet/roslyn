@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For example, if a method overload has 5 parameters and the second parameter is the only bad parameter, then this
         /// BitVector could end up with Capacity being 2 where BadArguments[0] is false and BadArguments[1] is true.
         /// </remarks>
-        public readonly BitVector BadArguments;
+        public readonly BitVector BadArgumentsOpt;
         public readonly ImmutableArray<int> ArgsToParamsOpt;
         public readonly ImmutableArray<TypeParameterDiagnosticInfo> ConstraintFailureDiagnostics;
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MemberAnalysisResult(
             MemberResolutionKind kind,
-            BitVector badArguments = default,
+            BitVector badArgumentsOpt = default,
             ImmutableArray<int> argsToParamsOpt = default,
             ImmutableArray<Conversion> conversionsOpt = default,
             int missingParameter = -1,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt = default)
         {
             this.Kind = kind;
-            this.BadArguments = badArguments;
+            this.BadArgumentsOpt = badArgumentsOpt;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.ConversionsOpt = conversionsOpt;
             this.BadParameter = missingParameter;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ArgsToParamsOpt[arg];
         }
 
-        public int FirstBadArgument => BadArguments.TrueBits().First();
+        public int FirstBadArgument => BadArgumentsOpt.TrueBits().First();
 
         // A method may be applicable, but worse than another method.
         public bool IsApplicable
@@ -182,35 +182,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NameUsedForPositional,
-                badArguments: CreateBadArgumentsWithPosition(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         public static MemberAnalysisResult BadNonTrailingNamedArgument(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.BadNonTrailingNamedArgument,
-                badArguments: CreateBadArgumentsWithPosition(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         public static MemberAnalysisResult NoCorrespondingParameter(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NoCorrespondingParameter,
-                badArguments: CreateBadArgumentsWithPosition(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         public static MemberAnalysisResult NoCorrespondingNamedParameter(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NoCorrespondingNamedParameter,
-                badArguments: CreateBadArgumentsWithPosition(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         public static MemberAnalysisResult DuplicateNamedArgument(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.DuplicateNamedArgument,
-                badArguments: CreateBadArgumentsWithPosition(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         internal static BitVector CreateBadArgumentsWithPosition(int argumentPosition)
