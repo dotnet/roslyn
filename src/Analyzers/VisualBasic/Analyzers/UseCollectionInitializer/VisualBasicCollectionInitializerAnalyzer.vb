@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
-
     Friend NotInheritable Class VisualBasicCollectionInitializerAnalyzer
         Inherits AbstractUseCollectionInitializerAnalyzer(Of
             ExpressionSyntax,
