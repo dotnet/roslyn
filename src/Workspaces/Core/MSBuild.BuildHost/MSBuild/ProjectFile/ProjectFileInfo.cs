@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 
@@ -14,34 +15,41 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// built with MSBuild. If the project is multi-targeting, this represents
     /// the information from a single target framework.
     /// </summary>
+    [DataContract]
     internal sealed class ProjectFileInfo
     {
+        [DataMember(Order = 0)]
         public bool IsEmpty { get; }
 
         /// <summary>
         /// The language of this project.
         /// </summary>
+        [DataMember(Order = 1)]
         public string Language { get; }
 
         /// <summary>
         /// The path to the project file for this project.
         /// </summary>
+        [DataMember(Order = 2)]
         public string? FilePath { get; }
-
-        /// <summary>
-        /// The path to the intermediate output file this project generates.
-        /// </summary>
-        public string? IntermediateOutputFilePath { get; }
 
         /// <summary>
         /// The path to the output file this project generates.
         /// </summary>
+        [DataMember(Order = 3)]
         public string? OutputFilePath { get; }
 
         /// <summary>
         /// The path to the reference assembly output file this project generates.
         /// </summary>
+        [DataMember(Order = 4)]
         public string? OutputRefFilePath { get; }
+
+        /// <summary>
+        /// The path to the intermediate output file this project generates.
+        /// </summary>
+        [DataMember(Order = 5)]
+        public string? IntermediateOutputFilePath { get; }
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -54,72 +62,77 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// In the future, we might consider officially exposing "default namespace" for VB project 
         /// (e.g. through a "defaultnamespace" msbuild property)
         /// </remarks>
+        [DataMember(Order = 6)]
         public string? DefaultNamespace { get; }
 
         /// <summary>
         /// The target framework of this project.
         /// This takes the form of the 'short name' form used by NuGet (e.g. net46, netcoreapp2.0, etc.)
         /// </summary>
+        [DataMember(Order = 7)]
         public string? TargetFramework { get; }
 
         /// <summary>
         /// The target framework identifier of this project.
         /// Used to determine if a project is targeting .net core.
         /// </summary>
+        [DataMember(Order = 8)]
         public string? TargetFrameworkIdentifier { get; }
 
         /// <summary>
         /// The command line args used to compile the project.
         /// </summary>
+        [DataMember(Order = 9)]
         public ImmutableArray<string> CommandLineArgs { get; }
 
         /// <summary>
         /// The source documents.
         /// </summary>
+        [DataMember(Order = 10)]
         public ImmutableArray<DocumentFileInfo> Documents { get; }
 
         /// <summary>
         /// The additional documents.
         /// </summary>
+        [DataMember(Order = 11)]
         public ImmutableArray<DocumentFileInfo> AdditionalDocuments { get; }
 
         /// <summary>
         /// The analyzer config documents.
         /// </summary>
+        [DataMember(Order = 12)]
         public ImmutableArray<DocumentFileInfo> AnalyzerConfigDocuments { get; }
 
         /// <summary>
         /// References to other projects.
         /// </summary>
+        [DataMember(Order = 13)]
         public ImmutableArray<ProjectFileReference> ProjectReferences { get; }
 
         /// <summary>
         /// The msbuild project capabilities.
         /// </summary>
+        [DataMember(Order = 14)]
         public ImmutableArray<string> ProjectCapabilities { get; }
 
         /// <summary>
         /// The paths to content files included in the project.
         /// </summary>
+        [DataMember(Order = 15)]
         public ImmutableArray<string> ContentFilePaths { get; }
 
         /// <summary>
         /// Whether or not we believe this project is an SDK style project.
         /// </summary>
+        [DataMember(Order = 16)]
         public bool IsSdkStyle { get; }
-
-        /// <summary>
-        /// The error message produced when a failure occurred attempting to get the info. 
-        /// If a failure occurred some or all of the information may be inaccurate or incomplete.
-        /// </summary>
-        public DiagnosticLog Log { get; }
 
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
                 ? FilePath ?? string.Empty
                 : $"{FilePath} ({TargetFramework})";
 
-        private ProjectFileInfo(
+        public ProjectFileInfo(
             bool isEmpty,
             string language,
             string? filePath,
@@ -136,8 +149,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             ImmutableArray<string> projectCapabilities,
             ImmutableArray<string> contentFilePaths,
-            bool isSdkStyle,
-            DiagnosticLog log)
+            bool isSdkStyle)
         {
             RoslynDebug.Assert(filePath != null);
 
@@ -158,7 +170,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.ProjectCapabilities = projectCapabilities;
             this.ContentFilePaths = contentFilePaths;
             this.IsSdkStyle = isSdkStyle;
-            this.Log = log;
         }
 
         public static ProjectFileInfo Create(
@@ -177,8 +188,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             ImmutableArray<string> projectCapabilities,
             ImmutableArray<string> contentFilePaths,
-            bool isSdkStyle,
-            DiagnosticLog log)
+            bool isSdkStyle)
             => new(
                 isEmpty: false,
                 language,
@@ -196,10 +206,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences,
                 projectCapabilities,
                 contentFilePaths,
-                isSdkStyle,
-                log);
+                isSdkStyle);
 
-        public static ProjectFileInfo CreateEmpty(string language, string? filePath, DiagnosticLog log)
+        public static ProjectFileInfo CreateEmpty(string language, string? filePath)
             => new(
                 isEmpty: true,
                 language,
@@ -217,7 +226,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences: ImmutableArray<ProjectFileReference>.Empty,
                 projectCapabilities: ImmutableArray<string>.Empty,
                 contentFilePaths: ImmutableArray<string>.Empty,
-                isSdkStyle: false,
-                log);
+                isSdkStyle: false);
     }
 }

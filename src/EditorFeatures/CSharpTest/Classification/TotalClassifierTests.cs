@@ -2640,6 +2640,118 @@ Operators.Equals,
 Keyword("async"));
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember1(TestHost testHost)
+        {
+            await TestAsync("""
+                class C
+                {
+                    [|partial|]
+                }
+                """,
+                testHost,
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember2(TestHost testHost)
+        {
+            await TestAsync("""
+                class C
+                {
+                    [|public partial|]
+                }
+                """,
+                testHost,
+                Keyword("public"),
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember1_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                class C
+                {
+                    [|partial|]
+                }
+                """,
+                testHost,
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember2_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                class C
+                {
+                    [|public partial|]
+                }
+                """,
+                testHost,
+                Keyword("public"),
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial1(TestHost testHost)
+        {
+            await TestAsync("""
+                partial
+                """,
+                testHost,
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial2(TestHost testHost)
+        {
+            await TestAsync("""
+                public partial
+                """,
+                testHost,
+                Keyword("public"),
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial1_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                [|partial|]
+                """,
+                testHost,
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial2_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                [|public partial|]
+                """,
+                testHost,
+                Keyword("public"),
+                Class("partial"));
+        }
+
         /// <seealso cref="SemanticClassifierTests.LocalFunctionUse"/>
         /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
         [Theory, CombinatorialData]

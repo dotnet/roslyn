@@ -14,65 +14,78 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.UseObjectInitializer
-{
-    internal abstract class AbstractUseObjectInitializerCodeFixProvider<
-        TSyntaxKind,
+namespace Microsoft.CodeAnalysis.UseObjectInitializer;
+
+internal abstract class AbstractUseObjectInitializerCodeFixProvider<
+    TSyntaxKind,
+    TExpressionSyntax,
+    TStatementSyntax,
+    TObjectCreationExpressionSyntax,
+    TMemberAccessExpressionSyntax,
+    TAssignmentStatementSyntax,
+    TLocalDeclarationStatementSyntax,
+    TVariableDeclaratorSyntax,
+    TAnalyzer>
+    : ForkingSyntaxEditorBasedCodeFixProvider<TObjectCreationExpressionSyntax>
+    where TSyntaxKind : struct
+    where TExpressionSyntax : SyntaxNode
+    where TStatementSyntax : SyntaxNode
+    where TObjectCreationExpressionSyntax : TExpressionSyntax
+    where TMemberAccessExpressionSyntax : TExpressionSyntax
+    where TAssignmentStatementSyntax : TStatementSyntax
+    where TLocalDeclarationStatementSyntax : TStatementSyntax
+    where TVariableDeclaratorSyntax : SyntaxNode
+    where TAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
-        TVariableDeclaratorSyntax>
-        : ForkingSyntaxEditorBasedCodeFixProvider<TObjectCreationExpressionSyntax>
-        where TSyntaxKind : struct
-        where TExpressionSyntax : SyntaxNode
-        where TStatementSyntax : SyntaxNode
-        where TObjectCreationExpressionSyntax : TExpressionSyntax
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TAssignmentStatementSyntax : TStatementSyntax
-        where TVariableDeclaratorSyntax : SyntaxNode
+        TLocalDeclarationStatementSyntax,
+        TVariableDeclaratorSyntax,
+        TAnalyzer>, new()
+{
+    protected AbstractUseObjectInitializerCodeFixProvider()
+        : base(AnalyzersResources.Object_initialization_can_be_simplified,
+               nameof(AnalyzersResources.Object_initialization_can_be_simplified))
     {
-        protected AbstractUseObjectInitializerCodeFixProvider()
-            : base(AnalyzersResources.Object_initialization_can_be_simplified,
-                   nameof(AnalyzersResources.Object_initialization_can_be_simplified))
-        {
-        }
+    }
 
-        protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
+    protected abstract TAnalyzer GetAnalyzer();
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
+    protected abstract TStatementSyntax GetNewStatement(
+        TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
+        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
-        protected override async Task FixAsync(
-            Document document,
-            SyntaxEditor editor,
-            CodeActionOptionsProvider fallbackOptions,
-            TObjectCreationExpressionSyntax objectCreation,
-            ImmutableDictionary<string, string?> properties,
-            CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
 
-            using var analyzer = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
+    protected override async Task FixAsync(
+        Document document,
+        SyntaxEditor editor,
+        CodeActionOptionsProvider fallbackOptions,
+        TObjectCreationExpressionSyntax objectCreation,
+        ImmutableDictionary<string, string?> properties,
+        CancellationToken cancellationToken)
+    {
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, cancellationToken);
-            if (matches.IsDefaultOrEmpty)
-                return;
+        using var analyzer = GetAnalyzer();
 
-            var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-            Contract.ThrowIfNull(statement);
+        var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, cancellationToken);
+        if (matches.IsDefaultOrEmpty)
+            return;
 
-            var newStatement = GetNewStatement(statement, objectCreation, matches)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+        var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+        Contract.ThrowIfNull(statement);
 
-            editor.ReplaceNode(statement, newStatement);
-            foreach (var match in matches)
-                editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-        }
+        var newStatement = GetNewStatement(statement, objectCreation, matches)
+            .WithAdditionalAnnotations(Formatter.Annotation);
+
+        editor.ReplaceNode(statement, newStatement);
+        foreach (var match in matches)
+            editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 }

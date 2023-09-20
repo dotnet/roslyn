@@ -4123,9 +4123,6 @@ unsafe class C
                 // (9,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('var')
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
-                // (9,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'var*[]'. An explicit conversion exists (are you missing a cast?)
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "var*[] x4").WithArguments("dynamic", "var*[]").WithLocation(9, 10),
                 // (9,21): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y4").WithArguments("dynamic", "int").WithLocation(9, 21)
