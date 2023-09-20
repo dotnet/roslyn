@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -17,12 +18,21 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
     TObjectCreationExpressionSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
-    TMatch>
+    TMatch,
+    TAnalyzer> : IDisposable
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TObjectCreationExpressionSyntax : TExpressionSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TAnalyzer : AbstractObjectCreationExpressionAnalyzer<
+        TExpressionSyntax,
+        TStatementSyntax,
+        TObjectCreationExpressionSyntax,
+        TLocalDeclarationStatementSyntax,
+        TVariableDeclaratorSyntax,
+        TMatch,
+        TAnalyzer>, new()
 {
     protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax> State;
 
@@ -36,6 +46,17 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
     protected abstract bool TryAddMatches(ArrayBuilder<TMatch> matches, CancellationToken cancellationToken);
     protected abstract bool IsInitializerOfLocalDeclarationStatement(
         TLocalDeclarationStatementSyntax localDeclarationStatement, TObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out TVariableDeclaratorSyntax? variableDeclarator);
+
+    private static readonly ObjectPool<TAnalyzer> s_pool = SharedPools.Default<TAnalyzer>();
+
+    public static TAnalyzer Allocate()
+        => s_pool.Allocate();
+
+    public void Dispose()
+    {
+        this.Clear();
+        s_pool.Free((TAnalyzer)this);
+    }
 
     public void Initialize(
         UpdateExpressionState<TExpressionSyntax, TStatementSyntax> state,

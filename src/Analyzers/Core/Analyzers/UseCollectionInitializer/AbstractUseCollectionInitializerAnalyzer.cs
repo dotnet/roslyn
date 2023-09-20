@@ -28,7 +28,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        Match<TStatementSyntax>>, IDisposable
+        Match<TStatementSyntax>, TAnalyzer>
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -48,21 +48,10 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    private static readonly ObjectPool<TAnalyzer> s_pool = SharedPools.Default<TAnalyzer>();
-
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
     protected abstract bool HasExistingInvalidInitializerForCollection(TObjectCreationExpressionSyntax objectCreation);
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
-
-    public static TAnalyzer Allocate()
-        => s_pool.Allocate();
-
-    public void Dispose()
-    {
-        this.Clear();
-        s_pool.Free((TAnalyzer)this);
-    }
 
     public ImmutableArray<Match<TStatementSyntax>> Analyze(
         SemanticModel semanticModel,

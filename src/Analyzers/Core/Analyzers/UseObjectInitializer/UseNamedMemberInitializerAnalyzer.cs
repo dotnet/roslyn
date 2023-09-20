@@ -28,7 +28,8 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>, IDisposable
+        Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>,
+        TAnalyzer>, IDisposable
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -46,18 +47,6 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    private static readonly ObjectPool<TAnalyzer> s_pool
-        = SharedPools.Default<TAnalyzer>();
-
-    public static TAnalyzer Allocate()
-        => s_pool.Allocate();
-
-    public void Dispose()
-    {
-        this.Clear();
-        s_pool.Free((TAnalyzer)this);
-    }
-
     public ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
         SemanticModel semanticModel,
         ISyntaxFacts syntaxFacts,
