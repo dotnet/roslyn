@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs, DiagnosticKind.CompilerSyntax);
 
-            Assert.Equal(2, spans.Count());
+            Assert.Equal(2, spans.Count);
             var first = spans.First();
             var second = spans.Last();
 
