@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Raise this when new diagnostics are found
         /// </summary>
-        event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated;
 
         /// <summary>
         /// Raise this when all diagnostics reported from this update source has cleared

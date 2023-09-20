@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
@@ -65,7 +66,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                     reference.GetAnalyzers(LanguageNames.VisualBasic)
 
                     RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticRemovedTest
+                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf EventHandlers.DiagnosticRemovedTest
                 End Using
 
                 IO.File.Delete(file)
@@ -79,16 +80,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Me.File = file
             End Sub
 
-            Public Sub DiagnosticAddedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Dim diagnostics = e.Diagnostics
+            Public Sub DiagnosticAddedTest(o As Object, e As ImmutableArray(Of DiagnosticsUpdatedArgs))
+                Dim diagnostics = e.Single().Diagnostics
                 Assert.Equal(1, diagnostics.Length)
                 Dim diagnostic As DiagnosticData = diagnostics.First()
                 Assert.Equal("BC42378", diagnostic.Id)
                 Assert.Contains(File, diagnostic.Message, StringComparison.Ordinal)
             End Sub
 
-            Public Sub DiagnosticRemovedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Dim diagnostics = e.Diagnostics
+            Public Shared Sub DiagnosticRemovedTest(o As Object, e As ImmutableArray(Of DiagnosticsUpdatedArgs))
+                Dim diagnostics = e.Single().Diagnostics
                 Assert.Equal(0, diagnostics.Length)
             End Sub
         End Class

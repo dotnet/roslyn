@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
@@ -374,10 +375,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 // First clear all special host diagostics for all involved projects.
                 var projects = project != null ? otherProjectsForMultiTfmProject.Add(project) : solution.Projects;
+                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
                 foreach (var project in projects)
                 {
-                    _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(project.Id, key: this);
+                    _hostDiagnosticUpdateSource.ClearAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), project.Id, key: this);
                 }
+
+                _hostDiagnosticUpdateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
 
                 // Now compute the new host diagostics for all projects with disabled analysis.
                 var projectsWithDisabledAnalysis = isAnalysisDisabled
@@ -403,8 +407,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     {
                         var project = projectsWithDisabledAnalysis[index];
                         var diagnostics = tasks[index].Result;
-                        _hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(project.Id, key: this, diagnostics);
+                        _hostDiagnosticUpdateSource.UpdateAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), project.Id, key: this, diagnostics);
                     }
+
+                    _hostDiagnosticUpdateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
                 }
             }
         }

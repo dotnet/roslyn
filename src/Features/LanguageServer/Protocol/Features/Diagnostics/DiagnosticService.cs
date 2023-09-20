@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(eventListeners, WellKnownEventListeners.DiagnosticService);
         }
 
-        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
+        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated
         {
             add
             {
@@ -64,34 +65,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
+        private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
         {
-            _eventListenerTracker.EnsureEventListener(args.Workspace, this);
+            Workspace? previousWorkspace = null;
+            foreach (var args in argsCollection)
+            {
+                if (args.Workspace != previousWorkspace)
+                {
+                    _eventListenerTracker.EnsureEventListener(args.Workspace, this);
+                    previousWorkspace = args.Workspace;
+                }
+            }
 
-            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            var ev = _eventMap.GetEventHandlers<EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>>(DiagnosticsUpdatedEventName);
 
             _eventQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
             {
-                if (!UpdateDataMap(source, args))
+                var updatedArgsCollection = UpdateDataMap(source, argsCollection);
+                if (updatedArgsCollection.IsEmpty)
                 {
                     // there is no change, nothing to raise events for.
                     return;
                 }
 
-                ev.RaiseEvent(static (handler, arg) => handler(arg.source, arg.args), (source, args));
+                ev.RaiseEvent(static (handler, arg) => handler(arg.source, arg.updatedArgsCollection), (source, updatedArgsCollection));
             }, CancellationToken.None);
         }
 
         private void RaiseDiagnosticsCleared(IDiagnosticUpdateSource source)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            var ev = _eventMap.GetEventHandlers<EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>>(DiagnosticsUpdatedEventName);
 
             _eventQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
             {
-                using var pooledObject = SharedPools.Default<List<DiagnosticsUpdatedArgs>>().GetPooledObject();
+                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
 
-                var removed = pooledObject.Object;
-                if (!ClearDiagnosticsReportedBySource(source, removed))
+                if (!ClearDiagnosticsReportedBySource(source, ref argsBuilder.AsRef()))
                 {
                     // there is no change, nothing to raise events for.
                     return;
@@ -99,66 +108,68 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // don't create event listener if it haven't created yet. if there is a diagnostic to remove
                 // listener should have already created since all events are done in the serialized queue
-                foreach (var args in removed)
-                {
-                    ev.RaiseEvent(static (handler, arg) => handler(arg.source, arg.args), (source, args));
-                }
+                ev.RaiseEvent(static (handler, arg) => handler(arg.source, arg.args), (source, args: argsBuilder.ToImmutableAndClear()));
             }, CancellationToken.None);
         }
 
-        private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
+        private ImmutableArray<DiagnosticsUpdatedArgs> UpdateDataMap(IDiagnosticUpdateSource source, ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
         {
             // we expect source who uses this ability to have small number of diagnostics.
             lock (_gate)
             {
-                Debug.Assert(_updateSources.Contains(source));
-
-                var diagnostics = args.Diagnostics;
-
-                // check cheap early bail out
-                if (diagnostics.Length == 0 && !_map.ContainsKey(source))
+                var result = argsCollection.WhereAsArray(args =>
                 {
-                    // no new diagnostic, and we don't have update source for it.
-                    return false;
-                }
+                    Debug.Assert(_updateSources.Contains(source));
 
-                // 2 different workspaces (ex, PreviewWorkspaces) can return same Args.Id, we need to
-                // distinguish them. so we separate diagnostics per workspace map.
-                var workspaceMap = _map.GetOrAdd(source, _ => new Dictionary<Workspace, Dictionary<object, Data>>());
+                    var diagnostics = args.Diagnostics;
 
-                if (diagnostics.Length == 0 && !workspaceMap.ContainsKey(args.Workspace))
-                {
-                    // no new diagnostic, and we don't have workspace for it.
-                    return false;
-                }
-
-                var diagnosticDataMap = workspaceMap.GetOrAdd(args.Workspace, _ => new Dictionary<object, Data>());
-
-                diagnosticDataMap.Remove(args.Id);
-                if (diagnosticDataMap.Count == 0 && diagnostics.Length == 0)
-                {
-                    workspaceMap.Remove(args.Workspace);
-
-                    if (workspaceMap.Count == 0)
+                    // check cheap early bail out
+                    if (diagnostics.Length == 0 && !_map.ContainsKey(source))
                     {
-                        _map.Remove(source);
+                        // no new diagnostic, and we don't have update source for it.
+                        return false;
+                    }
+
+                    // 2 different workspaces (ex, PreviewWorkspaces) can return same Args.Id, we need to
+                    // distinguish them. so we separate diagnostics per workspace map.
+                    var workspaceMap = _map.GetOrAdd(source, _ => new Dictionary<Workspace, Dictionary<object, Data>>());
+
+                    if (diagnostics.Length == 0 && !workspaceMap.ContainsKey(args.Workspace))
+                    {
+                        // no new diagnostic, and we don't have workspace for it.
+                        return false;
+                    }
+
+                    var diagnosticDataMap = workspaceMap.GetOrAdd(args.Workspace, _ => new Dictionary<object, Data>());
+
+                    diagnosticDataMap.Remove(args.Id);
+                    if (diagnosticDataMap.Count == 0 && diagnostics.Length == 0)
+                    {
+                        workspaceMap.Remove(args.Workspace);
+
+                        if (workspaceMap.Count == 0)
+                        {
+                            _map.Remove(source);
+                        }
+
+                        return true;
+                    }
+
+                    if (diagnostics.Length > 0)
+                    {
+                        // save data only if there is a diagnostic
+                        var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, diagnostics);
+                        diagnosticDataMap.Add(args.Id, data);
                     }
 
                     return true;
-                }
+                });
 
-                if (diagnostics.Length > 0)
-                {
-                    // save data only if there is a diagnostic
-                    var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, diagnostics);
-                    diagnosticDataMap.Add(args.Id, data);
-                }
-
-                return true;
+                return result;
             }
         }
 
-        private bool ClearDiagnosticsReportedBySource(IDiagnosticUpdateSource source, List<DiagnosticsUpdatedArgs> removed)
+        private bool ClearDiagnosticsReportedBySource(IDiagnosticUpdateSource source, ref TemporaryArray<DiagnosticsUpdatedArgs> removed)
         {
             // we expect source who uses this ability to have small number of diagnostics.
             lock (_gate)
@@ -186,9 +197,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
+        private void OnDiagnosticsUpdated(object? sender, ImmutableArray<DiagnosticsUpdatedArgs> e)
         {
-            AssertIfNull(e.Diagnostics);
+            AssertIfNull(e.SelectManyAsArray(e => e.Diagnostics));
 
             // all events are serialized by async event handler
             RaiseDiagnosticsUpdated((IDiagnosticUpdateSource)sender!, e);
@@ -373,7 +384,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private static void AssertIfNull<T>(T obj) where T : class
+        private static void AssertIfNull<T>(T obj)
+            where T : class
         {
             if (obj == null)
             {

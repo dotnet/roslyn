@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var data2 = await diagnosticService.GetDiagnosticsAsync(workspace, null, null, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(2, data2.Count());
 
-            void MarkCalled(object sender, DiagnosticsUpdatedArgs args)
+            void MarkCalled(object sender, ImmutableArray<DiagnosticsUpdatedArgs> args)
             {
                 // event is serialized. no concurrent call
                 if (++count == 3)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
             }
 
-            void MarkSet(object sender, DiagnosticsUpdatedArgs args)
+            void MarkSet(object sender, ImmutableArray<DiagnosticsUpdatedArgs> args)
             {
                 mutex.Set();
             }
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnostic = CreateDiagnosticData(projectId, documentId);
 
             source.RaiseDiagnosticsUpdatedEvent(
-                DiagnosticsUpdatedArgs.DiagnosticsCreated(id, workspace, workspace.CurrentSolution, projectId, documentId, ImmutableArray.Create(diagnostic)));
+                ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsCreated(id, workspace, workspace.CurrentSolution, projectId, documentId, ImmutableArray.Create(diagnostic))));
 
             set.WaitOne();
 
@@ -203,13 +203,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             public bool SupportGetDiagnostics { get { return _support; } }
-            public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
+            public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
             public event EventHandler? DiagnosticsCleared;
 
             public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
                 => new(_support ? _diagnosticData : ImmutableArray<DiagnosticData>.Empty);
 
-            public void RaiseDiagnosticsUpdatedEvent(DiagnosticsUpdatedArgs args)
+            public void RaiseDiagnosticsUpdatedEvent(ImmutableArray<DiagnosticsUpdatedArgs> args)
                 => DiagnosticsUpdated?.Invoke(this, args);
 
             public void RaiseDiagnosticsClearedEvent()

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             var analyzerServer = (MockDiagnosticAnalyzerService)workspace.GetService<IDiagnosticAnalyzerService>();
             analyzerServer.AddDiagnostics(updateArgs.Diagnostics, diagnosticKind);
 
-            source.RaiseDiagnosticsUpdated(updateArgs);
+            source.RaiseDiagnosticsUpdated(ImmutableArray.Create(updateArgs));
 
             await wrapper.WaitForTags();
 
@@ -78,13 +78,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         {
             private ImmutableArray<DiagnosticData> _diagnostics = ImmutableArray<DiagnosticData>.Empty;
 
-            public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
+            public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
             {
-                _diagnostics = args.Diagnostics;
+                _diagnostics = args.SelectManyAsArray(e => e.Diagnostics);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 
-            public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
+            public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
             public event EventHandler DiagnosticsCleared { add { } remove { } }
 
             public bool SupportGetDiagnostics => false;
