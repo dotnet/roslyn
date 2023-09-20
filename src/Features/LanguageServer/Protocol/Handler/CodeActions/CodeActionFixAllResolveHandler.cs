@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var operations = await fixAllCodeAction.ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             var edit = await CodeActionResolveHelper.GetCodeActionResolveEditsAsync(context, data, operations, cancellationToken).ConfigureAwait(false);
 
-            request.Edit = null;
+            request.Edit = edit;
             return request;
         }
     }
