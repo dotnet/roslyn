@@ -213,6 +213,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
 
+        //private static void AddCollectionExpressionIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        //{
+        //    var bracketPair = node.GetBracketPair();
+        //    if (!bracketPair.IsValidBracketOrBracePair())
+        //        return;
+
+        //    AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
+        //}
+
         private void AddBlockIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
@@ -255,16 +264,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var bracketPair = node.GetBracketPair();
 
             if (!bracketPair.IsValidBracketOrBracePair())
-            {
                 return;
-            }
 
             if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
             {
-                // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
-                AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
-
                 AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
+
+                //// Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
+                //AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
+
+                var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+
+                var firstToken = node.GetFirstToken(includeZeroWidth: true);
+                var lastToken = node.GetLastToken(includeZeroWidth: true);
+                var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
+
+                SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
             }
         }
 
