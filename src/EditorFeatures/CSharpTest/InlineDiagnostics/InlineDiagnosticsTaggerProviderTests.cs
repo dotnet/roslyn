@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
@@ -43,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             return await GetTagSpansAsync(workspace);
         }
 
@@ -52,6 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
                 files: Array.Empty<string>(),
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             return await GetTagSpansAsync(workspace);
         }
 
