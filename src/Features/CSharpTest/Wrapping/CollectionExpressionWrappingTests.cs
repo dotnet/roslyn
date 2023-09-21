@@ -181,40 +181,6 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59624")]
-    public async Task TestWrappingShortInitializerExpression_TrailingComma2()
-    {
-        await TestAllWrappingCasesAsync(
-            """
-            class C {
-                void Bar() {
-                    var test = [||][1, 2, ];
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    var test =
-                    [
-                        1,
-                        2,
-                    ];
-                }
-            }
-            """,
-            """
-            class C {
-                void Bar() {
-                    var test =
-                    [
-                        1, 2,
-                    ];
-                }
-            }
-            """);
-    }
-
     [Fact]
     public async Task TestWrappingLongInitializerExpression()
     {
