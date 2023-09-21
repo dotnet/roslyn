@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
-            var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            var changedSolution = await GetChangedSolutionAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
             return changedSolution == null
                 ? Array.Empty<CodeActionOperation>()
                 : SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
@@ -289,8 +289,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Override this method if you want to implement a <see cref="CodeAction"/> that has a set of preview operations that are different
         /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
         /// </summary>
-        protected virtual Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-            => ComputeOperationsAsync(cancellationToken);
+        protected virtual async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+            => await ComputeOperationsAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// Computes all changes for an entire solution. Override this method if you want to implement a <see
