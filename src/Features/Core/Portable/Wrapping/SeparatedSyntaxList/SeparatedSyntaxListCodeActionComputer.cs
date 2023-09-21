@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 using var _ = ArrayBuilder<WrappingGroup>.GetInstance(out var result);
                 await AddWrappingGroupsAsync(result).ConfigureAwait(false);
-                return result.ToImmutable();
+                return result.ToImmutableAndClear();
             }
 
             private async Task AddWrappingGroupsAsync(ArrayBuilder<WrappingGroup> result)
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 var parentTitle = Wrapper.Unwrap_list;
 
+                // Unwrap entirely.
                 // MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
                 unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
 
@@ -165,18 +167,25 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 {
                     // MethodName(
                     //      int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
+                    //
+                    // Unwrap the items, adjusting the braces as well.
                     unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
                 }
 
-                // MethodName(
-                //     int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
-                // without touching braces.
-                unwrapActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.WrapFirst_IndentRest, wrappingColumn: int.MaxValue).ConfigureAwait(false));
+                // {
+                //     int a, int b, int c, int d, int e, int f, int g, int h, int i, int j
+                // }
+                //
+                // without adjusting the braces.
+                var unwrapWithoutBraces = await GetWrapLongLineCodeActionAsync(
+                    parentTitle, WrappingStyle.WrapFirst_IndentRest, wrappingColumn: int.MaxValue).ConfigureAwait(false); 
+                unwrapActions.AddIfNotNull(unwrapWithoutBraces);
 
-                // The 'unwrap' title strings are unique and do not collide with any other code
-                // actions we're computing.  So they can be inlined if possible.
-                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutable());
+                // The first two unwrap options share no title with anything else (so they can be inlined).  However,
+                // the last action shared a title with the wrap-long action.  so we don't inline in that case.
+                var isInlinable = unwrapWithoutBraces is null;
+
+                return new WrappingGroup(isInlinable, unwrapActions.ToImmutableAndClear());
             }
 
             private async Task<WrapItemsAction?> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
