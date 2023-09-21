@@ -2850,11 +2850,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Umbruch für alle Argumente aufheben und einrücken</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unwrap_and_indent_all_elements">
-        <source>Unwrap and indent all elements</source>
-        <target state="new">Unwrap and indent all elements</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
         <target state="translated">Umbruch für alle Parameter aufheben und einrücken</target>

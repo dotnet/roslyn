@@ -1162,9 +1162,6 @@ This version used in: {2}</value>
   <data name="Unwrap_and_indent_all_parameters" xml:space="preserve">
     <value>Unwrap and indent all parameters</value>
   </data>
-  <data name="Unwrap_and_indent_all_elements" xml:space="preserve">
-    <value>Unwrap and indent all elements</value>
-  </data>
   <data name="Wrap_every_parameter" xml:space="preserve">
     <value>Wrap every parameter</value>
   </data>

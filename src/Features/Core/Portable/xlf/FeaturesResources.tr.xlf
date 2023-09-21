@@ -2850,11 +2850,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Sarmalamayı kaldır ve tüm bağımsız değişkenleri girintile</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unwrap_and_indent_all_elements">
-        <source>Unwrap and indent all elements</source>
-        <target state="new">Unwrap and indent all elements</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
         <target state="translated">Sarmalamayı kaldır ve tüm parametreleri girintile</target>

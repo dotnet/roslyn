@@ -2850,11 +2850,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Zrušit zalomení všech argumentů a odsadit je</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unwrap_and_indent_all_elements">
-        <source>Unwrap and indent all elements</source>
-        <target state="new">Unwrap and indent all elements</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
         <target state="translated">Zrušit zalomení všech parametrů a odsadit je</target>
