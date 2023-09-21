@@ -16,7 +16,7 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
         => new CSharpWrappingCodeRefactoringProvider();
-    
+
     [Fact]
     public async Task TestNoWrappingSuggestions()
     {
