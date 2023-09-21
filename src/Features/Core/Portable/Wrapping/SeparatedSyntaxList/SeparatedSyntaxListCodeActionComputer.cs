@@ -168,6 +168,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
                 }
 
+                // MethodName(
+                //     int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
+                // without touching braces.
+                unwrapActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
+                    parentTitle, WrappingStyle.WrapFirst_IndentRest, wrappingColumn: int.MaxValue).ConfigureAwait(false));
+
                 // The 'unwrap' title strings are unique and do not collide with any other code
                 // actions we're computing.  So they can be inlined if possible.
                 return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutable());
@@ -214,6 +220,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var parentTitle = Wrapper.Wrap_long_list;
                 using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
+                var wrappingColumn = Options.WrappingColumn;
+
                 if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
                 {
                     // MethodName(int a, int b, int c,
@@ -221,14 +229,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     //            int g, int h, int i,
                     //            int j)
                     codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
-                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest, wrappingColumn).ConfigureAwait(false));
                 }
 
                 // MethodName(
                 //     int a, int b, int c, int d, int e,
                 //     int f, int g, int h, int i, int j)
                 codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+                    parentTitle, WrappingStyle.WrapFirst_IndentRest, wrappingColumn).ConfigureAwait(false));
 
                 if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
                 {
@@ -236,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     //     int d, int e, int f, int g,
                     //     int h, int i, int j)
                     codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                    parentTitle, WrappingStyle.UnwrapFirst_IndentRest, wrappingColumn).ConfigureAwait(false));
                 }
 
                 // The wrap-all and wrap-long code action titles are not unique.  i.e. we show them
@@ -255,18 +263,18 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             }
 
             private async Task<WrapItemsAction?> GetWrapLongLineCodeActionAsync(
-                string parentTitle, WrappingStyle wrappingStyle)
+                string parentTitle, WrappingStyle wrappingStyle, int wrappingColumn)
             {
                 var indentationTrivia = GetIndentationTrivia(wrappingStyle);
 
-                var edits = GetWrapLongLinesEdits(wrappingStyle, indentationTrivia);
+                var edits = GetWrapLongLinesEdits(wrappingStyle, indentationTrivia, wrappingColumn);
                 var title = GetNestedCodeActionTitle(wrappingStyle);
 
                 return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
             }
 
             private ImmutableArray<Edit> GetWrapLongLinesEdits(
-                WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
+                WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia, int wrappingColumn)
             {
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
@@ -289,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                     if (i > 0)
                     {
-                        if (currentOffset < Options.WrappingColumn)
+                        if (currentOffset < wrappingColumn)
                         {
                             // this item would not make us go pass our preferred wrapping column. So
                             // keep it on this line, making sure there's a space between the previous

@@ -16,6 +16,7 @@ internal sealed partial class CSharpCollectionExpressionWrapper
     protected override string Unwrap_list => FeaturesResources.Unwrap_collection;
     protected override string Wrap_every_item => FeaturesResources.Wrap_collection;
     protected override string Wrap_long_list => FeaturesResources.Wrap_long_collection;
+    protected override string Unwrap_and_indent_all_items => FeaturesResources.Unwrap_and_indent_all_elements;
 
     public override bool Supports_UnwrapGroup_WrapFirst_IndentRest => false;
     public override bool Supports_WrapEveryGroup_UnwrapFirst => false;
@@ -25,7 +26,6 @@ internal sealed partial class CSharpCollectionExpressionWrapper
 
     protected override string Align_wrapped_items => throw ExceptionUtilities.Unreachable();
     protected override string Indent_wrapped_items => throw ExceptionUtilities.Unreachable();
-    protected override string Unwrap_and_indent_all_items => throw ExceptionUtilities.Unreachable();
 
     protected override bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options)
         => ((CSharpSyntaxWrappingOptions)options).NewLinesForBracesInObjectCollectionArrayInitializers;

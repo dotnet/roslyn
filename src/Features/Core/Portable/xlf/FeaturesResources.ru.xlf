@@ -2850,6 +2850,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Развернуть все аргументы и удалить отступы для них</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_elements">
+        <source>Unwrap and indent all elements</source>
+        <target state="new">Unwrap and indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
         <target state="translated">Развернуть все параметры и добавить отступы для них</target>

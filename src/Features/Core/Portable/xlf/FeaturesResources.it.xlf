@@ -2850,6 +2850,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Annulla il ritorno a capo e imposta il rientro per tutti gli argomenti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_elements">
+        <source>Unwrap and indent all elements</source>
+        <target state="new">Unwrap and indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
         <target state="translated">Annulla il ritorno a capo e imposta rientro per tutti i parametri</target>

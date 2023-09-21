@@ -2850,6 +2850,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Désenvelopper et mettre en retrait tous les arguments</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_elements">
+        <source>Unwrap and indent all elements</source>
+        <target state="new">Unwrap and indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
         <target state="translated">Désenvelopper et mettre en retrait tous les paramètres</target>

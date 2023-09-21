@@ -2850,6 +2850,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Odwijaj wszystkie argumenty i dodawaj dla nich wcięcie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_elements">
+        <source>Unwrap and indent all elements</source>
+        <target state="new">Unwrap and indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
         <target state="translated">Odwijaj wszystkie parametry i dodawaj dla nich wcięcie</target>

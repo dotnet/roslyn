@@ -265,6 +265,16 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 void Bar() {
                     var test =
                     [
+                        "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog", "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"
+                    ];
+                 }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    var test =
+                    [
                         "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog", "the", "quick", "brown", "fox",
                         "jumps", "over", "the", "lazy", "dog"
                     ];

@@ -229,6 +229,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
                     void Bar() {
                         var test = new[]
                         {
+                            "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog", "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"
+                        };
+                     }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        var test = new[]
+                        {
                             "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog", "the", "quick", "brown", "fox",
                             "jumps", "over", "the", "lazy", "dog"
                         };
