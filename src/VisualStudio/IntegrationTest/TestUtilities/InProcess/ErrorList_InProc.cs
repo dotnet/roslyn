@@ -126,10 +126,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public static string GetProject(this IVsTaskItem item)
         {
-            var errorItem = (IVsErrorItem)item;
-            ErrorHandler.ThrowOnFailure(errorItem.GetHierarchy(out var hierarchy));
-            ErrorHandler.ThrowOnFailure(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var name));
-            return (string)name;
+            try
+            {
+                var errorItem = (IVsErrorItem)item;
+                ErrorHandler.ThrowOnFailure(errorItem.GetHierarchy(out var hierarchy));
+                ErrorHandler.ThrowOnFailure(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var name));
+                return (string)name;
+            }
+            catch (Exception)
+            {
+                return "<project could not be determined>";
+            }
         }
 
         public static string GetFileName(this IVsTaskItem item)
