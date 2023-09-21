@@ -3470,6 +3470,24 @@ class Program
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]
+        public void Pointer_RelationalPattern()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(void* p)
+                    {
+                        if (p is < null) { }
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (5,18): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is < null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< null").WithArguments("void*").WithLocation(5, 18));
+        }
+
         [Fact]
         public void UnmatchedInput_06()
         {

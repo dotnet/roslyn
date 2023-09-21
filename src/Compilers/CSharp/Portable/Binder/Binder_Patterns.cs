@@ -703,10 +703,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // input value among many constant tests.
                         convertedExpression = operand;
                     }
-                    else if (conversion.ConversionKind == ConversionKind.ImplicitNullToPointer ||
-                        (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true))
+                    else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
                     {
                         convertedExpression = operand;
+                    }
+                    else if (conversion.ConversionKind == ConversionKind.ImplicitNullToPointer)
+                    {
+                        constantValue = operand.ConstantValueOpt;
+                        return convertedExpression;
                     }
                 }
             }
