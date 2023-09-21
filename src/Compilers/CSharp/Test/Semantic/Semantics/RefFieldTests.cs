@@ -25751,6 +25751,39 @@ public class A
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s2").WithArguments("S1.s2", "").WithLocation(11, 16));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69997")]
+        public void UnscopedRefAttribute_NestedAccess_Properties_Incomplete()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    private S1 s1;
+                    public ref int Value() => ref s1.S2.Value;
+                }
+
+                struct S1
+                {
+                    private S2 s2;
+                    public S2 S2 { }
+                }
+
+                struct S2
+                {
+                    private int value;
+                    [UnscopedRef] public ref int Value => ref value;
+                }
+                """;
+            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+                // 0.cs(6,35): error CS0154: The property or indexer 'S1.S2' cannot be used in this context because it lacks the get accessor
+                //     public ref int Value() => ref s1.S2.Value;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "s1.S2").WithArguments("S1.S2").WithLocation(6, 35),
+                // 0.cs(12,15): error CS0548: 'S1.S2': property or indexer must have at least one accessor
+                //     public S2 S2 { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "S2").WithArguments("S1.S2").WithLocation(12, 15));
+        }
+
         [Theory, CombinatorialData]
         public void UnscopedRefAttribute_NestedAccess_MethodOrProperty_Readonly(
             [CombinatorialValues("", "()")] string op1, [CombinatorialValues("", "()")] string op2)
