@@ -434,7 +434,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_disable_shared_syntax_trees", new FeatureFlagStorage(@"Roslyn.DisableSharedSyntaxTrees")},
         {"dotnet_disable_recoverable_text", new FeatureFlagStorage(@"Roslyn.DisableRecoverableText")},
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
-        {"dotnet_run_source_generators_in_process_only", new FeatureFlagStorage(@"Roslyn.RunSourceGeneratorsInProcessOnly")},
         {"dotnet_enable_diagnostics_in_source_generated_files", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment")},
         {"dotnet_enable_diagnostics_in_source_generated_files_feature_flag", new FeatureFlagStorage(@"Roslyn.EnableDiagnosticsInSourceGeneratedFiles")},
         {"dotnet_enable_opening_source_generated_files_in_workspace", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment")},
