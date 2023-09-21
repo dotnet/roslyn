@@ -15997,7 +15997,7 @@ class C1 (int p1)
             var model = comp.GetSemanticModel(tree);
             model.GetDiagnostics().Verify();
             var info = model.GetSymbolInfo(indexer);
-            Assert.NotNull(info.Symbol);
+            AssertEx.Equal("System.Int32 C.this[System.Int32 i] { get; }", info.Symbol.ToTestDisplayString());
         }
 
         [Fact]
