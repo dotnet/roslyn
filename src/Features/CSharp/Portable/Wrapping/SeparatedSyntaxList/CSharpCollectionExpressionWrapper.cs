@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
     {
         protected override string Indent_all_items => FeaturesResources.Indent_all_elements;
         protected override string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
-        protected override string Unwrap_list => FeaturesResources.Unwrap_initializer;
-        protected override string Wrap_every_item => FeaturesResources.Wrap_initializer;
-        protected override string Wrap_long_list => FeaturesResources.Wrap_long_initializer;
+        protected override string Unwrap_list => FeaturesResources.Unwrap_collection;
+        protected override string Wrap_every_item => FeaturesResources.Wrap_collection;
+        protected override string Wrap_long_list => FeaturesResources.Wrap_long_collection;
 
         public override bool Supports_UnwrapGroup_WrapFirst_IndentRest => false;
         public override bool Supports_WrapEveryGroup_UnwrapFirst => false;
