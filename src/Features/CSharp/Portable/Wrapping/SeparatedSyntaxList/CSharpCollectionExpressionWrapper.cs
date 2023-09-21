@@ -23,9 +23,9 @@ internal sealed partial class CSharpCollectionExpressionWrapper
 
     // unreachable as we explicitly declare that we don't support these scenarios.
 
-    protected override string Unwrap_and_indent_all_items => throw ExceptionUtilities.Unreachable();
     protected override string Align_wrapped_items => throw ExceptionUtilities.Unreachable();
     protected override string Indent_wrapped_items => throw ExceptionUtilities.Unreachable();
+    protected override string Unwrap_and_indent_all_items => throw ExceptionUtilities.Unreachable();
 
     protected override bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options)
         => ((CSharpSyntaxWrappingOptions)options).NewLinesForBracesInObjectCollectionArrayInitializers;
