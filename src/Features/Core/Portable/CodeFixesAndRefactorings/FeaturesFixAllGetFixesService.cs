@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     [ExportWorkspaceServiceFactory(typeof(IFixAllGetFixesService), ServiceLayer.Host), Shared]
-    internal class FeaturesFixAllGetFixesService : AbstractFixAllGetFixesService, IWorkspaceServiceFactory
+    internal sealed class FeaturesFixAllGetFixesService : AbstractFixAllGetFixesService, IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

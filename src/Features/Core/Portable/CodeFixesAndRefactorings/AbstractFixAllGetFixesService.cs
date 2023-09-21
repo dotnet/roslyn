@@ -14,103 +14,102 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+
+internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 {
-    internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
+    protected abstract Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, bool showPreviewChangesDialog, IProgressTracker progressTracker, IFixAllState fixAllState, CancellationToken cancellationToken);
+
+    public async Task<Solution> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
     {
-        protected abstract Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, bool showPreviewChangesDialog, IProgressTracker progressTracker, IFixAllState fixAllState, CancellationToken cancellationToken);
-
-        public async Task<Solution> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
+        var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
+        if (codeAction == null)
         {
-            var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
-            if (codeAction == null)
-            {
-                return fixAllContext.Solution;
-            }
-
-            fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-            return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+            return fixAllContext.Solution;
         }
 
-        public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-            IFixAllContext fixAllContext, bool showPreviewChangesDialog)
-        {
-            var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
-            if (codeAction == null)
-            {
-                return ImmutableArray<CodeActionOperation>.Empty;
-            }
+        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+    }
 
-            return await GetFixAllOperationsAsync(
-                codeAction, showPreviewChangesDialog, fixAllContext.ProgressTracker, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+    public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
+        IFixAllContext fixAllContext, bool showPreviewChangesDialog)
+    {
+        var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
+        if (codeAction == null)
+        {
+            return ImmutableArray<CodeActionOperation>.Empty;
         }
 
-        private static async Task<CodeAction> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
+        return await GetFixAllOperationsAsync(
+            codeAction, showPreviewChangesDialog, fixAllContext.ProgressTracker, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<CodeAction> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
+    {
+        var fixAllKind = fixAllContext.State.FixAllKind;
+        var functionId = fixAllKind switch
         {
-            var fixAllKind = fixAllContext.State.FixAllKind;
-            var functionId = fixAllKind switch
-            {
-                FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesComputation,
-                FixAllKind.Refactoring => FunctionId.Refactoring_FixAllOccurrencesComputation,
-                _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
-            };
+            FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesComputation,
+            FixAllKind.Refactoring => FunctionId.Refactoring_FixAllOccurrencesComputation,
+            _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
+        };
 
-            using (Logger.LogBlock(
-                functionId,
-                KeyValueLogMessage.Create(LogType.UserAction, m =>
-                {
-                    m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
-                    m[FixAllLogger.FixAllScope] = fixAllContext.State.Scope.ToString();
-                }),
-                fixAllContext.CancellationToken))
+        using (Logger.LogBlock(
+            functionId,
+            KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
-                CodeAction action = null;
-                try
-                {
-                    action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: false);
-                }
-                finally
-                {
-                    if (action != null)
-                    {
-                        FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: true);
-                    }
-                    else
-                    {
-                        FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: false, timedOut: true);
-                    }
-                }
-
-                return action;
+                m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
+                m[FixAllLogger.FixAllScope] = fixAllContext.State.Scope.ToString();
+            }),
+            fixAllContext.CancellationToken))
+        {
+            CodeAction action = null;
+            try
+            {
+                action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
             }
-        }
-
-        protected static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
-        {
-            var result = ArrayBuilder<CodeActionOperation>.GetInstance();
-            var foundApplyChanges = false;
-            foreach (var operation in operations)
+            catch (OperationCanceledException)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!foundApplyChanges)
+                FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: false);
+            }
+            finally
+            {
+                if (action != null)
                 {
-                    if (operation is ApplyChangesOperation)
-                    {
-                        foundApplyChanges = true;
-                        result.Add(new ApplyChangesOperation(newSolution));
-                        continue;
-                    }
+                    FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: true);
                 }
-
-                result.Add(operation);
+                else
+                {
+                    FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: false, timedOut: true);
+                }
             }
 
-            return result.ToImmutableAndFree();
+            return action;
         }
+    }
+
+    protected static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
+    {
+        var result = ArrayBuilder<CodeActionOperation>.GetInstance();
+        var foundApplyChanges = false;
+        foreach (var operation in operations)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!foundApplyChanges)
+            {
+                if (operation is ApplyChangesOperation)
+                {
+                    foundApplyChanges = true;
+                    result.Add(new ApplyChangesOperation(newSolution));
+                    continue;
+                }
+            }
+
+            result.Add(operation);
+        }
+
+        return result.ToImmutableAndClear();
     }
 }

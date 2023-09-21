@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     [ExportWorkspaceServiceFactory(typeof(IFixAllGetFixesService), ServiceLayer.Editor), Shared]
-    internal class FixAllGetFixesService : AbstractFixAllGetFixesService, IWorkspaceServiceFactory
+    internal sealed class FixAllGetFixesService : AbstractFixAllGetFixesService, IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
