@@ -85,13 +85,13 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
                 }
             }
 
-            return action;
+            return result.ToImmutableAndClear();
         }
     }
 
     protected static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
     {
-        var result = ArrayBuilder<CodeActionOperation>.GetInstance();
+        using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(operations.Length, out var result);
         var foundApplyChanges = false;
         foreach (var operation in operations)
         {
