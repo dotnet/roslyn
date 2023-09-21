@@ -5,17 +5,18 @@
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.Diagnostics;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Newtonsoft.Json;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -44,7 +45,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             LoggerFactory.Create(builder =>
             {
                 builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
-                builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
+                builder.AddConsole();
                 // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
                 builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
             })
@@ -97,11 +98,25 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
     StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, loggerFactory, serviceBrokerFactory);
-
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
-    var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
+    var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
+
+    var (clientPipeName, serverPipeName) = CreateNewPipeNames();
+    var pipeServer = new NamedPipeServerStream(serverPipeName,
+        PipeDirection.InOut,
+        maxNumberOfServerInstances: 1,
+        PipeTransmissionMode.Byte,
+        PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+
+    // Send the named pipe connection info to the client 
+    Console.WriteLine(JsonConvert.SerializeObject(new NamedPipeInformation(clientPipeName)));
+
+    // Wait for connection from client
+    await pipeServer.WaitForConnectionAsync(cancellationToken);
+
+    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger);
     server.Start();
 
     logger.LogInformation("Language server initialized");
@@ -209,7 +224,24 @@ static CliRootCommand CreateCommandLineParser()
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
-
     return rootCommand;
 }
 
+static (string clientPipe, string serverPipe) CreateNewPipeNames()
+{
+    // On windows, .NET and Nodejs use different formats for the pipe name
+    const string WINDOWS_NODJS_PREFIX = @"\\.\pipe\";
+    const string WINDOWS_DOTNET_PREFIX = @"\\.\";
+
+    var pipeName = Guid.NewGuid().ToString();
+
+    return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? (WINDOWS_NODJS_PREFIX + pipeName, WINDOWS_DOTNET_PREFIX + pipeName)
+        : (GetUnixTypePipeName(pipeName), GetUnixTypePipeName(pipeName));
+}
+
+static string GetUnixTypePipeName(string pipeName)
+{
+    // Unix-type pipes are actually writing to a file
+    return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
+}

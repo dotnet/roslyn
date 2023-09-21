@@ -233,7 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (source.Kind == BoundKind.UnconvertedCollectionExpression)
                 {
-                    Debug.Assert(conversion.IsCollectionExpression || !conversion.Exists);
+                    Debug.Assert(conversion.IsCollectionExpression
+                        || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsCollectionExpression)
+                        || !conversion.Exists);
 
                     var collectionExpression = ConvertCollectionExpression(
                         (BoundUnconvertedCollectionExpression)source,
@@ -541,6 +543,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             BindingDiagnosticBag diagnostics)
         {
+            if (conversion.IsNullable)
+            {
+                targetType = targetType.GetNullableUnderlyingType();
+                conversion = conversion.UnderlyingConversions[0];
+                _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);
+            }
+
             var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType);
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
@@ -632,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
                 }
             }
-            else if (collectionTypeKind == CollectionExpressionTypeKind.ListInterface ||
+            else if ((collectionTypeKind == CollectionExpressionTypeKind.ListInterface && isListInterfaceThatRequiresList(targetType)) ||
                 elements.Any(e => e is BoundCollectionExpressionSpreadElement)) // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
             {
                 Debug.Assert(elementType is { });
@@ -690,7 +699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         wasCompilerGenerated: true,
                         destination: elementType,
                         diagnostics);
-                    convertedElement.WasCompilerGenerated = true;
                     builder.Add(convertedElement!);
                 }
             }
@@ -705,6 +713,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderInvocationConversion,
                 builder.ToImmutableAndFree(),
                 targetType);
+
+            static bool isListInterfaceThatRequiresList(TypeSymbol targetType)
+            {
+                return targetType is not
+                {
+                    OriginalDefinition.SpecialType:
+                        SpecialType.System_Collections_Generic_IEnumerable_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyList_T
+                };
+            }
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)

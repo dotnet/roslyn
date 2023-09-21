@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ObjectCreation;
 
                 case BoundKind.UnconvertedCollectionExpression:
-                    var collectionExpressionConversion = GetCollectionExpressionConversion((BoundUnconvertedCollectionExpression)sourceExpression, destination, ref useSiteInfo);
+                    var collectionExpressionConversion = GetImplicitCollectionExpressionConversion((BoundUnconvertedCollectionExpression)sourceExpression, destination, ref useSiteInfo);
                     if (collectionExpressionConversion.Exists)
                     {
                         return collectionExpressionConversion;
@@ -1128,6 +1128,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Conversion.NoConversion;
         }
+
+#nullable enable
+        private Conversion GetImplicitCollectionExpressionConversion(BoundUnconvertedCollectionExpression collectionExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var collectionExpressionConversion = GetCollectionExpressionConversion(collectionExpression, destination, ref useSiteInfo);
+            if (collectionExpressionConversion.Exists)
+            {
+                return collectionExpressionConversion;
+            }
+
+            // strip nullable from the destination
+            //
+            // the following should work and it is an ImplicitNullable conversion
+            //    ImmutableArray<int>? x = [1, 2];
+            if (destination.IsNullableType(out var underlyingDestination))
+            {
+                var underlyingConversion = GetCollectionExpressionConversion(collectionExpression, underlyingDestination, ref useSiteInfo);
+                if (underlyingConversion.Exists)
+                {
+                    return new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(underlyingConversion));
+                }
+            }
+
+            return Conversion.NoConversion;
+        }
+#nullable disable
 
         private Conversion GetSwitchExpressionConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -1228,9 +1254,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    int? x = 1;
             if (destination.Kind == SymbolKind.NamedType)
             {
-                var nt = (NamedTypeSymbol)destination;
-                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
-                    HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
+                if (destination.IsNullableType(out var underlyingDestination) &&
+                    HasImplicitConstantExpressionConversion(source, underlyingDestination))
                 {
                     return Conversion.ImplicitNullableWithImplicitConstantUnderlying;
                 }
@@ -1253,17 +1278,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // the following should work and it is an ImplicitNullable conversion
             //    (int, double)? x = (1,2);
-            if (destination.Kind == SymbolKind.NamedType)
+            if (destination.IsNullableType(out var underlyingDestination))
             {
-                var nt = (NamedTypeSymbol)destination;
-                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T)
+                var underlyingTupleConversion = GetImplicitTupleLiteralConversion(source, underlyingDestination, ref useSiteInfo);
+                if (underlyingTupleConversion.Exists)
                 {
-                    var underlyingTupleConversion = GetImplicitTupleLiteralConversion(source, nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, ref useSiteInfo);
-
-                    if (underlyingTupleConversion.Exists)
-                    {
-                        return new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(underlyingTupleConversion));
-                    }
+                    return new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(underlyingTupleConversion));
                 }
             }
 
@@ -1286,10 +1306,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    var x = ((byte, string)?)(1,null);
             if (destination.Kind == SymbolKind.NamedType)
             {
-                var nt = (NamedTypeSymbol)destination;
-                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T)
+                if (destination.IsNullableType(out var underlyingDestination))
                 {
-                    var underlyingTupleConversion = GetExplicitTupleLiteralConversion(source, nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, isChecked: isChecked, ref useSiteInfo, forCast);
+                    var underlyingTupleConversion = GetExplicitTupleLiteralConversion(source, underlyingDestination, isChecked: isChecked, ref useSiteInfo, forCast);
 
                     if (underlyingTupleConversion.Exists)
                     {
@@ -3290,7 +3309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (sourceSig.CallingConvention == Cci.CallingConvention.Unmanaged &&
-                !sourceSig.GetCallingConventionModifiers().SetEquals(destinationSig.GetCallingConventionModifiers()))
+                !sourceSig.GetCallingConventionModifiers().SetEqualsWithoutIntermediateHashSet(destinationSig.GetCallingConventionModifiers()))
             {
                 return false;
             }

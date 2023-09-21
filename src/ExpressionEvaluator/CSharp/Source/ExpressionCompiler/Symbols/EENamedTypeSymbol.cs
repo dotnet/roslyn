@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IsFileLocal => false;
-        internal override FileIdentifier? AssociatedFileIdentifier => null;
+        internal override FileIdentifier AssociatedFileIdentifier => null;
 
         public override IEnumerable<string> MemberNames
         {
