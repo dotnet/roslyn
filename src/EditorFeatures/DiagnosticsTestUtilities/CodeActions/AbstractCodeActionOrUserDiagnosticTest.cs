@@ -38,6 +38,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Testing;
+using System.ServiceModel.Syndication;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
@@ -486,10 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-#pragma warning disable
-                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                    workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
-#pragma warning enable
+                workspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
 
                 // Ideally this check would always run, but there are several hundred tests that would need to be
                 // updated with {|Unnecessary:|} spans.
@@ -703,10 +701,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition))
             {
-#pragma warning disable
-                Assert.True(expectedWorkspace.TryApplyChanges(expectedWorkspace.CurrentSolution.WithOptions(
-                    expectedWorkspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
-#pragma warning enable
+                expectedWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
 
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());
