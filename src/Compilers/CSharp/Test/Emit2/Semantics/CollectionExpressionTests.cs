@@ -3261,35 +3261,56 @@ static class Program
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
                 // 1.cs(7,23): error CS9174: Cannot initialize type 'List<int>' with a collection expression because the type is not constructible.
                 //         List<int> l = [1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.List<int>").WithLocation(7, 23));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.List<int>").WithLocation(7, 23),
+                // 1.cs(8,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IEnumerable<int> e = [2];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 30),
+                // 1.cs(8,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         IEnumerable<int> e = [2];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 30));
         }
 
-        [Fact]
-        public void ListInterfaces_MissingList()
+        [Theory]
+        [InlineData("IEnumerable<int>")]
+        [InlineData("IReadOnlyCollection<object>")]
+        [InlineData("IReadOnlyList<int>")]
+        [InlineData("ICollection<object>")]
+        [InlineData("IList<int>")]
+        public void ListInterfaces_MissingList(string collectionType)
         {
-            string source = """
+            string source = $$"""
                 using System.Collections.Generic;
                 class Program
                 {
-                    static void Main()
+                    static void F(IEnumerable<int> e)
                     {
-                        IEnumerable<int> a = [];
-                        ICollection<int> b = [2];
-                        IList<int> c = [];
-                        IReadOnlyCollection<int> d = [3];
-                        IReadOnlyList<int> e = [];
+                        {{collectionType}} c;
+                        c = [];
+                        c = [..e];
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
             comp.VerifyEmitDiagnostics(
-                // (7,30): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
-                //         ICollection<int> b = [2];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[2]").WithArguments("System.Collections.Generic.List`1").WithLocation(7, 30),
-                // (8,24): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
-                //         IList<int> c = [];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.List`1").WithLocation(8, 24));
+                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(7, 13),
+                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         c = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         c = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         c = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 13));
         }
 
         [Fact]
@@ -5290,9 +5311,9 @@ static class Program
                       .locals init (System.Collections.Generic.List<int> V_0,
                                     System.Collections.Generic.IEnumerator<int> V_1,
                                     int V_2)
-                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                      IL_0005:  stloc.0
-                      IL_0006:  ldarg.0
+                      IL_0000:  ldarg.0
+                      IL_0001:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0006:  stloc.0
                       IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
                       IL_000c:  stloc.1
                       .try
@@ -5332,9 +5353,9 @@ static class Program
                       .locals init (System.Collections.Generic.List<int> V_0,
                                     System.Collections.Generic.IEnumerator<int> V_1,
                                     int V_2)
-                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                      IL_0005:  stloc.0
-                      IL_0006:  ldarg.0
+                      IL_0000:  ldarg.0
+                      IL_0001:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0006:  stloc.0
                       IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
                       IL_000c:  stloc.1
                       .try
@@ -6338,16 +6359,51 @@ static class Program
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
             comp.VerifyEmitDiagnostics(
+                // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..a]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
+                // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..a]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
+                // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..a]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(9, 13),
+                // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         b = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(10, 13),
+                // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         b = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(10, 13),
                 // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
                 //         b = [..e];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(10, 13),
-                // (10,13): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(10, 13));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..a]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
+                // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         b = [..e];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[..e]").WithArguments("System.Collections.Generic.List`1").WithLocation(10, 13));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(10, 13));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ctorInt32);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..a]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
+                // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         b = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(10, 13));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ToArray);
             comp.VerifyEmitDiagnostics(
+                // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         b = [..a];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..a]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(9, 13),
                 // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
                 //         b = [..e];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(10, 13));
@@ -6660,68 +6716,135 @@ static class Program
                 """);
         }
 
-        [Fact]
-        public void SpreadElement_KnownLength_EvaluationOrder_02()
+        [Theory]
+        [InlineData("int[]", false)]
+        [InlineData("int[]", true)]
+        [InlineData("System.Collections.Generic.IEnumerable<int>", false)]
+        [InlineData("System.Collections.Generic.IEnumerable<int>", true)]
+        public void SpreadElement_KnownLength_EvaluationOrder_02(string collectionType, bool includeLength)
         {
-            string source = """
+            string sourceA1 = """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
-                class MyCollection<T> : IEnumerable<T>
+                partial class MyCollection<T> : IEnumerable
                 {
-                    private string _id;
-                    private List<T> _list;
+                    private readonly string _id;
+                    private readonly List<T> _list;
                     public MyCollection(string id, T[] items)
                     {
                         _id = id;
                         _list = new();
                         _list.AddRange(items);
                     }
+                    public MyEnumerator<T> GetEnumerator()
+                    {
+                        Console.WriteLine("{0}: GetEnumerator", _id);
+                        return new(_id, _list);
+                    }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyEnumerator<T> : IDisposable
+                {
+                    private readonly string _id;
+                    private readonly List<T> _list;
+                    private int _index;
+                    public MyEnumerator(string id, List<T> list)
+                    {
+                        _id = id;
+                        _list = list;
+                        _index = -1;
+                    }
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                    public T Current
+                    {
+                        get
+                        {
+                            Console.WriteLine("{0}: [{1}]", _id, _index);
+                            return _list[_index];
+                        }
+                    }
+                    void IDisposable.Dispose()
+                    {
+                        Console.WriteLine("{0}: Dispose", _id);
+                    }
+                }
+                """;
+            string sourceA2 = includeLength ?
+                """
+                using System;
+                partial class MyCollection<T>
+                {
                     public int Length
                     {
                         get
                         {
-                            Console.WriteLine("Length:{0}", _id);
+                            Console.WriteLine("{0}: Length", _id);
                             return _list.Count;
                         }
                     }
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
                 }
+                """ :
+                "";
+            string sourceB = $$"""
+                using System;
                 class Program
                 {
-                    static T Single<T>(string id, T value)
+                    static T One<T>(string id, T value)
                     {
-                        Console.WriteLine("Single:{0}", id);
+                        Console.WriteLine("{0}: One", id);
                         return value;
                     }
-                    static MyCollection<T> Multiple<T>(string id, params T[] items)
+                    static MyCollection<T> Many<T>(string id, params T[] items)
                     {
-                        Console.WriteLine("Multiple:{0}", id);
+                        Console.WriteLine("{0}: Many", id);
                         return new(id, items);
                     }
                     static void Main()
                     {
-                        int[] x = [Single("A", 1), ..Multiple("B", 2, 3), Single("C", 4), ..Multiple<int>("D"), ..Multiple("E", 5, 6)];
+                        {{collectionType}} x = [One("A", 1), ..Many("B", 2, 3), One("C", 4), ..Many<int>("D"), ..Many("E", 5, 6)];
                         x.Report();
                     }
                 }
                 """;
+            var expectedOutputBuilder = new System.Text.StringBuilder();
+            expectedOutputBuilder.AppendLine("""
+                A: One
+                B: Many
+                C: One
+                D: Many
+                E: Many
+                """);
+            if (includeLength)
+            {
+                expectedOutputBuilder.AppendLine("""
+                    B: Length
+                    D: Length
+                    E: Length
+                    """);
+            }
+            expectedOutputBuilder.AppendLine("""
+                B: GetEnumerator
+                B: [0]
+                B: [1]
+                B: Dispose
+                D: GetEnumerator
+                D: Dispose
+                E: GetEnumerator
+                E: [0]
+                E: [1]
+                E: Dispose
+                [1, 2, 3, 4, 5, 6], 
+                """);
             CompileAndVerify(
-                new[] { source, s_collectionExtensions },
+                new[] { sourceA1, sourceA2, sourceB, s_collectionExtensions },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
-                expectedOutput: IncludeExpectedOutput("""
-                    Single:A
-                    Multiple:B
-                    Single:C
-                    Multiple:D
-                    Multiple:E
-                    Length:B
-                    Length:D
-                    Length:E
-                    [1, 2, 3, 4, 5, 6], 
-                    """));
+                expectedOutput: IncludeExpectedOutput(expectedOutputBuilder.ToString()));
         }
 
         [CombinatorialData]
@@ -7618,9 +7741,24 @@ static class Program
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
             comp.VerifyEmitDiagnostics(
-                // (7,30): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
+                // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IEnumerable<int> x = [0];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(6, 30),
+                // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IEnumerable<int> x = [0];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(6, 30),
+                // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         IEnumerable<int> x = [0];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(6, 30),
+                // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         IEnumerable<int> y = [..x];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[..x]").WithArguments("System.Collections.Generic.List`1").WithLocation(7, 30));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 30),
+                // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IEnumerable<int> y = [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 30),
+                // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         IEnumerable<int> y = [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(7, 30));
         }
 
         [Theory]
@@ -8900,47 +9038,53 @@ partial class Program
             verifier.VerifyIL("Program.F2",
                 """
                 {
-                  // Code size       79 (0x4f)
+                  // Code size       85 (0x55)
                   .maxstack  2
-                  .locals init (System.Collections.Generic.List<object> V_0,
-                                System.Collections.Generic.IEnumerator<object> V_1,
-                                object V_2)
-                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0005:  stloc.0
-                  IL_0006:  ldarga.s   V_0
-                  IL_0008:  call       "System.Collections.Generic.IEnumerator<object> MyCollection<object>.GetEnumerator()"
-                  IL_000d:  stloc.1
+                  .locals init (MyCollection<object> V_0,
+                                object V_1,
+                                System.Collections.Generic.List<object> V_2,
+                                System.Collections.Generic.IEnumerator<object> V_3,
+                                object V_4)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  box        "int"
+                  IL_0008:  stloc.1
+                  IL_0009:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_000e:  stloc.2
+                  IL_000f:  ldloca.s   V_0
+                  IL_0011:  call       "System.Collections.Generic.IEnumerator<object> MyCollection<object>.GetEnumerator()"
+                  IL_0016:  stloc.3
                   .try
                   {
-                    IL_000e:  br.s       IL_001e
-                    IL_0010:  ldloc.1
-                    IL_0011:  callvirt   "object System.Collections.Generic.IEnumerator<object>.Current.get"
-                    IL_0016:  stloc.2
-                    IL_0017:  ldloc.0
-                    IL_0018:  ldloc.2
-                    IL_0019:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                    IL_001e:  ldloc.1
-                    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0024:  brtrue.s   IL_0010
-                    IL_0026:  leave.s    IL_0032
+                    IL_0017:  br.s       IL_0029
+                    IL_0019:  ldloc.3
+                    IL_001a:  callvirt   "object System.Collections.Generic.IEnumerator<object>.Current.get"
+                    IL_001f:  stloc.s    V_4
+                    IL_0021:  ldloc.2
+                    IL_0022:  ldloc.s    V_4
+                    IL_0024:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_0029:  ldloc.3
+                    IL_002a:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_002f:  brtrue.s   IL_0019
+                    IL_0031:  leave.s    IL_003d
                   }
                   finally
                   {
-                    IL_0028:  ldloc.1
-                    IL_0029:  brfalse.s  IL_0031
-                    IL_002b:  ldloc.1
-                    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0031:  endfinally
+                    IL_0033:  ldloc.3
+                    IL_0034:  brfalse.s  IL_003c
+                    IL_0036:  ldloc.3
+                    IL_0037:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003c:  endfinally
                   }
-                  IL_0032:  ldloc.0
-                  IL_0033:  ldc.i4.3
-                  IL_0034:  box        "int"
-                  IL_0039:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_003e:  ldloc.0
-                  IL_003f:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
-                  IL_0044:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
-                  IL_0049:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
-                  IL_004e:  ret
+                  IL_003d:  ldloc.2
+                  IL_003e:  ldloc.1
+                  IL_003f:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0044:  ldloc.2
+                  IL_0045:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_004a:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_004f:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_0054:  ret
                 }
                 """);
         }

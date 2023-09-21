@@ -6,6 +6,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundCollectionExpressionBase
     {
+        internal bool HasSpreadElements()
+        {
+            GetKnownLength(out bool hasSpreadElements);
+            return hasSpreadElements;
+        }
+
+        // PROTOTYPE: Consider removing this method (and just keeping HasSpreadElements() above).
+        // The value returned is just node.Elements.Length when HasSpreadElements() returns true,
+        // and when HasSpreadElements() returns false, the value is just confusing. Make all callers explicit.
         internal int? GetKnownLength(out bool hasSpreadElements)
         {
             hasSpreadElements = false;
