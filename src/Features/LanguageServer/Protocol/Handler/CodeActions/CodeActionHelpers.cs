@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     Title = currentTitle.Replace("|", " -> "),
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
-                    Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, null)
+                    Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null)
                 });
 
                 if (suggestedAction is UnifiedCodeFixSuggestedAction unifiedCodeFixSuggestedAction && unifiedCodeFixSuggestedAction.FixAllFlavors is not null)
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
-                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, null)
+                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null)
             };
 
             static VSInternalCodeAction[] GenerateNestedVSCodeActions(
@@ -278,8 +278,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            CancellationToken cancellationToken,
-            string? fixAllScope = null)
+            string? fixAllScope,
+            CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
                 document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
@@ -336,13 +336,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         private static CodeAction GetFixAllActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, string? fixAllScope)
         {
             var codeAction = suggestedAction.OriginalCodeAction;
-            if (suggestedAction is not UnifiedCodeFixSuggestedAction unifiedCodeFixSuggestedAction || unifiedCodeFixSuggestedAction.FixAllFlavors is null)
+            if (suggestedAction is not UnifiedCodeFixSuggestedAction { FixAllFlavors: not null } unifiedCodeFixSuggestedAction)
             {
                 return codeAction;
             }
 
             var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
-            return new FixAllCodeAction(FeaturesResources.Fix_All + ": " + codeAction.Title, fixAllFlavor.FixAllState, false);
+            return new FixAllCodeAction(FeaturesResources.Fix_All + ": " + codeAction.Title, fixAllFlavor.FixAllState, showPreviewChangesDialog: false);
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(

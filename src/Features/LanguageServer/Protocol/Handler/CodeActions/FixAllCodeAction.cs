@@ -9,26 +9,25 @@ using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+
+internal sealed class FixAllCodeAction : AbstractFixAllCodeAction
 {
-    internal class FixAllCodeAction : AbstractFixAllCodeAction
+    protected readonly string _title;
+
+    public FixAllCodeAction(string title, IFixAllState fixAllState, bool showPreviewChangesDialog) : base(fixAllState, showPreviewChangesDialog)
     {
-        protected string _title;
+        _title = title;
+    }
 
-        public FixAllCodeAction(string title, IFixAllState fixAllState, bool showPreviewChangesDialog) : base(fixAllState, showPreviewChangesDialog)
-        {
-            _title = title;
-        }
+    public override string Title
+        => _title;
 
-        public override string Title
-            => _title;
+    protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
 
-        protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgressTracker progressTracker, CancellationToken cancellationToken)
-            => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
-
-        protected override bool IsInternalProvider(IFixAllState fixAllState)
-        {
-            return true;
-        }
+    protected override bool IsInternalProvider(IFixAllState fixAllState)
+    {
+        return true;
     }
 }

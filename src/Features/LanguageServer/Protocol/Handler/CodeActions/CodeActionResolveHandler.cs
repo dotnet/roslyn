@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 options,
                 _codeFixService,
                 _codeRefactoringService,
+                fixAllScope: null,
                 cancellationToken).ConfigureAwait(false);
 
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);

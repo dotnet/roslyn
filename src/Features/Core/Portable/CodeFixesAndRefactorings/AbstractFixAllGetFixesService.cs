@@ -85,7 +85,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
                 }
             }
 
-            return result.ToImmutableAndClear();
+            return action;
         }
     }
 

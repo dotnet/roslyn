@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 options,
                 _codeFixService,
                 _codeRefactoringService,
-                cancellationToken,
-                request.Scope).ConfigureAwait(false);
+                request.Scope,
+                cancellationToken).ConfigureAwait(false);
 
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(codeActionToResolve);
