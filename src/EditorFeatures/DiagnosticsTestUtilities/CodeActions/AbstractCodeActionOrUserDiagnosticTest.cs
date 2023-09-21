@@ -294,6 +294,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
 
+#pragma warning disable
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#pragma warning enable
+
             var (actions, _) = await GetCodeActionsAsync(workspace, ps);
             var offeredActions = Environment.NewLine + string.Join(Environment.NewLine, actions.Select(action => action.Title));
 
@@ -484,6 +489,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
+#pragma warning disable
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#pragma warning enable
+
                 // Ideally this check would always run, but there are several hundred tests that would need to be
                 // updated with {|Unnecessary:|} spans.
                 if (unnecessarySpans.Any())
@@ -696,6 +706,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition))
             {
+#pragma warning disable
+                Assert.True(expectedWorkspace.TryApplyChanges(expectedWorkspace.CurrentSolution.WithOptions(
+                    expectedWorkspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#pragma warning enable
+
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());
                 foreach (var project in newSolution.Projects)
