@@ -2,47 +2,37 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class GeneratedNameParser
+        Private Shared ReadOnly s_prefixMapping As ImmutableArray(Of (prefix As String, kind As GeneratedNameKind)) = ImmutableArray.Create(
+            (GeneratedNameConstants.HoistedMeName, GeneratedNameKind.HoistedMeField),
+            (GeneratedNameConstants.StateMachineStateFieldName, GeneratedNameKind.StateMachineStateField),
+            (GeneratedNameConstants.StaticLocalFieldNamePrefix, GeneratedNameKind.StaticLocalField),
+            (GeneratedNameConstants.HoistedSynthesizedLocalPrefix, GeneratedNameKind.HoistedSynthesizedLocalField),
+            (GeneratedNameConstants.HoistedUserVariablePrefix, GeneratedNameKind.HoistedUserVariableField),
+            (GeneratedNameConstants.IteratorCurrentFieldName, GeneratedNameKind.IteratorCurrentField),
+            (GeneratedNameConstants.IteratorInitialThreadIdName, GeneratedNameKind.IteratorInitialThreadIdField),
+            (GeneratedNameConstants.IteratorParameterProxyPrefix, GeneratedNameKind.IteratorParameterProxyField),
+            (GeneratedNameConstants.StateMachineAwaiterFieldPrefix, GeneratedNameKind.StateMachineAwaiterField),
+            (GeneratedNameConstants.HoistedWithLocalPrefix, GeneratedNameKind.HoistedWithLocalPrefix),
+            (GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix, GeneratedNameKind.StateMachineHoistedUserVariableOrDisplayClassField),
+            (GeneratedNameConstants.AnonymousTypeTemplateNamePrefix, GeneratedNameKind.AnonymousType),
+            (GeneratedNameConstants.DisplayClassPrefix, GeneratedNameKind.LambdaDisplayClass),
+            (GeneratedNameConstants.It, GeneratedNameKind.TransparentIdentifier),
+            (GeneratedNameConstants.It1, GeneratedNameKind.TransparentIdentifier),
+            (GeneratedNameConstants.It2, GeneratedNameKind.TransparentIdentifier),
+            (GeneratedNameConstants.ItAnonymous, GeneratedNameKind.AnonymousTransparentIdentifier)) ' We distinguish GeneratedNameConstants.ItAnonymous, because it won't be an instance of an anonymous type.
+
         Friend Shared Function GetKind(name As String) As GeneratedNameKind
-            If name.StartsWith(GeneratedNameConstants.HoistedMeName, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.HoistedMeField
-            ElseIf name.StartsWith(GeneratedNameConstants.StateMachineStateFieldName, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.StateMachineStateField
-            ElseIf name.StartsWith(GeneratedNameConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.StaticLocalField
-            ElseIf name.StartsWith(GeneratedNameConstants.HoistedSynthesizedLocalPrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.HoistedSynthesizedLocalField
-            ElseIf name.StartsWith(GeneratedNameConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.HoistedUserVariableField
-            ElseIf name.StartsWith(GeneratedNameConstants.IteratorCurrentFieldName, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.IteratorCurrentField
-            ElseIf name.StartsWith(GeneratedNameConstants.IteratorInitialThreadIdName, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.IteratorInitialThreadIdField
-            ElseIf name.StartsWith(GeneratedNameConstants.IteratorParameterProxyPrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.IteratorParameterProxyField
-            ElseIf name.StartsWith(GeneratedNameConstants.StateMachineAwaiterFieldPrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.StateMachineAwaiterField
-            ElseIf name.StartsWith(GeneratedNameConstants.HoistedWithLocalPrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.HoistedWithLocalPrefix
-            ElseIf name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.StateMachineHoistedUserVariableOrDisplayClassField
-            ElseIf name.StartsWith(GeneratedNameConstants.AnonymousTypeTemplateNamePrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.AnonymousType
-            ElseIf name.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.LambdaDisplayClass
-            ElseIf name.Equals(GeneratedNameConstants.It, StringComparison.Ordinal) OrElse
-                    name.Equals(GeneratedNameConstants.It1, StringComparison.Ordinal) OrElse
-                    name.Equals(GeneratedNameConstants.It2, StringComparison.Ordinal) Then
-                Return GeneratedNameKind.TransparentIdentifier
-            ElseIf name.Equals(GeneratedNameConstants.ItAnonymous, StringComparison.Ordinal) Then
-                ' We distinguish GeneratedNameConstants.ItAnonymous, because it won't be an instance
-                ' of an anonymous type.
-                Return GeneratedNameKind.AnonymousTransparentIdentifier
-            End If
+            For Each prefixAndKind In s_prefixMapping
+                If name.StartsWith(prefixAndKind.prefix, StringComparison.Ordinal) Then
+                    Return prefixAndKind.kind
+                End If
+            Next
 
             Return GeneratedNameKind.None
         End Function

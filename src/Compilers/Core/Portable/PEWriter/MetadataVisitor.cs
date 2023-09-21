@@ -8,6 +8,7 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 
 namespace Microsoft.Cci
 {
@@ -280,23 +281,37 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodDefinition method)
         {
-            this.Visit(method.GetReturnValueAttributes(Context));
+            // Only visit signature components for EnC-deleted methods (generic parameters and attributes are not emitted). 
+            bool signatureOnly = method.IsEncDeleted;
+
+            // Deletes of PE methods should not be visited since their signature is reused from the deleted PE symbol.
+            if (signatureOnly && method is DeletedPEMethodDefinition { MetadataSignatureHandle.IsNil: false })
+            {
+                return;
+            }
+
+            if (!signatureOnly)
+            {
+                this.Visit(method.GetReturnValueAttributes(Context));
+            }
+
             this.Visit(method.RefCustomModifiers);
             this.Visit(method.ReturnValueCustomModifiers);
 
-            if (method.HasDeclarativeSecurity)
+            if (!signatureOnly && method.HasDeclarativeSecurity)
             {
                 this.Visit(method.SecurityAttributes);
             }
 
-            if (method.IsGeneric)
+            if (!signatureOnly && method.GenericParameterCount > 0)
             {
                 this.Visit(method.GenericParameters);
             }
 
             this.Visit(method.GetType(Context));
             this.Visit(method.Parameters);
-            if (method.IsPlatformInvoke)
+
+            if (!signatureOnly && method.IsPlatformInvoke)
             {
                 this.Visit(method.PlatformInvokeData);
             }
@@ -421,7 +436,11 @@ namespace Microsoft.Cci
 
             Debug.Assert((marshalling != null || !parameterDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == parameterDefinition.IsMarshalledExplicitly);
 
-            this.Visit(parameterDefinition.GetAttributes(Context));
+            if (!parameterDefinition.IsEncDeleted)
+            {
+                this.Visit(parameterDefinition.GetAttributes(Context));
+            }
+
             this.Visit(parameterDefinition.RefCustomModifiers);
             this.Visit(parameterDefinition.CustomModifiers);
 
@@ -544,7 +563,10 @@ namespace Microsoft.Cci
             }
             else
             {
-                this.Visit(typeMember.GetAttributes(Context));
+                if (!typeMember.IsEncDeleted)
+                {
+                    this.Visit(typeMember.GetAttributes(Context));
+                }
 
                 typeMember.Dispatch(this);
             }

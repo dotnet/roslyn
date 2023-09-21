@@ -10,6 +10,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Misc implementation metadata flags (ImplFlags in metadata).
         /// </summary>
-        internal abstract System.Reflection.MethodImplAttributes ImplementationAttributes { get; }
+        internal abstract MethodImplAttributes ImplementationAttributes { get; }
 
         /// <summary>
         /// True if the type has declarative security information (HasSecurity flags).
@@ -1180,7 +1182,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region IMethodSymbolInternal
 
+        bool IMethodSymbolInternal.HasDeclarativeSecurity => HasDeclarativeSecurity;
+        bool IMethodSymbolInternal.IsAccessCheckedOnOverride => IsAccessCheckedOnOverride;
+        bool IMethodSymbolInternal.IsExternal => IsExternal;
+        bool IMethodSymbolInternal.IsHiddenBySignature => !HidesBaseMethodsByName;
+        bool IMethodSymbolInternal.IsMetadataNewSlot => IsMetadataNewSlot();
+        bool IMethodSymbolInternal.IsPlatformInvoke => GetDllImportData() != null;
+        bool IMethodSymbolInternal.HasRuntimeSpecialName => HasRuntimeSpecialName;
+        bool IMethodSymbolInternal.IsMetadataFinal => IsSealed;
+        bool IMethodSymbolInternal.HasSpecialName => HasSpecialName;
+        bool IMethodSymbolInternal.RequiresSecurityObject => RequiresSecurityObject;
+        MethodImplAttributes IMethodSymbolInternal.ImplementationAttributes => ImplementationAttributes;
         bool IMethodSymbolInternal.IsIterator => IsIterator;
+        ISymbolInternal IMethodSymbolInternal.AssociatedSymbol => AssociatedSymbol;
+        IMethodSymbolInternal IMethodSymbolInternal.PartialImplementationPart => PartialImplementationPart;
+        IMethodSymbolInternal IMethodSymbolInternal.PartialDefinitionPart => PartialDefinitionPart;
+
+        /// <summary>
+        /// Gets the handle for the signature of this method as it appears in metadata. 
+        /// Nil handle for symbols not loaded from metadata, or if the metadata is invalid.
+        /// </summary>
+        public virtual BlobHandle MetadataSignatureHandle => default;
 
         int IMethodSymbolInternal.ParameterCount => ParameterCount;
 

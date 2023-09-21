@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -31,12 +32,34 @@ namespace Roslyn.Utilities
             return result;
         }
 
+        public static bool AddAll<T, S>(this ISet<T> set, ImmutableArray<S> values, Func<S, T> selector)
+        {
+            var result = false;
+            foreach (var v in values)
+            {
+                result |= set.Add(selector(v));
+            }
+
+            return result;
+        }
+
         public static bool RemoveAll<T>(this ISet<T> set, IEnumerable<T> values)
         {
             var result = false;
             foreach (var v in values)
             {
                 result |= set.Remove(v);
+            }
+
+            return result;
+        }
+
+        public static bool RemoveAll<T, S>(this ISet<T> set, IEnumerable<S> values, Func<S, T> selector)
+        {
+            var result = false;
+            foreach (var v in values)
+            {
+                result |= set.Remove(selector(v));
             }
 
             return result;

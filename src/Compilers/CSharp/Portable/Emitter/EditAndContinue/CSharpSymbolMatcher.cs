@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -28,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             SourceAssemblySymbol sourceAssembly,
             SourceAssemblySymbol otherAssembly,
             SynthesizedTypeMaps synthesizedTypes,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherDeletedMembers)
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherDeletedMembers)
         {
             _visitor = new Visitor(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembers, otherDeletedMembers, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
         }
@@ -97,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             /// Members that are not listed directly on their containing type or namespace symbol as they were synthesized in a lowering phase,
             /// after the symbol has been created.
             /// </summary>
-            private readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherSynthesizedMembers;
+            private readonly IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherSynthesizedMembers;
 
-            private readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherDeletedMembers;
+            private readonly IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? _otherDeletedMembers;
 
             private readonly SymbolComparer _comparer;
             private readonly ConcurrentDictionary<Symbol, Symbol?> _matches = new(ReferenceEqualityComparer.Instance);
@@ -116,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 SourceAssemblySymbol sourceAssembly,
                 AssemblySymbol otherAssembly,
                 SynthesizedTypeMaps synthesizedTypes,
-                ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
-                ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherDeletedMembers,
+                IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
+                IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherDeletedMembers,
                 DeepTranslator? deepTranslator)
             {
                 _synthesizedTypes = synthesizedTypes;

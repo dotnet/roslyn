@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -33,5 +34,22 @@ namespace Microsoft.CodeAnalysis
 
             return true;
         }
+
+        /// <summary>
+        /// Returns <see cref="ReadOnlySpan{T}"/> on platforms that have full support for <see cref="Span{T}"/> APIs,
+        /// <see cref="string"/> otherwise.
+        /// </summary>
+#if NETSTANDARD2_0
+        public unsafe static string AsSpanOrString(this ReadOnlySpan<char> span)
+        {
+            fixed (char* c = span)
+            {
+                return new string(c, 0, span.Length);
+            }
+        }
+#else
+        public static ReadOnlySpan<char> AsSpanOrString(this ReadOnlySpan<char> span)
+            => span;
+#endif
     }
 }

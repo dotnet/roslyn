@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 moduleBeingBuilt,
                 emittingPdb: true,
                 diagnostics: diagnostics,
-                filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
+                filterOpt: s => changes.RequiresCompilation(s),
                 cancellationToken: cancellationToken))
             {
                 // Map the definitions from the previous compilation to the current compilation.
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var synthesizedTypes = moduleBeingBuilt.GetSynthesizedTypes();
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
-            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers();
+            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers;
 
             // Mapping from previous compilation to the current.
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;

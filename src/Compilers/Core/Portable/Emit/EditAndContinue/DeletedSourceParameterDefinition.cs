@@ -7,12 +7,13 @@ using System.Collections.Immutable;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedParameterDefinition : DeletedDefinition<IParameterDefinition>, IParameterDefinition
+    internal sealed class DeletedSourceParameterDefinition : DeletedSourceDefinition<IParameterDefinition>, IParameterDefinition
     {
-        public DeletedParameterDefinition(IParameterDefinition oldParameter, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+        public DeletedSourceParameterDefinition(IParameterDefinition oldParameter, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
             : base(oldParameter, typesUsedByDeletedMembers)
         {
         }
@@ -41,34 +42,17 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ushort Index => OldDefinition.Index;
 
-        public IDefinition? AsDefinition(EmitContext context)
-        {
-            return this;
-        }
-
-        public void Dispatch(MetadataVisitor visitor)
-        {
-            OldDefinition.Dispatch(visitor);
-        }
-
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
-        {
-            return WrapAttributes(OldDefinition.GetAttributes(context));
-        }
-
         public MetadataConstant? GetDefaultValue(EmitContext context)
         {
             return OldDefinition.GetDefaultValue(context);
-        }
-
-        public ISymbolInternal? GetInternalSymbol()
-        {
-            return OldDefinition.GetInternalSymbol();
         }
 
         public ITypeReference GetType(EmitContext context)
         {
             return WrapType(OldDefinition.GetType(context));
         }
+
+        public override void Dispatch(MetadataVisitor visitor)
+            => visitor.Visit(this);
     }
 }

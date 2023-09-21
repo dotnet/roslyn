@@ -2538,7 +2538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
-            If moduleBuilder.EncSymbolChanges?.IsReplaced(CType(Me, ISymbolInternal).GetISymbol()) = True Then
+            If moduleBuilder.EncSymbolChanges?.IsReplaced(Me) = True Then
                 ' Note that we use this source named type symbol in the attribute argument (of System.Type).
                 ' We do not have access to the original symbol from this compilation. However, System.Type
                 ' is encoded in the attribute as a string containing a fully qualified type name.

@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
@@ -1111,6 +1112,11 @@ namespace Microsoft.Cci
 
         internal BlobHandle GetMethodSignatureHandle(IMethodReference methodReference)
         {
+            if (methodReference is DeletedPEMethodDefinition { MetadataSignatureHandle: { IsNil: false } handle })
+            {
+                return handle;
+            }
+
             return GetMethodSignatureHandleAndBlob(methodReference, out _);
         }
 
@@ -1171,6 +1177,11 @@ namespace Microsoft.Cci
 
         internal EntityHandle GetMethodHandle(IMethodReference methodReference)
         {
+            if (methodReference is IDeletedMethodDefinition { MetadataHandle: var deletedMethodHandle })
+            {
+                return deletedMethodHandle;
+            }
+
             MethodDefinitionHandle methodDefHandle;
             IMethodDefinition methodDef = null;
             IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
@@ -2090,21 +2101,33 @@ namespace Microsoft.Cci
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, TableIndex tableIndex)
-            where T : IReference
+            where T : IDefinition
         {
             int parentRowId = 1;
             foreach (var parent in parentList)
             {
+                if (parent.IsEncDeleted)
+                {
+                    // Custom attributes are not needed for EnC definition deletes
+                    continue;
+                }
+
                 var parentHandle = MetadataTokens.Handle(tableIndex, parentRowId++);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, Func<T, EntityHandle> getDefinitionHandle)
-            where T : IReference
+            where T : IDefinition
         {
             foreach (var parent in parentList)
             {
+                if (parent.IsEncDeleted)
+                {
+                    // Custom attributes are not needed for EnC definition deletes
+                    continue;
+                }
+
                 EntityHandle parentHandle = getDefinitionHandle(parent);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
@@ -2153,7 +2176,7 @@ namespace Microsoft.Cci
 
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
             {
-                if (!methodDef.HasDeclarativeSecurity)
+                if (methodDef.IsEncDeleted || !methodDef.HasDeclarativeSecurity)
                 {
                     continue;
                 }
@@ -2451,7 +2474,7 @@ namespace Microsoft.Cci
         {
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
             {
-                if (!methodDef.IsPlatformInvoke)
+                if (methodDef.IsEncDeleted || !methodDef.IsPlatformInvoke)
                 {
                     continue;
                 }
@@ -2864,7 +2887,7 @@ namespace Microsoft.Cci
             int methodRid = 0;
             foreach (IMethodDefinition method in methods)
             {
-                if (method.HasBody())
+                if (method.HasBody)
                 {
                     if (bodyOffsetCache == -1)
                     {
@@ -2885,6 +2908,8 @@ namespace Microsoft.Cci
 
         private int[] SerializeMethodBodies(BlobBuilder ilBuilder, PdbWriter nativePdbWriterOpt, out Blob mvidStringFixup)
         {
+            Debug.Assert(!MetadataOnly);
+
             CustomDebugInfoWriter customDebugInfoWriter = (nativePdbWriterOpt != null) ? new CustomDebugInfoWriter(nativePdbWriterOpt) : null;
 
             var methods = this.GetMethodDefs();
@@ -2906,24 +2931,17 @@ namespace Microsoft.Cci
                 IMethodBody body;
                 StandaloneSignatureHandle localSignatureHandleOpt;
 
-                if (method.HasBody())
+                if (method.HasBody)
                 {
                     body = method.GetBody(Context);
+                    Debug.Assert(body != null);
 
-                    if (body != null)
-                    {
-                        localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
+                    localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
 
-                        // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
+                    // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
+                    bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
 
-                        nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
-                    }
-                    else
-                    {
-                        bodyOffset = 0;
-                        localSignatureHandleOpt = default(StandaloneSignatureHandle);
-                    }
+                    nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
                 }
                 else
                 {
