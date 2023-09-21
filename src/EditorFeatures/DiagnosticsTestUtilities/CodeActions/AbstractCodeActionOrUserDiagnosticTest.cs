@@ -294,10 +294,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
 
-#pragma warning disable
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
-#pragma warning enable
 
             var (actions, _) = await GetCodeActionsAsync(workspace, ps);
             var offeredActions = Environment.NewLine + string.Join(Environment.NewLine, actions.Select(action => action.Title));
