@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Delegate:
                 case TypeKind.Array:
                 case TypeKind.Submission:
+                case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     // Enums, arrays, submissions and delegates know their own base types
                     // intrinsically (and do not include interface lists)
                     // so there is no possibility of a cycle.
