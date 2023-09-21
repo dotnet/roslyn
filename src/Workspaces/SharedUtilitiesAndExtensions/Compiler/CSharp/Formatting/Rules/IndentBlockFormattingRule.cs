@@ -213,15 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
 
-        //private static void AddCollectionExpressionIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
-        //{
-        //    var bracketPair = node.GetBracketPair();
-        //    if (!bracketPair.IsValidBracketOrBracePair())
-        //        return;
-
-        //    AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
-        //}
-
         private void AddBlockIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
