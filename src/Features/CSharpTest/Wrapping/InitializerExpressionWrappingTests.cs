@@ -77,6 +77,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
                 """);
         }
 
+        [Fact]
+        public async Task TestWrappingNakedArrayInitializer()
+        {
+            await TestAllWrappingCasesAsync(
+                """
+                class C {
+                    void Bar() {
+                        var test = [||]{ 1, 2 };
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        var test =
+                        {
+                            1,
+                            2
+                        };
+                    }
+                }
+                """,
+                """
+                class C {
+                    void Bar() {
+                        var test =
+                        {
+                            1, 2
+                        };
+                    }
+                }
+                """);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59624")]
         public async Task TestWrappingShortInitializerExpression_TrailingComma()
         {
@@ -112,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestWrappingLongIntializerExpression()
+        public async Task TestWrappingLongInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -154,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestWrappingMultiLineLongIntializerExpression()
+        public async Task TestWrappingMultiLineLongInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -240,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestLongIntializerExpressionRefactorings()
+        public async Task TestLongInitializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -282,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestListWrappingIntializerExpression()
+        public async Task TestListWrappingInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -325,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestWrappedListIntializerExpression()
+        public async Task TestWrappedListInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -368,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestObjectWrappingIntializerExpression()
+        public async Task TestObjectWrappingInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -404,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestWrappedObjectIntializerExpression()
+        public async Task TestWrappedObjectInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -440,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestReturnIntializerExpression()
+        public async Task TestReturnInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -483,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestWrappedReturnIntializerExpression()
+        public async Task TestWrappedReturnInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -526,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestClassPropertyIntializerExpressionRefactorings()
+        public async Task TestClassPropertyInitializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -563,7 +597,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestWrappedClassPropertyIntializerExpressionRefactorings()
+        public async Task TestWrappedClassPropertyInitializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -600,7 +634,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestArgumentIntializerExpressionRefactorings()
+        public async Task TestArgumentInitializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
                 """
@@ -637,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact]
-        public async Task TestWrappedArgumentIntializerExpressionRefactorings()
+        public async Task TestWrappedArgumentInitializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
                 """
