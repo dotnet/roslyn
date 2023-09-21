@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the user.
         /// </summary>
-        private class SeparatedSyntaxListCodeActionComputer : AbstractCodeActionComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
+        private sealed class SeparatedSyntaxListCodeActionComputer : AbstractCodeActionComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
         {
             private readonly TListSyntax _listSyntax;
             private readonly SeparatedSyntaxList<TListItemSyntax> _listItems;
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
 
-                _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
-                _singleIndentationTrivia = new Lazy<SyntaxTrivia>(() => generator.Whitespace(GetSingleIdentation()));
+                _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIndentation());
+                _singleIndentationTrivia = new Lazy<SyntaxTrivia>(() => generator.Whitespace(GetSingleIndentation()));
                 _braceIndentationTrivia = new Lazy<SyntaxTrivia>(() => generator.Whitespace(GetBraceTokenIndentation()));
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     : Edit.DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
             }
 
-            private string GetAfterOpenTokenIdentation()
+            private string GetAfterOpenTokenIndentation()
             {
                 var openToken = _listSyntax.GetFirstToken();
                 var afterOpenTokenOffset = OriginalSourceText.GetOffset(openToken.Span.End);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return indentString;
             }
 
-            private string GetSingleIdentation()
+            private string GetSingleIndentation()
             {
                 // Insert a newline after the open token of the list.  Then ask the
                 // ISynchronousIndentationService where it thinks that the next line should be
