@@ -61,6 +61,7 @@ internal static class CSharpCollectionExpressionRewriter
 #endif
 
         var initializer = getInitializer(expressionToReplace);
+        var endOfLine = EndOfLine(formattingOptions.NewLine);
 
         // Determine if we want to end up with a multiline collection expression.  The general intuition is that we
         // want a multiline expression if any of the following are true:
@@ -121,11 +122,15 @@ internal static class CSharpCollectionExpressionRewriter
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
                 CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
 
+                var closeBracket = Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(Whitespace(openBraceIndentation));
+                if (nodesAndTokens.Count > 0 && nodesAndTokens.Last().GetTrailingTrivia().LastOrDefault().Kind() != SyntaxKind.EndOfLineTrivia)
+                    closeBracket = closeBracket.WithPrependedLeadingTrivia(endOfLine);
+
                 // Make the collection expression with the braces on new lines, at the desired brace indentation.
                 var finalCollection = CollectionExpression(
-                    Token(SyntaxKind.OpenBracketToken).WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(openBraceIndentation)).WithTrailingTrivia(ElasticCarriageReturnLineFeed),
+                    Token(SyntaxKind.OpenBracketToken).WithLeadingTrivia(endOfLine, Whitespace(openBraceIndentation)).WithTrailingTrivia(endOfLine),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                    Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(openBraceIndentation)));
+                    closeBracket);
 
                 // Now, figure out what trivia to move over from the original object over to the new collection.
                 return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
@@ -203,11 +208,17 @@ internal static class CSharpCollectionExpressionRewriter
                     var preferredBraceIndentation = initializer.OpenBraceToken.GetPreferredIndentation(document, indentationOptions, cancellationToken);
                     var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
+                    var elements = initialCollection.Elements;
+                    elements = elements.Replace(elements.First(), elements.First().WithLeadingTrivia(endOfLine, Whitespace(preferredItemIndentation)));
+                    var elementsWithSeparators = elements.GetWithSeparators();
+                    var last = elementsWithSeparators.Last();
+                    elements = SeparatedList<CollectionElementSyntax>(elementsWithSeparators.Replace(last, RemoveTrailingWhitespace(last)));
+
                     // Update both the braces and initial elements to the right location.
                     initialCollection = initialCollection.Update(
-                        initialCollection.OpenBracketToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredBraceIndentation)),
-                        initialCollection.Elements.Replace(initialCollection.Elements.First(), initialCollection.Elements.First().WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredItemIndentation))),
-                        initialCollection.CloseBracketToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredBraceIndentation)));
+                        initialCollection.OpenBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation)),
+                        elements,
+                        initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation)));
 
                     // Then add all new elements at the right indentation level.
                     var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredItemIndentation);
@@ -227,8 +238,8 @@ internal static class CSharpCollectionExpressionRewriter
                     var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
                     initialCollection = initialCollection
-                        .WithElements(initialCollection.Elements.Replace(initialCollection.Elements.First(), initialCollection.Elements.First().WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredItemIndentation))))
-                        .WithCloseBracketToken(initialCollection.CloseBracketToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(braceIndentation)));
+                        .WithElements(initialCollection.Elements.Replace(initialCollection.Elements.First(), initialCollection.Elements.First().WithLeadingTrivia(endOfLine, Whitespace(preferredItemIndentation))))
+                        .WithCloseBracketToken(initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(braceIndentation)));
 
                     var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredItemIndentation);
 
@@ -269,20 +280,20 @@ internal static class CSharpCollectionExpressionRewriter
             // with a newline so that the element node comes on the next line indented properly.
             var triviaAfterComma = preferredIndentation is null
                 ? TriviaList(Space)
-                : TriviaList(EndOfLine(formattingOptions.NewLine));
+                : TriviaList(endOfLine);
 
             foreach (var element in matches.SelectMany(m => CreateElements(m, preferredIndentation)))
             {
-                AddCommaIfMissing();
+                AddCommaIfMissing(last: false); ;
                 nodesAndTokens.Add(element);
             }
 
             if (matches.Length > 0 && forceTrailingComma)
-                AddCommaIfMissing();
+                AddCommaIfMissing(last: true);
 
             return;
 
-            void AddCommaIfMissing()
+            void AddCommaIfMissing(bool last)
             {
                 // Add a comment before each new element we're adding.  Move any trailing whitespace/comment trivia
                 // from the prior node to come after that comma.  e.g. if the prior node was `x // comment` then we
@@ -296,9 +307,26 @@ internal static class CSharpCollectionExpressionRewriter
                     var commaToken = Token(SyntaxKind.CommaToken)
                         .WithoutLeadingTrivia()
                         .WithTrailingTrivia(TriviaList(trailingWhitespaceAndComments).AddRange(triviaAfterComma));
+
+                    // Strip trailing whitespace after the last comma.
+                    if (last)
+                        commaToken = RemoveTrailingWhitespace(commaToken).AsToken();
+
                     nodesAndTokens.Add(commaToken);
                 }
             }
+        }
+
+        static SyntaxNodeOrToken RemoveTrailingWhitespace(SyntaxNodeOrToken nodeOrToken)
+        {
+            var trivia = nodeOrToken.GetTrailingTrivia();
+            var index = trivia.Count;
+            while (index - 1 >= 0 && trivia[index - 1].Kind() == SyntaxKind.WhitespaceTrivia)
+                index--;
+
+            return index == trivia.Count
+                ? nodeOrToken
+                : nodeOrToken.WithTrailingTrivia(trivia.Take(index));
         }
 
         // Helper which takes a collection expression that already has at least one element in it and adds the new
