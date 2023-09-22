@@ -272,12 +272,14 @@ internal static class CSharpCollectionExpressionRewriter
             SeparatedSyntaxList<CollectionElementSyntax> elements,
             string preferredItemIndentation)
         {
-            elements = elements.Replace(elements.First(), elements.First().WithLeadingTrivia(endOfLine, Whitespace(preferredItemIndentation)));
             var elementsWithSeparators = elements.GetWithSeparators();
-            var last = elementsWithSeparators.Last();
-            var result = SeparatedList<CollectionElementSyntax>(elementsWithSeparators.Replace(last, RemoveTrailingWhitespace(last)));
 
-            return result;
+            var first = elementsWithSeparators.First();
+            elementsWithSeparators = elementsWithSeparators.Replace(first, first.WithLeadingTrivia(endOfLine, Whitespace(preferredItemIndentation)));
+            var last = elementsWithSeparators.Last();
+            elementsWithSeparators = elementsWithSeparators.Replace(last, RemoveTrailingWhitespace(last));
+
+            return SeparatedList<CollectionElementSyntax>(elementsWithSeparators);
         }
 
         // Helper which produces the CollectionElementSyntax nodes and adds to the separated syntax list builder array.
