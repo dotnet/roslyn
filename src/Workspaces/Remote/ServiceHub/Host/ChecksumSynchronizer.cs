@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,7 +115,25 @@ namespace Microsoft.CodeAnalysis.Remote
                         AddIfNeeded(checksums, checksum);
                         continue;
                     case ChecksumCollection checksumCollection:
-                        AddIfNeeded(checksums, checksumCollection);
+                        AddIfNeeded(checksums, checksumCollection.Children);
+                        continue;
+                }
+
+                throw ExceptionUtilities.UnexpectedValue(checksumOrCollection);
+            }
+        }
+
+        private void AddIfNeeded(HashSet<Checksum> checksums, ImmutableArray<object> checksumOrCollections)
+        {
+            foreach (var checksumOrCollection in checksumOrCollections)
+            {
+                switch (checksumOrCollection)
+                {
+                    case Checksum checksum:
+                        AddIfNeeded(checksums, checksum);
+                        continue;
+                    case ChecksumCollection checksumCollection:
+                        AddIfNeeded(checksums, checksumCollection.Children);
                         continue;
                 }
 
