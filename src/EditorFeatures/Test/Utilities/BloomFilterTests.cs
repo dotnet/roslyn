@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public void TestSerialization2()
         {
             var stream = new MemoryStream();
-            var bloomFilter = new BloomFilter(0.001, new HashSet<string> () { "Hello, World" }, new HashSet<long>() { long.MaxValue, -1, 0, 1, long.MinValue });
+            var bloomFilter = new BloomFilter(0.001, new HashSet<string>() { "Hello, World" }, new HashSet<long>() { long.MaxValue, -1, 0, 1, long.MinValue });
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
