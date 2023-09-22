@@ -298,7 +298,7 @@ internal static class CSharpCollectionExpressionRewriter
 
             foreach (var element in matches.SelectMany(m => CreateElements(m, preferredIndentation)))
             {
-                AddCommaIfMissing(last: false); ;
+                AddCommaIfMissing(last: false);
                 nodesAndTokens.Add(element);
             }
 
