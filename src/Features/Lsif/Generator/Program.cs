@@ -101,6 +101,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             ILogger logger;
             if (logFile is not null)
                 logger = new PlainTextLogger(logFile);
+            else if (logFileName == "stderr")
+                logger = new LsifFormatLogger(Console.Error);
             else
                 logger = NullLogger.Instance;
 
