@@ -161,8 +161,8 @@ namespace Roslyn.Utilities
         public struct Enumerator
         {
             private readonly WeakList<T> _weakList;
-            private int _nextIndex;
             private readonly int _count;
+            private int _nextIndex;
             private int _alive;
             private int _firstDead;
             private T? _current;
@@ -183,7 +183,8 @@ namespace Roslyn.Utilities
             {
                 while (_nextIndex < _count)
                 {
-                    int currentIndex = _nextIndex++;
+                    int currentIndex = _nextIndex;
+                    _nextIndex += 1;
                     if (_weakList._items[currentIndex].TryGetTarget(out var item))
                     {
                         _current = item;
