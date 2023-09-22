@@ -123,7 +123,9 @@ internal static class CSharpCollectionExpressionRewriter
                 CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
 
                 var closeBracket = Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(Whitespace(openBraceIndentation));
-                if (nodesAndTokens.Count > 0 && nodesAndTokens.Last().GetTrailingTrivia().LastOrDefault().Kind() != SyntaxKind.EndOfLineTrivia)
+
+                // Add a newline between the last element and the close bracket if we don't already have one.
+                if (nodesAndTokens.Count > 0 && nodesAndTokens.Last().GetTrailingTrivia() is [.., (kind: not SyntaxKind.EndOfLineTrivia)])
                     closeBracket = closeBracket.WithPrependedLeadingTrivia(endOfLine);
 
                 // Make the collection expression with the braces on new lines, at the desired brace indentation.
