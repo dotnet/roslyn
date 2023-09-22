@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1642,6 +1643,16 @@ namespace Microsoft.CodeAnalysis.Testing
             var solution = project.Solution.WithProjectCompilationOptions(project.Id, modifiedCompilationOptions);
             return solution.GetProject(project.Id);
         }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete($"Use {nameof(CreateWorkspaceAsync)} instead. https://github.com/dotnet/roslyn-sdk/pull/1120", error: true)]
+        public Workspace CreateWorkspace()
+            => throw new NotSupportedException();
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete($"Use {nameof(CreateWorkspaceImplAsync)} instead. https://github.com/dotnet/roslyn-sdk/pull/1120", error: true)]
+        protected virtual Workspace CreateWorkspaceImpl()
+            => throw new NotSupportedException();
 
         public async Task<Workspace> CreateWorkspaceAsync()
         {
