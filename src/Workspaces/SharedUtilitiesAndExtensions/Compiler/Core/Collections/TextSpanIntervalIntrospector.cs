@@ -26,4 +26,7 @@ internal sealed class TextSpanIntervalTree(IEnumerable<TextSpan>? values)
     public TextSpanIntervalTree(params TextSpan[]? values) : this((IEnumerable<TextSpan>?)values)
     {
     }
+
+    public bool HasIntervalThatIntersectsWith(TextSpan span)
+        => this.HasIntervalThatIntersectsWith(span.Start, span.Length);
 }
