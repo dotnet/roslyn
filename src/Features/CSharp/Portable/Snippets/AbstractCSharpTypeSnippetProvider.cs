@@ -24,12 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
     {
         protected abstract ISet<SyntaxKind> ValidModifiers { get; }
 
-        protected override async Task<bool> HasPrecedingAccessibilityModifiersAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return tree.GetPrecedingModifiers(position, cancellationToken).Any(SyntaxFacts.IsAccessibilityModifier);
-        }
-
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
@@ -42,6 +36,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
+        }
+
+        protected override async Task<TextChange?> GetAccessibilityModifiersChangeAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            if (!await AreAccessibilityModifiersRequiredAsync(document, cancellationToken).ConfigureAwait(false))
+                return null;
+
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+            if (tree.GetPrecedingModifiers(position, cancellationToken).Any(SyntaxFacts.IsAccessibilityModifier))
+                return null;
+
+            var targetToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
+
+            // If we are right after 'partial' token we need to insert modifier before it
+            var targetPosition = targetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ? targetToken.SpanStart : position;
+            return new TextChange(TextSpan.FromBounds(targetPosition, targetPosition), SyntaxFacts.GetText(SyntaxKind.PublicKeyword) + " ");
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)

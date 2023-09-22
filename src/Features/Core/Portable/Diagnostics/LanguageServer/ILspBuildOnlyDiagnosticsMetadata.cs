@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// <inheritdoc cref="ILspBuildOnlyDiagnostics"/>
     internal interface ILspBuildOnlyDiagnosticsMetadata
     {
+        string LanguageName { get; }
         string[] BuildOnlyDiagnostics { get; }
     }
 }
