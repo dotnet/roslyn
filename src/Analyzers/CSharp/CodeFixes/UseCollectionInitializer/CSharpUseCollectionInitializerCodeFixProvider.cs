@@ -26,6 +26,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         MemberAccessExpressionSyntax,
         InvocationExpressionSyntax,
         ExpressionStatementSyntax,
+        LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
         CSharpUseCollectionInitializerAnalyzer>
 {

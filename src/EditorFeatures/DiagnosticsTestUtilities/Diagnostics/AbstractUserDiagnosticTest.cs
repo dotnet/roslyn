@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string diagnosticId = null,
             TestParameters parameters = null)
         {
-            MarkupTestFile.GetSpans(initialMarkup, out var unused, out ImmutableArray<TextSpan> spansList);
+            MarkupTestFile.GetSpans(initialMarkup, out var unused, out var spansList);
 
             var ps = parameters ?? TestParameters.Default;
             var expectedTextSpans = spansList.ToSet();

@@ -7,7 +7,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
-    <LangVersion>9</LangVersion>
+    <LangVersion>11</LangVersion>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 

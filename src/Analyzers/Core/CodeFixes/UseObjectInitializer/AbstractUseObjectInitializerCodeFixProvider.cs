@@ -23,7 +23,9 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
     TObjectCreationExpressionSyntax,
     TMemberAccessExpressionSyntax,
     TAssignmentStatementSyntax,
-    TVariableDeclaratorSyntax>
+    TLocalDeclarationStatementSyntax,
+    TVariableDeclaratorSyntax,
+    TAnalyzer>
     : ForkingSyntaxEditorBasedCodeFixProvider<TObjectCreationExpressionSyntax>
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
@@ -31,13 +33,25 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
     where TObjectCreationExpressionSyntax : TExpressionSyntax
     where TMemberAccessExpressionSyntax : TExpressionSyntax
     where TAssignmentStatementSyntax : TStatementSyntax
+    where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
+        TExpressionSyntax,
+        TStatementSyntax,
+        TObjectCreationExpressionSyntax,
+        TMemberAccessExpressionSyntax,
+        TAssignmentStatementSyntax,
+        TLocalDeclarationStatementSyntax,
+        TVariableDeclaratorSyntax,
+        TAnalyzer>, new()
 {
     protected AbstractUseObjectInitializerCodeFixProvider()
         : base(AnalyzersResources.Object_initialization_can_be_simplified,
                nameof(AnalyzersResources.Object_initialization_can_be_simplified))
     {
     }
+
+    protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract TStatementSyntax GetNewStatement(
         TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
@@ -58,7 +72,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        using var analyzer = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
+        using var analyzer = GetAnalyzer();
 
         var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, cancellationToken);
         if (matches.IsDefaultOrEmpty)
