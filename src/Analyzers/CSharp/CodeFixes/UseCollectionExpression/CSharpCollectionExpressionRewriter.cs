@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -61,7 +62,7 @@ internal static class CSharpCollectionExpressionRewriter
 #endif
 
         var initializer = getInitializer(expressionToReplace);
-        var endOfLine = EndOfLine(formattingOptions.NewLine);
+        var endOfLine = DetermineEndOfLine(document, expressionToReplace, formattingOptions);
 
         // Determine if we want to end up with a multiline collection expression.  The general intuition is that we
         // want a multiline expression if any of the following are true:
@@ -122,17 +123,15 @@ internal static class CSharpCollectionExpressionRewriter
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
                 CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
 
-                var closeBracket = Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(Whitespace(openBraceIndentation));
-
                 // Add a newline between the last element and the close bracket if we don't already have one.
                 if (nodesAndTokens.Count > 0 && nodesAndTokens.Last().GetTrailingTrivia() is [.., (kind: not SyntaxKind.EndOfLineTrivia)])
-                    closeBracket = closeBracket.WithPrependedLeadingTrivia(endOfLine);
+                    nodesAndTokens[^1] = nodesAndTokens[^1].WithAppendedTrailingTrivia(endOfLine);
 
                 // Make the collection expression with the braces on new lines, at the desired brace indentation.
                 var finalCollection = CollectionExpression(
                     Token(SyntaxKind.OpenBracketToken).WithLeadingTrivia(endOfLine, Whitespace(openBraceIndentation)).WithTrailingTrivia(endOfLine),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                    closeBracket);
+                    Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(Whitespace(openBraceIndentation)));
 
                 // Now, figure out what trivia to move over from the original object over to the new collection.
                 return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
@@ -146,6 +145,7 @@ internal static class CSharpCollectionExpressionRewriter
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
                 CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
 
+                // Remove any trailing whitespace from the last element/comma and the final close bracket.
                 if (nodesAndTokens.Count > 0)
                     nodesAndTokens[^1] = RemoveTrailingWhitespace(nodesAndTokens[^1]);
 
@@ -738,6 +738,21 @@ internal static class CSharpCollectionExpressionRewriter
 
             return arguments.SelectAsArray(a => indent(a.Expression));
         }
+    }
+
+    /// <summary>
+    /// Use the same EOL text when producing the collection as the EOL on the line the original expression was on.
+    /// </summary>
+    private static SyntaxTrivia DetermineEndOfLine<TParentExpression>(
+        ParsedDocument document, TParentExpression expressionToReplace, SyntaxFormattingOptions formattingOptions) where TParentExpression : ExpressionSyntax
+    {
+        var text = document.Text;
+        var lineToConsider = text.Lines.GetLineFromPosition(expressionToReplace.SpanStart);
+        var lineBreakSpan = TextSpan.FromBounds(lineToConsider.End, lineToConsider.EndIncludingLineBreak);
+
+        return lineBreakSpan.IsEmpty
+            ? EndOfLine(formattingOptions.NewLine)
+            : EndOfLine(text.ToString(lineBreakSpan));
     }
 
     private static SyntaxToken RemoveTrailingWhitespace(SyntaxToken token)
