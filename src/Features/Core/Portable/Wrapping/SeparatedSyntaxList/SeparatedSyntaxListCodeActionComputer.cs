@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 //
                 // without adjusting the braces.
                 var unwrapWithoutBraces = await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.WrapFirst_IndentRest, wrappingColumn: int.MaxValue).ConfigureAwait(false); 
+                    parentTitle, WrappingStyle.WrapFirst_IndentRest, wrappingColumn: int.MaxValue).ConfigureAwait(false);
                 unwrapActions.AddIfNotNull(unwrapWithoutBraces);
 
                 // The first two unwrap options share no title with anything else (so they can be inlined).  However,
