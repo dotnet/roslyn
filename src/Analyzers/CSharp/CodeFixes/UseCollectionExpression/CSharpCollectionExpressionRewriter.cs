@@ -144,8 +144,13 @@ internal static class CSharpCollectionExpressionRewriter
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
                 CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
 
+                if (nodesAndTokens.Count > 0)
+                    nodesAndTokens[^1] = RemoveTrailingWhitespace(nodesAndTokens[^1]);
+
                 var collectionExpression = CollectionExpression(
-                    SeparatedList<CollectionElementSyntax>(nodesAndTokens));
+                    Token(SyntaxKind.OpenBracketToken).WithoutTrivia(),
+                    SeparatedList<CollectionElementSyntax>(nodesAndTokens),
+                    Token(SyntaxKind.CloseBracketToken).WithoutTrivia());
                 return collectionExpression.WithTriviaFrom(expressionToReplace);
             }
         }
