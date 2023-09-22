@@ -28,21 +28,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            return
-                context.IsGlobalStatementContext ||
+            if (context.IsGlobalStatementContext ||
                 context.IsUsingAliasTypeContext ||
-                ValidTypeContext(context) ||
                 IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
                 context.IsTypeDeclarationContext(
                     validModifiers: s_validModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken))
+            {
+                return true;
+            }
 
-            bool ValidTypeContext(CSharpSyntaxContext context)
-                => (context.IsNonAttributeExpressionContext || context.IsTypeContext)
-                   && !context.IsConstantExpressionContext
-                   && !context.SyntaxTree.IsUsingStaticContext(position, cancellationToken);
+            // now look for places that a function pointer could go `delegate*...`
+            if (context.IsNonAttributeExpressionContext || context.IsTypeContext)
+            {
+                if (context.IsConstantExpressionContext)
+                    return false;
+
+                if (context.SyntaxTree.IsUsingStaticContext(position, cancellationToken))
+                    return false;
+
+                if (context.IsAttributeNameContext)
+                    return false;
+
+                return true;
+            }
+
+            return false;
         }
 
         private static bool IsAfterAsyncKeywordInExpressionContext(CSharpSyntaxContext context, CancellationToken cancellationToken)

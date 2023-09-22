@@ -442,5 +442,19 @@ class C
         {
             await VerifyAbsenceAsync("enum E : $$");
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70076")]
+        public async Task TestNotInAttribute()
+        {
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    [$$]
+                    void M()
+                    {
+                    }
+                }
+                """);
+        }
     }
 }
