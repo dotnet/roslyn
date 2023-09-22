@@ -38,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
-            Dim context = New EmitContext(Me, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
@@ -46,18 +45,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
             Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, context, metadataAssembly)
+            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, metadataAssembly)
 
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
                 Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-                Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
                 matchToPrevious = New VisualBasicSymbolMatcher(
                     sourceAssembly:=sourceAssembly,
-                    sourceContext:=context,
                     otherAssembly:=previousAssembly,
-                    otherContext:=previousContext,
                     previousGeneration.SynthesizedTypes,
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers,
                     otherDeletedMembersOpt:=previousGeneration.DeletedMembers)

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
-    internal sealed class VtblGap : Cci.IMethodDefinition
+    internal sealed class VtblGap : Cci.IEmbeddedDefinition, Cci.IMethodDefinition
     {
         public readonly Cci.ITypeDefinition ContainingType;
         private readonly string _name;

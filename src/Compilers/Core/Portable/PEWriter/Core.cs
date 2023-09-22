@@ -16,6 +16,13 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
+    /// No-PIA embedded definition.
+    /// </summary>
+    internal interface IEmbeddedDefinition
+    {
+    }
+
+    /// <summary>
     /// An object corresponding to reference to a metadata entity such as a type or a field.
     /// </summary>
     internal interface IReference

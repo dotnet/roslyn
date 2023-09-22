@@ -122,14 +122,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             ' Mapping from previous compilation to the current.
             Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-            Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
-            Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             Dim matcher = New VisualBasicSymbolMatcher(
                 sourceAssembly,
-                sourceContext,
                 compilation.SourceAssembly,
-                otherContext,
                 synthesizedTypes,
                 currentSynthesizedMembers,
                 currentDeletedMembers)
@@ -140,9 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
                 sourceAssembly,
-                sourceContext,
                 compilation.SourceAssembly,
-                otherContext,
                 synthesizedTypes,
                 mappedSynthesizedMembers,
                 mappedDeletedMembers)

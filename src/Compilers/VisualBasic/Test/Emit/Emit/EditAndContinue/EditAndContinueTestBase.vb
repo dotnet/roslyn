@@ -304,9 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Function CreateMatcher(fromCompilation As VisualBasicCompilation, toCompilation As VisualBasicCompilation) As VisualBasicSymbolMatcher
             Return New VisualBasicSymbolMatcher(
                 fromCompilation.SourceAssembly,
-                sourceContext:=Nothing,
                 toCompilation.SourceAssembly,
-                otherContext:=Nothing,
                 synthesizedTypes:=SynthesizedTypeMaps.Empty,
                 otherSynthesizedMembersOpt:=Nothing,
                 otherDeletedMembersOpt:=Nothing)
