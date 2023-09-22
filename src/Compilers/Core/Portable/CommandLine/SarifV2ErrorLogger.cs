@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis
 
             // Boolean property that is true if the engineering system that started the process knows that the analysis tool succeeded,
             // and false if the engineering system knows that the tool failed.
-            // TODO: Detect when the compiler exits with an exception and emit "false".
+            // https://github.com/dotnet/roslyn/issues/70069 tracks detecting when the compiler exits with an exception and emit "false".
             _writer.Write("executionSuccessful", true);
 
             _writer.WriteArrayStart("ruleConfigurationOverrides");

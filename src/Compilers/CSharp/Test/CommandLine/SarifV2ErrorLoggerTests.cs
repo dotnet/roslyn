@@ -340,30 +340,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         internal override string GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(MockCSharpCompiler cmd)
         {
             string expectedOutput =
-@"{{
-  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
-  ""version"": ""2.1.0"",
-  ""runs"": [
+"""
+{{
+  "$schema": "http://json.schemastore.org/sarif-2.1.0",
+  "version": "2.1.0",
+  "runs": [
     {{
 {5},
-      ""properties"": {{
-        ""analyzerExecutionTime"": ""{8}""
+      "properties": {{
+        "analyzerExecutionTime": "{8}"
       }},
-      ""tool"": {{
-        ""driver"": {{
-          ""name"": ""{0}"",
-          ""version"": ""{1}"",
-          ""dottedQuadFileVersion"": ""{2}"",
-          ""semanticVersion"": ""{3}"",
-          ""language"": ""{4}"",
+      "tool": {{
+        "driver": {{
+          "name": "{0}",
+          "version": "{1}",
+          "dottedQuadFileVersion": "{2}",
+          "semanticVersion": "{3}",
+          "language": "{4}",
 {6}
         }}
       }},
       {7},
-      ""columnKind"": ""utf16CodeUnits""
+      "columnKind": "utf16CodeUnits"
     }}
   ]
-}}";
+}}
+""";
             return FormatOutputText(
                 expectedOutput,
                 cmd,
