@@ -3384,12 +3384,15 @@ True");
 
             VerifyOperationTreeForNode(comp, model, isPatterns[0], expectedOperationTree: @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'ptr is null')
-  Value: 
+  Value:
     ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
-  Pattern: 
+  Pattern:
     IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: delegate*<System.Void>, NarrowedType: delegate*<System.Void>)
-      Value: 
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+      Value:
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsImplicit) (Syntax: 'null')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand:
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
 
             VerifyOperationTreeForNode(comp, model, isPatterns[1], expectedOperationTree: @"
