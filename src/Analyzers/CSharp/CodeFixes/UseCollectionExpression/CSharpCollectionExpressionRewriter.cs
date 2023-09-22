@@ -208,16 +208,10 @@ internal static class CSharpCollectionExpressionRewriter
                     var preferredBraceIndentation = initializer.OpenBraceToken.GetPreferredIndentation(document, indentationOptions, cancellationToken);
                     var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
-                    var elements = initialCollection.Elements;
-                    elements = elements.Replace(elements.First(), elements.First().WithLeadingTrivia(endOfLine, Whitespace(preferredItemIndentation)));
-                    var elementsWithSeparators = elements.GetWithSeparators();
-                    var last = elementsWithSeparators.Last();
-                    elements = SeparatedList<CollectionElementSyntax>(elementsWithSeparators.Replace(last, RemoveTrailingWhitespace(last)));
-
                     // Update both the braces and initial elements to the right location.
                     initialCollection = initialCollection.Update(
                         initialCollection.OpenBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation)),
-                        elements,
+                        FixLeadingAndTrailingWhitespace(initialCollection.Elements, preferredItemIndentation),
                         initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation)));
 
                     // Then add all new elements at the right indentation level.
@@ -238,7 +232,7 @@ internal static class CSharpCollectionExpressionRewriter
                     var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
                     initialCollection = initialCollection
-                        .WithElements(initialCollection.Elements.Replace(initialCollection.Elements.First(), initialCollection.Elements.First().WithLeadingTrivia(endOfLine, Whitespace(preferredItemIndentation))))
+                        .WithElements(FixLeadingAndTrailingWhitespace(initialCollection.Elements, preferredItemIndentation))
                         .WithCloseBracketToken(initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(braceIndentation)));
 
                     var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredItemIndentation);
@@ -264,6 +258,18 @@ internal static class CSharpCollectionExpressionRewriter
                 return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                     document.Text, initializer, finalCollection, newCollectionIsSingleLine: true);
             }
+        }
+
+        SeparatedSyntaxList<CollectionElementSyntax> FixLeadingAndTrailingWhitespace(
+            SeparatedSyntaxList<CollectionElementSyntax> elements,
+            string preferredItemIndentation)
+        {
+            elements = elements.Replace(elements.First(), elements.First().WithLeadingTrivia(endOfLine, Whitespace(preferredItemIndentation)));
+            var elementsWithSeparators = elements.GetWithSeparators();
+            var last = elementsWithSeparators.Last();
+            var result = SeparatedList<CollectionElementSyntax>(elementsWithSeparators.Replace(last, RemoveTrailingWhitespace(last)));
+
+            return result;
         }
 
         // Helper which produces the CollectionElementSyntax nodes and adds to the separated syntax list builder array.
