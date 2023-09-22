@@ -210,7 +210,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                     // Update both the braces and initial elements to the right location.
                     initialCollection = initialCollection.Update(
-                        initialCollection.OpenBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation)),
+                        RemoveTrailingWhitespace(initialCollection.OpenBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation))),
                         FixLeadingAndTrailingWhitespace(initialCollection.Elements, preferredItemIndentation),
                         initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation)));
 
@@ -316,23 +316,11 @@ internal static class CSharpCollectionExpressionRewriter
 
                     // Strip trailing whitespace after the last comma.
                     if (last)
-                        commaToken = RemoveTrailingWhitespace(commaToken).AsToken();
+                        commaToken = RemoveTrailingWhitespace(commaToken);
 
                     nodesAndTokens.Add(commaToken);
                 }
             }
-        }
-
-        static SyntaxNodeOrToken RemoveTrailingWhitespace(SyntaxNodeOrToken nodeOrToken)
-        {
-            var trivia = nodeOrToken.GetTrailingTrivia();
-            var index = trivia.Count;
-            while (index - 1 >= 0 && trivia[index - 1].Kind() == SyntaxKind.WhitespaceTrivia)
-                index--;
-
-            return index == trivia.Count
-                ? nodeOrToken
-                : nodeOrToken.WithTrailingTrivia(trivia.Take(index));
         }
 
         // Helper which takes a collection expression that already has at least one element in it and adds the new
@@ -740,5 +728,20 @@ internal static class CSharpCollectionExpressionRewriter
 
             return arguments.SelectAsArray(a => indent(a.Expression));
         }
+    }
+
+    private static SyntaxToken RemoveTrailingWhitespace(SyntaxToken token)
+        => RemoveTrailingWhitespace((SyntaxNodeOrToken)token).AsToken();
+
+    private static SyntaxNodeOrToken RemoveTrailingWhitespace(SyntaxNodeOrToken nodeOrToken)
+    {
+        var trivia = nodeOrToken.GetTrailingTrivia();
+        var index = trivia.Count;
+        while (index - 1 >= 0 && trivia[index - 1].Kind() == SyntaxKind.WhitespaceTrivia)
+            index--;
+
+        return index == trivia.Count
+            ? nodeOrToken
+            : nodeOrToken.WithTrailingTrivia(trivia.Take(index));
     }
 }
