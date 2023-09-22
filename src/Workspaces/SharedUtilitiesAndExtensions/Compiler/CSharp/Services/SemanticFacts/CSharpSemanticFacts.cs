@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-            return syntaxRefs.Any(static (n, cancellationToken) => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword), cancellationToken);
+            return syntaxRefs.Any(static (n, cancellationToken) => (n.GetSyntax(cancellationToken) as BaseTypeDeclarationSyntax)?.Modifiers.Any(SyntaxKind.PartialKeyword) == true, cancellationToken);
         }
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(
