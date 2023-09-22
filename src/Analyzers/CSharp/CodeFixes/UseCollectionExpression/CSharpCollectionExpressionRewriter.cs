@@ -238,10 +238,10 @@ internal static class CSharpCollectionExpressionRewriter
                     var braceIndentation = GetIndentationStringForToken(initializer.OpenBraceToken);
                     var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
-                    initialCollection = initialCollection
-                        .WithOpenBracketToken(RemoveTrailingWhitespace(initialCollection.OpenBracketToken))
-                        .WithElements(FixLeadingAndTrailingWhitespace(initialCollection.Elements, preferredItemIndentation))
-                        .WithCloseBracketToken(initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(braceIndentation)));
+                    initialCollection = initialCollection.Update(
+                        RemoveTrailingWhitespace(initialCollection.OpenBracketToken),
+                        FixLeadingAndTrailingWhitespace(initialCollection.Elements, preferredItemIndentation),
+                        initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(braceIndentation)));
 
                     var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredItemIndentation);
 
