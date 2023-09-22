@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -61,7 +62,7 @@ internal static class CSharpCollectionExpressionRewriter
 #endif
 
         var initializer = getInitializer(expressionToReplace);
-        var endOfLine = EndOfLine(formattingOptions.NewLine);
+        var endOfLine = DetermineEndOfLine(document, expressionToReplace, formattingOptions);
 
         // Determine if we want to end up with a multiline collection expression.  The general intuition is that we
         // want a multiline expression if any of the following are true:
@@ -738,6 +739,21 @@ internal static class CSharpCollectionExpressionRewriter
 
             return arguments.SelectAsArray(a => indent(a.Expression));
         }
+    }
+
+    /// <summary>
+    /// Use the same EOL text when producing the collection as the EOL on the line the original expression was on.
+    /// </summary>
+    private static SyntaxTrivia DetermineEndOfLine<TParentExpression>(
+        ParsedDocument document, TParentExpression expressionToReplace, SyntaxFormattingOptions formattingOptions) where TParentExpression : ExpressionSyntax
+    {
+        var text = document.Text;
+        var lineToConsider = text.Lines.GetLineFromPosition(expressionToReplace.SpanStart);
+        var lineBreakSpan = TextSpan.FromBounds(lineToConsider.End, lineToConsider.EndIncludingLineBreak);
+
+        return lineBreakSpan.IsEmpty
+            ? EndOfLine(formattingOptions.NewLine)
+            : EndOfLine(text.ToString(lineBreakSpan));
     }
 
     private static SyntaxToken RemoveTrailingWhitespace(SyntaxToken token)
