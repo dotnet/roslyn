@@ -147,6 +147,7 @@ internal static class CSharpCollectionExpressionRewriter
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
                 CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
 
+                // Remove any trailing whitespace from the last element/comma and the final close bracket.
                 if (nodesAndTokens.Count > 0)
                     nodesAndTokens[^1] = RemoveTrailingWhitespace(nodesAndTokens[^1]);
 
