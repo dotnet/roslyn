@@ -159,7 +159,7 @@ Example `rule` entry:
 
 ### `Rule Configuration Override` format for each rule severity override
 
-The `ruleConfigurationOverrides` section contains an array of entries, with an entry each for every rule severity configuration override for the whole or part of the compilation via options, i.e. editorconfig, globalconfig, command line options, ruleset, etc. Each rule configuration override entry contains the following information:
+The `ruleConfigurationOverrides` section contains an array of entries, with an entry for every rule severity configuration override for the whole or part of the compilation via options, i.e. editorconfig, globalconfig, command line options, ruleset, etc. Each rule configuration override entry contains the following information:
 1. `descriptor`: Property containing information to map back to the relevant `descriptor` or the `rule` in the `rules` section. Currently, it contains the below child properties:
    1. `id`: Rule id string for the rule or diagnostic.
    2. `index`: A zero-based integral index value into the `rules` array for the rule mapping.
