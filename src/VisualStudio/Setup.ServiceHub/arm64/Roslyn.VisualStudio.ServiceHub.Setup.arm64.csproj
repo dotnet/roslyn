@@ -10,6 +10,9 @@
          is for crossgen, which we don't run during F5. Since either project will work equally well (even if you were developing on
          an arm64 machine), we'll just disable this one. -->
     <DeployExtension>false</DeployExtension>
+    <!-- Workaround an issue in Arcade where the value of `DeployExtension` is always overwritten to be `true`. 
+         See: https://github.com/dotnet/arcade/pull/14052 -->
+    <DeployProjectOutput>false</DeployProjectOutput>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub.CoreComponents\arm64\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.arm64.csproj">
