@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -67,40 +73,50 @@ $$");
         public async Task TestAfterJoinLeftExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          join a in e on o1 $$"));
+                """
+                var q = from x in y
+                          join a in e on o1 $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterJoinLeftExpr_NotAfterEquals()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in o1 equals $$"));
+                """
+                var q = from x in y
+                          join a.b c in o1 equals $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterJoinLeftExpr_NotAfterIn1()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in $$"));
+                """
+                var q = from x in y
+                          join a.b c in $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterJoinLeftExpr_NotAfterIn2()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in y $$"));
+                """
+                var q = from x in y
+                          join a.b c in y $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterJoinLeftExpr_NotAfterIn3()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in y on $$"));
+                """
+                var q = from x in y
+                          join a.b c in y on $$
+                """));
         }
     }
 }
