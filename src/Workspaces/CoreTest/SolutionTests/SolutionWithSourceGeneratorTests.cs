@@ -8,8 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -26,14 +26,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SolutionWithSourceGeneratorTests : TestBase
     {
-        [Theory, CombinatorialData]
+        [Theory]
+        [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
-            bool fetchCompilationBeforeAddingAdditionalFile, TestHost testHost)
+            bool fetchCompilationBeforeAddingAdditionalFile)
         {
             // This test is just the sanity test to make sure generators work at all. There's not a special scenario being
             // tested.
 
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
@@ -61,10 +62,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
         }
 
-        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
-        public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences(TestHost testHost)
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
+        public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
 
             // AnalyzerReferences may implement equality (AnalyezrFileReference does), and we want to make sure if we substitute out one
             // reference with another reference that's equal, we correctly update generators. We'll have the underlying generators
@@ -109,10 +111,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Theory, CombinatorialData]
-        public async Task WithReferencesMethodCorrectlyAddsAndRemovesRunningGenerators(TestHost testHost)
+        [Fact]
+        public async Task WithReferencesMethodCorrectlyAddsAndRemovesRunningGenerators()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
 
             // We always have a single generator in this test, and we add or remove a second one. This is critical
             // to ensuring we correctly update our existing GeneratorDriver we may have from a prior run with the new
@@ -140,10 +142,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         // We only run this test on Release, as the compiler has asserts that trigger in Debug that the type names probably shouldn't be the same.
-        [ConditionalTheory(typeof(IsRelease)), CombinatorialData]
-        public async Task GeneratorAddedWithDifferentFilePathsProducesDistinctDocumentIds(TestHost testHost)
+        [ConditionalFact(typeof(IsRelease))]
+        public async Task GeneratorAddedWithDifferentFilePathsProducesDistinctDocumentIds()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
 
             // Produce two generator references with different paths, but the same generator by assembly/type. We will still give them separate
             // generator instances, because in the "real" analyzer reference case each analyzer reference produces it's own generator objects.
@@ -234,10 +236,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 });
         }
 
-        [Theory, CombinatorialData]
-        public async Task SourceGeneratorContentStillIncludedAfterSourceFileChange(TestHost testHost)
+        [Fact]
+        public async Task SourceGeneratorContentStillIncludedAfterSourceFileChange()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -269,21 +271,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
         // This will make a series of changes to additional files and assert that we correctly update generated output at various times.
         // By making this a theory with a bunch of booleans, it tests that we are correctly handling the situation where we queue up multiple changes
         // to the Compilation at once.
-        [Theory, CombinatorialData]
+        [Theory]
+        [CombinatorialData]
         public async Task SourceGeneratorContentChangesAfterAdditionalFileChanges(
             bool assertRightAway,
             bool assertAfterAdd,
             bool assertAfterFirstChange,
-            bool assertAfterSecondChange,
-            TestHost testHost)
+            bool assertAfterSecondChange)
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
 
             if (assertRightAway)
-                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: Array.Empty<string>());
+                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: new string[] { });
 
             project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
             var additionalDocumentId = project.AdditionalDocumentIds.Single();
@@ -303,7 +305,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             project = project.RemoveAdditionalDocument(additionalDocumentId);
 
-            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: Array.Empty<string>());
+            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: new string[] { });
 
             static async Task AssertCompilationContainsGeneratedFilesAsync(Project project, params string[] expectedGeneratedContents)
             {
@@ -317,10 +319,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Theory, CombinatorialData]
-        public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration(TestHost testHost)
+        [Fact]
+        public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration()
         {
-            using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -338,10 +340,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(fullCompilation, partialCompilation);
         }
 
-        [Theory, CombinatorialData]
-        public async Task DocumentIdOfGeneratedDocumentsIsStable(TestHost testHost)
+        [Fact]
+        public async Task DocumentIdOfGeneratedDocumentsIsStable()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var projectBeforeChange = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -360,10 +362,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(generatedDocumentBeforeChange.Id, generatedDocumentAfterChange.Id);
         }
 
-        [Theory, CombinatorialData]
-        public async Task DocumentIdGuidInDifferentProjectsIsDifferent(TestHost testHost)
+        [Fact]
+        public async Task DocumentIdGuidInDifferentProjectsIsDifferent()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
 
             var solutionWithProjects = AddProjectWithReference(workspace.CurrentSolution, analyzerReference);
@@ -390,10 +392,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Theory, CombinatorialData]
-        public async Task CompilationsInCompilationReferencesIncludeGeneratedSourceFiles(TestHost testHost)
+        [Fact]
+        public async Task CompilationsInCompilationReferencesIncludeGeneratedSourceFiles()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var solution = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -415,10 +417,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(compilationWithGenerator, compilationReference.Compilation);
         }
 
-        [Theory, CombinatorialData]
-        public async Task GetDocumentWithGeneratedTreeReturnsGeneratedDocument(TestHost testHost)
+        [Fact]
+        public async Task GetDocumentWithGeneratedTreeReturnsGeneratedDocument()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -429,10 +431,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
         }
 
-        [Theory, CombinatorialData]
-        public async Task GetDocumentWithGeneratedTreeForInProgressReturnsGeneratedDocument(TestHost testHost)
+        [Fact]
+        public async Task GetDocumentWithGeneratedTreeForInProgressReturnsGeneratedDocument()
         {
-            using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -452,10 +454,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
         }
 
-        [Theory, CombinatorialData]
-        public async Task TreeReusedIfGeneratedFileDoesNotChangeBetweenRuns(TestHost testHost)
+        [Fact]
+        public async Task TreeReusedIfGeneratedFileDoesNotChangeBetweenRuns()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -472,10 +474,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(generatedTreeBeforeChange, generatedTreeAfterChange);
         }
 
-        [Theory, CombinatorialData]
-        public async Task TreeNotReusedIfParseOptionsChangeChangeBetweenRuns(TestHost testHost)
+        [Fact]
+        public async Task TreeNotReusedIfParseOptionsChangeChangeBetweenRuns()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -495,9 +497,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Theory, CombinatorialData]
-        public async Task ChangeToDocumentThatDoesNotImpactGeneratedDocumentReusesDeclarationTree(bool generatorProducesTree, TestHost testHost)
+        public async Task ChangeToDocumentThatDoesNotImpactGeneratedDocumentReusesDeclarationTree(bool generatorProducesTree)
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
 
             // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
             ISourceGenerator generator = generatorProducesTree ? new SingleFileTestGenerator("// StaticContent")
@@ -548,10 +550,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Theory, CombinatorialData]
-        public async Task CompilationNotCreatedByFetchingGeneratedFilesIfNoGeneratorsPresent(TestHost testHost)
+        [Fact]
+        public async Task CompilationNotCreatedByFetchingGeneratedFilesIfNoGeneratorsPresent()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var project = AddEmptyProject(workspace.CurrentSolution);
 
             Assert.Empty(await project.GetSourceGeneratedDocumentsAsync());
@@ -560,10 +562,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(project.TryGetCompilation(out _));
         }
 
-        [Theory, CombinatorialData]
-        public async Task OpenSourceGeneratedUpdatedToBufferContentsWhenCallingGetOpenDocumentInCurrentContextWithChanges(TestHost testHost)
+        [Fact]
+        public async Task OpenSourceGeneratedUpdatedToBufferContentsWhenCallingGetOpenDocumentInCurrentContextWithChanges()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
@@ -584,10 +586,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Contains(generatedTree, compilation.SyntaxTrees);
         }
 
-        [Theory, CombinatorialData]
-        public async Task OpenSourceGeneratedFileDoesNotCreateNewSnapshotIfContentsKnownToMatch(TestHost testHost)
+        [Fact]
+        public async Task OpenSourceGeneratedFileDoesNotCreateNewSnapshotIfContentsKnownToMatch()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
@@ -603,10 +605,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(workspace.CurrentSolution, generatedDocument!.Project.Solution);
         }
 
-        [Theory, CombinatorialData]
-        public async Task OpenSourceGeneratedFileMatchesBufferContentsEvenIfGeneratedFileIsMissingIsRemoved(TestHost testHost)
+        [Fact]
+        public async Task OpenSourceGeneratedFileMatchesBufferContentsEvenIfGeneratedFileIsMissingIsRemoved()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var originalAdditionalFile = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -631,10 +633,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Contains(generatedTree, compilation.SyntaxTrees);
         }
 
-        [Theory, CombinatorialData]
-        public async Task OpenSourceGeneratedDocumentUpdatedAndVisibleInProjectReference(TestHost testHost)
+        [Fact]
+        public async Task OpenSourceGeneratedDocumentUpdatedAndVisibleInProjectReference()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
             var solution = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference).Solution;
@@ -662,10 +664,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Contains(generatedTree, compilationReference.Compilation.SyntaxTrees);
         }
 
-        [Theory, CombinatorialData]
-        public async Task OpenSourceGeneratedDocumentsUpdateIsDocumentOpenAndCloseWorks(TestHost testHost)
+        [Fact]
+        public async Task OpenSourceGeneratedDocumentsUpdateIsDocumentOpenAndCloseWorks()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
@@ -688,12 +690,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Theory, CombinatorialData]
-        public async Task FreezingSolutionEnsuresGeneratorsDoNotRun(bool forkBeforeFreeze, TestHost testHost)
+        public async Task FreezingSolutionEnsuresGeneratorsDoNotRun(bool forkBeforeFreeze)
         {
             var generatorRan = false;
             var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { generatorRan = true; });
 
-            using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(generator);
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -720,10 +722,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
-        public async Task ForkAfterFreezeNoLongerRunsGenerators(TestHost testHost)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+        public async Task ForkAfterFreezeNoLongerRunsGenerators()
         {
-            using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var generatorRan = false;
             var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
             var project = AddEmptyProject(workspace.CurrentSolution)
@@ -748,10 +750,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
         }
 
-        [Theory, CombinatorialData]
-        public async Task LinkedDocumentOfFrozenShouldNotRunSourceGenerator(TestHost testHost)
+        [Fact]
+        public async Task LinkedDocumentOfFrozenShouldNotRunSourceGenerator()
         {
-            using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var generatorRan = false;
             var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
 
@@ -779,10 +781,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Theory, CombinatorialData]
-        public async Task DynamicFilesNotPassedToSourceGenerators(TestHost testHost)
+        [Fact]
+        public async Task DynamicFilesNotPassedToSourceGenerators()
         {
-            using var workspace = CreateWorkspace(testHost: testHost);
+            using var workspace = CreateWorkspace();
 
             bool? noTreesPassed = null;
 
