@@ -28,17 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
-            while (true)
+            while (token.IsPotentialModifier(out var modifierKind))
             {
-                if (token.IsPotentialModifier(out var modifierKind))
-                {
-                    result.Add(modifierKind);
-                    positionBeforeModifiers = token.FullSpan.Start;
-                    token = token.GetPreviousToken(includeSkipped: true);
-                    continue;
-                }
-
-                break;
+                result.Add(modifierKind);
+                positionBeforeModifiers = token.FullSpan.Start;
+                token = token.GetPreviousToken(includeSkipped: true);
             }
 
             return result;

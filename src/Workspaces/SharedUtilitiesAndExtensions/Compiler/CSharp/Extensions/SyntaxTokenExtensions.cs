@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsPotentialModifier(this SyntaxToken token, out SyntaxKind modifierKind)
         {
             var tokenKind = token.Kind();
+            modifierKind = SyntaxKind.None;
+
             switch (tokenKind)
             {
                 case SyntaxKind.PublicKeyword:
@@ -103,22 +105,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                     {
                         modifierKind = SyntaxKind.AsyncKeyword;
-                        return true;
                     }
                     if (token.HasMatchingText(SyntaxKind.FileKeyword))
                     {
                         modifierKind = SyntaxKind.FileKeyword;
-                        return true;
                     }
                     if (token.HasMatchingText(SyntaxKind.PartialKeyword))
                     {
                         modifierKind = SyntaxKind.PartialKeyword;
-                        return true;
                     }
-                    modifierKind = SyntaxKind.None;
-                    return false;
+                    return modifierKind != SyntaxKind.None;
                 default:
-                    modifierKind = SyntaxKind.None;
                     return false;
             }
         }
