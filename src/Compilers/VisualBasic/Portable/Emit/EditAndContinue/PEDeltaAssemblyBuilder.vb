@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEAssemblyBuilderBase
         Implements IPEDeltaAssemblyBuilder
 
-        Private ReadOnly _previousGeneration As EmitBaseline
         Private ReadOnly _previousDefinitions As VisualBasicDefinitionMap
         Private ReadOnly _changes As SymbolChanges
         Private ReadOnly _deepTranslator As VisualBasicSymbolMatcher.DeepTranslator
@@ -59,8 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     otherDeletedMembersOpt:=previousGeneration.DeletedMembers)
             End If
 
-            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)
-            _previousGeneration = previousGeneration
+            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious, previousGeneration)
             _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
@@ -94,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
             Get
-                Return _previousGeneration
+                Return _previousDefinitions.Baseline
             End Get
         End Property
 
@@ -230,13 +228,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 anonymousDelegatesWithIndexedNames:=Nothing)
 
             ' Should contain all entries in previous generation.
-            Debug.Assert(_previousGeneration.SynthesizedTypes.IsSubsetOf(result))
+            Debug.Assert(PreviousGeneration.SynthesizedTypes.IsSubsetOf(result))
 
             Return result
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
-            Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics)
+            Return _previousDefinitions.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics)
         End Function
 
         Friend Overrides Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
@@ -244,11 +242,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray.CreateRange(_previousGeneration.SynthesizedTypes.AnonymousTypes.Keys)
+            Return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousTypes.Keys)
         End Function
 
         Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
-            Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
+            Return PreviousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
         Friend Overrides Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean

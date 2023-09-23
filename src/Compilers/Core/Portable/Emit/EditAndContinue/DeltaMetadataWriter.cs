@@ -1502,16 +1502,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            TypeDefinitionHandle handle;
-            if (_definitionMap.TryGetTypeHandle(item, out handle))
-            {
-                index = MetadataTokens.GetRowNumber(handle);
-                Debug.Assert(index > 0);
-                return true;
-            }
-
-            index = 0;
-            return false;
+            var handle = _definitionMap.GetInitialMetadataHandle(item);
+            index = MetadataTokens.GetRowNumber(handle);
+            return !handle.IsNil;
         }
 
         private bool TryGetExistingEventDefIndex(IEventDefinition item, out int index)
@@ -1521,16 +1514,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            EventDefinitionHandle handle;
-            if (_definitionMap.TryGetEventHandle(item, out handle))
-            {
-                index = MetadataTokens.GetRowNumber(handle);
-                Debug.Assert(index > 0);
-                return true;
-            }
-
-            index = 0;
-            return false;
+            var handle = _definitionMap.GetInitialMetadataHandle(item);
+            index = MetadataTokens.GetRowNumber(handle);
+            return !handle.IsNil;
         }
 
         private bool TryGetExistingFieldDefIndex(IFieldDefinition item, out int index)
@@ -1540,16 +1526,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            FieldDefinitionHandle handle;
-            if (_definitionMap.TryGetFieldHandle(item, out handle))
-            {
-                index = MetadataTokens.GetRowNumber(handle);
-                Debug.Assert(index > 0);
-                return true;
-            }
-
-            index = 0;
-            return false;
+            var handle = _definitionMap.GetInitialMetadataHandle(item);
+            index = MetadataTokens.GetRowNumber(handle);
+            return !handle.IsNil;
         }
 
         private bool TryGetExistingMethodDefIndex(IMethodDefinition item, out int index)
@@ -1559,16 +1538,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            MethodDefinitionHandle handle;
-            if (_definitionMap.TryGetMethodHandle(item, out handle))
-            {
-                index = MetadataTokens.GetRowNumber(handle);
-                Debug.Assert(index > 0);
-                return true;
-            }
-
-            index = 0;
-            return false;
+            var handle = _definitionMap.GetInitialMetadataHandle(item);
+            index = MetadataTokens.GetRowNumber(handle);
+            return !handle.IsNil;
         }
 
         private bool TryGetExistingPropertyDefIndex(IPropertyDefinition item, out int index)
@@ -1578,16 +1550,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            PropertyDefinitionHandle handle;
-            if (_definitionMap.TryGetPropertyHandle(item, out handle))
-            {
-                index = MetadataTokens.GetRowNumber(handle);
-                Debug.Assert(index > 0);
-                return true;
-            }
-
-            index = 0;
-            return false;
+            var handle = _definitionMap.GetInitialMetadataHandle(item);
+            index = MetadataTokens.GetRowNumber(handle);
+            return !handle.IsNil;
         }
 
         private bool TryGetExistingParameterDefIndex(IParameterDefinition item, out int index)

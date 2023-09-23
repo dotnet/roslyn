@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Symbols
 
         string MetadataName { get; }
 
+        int MetadataToken { get; }
+
 #nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
         Compilation DeclaringCompilation { get; }
 #nullable enable
