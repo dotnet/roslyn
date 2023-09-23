@@ -17,8 +17,7 @@ internal static class WorkspaceConfigurationOptionsStorage
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
-            ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
-            RunSourceGeneratorsInProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInProcessOnly));
+            ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
@@ -32,11 +31,8 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> DisableRecoverableText = new(
         "dotnet_disable_recoverable_text", WorkspaceConfigurationOptions.Default.DisableRecoverableText);
 
-    public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
+    public static readonly Option2<bool> ValidateCompilationTrackerStates = new Option2<bool>(
         "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);
-
-    public static readonly Option2<bool> RunSourceGeneratorsInProcessOnly = new(
-        "dotnet_run_source_generators_in_process_only", WorkspaceConfigurationOptions.Default.RunSourceGeneratorsInProcessOnly);
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
