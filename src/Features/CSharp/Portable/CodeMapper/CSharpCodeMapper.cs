@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -24,25 +25,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
 [ExportLanguageService(typeof(ICodeMapper), language: LanguageNames.CSharp), Shared]
 internal sealed partial class CSharpCodeMapper : ICodeMapper
 {
-    private interface ICodeMapperHelper
-    {
-        bool TryGetValidInsertions(
-           SyntaxNode target,
-           CSharpSourceNode[] sourceNodes,
-           out CSharpSourceNode[] validInsertions,
-           out InvalidInsertion[] invalidInsertions);
-
-        FileLinePositionSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget? target, out string? adjustedInsertion);
-    }
 
     private readonly InsertMapperHelper _insertHelper;
     private readonly ReplaceMapperHelper _replaceHelper;
 
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCodeMapper()
     {
         this._insertHelper = new InsertMapperHelper();
         this._replaceHelper = new ReplaceMapperHelper();
+    }
+
+    public Task<Document> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<Location> focusLocations, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 
     private ICodeMapperHelper GetMapperHelper(CSharpSourceNode[] insertions, SyntaxNode target)
@@ -208,5 +205,16 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
         // Return the snapshot span for the syntax node
         var span = new SnapshotSpan(start, end - start);
         return span;
+    }
+    
+    private interface ICodeMapperHelper
+    {
+        bool TryGetValidInsertions(
+           SyntaxNode target,
+           CSharpSourceNode[] sourceNodes,
+           out CSharpSourceNode[] validInsertions,
+           out InvalidInsertion[] invalidInsertions);
+
+        FileLinePositionSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget? target, out string? adjustedInsertion);
     }
 }
