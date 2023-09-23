@@ -25,6 +25,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
 {
     private const string ToPrefix = "To";
+    private const string AsSpanName = "AsSpan";
 
     /// <summary>
     /// Standard names to look at for the final <c>ToXXX</c> method.  For example "ToList", "ToArray", "ToImmutable",
@@ -230,6 +231,14 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return true;
             }
 
+            // If we're bottomed out at some different type of expression, and we started with an AsSpan, then do not
+            // convert this.  The above cases produce a fresh-collection (an rvalue), which is fine to get a span out
+            // of.  However, this may be wrapping a *non-fresh* (an lvalue) collection.  That means the user could
+            // mutate the underlying data the span wraps.  Since we are converting to a form that will create a fresh 
+            // collection, that could be noticeable.
+            if (memberAccess.Name.Identifier.ValueText == AsSpanName)
+                return false;
+
             // Down to some final collection.  Like `x` in `x.Concat(y).ToArray()`.  If `x` is itself is something that
             // can be iterated, we can convert this to `[.. x, .. y]`.  Note: we only want to do this if ending with one
             // of the ToXXX Methods.  If we just have `x.AddRange(y)` it's preference to keep that, versus `[.. x, ..y]`
@@ -352,7 +361,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         static bool IsAnyNameMatch(string name)
         {
-            if (name == "AsSpan")
+            if (name == AsSpanName)
                 return true;
 
             if (!name.StartsWith(ToPrefix, StringComparison.Ordinal))
