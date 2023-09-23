@@ -631,5 +631,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 expr is (not []) $$ var x
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70045")]
+        public async Task TestNotInMemberAccessInPattern1()
+        {
+            await VerifyAbsenceAsync("""
+                int v = 0;
+                if (v is var a and a.$$)
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70045")]
+        public async Task TestNotInMemberAccessInPattern2()
+        {
+            await VerifyAbsenceAsync("""
+                int* v = null;
+                if (v is var a and a->$$)
+                """);
+        }
     }
 }
