@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private const string InsertionTextProperty = "InsertionText";
 
-        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
-        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
+        private static readonly Func<IReadOnlyList<ISymbol>, ImmutableDictionary<string, string>, ImmutableDictionary<string, string>> s_addSymbolEncoding = AddSymbolEncoding;
+        private static readonly Func<IReadOnlyList<ISymbol>, ImmutableDictionary<string, string>, ImmutableDictionary<string, string>> s_addSymbolInfo = AddSymbolInfo;
         private static readonly char[] s_projectSeperators = new[] { ';' };
 
         private static CompletionItem CreateWorker(
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             IReadOnlyList<ISymbol> symbols,
             CompletionItemRules rules,
             int contextPosition,
-            Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
+            Func<IReadOnlyList<ISymbol>, ImmutableDictionary<string, string>, ImmutableDictionary<string, string>> symbolEncoder,
             string? sortText = null,
             string? insertionText = null,
             string? filterText = null,
@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             props = props.Add("ContextPosition", contextPosition.ToString());
+            props = WithSupportedPlatforms(props, supportedPlatforms);
+            props = symbolEncoder(symbols, props);
 
             var firstSymbol = symbols[0];
             var item = CommonCompletionItem.Create(
@@ -66,22 +68,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 tags: tags,
                 isComplexTextEdit: isComplexTextEdit);
 
-            item = WithSupportedPlatforms(item, supportedPlatforms);
-            return symbolEncoder(symbols, item);
+            return item;
         }
 
-        public static CompletionItem AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, CompletionItem item)
-            => item.AddProperty("Symbols", EncodeSymbols(symbols));
+        public static ImmutableDictionary<string, string> AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, ImmutableDictionary<string, string> properties)
+            => properties.Add("Symbols", EncodeSymbols(symbols));
 
-        public static CompletionItem AddSymbolInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
+        public static ImmutableDictionary<string, string> AddSymbolInfo(IReadOnlyList<ISymbol> symbols, ImmutableDictionary<string, string> properties)
         {
             var symbol = symbols[0];
             var isGeneric = symbol.GetArity() > 0;
-            item = item
-                .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
-                .AddProperty("SymbolName", symbol.Name);
+            properties = properties
+                .Add("SymbolKind", ((int)symbol.Kind).ToString())
+                .Add("SymbolName", symbol.Name);
 
-            return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
+            return isGeneric ? properties.Add("IsGeneric", isGeneric.ToString()) : properties;
         }
 
         public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
@@ -212,17 +213,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return document;
         }
 
-        private static CompletionItem WithSupportedPlatforms(CompletionItem completionItem, SupportedPlatformData? supportedPlatforms)
+        private static ImmutableDictionary<string, string> WithSupportedPlatforms(ImmutableDictionary<string, string> properties, SupportedPlatformData? supportedPlatforms)
         {
             if (supportedPlatforms != null)
             {
-                return completionItem
-                    .AddProperty("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id)))
-                    .AddProperty("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id)));
+                return properties
+                    .Add("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id)))
+                    .Add("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id)));
             }
             else
             {
-                return completionItem;
+                return properties;
             }
         }
 
