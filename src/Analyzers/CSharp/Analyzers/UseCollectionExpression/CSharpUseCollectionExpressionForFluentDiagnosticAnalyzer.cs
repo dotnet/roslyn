@@ -154,6 +154,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var stack);
         stack.Push(memberAccess.Expression);
 
+        var copiedData = false;
+
         while (stack.Count > 0)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -165,6 +167,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
                 IsSyntacticMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, matchesInReverse, out _, cancellationToken))
             {
+                copiedData = true;
                 stack.Push(currentMemberAccess.Expression);
                 continue;
             }
@@ -231,12 +234,12 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return true;
             }
 
-            // If we're bottomed out at some different type of expression, and we started with an AsSpan, then do not
-            // convert this.  The above cases produce a fresh-collection (an rvalue), which is fine to get a span out
-            // of.  However, this may be wrapping a *non-fresh* (an lvalue) collection.  That means the user could
-            // mutate the underlying data the span wraps.  Since we are converting to a form that will create a fresh 
-            // collection, that could be noticeable.
-            if (memberAccess.Name.Identifier.ValueText == AsSpanName)
+            // If we're bottomed out at some different type of expression, and we started with an AsSpan, and we did not
+            // perform a copy of the data, then do not convert this.  The above cases produce a fresh-collection (an
+            // rvalue), which is fine to get a span out of.  However, this may be wrapping a *non-fresh* (an lvalue)
+            // collection.  That means the user could mutate the underlying data the span wraps.  Since we are
+            // converting to a form that will create a fresh collection, that could be noticeable.
+            if (memberAccess.Name.Identifier.ValueText == AsSpanName && !copiedData)
                 return false;
 
             // Down to some final collection.  Like `x` in `x.Concat(y).ToArray()`.  If `x` is itself is something that
