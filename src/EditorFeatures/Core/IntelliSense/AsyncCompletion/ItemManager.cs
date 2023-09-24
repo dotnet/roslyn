@@ -7,8 +7,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -44,7 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var items = SortCompletionItems(data, cancellationToken).ToImmutableArray();
+
+            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(data.InitialItemList.Count, out var builder);
+
+            SortCompletionItems(builder, data, cancellationToken);
+
+            var items = builder.ToImmutable();
 
             AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
             return Task.FromResult(items);
@@ -56,24 +61,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var itemList = session.CreateCompletionList(SortCompletionItems(data, cancellationToken));
+
+            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(data.InitialItemList.Count, out var builder);
+
+            SortCompletionItems(builder, data, cancellationToken);
+
+            var itemList = session.CreateCompletionList(builder);
 
             AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
             return Task.FromResult(itemList);
         }
 
-        private static SegmentedList<VSCompletionItem> SortCompletionItems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
+        private static void SortCompletionItems(ArrayBuilder<VSCompletionItem> builder, AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var items = new SegmentedList<VSCompletionItem>(data.InitialItemList.Count);
+
             foreach (var item in data.InitialItemList)
             {
                 CompletionItemData.GetOrAddDummyRoslynItem(item);
-                items.Add(item);
+                builder.Add(item);
             }
 
-            items.Sort(VSItemComparer.Instance);
-            return items;
+            builder.Sort(VSItemComparer.Instance);
         }
 
         public async Task<FilteredCompletionModel?> UpdateCompletionListAsync(
