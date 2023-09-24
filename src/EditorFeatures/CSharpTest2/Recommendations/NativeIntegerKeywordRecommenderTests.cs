@@ -422,5 +422,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70074")]
+        public async Task TestNotInAttribute1()
+        {
+            await VerifyAbsenceAsync("""
+                [$$
+                class C
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70074")]
+        public async Task TestNotInAttribute2()
+        {
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    [$$
+                    void M()
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70074")]
+        public async Task TestNotInAttribute3()
+        {
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        [$$
+                        void L()
+                        {
+                        }
+                    }
+                }
+                """);
+        }
     }
 }
