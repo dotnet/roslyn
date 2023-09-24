@@ -89,7 +89,7 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
             return null;
 
         var accessibleConstructors = baseType.InstanceConstructors
-            .WhereAsArray(c => c.IsAccessibleWithin(within, throughType: within))
+            .WhereAsArray(c => c.IsAccessibleWithin(within))
             .WhereAsArray(c => c.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
             .Sort(semanticModel, baseTypeSyntax.SpanStart);
 
