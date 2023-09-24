@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
+        protected override async Task<(string documentCode, ImmutableArray<ClassifiedSpan> classifications)> GetClassificationSpansAsync(string code, TextSpan? span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
@@ -2970,6 +2971,77 @@ Keyword("async"));
                 Identifier("b"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer1(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                delegate* unmanaged[Fastcall, Stdcall, Thiscall]<int> fp;
+                """,
+                testHost,
+                parseOptions: null,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Class("Fastcall"),
+                Punctuation.Comma,
+                Class("Stdcall"),
+                Punctuation.Comma,
+                Class("Thiscall"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Local("fp"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer2(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                delegate* unmanaged[Member]<int> fp;
+                """,
+                testHost,
+                parseOptions: null,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Identifier("Member"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Local("fp"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer3(TestHost testHost)
+        {
+            var (text, actual) = await GetClassificationSpansAsync("""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7Name="true">
+                        <Document>
+                delegate* unmanaged[MemberFunction]&lt;int&gt; fp;
+                        </Document>
+                    </Project>
+                </Workspace>
+                """, span: null, options: null, testHost);
+
+            var actualOrdered = actual.OrderBy((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
+
+            AssertEx.Equal(
+                new FormattedClassification[] { },
+                actualOrdered.Select(c => new FormattedClassification(text.Substring(c.TextSpan.Start, c.TextSpan.Length), c.ClassificationType)));
         }
     }
 }

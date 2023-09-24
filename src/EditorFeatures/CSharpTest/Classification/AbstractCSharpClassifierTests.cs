@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         protected static TestWorkspace CreateWorkspace(string code, ParseOptions options, TestHost testHost)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
+            if (TestWorkspace.IsWorkspaceElement(code))
+                return TestWorkspace.Create(code, composition: composition);
+
             return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition, isMarkup: false);
         }
 

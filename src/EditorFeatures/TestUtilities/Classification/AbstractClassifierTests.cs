@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     {
         protected AbstractClassifierTests() { }
 
-        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions? parseOptions, TestHost testHost);
+        protected abstract Task<(string documentCode, ImmutableArray<ClassifiedSpan> classifications)> GetClassificationSpansAsync(string text, TextSpan? span, ParseOptions? parseOptions, TestHost testHost);
 
         protected abstract string WrapInClass(string className, string code);
         protected abstract string WrapInExpression(string code);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 }
             }
 
-            var actual = await GetClassificationSpansAsync(allCode, span, parseOptions, testHost);
+            var (_, actual) = await GetClassificationSpansAsync(allCode, span, parseOptions, testHost);
 
             var actualOrdered = actual.OrderBy((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
@@ -268,31 +268,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         [DebuggerStepThrough]
         protected static ParseOptions[] ParseOptions(params ParseOptions[] options) => options;
 
-        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
+        protected static async Task<(string documentCode, ImmutableArray<ClassifiedSpan> classifications)> GetSemanticClassificationsAsync(
+            Document document, TextSpan? span)
         {
             var service = document.GetRequiredLanguageService<IClassificationService>();
+            var text = await document.GetTextAsync();
             var options = ClassificationOptions.Default;
+            span ??= new TextSpan(0, text.Length);
 
             using var _ = Classifier.GetPooledList(out var result);
-            await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
-            await service.AddEmbeddedLanguageClassificationsAsync(document, span, options, result, CancellationToken.None);
-            return result.ToImmutableArray();
+            await service.AddSemanticClassificationsAsync(document, span.Value, options, result, CancellationToken.None);
+            await service.AddEmbeddedLanguageClassificationsAsync(document, span.Value, options, result, CancellationToken.None);
+            return (text.ToString(), result.ToImmutableArray());
         }
 
-        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
+        protected static async Task<(string documentCode, ImmutableArray<ClassifiedSpan> classifications)> GetSyntacticClassificationsAsync(
+            Document document, TextSpan? span)
         {
+            var text = await document.GetTextAsync();
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var service = document.GetRequiredLanguageService<ISyntaxClassificationService>();
+            span ??= new TextSpan(0, text.Length);
 
             using var _ = Classifier.GetPooledList(out var results);
-            service.AddSyntacticClassifications(root, span, results, CancellationToken.None);
-            return results.ToImmutableArray();
+            service.AddSyntacticClassifications(root, span.Value, results, CancellationToken.None);
+            return (text.ToString(), results.ToImmutableArray());
         }
 
-        protected static async Task<ImmutableArray<ClassifiedSpan>> GetAllClassificationsAsync(Document document, TextSpan span)
+        protected static async Task<(string documentCode, ImmutableArray<ClassifiedSpan> classifications)> GetAllClassificationsAsync(
+            Document document, TextSpan? span)
         {
-            var semanticClassifications = await GetSemanticClassificationsAsync(document, span);
-            var syntacticClassifications = await GetSyntacticClassificationsAsync(document, span);
+            var text = await document.GetTextAsync();
+            span ??= new TextSpan(0, text.Length);
+            var (_, semanticClassifications) = await GetSemanticClassificationsAsync(document, span.Value);
+            var (_, syntacticClassifications) = await GetSyntacticClassificationsAsync(document, span.Value);
 
             var classificationsSpans = new HashSet<TextSpan>();
 
@@ -306,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 where !classificationsSpans.Contains(t.TextSpan)
                 select t);
 
-            return allClassifications.ToImmutableArray();
+            return (text.ToString(), allClassifications.ToImmutableArray());
         }
     }
 }

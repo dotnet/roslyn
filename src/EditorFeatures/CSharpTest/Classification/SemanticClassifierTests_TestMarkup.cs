@@ -51,7 +51,7 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
         var length = code.Length;
         var span = new TextSpan(start, length);
 
-        var actual = await GetClassificationSpansAsync(allCode, span, options: null, testHost);
+        var (_, actual) = await GetClassificationSpansAsync(allCode, span, options: null, testHost);
 
         // Massage the results a bit so that the TestCode segments don't overlap the non-test-code segments.
 
