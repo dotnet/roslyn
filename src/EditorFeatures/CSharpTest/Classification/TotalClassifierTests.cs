@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<(string documentCode, ImmutableArray<ClassifiedSpan> classifications)> GetClassificationSpansAsync(string code, TextSpan? span, ParseOptions? options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
@@ -3021,27 +3021,6 @@ Keyword("async"));
                 Punctuation.CloseAngle,
                 Local("fp"),
                 Punctuation.Semicolon);
-        }
-
-        [Theory, CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
-        public async Task TestFunctionPointer3(TestHost testHost)
-        {
-            var (text, actual) = await GetClassificationSpansAsync("""
-                <Workspace>
-                    <Project Language="C#" CommonReferencesNet7Name="true">
-                        <Document>
-                delegate* unmanaged[MemberFunction]&lt;int&gt; fp;
-                        </Document>
-                    </Project>
-                </Workspace>
-                """, span: null, options: null, testHost);
-
-            var actualOrdered = actual.OrderBy((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
-
-            AssertEx.Equal(
-                new FormattedClassification[] { },
-                actualOrdered.Select(c => new FormattedClassification(text.Substring(c.TextSpan.Start, c.TextSpan.Length), c.ClassificationType)));
         }
     }
 }
