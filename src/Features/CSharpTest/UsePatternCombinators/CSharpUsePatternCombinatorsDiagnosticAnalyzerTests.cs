@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
         public async Task TestConvertedConstants()
         {
             await TestAllAsync(
@@ -421,7 +421,7 @@ public class C
 }}");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
         public async Task TestMissingForImplicitUserDefinedCasts1()
         {
             await TestMissingAsync(
@@ -439,7 +439,7 @@ public class C
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
         public async Task TestMissingForImplicitUserDefinedCasts2()
         {
             await TestMissingAsync(
