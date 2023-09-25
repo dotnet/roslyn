@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// The number of async state machine states to reserve.
 /// 
 /// Any time multiple <see cref="BoundAwaitExpression"/>s might be associated with the same syntax node
-/// we need to make sure that the same number state machine states gets allocated for the node,
+/// we need to make sure that the same number of state machine states gets allocated for the node,
 /// regardless of the actual number of <see cref="BoundAwaitExpression"/>s that get emitted.
 /// 
 /// To do so one or more of the emitted <see cref="BoundAwaitExpression"/>s may

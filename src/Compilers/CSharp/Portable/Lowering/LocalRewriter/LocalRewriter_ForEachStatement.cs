@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - interface-based disposal (the enumerator type converts to IDisposable/IAsyncDisposable)
         /// - we need to do a runtime check for IDisposable
         /// </summary>
-        /// <returns>Finall block, or null if none should be emitted.</returns>
+        /// <returns>Finally block, or null if none should be emitted.</returns>
         private BoundBlock? GetDisposalFinallyBlock(
             CSharpSyntaxNode forEachSyntax,
             ForEachEnumeratorInfo enumeratorInfo,

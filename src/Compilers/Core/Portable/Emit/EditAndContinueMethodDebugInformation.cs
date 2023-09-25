@@ -321,17 +321,17 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 try
                 {
-                    var count = blobReader.ReadCompressedInteger();
+                    int count = blobReader.ReadCompressedInteger();
                     if (count > 0)
                     {
-                        var syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
-                        var lastSyntaxOffset = int.MinValue;
+                        int syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
+                        int lastSyntaxOffset = int.MinValue;
                         int relativeOrdinal = 0;
 
                         while (count > 0)
                         {
-                            var stateNumber = blobReader.ReadCompressedSignedInteger();
-                            var syntaxOffset = syntaxOffsetBaseline + blobReader.ReadCompressedInteger();
+                            int stateNumber = blobReader.ReadCompressedSignedInteger();
+                            int syntaxOffset = syntaxOffsetBaseline + blobReader.ReadCompressedInteger();
 
                             // The entries are ordered by syntax offset.
                             // The relative ordinal is the index of the entry relative to the last entry with a different syntax offset.
