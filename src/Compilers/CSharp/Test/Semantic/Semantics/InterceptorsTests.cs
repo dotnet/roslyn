@@ -1307,12 +1307,12 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         compilation.VerifyEmitDiagnostics(
-            // Program.cs(22,6): error CS9207: An interceptor cannot intercept a delegate invocation.
+            // Program.cs(22,6): error CS9207: Cannot intercept 'action' because it is not an invocation of an ordinary member method.
             //     [InterceptsLocation("Program.cs", 11, 9)]
-            Diagnostic(ErrorCode.ERR_InterceptorCannotInterceptDelegateInvocation, @"InterceptsLocation(""Program.cs"", 11, 9)").WithLocation(22, 6),
-            // Program.cs(23,6): error CS9207: An interceptor cannot intercept a delegate invocation.
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("action").WithLocation(22, 6),
+            // Program.cs(23,6): error CS9207: Cannot intercept 'action' because it is not an invocation of an ordinary member method.
             //     [InterceptsLocation("Program.cs", 16, 14)]
-            Diagnostic(ErrorCode.ERR_InterceptorCannotInterceptDelegateInvocation, @"InterceptsLocation(""Program.cs"", 16, 14)").WithLocation(23, 6));
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 16, 14)").WithArguments("action").WithLocation(23, 6));
     }
 
     [Fact]
@@ -1782,6 +1782,91 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(21,10): error CS9146: An interceptor method must be an ordinary member method.
             //         [InterceptsLocation("Program.cs", 13, 8)] // 3
             Diagnostic(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 13, 8)").WithLocation(21, 10)
+            );
+    }
+
+    [Fact]
+    public void InterceptableMethod_BadMethodKind_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class Program
+            {
+                public static unsafe void Main()
+                {
+                    // property
+                    _ = Prop;
+
+                    // constructor
+                    new Program();
+                }
+
+                public static int Prop { get; }
+
+                [InterceptsLocation("Program.cs", 8, 13)] // 1
+                [InterceptsLocation("Program.cs", 11, 9)] // 2, 'new'
+                [InterceptsLocation("Program.cs", 11, 13)] // 3, 'Program'
+                static void Interceptor1() { }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyDiagnostics(
+            // Program.cs(16,6): error CS9151: Possible method name 'Prop' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 8, 13)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 8, 13)").WithArguments("Prop").WithLocation(16, 6),
+            // Program.cs(17,6): error CS9141: The provided line and character number does not refer to an interceptable method name, but rather to token 'new'.
+            //     [InterceptsLocation("Program.cs", 11, 9)] // 2, 'new'
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("new").WithLocation(17, 6),
+            // Program.cs(18,6): error CS9151: Possible method name 'Program' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 11, 13)] // 3, 'Program'
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 11, 13)").WithArguments("Program").WithLocation(18, 6)
+            );
+    }
+
+    [Fact]
+    public void InterceptableMethod_BadMethodKind_02()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            class Program
+            {
+                public static unsafe void Main()
+                {
+                    // delegate
+                    Action a = () => throw null!;
+                    a();
+
+                    // local function
+                    void local() => throw null!;
+                    local();
+
+                    // fnptr invoke
+                    delegate*<void> fnptr = &Interceptor1;
+                    fnptr();
+                }
+
+                public static int Prop { get; }
+
+                [InterceptsLocation("Program.cs", 10, 9)] // 1
+                [InterceptsLocation("Program.cs", 14, 9)] // 2
+                [InterceptsLocation("Program.cs", 18, 9)] // 3
+                static void Interceptor1() { }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(23,6): error CS9207: Cannot intercept 'a' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 10, 9)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 10, 9)").WithArguments("a").WithLocation(23, 6),
+            // Program.cs(24,6): error CS9207: Cannot intercept 'local' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 14, 9)] // 2
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 14, 9)").WithArguments("local").WithLocation(24, 6),
+            // Program.cs(25,6): error CS9207: Cannot intercept 'fnptr' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 18, 9)] // 3
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 18, 9)").WithArguments("fnptr").WithLocation(25, 6)
             );
     }
 

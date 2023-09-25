@@ -195,6 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!node.HasErrors, "nodes with errors should not be lowered");
 
             BoundExpression? expr = node as BoundExpression;
+#if DEBUG
+            if (expr?.Syntax is InvocationExpressionSyntax)
+            {
+                // If this assertion fails, it means new lowering-layer checks are needed for interceptors.
+                // e.g. if the call syntax is being intercepted, an error should be reported
+                Debug.Assert(expr is BoundCall or BoundFunctionPointerInvocation);
+            }
+#endif
             if (expr != null)
             {
                 return VisitExpressionImpl(expr);
