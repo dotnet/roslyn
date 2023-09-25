@@ -103,9 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression array;
-            if (node.GetKnownLength(hasSpreadElements: out _) is null)
+            if (ShouldUseKnownLength(node, out _))
             {
-                // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
+                array = CreateAndPopulateArray(node, arrayType);
+            }
+            else
+            {
+                // The array initializer has an unknown length, so we'll create an intermediate List<T> instance.
                 // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
                 var list = CreateAndPopulateList(node, elementType);
 
@@ -114,10 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember((NamedTypeSymbol)list.Type);
                 array = _factory.Call(list, listToArray);
-            }
-            else
-            {
-                array = CreateAndPopulateArray(node, arrayType);
             }
 
             if (spanConstructor is null)
@@ -196,25 +196,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
                 SpecialType.System_Collections_Generic_IReadOnlyList_T)
             {
-                int? lengthOpt = node.GetKnownLength(hasSpreadElements: out _);
+                int numberIncludingLastSpread;
+                bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
 
-                if (lengthOpt == 0)
+                if (numberIncludingLastSpread == 0 && node.Elements.Length == 0)
                 {
                     // arrayOrList = Array.Empty<ElementType>();
                     arrayOrList = CreateEmptyArray(syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
                 }
                 else
                 {
-                    bool hasKnownLength = lengthOpt.HasValue;
                     var typeArgs = ImmutableArray.Create(elementType);
-                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, hasKnownLength: hasKnownLength, _diagnostics.DiagnosticBag).Construct(typeArgs);
+                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, hasKnownLength: useKnownLength, _diagnostics.DiagnosticBag).Construct(typeArgs);
                     if (synthesizedType.IsErrorType())
                     {
                         return BadExpression(node);
                     }
 
                     BoundExpression fieldValue;
-                    if (hasKnownLength)
+                    if (useKnownLength)
                     {
                         // fieldValue = new ElementType[] { e1, ..., eN };
                         var arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
@@ -285,9 +285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectionExpressionTypeKind.ReadOnlySpan or
                 CollectionExpressionTypeKind.CollectionBuilder);
 
-            return node.GetKnownLength(out bool hasSpreadElements) is int length &&
-                length > 0 &&
-                !hasSpreadElements &&
+            return !node.HasSpreadElements(out _, out _) &&
+                node.Elements.Length > 0 &&
                 CodeGenerator.IsTypeAllowedInBlobWrapper(elementType.EnumUnderlyingTypeOrSelf().SpecialType) &&
                 node.Elements.All(e => e.ConstantValueOpt is { });
         }
@@ -299,9 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectionExpressionTypeKind.Span or
                 CollectionExpressionTypeKind.CollectionBuilder);
 
-            return node.GetKnownLength(out bool hasSpreadElements) is int length &&
-                length > 0 &&
-                !hasSpreadElements &&
+            return !node.HasSpreadElements(out _, out _) &&
+                node.Elements.Length > 0 &&
                 _compilation.Assembly.RuntimeSupportsInlineArrayTypes;
         }
 
@@ -370,6 +368,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the collection expression has a known length and that length should be used
+        /// in the lowered code to avoid resizing the collection instance, or allocating intermediate storage,
+        /// during construction. If the collection expression includes spreads, the spreads must be countable.
+        /// The caller will need to delay adding elements and iterating spreads until the last spread has been
+        /// evaluated, to determine the overall length of the collection. Therefore, this method only returns
+        /// true if the number of preceding elements is below a maximum.
+        /// </summary>
+        private static bool ShouldUseKnownLength(BoundCollectionExpression node, out int numberIncludingLastSpread)
+        {
+            // The maximum number of collection expression elements that will be rewritten into temporaries.
+            // The value is arbitrary but small to avoid significant stack size for the containing method
+            // while also allowing using the known length for common cases. In particular, this allows
+            // using the known length for simple concatenation of two elements [e, ..y] or [..x, ..y].
+            // Temporaries are only needed up to the last spread, so this also allows [..x, e1, e2, ...].
+            const int maxTemporaries = 3;
+            int n;
+            bool hasKnownLength;
+            node.HasSpreadElements(out n, out hasKnownLength);
+            if (hasKnownLength && n <= maxTemporaries)
+            {
+                numberIncludingLastSpread = n;
+                return true;
+            }
+            numberIncludingLastSpread = 0;
+            return false;
+        }
+
+        /// <summary>
         /// Create and populate an array from a collection expression where the
         /// collection has a known length, although possibly including spreads.
         /// </summary>
@@ -378,23 +404,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = node.Syntax;
             var elements = node.Elements;
 
-            if (node.GetKnownLength(out bool hasSpreadElements) is not int knownLength)
+            int numberIncludingLastSpread;
+            if (!ShouldUseKnownLength(node, out numberIncludingLastSpread))
             {
                 // Should have been handled by the caller.
                 throw ExceptionUtilities.UnexpectedValue(node);
             }
 
-            if (knownLength == 0)
+            if (numberIncludingLastSpread == 0)
             {
-                return CreateEmptyArray(syntax, arrayType);
-            }
+                int knownLength = elements.Length;
+                if (knownLength == 0)
+                {
+                    return CreateEmptyArray(syntax, arrayType);
+                }
 
-            if (!hasSpreadElements)
-            {
                 var initialization = new BoundArrayInitialization(
-                        syntax,
-                        isInferred: false,
-                        elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression(element), this));
+                    syntax,
+                    isInferred: false,
+                    elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression(element), this));
                 return new BoundArrayCreation(
                     syntax,
                     ImmutableArray.Create<BoundExpression>(
@@ -411,10 +439,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
 
-            RewriteCollectionExpressionElementsIntoTemporaries(elements, localsBuilder, sideEffects);
+            RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             // int length = N + s1.Length + ...;
-            BoundLocal lengthTemp = _factory.StoreToTemp(GetKnownLengthExpression(elements, localsBuilder), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+            BoundLocal lengthTemp = _factory.StoreToTemp(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
             localsBuilder.Add(lengthTemp);
             sideEffects.Add(assignmentToTemp);
 
@@ -438,6 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elements,
                 arrayTemp,
                 localsBuilder,
+                numberIncludingLastSpread,
                 sideEffects,
                 (ArrayBuilder<BoundExpression> expressions, BoundExpression receiver, BoundExpression rewrittenValue) =>
                 {
@@ -497,16 +526,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
 
-            RewriteCollectionExpressionElementsIntoTemporaries(elements, localsBuilder, sideEffects);
+            int numberIncludingLastSpread;
+            bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
+            RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             BoundObjectCreationExpression rewrittenReceiver;
-            bool hasSpreadElements;
-            int? knownLength = node.GetKnownLength(out hasSpreadElements);
-            if (knownLength is > 0)
+            if (useKnownLength && elements.Length > 0)
             {
                 // List<ElementType> list = new(N + s1.Length + ...);
                 var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
-                rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(GetKnownLengthExpression(elements, localsBuilder)));
+                rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
             }
             else
             {
@@ -526,6 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elements,
                 listTemp,
                 localsBuilder,
+                numberIncludingLastSpread,
                 sideEffects,
                 (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue) =>
                 {
@@ -545,20 +575,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionType);
         }
 
-        // PROTOTYPE: We should only rewrite into temporaries up to the last spread element.
-        // The rest of the expressions can be evaluated as they are added.
+        private BoundExpression RewriteCollectionExpressionElementExpression(BoundExpression element)
+        {
+            var expression = element is BoundCollectionExpressionSpreadElement spreadElement ?
+                spreadElement.Expression :
+                element;
+            return VisitExpression(expression);
+        }
+
         private void RewriteCollectionExpressionElementsIntoTemporaries(
             ImmutableArray<BoundExpression> elements,
+            int numberIncludingLastSpread,
             ArrayBuilder<BoundLocal> locals,
             ArrayBuilder<BoundExpression> sideEffects)
         {
-            foreach (var element in elements)
+            for (int i = 0; i < numberIncludingLastSpread; i++)
             {
-                var expression = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                    spreadElement.Expression :
-                    element;
+                var rewrittenExpression = RewriteCollectionExpressionElementExpression(elements[i]);
                 BoundAssignmentOperator assignmentToTemp;
-                BoundLocal temp = _factory.StoreToTemp(VisitExpression(expression), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+                BoundLocal temp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
                 locals.Add(temp);
                 sideEffects.Add(assignmentToTemp);
             }
@@ -568,13 +603,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> elements,
             BoundExpression rewrittenReceiver,
             ArrayBuilder<BoundLocal> rewrittenExpressions,
+            int numberIncludingLastSpread,
             ArrayBuilder<BoundExpression> sideEffects,
             Action<ArrayBuilder<BoundExpression>, BoundExpression, BoundExpression> addElement)
         {
             for (int i = 0; i < elements.Length; i++)
             {
                 var element = elements[i];
-                var rewrittenExpression = rewrittenExpressions[i];
+                var rewrittenExpression = i < numberIncludingLastSpread ?
+                    rewrittenExpressions[i] :
+                    RewriteCollectionExpressionElementExpression(element);
 
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
@@ -602,12 +640,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression GetKnownLengthExpression(ImmutableArray<BoundExpression> elements, ArrayBuilder<BoundLocal> rewrittenExpressions)
+        private BoundExpression GetKnownLengthExpression(ImmutableArray<BoundExpression> elements, int numberIncludingLastSpread, ArrayBuilder<BoundLocal> rewrittenExpressions)
         {
+            Debug.Assert(rewrittenExpressions.Count == numberIncludingLastSpread);
+
             int initialLength = 0;
             BoundExpression? sum = null;
 
-            for (int i = 0; i < elements.Length; i++)
+            for (int i = 0; i < numberIncludingLastSpread; i++)
             {
                 var element = elements[i];
                 var rewrittenExpression = rewrittenExpressions[i];
@@ -628,6 +668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     initialLength++;
                 }
             }
+
+            initialLength += elements.Length - numberIncludingLastSpread;
 
             if (initialLength > 0)
             {

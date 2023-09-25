@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 if (collectionTypeKind == CollectionExpressionTypeKind.ListInterface ||
-                    node.HasSpreadElements())
+                    node.HasSpreadElements(out _, out _))
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
                     // though not all will be used for any particular collection expression. Checking all
