@@ -1405,7 +1405,7 @@ public sealed class MakeStructMemberReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
     public async Task TestInlineArraySpan1()
     {
         await new VerifyCS.Test
@@ -1437,7 +1437,7 @@ public sealed class MakeStructMemberReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
     public async Task TestInlineArraySpan2()
     {
         await new VerifyCS.Test
@@ -1471,7 +1471,7 @@ public sealed class MakeStructMemberReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
     public async Task TestInlineArraySpan2_A()
     {
         await new VerifyCS.Test
@@ -1505,7 +1505,7 @@ public sealed class MakeStructMemberReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
     public async Task TestInlineArraySpan3()
     {
         await new VerifyCS.Test
@@ -1563,7 +1563,7 @@ public sealed class MakeStructMemberReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
     public async Task TestInlineArraySpan3_A()
     {
         await new VerifyCS.Test
@@ -1621,7 +1621,7 @@ public sealed class MakeStructMemberReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
     public async Task TestInlineArraySpan4()
     {
         await new VerifyCS.Test
@@ -1679,7 +1679,7 @@ public sealed class MakeStructMemberReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
     public async Task TestInlineArraySpan4_A()
     {
         await new VerifyCS.Test
