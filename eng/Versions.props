@@ -23,13 +23,8 @@
   Roslyn version
 --> 
   <PropertyGroup>
-  <!-- The Roslyn version must be changed in ..\eng-Metalama\MainVersion.props.
-
-    <MajorVersion>4</MajorVersion>
-    <MinorVersion>7</MinorVersion>
-    <PatchVersion>0</PatchVersion>
-
-   -->
+    <RoslynVersion>4.7.0</RoslynVersion>
+    
     <!-- The PreReleaseVersionLabel property must be non-empty otherwise a random suffix is generated instead of 'preview'. -->
     <PreReleaseVersionLabel>6</PreReleaseVersionLabel>
     <VersionPrefix>$(MetalamaCompilerVersionPrefix)</VersionPrefix>
