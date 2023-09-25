@@ -41,17 +41,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 DifferenceViewMode.Inline => _viewer.InlineHost,
                 DifferenceViewMode.LeftViewOnly => _viewer.LeftHost,
                 DifferenceViewMode.RightViewOnly => _viewer.RightHost,
-                _ => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(_viewer.ViewMode),
             };
 
-            if (host != null)
-            {
-                _editorCommandTarget = new NavigationalCommandTarget(host.TextView,
+            _editorCommandTarget = new NavigationalCommandTarget(host.TextView,
                     editorOperationsFactoryService.GetEditorOperations(host.TextView));
 
-                _filterKeys = Package.GetGlobalService(typeof(SVsFilterKeys)) as IVsFilterKeys2;
-                Debug.Assert(_filterKeys != null);
-            }
+            _filterKeys = Package.GetGlobalService(typeof(SVsFilterKeys)) as IVsFilterKeys2;
+            Debug.Assert(_filterKeys != null);
         }
 
         public IWpfDifferenceViewer Viewer
