@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     public abstract partial class CompletionService
     {
+        private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
+
         /// <summary>
         /// Gets the completions available at the caret position.
         /// </summary>
@@ -268,12 +270,23 @@ namespace Microsoft.CodeAnalysis.Completion
                 return CompletionList.Empty;
             }
 
-            return CompletionList.Create(
-                completionContexts[0].CompletionListSpan,   // All contexts have the same completion list span.
-                displayNameToItemsMap.SortToSegmentedList(),
-                GetRules(options),
-                suggestionModeItem,
-                isExclusive);
+            var list = s_sortListPool.Allocate();
+            try
+            {
+                displayNameToItemsMap.PopulateSortedList(list);
+
+                return CompletionList.Create(
+                    completionContexts[0].CompletionListSpan,   // All contexts have the same completion list span.
+                    list,
+                    GetRules(options),
+                    suggestionModeItem,
+                    isExclusive);
+            }
+            finally
+            {
+                list.Clear();
+                s_sortListPool.Free(list);
+            }
         }
 
         /// <summary>
@@ -329,27 +342,16 @@ namespace Microsoft.CodeAnalysis.Completion
             // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
             // number 5 because we don't expect more than a couple of callers at the same time.
             private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new Dictionary<string, object>(), size: 5);
-            private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
 
             private readonly Dictionary<string, object> _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
             private readonly CompletionService _service = service;
 
             public int Count { get; private set; }
 
-            public SegmentedList<CompletionItem> SortToSegmentedList()
+            public void PopulateSortedList(List<CompletionItem> list)
             {
-                var list = s_sortListPool.Allocate();
-                try
-                {
-                    list.AddRange(this);
-                    list.Sort();
-                    return new(list);
-                }
-                finally
-                {
-                    list.Clear();
-                    s_sortListPool.Free(list);
-                }
+                list.AddRange(this);
+                list.Sort();
             }
 
             public void Dispose()
