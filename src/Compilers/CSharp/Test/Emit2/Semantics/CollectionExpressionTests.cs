@@ -17324,6 +17324,8 @@ partial class Program
 
                 class NoConstructorCollection : IEnumerable<int>
                 {
+                    static NoConstructorCollection _c = [1, 2, 3];
+
                     private NoConstructorCollection() { }
                     IEnumerator IEnumerable.GetEnumerator() => null;
                     IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
@@ -17342,9 +17344,9 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (18,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+                // (20,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
                 //         F([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(18, 11)
+                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(20, 11)
                 );
         }
 
