@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected Func<TAnalysisContext, TAnalysisResult?> TryGetOrComputeAnalysisResult
             => DataFlowAnalysisContext.TryGetOrComputeAnalysisResult;
         internal bool ExecutingExceptionPathsAnalysisPostPass { get; set; }
+        internal virtual bool SkipExceptionPathsAnalysisPostPass => false;
 
         protected TAnalysisData CurrentAnalysisData
         {
@@ -844,8 +845,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual void HandlePossibleThrowingOperation(IOperation operation)
         {
-            Debug.Assert(DataFlowAnalysisContext.ExceptionPathsAnalysis);
             Debug.Assert(ExecutingExceptionPathsAnalysisPostPass);
+            Debug.Assert(!SkipExceptionPathsAnalysisPostPass);
 
             // Bail out if we are not analyzing an interprocedural call and there is no
             // tracked analysis data.
@@ -924,8 +925,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData? existingData, IOperation operation)
         {
-            Debug.Assert(DataFlowAnalysisContext.ExceptionPathsAnalysis);
             Debug.Assert(ExecutingExceptionPathsAnalysisPostPass);
+            Debug.Assert(!SkipExceptionPathsAnalysisPostPass);
 
             return existingData == null ?
                 GetClonedCurrentAnalysisData() :
@@ -1611,6 +1612,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         case OperationKind.BinaryPattern:
                             // These high level patterns should not be present in the lowered CFG: https://github.com/dotnet/roslyn/issues/47068
                             predicateValueKind = PredicateValueKind.Unknown;
+
+                            // We special case common null check to reduce false positives. But this implementation for BinaryPattern is very incomplete.
+                            if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse)
+                            {
+                                var binaryPattern = (IBinaryPatternOperation)isPatternOperation.Pattern;
+                                if (IsNotNullWhenFalse(binaryPattern))
+                                {
+                                    predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Value, equals: false, targetAnalysisData: targetAnalysisData);
+                                }
+                            }
+                            else if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
+                            {
+                                var binaryPattern = (IBinaryPatternOperation)isPatternOperation.Pattern;
+                                if (IsNotNullWhenTrue(binaryPattern))
+                                {
+                                    predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Value, equals: false, targetAnalysisData: targetAnalysisData);
+                                }
+                            }
+
                             break;
 
                         default:
@@ -1756,6 +1776,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             return true;
                         }
                     }
+                }
+
+                return false;
+            }
+
+            bool IsNotNullWhenFalse(IOperation operation)
+            {
+                if (operation is IConstantPatternOperation constant && constant.Value.ConstantValue.HasValue && constant.Value.ConstantValue.Value is null)
+                {
+                    // This is a null check. So we are not null on the false branch.
+                    return true;
+                }
+
+                if (operation is IBinaryPatternOperation { OperatorKind: BinaryOperatorKind.Or } binaryOrOperation)
+                {
+                    // Example: if (c is null or "")
+                    // The whole operation is not null when false, because one of the OR branches is not null when false.
+                    return IsNotNullWhenFalse(binaryOrOperation.LeftPattern) || IsNotNullWhenFalse(binaryOrOperation.RightPattern);
+                }
+
+                return false;
+            }
+
+            bool IsNotNullWhenTrue(IOperation operation)
+            {
+                if (operation is INegatedPatternOperation negated && negated.Pattern is IConstantPatternOperation constant && constant.Value.ConstantValue.HasValue && constant.Value.ConstantValue.Value is null)
+                {
+                    // This is a not null check. So we are not null on the true branch.
+                    return true;
+                }
+
+                if (operation is IBinaryPatternOperation { OperatorKind: BinaryOperatorKind.And } binaryOrOperation)
+                {
+                    // Example: if (c is not null and "")
+                    // The whole operation is not null when true, because one of the AND branches is not null when true.
+                    return IsNotNullWhenTrue(binaryOrOperation.LeftPattern) || IsNotNullWhenTrue(binaryOrOperation.RightPattern);
                 }
 
                 return false;

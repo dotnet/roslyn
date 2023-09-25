@@ -124,14 +124,14 @@ namespace Roslyn.Diagnostics.Analyzers
                     if (knownNonDefaultableTypes.TryGetValue(namedType, out var isNonDefaultable))
                         return !isNonDefaultable;
 
-                    isNonDefaultable = namedType.HasAttribute(nonDefaultableAttribute);
+                    isNonDefaultable = namedType.HasAnyAttribute(nonDefaultableAttribute);
                     return !knownNonDefaultableTypes.GetOrAdd(namedType, isNonDefaultable);
 
                 case TypeKind.TypeParameter:
                     if (knownNonDefaultableTypes.TryGetValue(type, out isNonDefaultable))
                         return !isNonDefaultable;
 
-                    isNonDefaultable = type.HasAttribute(nonDefaultableAttribute);
+                    isNonDefaultable = type.HasAnyAttribute(nonDefaultableAttribute);
                     return !knownNonDefaultableTypes.GetOrAdd(type, isNonDefaultable);
 
                 case TypeKind.Unknown:

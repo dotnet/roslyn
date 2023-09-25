@@ -9,7 +9,7 @@ Namespace Global.TestProject
         End Sub
         
         Private Shared s_resourceManager As Global.System.Resources.ResourceManager
-        Friend Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
+        Public Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
             Get
                 If s_resourceManager Is Nothing Then
                     s_resourceManager = New Global.System.Resources.ResourceManager(GetType(Resources))
@@ -19,7 +19,7 @@ Namespace Global.TestProject
         End Property
 
         ''' <summary>value</summary>
-        Friend Shared ReadOnly Property [Name] As String
+        Public Shared ReadOnly Property [Name] As String
           Get
             Return GetResourceString("Name")
           End Get

@@ -60,7 +60,7 @@ namespace Analyzer.Utilities
 
                     var method = (IMethodSymbol)operationBlockAnalysisContext.OwningSymbol;
 
-                    if (RequiresAttributeOnMethod && !method.HasAttribute(requiredAttributeType))
+                    if (RequiresAttributeOnMethod && !method.HasAnyAttribute(requiredAttributeType))
                     {
                         return;
                     }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     var namedType = (INamedTypeSymbol)sac.Symbol;
 
                     if (namedType.TypeKind == TypeKind.Class &&
-                        namedType.HasAttribute(diagnosticAnalyzerAttribute) &&
+                        namedType.HasAnyAttribute(diagnosticAnalyzerAttribute) &&
                         !namedType.DerivesFrom(diagnosticAnalyzer, baseTypesOnly: true))
                     {
                         sac.ReportDiagnostic(namedType.Locations[0].CreateDiagnostic(Rule, namedType.Name));

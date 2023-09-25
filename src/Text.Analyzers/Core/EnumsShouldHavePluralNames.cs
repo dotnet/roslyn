@@ -93,7 +93,7 @@ namespace Text.Analyzers
                 return;
             }
 
-            if (symbol.HasAttribute(flagsAttribute))
+            if (symbol.HasAnyAttribute(flagsAttribute))
             {
                 if (reportCA1714 && !IsPlural(symbol.Name)) // Checking Rule CA1714
                 {
