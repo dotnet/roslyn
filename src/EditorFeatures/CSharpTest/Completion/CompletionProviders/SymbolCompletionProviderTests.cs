@@ -12418,6 +12418,30 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "Int32");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
+        public async Task GenericWithNonGenericOverload()
+        {
+            var source = """
+                class C
+                {
+                    void M(C other)
+                    {
+                        if (other.A < $$)
+                        {
+                        }
+                    }
+
+                    void A() { }
+                    void A<T>() { }
+                }
+                
+                """;
+
+            await VerifyItemExistsAsync(source, "other");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "C");
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""
