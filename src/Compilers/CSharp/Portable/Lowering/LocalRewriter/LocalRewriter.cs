@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If this assertion fails, it means new lowering-layer checks are needed for interceptors.
                 // e.g. if the call syntax is being intercepted, an error should be reported
-                Debug.Assert(expr is BoundCall or BoundFunctionPointerInvocation);
+                Debug.Assert(expr is BoundCall or BoundFunctionPointerInvocation, $"{expr.GetType().Name} was not expected to have a Syntax of type InvocationExpressionSyntax");
+
             }
 #endif
             if (expr != null)
