@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
@@ -34,29 +35,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             {
                 var typeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
                 IMethodSymbol? getDeclaredSymbolMethod;
-                if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisModelExtensions, out var modelExtensions)
-                    || (getDeclaredSymbolMethod = modelExtensions.GetMembers(nameof(ModelExtensions.GetDeclaredSymbol)).FirstOrDefault() as IMethodSymbol) is null
-                    || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpSyntaxGlobalStatementSyntax, out var globalStatementSymbol)
-                    || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpSyntaxIncompleteMemberSyntax, out var incompleteMemberSymbol)
-                    || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpSyntaxBaseFieldDeclarationSyntax, out var baseFieldDeclarationSymbol))
+                if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpCSharpExtensions, out var csharpExtensions)
+                    || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisModelExtensions, out var modelExtensions)
+                    || (getDeclaredSymbolMethod = modelExtensions.GetMembers(nameof(ModelExtensions.GetDeclaredSymbol)).FirstOrDefault() as IMethodSymbol) is null)
                 {
                     return;
                 }
 
-                context.RegisterOperationAction(ctx => AnalyzeInvocation(ctx, getDeclaredSymbolMethod, globalStatementSymbol, incompleteMemberSymbol, baseFieldDeclarationSymbol), OperationKind.Invocation);
+                var allowedTypes = csharpExtensions.GetMembers(nameof(CSharpExtensions.GetDeclaredSymbol))
+                    .OfType<IMethodSymbol>()
+                    .Where(m => m.Parameters.Length >= 2)
+                    .Select(m => m.Parameters[1].Type);
+
+                context.RegisterOperationAction(ctx => AnalyzeInvocation(ctx, getDeclaredSymbolMethod, allowedTypes), OperationKind.Invocation);
             });
         }
 
-        private static void AnalyzeInvocation(OperationAnalysisContext context, IMethodSymbol getDeclaredSymbolMethod, INamedTypeSymbol globalStatementSymbol, INamedTypeSymbol incompleteMemberSymbol, INamedTypeSymbol baseFieldDeclarationSymbol)
+        private static void AnalyzeInvocation(OperationAnalysisContext context, IMethodSymbol getDeclaredSymbolMethod, IEnumerable<ITypeSymbol> allowedTypes)
         {
             var invocation = (IInvocationOperation)context.Operation;
             if (SymbolEqualityComparer.Default.Equals(invocation.TargetMethod, getDeclaredSymbolMethod))
             {
                 var syntaxNodeType = invocation.Arguments[1].Value.WalkDownConversion().Type;
-                if (syntaxNodeType is not null &&
-                    (syntaxNodeType.DerivesFrom(globalStatementSymbol, baseTypesOnly: true, checkTypeParameterConstraints: false)
-                    || syntaxNodeType.DerivesFrom(incompleteMemberSymbol, baseTypesOnly: true, checkTypeParameterConstraints: false)
-                    || syntaxNodeType.DerivesFrom(baseFieldDeclarationSymbol, baseTypesOnly: true, checkTypeParameterConstraints: false)))
+                if (syntaxNodeType is not null && allowedTypes.Any(type => syntaxNodeType.DerivesFrom(type, baseTypesOnly: true, checkTypeParameterConstraints: false)))
                 {
                     var diagnostic = invocation.CreateDiagnostic(DiagnosticDescriptor, syntaxNodeType.Name);
                     context.ReportDiagnostic(diagnostic);
