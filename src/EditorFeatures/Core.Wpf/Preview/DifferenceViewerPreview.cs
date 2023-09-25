@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio;
@@ -13,7 +12,6 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Differencing;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
