@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -44,7 +43,7 @@ namespace Analyzer.Utilities.Extensions
         {
             return methods.Where(candidateMethod =>
             {
-                if (!System.Collections.Immutable.ImmutableArrayExtensions.HasExactly(candidateMethod.Parameters, selectedOverload.Parameters.Count() + 1))
+                if (!System.Collections.Immutable.ImmutableArrayExtensions.HasExactly(candidateMethod.Parameters, selectedOverload.Parameters.Length + 1))
                 {
                     return false;
                 }
@@ -70,7 +69,7 @@ namespace Analyzer.Utilities.Extensions
                     }
                 }
 
-                for (int i = 0; i < selectedOverload.Parameters.Count(); i++, j++)
+                for (int i = 0; i < selectedOverload.Parameters.Length; i++, j++)
                 {
                     if (!selectedOverload.Parameters[i].Type.Equals(candidateMethod.Parameters[j].Type) ||
                         selectedOverload.Parameters[i].IsParams != candidateMethod.Parameters[j].IsParams ||
@@ -140,7 +139,7 @@ namespace Analyzer.Utilities.Extensions
             var expectedParameterCount = expectedParameterTypesInOrder.Length;
             return members?.FirstOrDefault(member =>
             {
-                if (member.Parameters.Count() != expectedParameterCount)
+                if (member.Parameters.Length != expectedParameterCount)
                 {
                     return false;
                 }
