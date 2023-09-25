@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => type is INamedTypeSymbol
             {
                 Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                TypeArguments.Length : 1,
+                TypeArguments.Length: 1,
                 ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
             };
 
