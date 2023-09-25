@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     var fixAllFlavors = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Select(action => action.FixAllState.Scope.ToString());
 
-                    var title = FeaturesResources.Fix_All + ": " + currentTitle;
+                    var title = string.Format(FeaturesResources.Fix_All_0, currentTitle);
                     var command = new LSP.Command
                     {
                         CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
 
             var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
-            return new FixAllCodeAction(FeaturesResources.Fix_All + ": " + codeAction.Title, fixAllFlavor.FixAllState, showPreviewChangesDialog: false);
+            return new FixAllCodeAction(string.Format(FeaturesResources.Fix_All_0, codeAction.Title), fixAllFlavor.FixAllState, showPreviewChangesDialog: false);
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(

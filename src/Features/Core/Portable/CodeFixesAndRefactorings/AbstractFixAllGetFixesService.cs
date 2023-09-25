@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 {
-    protected abstract Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, bool showPreviewChangesDialog, IProgressTracker progressTracker, IFixAllState fixAllState, CancellationToken cancellationToken);
-
     public async Task<Solution> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
     {
         var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
@@ -43,6 +41,117 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         return await GetFixAllOperationsAsync(
             codeAction, showPreviewChangesDialog, fixAllContext.ProgressTracker, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+    }
+
+    protected async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
+            CodeAction codeAction,
+            bool showPreviewChangesDialog,
+            IProgressTracker progressTracker,
+            IFixAllState fixAllState,
+            CancellationToken cancellationToken)
+    {
+        // We have computed the fix all occurrences code fix.
+        // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
+
+        var workspace = fixAllState.Project.Solution.Workspace;
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var operations = await codeAction.GetOperationsAsync(
+            fixAllState.Solution, progressTracker, cancellationToken).ConfigureAwait(false);
+        if (operations == null)
+        {
+            return ImmutableArray<CodeActionOperation>.Empty;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var newSolution = await codeAction.GetChangedSolutionInternalAsync(
+            fixAllState.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        if (showPreviewChangesDialog)
+        {
+            newSolution = PreviewChanges(
+                fixAllState.Project.Solution,
+                newSolution,
+                FeaturesResources.Fix_all_occurrences,
+                codeAction.Title,
+                fixAllState.FixAllKind,
+                fixAllState.Project.Language,
+                workspace,
+                fixAllState.CorrelationId,
+                cancellationToken);
+            if (newSolution == null)
+            {
+                return ImmutableArray<CodeActionOperation>.Empty;
+            }
+        }
+
+        // Get a code action, with apply changes operation replaced with the newSolution.
+        return GetNewFixAllOperations(operations, newSolution, cancellationToken);
+    }
+
+    internal Solution PreviewChanges(
+        Solution currentSolution,
+        Solution newSolution,
+        string fixAllPreviewChangesTitle,
+        string fixAllTopLevelHeader,
+        FixAllKind fixAllKind,
+        string languageOpt,
+        Workspace workspace,
+        int? correlationId = null,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var functionId = fixAllKind switch
+        {
+            FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges,
+            FixAllKind.Refactoring => FunctionId.Refactoring_FixAllOccurrencesPreviewChanges,
+            _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
+        };
+
+        using (Logger.LogBlock(
+            functionId,
+            KeyValueLogMessage.Create(LogType.UserAction, m =>
+            {
+                // only set when correlation id is given
+                // we might not have this info for suppression
+                if (correlationId.HasValue)
+                {
+                    m[FixAllLogger.CorrelationId] = correlationId;
+                }
+            }),
+            cancellationToken))
+        {
+            var glyph = languageOpt == null
+                ? Glyph.Assembly
+                : languageOpt == LanguageNames.CSharp
+                    ? Glyph.CSharpProject
+                    : Glyph.BasicProject;
+
+            var changedSolution = GetChangedSolution(
+                workspace, currentSolution, newSolution, fixAllTopLevelHeader, fixAllPreviewChangesTitle, glyph);
+
+            if (changedSolution == null)
+            {
+                // User clicked cancel.
+                FixAllLogger.LogPreviewChangesResult(fixAllKind, correlationId, applied: false);
+                return null;
+            }
+
+            FixAllLogger.LogPreviewChangesResult(fixAllKind, correlationId, applied: true, allChangesApplied: changedSolution == newSolution);
+            return changedSolution;
+        }
+    }
+
+    protected virtual Solution GetChangedSolution(
+        Workspace workspace,
+        Solution currentSolution,
+        Solution newSolution,
+        string fixAllPreviewChangesTitle,
+        string fixAllTopLevelHeader,
+        Glyph glyph)
+    {
+        return currentSolution;
     }
 
     private static async Task<CodeAction> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)

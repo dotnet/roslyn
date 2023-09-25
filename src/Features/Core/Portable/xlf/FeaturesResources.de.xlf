@@ -780,9 +780,9 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">„Alle Verweise suchen“ wurde für das anwendbare Symbol nicht aufgerufen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_All">
-        <source>Fix All</source>
-        <target state="new">Fix All</target>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">

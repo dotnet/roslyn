@@ -780,9 +780,9 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">'Trova tutti i riferimenti' non richiamato su un simbolo applicabile</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_All">
-        <source>Fix All</source>
-        <target state="new">Fix All</target>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">

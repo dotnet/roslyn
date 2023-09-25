@@ -780,9 +780,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">未在適用的符號上叫用 [尋找所有參考]</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_All">
-        <source>Fix All</source>
-        <target state="new">Fix All</target>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">

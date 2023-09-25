@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 
 internal sealed class FixAllCodeAction : AbstractFixAllCodeAction
 {
-    protected readonly string _title;
+    private readonly string _title;
 
     public FixAllCodeAction(string title, IFixAllState fixAllState, bool showPreviewChangesDialog) : base(fixAllState, showPreviewChangesDialog)
     {
