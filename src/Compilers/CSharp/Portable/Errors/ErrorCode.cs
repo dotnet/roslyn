@@ -2273,6 +2273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpectedInterpolatedString = 9205,
 
         ERR_InterceptorGlobalNamespace = 9206,
+        ERR_InterceptorCannotInterceptDelegateInvocation = 9207,
 
         #endregion
 

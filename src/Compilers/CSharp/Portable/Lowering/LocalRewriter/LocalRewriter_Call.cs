@@ -178,6 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (receiverOpt is { Type.TypeKind: TypeKind.Delegate })
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptDelegateInvocation, attributeLocation);
+                return;
+            }
+
             var containingMethod = this._factory.CurrentFunction;
             Debug.Assert(containingMethod is not null);
 

@@ -1276,13 +1276,14 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void InterceptableDelegateInvocation()
+    public void InterceptableDelegateInvocation_01()
     {
         var source = """
             using System.Runtime.CompilerServices;
             using System;
 
             C.M(() => Console.Write(1));
+            C.M1((() => Console.Write(1), 0));
 
             static class C
             {
@@ -1290,17 +1291,68 @@ public class InterceptorsTests : CSharpTestBase
                 {
                     action();
                 }
+
+                public static void M1((Action action, int) pair)
+                {
+                    pair.action();
+                }
             }
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 10, 9)]
+                [InterceptsLocation("Program.cs", 11, 9)]
+                [InterceptsLocation("Program.cs", 16, 14)]
                 public static void Interceptor1(this Action action) { action(); Console.Write(2); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "12");
-        verifier.VerifyDiagnostics(
-            );
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        compilation.VerifyEmitDiagnostics(
+            // Program.cs(22,6): error CS9207: An interceptor cannot intercept a delegate invocation.
+            //     [InterceptsLocation("Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorCannotInterceptDelegateInvocation, @"InterceptsLocation(""Program.cs"", 11, 9)").WithLocation(22, 6),
+            // Program.cs(23,6): error CS9207: An interceptor cannot intercept a delegate invocation.
+            //     [InterceptsLocation("Program.cs", 16, 14)]
+            Diagnostic(ErrorCode.ERR_InterceptorCannotInterceptDelegateInvocation, @"InterceptsLocation(""Program.cs"", 16, 14)").WithLocation(23, 6));
+    }
+
+    [Fact]
+    public void InterceptableDelegateInvocation_02()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M(() => Console.Write(1));
+            C.M1((() => Console.Write(1), 0));
+
+            static class C
+            {
+                public static void M(Action action)
+                {
+                    action!();
+                }
+
+                public static void M1((Action action, int) pair)
+                {
+                    pair.action!();
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 11, 9)]
+                [InterceptsLocation("Program.cs", 16, 14)]
+                public static void Interceptor1(this Action action) { action(); Console.Write(2); }
+            }
+            """;
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        compilation.VerifyEmitDiagnostics(
+            // Program.cs(22,6): error CS9151: Possible method name 'action' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("action").WithLocation(22, 6),
+            // Program.cs(23,6): error CS9151: Possible method name 'action' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 16, 14)]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 16, 14)").WithArguments("action").WithLocation(23, 6));
     }
 
     [Fact]

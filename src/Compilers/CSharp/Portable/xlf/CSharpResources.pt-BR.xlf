@@ -952,6 +952,11 @@
         <target state="new">Method '{0}' must be non-generic to match '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptDelegateInvocation">
+        <source>An interceptor cannot intercept a delegate invocation.</source>
+        <target state="new">An interceptor cannot intercept a delegate invocation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
         <source>A nameof operator cannot be intercepted.</source>
         <target state="translated">Um operador nameof não pode ser interceptado.</target>
