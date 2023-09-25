@@ -177,14 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
             {
-                if (_binder.TryBindIEnumerableCollectionInstance(targetType, syntax, BindingDiagnosticBag.Discarded, out var collectionCreation))
-                {
-                    if (collectionCreation.HasAnyErrors)
-                    {
-                        return Conversion.NoConversion;
-                    }
-                }
-                else
+                if (!_binder.TryBindIEnumerableCollectionInstance(targetType, syntax, BindingDiagnosticBag.Discarded, out var collectionCreation)
+                    || collectionCreation.HasAnyErrors)
                 {
                     return Conversion.NoConversion;
                 }

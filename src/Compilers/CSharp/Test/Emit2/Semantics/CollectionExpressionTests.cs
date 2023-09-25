@@ -17211,6 +17211,58 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_TypeParameter()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static T1 Create1<T1>() where T1 : IEnumerable<int> => []; // 1
+                    static T2 Create2<T2>() where T2 : IEnumerable<int>, new() => [];
+                    static T3 Create3<T3>() where T3 : struct, IEnumerable<int> => [];
+                    static T4 Create4<T4>() where T4 : class, IEnumerable<int> => []; // 2
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,60): error CS0304: Cannot create an instance of the variable type 'T1' because it does not have the new() constraint
+                //     static T1 Create1<T1>() where T1 : IEnumerable<int> => []; // 1
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T1").WithLocation(6, 60),
+                // (9,67): error CS0304: Cannot create an instance of the variable type 'T4' because it does not have the new() constraint
+                //     static T4 Create4<T4>() where T4 : class, IEnumerable<int> => []; // 2
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T4").WithLocation(9, 67)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.False(conversion1.IsValid);
+
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsCollectionExpression);
+
+            var typeInfo2 = model.GetTypeInfo(collections[1]);
+            Assert.Null(typeInfo2.Type);
+            Assert.Equal("T2", typeInfo2.ConvertedType.ToTestDisplayString());
+
+            var conversion3 = model.GetConversion(collections[2]);
+            Assert.True(conversion3.IsValid);
+            Assert.True(conversion3.IsCollectionExpression);
+
+            var typeInfo3 = model.GetTypeInfo(collections[2]);
+            Assert.Null(typeInfo3.Type);
+            Assert.Equal("T3", typeInfo3.ConvertedType.ToTestDisplayString());
+
+            var conversion4 = model.GetConversion(collections[3]);
+            Assert.False(conversion4.IsValid);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
         public void OptionalParameterCtor()
         {
             string source = """
@@ -17232,7 +17284,7 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
-        public void MissingCtor_1()
+        public void MissingCtor_AbstractCollectionType()
         {
             string source = """
                 using System.Collections;
@@ -17264,7 +17316,7 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
-        public void MissingCtor_2()
+        public void MissingCtor_EmptyCollection()
         {
             string source = """
                 using System.Collections;
@@ -17293,6 +17345,39 @@ partial class Program
                 // (18,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
                 //         F([]);
                 Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(18, 11)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_NonEmptyCollection()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class NoConstructorCollection : IEnumerable<int>
+                {
+                    private NoConstructorCollection() { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    public void Add(int i) { }
+                }
+
+                class Program
+                {
+                    static void F(NoConstructorCollection c) { }
+
+                    static void Main()
+                    {
+                        F([1, 2, 3]);
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (18,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+                //         F([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(18, 11)
                 );
         }
 
@@ -17342,17 +17427,28 @@ partial class Program
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         }
 
-        [CombinatorialData]
-        [Theory]
-        public void CollectionBuilder_MissingCtor(bool useCompilationReference)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void CollectionBuilder_MissingCtor()
         {
-            string sourceA = """
+            // The constructor requirement is ignored for [CollectionBuilder] types
+            string source = """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
+
+                C.M().Report();
+
+                class C
+                {
+                    public static MyCollection<object> M()
+                    {
+                        return [1, 2, 3];
+                    }
+                }
+
                 [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
-                public struct MyCollection<T> : IEnumerable<T>
+                public class MyCollection<T> : IEnumerable<T>
                 {
                     private readonly List<T> _list;
                     public MyCollection(List<T> list) { _list = list; }
@@ -17367,68 +17463,14 @@ partial class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
-            var refA = AsReference(comp, useCompilationReference);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
 
-            string sourceB1 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<string> x = F0();
-                        x.Report();
-                        MyCollection<int> y = F1();
-                        y.Report();
-                        MyCollection<object> z = F2(3, 4);
-                        z.Report();
-                    }
-                    static MyCollection<string> F0()
-                    {
-                        return [];
-                    }
-                    static MyCollection<int> F1()
-                    {
-                        return [0, 1, 2];
-                    }
-                    static MyCollection<object> F2(int x, object y)
-                    {
-                        return [x, y, null];
-                    }
-                }
-                """;
-
-            var verifier = CompileAndVerify(
-                new[] { sourceB1, s_collectionExtensions },
-                references: new[] { refA },
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Fails,
-                expectedOutput: IncludeExpectedOutput("[], [0, 1, 2], [3, 4, null], "));
-            verifier.VerifyIL("Program.F0",
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"));
+            verifier.VerifyIL("C.M",
                 """
                 {
-                  // Code size       16 (0x10)
-                  .maxstack  1
-                  IL_0000:  call       "string[] System.Array.Empty<string>()"
-                  IL_0005:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
-                  IL_000a:  call       "MyCollection<string> MyCollectionBuilder.Create<string>(System.ReadOnlySpan<string>)"
-                  IL_000f:  ret
-                }
-                """);
-            verifier.VerifyIL("Program.F1",
-                """
-                {
-                  // Code size       16 (0x10)
-                  .maxstack  1
-                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.AD5DC1478DE06A4C2728EA528BD9361A4B945E92A414BF4D180CEDAAEAA5F4CC4"
-                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
-                  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
-                  IL_000f:  ret
-                }
-                """);
-            verifier.VerifyIL("Program.F2",
-                """
-                {
-                  // Code size       57 (0x39)
+                  // Code size       67 (0x43)
                   .maxstack  2
                   .locals init (<>y__InlineArray3<object> V_0)
                   IL_0000:  ldloca.s   V_0
@@ -17436,95 +17478,28 @@ partial class Program
                   IL_0008:  ldloca.s   V_0
                   IL_000a:  ldc.i4.0
                   IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
-                  IL_0010:  ldarg.0
+                  IL_0010:  ldc.i4.1
                   IL_0011:  box        "int"
                   IL_0016:  stind.ref
                   IL_0017:  ldloca.s   V_0
                   IL_0019:  ldc.i4.1
                   IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
-                  IL_001f:  ldarg.1
-                  IL_0020:  stind.ref
-                  IL_0021:  ldloca.s   V_0
-                  IL_0023:  ldc.i4.2
-                  IL_0024:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
-                  IL_0029:  ldnull
-                  IL_002a:  stind.ref
-                  IL_002b:  ldloca.s   V_0
-                  IL_002d:  ldc.i4.3
-                  IL_002e:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
-                  IL_0033:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
-                  IL_0038:  ret
-                }
-                """);
-
-            string sourceB2 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<object> c = F2([1, 2]);
-                        c.Report();
-                    }
-                    static MyCollection<object> F2(MyCollection<object> c)
-                    {
-                        return [..c, 3];
-                    }
-                }
-                """;
-
-            verifier = CompileAndVerify(
-                new[] { sourceB2, s_collectionExtensions },
-                references: new[] { refA },
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Fails,
-                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
-            verifier.VerifyIL("Program.F2",
-                """
-                {
-                  // Code size       79 (0x4f)
-                  .maxstack  2
-                  .locals init (System.Collections.Generic.List<object> V_0,
-                                System.Collections.Generic.IEnumerator<object> V_1,
-                                object V_2)
-                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0005:  stloc.0
-                  IL_0006:  ldarga.s   V_0
-                  IL_0008:  call       "System.Collections.Generic.IEnumerator<object> MyCollection<object>.GetEnumerator()"
-                  IL_000d:  stloc.1
-                  .try
-                  {
-                    IL_000e:  br.s       IL_001e
-                    IL_0010:  ldloc.1
-                    IL_0011:  callvirt   "object System.Collections.Generic.IEnumerator<object>.Current.get"
-                    IL_0016:  stloc.2
-                    IL_0017:  ldloc.0
-                    IL_0018:  ldloc.2
-                    IL_0019:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                    IL_001e:  ldloc.1
-                    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0024:  brtrue.s   IL_0010
-                    IL_0026:  leave.s    IL_0032
-                  }
-                  finally
-                  {
-                    IL_0028:  ldloc.1
-                    IL_0029:  brfalse.s  IL_0031
-                    IL_002b:  ldloc.1
-                    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0031:  endfinally
-                  }
-                  IL_0032:  ldloc.0
-                  IL_0033:  ldc.i4.3
-                  IL_0034:  box        "int"
-                  IL_0039:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_003e:  ldloc.0
-                  IL_003f:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
-                  IL_0044:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
-                  IL_0049:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
-                  IL_004e:  ret
+                  IL_001f:  ldc.i4.2
+                  IL_0020:  box        "int"
+                  IL_0025:  stind.ref
+                  IL_0026:  ldloca.s   V_0
+                  IL_0028:  ldc.i4.2
+                  IL_0029:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_002e:  ldc.i4.3
+                  IL_002f:  box        "int"
+                  IL_0034:  stind.ref
+                  IL_0035:  ldloca.s   V_0
+                  IL_0037:  ldc.i4.3
+                  IL_0038:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
+                  IL_003d:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_0042:  ret
                 }
                 """);
         }
-
     }
 }
