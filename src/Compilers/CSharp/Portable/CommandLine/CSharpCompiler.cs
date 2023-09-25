@@ -439,7 +439,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var licenseManager = serviceProvider.GetService<ILicenseConsumptionService>();
             if (licenseManager != null)
             {
-                if (!licenseManager.CanConsume(LicenseRequirement.Free))
+                var projectPath = GetMSBuildProjectFullPath(analyzerConfigProvider);
+                var projectName = Path.GetFileNameWithoutExtension(projectPath) ?? "unknown";
+
+                if (!licenseManager.CanConsume(LicenseRequirement.Free, projectName))
                 {
                     // We only emit the generic invalid license error when no specific error message
                     // comes from the license manager to avoid confusion of users.
@@ -454,37 +457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return TransformersResult.Failure(inputCompilation);
-                }
-
-                var application = serviceProvider.GetRequiredService<IApplicationInfoProvider>().CurrentApplication;
-                var sdkLicenseMissing = false;
-
-                foreach (var component in application.Components)
-                {
-                    // Metalama SDK is required for 3rd-party transformers.
-                    if (component.Company != "PostSharp Technologies" && !licenseManager.CanConsume(LicenseRequirement.Professional))
-                    {
-                        diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                            (int)MetalamaErrorCode.ERR_InvalidLicenseForSdk, component.Name));
-                        sdkLicenseMissing = true;
-                    }
-                }
-
-                if (sdkLicenseMissing)
-                {
-                    return TransformersResult.Failure(inputCompilation);
-                }
-
-                bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
-
-                if (shouldDebugTransformedCode)
-                {
-                    if (!licenseManager.CanConsume(LicenseRequirement.Starter))
-                    {
-                        diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                            (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
-                        return TransformersResult.Failure(inputCompilation);
-                    }
                 }
             }
 
