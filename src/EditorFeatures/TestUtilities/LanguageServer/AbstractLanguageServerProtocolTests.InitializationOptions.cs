@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,6 +25,7 @@ namespace Roslyn.Test.Utilities
             internal bool CallInitialized { get; init; } = true;
             internal object? ClientTarget { get; init; } = null;
             internal string? Locale { get; init; } = null;
+            internal IEnumerable<DiagnosticAnalyzer>? AdditionalAnalyzers { get; init; } = null;
         }
     }
 }
