@@ -233,25 +233,42 @@ namespace System
 }
 ";
 
-        protected const string AsyncStreamsTypes = @"
+        protected const string NonDisposableAsyncEnumeratorDefinition = @"
+#nullable disable
+
 namespace System.Collections.Generic
 {
-    public interface IAsyncEnumerable<out T>
+    public interface IAsyncEnumerator<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
     }
+}
+";
 
+        protected const string DisposableAsyncEnumeratorDefinition = @"
+#nullable disable
+
+namespace System.Collections.Generic
+{
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
     {
         System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
         T Current { get; }
     }
 }
-namespace System
+" + IAsyncDisposableDefinition;
+
+        protected const string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
+
+        protected const string CommonAsyncStreamsTypes = @"
+#nullable disable
+
+namespace System.Collections.Generic
 {
-    public interface IAsyncDisposable
+    public interface IAsyncEnumerable<out T>
     {
-        System.Threading.Tasks.ValueTask DisposeAsync();
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
     }
 }
 
@@ -265,8 +282,6 @@ namespace System.Runtime.CompilerServices
         }
     }
 }
-
-#nullable disable
 
 namespace System.Threading.Tasks.Sources
 {

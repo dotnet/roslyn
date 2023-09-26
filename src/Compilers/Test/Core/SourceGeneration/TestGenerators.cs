@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -77,41 +76,28 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-    internal class CallbackGenerator(
-        Action<GeneratorInitializationContext> onInit,
-        Action<GeneratorExecutionContext> onExecute,
-        Func<ImmutableArray<(string hintName, SourceText? sourceText)>> computeSourceTexts)
-        : ISourceGenerator
+    internal class CallbackGenerator : ISourceGenerator
     {
+        private readonly Action<GeneratorInitializationContext> _onInit;
+        private readonly Action<GeneratorExecutionContext> _onExecute;
+        private readonly string? _source;
+
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "")
-            : this(onInit, onExecute, () => ("source", source))
         {
+            _onInit = onInit;
+            _onExecute = onExecute;
+            _source = source;
         }
-
-        public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<(string hintName, string? source)> computeSource)
-            : this(onInit, onExecute, () =>
-            {
-                var (hint, source) = computeSource();
-                return ImmutableArray.Create((hint, string.IsNullOrWhiteSpace(source)
-                    ? null
-                    : SourceText.From(source, Encoding.UTF8)));
-            })
-        {
-        }
-
-        public void Initialize(GeneratorInitializationContext context)
-            => onInit(context);
 
         public void Execute(GeneratorExecutionContext context)
         {
-            onExecute(context);
-
-            foreach (var (hintName, sourceText) in computeSourceTexts())
+            _onExecute(context);
+            if (!string.IsNullOrWhiteSpace(_source))
             {
-                if (sourceText != null)
-                    context.AddSource(hintName, sourceText);
+                context.AddSource("source", SourceText.From(_source, Encoding.UTF8));
             }
         }
+        public void Initialize(GeneratorInitializationContext context) => _onInit(context);
     }
 
     internal class CallbackGenerator2 : CallbackGenerator

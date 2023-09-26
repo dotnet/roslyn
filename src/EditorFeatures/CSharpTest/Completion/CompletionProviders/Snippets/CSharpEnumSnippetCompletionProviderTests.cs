@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         [WpfTheory]
         [InlineData("abstract")]
+        [InlineData("partial")]
         [InlineData("sealed")]
         [InlineData("static")]
         [InlineData("ref")]

@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -67,56 +73,68 @@ $$");
         public async Task TestNotInAttributeInsideClass()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    [$$");
+                """
+                class C {
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterAttributeInsideClass()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    [Goo]
-    [$$");
+                """
+                class C {
+                    [Goo]
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterMethod()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-    }
-    [$$");
+                """
+                class C {
+                    void Goo() {
+                    }
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterProperty()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo {
-        get;
-    }
-    [$$");
+                """
+                class C {
+                    int Goo {
+                        get;
+                    }
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterField()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo;
-    [$$");
+                """
+                class C {
+                    int Goo;
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterEvent()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    event Action<int> Goo;
-    [$$");
+                """
+                class C {
+                    event Action<int> Goo;
+                    [$$
+                """);
         }
 
         [Fact]
@@ -130,24 +148,30 @@ $$");
         public async Task TestNotInParameterAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo([$$");
+                """
+                class C {
+                    void Goo([$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPropertyAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo { [$$");
+                """
+                class C {
+                    int Goo { [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInEventAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    event Action<int> Goo { [$$");
+                """
+                class C {
+                    event Action<int> Goo { [$$
+                """);
         }
 
         [Fact]
@@ -168,32 +192,40 @@ $$");
         public async Task TestInMethodTypeParameters()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void M<[$$");
+                """
+                class C {
+                    void M<[$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInInterface()
         {
             await VerifyAbsenceAsync(
-@"interface I {
-    [$$");
+                """
+                interface I {
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInStruct()
         {
             await VerifyAbsenceAsync(
-@"struct S {
-    [$$");
+                """
+                struct S {
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInEnum()
         {
             await VerifyAbsenceAsync(
-@"enum E {
-    [$$");
+                """
+                enum E {
+                    [$$
+                """);
         }
     }
 }

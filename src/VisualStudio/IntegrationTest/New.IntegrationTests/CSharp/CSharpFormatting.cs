@@ -301,7 +301,7 @@ class C
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out ImmutableArray<TextSpan> _);
+            MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
 
             /*
