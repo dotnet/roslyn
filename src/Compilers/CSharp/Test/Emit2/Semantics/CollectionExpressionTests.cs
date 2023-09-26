@@ -17180,10 +17180,8 @@ partial class Program
         public void InAttribute()
         {
             string source = """
-                using System;
-
                 var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
-                Console.Write($"{attr._values[0]} {attr._values[1]} {attr._values[2]} {attr._values.Length}");
+                attr._values.Report();
 
                 [X([42, 43, 44])]
                 class C
@@ -17197,8 +17195,8 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43 44 3");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[42, 43, 44],");
 
             var program = comp.GetMember<NamedTypeSymbol>("C");
             var argument = program.GetAttributes().Single().ConstructorArguments.Single();
@@ -17210,13 +17208,33 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_Named()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                attr.Values.Report();
+
+                [X(Values = [42, 43, 44])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public int[] Values { get; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[42, 43, 44],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
         public void InAttribute_Params()
         {
             string source = """
-                using System;
-
                 var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
-                Console.Write($"{attr._values[0]} {attr._values[1]} {attr._values[2]} {attr._values.Length}");
+                attr._values.Report();
 
                 [X([42, 43, 44])]
                 class C
@@ -17230,18 +17248,16 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 43 44 3");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[42, 43, 44],");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
         public void InAttribute_StringConstants()
         {
             string source = """
-                using System;
-
                 var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
-                Console.Write($"{attr._values[0]} {attr._values[1] is null} {attr._values.Length}");
+                attr._values.Report();
 
                 [X(["hi", null])]
                 class C
@@ -17255,8 +17271,8 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "hi True 2");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[hi, null],");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
@@ -17274,7 +17290,7 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // (1,2): error CS0181: Attribute constructor parameter 'values' has type 'int[][]', which is not a valid attribute parameter type
                 // [X([[1], [2]])]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("values", "int[][]").WithLocation(1, 2)
@@ -17287,7 +17303,7 @@ partial class Program
             string source = """
                 var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
                 var inner = (int[])attr._values[0];
-                System.Console.Write($"OuterLength={attr._values.Length} InnerValue={inner[0]} InnerLength={inner.Length}");
+                inner.Report();
 
                 [X([(int[])[1]])]
                 class C
@@ -17301,8 +17317,8 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "OuterLength=1 InnerValue=1 InnerLength=1");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1],");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
@@ -17311,7 +17327,7 @@ partial class Program
             string source = """
                 var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
                 var array = (int[])attr._value;
-                System.Console.Write($"Length={array.Length} {array[0]} {array[1]} {array[2]}");
+                array.Report();
 
                 [X((int[])[1, 2, 3])]
                 class C
@@ -17325,18 +17341,16 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Length=3 1 2 3");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1, 2, 3],");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
         public void InAttribute_Empty()
         {
             string source = """
-                using System;
-                
                 var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
-                Console.Write(attr._values.Length);
+                attr._values.Report();
                 
                 [X([])]
                 class C
@@ -17350,8 +17364,8 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0");
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[],");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
