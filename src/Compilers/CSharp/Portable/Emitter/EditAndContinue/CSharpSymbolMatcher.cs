@@ -783,7 +783,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreEventsEqual(EventSymbol @event, EventSymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(@event.Name, other.Name));
-                return _comparer.Equals(@event.Type, other.Type);
+
+                // Events can't be overloaded on type.
+                // ECMA: Within the rows owned by a given row in the TypeDef table, there shall be no duplicates based upon Name [ERROR]
+                return true;
             }
 
             private bool AreFieldsEqual(FieldSymbol field, FieldSymbol other)
@@ -856,7 +859,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
             {
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
-                return (parameter.RefKind == other.RefKind) &&
+
+                // allow a different ref-kind as long as the runtime type is the same:
+                return parameter.RefKind is RefKind.None == other.RefKind is RefKind.None &&
                     _comparer.Equals(parameter.Type, other.Type);
             }
 
@@ -915,6 +920,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool ArePropertiesEqual(PropertySymbol property, PropertySymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(property.MetadataName, other.MetadataName));
+
+                // Properties may be overloaded on their signature.
+                // ECMA: Within the rows owned by a given row in the TypeDef table, there shall be no duplicates based upon Name+Type [ERROR]
                 return _comparer.Equals(property.Type, other.Type) &&
                     property.RefKind.Equals(other.RefKind) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
