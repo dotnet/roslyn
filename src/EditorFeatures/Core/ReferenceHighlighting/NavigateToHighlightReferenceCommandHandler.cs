@@ -82,11 +82,9 @@ internal partial class NavigateToHighlightReferenceCommandHandler(
         SnapshotSpan span)
     {
         using var _ = PooledObjects.ArrayBuilder<SnapshotSpan>.GetInstance(out var tags);
+
         foreach (var tag in tagAggregator.GetTags(span))
-        {
-            foreach (var ss in tag.Span.GetSpans(span.Snapshot.TextBuffer))
-                tags.Add(ss);
-        }
+            tags.AddRange(tag.Span.GetSpans(span.Snapshot.TextBuffer));
 
         tags.Sort(static (ss1, ss2) => ss1.Start - ss2.Start);
         return tags.ToImmutable();
