@@ -263,12 +263,12 @@ public static void Main(string[] args)
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("13.1");
             VisualStudio.InteractiveWindow.SubmitText("double M() { return M(); }");
             VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Stack overflow.");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Loading context from 'CSharpInteractive.rsp'.");
             VisualStudio.InteractiveWindow.SubmitText("M()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
             VisualStudio.InteractiveWindow.SubmitText("double M() { return M(); }");
             VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Stack overflow.");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Loading context from 'CSharpInteractive.rsp'.");
             VisualStudio.InteractiveWindow.SubmitText("double M() { return 13.2; }");
             VisualStudio.InteractiveWindow.SubmitText("M()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("13.2");
@@ -282,6 +282,9 @@ public static void Main(string[] args)
 Loading context from 'CSharpInteractive.rsp'.");
             VisualStudio.InteractiveWindow.SubmitText("#reset noconfig");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("Resetting execution engine.");
+            VisualStudio.InteractiveWindow.SubmitText("#reset 64");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput(@"Resetting execution engine.
+Loading context from 'CSharpInteractive.rsp'.");
         }
     }
 }
