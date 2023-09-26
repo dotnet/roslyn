@@ -968,6 +968,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return VisitTypeOfExpression((BoundTypeOfOperator)node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
                     case BoundKind.ArrayCreation:
                         return VisitArrayCreation((BoundArrayCreation)node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
+                    case BoundKind.CollectionExpressionSpreadElement:
+                        Binder.Error(diagnostics, ErrorCode.ERR_BadAttributeArgument, node.Syntax);
+                        return CreateTypedConstant(node, TypedConstantKind.Error, diagnostics, ref attrHasErrors, curArgumentHasErrors);
                     default:
                         return CreateTypedConstant(node, TypedConstantKind.Error, diagnostics, ref attrHasErrors, curArgumentHasErrors);
                 }

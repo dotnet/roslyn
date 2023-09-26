@@ -17274,11 +17274,59 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
                 // (1,2): error CS0181: Attribute constructor parameter 'values' has type 'int[][]', which is not a valid attribute parameter type
                 // [X([[1], [2]])]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("values", "int[][]").WithLocation(1, 2)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NestedArrayAsObject()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                var inner = (int[])attr._values[0];
+                System.Console.Write($"OuterLength={attr._values.Length} InnerValue={inner[0]} InnerLength={inner.Length}");
+
+                [X([(int[])[1]])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public object[] _values;
+                    public XAttribute(object[] values) { _values = values; }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "OuterLength=1 InnerValue=1 InnerLength=1");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_ArrayAsObject()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                var array = (int[])attr._value;
+                System.Console.Write($"Length={array.Length} {array[0]} {array[1]} {array[2]}");
+
+                [X((int[])[1, 2, 3])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public object _value;
+                    public XAttribute(object value) { _value = value; }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Length=3 1 2 3");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
@@ -17330,7 +17378,7 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
-        public void InAttribute_NotConstant_Spread()
+        public void InAttribute_NotConstant_CollectionSpread()
         {
             string source = """
                 [X([1, 2, .. [3]])]
@@ -17348,6 +17396,30 @@ partial class Program
                 // (1,14): error CS9176: There is no target type for the collection expression.
                 // [X([1, 2, .. [3]])]
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[3]").WithLocation(1, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NotConstant_ListSpread()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                [X([.. new List<int>()])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int[] values) { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [X([.. new List<int>()])]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, ".. new List<int>()").WithLocation(3, 5)
                 );
         }
 
