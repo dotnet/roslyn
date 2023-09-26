@@ -38,6 +38,13 @@ internal partial class NavigateToHighlightReferenceCommandHandler(
 
     public string DisplayName => EditorFeaturesResources.Navigate_To_Highlight_Reference;
 
+    // We always want to support these commands.  If we don't, then they will be processed by the next higher item in
+    // the command stack, which can cause VS to cycle focus to some other control other than the actual editor.  Once
+    // the user is in a roslyn editing session, we always want to be processing this, even if the user is not actually
+    // on a symbol (or symbol information hasn't been computed yet).
+    //
+    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1875365
+
     public CommandState GetCommandState(NavigateToNextHighlightedReferenceCommandArgs args)
         => CommandState.Available;
 
@@ -90,19 +97,15 @@ internal partial class NavigateToHighlightReferenceCommandHandler(
         ImmutableArray<SnapshotSpan> orderedTagSpans,
         bool navigateToNext)
     {
-        var destIndex = orderedTagSpans.BinarySearch(tagUnderCursor, new StartComparer());
+        var destIndex = orderedTagSpans.BinarySearch(tagUnderCursor, StartComparer.Instance);
 
         Contract.ThrowIfFalse(destIndex >= 0, "Expected to find start tag in the collection");
 
         destIndex += navigateToNext ? 1 : -1;
-        if (destIndex < 0)
-        {
-            destIndex = orderedTagSpans.Length - 1;
-        }
-        else if (destIndex == orderedTagSpans.Length)
-        {
-            destIndex = 0;
-        }
+
+        // Handle wraparound
+        var length = orderedTagSpans.Length;
+        destIndex = ((destIndex % length) + length) % length;
 
         return orderedTagSpans[destIndex];
     }
