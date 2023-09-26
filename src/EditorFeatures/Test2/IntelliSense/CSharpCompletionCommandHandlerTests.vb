@@ -11927,17 +11927,25 @@ public class C(int x) : Base(x)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TestItemsSorted()
+        Public Async Function TestItemsSorted() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
-                              <Document>
+                <Document><![CDATA[
 public class Program
 {
     public static void Main()
     {
         $$
     }
-}                              </Document>)
-                state.SendInvokeCompletionList()
+}
+             ]]></Document>)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+
+                ' trigger completion with import completion enabled
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim completionItems = state.GetCompletionItems()
                 Dim manuallySortedItems = completionItems.ToList()
@@ -11945,6 +11953,6 @@ public class Program
 
                 Assert.True(manuallySortedItems.SequenceEqual(completionItems))
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace
