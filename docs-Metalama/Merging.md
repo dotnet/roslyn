@@ -20,7 +20,7 @@ Uncomment the original NuGet sources in NuGet.config file.
 Do this now, because in the next steps, all the new packages will get restored on your machine,
 so you'll be able to backup them.
 
-## 4. Update eng-Metalama\MainVersions.props
+## 4. Update eng\Versions.props
 
 Set RoslynVersion to the source Roslyn version.
 
