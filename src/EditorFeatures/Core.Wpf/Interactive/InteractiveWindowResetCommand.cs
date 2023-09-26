@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             => _registry = registry;
 
         public string Description
-            => EditorFeaturesWpfResources.Reset_the_execution_environment_to_the_initial_state_keep_history;
+            => EditorFeaturesWpfResources.Reset_the_execution_environment_to_the_initial_state_with_option_to_switch_the_runtime_of_the_host_process_keep_history;
 
         public IEnumerable<string> DetailedDescription
             => null;
