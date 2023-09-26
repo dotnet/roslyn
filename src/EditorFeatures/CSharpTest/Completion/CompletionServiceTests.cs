@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 
             var service = CompletionService.GetService(document);
 
-            // Create an item with ProvderName set to ThirdPartyCompletionProvider
-            // We should be able to find the provider object vithout calling into CompletionService for other operations.
+            // Create an item with ProviderName set to ThirdPartyCompletionProvider
+            // We should be able to find the provider object without calling into CompletionService for other operations.
             var item = CompletionItem.Create("ThirdPartyCompletionProviderItem");
             item.ProviderName = typeof(ThirdPartyCompletionProvider).FullName;
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         }
 
         [Theory, CombinatorialData]
-        public async Task GettingCompletionListShoudNotRunSourceGenerator(bool forkBeforeFreeze)
+        public async Task GettingCompletionListShouldNotRunSourceGenerator(bool forkBeforeFreeze)
         {
             var sourceMarkup = """
                 using System;
