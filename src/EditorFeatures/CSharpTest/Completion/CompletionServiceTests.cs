@@ -147,6 +147,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 #pragma warning restore
         }
 
+        [Fact]
+        public async Task GettingCompletionListIsSorted()
+        {
+            var sourceMarkup = """
+                using System;
+
+                namespace NamespaceName
+                {
+                    public class ClassName
+                    {
+                        void MethodName()
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+            MarkupTestFile.GetPosition(sourceMarkup.NormalizeLineEndings(), out var source, out int? position);
+
+            var workspace = new AdhocWorkspace();
+
+            var document = workspace
+                .AddProject("TestProject", LanguageNames.CSharp)
+                .AddDocument("TestDocument.cs", source);
+            
+            var completionService = document.GetLanguageService<CompletionService>();
+
+            var optionsUnsorted = CompletionOptions.Default with { PerformSort = false };
+            var completionListUnsorted = await completionService.GetCompletionsAsync(document, position.Value, optionsUnsorted, OptionSet.Empty);
+
+            var optionsSorted = CompletionOptions.Default with { PerformSort = true };
+            var completionListSorted = await completionService.GetCompletionsAsync(document, position.Value, optionsSorted, OptionSet.Empty);
+
+            var unsortedIndexOfClassName = completionListUnsorted.ItemsList.ToList().IndexOf(c => c.DisplayText == "MethodName");
+            var sortedIndexOfClassName = completionListSorted.ItemsList.ToList().IndexOf(c => c.DisplayText == "MethodName");
+
+            Assert.True(completionListUnsorted.ItemsList.Count == completionListSorted.ItemsList.Count);
+            Assert.True(sortedIndexOfClassName < unsortedIndexOfClassName);
+        }
+
         [Theory, CombinatorialData]
         public async Task GettingCompletionListShoudNotRunSourceGenerator(bool forkBeforeFreeze)
         {
