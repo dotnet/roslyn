@@ -577,6 +577,11 @@
         <target state="translated">'{0}' değişkeni, başvurulan değişkenleri kendi bildirim kapsamı dışında kullanıma sunabileceğinden bu bağlamda kullanılamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">'{0}' kullanıcı tanımlı işlecinin açık uygulaması statik olarak bildirilmelidir</target>
@@ -972,6 +977,11 @@
         <target state="translated">Engelleyici 'null' dosya yoluna sahip olamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorGlobalNamespace">
+        <source>An interceptor cannot be declared in the global namespace.</source>
+        <target state="new">An interceptor cannot be declared in the global namespace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
         <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
         <target state="translated">InterceptsLocationAttribute için sağlanan satır ve karakter numaraları pozitif olmalıdır.</target>
@@ -1048,8 +1058,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</target>
+        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">

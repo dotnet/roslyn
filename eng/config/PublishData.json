@@ -47,6 +47,16 @@
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.DevKit": "npm",
       "Microsoft.CodeAnalysis.LanguageServer": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.alpine-arm64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-arm64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.neutral": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.osx-arm64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.osx-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.win-arm64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.win-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.win-x86": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol": "vs-impl",
@@ -169,8 +179,8 @@
       ],
       "vsBranch": "rel/d17.8",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.8P1]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.8P2]"
     },
     "main": {
       "nugetKind": [
@@ -180,7 +190,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.8P2]"
+      "insertionTitlePrefix": "[d17.8P3]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

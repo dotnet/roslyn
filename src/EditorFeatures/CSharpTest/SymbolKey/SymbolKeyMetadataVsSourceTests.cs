@@ -24,38 +24,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         [Fact]
         public void M2SNamedTypeSymbols01()
         {
-            var src1 = @"using System;
+            var src1 = """
+                using System;
 
-public delegate void D(int p1, string p2);
+                public delegate void D(int p1, string p2);
 
-namespace N1.N2
-{
-    public interface I { }
-    namespace N3
-    {
-        public class C 
-        {
-            public struct S 
-            {
-                public enum E { Zero, One, Two }
-                public void M(int n) { Console.WriteLine(n); }
-            }
-        }
-    }
-}
-";
+                namespace N1.N2
+                {
+                    public interface I { }
+                    namespace N3
+                    {
+                        public class C 
+                        {
+                            public struct S 
+                            {
+                                public enum E { Zero, One, Two }
+                                public void M(int n) { Console.WriteLine(n); }
+                            }
+                        }
+                    }
+                }
+                """;
 
-            var src2 = @"using System;
-using N1.N2.N3;
+            var src2 = """
+                using System;
+                using N1.N2.N3;
 
-public class App : C
-{
-    private event D myEvent;
-    internal N1.N2.I Prop { get; set; }
-    protected C.S.E this[int x] { set { } }
-    public void M(C.S s) { s.M(123); }
-}
-";
+                public class App : C
+                {
+                    private event D myEvent;
+                    internal N1.N2.I Prop { get; set; }
+                    protected C.S.E this[int x] { set { } }
+                    public void M(C.S s) { s.M(123); }
+                }
+                """;
 
             var comp1 = CreateCompilation(src1);
 
@@ -94,50 +96,52 @@ public class App : C
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         public void M2SNonTypeMemberSymbols01()
         {
-            var src1 = @"using System;
+            var src1 = """
+                using System;
 
-namespace N1
-{
-    public interface IGoo
-    {
-        void M(int p1, int p2);
-        void M(params short[] ary);
+                namespace N1
+                {
+                    public interface IGoo
+                    {
+                        void M(int p1, int p2);
+                        void M(params short[] ary);
 
-        void M(string p1);
-        void M(ref string p1);
-    }
+                        void M(string p1);
+                        void M(ref string p1);
+                    }
 
-    public struct S
-    {
-        public event Action<S> PublicEvent { add { } remove { } }
-        public IGoo PublicField;
-        public string PublicProp { get; set; }
-        public short this[sbyte p] { get { return p; } }
-    }
-}
-";
+                    public struct S
+                    {
+                        public event Action<S> PublicEvent { add { } remove { } }
+                        public IGoo PublicField;
+                        public string PublicProp { get; set; }
+                        public short this[sbyte p] { get { return p; } }
+                    }
+                }
+                """;
 
-            var src2 = @"using System;
-using AN = N1;
+            var src2 = """
+                using System;
+                using AN = N1;
 
-public class App
-{
-    static void Main()
-    {
-        var obj = new AN.S();
+                public class App
+                {
+                    static void Main()
+                    {
+                        var obj = new AN.S();
 
-        /*<bind0>*/obj.PublicEvent/*</bind0>*/ += EH;
+                        /*<bind0>*/obj.PublicEvent/*</bind0>*/ += EH;
 
-        var igoo = /*<bind1>*/obj.PublicField/*</bind1>*/;
+                        var igoo = /*<bind1>*/obj.PublicField/*</bind1>*/;
 
-        /*<bind3>*/igoo.M(/*<bind2>*/obj.PublicProp/*</bind2>*/)/*</bind3>*/;
+                        /*<bind3>*/igoo.M(/*<bind2>*/obj.PublicProp/*</bind2>*/)/*</bind3>*/;
 
-        /*<bind5>*/igoo.M(obj[12], /*<bind4>*/obj[123]/*</bind4>*/)/*</bind5>*/;
-    }
+                        /*<bind5>*/igoo.M(obj[12], /*<bind4>*/obj[123]/*</bind4>*/)/*</bind5>*/;
+                    }
 
-    static void EH(AN.S s) { }
-}
-";
+                    static void EH(AN.S s) { }
+                }
+                """;
 
             var comp1 = CreateCompilation(src1);
 
@@ -183,49 +187,51 @@ public class App
         [Fact]
         public void M2MMultiTargetingMsCorLib01()
         {
-            var src1 = @"using System;
-using System.IO;
+            var src1 = """
+                using System;
+                using System.IO;
 
-public class A
-{
-    public FileInfo GetFileInfo(string path)
-    {
-        if (File.Exists(path))
-        {
-            return new FileInfo(path);
-        }
+                public class A
+                {
+                    public FileInfo GetFileInfo(string path)
+                    {
+                        if (File.Exists(path))
+                        {
+                            return new FileInfo(path);
+                        }
 
-        return null;
-    }
+                        return null;
+                    }
 
-    public void PrintInfo(Array ary, ref DateTime time)
-    {
-        if (ary != null)
-            Console.WriteLine(ary);
-        else
-            Console.WriteLine(""null"");
+                    public void PrintInfo(Array ary, ref DateTime time)
+                    {
+                        if (ary != null)
+                            Console.WriteLine(ary);
+                        else
+                            Console.WriteLine("null");
 
-        time = DateTime.Now;
-    }
-}
-";
+                        time = DateTime.Now;
+                    }
+                }
+                """;
 
-            var src2 = @"using System;
+            var src2 = """
+                using System;
 
-class Test
-{
-    static void Main()
-    {
-        var a = new A();
-        var fi = a.GetFileInfo(null);
-        Console.WriteLine(fi);
+                class Test
+                {
+                    static void Main()
+                    {
+                        var a = new A();
+                        var fi = a.GetFileInfo(null);
+                        Console.WriteLine(fi);
 
-        var dt = DateTime.Now;
-        var ary = Array.CreateInstance(typeof(string), 2);
-        a.PrintInfo(ary, ref dt);
-    }
-}
-";
+                        var dt = DateTime.Now;
+                        var ary = Array.CreateInstance(typeof(string), 2);
+                        a.PrintInfo(ary, ref dt);
+                    }
+                }
+                """;
             var comp20 = (Compilation)CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
 
             // "Compilation 2 Assembly"
@@ -277,53 +283,55 @@ class Test
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546255")]
         public void M2MMultiTargetingMsCorLib02()
         {
-            var src1 = @"using System;
-namespace Mscorlib20
-{
-    public interface IGoo
-    {
-        // interface
-        IDisposable Prop { get; set; }
-        // class
-        Exception this[ArgumentException t] { get; }
-    }
+            var src1 = """
+                using System;
+                namespace Mscorlib20
+                {
+                    public interface IGoo
+                    {
+                        // interface
+                        IDisposable Prop { get; set; }
+                        // class
+                        Exception this[ArgumentException t] { get; }
+                    }
 
-    public class CGoo : IGoo
-    {
-        // enum
-        public DayOfWeek PublicField;
-        // delegate
-        public event System.Threading.ParameterizedThreadStart PublicEventField;
+                    public class CGoo : IGoo
+                    {
+                        // enum
+                        public DayOfWeek PublicField;
+                        // delegate
+                        public event System.Threading.ParameterizedThreadStart PublicEventField;
 
-        public IDisposable Prop { get; set; }
-        public Exception this[ArgumentException t] { get { return t; } }
-    }
-}
-";
+                        public IDisposable Prop { get; set; }
+                        public Exception this[ArgumentException t] { get { return t; } }
+                    }
+                }
+                """;
 
-            var src2 = @"using System;
-using N20 = Mscorlib20;
+            var src2 = """
+                using System;
+                using N20 = Mscorlib20;
 
-class Test
-{
-    public IDisposable M()
-    {
-        var obj = new N20::CGoo();
-        N20.IGoo igoo = obj;
+                class Test
+                {
+                    public IDisposable M()
+                    {
+                        var obj = new N20::CGoo();
+                        N20.IGoo igoo = obj;
 
-        /*<bind0>*/obj.PublicEventField/*</bind0>*/ += /*<bind1>*/MyEveHandler/*</bind1>*/;
-        var local = /*<bind2>*/igoo[null]/*</bind2>*/;
+                        /*<bind0>*/obj.PublicEventField/*</bind0>*/ += /*<bind1>*/MyEveHandler/*</bind1>*/;
+                        var local = /*<bind2>*/igoo[null]/*</bind2>*/;
 
-        if (/*<bind3>*/obj.PublicField /*</bind3>*/== DayOfWeek.Friday)
-        {
-            return /*<bind4>*/(obj as N20.IGoo).Prop/*</bind4>*/;
-        }
-        return null;
-    }
+                        if (/*<bind3>*/obj.PublicField /*</bind3>*/== DayOfWeek.Friday)
+                        {
+                            return /*<bind4>*/(obj as N20.IGoo).Prop/*</bind4>*/;
+                        }
+                        return null;
+                    }
 
-    public void MyEveHandler(object o) { }
-}
-";
+                    public void MyEveHandler(object o) { }
+                }
+                """;
             var comp20 = CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
 
             // "Compilation ref Compilation"
@@ -372,40 +380,42 @@ class Test
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546255")]
         public void M2MMultiTargetingMsCorLib03()
         {
-            var src1 = @"using System;
-namespace Mscorlib20
-{
-    public interface IGoo
-    {
-        // interface
-        IDisposable Prop { get; set; }
-        // class
-        Exception this[ArgumentException t] { get; }
-    }
+            var src1 = """
+                using System;
+                namespace Mscorlib20
+                {
+                    public interface IGoo
+                    {
+                        // interface
+                        IDisposable Prop { get; set; }
+                        // class
+                        Exception this[ArgumentException t] { get; }
+                    }
 
-    public class CGoo : IGoo
-    {
-        // explicit
-        IDisposable IGoo.Prop { get; set; }
-        Exception IGoo.this[ArgumentException t] { get { return t; } }
-    }
-}
-";
+                    public class CGoo : IGoo
+                    {
+                        // explicit
+                        IDisposable IGoo.Prop { get; set; }
+                        Exception IGoo.this[ArgumentException t] { get { return t; } }
+                    }
+                }
+                """;
 
-            var src2 = @"using System;
-using N20 = Mscorlib20;
+            var src2 = """
+                using System;
+                using N20 = Mscorlib20;
 
-class Test
-{
-    public IDisposable M()
-    {
-        N20.IGoo igoo = new N20::CGoo();
+                class Test
+                {
+                    public IDisposable M()
+                    {
+                        N20.IGoo igoo = new N20::CGoo();
 
-        var local = /*<bind0>*/igoo[new ArgumentException()]/*</bind0>*/;
-        return /*<bind1>*/igoo.Prop/*</bind1>*/;
-    }
-}
-";
+                        var local = /*<bind0>*/igoo[new ArgumentException()]/*</bind0>*/;
+                        return /*<bind1>*/igoo.Prop/*</bind1>*/;
+                    }
+                }
+                """;
             var comp20 = CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
 
             // "Compilation ref Compilation"

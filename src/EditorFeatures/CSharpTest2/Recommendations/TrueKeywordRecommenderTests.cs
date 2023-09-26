@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -61,16 +67,20 @@ $$");
         public async Task TestNotInPreprocessor1()
         {
             await VerifyAbsenceAsync(
-@"class C {
-#$$");
+                """
+                class C {
+                #$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPreprocessor2()
         {
             await VerifyAbsenceAsync(
-@"class C {
-#line $$");
+                """
+                class C {
+                #line $$
+                """);
         }
 
         [Fact]
@@ -140,92 +150,114 @@ $$");
         public async Task TestInPPElIf()
         {
             await VerifyKeywordAsync(
-@"#if true
-#elif $$");
+                """
+                #if true
+                #elif $$
+                """);
         }
 
         [Fact]
         public async Task TestInPPelIf_Or()
         {
             await VerifyKeywordAsync(
-@"#if true
-#elif a || $$");
+                """
+                #if true
+                #elif a || $$
+                """);
         }
 
         [Fact]
         public async Task TestInPPElIf_And()
         {
             await VerifyKeywordAsync(
-@"#if true
-#elif a && $$");
+                """
+                #if true
+                #elif a && $$
+                """);
         }
 
         [Fact]
         public async Task TestInPPElIf_Not()
         {
             await VerifyKeywordAsync(
-@"#if true
-#elif ! $$");
+                """
+                #if true
+                #elif ! $$
+                """);
         }
 
         [Fact]
         public async Task TestInPPElIf_Paren()
         {
             await VerifyKeywordAsync(
-@"#if true
-#elif ( $$");
+                """
+                #if true
+                #elif ( $$
+                """);
         }
 
         [Fact]
         public async Task TestInPPElIf_Equals()
         {
             await VerifyKeywordAsync(
-@"#if true
-#elif a == $$");
+                """
+                #if true
+                #elif a == $$
+                """);
         }
 
         [Fact]
         public async Task TestInPPElIf_NotEquals()
         {
             await VerifyKeywordAsync(
-@"#if true
-#elif a != $$");
+                """
+                #if true
+                #elif a != $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterUnaryOperator()
         {
             await VerifyKeywordAsync(
-@"class C {
-   public static bool operator $$");
+                """
+                class C {
+                   public static bool operator $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterImplicitOperator()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   public static implicit operator $$");
+                """
+                class C {
+                   public static implicit operator $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterExplicitOperator()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   public static implicit operator $$");
+                """
+                class C {
+                   public static implicit operator $$
+                """);
         }
 
         [Fact]
         public async Task TestBeforeInactiveRegion()
         {
             await VerifyKeywordAsync(
-@"class C
-  {
-     void Init()
-     {
-#if $$
-         H");
+                """
+                class C
+                  {
+                     void Init()
+                     {
+                #if $$
+                         H
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
@@ -252,13 +284,14 @@ $$");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    public int x, y;
-    void M()
-    {
-        var c = new C { x = 2, y = 3, $$");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    public int x, y;
+                    void M()
+                    {
+                        var c = new C { x = 2, y = 3, $$
+                """);
         }
 
         [Fact]

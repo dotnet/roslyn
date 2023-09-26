@@ -577,6 +577,11 @@
         <target state="translated">Non è possibile usare la variabile '{0}' in questo contesto perché potrebbe esporre variabili di riferimento all'esterno del relativo ambito di dichiarazione</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">L'implementazione esplicita di un operatore definito dall'utente '{0}' deve essere dichiarata come statica</target>
@@ -972,6 +977,11 @@
         <target state="translated">L'intercettore non può avere un percorso di file 'null'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorGlobalNamespace">
+        <source>An interceptor cannot be declared in the global namespace.</source>
+        <target state="new">An interceptor cannot be declared in the global namespace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
         <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
         <target state="translated">I numeri di riga e di carattere specificati per InterceptsLocationAttribute devono essere positivi.</target>
@@ -1048,8 +1058,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</target>
+        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">

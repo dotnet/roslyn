@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions)
             => new CSharpSyntaxFormattingOptions(options, (CSharpSyntaxFormattingOptions?)fallbackOptions);
 
-        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
+        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans = null)
             => new AggregatedFormattingResult(node, results, formattingSpans);
 
         protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)

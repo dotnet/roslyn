@@ -302,31 +302,33 @@ namespace Roslyn.Test.Utilities
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
             => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized }, additionalAnalyzers: additionalAnalyzers);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions, additionalAnalyzers: additionalAnalyzers);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions, additionalAnalyzers: additionalAnalyzers);
 
         private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, mutatingLspWorkspace, initializationOptions);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(
-            string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions, List<Type>? excludedTypes = null, List<Type>? extraExportedTypes = null)
+            string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions, List<Type>? excludedTypes = null, List<Type>? extraExportedTypes = null, bool commonReferences = true, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
             var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, excludedTypes, extraExportedTypes);
 
-            workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
+            workspace.InitializeDocuments(
+                TestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups, commonReferences: commonReferences),
+                openDocuments: false);
 
-            return CreateTestLspServerAsync(workspace, lspOptions);
+            return CreateTestLspServerAsync(workspace, lspOptions, languageName, additionalAnalyzers);
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
+        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions, string languageName, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers)
         {
             var solution = workspace.CurrentSolution;
 
@@ -347,7 +349,11 @@ namespace Roslyn.Test.Utilities
                 solution = solution.WithProjectFilePath(project.Id, GetDocumentFilePathFromName(project.FilePath));
             }
 
-            solution = solution.WithAnalyzerReferences(new[] { CreateTestAnalyzersReference() });
+            var analyzerReferencesByLanguage = CreateTestAnalyzersReference();
+            if (additionalAnalyzers != null)
+                analyzerReferencesByLanguage = analyzerReferencesByLanguage.WithAdditionalAnalyzers(languageName, additionalAnalyzers);
+
+            solution = solution.WithAnalyzerReferences(new[] { analyzerReferencesByLanguage });
             await workspace.ChangeSolutionAsync(solution);
 
             // Important: We must wait for workspace creation operations to finish.
@@ -636,6 +642,13 @@ namespace Roslyn.Test.Utilities
             {
                 // If creating the LanguageServer threw we might timeout without this.
                 var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, request, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return result;
+            }
+
+            public async Task<ResponseType?> ExecuteRequest0Async<ResponseType>(string methodName, CancellationToken cancellationToken)
+            {
+                // If creating the LanguageServer threw we might timeout without this.
+                var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return result;
             }
 

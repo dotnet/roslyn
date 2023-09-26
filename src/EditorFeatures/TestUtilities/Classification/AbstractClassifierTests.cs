@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             }
             else
             {
-                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out ImmutableArray<TextSpan> spans);
+                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out var spans);
                 Assert.True(spans.Length < 2);
                 if (spans.Length == 1)
                 {

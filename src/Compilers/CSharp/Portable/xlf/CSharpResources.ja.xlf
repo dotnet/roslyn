@@ -577,6 +577,11 @@
         <target state="translated">参照される変数が宣言のスコープ外に公開される可能性があるため、このコンテキストで変数 '{0}' を使用することはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="new">Expected interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">ユーザー定義演算子 '{0}' の明示的な実装は静的として宣言する必要があります</target>
@@ -972,6 +977,11 @@
         <target state="translated">インターセプターに 'null' ファイル パスを指定することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorGlobalNamespace">
+        <source>An interceptor cannot be declared in the global namespace.</source>
+        <target state="new">An interceptor cannot be declared in the global namespace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
         <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
         <target state="translated">InterceptsLocationAttribute に指定する行番号と文字番号は正の値である必要があります。</target>
@@ -1048,8 +1058,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</target>
+        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">

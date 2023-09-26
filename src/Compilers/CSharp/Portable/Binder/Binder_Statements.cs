@@ -2208,11 +2208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!conversion.IsImplicit || !conversion.IsValid);
 
-            // If the either type is an error then an error has already been reported
+            // If the either type has an error then an error has already been reported
             // for some aspect of the analysis of this expression. (For example, something like
             // "garbage g = null; short s = g;" -- we don't want to report that g is not
             // convertible to short because we've already reported that g does not have a good type.
-            if (!sourceType.IsErrorType() && !targetType.IsErrorType())
+            if (!sourceType.ContainsErrorType() && !targetType.ContainsErrorType())
             {
                 if (conversion.IsExplicit)
                 {

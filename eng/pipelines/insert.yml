@@ -13,7 +13,7 @@ parameters:
     default: ''
   - name: queueSpeedometerValidation
     type: string
-    default: 'false'
+    default: 'true'
 
   - name: buildUserName
     type: string
