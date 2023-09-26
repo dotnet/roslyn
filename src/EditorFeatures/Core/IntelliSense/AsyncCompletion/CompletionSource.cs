@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // and we'd like to have expanded items available when they are needed.
                     var expandedItemsTaskCancellationToken = _expandedItemsTaskCancellationSeries.CreateNext(cancellationToken);
                     var expandedItemsTask = Task.Run(() => GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
-                                                                        options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly },
+                                                                        options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly, PerformSort = true },
                                                                         expandedItemsTaskCancellationToken),
                                                      expandedItemsTaskCancellationToken);
 
