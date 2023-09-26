@@ -348,6 +348,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 try
                 {
                     list.AddRange(this);
+                    list.Sort();
                     return new(list);
                 }
                 finally
