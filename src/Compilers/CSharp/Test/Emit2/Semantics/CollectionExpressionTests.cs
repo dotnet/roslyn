@@ -13054,6 +13054,67 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyCollectionBuilder.GetName([1, 2, 3])").WithLocation(6, 49));
         }
 
+        [Fact]
+        public void CollectionBuilder_AttributeCycle_2()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                static class MyCollectionBuilder
+                {
+                    public static string GetName<T>(MyCollection<T> c) => null;
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => null;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,49): error CS1503: Argument 2: cannot convert from 'collection expressions' to 'string'
+                // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
+                Diagnostic(ErrorCode.ERR_BadArgType, "['h', 'i']").WithArguments("2", "collection expressions", "string").WithLocation(6, 49));
+        }
+
+        [Fact]
+        public void CollectionBuilder_AttributeCycle_3()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                [MyCollection<int>([1, 2, 3])]
+                class MyCollection<T> : Attribute, IEnumerable<T>
+                {
+                    public MyCollection(MyCollection<T> mc) { }
+                    public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                static class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => null;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,2): error CS0181: Attribute constructor parameter 'mc' has type 'MyCollection<int>', which is not a valid attribute parameter type
+                // [MyCollection<int>([1, 2, 3])]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "MyCollection<int>").WithArguments("mc", "MyCollection<int>").WithLocation(7, 2));
+        }
+
         [ConditionalFact(typeof(DesktopOnly))]
         public void RestrictedTypes()
         {
