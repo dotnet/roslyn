@@ -680,6 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output)
         {
             var type = rel.Value.Type ?? input.Type;
+            Debug.Assert(type is { });
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
             output = MakeConvertToType(input, rel.Syntax, type, isExplicitTest: false, tests);
