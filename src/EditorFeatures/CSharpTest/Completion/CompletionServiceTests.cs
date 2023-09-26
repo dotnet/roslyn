@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             var completionList = await completionService.GetCompletionsAsync(document, position.Value, options, OptionSet.Empty);
 
             var completionListManuallySorted = completionList.ItemsList.ToList();
-            completionListManuallySorted.Sort(Comparer<CompletionItem>.Default);
+            completionListManuallySorted.Sort();
 
             Assert.True(performSort == completionList.ItemsList.SequenceEqual(completionListManuallySorted));
         }
