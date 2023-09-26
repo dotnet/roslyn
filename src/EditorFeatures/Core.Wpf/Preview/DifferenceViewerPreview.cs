@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     editorOperationsFactoryService.GetEditorOperations(host.TextView));
 
             _filterKeys = Package.GetGlobalService(typeof(SVsFilterKeys)) as IVsFilterKeys2;
-            Debug.Assert(_filterKeys != null);
         }
 
         public IWpfDifferenceViewer Viewer
