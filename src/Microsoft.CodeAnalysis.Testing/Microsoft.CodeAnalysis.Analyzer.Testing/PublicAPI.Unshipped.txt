@@ -4,6 +4,7 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.get -
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectAsync(Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState primaryProject, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState> additionalProjects, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateWorkspace() -> Microsoft.CodeAnalysis.Workspace
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateWorkspaceAsync() -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Workspace>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DiagnosticVerifier.get -> System.Action<Microsoft.CodeAnalysis.Diagnostic, Microsoft.CodeAnalysis.Testing.DiagnosticResult, Microsoft.CodeAnalysis.Testing.IVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DiagnosticVerifier.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DisabledDiagnostics.get -> System.Collections.Generic.List<string>
@@ -350,6 +351,7 @@ virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateCompilation
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectImplAsync(Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState primaryProject, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState> additionalProjects, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateSolutionAsync(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState projectState, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateWorkspaceImpl() -> Microsoft.CodeAnalysis.Workspace
+virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateWorkspaceImplAsync() -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Workspace>
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFilePath.get -> string
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFilePathPrefix.get -> string
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultTestProjectName.get -> string

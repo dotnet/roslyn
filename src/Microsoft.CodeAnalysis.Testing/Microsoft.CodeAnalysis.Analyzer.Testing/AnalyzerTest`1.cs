@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,24 +33,7 @@ namespace Microsoft.CodeAnalysis.Testing
     public abstract class AnalyzerTest<TVerifier>
         where TVerifier : IVerifier, new()
     {
-        private static readonly Lazy<IExportProviderFactory> ExportProviderFactory;
         private static readonly ConditionalWeakTable<Diagnostic, object> NonLocalDiagnostics = new ConditionalWeakTable<Diagnostic, object>();
-
-        static AnalyzerTest()
-        {
-            ExportProviderFactory = new Lazy<IExportProviderFactory>(
-                () =>
-                {
-                    var discovery = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
-                    var parts = Task.Run(() => discovery.CreatePartsAsync(MefHostServices.DefaultAssemblies)).GetAwaiter().GetResult();
-                    var catalog = ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts).WithDocumentTextDifferencingService();
-
-                    var configuration = CompositionConfiguration.Create(catalog);
-                    var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-                    return runtimeComposition.CreateExportProviderFactory();
-                },
-                LazyThreadSafetyMode.ExecutionAndPublication);
-        }
 
         /// <summary>
         /// Gets the default verifier for the test.
@@ -1587,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var parseOptions = CreateParseOptions()
                 .WithDocumentationMode(projectState.DocumentationMode);
 
-            var workspace = CreateWorkspace();
+            var workspace = await CreateWorkspaceAsync().ConfigureAwait(false);
             foreach (var transform in OptionsTransforms)
             {
                 workspace.Options = transform(workspace.Options);
@@ -1660,16 +1644,27 @@ namespace Microsoft.CodeAnalysis.Testing
             return solution.GetProject(project.Id);
         }
 
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete($"Use {nameof(CreateWorkspaceAsync)} instead. https://github.com/dotnet/roslyn-sdk/pull/1120", error: true)]
         public Workspace CreateWorkspace()
+            => throw new NotSupportedException();
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete($"Use {nameof(CreateWorkspaceImplAsync)} instead. https://github.com/dotnet/roslyn-sdk/pull/1120", error: true)]
+        protected virtual Workspace CreateWorkspaceImpl()
+            => throw new NotSupportedException();
+
+        public async Task<Workspace> CreateWorkspaceAsync()
         {
-            var workspace = CreateWorkspaceImpl();
+            var workspace = await CreateWorkspaceImplAsync().ConfigureAwait(false);
             _workspaces.Add(workspace);
             return workspace;
         }
 
-        protected virtual Workspace CreateWorkspaceImpl()
+        protected virtual async Task<Workspace> CreateWorkspaceImplAsync()
         {
-            var exportProvider = ExportProviderFactory.Value.CreateExportProvider();
+            var exportProviderFactory = await ExportProviderFactory.GetOrCreateExportProviderFactoryAsync().ConfigureAwait(false);
+            var exportProvider = exportProviderFactory.CreateExportProvider();
             var host = MefHostServices.Create(exportProvider.AsCompositionContext());
             return new AdhocWorkspace(host);
         }
