@@ -439,7 +439,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
                 if (result == 0)
                 {
-                    result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
+                    var thisEntireDisplayText = GetEntireDisplayText();
+                    var otherEntireDisplayText = other.GetEntireDisplayText();
+                    result = StringComparer.OrdinalIgnoreCase.Compare(thisEntireDisplayText, otherEntireDisplayText);
+                    if (result == 0)
+                    {
+                        result = StringComparer.Ordinal.Compare(thisEntireDisplayText, otherEntireDisplayText);
+                    }
                 }
 
                 return result;
