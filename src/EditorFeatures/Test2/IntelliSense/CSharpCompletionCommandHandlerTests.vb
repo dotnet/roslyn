@@ -11925,5 +11925,26 @@ public class C(int x) : Base(x)
                 Await state.AssertCompletionItemsContainAll("X")
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub TestItemsSorted()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public class Program
+{
+    public static void Main()
+    {
+        $$
+    }
+}                              </Document>)
+                state.SendInvokeCompletionList()
+
+                Dim completionItems = state.GetCompletionItems()
+                Dim manuallySortedItems = completionItems.ToList()
+                manuallySortedItems.Sort()
+
+                Assert.True(manuallySortedItems.SequenceEqual(completionItems))
+            End Using
+        End Sub
     End Class
 End Namespace

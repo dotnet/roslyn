@@ -148,17 +148,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 #pragma warning restore
         }
 
-        [Fact]
-        public async Task GettingCompletionListIsSorted()
+        [Theory, CombinatorialData]
+        public async Task GettingCompletionListPerformSort(bool performSort)
         {
             var sourceMarkup = """
                 using System;
 
-                namespace NamespaceName
+                namespace N
                 {
-                    public class ClassName
+                    public class C
                     {
-                        void MethodName()
+                        void M()
                         {
                             $$
                         }
@@ -175,24 +175,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 
             var completionService = document.GetLanguageService<CompletionService>();
 
-            var optionsUnsorted = CompletionOptions.Default with { PerformSort = false };
-            var completionListUnsorted = await completionService.GetCompletionsAsync(document, position.Value, optionsUnsorted, OptionSet.Empty);
+            var options = CompletionOptions.Default with { PerformSort = performSort };
+            var completionList = await completionService.GetCompletionsAsync(document, position.Value, options, OptionSet.Empty);
 
-            var optionsSorted = CompletionOptions.Default with { PerformSort = true };
-            var completionListSorted = await completionService.GetCompletionsAsync(document, position.Value, optionsSorted, OptionSet.Empty);
-
-            var completionListManuallySorted = completionListUnsorted.ItemsList.ToList();
+            var completionListManuallySorted = completionList.ItemsList.ToList();
             completionListManuallySorted.Sort(Comparer<CompletionItem>.Default);
 
-            var manuallySortedDisplayTexts = completionListManuallySorted.Select(c => c.GetEntireDisplayText());
-
-            Assert.True(completionListUnsorted.ItemsList.Count == completionListSorted.ItemsList.Count);
-
-            Assert.False(completionListUnsorted.ItemsList.Select(c => c.GetEntireDisplayText())
-                                               .SequenceEqual(manuallySortedDisplayTexts));
-
-            Assert.True(completionListSorted.ItemsList.Select(c => c.GetEntireDisplayText())
-                                            .SequenceEqual(manuallySortedDisplayTexts));
+            Assert.True(performSort == completionList.ItemsList.SequenceEqual(completionListManuallySorted));
         }
 
         [Theory, CombinatorialData]
