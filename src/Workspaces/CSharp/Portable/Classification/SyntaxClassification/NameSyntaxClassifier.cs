@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class NameSyntaxClassifier : AbstractNameSyntaxClassifier
+    internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     {
         public override void AddClassifications(
             SyntaxNode syntax,
