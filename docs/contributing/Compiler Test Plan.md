@@ -37,9 +37,15 @@ This document provides guidance for thinking about language interactions and tes
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-- type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- type declarations
+  - class with or without primary constructor
+  - record class/struct with or without positional members
+  - struct with or without primary constructor
+  - interface
+  - type parameter
 - file-local types
 - methods
+  - Primary constructors
 - fields (required and not)
 - properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)

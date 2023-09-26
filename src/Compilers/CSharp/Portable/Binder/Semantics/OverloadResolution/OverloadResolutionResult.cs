@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -395,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case MemberResolutionKind.NoCorrespondingNamedParameter:
                         if (supportedInPriorityOrder[noCorrespondingNamedParameterPriority].IsNull ||
-                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[noCorrespondingNamedParameterPriority].Result.BadArgumentsOpt[0])
+                            result.Result.FirstBadArgument > supportedInPriorityOrder[noCorrespondingNamedParameterPriority].Result.FirstBadArgument)
                         {
                             supportedInPriorityOrder[noCorrespondingNamedParameterPriority] = result;
                         }
@@ -419,14 +420,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case MemberResolutionKind.NameUsedForPositional:
                         if (supportedInPriorityOrder[nameUsedForPositionalPriority].IsNull ||
-                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[nameUsedForPositionalPriority].Result.BadArgumentsOpt[0])
+                            result.Result.FirstBadArgument > supportedInPriorityOrder[nameUsedForPositionalPriority].Result.FirstBadArgument)
                         {
                             supportedInPriorityOrder[nameUsedForPositionalPriority] = result;
                         }
                         break;
                     case MemberResolutionKind.BadNonTrailingNamedArgument:
                         if (supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].IsNull ||
-                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].Result.BadArgumentsOpt[0])
+                            result.Result.FirstBadArgument > supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].Result.FirstBadArgument)
                         {
                             supportedInPriorityOrder[badNonTrailingNamedArgumentPriority] = result;
                         }
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case MemberResolutionKind.DuplicateNamedArgument:
                         {
                             if (supportedInPriorityOrder[duplicateNamedArgumentPriority].IsNull ||
-                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[duplicateNamedArgumentPriority].Result.BadArgumentsOpt[0])
+                            result.Result.FirstBadArgument > supportedInPriorityOrder[duplicateNamedArgumentPriority].Result.FirstBadArgument)
                             {
                                 supportedInPriorityOrder[duplicateNamedArgumentPriority] = result;
                             }
@@ -471,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (firstSupported.Member is FunctionPointerMethodSymbol
                     && firstSupported.Result.Kind == MemberResolutionKind.NoCorrespondingNamedParameter)
                 {
-                    int badArg = firstSupported.Result.BadArgumentsOpt[0];
+                    int badArg = firstSupported.Result.FirstBadArgument;
                     Debug.Assert(arguments.Names[badArg].HasValue);
                     Location badName = arguments.Names[badArg].GetValueOrDefault().Location;
                     diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, badName);
@@ -770,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols)
         {
-            int badArg = bad.Result.BadArgumentsOpt[0];
+            int badArg = bad.Result.FirstBadArgument;
             // We would not have gotten this error had there not been a named argument.
             Debug.Assert(arguments.Names.Count > badArg);
             Debug.Assert(arguments.Names[badArg].HasValue);
@@ -790,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols)
         {
-            int badArg = bad.Result.BadArgumentsOpt[0];
+            int badArg = bad.Result.FirstBadArgument;
             // We would not have gotten this error had there not been a named argument.
             Debug.Assert(arguments.Names.Count > badArg);
             Debug.Assert(arguments.Names[badArg].HasValue);
@@ -806,9 +807,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
-            Debug.Assert(result.Result.BadArgumentsOpt.Length == 1);
-            Debug.Assert(arguments.Names[result.Result.BadArgumentsOpt[0]].HasValue);
-            (string name, Location location) = arguments.Names[result.Result.BadArgumentsOpt[0]].GetValueOrDefault();
+            Debug.Assert(result.Result.BadArgumentsOpt.TrueBits().Count() == 1);
+            Debug.Assert(arguments.Names[result.Result.FirstBadArgument].HasValue);
+            (string name, Location location) = arguments.Names[result.Result.FirstBadArgument].GetValueOrDefault();
             Debug.Assert(name != null);
 
             // CS: Named argument '{0}' cannot be specified multiple times
@@ -830,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // call was inapplicable because there was a bad name, that's a candidate
             // for the "best" overload.
 
-            int badArg = bad.Result.BadArgumentsOpt[0];
+            int badArg = bad.Result.FirstBadArgument;
             // We would not have gotten this error had there not been a named argument.
             Debug.Assert(arguments.Names.Count > badArg);
             Debug.Assert(arguments.Names[badArg].HasValue);
@@ -1105,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadArgTypesForCollectionAdd, location, symbols, method);
             }
 
-            foreach (var arg in badArg.Result.BadArgumentsOpt)
+            foreach (var arg in badArg.Result.BadArgumentsOpt.TrueBits())
             {
                 ReportBadArgumentError(diagnostics, binder, name, arguments, symbols, badArg, method, arg);
             }
