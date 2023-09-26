@@ -13186,6 +13186,67 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyCollectionBuilder.GetName([1, 2, 3])").WithLocation(6, 49));
         }
 
+        [Fact]
+        public void CollectionBuilder_AttributeCycle_2()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                static class MyCollectionBuilder
+                {
+                    public static string GetName<T>(MyCollection<T> c) => null;
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => null;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,49): error CS1503: Argument 2: cannot convert from 'collection expressions' to 'string'
+                // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
+                Diagnostic(ErrorCode.ERR_BadArgType, "['h', 'i']").WithArguments("2", "collection expressions", "string").WithLocation(6, 49));
+        }
+
+        [Fact]
+        public void CollectionBuilder_AttributeCycle_3()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                [MyCollection<int>([1, 2, 3])]
+                class MyCollection<T> : Attribute, IEnumerable<T>
+                {
+                    public MyCollection(MyCollection<T> mc) { }
+                    public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                static class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => null;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,2): error CS0181: Attribute constructor parameter 'mc' has type 'MyCollection<int>', which is not a valid attribute parameter type
+                // [MyCollection<int>([1, 2, 3])]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "MyCollection<int>").WithArguments("mc", "MyCollection<int>").WithLocation(7, 2));
+        }
+
         [WorkItem("https://github.com/dotnet/roslyn/issues/69980")]
         [Fact]
         public void ElementConversion_CollectionBuilder()
@@ -17411,6 +17472,436 @@ partial class Program
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [] as List<int>;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "[] as List<int>").WithLocation(7, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                attr._values.Report();
+
+                [X([42, 43, 44])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public int[] _values;
+                    public XAttribute(int[] values) { _values = values; }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[42, 43, 44],");
+
+            var program = comp.GetMember<NamedTypeSymbol>("C");
+            var argument = program.GetAttributes().Single().ConstructorArguments.Single();
+            var values = argument.Values;
+            Assert.Equal(3, values.Length);
+            Assert.Equal(42, values[0].Value);
+            Assert.Equal(43, values[1].Value);
+            Assert.Equal(44, values[2].Value);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_Named()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                attr.Values.Report();
+
+                [X(Values = [42, 43, 44])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public int[] Values { get; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[42, 43, 44],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_Params()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                attr._values.Report();
+
+                [X([42, 43, 44])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public int[] _values;
+                    public XAttribute(params int[] values) { _values = values; }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[42, 43, 44],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_StringConstants()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                attr._values.Report();
+
+                [X(["hi", null])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public string[] _values;
+                    public XAttribute(string[] values) { _values = values; }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[hi, null],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NestedArray()
+        {
+            string source = """
+                [X([[1], [2]])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int[][] values) { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (1,2): error CS0181: Attribute constructor parameter 'values' has type 'int[][]', which is not a valid attribute parameter type
+                // [X([[1], [2]])]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("values", "int[][]").WithLocation(1, 2)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NestedArrayAsObject()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                var inner = (int[])attr._values[0];
+                inner.Report();
+
+                [X([(int[])[1]])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public object[] _values;
+                    public XAttribute(object[] values) { _values = values; }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_ArrayAsObject()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                var array = (int[])attr._value;
+                array.Report();
+
+                [X((int[])[1, 2, 3])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public object _value;
+                    public XAttribute(object value) { _value = value; }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1, 2, 3],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_Empty()
+        {
+            string source = """
+                var attr = (XAttribute)System.Attribute.GetCustomAttribute(typeof(C), typeof(XAttribute));
+                attr._values.Report();
+                
+                [X([])]
+                class C
+                {
+                }
+                
+                public class XAttribute : System.Attribute
+                {
+                    public int[] _values;
+                    public XAttribute(int[] values) { _values = values; }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NotConstant()
+        {
+            string source = """
+                [X([1, 2, C.M()])]
+                class C
+                {
+                    public static int M() => 0;
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int[] values) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (1,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [X([1, 2, C.M()])]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M()").WithLocation(1, 11)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NotConstant_CollectionSpread()
+        {
+            string source = """
+                [X([1, 2, .. [3]])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int[] values) { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (1,14): error CS9176: There is no target type for the collection expression.
+                // [X([1, 2, .. [3]])]
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[3]").WithLocation(1, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NotConstant_ListSpread()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                [X([.. new List<int>()])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int[] values) { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [X([.. new List<int>()])]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, ".. new List<int>()").WithLocation(3, 5)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_BadArrayType()
+        {
+            string source = """
+                [X([1])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(ERROR[] values) { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (1,4): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'ERROR[]'
+                // [X([1])]
+                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection expressions", "ERROR[]").WithLocation(1, 4),
+                // (8,23): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public XAttribute(ERROR[] values) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(8, 23)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_NotArrayType()
+        {
+            string source = """
+                [X([1])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int NOT_ARRAY) { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (1,4): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'int'
+                // [X([1])]
+                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection expressions", "int").WithLocation(1, 4)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_SpanType()
+        {
+            string source = """
+                [X([1])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(System.Span<int> s) { }
+                }
+                """;
+
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (1,2): error CS0181: Attribute constructor parameter 's' has type 'Span<int>', which is not a valid attribute parameter type
+                // [X([1])]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("s", "System.Span<int>").WithLocation(1, 2)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
+        public void InAttribute_ReadOnlySpanType()
+        {
+            string source = """
+                [X([1])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(System.ReadOnlySpan<int> s) { }
+                }
+                """;
+
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (1,2): error CS0181: Attribute constructor parameter 's' has type 'ReadOnlySpan<int>', which is not a valid attribute parameter type
+                // [X([1])]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("s", "System.ReadOnlySpan<int>").WithLocation(1, 2)
+                );
+        }
+
+        [Fact]
+        public void InAttribute_CollectionBuilderType()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+
+                [X([1])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(MyCollection<int> s) { }
+                }
+                """;
+
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (22,2): error CS0181: Attribute constructor parameter 's' has type 'MyCollection<int>', which is not a valid attribute parameter type
+                // [X([1])]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("s", "MyCollection<int>").WithLocation(22, 2)
+                );
+        }
+
+        [Fact]
+        public void InAttribute_CollectionInitializerType()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class A : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    static A Create1() => [];
+                }
+
+                [X([1])]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(A a) { }
+                }
+                """;
+
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (12,2): error CS0181: Attribute constructor parameter 'a' has type 'A', which is not a valid attribute parameter type
+                // [X([1])]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("a", "A").WithLocation(12, 2)
+                );
         }
     }
 }
