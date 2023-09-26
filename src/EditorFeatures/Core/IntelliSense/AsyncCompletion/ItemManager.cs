@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -45,25 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            var stopwatch = SharedStopwatch.StartNew();
-
-            var list = s_sortListPool.Allocate();
-            ImmutableArray<VSCompletionItem> items;
-
-            try
-            {
-                SortCompletionItems(list, data, cancellationToken);
-
-                items = list.ToImmutableArray();
-            }
-            finally
-            {
-                list.Clear();
-                s_sortListPool.Free(list);
-            }
-
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
-            return Task.FromResult(items);
+            // Platform prefers IAsyncCompletionItemManager2.SortCompletionItemListAsync when available
+            throw new NotImplementedException();
         }
 
         public Task<CompletionList<VSCompletionItem>> SortCompletionItemListAsync(
