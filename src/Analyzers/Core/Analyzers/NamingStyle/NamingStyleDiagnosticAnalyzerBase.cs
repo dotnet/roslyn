@@ -165,10 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             builder["OptionName"] = nameof(NamingStyleOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;
 
-            var notification = NotificationOption2.ForSeverity(applicableRule.EnforcementLevel);
-            if (applicableRule.IsExplicitlySpecifiedEnforcementLevel)
-                notification = notification.WithIsExplicitlySpecified(true);
-            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), notification, additionalLocations: null, builder.ToImmutable(), failureReason);
+            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), NotificationOption2.ForSeverity(applicableRule.EnforcementLevel), additionalLocations: null, builder.ToImmutable(), failureReason);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

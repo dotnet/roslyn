@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 EnforcementLevel = severity,
                 NamingStyleID = namingStyle.ID,
-                SymbolSpecificationID = symbolSpec.ID,
-                IsExplicitlySpecifiedEnforcementLevel = true,
+                SymbolSpecificationID = symbolSpec.ID
             };
 
             return true;
