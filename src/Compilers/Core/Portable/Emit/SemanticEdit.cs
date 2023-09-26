@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             // Syntax map is only meaningful for update edits that preserve local variables.
-            Debug.Assert(syntaxMap == null || kind == SemanticEditKind.Update && preserveLocalVariables);
+            Debug.Assert(syntaxMap == null || (kind == SemanticEditKind.Update && preserveLocalVariables));
 
             // Partial methods should be implementations, not definitions.
             Debug.Assert(oldSymbol is not IMethodSymbol { PartialImplementationPart: not null });

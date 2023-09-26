@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
 
-                // allow a different ref-kind as long as the runtime time is the same:
+                // allow a different ref-kind as long as the runtime type is the same:
                 return parameter.RefKind is RefKind.None == other.RefKind is RefKind.None &&
                     _comparer.Equals(parameter.Type, other.Type);
             }
