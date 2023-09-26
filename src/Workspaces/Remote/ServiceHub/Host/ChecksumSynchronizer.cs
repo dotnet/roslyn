@@ -86,7 +86,13 @@ namespace Microsoft.CodeAnalysis.Remote
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask SynchronizeAssets_NoLockAsync(IReadOnlyCollection<object> checksumOrCollections, CancellationToken cancellationToken)
+        private async ValueTask SynchronizeAssets_NoLockAsync(HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        {
+            // get children of solution checksum object at once
+            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async ValueTask SynchronizeAssets_NoLockAsync(ImmutableArray<object> checksumOrCollections, CancellationToken cancellationToken)
         {
             // get children of solution checksum object at once
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
@@ -102,24 +108,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var checksumObject = await _assetProvider.GetAssetAsync<ChecksumWithChildren>(checksum, cancellationToken).ConfigureAwait(false);
                 AddIfNeeded(set, checksumObject.Children);
-            }
-        }
-
-        private void AddIfNeeded(HashSet<Checksum> checksums, IEnumerable<object> checksumOrCollections)
-        {
-            foreach (var checksumOrCollection in checksumOrCollections)
-            {
-                switch (checksumOrCollection)
-                {
-                    case Checksum checksum:
-                        AddIfNeeded(checksums, checksum);
-                        continue;
-                    case ChecksumCollection checksumCollection:
-                        AddIfNeeded(checksums, checksumCollection.Children);
-                        continue;
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(checksumOrCollection);
             }
         }
 
@@ -143,13 +131,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void AddIfNeeded(HashSet<Checksum> checksums, Checksum checksum)
         {
-            if (checksum != Checksum.Null)
-            {
-                if (!_assetProvider.EnsureCacheEntryIfExists(checksum))
-                {
-                    checksums.Add(checksum);
-                }
-            }
+            if (checksum != Checksum.Null && !_assetProvider.EnsureCacheEntryIfExists(checksum))
+                checksums.Add(checksum);
         }
     }
 }
