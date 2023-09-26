@@ -341,6 +341,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 return codeAction;
             }
 
+            // Retrieves the fix all code action based on the scope that was selected. 
+            // Creates a FixAllCodeAction type so that we can get the correct operations for the selected scope.
             var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
             return new FixAllCodeAction(string.Format(FeaturesResources.Fix_All_0, codeAction.Title), fixAllFlavor.FixAllState, showPreviewChangesDialog: false);
         }

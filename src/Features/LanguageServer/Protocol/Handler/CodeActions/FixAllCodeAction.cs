@@ -27,7 +27,6 @@ internal sealed class FixAllCodeAction : AbstractFixAllCodeAction
         => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
 
     protected override bool IsInternalProvider(IFixAllState fixAllState)
-    {
-        return true;
-    }
+        => true; // FixAll support is internal for the language server.
+    
 }
