@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 internal interface IBuildHost
 {
     /// <summary>
-    /// Returns whether this project's language is supported.
+    /// Returns whether this project's is supported by this host, considering both the project language and also MSBuild availability.
     /// </summary>
     Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken);
 

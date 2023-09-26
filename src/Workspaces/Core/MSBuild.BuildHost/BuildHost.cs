@@ -32,17 +32,17 @@ internal sealed class BuildHost : IBuildHost
         _binaryLogPath = binaryLogPath;
     }
 
-    private void EnsureMSBuildLoaded(string projectFilePath)
+    private bool TryEnsureMSBuildLoaded(string projectFilePath)
     {
         lock (_gate)
         {
             // If we've already created our MSBuild types, then there's nothing further to do.
             if (MSBuildLocator.IsRegistered)
             {
-                return;
+                return true;
             }
 
-            VisualStudioInstance instance;
+            VisualStudioInstance? instance;
 
 #if NETFRAMEWORK
 
@@ -50,19 +50,28 @@ internal sealed class BuildHost : IBuildHost
             // MSBuild features. Since we don't have something like a global.json we can't really know what the minimum version is.
 
             // TODO: we should also check that the managed tools are actually installed
-            instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(vs => vs.Version).First();
+            instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(vs => vs.Version).FirstOrDefault();
 
 #else
 
             // Locate the right SDK for this particular project; MSBuildLocator ensures in this case the first one is the preferred one.
             // TODO: we should pick the appropriate instance back in the main process and just use the one chosen here.
             var options = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(projectFilePath) };
-            instance = MSBuildLocator.QueryVisualStudioInstances(options).First();
+            instance = MSBuildLocator.QueryVisualStudioInstances(options).FirstOrDefault();
 
 #endif
 
-            MSBuildLocator.RegisterInstance(instance);
-            _logger.LogInformation($"Registered MSBuild instance at {instance.MSBuildPath}");
+            if (instance != null)
+            {
+                MSBuildLocator.RegisterInstance(instance);
+                _logger.LogInformation($"Registered MSBuild instance at {instance.MSBuildPath}");
+                return true;
+            }
+            else
+            {
+                _logger.LogCritical("No compatible MSBuild instance could be found.");
+                return false;
+            }
         }
     }
 
@@ -90,7 +99,9 @@ internal sealed class BuildHost : IBuildHost
 
     public Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken)
     {
-        EnsureMSBuildLoaded(projectFilePath);
+        if (!TryEnsureMSBuildLoaded(projectFilePath))
+            return Task.FromResult(false);
+
         CreateBuildManager();
 
         return Task.FromResult(TryGetLoaderForPath(projectFilePath) is not null);
@@ -98,7 +109,7 @@ internal sealed class BuildHost : IBuildHost
 
     public async Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, CancellationToken cancellationToken)
     {
-        EnsureMSBuildLoaded(projectFilePath);
+        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(IsProjectFileSupportedAsync)} should have been called first.");
         CreateBuildManager();
 
         var projectLoader = TryGetLoaderForPath(projectFilePath);
