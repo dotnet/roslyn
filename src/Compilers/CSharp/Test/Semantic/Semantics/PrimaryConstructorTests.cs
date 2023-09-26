@@ -16424,6 +16424,29 @@ class C1 (int p1)
             Assert.Single(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69663")]
+        public void Indexer_SymbolInfo()
+        {
+            var source1 = """
+                C c = null;
+                _ = c[2];
+                """;
+            var source2 = """
+                class C(int p)
+                {
+                    public int this[int i] => p;
+                }
+                """;
+            var comp = CreateCompilation(new[] { source1, source2 });
+            var tree = comp.SyntaxTrees[0];
+            var indexer = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal("c[2]", indexer.ToString());
+            var model = comp.GetSemanticModel(tree);
+            model.GetDiagnostics().Verify();
+            var info = model.GetSymbolInfo(indexer);
+            AssertEx.Equal("System.Int32 C.this[System.Int32 i] { get; }", info.Symbol.ToTestDisplayString());
+        }
+
         [Fact]
         public void IllegalCapturingInStruct_01()
         {

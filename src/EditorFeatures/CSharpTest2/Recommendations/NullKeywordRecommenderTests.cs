@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -124,96 +130,120 @@ $$");
         public async Task TestNotInPPElIf()
         {
             await VerifyAbsenceAsync(
-@"#if true
-#elif $$");
+                """
+                #if true
+                #elif $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPPelIf_Or()
         {
             await VerifyAbsenceAsync(
-@"#if true
-#elif a || $$");
+                """
+                #if true
+                #elif a || $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPPElIf_And()
         {
             await VerifyAbsenceAsync(
-@"#if true
-#elif a && $$");
+                """
+                #if true
+                #elif a && $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPPElIf_Not()
         {
             await VerifyAbsenceAsync(
-@"#if true
-#elif ! $$");
+                """
+                #if true
+                #elif ! $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPPElIf_Paren()
         {
             await VerifyAbsenceAsync(
-@"#if true
-#elif ( $$");
+                """
+                #if true
+                #elif ( $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPPElIf_Equals()
         {
             await VerifyAbsenceAsync(
-@"#if true
-#elif a == $$");
+                """
+                #if true
+                #elif a == $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPPElIf_NotEquals()
         {
             await VerifyAbsenceAsync(
-@"#if true
-#elif a != $$");
+                """
+                #if true
+                #elif a != $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterUnaryOperator()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   public static bool operator $$");
+                """
+                class C {
+                   public static bool operator $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterImplicitOperator()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   public static implicit operator $$");
+                """
+                class C {
+                   public static implicit operator $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterExplicitOperator()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   public static implicit operator $$");
+                """
+                class C {
+                   public static implicit operator $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterCastInField()
         {
             await VerifyKeywordAsync(
-@"class C {
-   public static readonly ImmutableList<T> Empty = new ImmutableList<T>((Segment)$$");
+                """
+                class C {
+                   public static readonly ImmutableList<T> Empty = new ImmutableList<T>((Segment)$$
+                """);
         }
 
         [Fact]
         public async Task TestInTernary()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"SyntaxKind kind = caseOrDefaultKeywordOpt == $$ ? SyntaxKind.GotoStatement :
-                caseOrDefaultKeyword.Kind == SyntaxKind.CaseKeyword ? SyntaxKind.GotoCaseStatement : SyntaxKind.GotoDefaultStatement;"));
+                """
+                SyntaxKind kind = caseOrDefaultKeywordOpt == $$ ? SyntaxKind.GotoStatement :
+                                caseOrDefaultKeyword.Kind == SyntaxKind.CaseKeyword ? SyntaxKind.GotoCaseStatement : SyntaxKind.GotoDefaultStatement;
+                """));
         }
 
         [Fact]
@@ -248,10 +278,12 @@ $$");
         public async Task TestInReferenceSwitch()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (""goo"")
-        {
-            case $$
-        }"));
+                """
+                switch ("goo")
+                        {
+                            case $$
+                        }
+                """));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543766")]
@@ -264,36 +296,38 @@ $$");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    public int x, y;
-    void M()
-    {
-        var c = new C { x = 2, y = 3, $$");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    public int x, y;
+                    void M()
+                    {
+                        var c = new C { x = 2, y = 3, $$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546938")]
         public async Task TestNotInCrefContext()
         {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    /// <see cref=""$$"">
-    static void Main(string[] args)
-    {
-        
-    }
-}");
+            await VerifyAbsenceAsync("""
+                class Program
+                {
+                    /// <see cref="$$">
+                    static void Main(string[] args)
+                    {
+
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546955")]
         public async Task TestInCrefContextNotAfterDot()
         {
-            await VerifyAbsenceAsync(@"
-/// <see cref=""System.$$"" />
-class C { }
-");
+            await VerifyAbsenceAsync("""
+                /// <see cref="System.$$" />
+                class C { }
+                """);
         }
 
         [Fact]
@@ -303,10 +337,10 @@ class C { }
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25293")]
         public async Task TestAfterIs_BeforeExpression()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
-int x;
-int y = x is $$ Method();
-"));
+            await VerifyKeywordAsync(AddInsideMethod("""
+                int x;
+                int y = x is $$ Method();
+                """));
         }
 
         [Fact]

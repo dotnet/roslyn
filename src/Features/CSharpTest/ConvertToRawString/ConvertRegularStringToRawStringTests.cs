@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -13,9 +12,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<
-        ConvertRegularStringToRawStringCodeRefactoringProvider>;
+        ConvertStringToRawStringCodeRefactoringProvider>;
 
-    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
     public class ConvertRegularStringToRawStringTests
     {
         private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)

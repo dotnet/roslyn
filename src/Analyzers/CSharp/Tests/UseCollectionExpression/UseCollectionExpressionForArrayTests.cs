@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -2717,6 +2718,37 @@ public class UseCollectionExpressionForArrayTests
                     3,
                 ];
                 """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int[] i =
+                [|{|]
+                    1,
+                    2,
+                    3,
+                };
+                """.ReplaceLineEndings(endOfLine),
+            FixedCode = """
+                int[] i =
+                [
+                    1,
+                    2,
+                    3,
+                ];
+                """.ReplaceLineEndings(endOfLine),
             LanguageVersion = LanguageVersion.CSharp12,
             TestState =
             {
