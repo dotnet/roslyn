@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             var document = workspace
                 .AddProject("TestProject", LanguageNames.CSharp)
                 .AddDocument("TestDocument.cs", source);
-            
+
             var completionService = document.GetLanguageService<CompletionService>();
 
             var optionsUnsorted = CompletionOptions.Default with { PerformSort = false };
@@ -180,11 +181,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             var optionsSorted = CompletionOptions.Default with { PerformSort = true };
             var completionListSorted = await completionService.GetCompletionsAsync(document, position.Value, optionsSorted, OptionSet.Empty);
 
-            var unsortedIndexOfClassName = completionListUnsorted.ItemsList.ToList().IndexOf(c => c.DisplayText == "MethodName");
-            var sortedIndexOfClassName = completionListSorted.ItemsList.ToList().IndexOf(c => c.DisplayText == "MethodName");
+            var completionListManuallySorted = completionListUnsorted.ItemsList.ToList();
+            completionListManuallySorted.Sort(Comparer<CompletionItem>.Default);
+
+            var manuallySortedDisplayTexts = completionListManuallySorted.Select(c => c.GetEntireDisplayText());
 
             Assert.True(completionListUnsorted.ItemsList.Count == completionListSorted.ItemsList.Count);
-            Assert.True(sortedIndexOfClassName < unsortedIndexOfClassName);
+
+            Assert.False(completionListUnsorted.ItemsList.Select(c => c.GetEntireDisplayText())
+                                               .SequenceEqual(manuallySortedDisplayTexts));
+
+            Assert.True(completionListSorted.ItemsList.Select(c => c.GetEntireDisplayText())
+                                            .SequenceEqual(manuallySortedDisplayTexts));
         }
 
         [Theory, CombinatorialData]
