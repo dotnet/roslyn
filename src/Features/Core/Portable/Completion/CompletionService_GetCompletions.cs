@@ -338,12 +338,16 @@ namespace Microsoft.CodeAnalysis.Completion
 
             public SegmentedList<CompletionItem> ToSegmentedList(in CompletionOptions options)
             {
+                if (!options.PerformSort)
+                {
+                    return new (this);
+                }
+
+                // Use a list to do the sorting as it's significantly faster than doing so on a SegmentedList.
                 var list = s_sortListPool.Allocate();
                 try
                 {
                     list.AddRange(this);
-                    if (options.PerformSort)
-                        list.Sort();
                     return new(list);
                 }
                 finally
