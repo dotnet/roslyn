@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 {
-    public async Task<Solution> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
+    public async Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
     {
         var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
         if (codeAction == null)
@@ -67,6 +65,12 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         var newSolution = await codeAction.GetChangedSolutionInternalAsync(
             fixAllState.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
+        if (newSolution is null)
+        {
+            // No changed documents
+            return ImmutableArray<CodeActionOperation>.Empty;
+        }
+
         if (showPreviewChangesDialog)
         {
             newSolution = PreviewChanges(
@@ -89,13 +93,13 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         return GetNewFixAllOperations(operations, newSolution, cancellationToken);
     }
 
-    internal Solution PreviewChanges(
+    public Solution? PreviewChanges(
         Solution currentSolution,
-        Solution newSolution,
+        Solution? newSolution,
         string fixAllPreviewChangesTitle,
         string fixAllTopLevelHeader,
         FixAllKind fixAllKind,
-        string languageOpt,
+        string? languageOpt,
         Workspace workspace,
         int? correlationId = null,
         CancellationToken cancellationToken = default)
@@ -143,10 +147,10 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         }
     }
 
-    protected virtual Solution GetChangedSolution(
+    protected virtual Solution? GetChangedSolution(
         Workspace workspace,
         Solution currentSolution,
-        Solution newSolution,
+        Solution? newSolution,
         string fixAllPreviewChangesTitle,
         string fixAllTopLevelHeader,
         Glyph glyph)
@@ -154,7 +158,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         return currentSolution;
     }
 
-    private static async Task<CodeAction> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
+    private static async Task<CodeAction?> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
     {
         var fixAllKind = fixAllContext.State.FixAllKind;
         var functionId = fixAllKind switch
@@ -173,7 +177,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             }),
             fixAllContext.CancellationToken))
         {
-            CodeAction action = null;
+            CodeAction? action = null;
             try
             {
                 action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
