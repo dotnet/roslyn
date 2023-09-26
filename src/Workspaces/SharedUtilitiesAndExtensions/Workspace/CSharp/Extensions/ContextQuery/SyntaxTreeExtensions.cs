@@ -1016,8 +1016,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // We have reached the expression:
+            //
+            // goo.Baz<|
+            //
+            // This could either be an incomlete generic type or method, or a binary less than operator
+            // To ensure that we are in the generic case, we need all symbols matching the name to be generic.
             var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
-            return symbols.All(static s =>
+            return symbols.Length > 0 && symbols.All(static s =>
             {
                 return s switch
                 {
