@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.InKeyword:
                     case SyntaxKind.RequiredKeyword:
                     case SyntaxKind.FileKeyword:
+                    case SyntaxKind.PartialKeyword:
                         result.Add(token.Kind());
                         positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);
@@ -67,6 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (token.HasMatchingText(SyntaxKind.FileKeyword))
                         {
                             result.Add(SyntaxKind.FileKeyword);
+                            positionBeforeModifiers = token.FullSpan.Start;
+                            token = token.GetPreviousToken(includeSkipped: true);
+                            continue;
+                        }
+                        if (token.HasMatchingText(SyntaxKind.PartialKeyword))
+                        {
+                            result.Add(SyntaxKind.PartialKeyword);
                             positionBeforeModifiers = token.FullSpan.Start;
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;

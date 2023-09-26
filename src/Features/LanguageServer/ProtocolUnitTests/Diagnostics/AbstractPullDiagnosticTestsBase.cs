@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -303,11 +304,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             }
         }
 
-        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
-            => CreateTestLspServerAsync(markup, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
+        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(markup, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush), additionalAnalyzers);
 
-        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
-            => CreateTestLspServerAsync(markups, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
+        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(markups, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush), additionalAnalyzers);
 
         private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
             => CreateXmlTestLspServerAsync(xmlMarkup, mutatingLspWorkspace, initializationOptions: GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));

@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "?", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         [Fact]
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, collections.Length);
             VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "System.Object", ConversionKind.NoConversion);
             VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "dynamic", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: "?", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[2], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         [Fact]
@@ -2852,6 +2852,91 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_NullableValueType()
+        {
+            string source = """
+using System.Collections;
+using System.Collections.Generic;
+
+var a = Program.AsCollection([1, 2, 3]);
+a.Report();
+
+struct S<T> : IEnumerable<T>
+{
+    private List<T> _list;
+    public void Add(T t)
+    {
+        _list ??= new List<T>();
+        _list.Add(t);
+    }
+    public IEnumerator<T> GetEnumerator()
+    {
+        _list ??= new List<T>();
+        return _list.GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+static partial class Program
+{
+    static S<T>? AsCollection<T>(S<T>? args) => args;
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1, 2, 3],");
+
+            var tree = comp.SyntaxTrees.First();
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            Assert.Equal("Program.AsCollection([1, 2, 3])", invocation.ToFullString());
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("S<System.Int32>? Program.AsCollection<System.Int32>(S<System.Int32>? args)",
+                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TypeInference_NullableValueType_ExtensionMethod()
+        {
+            string source = """
+using System.Collections;
+using System.Collections.Generic;
+struct S<T> : IEnumerable<T>
+{
+    private List<T> _list;
+    public void Add(T t)
+    {
+        _list ??= new List<T>();
+        _list.Add(t);
+    }
+    public IEnumerator<T> GetEnumerator()
+    {
+        _list ??= new List<T>();
+        return _list.GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+static class Program
+{
+    static S<T>? AsCollection<T>(this S<T>? args)
+    {
+        return args;
+    }
+    static void Main()
+    {
+        var a = AsCollection([1, 2, 3]);
+        var b = [4].AsCollection();
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (27,17): error CS9176: There is no target type for the collection expression.
+                //         var b = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[4]").WithLocation(27, 17)
+                );
+        }
+
+        [Fact]
         public void MemberAccess_01()
         {
             string source = """
@@ -4862,21 +4947,89 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 struct S<T> : I<T>
                 {
-                    public void Add(T t) { }
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
-                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    List<T> _list;
+                    public void Add(T t) { GetList().Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetList().GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetList().GetEnumerator();
+                    private List<T> GetList() => _list ??= new List<T>();
                 }
                 class Program
                 {
+                    public static void Main()
+                    {
+                        Program.Create1<S<int>, int>().Report();
+                        Program.Create2<S<int>, int>().Report();
+                        Program.Create3<S<int>, int>(42, 43).Report();
+                        Program.Create4<S<int>, int>(44, 45).Report();
+                    }
+
                     static T Create1<T, U>() where T : struct, I<U> => [];
                     static T? Create2<T, U>() where T : struct, I<U> => [];
+                    static T Create3<T, U>(U x, U y) where T : struct, I<U> => [x, y];
+                    static T? Create4<T, U>(U x, U y) where T : struct, I<U> => [x, y];
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (16,57): error CS9174: Cannot initialize type 'T?' with a collection expression because the type is not constructible.
-                //     static T? Create2<T, U>() where T : struct, I<U> => [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("T?").WithLocation(16, 57));
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "[], [], [42, 43], [44, 45],");
+
+            verifier.VerifyIL("Program.Create1<T, U>", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_0005:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.Create2<T, U>", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_0005:  newobj     "T?..ctor(T)"
+                  IL_000a:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Create3<T, U>", """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  ldarg.0
+                  IL_0009:  constrained. "T"
+                  IL_000f:  callvirt   "void I<U>.Add(U)"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldarg.1
+                  IL_0017:  constrained. "T"
+                  IL_001d:  callvirt   "void I<U>.Add(U)"
+                  IL_0022:  ldloc.0
+                  IL_0023:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Create4<T, U>", """
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  ldarg.0
+                  IL_0009:  constrained. "T"
+                  IL_000f:  callvirt   "void I<U>.Add(U)"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldarg.1
+                  IL_0017:  constrained. "T"
+                  IL_001d:  callvirt   "void I<U>.Add(U)"
+                  IL_0022:  ldloc.0
+                  IL_0023:  newobj     "T?..ctor(T)"
+                  IL_0028:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7145,37 +7298,603 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 #nullable enable
                 using System.Collections;
+
+                S<object>? x = [];
+                x.Report();
+                x = [];
+                S<object>? y = [1];
+                y = [2];
+
                 struct S<T> : IEnumerable
                 {
                     public void Add(T t) { }
                     public T this[int index] => default!;
-                    IEnumerator IEnumerable.GetEnumerator() => default!;
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        S<object>? x = [];
-                        x = [];
-                        S<object>? y = [1];
-                        y = [2];
-                    }
+                    IEnumerator IEnumerable.GetEnumerator() { yield break; }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (13,24): error CS9174: Cannot initialize type 'S<object>?' with a collection expression because the type is not constructible.
-                //         S<object>? x = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(13, 24),
-                // (14,13): error CS9174: Cannot initialize type 'S<object>?' with a collection expression because the type is not constructible.
-                //         x = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(14, 13),
-                // (15,24): error CS9174: Cannot initialize type 'S<object>?' with a collection expression because the type is not constructible.
-                //         S<object>? y = [1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("S<object>?").WithLocation(15, 24),
-                // (16,13): error CS9174: Cannot initialize type 'S<object>?' with a collection expression because the type is not constructible.
-                //         y = [2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("S<object>?").WithLocation(16, 13));
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[],");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void NullableValueType_ImplicitConversion()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<int>? M()
+    {
+        return [1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_000f:  newobj     "MyCollection<int>?..ctor(MyCollection<int>)"
+  IL_0014:  ret
+}
+""");
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var returnValue = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
+            var conversion = model.GetConversion(returnValue);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsNullable);
+            Assert.False(conversion.IsCollectionExpression);
+
+            Assert.Equal(1, conversion.UnderlyingConversions.Length);
+            var underlyingConversion = conversion.UnderlyingConversions[0];
+            Assert.True(underlyingConversion.IsValid);
+            Assert.False(underlyingConversion.IsNullable);
+            Assert.True(underlyingConversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(returnValue);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("MyCollection<System.Int32>?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void NullableValueType_ImplicitConversion_Byte()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<byte>? M()
+    {
+        return [1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.Fails);
+
+            // ILVerify:
+            // [M]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+            // [M]: Field is not visible. { Offset = 0x0 }
+            // [M]: Unexpected type on the stack. { Offset = 0x6, Found = address of '[78cb4f30-abc1-41ca-b5d2-939830104c72]<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81"
+  IL_0005:  ldc.i4.3
+  IL_0006:  newobj     "System.ReadOnlySpan<byte>..ctor(void*, int)"
+  IL_000b:  call       "MyCollection<byte> MyCollectionBuilder.Create<byte>(System.ReadOnlySpan<byte>)"
+  IL_0010:  newobj     "MyCollection<byte>?..ctor(MyCollection<byte>)"
+  IL_0015:  ret
+}
+""");
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var returnValue = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
+            var conversion = model.GetConversion(returnValue);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsNullable);
+            Assert.False(conversion.IsCollectionExpression);
+
+            Assert.Equal(1, conversion.UnderlyingConversions.Length);
+            var underlyingConversion = conversion.UnderlyingConversions[0];
+            Assert.True(underlyingConversion.IsValid);
+            Assert.False(underlyingConversion.IsNullable);
+            Assert.True(underlyingConversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(returnValue);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("MyCollection<System.Byte>?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void NullableValueType_ImplicitConversion_Nullability()
+        {
+            string src = """
+#nullable enable
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int>? x = [1, 2, 3];
+x.Value.ToString();
+x = null;
+x.Value.ToString(); // 1
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // 0.cs(11,1): warning CS8629: Nullable value type may be null.
+                // x.Value.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(11, 1)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void NullableValueType_BadConversion()
+        {
+            string src = """
+int? x = [1, 2, 3];
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // 0.cs(1,10): error CS9174: Cannot initialize type 'int?' with a collection expression because the type is not constructible.
+                // int? x = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("int?").WithLocation(1, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var conversion = model.GetConversion(collection);
+            Assert.False(conversion.IsValid);
+
+            var typeInfo = model.GetTypeInfo(collection);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Int32?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void NullableValueType_ExplicitCast()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<int>? M()
+    {
+        return (MyCollection<int>?)[1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_000f:  newobj     "MyCollection<int>?..ctor(MyCollection<int>)"
+  IL_0014:  ret
+}
+""");
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var cast = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
+            Assert.Equal("(MyCollection<int>?)[1, 2, 3]", cast.ToFullString());
+            var castConversion = model.GetConversion(cast);
+            Assert.True(castConversion.IsIdentity);
+
+            var value = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Last().Expression;
+            Assert.Equal("[1, 2, 3]", value.ToFullString());
+            var conversion = model.GetConversion(value);
+            Assert.True(conversion.IsIdentity);
+
+            var typeInfo = model.GetTypeInfo(value);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
+        public void NullableValueType_MissingSystemNullableCtor()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<int>? M()
+    {
+        return (MyCollection<int>?)[1, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            comp.VerifyDiagnostics(
+                // 0.cs(29,36): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         return (MyCollection<int>?)[1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Nullable`1", ".ctor").WithLocation(29, 36)
+                );
+        }
+
+        [Fact]
+        public void ExplicitCast_SemanticModel()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<int> M()
+    {
+        return (MyCollection<int>)/*<bind>*/[1, 2, 3]/*</bind>*/;
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_000f:  ret
+}
+""");
+            // We should extend IOperation conversions to represent IsCollectionExpression
+            // Tracked by https://github.com/dotnet/roslyn/issues/68826
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                IOperation:  (OperationKind.None, Type: MyCollection<System.Int32>) (Syntax: '[1, 2, 3]')
+                Children(3):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                """);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var cast = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Last().Expression;
+            Assert.Equal("(MyCollection<int>)/*<bind>*/[1, 2, 3]/*</bind>*/", cast.ToFullString());
+            var castConversion = model.GetConversion(cast);
+            Assert.True(castConversion.IsIdentity);
+
+            var value = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Last().Expression;
+            Assert.Equal("[1, 2, 3]/*</bind>*/", value.ToFullString());
+            var conversion = model.GetConversion(value);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsIdentity);
+
+            var typeInfo = model.GetTypeInfo(value);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
+        }
+
+        [Fact]
+        public void NestedCollection_SemanticModel()
+        {
+            string src = """
+Program.M().Report();
+
+partial class Program
+{
+    static int[][] M()
+    {
+        return /*<bind>*/[[1], [2]]/*</bind>*/;
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1], [2]],"), verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       33 (0x21)
+  .maxstack  7
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     "int[]"
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newarr     "int"
+  IL_000e:  dup
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  stelem.i4
+  IL_0012:  stelem.ref
+  IL_0013:  dup
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  newarr     "int"
+  IL_001b:  dup
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldc.i4.2
+  IL_001e:  stelem.i4
+  IL_001f:  stelem.ref
+  IL_0020:  ret
+}
+""");
+            // We should extend IOperation conversions to represent IsCollectionExpression
+            // Tracked by https://github.com/dotnet/roslyn/issues/68826
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                IOperation:  (OperationKind.None, Type: System.Int32[][]) (Syntax: '[[1], [2]]')
+                Children(2):
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], IsImplicit) (Syntax: '[1]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        IOperation:  (OperationKind.None, Type: System.Int32[]) (Syntax: '[1]')
+                          Children(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], IsImplicit) (Syntax: '[2]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        IOperation:  (OperationKind.None, Type: System.Int32[]) (Syntax: '[2]')
+                          Children(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                """);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var nestedCollection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Last();
+            Assert.Equal("[2]", nestedCollection.ToFullString());
+
+            var conversion = model.GetConversion(nestedCollection);
+            Assert.True(conversion.IsValid);
+            Assert.False(conversion.IsIdentity);
+            Assert.True(conversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(nestedCollection);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Int32[]", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NestedCollection_NullableValueType_SemanticModel()
+        {
+            string src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+Program.M().Report();
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public struct MyCollection<T> : IEnumerable<T>
+{
+    private readonly List<T> _list;
+    public MyCollection(List<T> list) { _list = list; }
+    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public class MyCollectionBuilder
+{
+    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+    {
+        return new MyCollection<T>(new List<T>(items.ToArray()));
+    }
+}
+
+partial class Program
+{
+    static MyCollection<MyCollection<int>?> M()
+    {
+        return [[1], [2]];
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            // ILVerify failure:
+            //[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1], [2]],"), verify: Verification.Fails);
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       88 (0x58)
+  .maxstack  2
+  .locals init (<>y__InlineArray2<MyCollection<int>?> V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "<>y__InlineArray2<MyCollection<int>?>"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(ref <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_0010:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA4504"
+  IL_0015:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_001a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_001f:  newobj     "MyCollection<int>?..ctor(MyCollection<int>)"
+  IL_0024:  stobj      "MyCollection<int>?"
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       "InlineArrayElementRef<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(ref <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_0031:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE4"
+  IL_0036:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+  IL_003b:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+  IL_0040:  newobj     "MyCollection<int>?..ctor(MyCollection<int>)"
+  IL_0045:  stobj      "MyCollection<int>?"
+  IL_004a:  ldloca.s   V_0
+  IL_004c:  ldc.i4.2
+  IL_004d:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(in <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_0052:  call       "MyCollection<MyCollection<int>?> MyCollectionBuilder.Create<MyCollection<int>?>(System.ReadOnlySpan<MyCollection<int>?>)"
+  IL_0057:  ret
+}
+""");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var nestedCollection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Last();
+            Assert.Equal("[2]", nestedCollection.ToFullString());
+
+            var conversion = model.GetConversion(nestedCollection);
+            Assert.True(conversion.IsValid);
+            Assert.False(conversion.IsIdentity);
+            Assert.True(conversion.IsNullable);
+
+            Assert.Equal(1, conversion.UnderlyingConversions.Length);
+            var underlyingConversion = conversion.UnderlyingConversions[0];
+            Assert.True(underlyingConversion.IsValid);
+            Assert.False(underlyingConversion.IsNullable);
+            Assert.True(underlyingConversion.IsCollectionExpression);
+
+            var typeInfo = model.GetTypeInfo(nestedCollection);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("MyCollection<System.Int32>?", typeInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -7502,12 +8221,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyTypes(model, collections[3], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionExpression);
             VerifyTypes(model, collections[4], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionExpression);
             VerifyTypes(model, collections[5], expectedType: null, expectedConvertedType: "S2", ConversionKind.NoConversion);
-            VerifyTypes(model, collections[6], expectedType: null, expectedConvertedType: "System.Int32[]", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[7], expectedType: null, expectedConvertedType: "System.Collections.Generic.List<System.Object>", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[8], expectedType: null, expectedConvertedType: "System.Span<System.Int32>", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[9], expectedType: null, expectedConvertedType: "System.ReadOnlySpan<System.Object>", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[10], expectedType: null, expectedConvertedType: "S1", ConversionKind.CollectionExpression);
-            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: "S2", ConversionKind.NoConversion);
+            VerifyTypes(model, collections[6], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[7], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[8], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[9], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[10], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
+            VerifyTypes(model, collections[11], expectedType: null, expectedConvertedType: null, ConversionKind.Identity);
         }
 
         private static void VerifyTypes(SemanticModel model, ExpressionSyntax expr, string expectedType, string expectedConvertedType, ConversionKind expectedConversionKind)
@@ -15781,9 +16500,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 IOperation:  (OperationKind.None, Type: T[]) (Syntax: '[a, b]')
-                  Children(2):
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                Children(2):
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -15803,8 +16522,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                           Operand:
                             IOperation:  (OperationKind.None, Type: T[]) (Syntax: '[a, b]')
                               Children(2):
-                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)
@@ -15831,9 +16550,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 IOperation:  (OperationKind.None, Type: System.Span<T>) (Syntax: '[a, b]')
-                  Children(2):
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                Children(2):
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -15860,8 +16579,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                   Operand:
                                     IOperation:  (OperationKind.None, Type: System.Span<T>) (Syntax: '[a, b]')
                                       Children(2):
-                                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                                          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                                          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
                         Next (Regular) Block[B2]
                             Leaving: {R1}
                 }

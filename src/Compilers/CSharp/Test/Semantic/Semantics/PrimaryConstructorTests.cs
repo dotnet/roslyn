@@ -602,6 +602,58 @@ static " + keyword + @" C(int x, string y);
 
         [Theory]
         [CombinatorialData]
+        public void ConstructorSymbol_05_NoParameters([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            var comp = CreateCompilation(keyword + @" C();");
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            Assert.Equal(1, c.InstanceConstructors.Length);
+
+            var ctor = c.InstanceConstructors[0];
+
+            Assert.Equal(Accessibility.Public, ctor.DeclaredAccessibility);
+            Assert.Equal(0, ctor.ParameterCount);
+            Assert.False(ctor.IsImplicitlyDeclared);
+            Assert.False(ctor.IsImplicitConstructor);
+            Assert.False(ctor.IsImplicitInstanceConstructor);
+            Assert.False(ctor.IsDefaultValueTypeConstructor());
+
+            var verifier = CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                                 {
+                                     Assert.False(m.GlobalNamespace.GetTypeMember("C").InstanceConstructors.Single().IsDefaultValueTypeConstructor());
+                                 }).VerifyDiagnostics();
+
+            if (c.TypeKind == TypeKind.Struct)
+            {
+                verifier.VerifyIL("C..ctor()",
+@"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+
+");
+            }
+            else
+            {
+                verifier.VerifyIL("C..ctor()",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+
+");
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConstructorConflict([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
@@ -8196,6 +8248,401 @@ int p1 { get; set; }
 ";
 
             AssertParameterScope(keyword, shadow, isRecord, flags, source);
+        }
+
+        [Fact]
+        public void ParameterScope_TypeParameterShadows_01()
+        {
+            var src = @"
+class C1<T>(T a, int T) : Base(T)
+{
+    T A = a;
+    int T1 = T;
+    event System.Action T2 = T;
+    int T3 {get;} = T;
+
+    void M()
+    {
+        var x = T;
+        T++;
+    }
+}
+
+class Base
+{
+    public Base(int x){}
+}
+";
+            var comp = CreateCompilation(src);
+
+            // Even though specification for the feature says that enclosing type's type parameter should be found before 
+            // primary constructor parameter, even in field initializers and base clause arguments, we already
+            // have pre-existing behavior with records that is not consistent with that. Specifically, primary constructor
+            // parameters come first in field initializers and base clause arguments for records.
+            // Keeping this behavior for now.
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+                //     event System.Action T2 = T;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "T").WithArguments("int", "System.Action").WithLocation(6, 30),
+                // (11,17): error CS0119: 'T' is a type, which is not valid in the given context
+                //         var x = T;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(11, 17),
+                // (12,9): error CS0118: 'T' is a type but is used like a variable
+                //         T++;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "T").WithArguments("T", "type", "variable").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_TypeParameterShadows_02()
+        {
+            var src = @"
+class C1(int T)
+{
+    void M1()
+    {
+        T++;
+    }
+
+    void M2<T>()
+    {
+        T++; // M2
+    }
+
+    void M3()
+    {
+        local<int>();
+
+        int local<T>() => T++;
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0118: 'T' is a type but is used like a variable
+                //         T++; // M2
+                Diagnostic(ErrorCode.ERR_BadSKknown, "T").WithArguments("T", "type", "variable").WithLocation(11, 9),
+                // (18,27): error CS0118: 'T' is a type but is used like a variable
+                //         int local<T>() => T++;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "T").WithArguments("T", "type", "variable").WithLocation(18, 27)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_ParameterShadows_01()
+        {
+            var src = @"
+class C1(int p1) : Base(
+#line 100
+    (string p1) => p1++,
+    () =>
+    {
+        local(string.Empty);
+#line 200
+        void local(string p1) => p1++;
+    },
+    p1
+    )
+{
+#line 300
+    System.Action<string> x = (string p1) => p1++;
+
+    System.Action y = () =>
+                      {
+                          local(string.Empty);
+#line 400
+                          void local(string p1) => p1++;
+                      };
+
+    void M1(string p1)
+    {
+#line 500
+        p1++;
+    }
+
+    void M2()
+    {
+#line 600
+        System.Action<string> x = (string p1) => p1++;
+        local(string.Empty);
+#line 700
+        void local(string p1) => p1++;
+    }
+
+    C1(string p1)
+#line 800
+        : this(p1++)
+    {
+#line 900
+        p1++;
+    }
+}
+
+class Base
+{
+    public Base(System.Action<string> x, System.Action y, int z){}
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (100,20): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //     (string p1) => p1++,
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(100, 20),
+                // (200,34): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         void local(string p1) => p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(200, 34),
+                // (300,46): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //     System.Action<string> x = (string p1) => p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(300, 46),
+                // (400,52): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //                           void local(string p1) => p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(400, 52),
+                // (500,9): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(500, 9),
+                // (600,50): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         System.Action<string> x = (string p1) => p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(600, 50),
+                // (700,34): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         void local(string p1) => p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(700, 34),
+                // (800,16): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         : this(p1++)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(800, 16),
+                // (900,9): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(900, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_LocalShadows_01()
+        {
+            var src = @"
+class C1(int p1) : Base(
+    () =>
+    {
+        string p1 = null;
+#line 100
+        p1++;
+    },
+    () =>
+    {
+        local();
+        void local()
+        {
+            string p1 = null;
+#line 200
+            p1++;
+        }
+    },
+    p1
+    )
+{
+    System.Action x = () =>
+                      {
+                          string p1 = null;
+#line 300
+                          p1++;
+                      };
+
+    System.Action y = () =>
+                      {
+                          local();
+                          void local()
+                          {
+                              string p1 = null;
+#line 400
+                              p1++;
+                          }
+                      };
+
+    void M1()
+    {
+        string p1 = null;
+#line 500
+        p1++;
+    }
+
+    void M2()
+    {
+        System.Action x = () =>
+                          {
+                              string p1 = null;
+#line 600
+                              p1++;
+                          };
+        local();
+        void local()
+        {
+            string p1 = null;
+#line 700
+            p1++;
+        }
+    }
+
+    C1() : this(1)
+    {
+        string p1 = null;
+#line 800
+        p1++;
+    }
+}
+
+class Base
+{
+    public Base(System.Action x, System.Action y, int z){}
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (100,9): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(100, 9),
+                // (200,13): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //             p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(200, 13),
+                // (300,27): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //                           p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(300, 27),
+                // (400,31): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //                               p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(400, 31),
+                // (500,9): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(500, 9),
+                // (600,31): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //                               p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(600, 31),
+                // (700,13): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //             p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(700, 13),
+                // (800,9): error CS0023: Operator '++' cannot be applied to operand of type 'string'
+                //         p1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "p1++").WithArguments("++", "string").WithLocation(800, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_LocalShadows_02()
+        {
+            var src = @"
+class C1(int p1) : Base(
+    () =>
+    {
+#line 100
+        p1++;
+        void p1(){}
+    },
+    p1
+    )
+{
+    System.Action y = () =>
+                      {
+                          void p1(){}
+#line 200
+                          p1++;
+                      };
+
+    void M1()
+    {
+        void p1(){}
+#line 300
+        p1++;
+    }
+
+    void M2()
+    {
+        System.Action x = () =>
+                          {
+                              void p1(){}
+#line 400
+                              p1++;
+                          };
+        local();
+        void local()
+        {
+            void p1(){}
+#line 500
+            p1++;
+        }
+    }
+
+    C1() : this(1)
+    {
+        void p1(){}
+#line 600
+        p1++;
+    }
+}
+
+class Base
+{
+    public Base(System.Action y, int z){}
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (100,9): error CS1656: Cannot assign to 'p1' because it is a 'method group'
+                //         p1++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "p1").WithArguments("p1", "method group").WithLocation(100, 9),
+                // (200,27): error CS1656: Cannot assign to 'p1' because it is a 'method group'
+                //                           p1++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "p1").WithArguments("p1", "method group").WithLocation(200, 27),
+                // (300,9): error CS1656: Cannot assign to 'p1' because it is a 'method group'
+                //         p1++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "p1").WithArguments("p1", "method group").WithLocation(300, 9),
+                // (400,31): error CS1656: Cannot assign to 'p1' because it is a 'method group'
+                //                               p1++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "p1").WithArguments("p1", "method group").WithLocation(400, 31),
+                // (500,13): error CS1656: Cannot assign to 'p1' because it is a 'method group'
+                //             p1++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "p1").WithArguments("p1", "method group").WithLocation(500, 13),
+                // (600,9): error CS1656: Cannot assign to 'p1' because it is a 'method group'
+                //         p1++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "p1").WithArguments("p1", "method group").WithLocation(600, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_LocalShadows_03_InAttribute()
+        {
+            var src = @"
+class C1(int p1)
+{
+    [MyAttribute(out string p1, p1++)]
+    int P1 = p1++;
+}
+
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(out string x, int y)
+    {
+        x = string.Empty;
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,6): error CS1729: 'MyAttribute' does not contain a constructor that takes 3 arguments
+                //     [MyAttribute(out string p1, p1++)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "MyAttribute(out string p1, p1++)").WithArguments("MyAttribute", "3").WithLocation(4, 6),
+                // (4,18): error CS1041: Identifier expected; 'out' is a keyword
+                //     [MyAttribute(out string p1, p1++)]
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(4, 18),
+                // (4,22): error CS1525: Invalid expression term 'string'
+                //     [MyAttribute(out string p1, p1++)]
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(4, 22),
+                // (4,29): error CS1003: Syntax error, ',' expected
+                //     [MyAttribute(out string p1, p1++)]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "p1").WithArguments(",").WithLocation(4, 29),
+                // (4,29): error CS9105: Cannot use primary constructor parameter 'int p1' in this context.
+                //     [MyAttribute(out string p1, p1++)]
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p1").WithArguments("int p1").WithLocation(4, 29),
+                // (4,33): error CS9105: Cannot use primary constructor parameter 'int p1' in this context.
+                //     [MyAttribute(out string p1, p1++)]
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p1").WithArguments("int p1").WithLocation(4, 33)
+                );
         }
 
         [Fact]
@@ -15977,6 +16424,29 @@ class C1 (int p1)
             Assert.Single(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69663")]
+        public void Indexer_SymbolInfo()
+        {
+            var source1 = """
+                C c = null;
+                _ = c[2];
+                """;
+            var source2 = """
+                class C(int p)
+                {
+                    public int this[int i] => p;
+                }
+                """;
+            var comp = CreateCompilation(new[] { source1, source2 });
+            var tree = comp.SyntaxTrees[0];
+            var indexer = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal("c[2]", indexer.ToString());
+            var model = comp.GetSemanticModel(tree);
+            model.GetDiagnostics().Verify();
+            var info = model.GetSymbolInfo(indexer);
+            AssertEx.Equal("System.Int32 C.this[System.Int32 i] { get; }", info.Symbol.ToTestDisplayString());
+        }
+
         [Fact]
         public void IllegalCapturingInStruct_01()
         {
@@ -17923,6 +18393,86 @@ ref struct S6(scoped in int x)
                 // (44,34): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
                 //     public ref readonly int R6 = ref x;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 34)
+                );
+        }
+
+        [Fact]
+        public void GenericParameterType()
+        {
+            var source =
+@"
+struct S1<ST>(ST x)
+{
+    public ST X => x;
+}
+
+class C1<CT>(CT x)
+{
+    public CT X => x;
+}
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(new S1<int>(123).X);
+        System.Console.Write(new C1<string>(""C1"").X);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"123C1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterIsPointer_01()
+        {
+            var source =
+@"
+unsafe struct S1(int* x)
+{
+    public int X => *x;
+}
+
+unsafe class C1(int* x)
+{
+    public int X => *x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterIsPointer_02()
+        {
+            var source =
+@"
+struct S1(int* x)
+{
+    public int X => *x;
+}
+
+class C1(int* x)
+{
+    public int X => *x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // struct S1(int* x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 11),
+                // (4,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public int X => *x;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(4, 22),
+                // (7,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class C1(int* x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 10),
+                // (9,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public int X => *x;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(9, 22)
                 );
         }
     }

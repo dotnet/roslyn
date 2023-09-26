@@ -72,43 +72,53 @@ internal static class UseCollectionExpressionHelpers
                 return false;
         }
 
-        // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
-        // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
-        // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
-        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
-        // types that could accept the collection expression).
-        var speculationAnalyzer = new SpeculationAnalyzer(
-            topMostExpression,
-            s_emptyCollectionExpression,
-            semanticModel,
-            cancellationToken,
-            skipVerificationForReplacedNode,
-            failOnOverloadResolutionFailuresInOriginalCode: true);
+        // HACK: Workaround lack of compiler information for collection expression conversions with casts.
+        // Specifically, hardcode in knowledge that a cast to a constructible collection type of the empty collection
+        // expression will always succeed, and there's no need to actually validate semantics there.
+        // Tracked by https://github.com/dotnet/roslyn/issues/68826
+        if (!IsAlwaysSafeCastReplacement())
+        {
+            // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
+            // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
+            // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
+            // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
+            // types that could accept the collection expression).
+            var speculationAnalyzer = new SpeculationAnalyzer(
+                topMostExpression,
+                s_emptyCollectionExpression,
+                semanticModel,
+                cancellationToken,
+                skipVerificationForReplacedNode,
+                failOnOverloadResolutionFailuresInOriginalCode: true);
 
-        if (speculationAnalyzer.ReplacementChangesSemantics())
-            return false;
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+                return false;
 
-        // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
-        // (for example, we're trying to replace an expression that is converted to something that isn't even a
-        // collection type).
-        //
-        // Note: an identity conversion is always legal without needing any more checks.
-        var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
-        if (conversion.IsIdentity)
-            return true;
+            // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
+            // (for example, we're trying to replace an expression that is converted to something that isn't even a
+            // collection type).
+            //
+            // Note: an identity conversion is always legal without needing any more checks.
+            var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
+            if (conversion.IsIdentity)
+                return true;
 
-        if (!conversion.IsCollectionExpression)
-            return false;
+            if (!conversion.IsCollectionExpression)
+                return false;
 
-        // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
-        // converting this to some different collection type unintentionally.
-        var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
-        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
-            return false;
+            // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
+            // converting this to some different collection type unintentionally.
+            var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
+            if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
+                return false;
+        }
 
         return true;
 
-        bool IsConstructibleCollectionType(ITypeSymbol type)
+        bool IsAlwaysSafeCastReplacement()
+            => parent is CastExpressionSyntax && IsConstructibleCollectionType(semanticModel.GetTypeInfo(parent, cancellationToken).Type);
+
+        bool IsConstructibleCollectionType(ITypeSymbol? type)
         {
             // Arrays are always a valid collection expression type.
             if (type is IArrayTypeSymbol)
