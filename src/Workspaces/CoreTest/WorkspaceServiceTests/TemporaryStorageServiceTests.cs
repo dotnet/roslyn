@@ -21,26 +21,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class TemporaryStorageServiceTests
     {
-        [Fact]
-        public void TestTemporaryStorageText()
-        {
-            using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
-            var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-
-            // test normal string
-            var text = SourceText.From(new string(' ', 4096) + "public class A {}");
-            TestTemporaryStorage(service, text);
-
-            // test empty string
-            text = SourceText.From(string.Empty);
-            TestTemporaryStorage(service, text);
-
-            // test large string
-            text = SourceText.From(new string(' ', 1024 * 1024) + "public class A {}");
-            TestTemporaryStorage(service, text);
-        }
-
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
         public void TestTemporaryStorageStream()
         {
@@ -64,45 +44,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 Assert.Equal(i % 2, result.ReadByte());
             }
-        }
-
-        private static void TestTemporaryStorage(ITemporaryStorageServiceInternal temporaryStorageService, SourceText text)
-        {
-            // create a temporary storage location
-            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
-
-            // write text into it
-            temporaryStorage.WriteTextAsync(text).Wait();
-
-            // read text back from it
-            var text2 = temporaryStorage.ReadTextAsync().Result;
-
-            Assert.NotSame(text, text2);
-            Assert.Equal(text.ToString(), text2.ToString());
-            Assert.Equal(text.Encoding, text2.Encoding);
-
-            temporaryStorage.Dispose();
-        }
-
-        [Fact]
-        public void TestTemporaryTextStorageExceptions()
-        {
-            using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
-            var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-            var storage = service.CreateTemporaryTextStorage();
-
-            // Nothing has been written yet
-            Assert.Throws<InvalidOperationException>(() => storage.ReadText());
-            Assert.Throws<AggregateException>(() => storage.ReadTextAsync().Result);
-
-            // write a normal string
-            var text = SourceText.From(new string(' ', 4096) + "public class A {}");
-            storage.WriteTextAsync(text).Wait();
-
-            // Writing multiple times is not allowed
-            Assert.Throws<InvalidOperationException>(() => storage.WriteText(text));
-            Assert.Throws<AggregateException>(() => storage.WriteTextAsync(text).Wait());
         }
 
         [Fact]
@@ -327,26 +268,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.Equal(value, stream.ReadByte());
                 }
             }
-        }
-
-        [Fact]
-        public void TestTemporaryStorageTextEncoding()
-        {
-            using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
-            var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-
-            // test normal string
-            var text = SourceText.From(new string(' ', 4096) + "public class A {}", Encoding.ASCII);
-            TestTemporaryStorage(service, text);
-
-            // test empty string
-            text = SourceText.From(string.Empty);
-            TestTemporaryStorage(service, text);
-
-            // test large string
-            text = SourceText.From(new string(' ', 1024 * 1024) + "public class A {}");
-            TestTemporaryStorage(service, text);
         }
     }
 }

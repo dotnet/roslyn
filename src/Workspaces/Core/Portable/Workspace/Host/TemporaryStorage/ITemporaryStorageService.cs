@@ -17,6 +17,5 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface ITemporaryStorageServiceInternal : IWorkspaceService
     {
         ITemporaryStreamStorageInternal CreateTemporaryStreamStorage();
-        ITemporaryTextStorageInternal CreateTemporaryTextStorage();
     }
 }
