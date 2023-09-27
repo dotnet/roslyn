@@ -2989,6 +2989,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Wrap_long_initializer" xml:space="preserve">
     <value>Wrap long initializer</value>
   </data>
+  <data name="Unwrap_collection" xml:space="preserve">
+    <value>Unwrap collection</value>
+  </data>
+  <data name="Wrap_collection" xml:space="preserve">
+    <value>Wrap collection</value>
+  </data>
+  <data name="Wrap_long_collection" xml:space="preserve">
+    <value>Wrap long collection</value>
+  </data>
   <data name="Indent_all_elements" xml:space="preserve">
     <value>Indent all elements</value>
   </data>

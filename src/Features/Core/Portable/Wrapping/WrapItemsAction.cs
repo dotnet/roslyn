@@ -20,8 +20,12 @@ namespace Microsoft.CodeAnalysis.Wrapping
     /// also update the wrapping most-recently-used list when the code action is actually
     /// invoked.
     /// </summary>
-    internal class WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument) : DocumentChangeAction(title, createChangedDocument, title, CodeActionPriority.Low)
+    internal class WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
+        : DocumentChangeAction(title, createChangedDocument, GetSortTitle(parentTitle, title), CodeActionPriority.Low)
     {
+        private static string GetSortTitle(string title, string parentTitle)
+            => $"{parentTitle}_{title}";
+
         // Keeps track of the invoked code actions.  That way we can prioritize those code actions 
         // in the future since they're more likely the ones the user wants.  This is important as 
         // we have 9 different code actions offered (3 major groups, with 3 actions per group).  
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
         public string ParentTitle { get; } = parentTitle;
 
-        public string SortTitle { get; } = parentTitle + "_" + title;
+        public string SortTitle { get; } = GetSortTitle(parentTitle, title);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
