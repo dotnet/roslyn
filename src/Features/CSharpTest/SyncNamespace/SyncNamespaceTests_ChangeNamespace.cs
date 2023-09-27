@@ -2336,8 +2336,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
         public async Task ChangeNamespace_DoesNotThrowInDuplicateProgramDeclaration()
         {
             var defaultNamespace = "A";
@@ -2347,23 +2346,24 @@ End Class";
             var (duplicateProgramFolder, duplicateProgramFilePath) = CreateDocumentFilePath([], "Program.cs");
 
             var code =
-$@"
+$$"""
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{duplicateProgramFolder}"" FilePath=""{duplicateProgramFolder}""> 
+    <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+        <Document Folders="{{duplicateProgramFolder}}" FilePath="{{duplicateProgramFolder}}"> 
 internal class [||]Program
-{{
+{
     private static void Main(string[] args)
-    {{
-        Console.WriteLine(""Hello, World!"");
-    }}
-}}
+    {
+        Console.WriteLine("Hello, World!");
+    }
+}
         </Document>
-        <Document Folders=""{topLevelProgramFolder}"" FilePath=""{topLevelProgramFilePath}""> 
-Console.WriteLine(""Hello Two"");
+        <Document Folders="{{topLevelProgramFolder}}" FilePath="{{topLevelProgramFilePath}}"> 
+Console.WriteLine("Hello Two");
         </Document>
     </Project>
-</Workspace>";
+</Workspace>
+""";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
         }
     }
