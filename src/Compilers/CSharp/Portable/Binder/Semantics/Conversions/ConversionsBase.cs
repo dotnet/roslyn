@@ -1653,9 +1653,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = null;
                 return CollectionExpressionTypeKind.CollectionInitializer;
             }
-            else if (isListInterface(compilation, destination, out elementType))
+            else if (destination.IsArrayInterface(out TypeWithAnnotations typeArg))
             {
-                return CollectionExpressionTypeKind.ListInterface;
+                elementType = typeArg.Type;
+                return CollectionExpressionTypeKind.ArrayInterface;
             }
 
             elementType = null;
@@ -1697,26 +1698,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Instead, we just walk the implemented interfaces.
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
-            }
-
-            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
-            {
-                if (targetType is NamedTypeSymbol
-                    {
-                        OriginalDefinition.SpecialType:
-                            SpecialType.System_Collections_Generic_IEnumerable_T or
-                            SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
-                            SpecialType.System_Collections_Generic_IReadOnlyList_T or
-                            SpecialType.System_Collections_Generic_ICollection_T or
-                            SpecialType.System_Collections_Generic_IList_T,
-                        TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
-                    })
-                {
-                    elementType = typeArg.Type;
-                    return true;
-                }
-                elementType = null;
-                return false;
             }
 
             static bool areEqual(TypeSymbol a, TypeSymbol b)
