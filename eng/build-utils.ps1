@@ -298,10 +298,6 @@ function Make-BootstrapBuild([string]$bootstrapToolset = "") {
 
     if ($ci) {
       $args += " /p:ContinuousIntegrationBuild=true"
-      # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
-      # in our CI builds
-      # https://github.com/NuGet/Home/issues/12373
-      $args += " /p:RestoreUseStaticGraphEvaluation=false"
     }
 
     if ($bootstrapDir -ne "") {
