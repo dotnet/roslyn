@@ -101,18 +101,11 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
         {
-            if (state.Storage is ITemporaryTextStorageWithName storage)
-            {
-                return new ValueTask<SerializableSourceText>(new SerializableSourceText(storage));
-            }
-            else
-            {
-                return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-                    static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
-                    static (text, _) => new SerializableSourceText(text),
-                    state,
-                    cancellationToken);
-            }
+            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
+                static (text, _) => new SerializableSourceText(text),
+                state,
+                cancellationToken);
         }
 
         public void Serialize(ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)

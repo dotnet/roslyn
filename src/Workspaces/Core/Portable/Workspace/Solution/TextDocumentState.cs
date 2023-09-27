@@ -75,9 +75,6 @@ namespace Microsoft.CodeAnalysis
         private static ITextAndVersionSource CreateStrongText(TextLoader loader)
             => new LoadableTextAndVersionSource(loader);
 
-        public ITemporaryTextStorageInternal? Storage
-            => null;
-
         public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
         {
             if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
