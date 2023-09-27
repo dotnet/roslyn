@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Host
         [property: DataMember(Order = 0)] StorageDatabase CacheStorage = StorageDatabase.SQLite,
         [property: DataMember(Order = 1)] bool EnableOpeningSourceGeneratedFiles = false,
         [property: DataMember(Order = 2)] bool DisableSharedSyntaxTrees = false,
-        [property: DataMember(Order = 3)] bool DisableRecoverableText = false,
-        [property: DataMember(Order = 4)] bool ValidateCompilationTrackerStates =
+        [property: DataMember(Order = 3)] bool ValidateCompilationTrackerStates =
 #if DEBUG // We will default this on in DEBUG builds
             true
 #else
@@ -64,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Host
         public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
             CacheStorage: StorageDatabase.None,
             EnableOpeningSourceGeneratedFiles: false,
-            DisableSharedSyntaxTrees: false,
-            DisableRecoverableText: false);
+            DisableSharedSyntaxTrees: false);
     }
 }

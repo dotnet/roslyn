@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
                    info.DocumentServiceProvider,
                    info.Attributes,
                    textAndVersionSource: info.TextLoader != null
-                    ? CreateRecoverableText(info.TextLoader, solutionServices)
+                    ? CreateStrongText(info.TextLoader)
                     : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
                    loadTextOptions)
         {
@@ -76,26 +76,6 @@ namespace Microsoft.CodeAnalysis
 
         private static ITextAndVersionSource CreateStrongText(TextLoader loader)
             => new LoadableTextAndVersionSource(loader, cacheResult: true);
-
-        private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, SolutionServices services)
-        {
-            var service = services.GetRequiredService<IWorkspaceConfigurationService>();
-            var options = service.Options;
-
-            return options.DisableRecoverableText
-                ? CreateStrongText(text)
-                : new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
-        }
-
-        private static ITextAndVersionSource CreateRecoverableText(TextLoader loader, SolutionServices services)
-        {
-            var service = services.GetRequiredService<IWorkspaceConfigurationService>();
-            var options = service.Options;
-
-            return options.DisableRecoverableText
-                ? CreateStrongText(loader)
-                : new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services);
-        }
 
         public ITemporaryTextStorageInternal? Storage
             => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
@@ -160,10 +140,7 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
         {
-            var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(newTextAndVersion)
-                : CreateRecoverableText(newTextAndVersion, solutionServices);
-
+            var newTextSource = CreateStrongText(newTextAndVersion);
             return UpdateText(newTextSource, mode, incremental: true);
         }
 
@@ -177,11 +154,7 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
         {
-            // don't blow up on non-text documents.
-            var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(loader)
-                : CreateRecoverableText(loader, solutionServices);
-
+            var newTextSource = CreateStrongText(loader);
             return UpdateText(newTextSource, mode, incremental: false);
         }
 
