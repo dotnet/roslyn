@@ -49,9 +49,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// <seealso cref="_weakFileReference"/>
         private const long MultiFileBlockSize = SingleFileThreshold * 32;
 
-        private readonly IWorkspaceThreadingService? _workspaceThreadingService;
-        private readonly ITextFactoryService _textFactory;
-
         /// <summary>
         /// The synchronization object for accessing the memory mapped file related fields (indicated in the remarks
         /// of each field).
@@ -96,10 +93,8 @@ namespace Microsoft.CodeAnalysis.Host
         private long _offset;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        private TemporaryStorageService(IWorkspaceThreadingService? workspaceThreadingService, ITextFactoryService textFactory)
+        private TemporaryStorageService()
         {
-            _workspaceThreadingService = workspaceThreadingService;
-            _textFactory = textFactory;
         }
 
         ITemporaryStreamStorageInternal ITemporaryStorageServiceInternal.CreateTemporaryStreamStorage()

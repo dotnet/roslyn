@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService
     {
-        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            text.Serialize(writer, context, cancellationToken);
+            text.Serialize(writer, cancellationToken);
         }
 
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
         {
-            var serializableSourceText = SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
-            return serializableSourceText.GetText(cancellationToken);
+            var serializableSourceText = SerializableSourceText.Deserialize(reader, _textService, cancellationToken);
+            return serializableSourceText.Text;
         }
 
         public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)

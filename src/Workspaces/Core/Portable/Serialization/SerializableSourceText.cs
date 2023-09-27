@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,34 +26,16 @@ namespace Microsoft.CodeAnalysis.Serialization
         /// <remarks>
         /// <inheritdoc cref="Storage"/>
         /// </remarks>
-        private readonly SourceText _text;
+        public SourceText Text { get; }
 
         public SerializableSourceText(SourceText text)
         {
-            _text = text;
+            Text = text;
         }
-
-        /// <summary>
-        /// Returns the strongly referenced SourceText if we have it, or tries to retrieve it from the weak reference if
-        /// it's still being held there.
-        /// </summary>
-        /// <returns></returns>
-        private SourceText TryGetText()
-            => _text;
 
         public ImmutableArray<byte> GetChecksum()
         {
-            return TryGetText().GetChecksum();
-        }
-
-        public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
-        {
-            return TryGetText();
-        }
-
-        public SourceText GetText(CancellationToken cancellationToken)
-        {
-            return TryGetText();
+            return this.Text.GetChecksum();
         }
 
         public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
@@ -67,18 +47,17 @@ namespace Microsoft.CodeAnalysis.Serialization
                 cancellationToken);
         }
 
-        public void Serialize(ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public void Serialize(ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            writer.WriteInt32((int)_text.ChecksumAlgorithm);
-            writer.WriteEncoding(_text.Encoding);
+            writer.WriteInt32((int)this.Text.ChecksumAlgorithm);
+            writer.WriteEncoding(this.Text.Encoding);
             writer.WriteInt32((int)SerializationKinds.Bits);
-            _text.WriteTo(writer, cancellationToken);
+            this.Text.WriteTo(writer, cancellationToken);
         }
 
         public static SerializableSourceText Deserialize(
             ObjectReader reader,
-            ITemporaryStorageServiceInternal storageService,
             ITextFactoryService textService,
             CancellationToken cancellationToken)
         {

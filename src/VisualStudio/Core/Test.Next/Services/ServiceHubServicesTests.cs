@@ -94,7 +94,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // check that text already exist in remote side
             Assert.True(client.TestData.WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(newState.Text, out var serializableRemoteText));
-            Assert.Equal(newText.ToString(), (await serializableRemoteText.GetTextAsync(CancellationToken.None)).ToString());
+            Assert.Equal(newText.ToString(), serializableRemoteText.Text.ToString());
         }
 
         private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, Workspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)

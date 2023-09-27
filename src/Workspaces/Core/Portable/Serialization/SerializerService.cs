@@ -150,11 +150,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
+                        SerializeSourceText((SerializableSourceText)value, writer, cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKind.SourceText:
-                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
+                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, cancellationToken);
                         return;
 
                     default:
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.AnalyzerReference:
                         return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        return (T)(object)SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
+                        return (T)(object)SerializableSourceText.Deserialize(reader, _textService, cancellationToken);
                     case WellKnownSynchronizationKind.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
 

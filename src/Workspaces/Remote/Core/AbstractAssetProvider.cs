@@ -80,7 +80,7 @@ internal abstract class AbstractAssetProvider
         var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
         var serializableSourceText = await GetAssetAsync<SerializableSourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
-        var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = serializableSourceText.Text;
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), attributes.FilePath));
 
         // TODO: do we need version?
