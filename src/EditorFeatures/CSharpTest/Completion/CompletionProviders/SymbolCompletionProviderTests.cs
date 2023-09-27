@@ -12409,7 +12409,6 @@ public static class Extension
                         }
                     }
                 }
-                
                 """;
 
             await VerifyItemExistsAsync(source, "foo");
@@ -12434,12 +12433,11 @@ public static class Extension
                     void A() { }
                     void A<T>() { }
                 }
-                
                 """;
 
-            await VerifyItemExistsAsync(source, "other");
             await VerifyItemExistsAsync(source, "System");
             await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "other");
         }
 
         private static string MakeMarkup(string source, string languageVersion = "Preview")

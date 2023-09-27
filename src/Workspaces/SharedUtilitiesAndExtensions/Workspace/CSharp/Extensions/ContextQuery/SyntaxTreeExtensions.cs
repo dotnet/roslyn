@@ -1021,9 +1021,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // goo.Baz<|
             //
             // This could either be an incomlete generic type or method, or a binary less than operator
-            // To ensure that we are in the generic case, we need all symbols matching the name to be generic.
+            // To ensure that we are in the generic case, we need to match at least one generic method or type,
+            // and all other candidates to be types or methods.
             var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
-            return symbols.Length > 0 && symbols.All(static s =>
+            if (symbols.Length == 0)
+                return false;
+
+            var anyGeneric = symbols.Any(static s =>
             {
                 return s switch
                 {
@@ -1032,6 +1036,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     _ => false,
                 };
             });
+            if (!anyGeneric)
+                return false;
+
+            return symbols.All(static s => s is INamedTypeSymbol or IMethodSymbol);
         }
 
         public static bool IsParameterModifierContext(
