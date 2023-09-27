@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool TargetTypedCompletionFilter { get; init; } = false;
         public bool ProvideDateAndTimeCompletions { get; init; } = true;
         public bool ProvideRegexCompletions { get; init; } = true;
+        public bool PerformSort { get; init; } = true;
 
         /// <summary>
         /// Test-only option.
