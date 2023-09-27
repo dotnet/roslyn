@@ -942,6 +942,11 @@
         <target state="translated">As propriedades da instância nas interfaces não podem ter inicializadores.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="new">Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
         <target state="translated">O '{0}' método deve ser não genérico ou ter arity {1} para corresponder '{2}'.</target>
