@@ -4367,8 +4367,8 @@ public partial class C
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         var identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
 
         var referencingMetadataComp = CreateCompilation("", new[] { comp.ToMetadataReference() });
@@ -4376,8 +4376,8 @@ public partial class C
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
 
         var referencingImageComp = CreateCompilation("", new[] { comp.EmitToImageReference() });
@@ -4385,8 +4385,8 @@ public partial class C
         Assert.Equal("C@<unknown>", type.ToTestDisplayString());
         identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.False(type.IsFileLocal);
     }
 
@@ -4436,8 +4436,8 @@ public partial class C
         Assert.NotNull(identifier);
         AssertEx.Equal(
             new byte[] { 0xE3, 0xB0, 0xC4, 0x42, 0x98, 0xFC, 0x1C, 0x14, 0x9A, 0xFB, 0xF4, 0xC8, 0x99, 0x6F, 0xB9, 0x24, 0x27, 0xAE, 0x41, 0xE4, 0x64, 0x9B, 0x93, 0x4C, 0xA4, 0x95, 0x99, 0x1B, 0x78, 0x52, 0xB8, 0x55 },
-            identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+            identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
     }
 
@@ -4526,8 +4526,8 @@ public partial class C
         Assert.IsType<RetargetingNamedTypeSymbol>(retargeted);
         Assert.False(retargeted.GetPublicSymbol().IsFileLocal);
 
-        var originalFileIdentifier = classC1.AssociatedFileIdentifier!.Value;
-        var retargetedFileIdentifier = retargeted.AssociatedFileIdentifier!.Value;
+        var originalFileIdentifier = classC1.AssociatedFileIdentifier!;
+        var retargetedFileIdentifier = retargeted.AssociatedFileIdentifier!;
         Assert.Equal(originalFileIdentifier.DisplayFilePath, retargetedFileIdentifier.DisplayFilePath);
         Assert.Equal((IEnumerable<byte>)originalFileIdentifier.FilePathChecksumOpt, (IEnumerable<byte>)retargetedFileIdentifier.FilePathChecksumOpt);
         Assert.Equal(originalFileIdentifier.EncoderFallbackErrorMessage, retargetedFileIdentifier.EncoderFallbackErrorMessage);

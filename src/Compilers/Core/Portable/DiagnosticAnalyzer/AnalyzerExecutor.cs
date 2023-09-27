@@ -1230,8 +1230,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
             var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer, analyzerName)).Trim();
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message, contextInformation };
-            var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, CreateDiagnosticDescription(info, e));
-            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
+            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
@@ -1262,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception ex)
             {
-                return string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, ex.CreateDiagnosticDescription());
+                return string.Format(CodeAnalysisResources.CompilerAnalyzerThrows, analyzerName, ex.GetType().ToString(), ex.Message, ex.CreateDiagnosticDescription());
             }
 
             if (diagnosticIds.IsEmpty)
@@ -1277,13 +1276,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var title = CodeAnalysisResources.AnalyzerDriverFailure;
             var messageFormat = CodeAnalysisResources.AnalyzerDriverThrows;
-            var messageArguments = new[] { e.GetType().ToString(), e.Message };
-            var description = string.Format(CodeAnalysisResources.AnalyzerDriverThrowsDescription, e.CreateDiagnosticDescription());
-            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerDriverExceptionDiagnosticId, title, description, messageFormat);
+            var messageArguments = new[] { e.GetType().ToString(), e.Message, e.CreateDiagnosticDescription() };
+            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerDriverExceptionDiagnosticId, title, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
-        internal static DiagnosticDescriptor GetAnalyzerExceptionDiagnosticDescriptor(string? id = null, string? title = null, string? description = null, string? messageFormat = null)
+        internal static DiagnosticDescriptor GetAnalyzerExceptionDiagnosticDescriptor(string? id = null, string? title = null, string? messageFormat = null)
         {
             // TODO: It is not ideal to create a new descriptor per analyzer exception diagnostic instance.
             // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
@@ -1292,13 +1290,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             id ??= AnalyzerExceptionDiagnosticId;
             title ??= CodeAnalysisResources.CompilerAnalyzerFailure;
             messageFormat ??= CodeAnalysisResources.CompilerAnalyzerThrows;
-            description ??= CodeAnalysisResources.CompilerAnalyzerFailure;
 
             return new DiagnosticDescriptor(
                 id,
                 title,
                 messageFormat,
-                description: description,
                 category: DiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,

@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// relational operators for it; such a set can be formed only by including explicitly mentioned
         /// members (or the inverse, excluding them, by complementing the set).
         /// </summary>
-        private sealed class EnumeratedValueSet<T, TTC> : IValueSet<T> where TTC : struct, IEquatableValueTC<T> where T : notnull
+        private sealed class EnumeratedValueSet<T, TTC> : IValueSet<T>
+            where TTC : struct, IEquatableValueTC<T>
+            where T : notnull
         {
             /// <summary>
             /// In <see cref="_included"/>, then members are listed by inclusion.  Otherwise all members
@@ -150,8 +152,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSet.Union(IValueSet other) => Union((IValueSet<T>)other);
 
-            public override bool Equals(object? obj) => obj is EnumeratedValueSet<T, TTC> other &&
-                this._included == other._included && this._membersIncludedOrExcluded.SetEquals(other._membersIncludedOrExcluded);
+            public override bool Equals(object? obj)
+            {
+                if (obj is not EnumeratedValueSet<T, TTC> other)
+                    return false;
+
+                return this._included == other._included
+                    && this._membersIncludedOrExcluded.SetEqualsWithoutIntermediateHashSet(other._membersIncludedOrExcluded);
+            }
 
             public override int GetHashCode() => Hash.Combine(this._included.GetHashCode(), this._membersIncludedOrExcluded.GetHashCode());
 

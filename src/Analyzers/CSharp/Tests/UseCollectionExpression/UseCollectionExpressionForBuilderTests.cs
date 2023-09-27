@@ -1445,4 +1445,43 @@ public partial class UseCollectionExpressionForBuilderTests
             NumberOfFixAllIterations = 2,
         }.RunAsync();
     }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = ($$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<ImmutableArray<int>> M()
+                    {
+                        var builder1 = ImmutableArray.CreateBuilder<ImmutableArray<int>>();
+                        [|var builder2 = ImmutableArray.[|CreateBuilder|]<int>();|]
+                        [|builder2.Add(|]0);
+                        builder1.Add(builder2.ToImmutable());
+                        return builder1.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi).ReplaceLineEndings(endOfLine),
+            FixedCode = ("""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<ImmutableArray<int>> M()
+                    {
+                        return [[0]];
+                    }
+                }
+                """ + s_arrayBuilderApi).ReplaceLineEndings(endOfLine),
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            NumberOfFixAllIterations = 2,
+        }.RunAsync();
+    }
 }

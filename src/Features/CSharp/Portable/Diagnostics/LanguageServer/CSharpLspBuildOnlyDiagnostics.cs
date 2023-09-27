@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 
@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
     // Keep in sync with IsBuildOnlyDiagnostic
     // src\Compilers\CSharp\Portable\Errors\ErrorFacts.cs
     [LspBuildOnlyDiagnostics(
+        LanguageNames.CSharp,
         "CS1607", // ErrorCode.WRN_ALinkWarn:
         "CS0169", // ErrorCode.WRN_UnreferencedField:
         "CS0414", // ErrorCode.WRN_UnreferencedFieldAssg:
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS9177", // ErrorCode.ERR_InterceptorArityNotCompatible
         "CS9178" // ErrorCode.ERR_InterceptorCannotBeGeneric
         )]
+    [Shared]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
     {
         [ImportingConstructor]
