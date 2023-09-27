@@ -768,20 +768,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
-            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out var elementType);
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
-                Debug.Assert(elementType is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
-                if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations))
+                Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
+                if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
                 {
                     Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
                     return;
                 }
                 Debug.Assert(elementTypeWithAnnotations.HasType);
-                elementType = elementTypeWithAnnotations.Type;
             }
 
             bool reportedErrors = false;
+            var elementType = elementTypeWithAnnotations.Type;
 
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
             {

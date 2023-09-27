@@ -4025,8 +4025,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
-                    Debug.Assert(elementType is { });
-                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType);
+                    Debug.Assert(elementType.Type is { });
+                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type);
                 case CollectionExpressionTypeKind.Span:
                     return true;
                 case CollectionExpressionTypeKind.CollectionBuilder:

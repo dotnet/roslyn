@@ -1624,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
         }
 
-        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
         {
             Debug.Assert(compilation is { });
 
@@ -1632,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arrayType.IsSZArray)
                 {
-                    elementType = arrayType.ElementType;
+                    elementType = arrayType.ElementTypeWithAnnotations;
                     return CollectionExpressionTypeKind.Array;
                 }
             }
@@ -1650,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (implementsIEnumerable(compilation, destination))
             {
-                elementType = null;
+                elementType = default;
                 return CollectionExpressionTypeKind.CollectionInitializer;
             }
             else if (isListInterface(compilation, destination, out elementType))
@@ -1658,18 +1658,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CollectionExpressionTypeKind.ListInterface;
             }
 
-            elementType = null;
+            elementType = default;
             return CollectionExpressionTypeKind.None;
 
-            static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 1 } namedType
                     && areEqual(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
                 {
-                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                     return true;
                 }
-                elementType = null;
+                elementType = default;
                 return false;
             }
 
@@ -1699,7 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
             }
 
-            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
             {
                 if (targetType is NamedTypeSymbol
                     {
@@ -1712,10 +1712,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
                     })
                 {
-                    elementType = typeArg.Type;
+                    elementType = typeArg;
                     return true;
                 }
-                elementType = null;
+                elementType = default;
                 return false;
             }
 

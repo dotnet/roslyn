@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var syntax = node.Syntax;
-            var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out var elementType);
+            var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
 
             switch (collectionTypeKind)
             {
@@ -163,9 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        _binder.TryGetCollectionIterationType((Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
-                        elementType = elementTypeWithAnnotations.Type;
-                        if (elementType is null)
+                        _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out elementTypeWithAnnotations);
+                        if (elementTypeWithAnnotations.Type is null)
                         {
                             return Conversion.NoConversion;
                         }
@@ -173,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            var elementType = elementTypeWithAnnotations.Type;
             Debug.Assert(collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer || elementType is { });
 
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
