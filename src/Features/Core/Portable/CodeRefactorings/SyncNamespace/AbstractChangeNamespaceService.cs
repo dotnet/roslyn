@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
 
                 // Simplify the check by assuming no multiple partial declarations in one document
-                if (memberSymbol is ITypeSymbol typeSymbol
+                if (memberSymbol is INamedTypeSymbol typeSymbol
                     && typeSymbol.DeclaringSyntaxReferences.Length > 1
                     && semanticFacts.IsPartial(typeSymbol, cancellationToken))
                 {
