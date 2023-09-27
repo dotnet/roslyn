@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement()
         {
             await VerifyAbsenceAsync(
-@"System.Console.WriteLine();
-$$", options: CSharp9ParseOptions);
+                """
+                System.Console.WriteLine();
+                $$
+                """, options: CSharp9ParseOptions);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration()
         {
             await VerifyAbsenceAsync(
-@"int i = 0;
-$$", options: CSharp9ParseOptions);
+                """
+                int i = 0;
+                $$
+                """, options: CSharp9ParseOptions);
         }
 
         [Fact]
@@ -69,8 +75,10 @@ $$", options: CSharp9ParseOptions);
         public async Task TestAfterGroupExpr(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          group a $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          group a $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -78,8 +86,10 @@ $$", options: CSharp9ParseOptions);
         public async Task TestNotAfterGroup(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          group $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          group $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -87,8 +97,10 @@ $$", options: CSharp9ParseOptions);
         public async Task TestNotAfterBy(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          group a by $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                var q = from x in y
+                          group a by $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
     }
 }

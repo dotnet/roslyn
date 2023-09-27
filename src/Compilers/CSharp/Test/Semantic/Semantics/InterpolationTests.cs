@@ -6496,20 +6496,21 @@ literal:Literal");
         [InlineData(@"$""{1,2:f}"" + $""Literal""")]
         public void PassAsRefWithoutKeyword_02(string expression)
         {
-            var code = @"
-M(" + expression + @");
-M(ref " + expression + @");
+            var code = $$"""
+                M({{expression}});
+                M(ref {{expression}});
 
-void M(ref CustomHandler c) => System.Console.WriteLine(c);";
+                void M(ref CustomHandler c) => System.Console.WriteLine(c);
+                """;
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
-                // (2,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                // (1,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // M($"{1,2:f}Literal");
-                Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("1", "ref").WithLocation(2, 3),
-                // (3,7): error CS1510: A ref or out value must be an assignable variable
+                Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("1", "ref").WithLocation(1, 3),
+                // (2,7): error CS1510: A ref or out value must be an assignable variable
                 // M(ref $"{1,2:f}Literal");
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, expression).WithLocation(3, 7)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, expression).WithLocation(2, 7)
             );
         }
 
@@ -17991,6 +17992,185 @@ class C
                     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
                   NextVariables(0)
                 """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        [InlineData(@"""""")]
+        [InlineData(@"@""""")]
+        [InlineData(@"""""""test""""""")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_ByVal(string stringLiteral)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        ByVal({{stringLiteral}});
+                        ByVal(ref {{stringLiteral}});
+                        ByVal(in {{stringLiteral}});
+                        ByVal(out {{stringLiteral}});
+                    }
+
+                    void ByVal(System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,15): error CS9205: Expected interpolated string
+                //         ByVal("");
+                Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 15),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByVal(ref "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(6, 19),
+                // (7,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ByVal(in "");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, stringLiteral).WithLocation(7, 18),
+                // (8,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByVal(out "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(8, 19)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        [InlineData(@"""""")]
+        [InlineData(@"@""""")]
+        [InlineData(@"""""""test""""""")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_ByRef(string stringLiteral)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        ByRef({{stringLiteral}});
+                        ByRef(ref {{stringLiteral}});
+                        ByRef(in {{stringLiteral}});
+                        ByRef(out {{stringLiteral}});
+                    }
+
+                    void ByRef(ref System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,15): error CS9205: Expected interpolated string
+                //         ByRef("");
+                Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 15),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByRef(ref "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(6, 19),
+                // (7,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ByRef(in "");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, stringLiteral).WithLocation(7, 18),
+                // (8,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByRef(out "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(8, 19)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        [InlineData(@"""""")]
+        [InlineData(@"@""""")]
+        [InlineData(@"""""""test""""""")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_ByIn(string stringLiteral)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        ByIn({{stringLiteral}});
+                        ByIn(ref {{stringLiteral}});
+                        ByIn(in {{stringLiteral}});
+                        ByIn(out {{stringLiteral}});
+                    }
+
+                    void ByIn(in System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,14): error CS9205: Expected interpolated string
+                //         ByIn("");
+                Diagnostic(ErrorCode.ERR_ExpectedInterpolatedString, stringLiteral).WithLocation(5, 14),
+                // (6,18): error CS1510: A ref or out value must be an assignable variable
+                //         ByIn(ref "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(6, 18),
+                // (7,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ByIn(in "");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, stringLiteral).WithLocation(7, 17),
+                // (8,18): error CS1510: A ref or out value must be an assignable variable
+                //         ByIn(out "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(8, 18)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        [InlineData(@"""""")]
+        [InlineData(@"@""""")]
+        [InlineData(@"""""""test""""""")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_ByOut(string stringLiteral)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        ByOut({{stringLiteral}});
+                        ByOut(ref {{stringLiteral}});
+                        ByOut(in {{stringLiteral}});
+                        ByOut(out {{stringLiteral}});
+                    }
+
+                    void ByOut(out System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { s = default; }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,15): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         ByOut("");
+                Diagnostic(ErrorCode.ERR_BadArgRef, stringLiteral).WithArguments("1", "out").WithLocation(5, 15),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByOut(ref "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(6, 19),
+                // (7,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ByOut(in "");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, stringLiteral).WithLocation(7, 18),
+                // (8,19): error CS1510: A ref or out value must be an assignable variable
+                //         ByOut(out "");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, stringLiteral).WithLocation(8, 19)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66235")]
+        public void ConvertStringLiteralToInterpolatedStringHandlerError_NotStringLiteral()
+        {
+            var code = """
+                class C
+                {
+                    void M(string s)
+                    {
+                        ByVal(s);
+                        ByRef(s);
+                        ByIn(s);
+                    }
+
+                    void ByVal(System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                    void ByRef(ref System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                    void ByIn(in System.Runtime.CompilerServices.DefaultInterpolatedStringHandler s) { }
+                }
+                """;
+
+            CreateCompilation(code, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (5,15): error CS1503: Argument 1: cannot convert from 'string' to 'System.Runtime.CompilerServices.DefaultInterpolatedStringHandler'
+                //         ByVal(s);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "string", "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler").WithLocation(5, 15),
+                // (6,15): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         ByRef(s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(6, 15),
+                // (7,14): error CS1503: Argument 1: cannot convert from 'string' to 'System.Runtime.CompilerServices.DefaultInterpolatedStringHandler'
+                //         ByIn(s);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "string", "in System.Runtime.CompilerServices.DefaultInterpolatedStringHandler").WithLocation(7, 14));
         }
     }
 }

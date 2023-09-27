@@ -10,6 +10,8 @@
     Non-default certificates.
   -->
   <ItemGroup>
+    <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.tgz" />
+
     <!-- Expression Compiler dependencies that run in remote debugger must be signed with Microsoft101240624 certificate in order to work on Windows 10S -->
 
     <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>

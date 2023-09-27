@@ -29,40 +29,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterStatement_TopLevelStatement()
         {
             await VerifyKeywordAsync(
-@"System.Console.WriteLine();
-$$", options: CSharp9ParseOptions);
+                """
+                System.Console.WriteLine();
+                $$
+                """, options: CSharp9ParseOptions);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterVariableDeclaration_TopLevelStatement()
         {
             await VerifyKeywordAsync(
-@"int i = 0;
-$$", options: CSharp9ParseOptions);
+                """
+                int i = 0;
+                $$
+                """, options: CSharp9ParseOptions);
         }
 
         [Fact]
@@ -100,8 +110,10 @@ $$", options: CSharp9ParseOptions);
         public async Task TestBeforeStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"$$
-return 0;", returnType: "int", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                $$
+                return 0;
+                """, returnType: "int", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -109,8 +121,10 @@ return 0;", returnType: "int", topLevelStatement: topLevelStatement), options: C
         public async Task TestAfterStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"return true;
-$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                return true;
+                $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -118,9 +132,11 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         public async Task TestAfterBlock(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (true) {
-}
-$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                if (true) {
+                }
+                $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -128,8 +144,10 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         public async Task TestInsideForEach(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"foreach (var v in c)
-     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                foreach (var v in c)
+                     $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -137,9 +155,11 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         public async Task TestInsideForEachInsideForEach(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"foreach (var v in c)
-     foreach (var v in c)
-        $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                foreach (var v in c)
+                     foreach (var v in c)
+                        $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -147,8 +167,10 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         public async Task TestInsideForEachBlock(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"foreach (var v in c) {
-     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+                """
+                foreach (var v in c) {
+                     $$
+                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory]
@@ -202,10 +224,12 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [Fact]
         public async Task TestNotInClass()
         {
-            await VerifyAbsenceAsync(@"class C
-{
-  $$
-}");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  $$
+                }
+                """);
         }
     }
 }
