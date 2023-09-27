@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         {
             // We only create a diagnostic if the option's value is set to true.
             var option = context.GetAnalyzerOptions().PreferExplicitTupleNames;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }

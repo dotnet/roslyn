@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         {
             // Check if the user wants these operators.
             var option = context.GetCSharpAnalyzerOptions().PreferRangeOperator;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var operation = context.Operation;

@@ -34,11 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => context.RegisterSyntaxNodeAction(AnalyzeIfEnabled,
                 SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
 
-        private static void AnalyzeIfEnabled(SyntaxNodeAnalysisContext context)
+        private void AnalyzeIfEnabled(SyntaxNodeAnalysisContext context)
         {
             var analyzerOptions = context.Options;
             var syntaxTree = context.SemanticModel.SyntaxTree;
             var optionValue = UseExpressionBodyForLambdaHelpers.GetCodeStyleOption(analyzerOptions.GetAnalyzerOptions(syntaxTree));
+            if (ShouldSkipAnalysis(context, optionValue.Notification))
+                return;
+
             var severity = UseExpressionBodyForLambdaHelpers.GetOptionSeverity(optionValue);
             switch (severity)
             {

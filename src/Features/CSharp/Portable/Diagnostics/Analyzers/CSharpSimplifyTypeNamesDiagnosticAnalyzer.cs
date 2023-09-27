@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var cancellationToken = context.CancellationToken;
 
             var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            if (ShouldSkipAnalysis(context.FilterTree, context.Options, GetAllNotifications(options)))
+                return ImmutableArray<Diagnostic>.Empty;
+
             using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;
@@ -65,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
         {
             var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            if (ShouldSkipAnalysis(context.FilterTree, context.Options, GetAllNotifications(options)))
+                return ImmutableArray<Diagnostic>.Empty;
+
             var simplifier = new TypeSyntaxSimplifierWalker(this, context.SemanticModel, options, ignoredSpans: codeBlockIntervalTree, context.CancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;

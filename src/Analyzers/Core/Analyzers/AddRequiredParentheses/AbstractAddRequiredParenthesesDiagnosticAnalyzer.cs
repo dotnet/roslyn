@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             }
 
             var preference = ParenthesesDiagnosticAnalyzersHelper.GetLanguageOption(options, childPrecedenceKind);
-            if (preference.Value != ParenthesesPreference.AlwaysForClarity)
+            if (preference.Value != ParenthesesPreference.AlwaysForClarity
+                || ShouldSkipAnalysis(context, preference.Notification))
             {
                 return;
             }

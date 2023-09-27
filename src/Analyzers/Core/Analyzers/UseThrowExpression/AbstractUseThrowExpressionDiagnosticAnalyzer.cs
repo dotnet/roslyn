@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             var option = PreferThrowExpressionStyle(context);
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             if (IsInExpressionTree(semanticModel, throwStatementSyntax, expressionTypeOpt, cancellationToken))

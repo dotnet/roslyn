@@ -254,8 +254,11 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
                     return null;
 
                 var styleOption = options.GetCSharpAnalyzerOptions(reference.SyntaxTree).PreferPrimaryConstructors;
-                if (!styleOption.Value)
+                if (!styleOption.Value
+                    || diagnosticAnalyzer.ShouldSkipAnalysis(reference.SyntaxTree, context.Options, styleOption.Notification))
+                {
                     return null;
+                }
 
                 // only classes/structs can have primary constructors (not interfaces, enums or delegates).
                 if (namedType.TypeKind is not (TypeKind.Class or TypeKind.Struct))

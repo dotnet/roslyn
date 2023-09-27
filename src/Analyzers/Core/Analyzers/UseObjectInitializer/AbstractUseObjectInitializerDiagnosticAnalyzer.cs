@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var option = context.GetAnalyzerOptions().PreferObjectInitializer;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // not point in analyzing if the option is off.
                 return;

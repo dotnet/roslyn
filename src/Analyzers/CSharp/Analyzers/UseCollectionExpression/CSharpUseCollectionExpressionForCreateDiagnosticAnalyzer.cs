@@ -42,7 +42,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var invocationExpression = (InvocationExpressionSyntax)context.Node;

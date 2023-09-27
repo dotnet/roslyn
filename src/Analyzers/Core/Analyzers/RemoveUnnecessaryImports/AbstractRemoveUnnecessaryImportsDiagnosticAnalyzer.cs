@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
@@ -116,6 +119,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var compilation = context.Compilation;
             var tree = compilation.SyntaxTrees.FirstOrDefault(tree => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, context.CancellationToken));
             if (tree is null || tree.Options.DocumentationMode != DocumentationMode.None)
+                return;
+
+            if (ShouldSkipAnalysis(tree, context.Options, notification: null))
                 return;
 
             var effectiveSeverity = _classificationIdDescriptor.GetEffectiveSeverity(compilation.Options, tree, context.Options);

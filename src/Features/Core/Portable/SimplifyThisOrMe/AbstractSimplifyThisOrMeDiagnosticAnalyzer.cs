@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                 return;
 
             var simplifierOptions = context.GetAnalyzerOptions().GetSimplifierOptions(Simplification);
-
             if (!this.Simplifier.ShouldSimplifyThisMemberAccessExpression(
-                    memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var severity, cancellationToken))
+                    memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var notification, cancellationToken)
+                || ShouldSkipAnalysis(context, notification))
             {
                 return;
             }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionLanguage"] = semanticModel.Language;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor, thisExpression.GetLocation(), severity,
+                Descriptor, thisExpression.GetLocation(), notification,
                 ImmutableArray.Create(memberAccessExpression.GetLocation()),
                 builder.ToImmutable()));
         }

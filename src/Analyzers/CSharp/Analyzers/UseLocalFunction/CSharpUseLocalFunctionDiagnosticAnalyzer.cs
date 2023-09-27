@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
             // Bail immediately if the user has disabled this feature.
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
                 return;
 
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)syntaxContext.Node;

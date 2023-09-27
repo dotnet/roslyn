@@ -49,8 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
         {
             // Don't want to suggest moving if the user doesn't have a preference for top-level-statements.
             var option = context.GetCSharpAnalyzerOptions().PreferTopLevelStatements;
-            if (!CanOfferUseTopLevelStatements(option, forAnalyzer: true))
+            if (ShouldSkipAnalysis(context, option.Notification)
+                || !CanOfferUseTopLevelStatements(option, forAnalyzer: true))
+            {
                 return;
+            }
 
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
 
             var shouldOptionBePresent = optionValue.Value;
-            if (!shouldOptionBePresent || optionValue.Notification.Severity == ReportDiagnostic.Suppress)
+            if (!shouldOptionBePresent || ShouldSkipAnalysis(context, optionValue.Notification))
             {
                 return;
             }

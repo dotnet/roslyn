@@ -45,7 +45,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
             return;
 
         var styleOption = context.GetCSharpAnalyzerOptions().ImplicitObjectCreationWhenTypeIsApparent;
-        if (!styleOption.Value)
+        if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
             // Bail immediately if the user has disabled this feature.
             return;

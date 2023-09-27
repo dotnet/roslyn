@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterColonInConstructorInitializer;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));

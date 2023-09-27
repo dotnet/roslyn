@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInConditionalExpression;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));

@@ -44,8 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             var syntaxTree = context.Node.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
-            if (!preference.Value ||
-                !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
+            if (!preference.Value
+                || ShouldSkipAnalysis(context, preference.Notification)
+                || !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
             }

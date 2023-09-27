@@ -75,6 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            var option = context.GetCSharpAnalyzerOptions().PreferSimpleUsingStatement;
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+                return;
+
             var cancellationToken = context.CancellationToken;
             var outermostUsing = (UsingStatementSyntax)context.Node;
             var semanticModel = context.SemanticModel;
@@ -111,10 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 return;
             }
-
-            var option = context.GetCSharpAnalyzerOptions().PreferSimpleUsingStatement;
-            if (!option.Value)
-                return;
 
             // Good to go!
             context.ReportDiagnostic(DiagnosticHelper.Create(

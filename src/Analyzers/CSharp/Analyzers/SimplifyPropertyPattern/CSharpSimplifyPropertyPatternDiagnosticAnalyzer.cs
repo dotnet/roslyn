@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
         {
             // Bail immediately if the user has disabled this feature.
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferExtendedPropertyPattern;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
                 return;
 
             var subpattern = (SubpatternSyntax)syntaxContext.Node;

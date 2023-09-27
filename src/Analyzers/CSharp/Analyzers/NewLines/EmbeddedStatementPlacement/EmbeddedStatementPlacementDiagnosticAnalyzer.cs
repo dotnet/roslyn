@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowEmbeddedStatementsOnSameLine;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));

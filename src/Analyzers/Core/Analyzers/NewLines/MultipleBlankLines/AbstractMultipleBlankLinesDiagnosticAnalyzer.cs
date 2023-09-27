@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
             var option = context.GetAnalyzerOptions().AllowMultipleBlankLines;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);

@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             });
         }
 
-        private static bool ShouldAnalyze(OperationAnalysisContext context, out NotificationOption2 notificationOption)
+        private bool ShouldAnalyze(OperationAnalysisContext context, out NotificationOption2 notificationOption)
         {
             var option = context.GetCSharpAnalyzerOptions().PreferNullCheckOverTypeCheck;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 notificationOption = NotificationOption2.Silent;
                 return false;

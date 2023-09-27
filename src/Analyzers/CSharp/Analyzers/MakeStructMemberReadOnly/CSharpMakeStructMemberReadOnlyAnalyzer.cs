@@ -47,7 +47,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     context => AnalyzeBlock(context, option.Notification));
             }, SymbolKind.NamedType);
 
-            static bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+            bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
             {
                 // Only run on non-readonly structs.  If the struct is already readonly, no need to make the members readonly.
                 if (context.Symbol is not INamedTypeSymbol
@@ -65,7 +65,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 var declaration = reference.GetSyntax(cancellationToken);
                 var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree);
                 option = options.PreferReadOnlyStructMember;
-                if (!option.Value)
+                if (!option.Value || ShouldSkipAnalysis(declaration.SyntaxTree, context.Options, option.Notification))
                     return false;
 
                 // Skip analysis if the analysis filter span does not contain the primary location where we would report a diagnostic.

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;

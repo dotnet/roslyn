@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 

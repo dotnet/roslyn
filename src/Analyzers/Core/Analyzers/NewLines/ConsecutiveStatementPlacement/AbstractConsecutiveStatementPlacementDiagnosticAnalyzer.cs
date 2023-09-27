@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
             var option = context.GetAnalyzerOptions().AllowStatementImmediatelyAfterBlock;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);

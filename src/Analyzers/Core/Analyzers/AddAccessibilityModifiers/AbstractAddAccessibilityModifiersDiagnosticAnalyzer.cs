@@ -33,8 +33,11 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
             var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
-            if (option.Value == AccessibilityModifiersRequired.Never)
+            if (option.Value == AccessibilityModifiersRequired.Never
+                || ShouldSkipAnalysis(context, option.Notification))
+            {
                 return;
+            }
 
             ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
         }

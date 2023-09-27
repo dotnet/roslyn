@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var option = context.GetCSharpAnalyzerOptions().PreferInlinedVariableDeclaration;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // Don't bother doing any work if the user doesn't even have this preference set.
                 return;

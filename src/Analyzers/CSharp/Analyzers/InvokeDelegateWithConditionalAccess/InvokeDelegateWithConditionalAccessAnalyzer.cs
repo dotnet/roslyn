@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferConditionalDelegateCall;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             {
                 // Bail if the user has disabled this feature.
                 return;

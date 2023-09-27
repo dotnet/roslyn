@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var tree = context.Tree;
             var root = tree.GetRoot(context.CancellationToken);
 

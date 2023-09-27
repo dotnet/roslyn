@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             var cancellationToken = context.CancellationToken;
             var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatching;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
                 return;
 
             var semanticModel = context.SemanticModel;

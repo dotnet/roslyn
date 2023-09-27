@@ -206,12 +206,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(GetUnusedValueExpressionStatementOption(optionsProvider));
             var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(GetUnusedValueAssignmentOption(optionsProvider));
 
-            if (unusedParametersOption.Notification.Severity == ReportDiagnostic.Suppress &&
-                unusedValueExpressionStatementSeverity.Severity == ReportDiagnostic.Suppress &&
-                unusedValueAssignmentSeverity.Severity == ReportDiagnostic.Suppress)
-            {
+            var notifications = ImmutableArray.Create(unusedParametersOption.Notification, unusedValueExpressionStatementSeverity, unusedValueAssignmentSeverity);
+            if (ShouldSkipAnalysis(syntaxTree, analyzerOptions, notifications))
                 return false;
-            }
 
             options = new Options(unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity,
                                   unusedValueAssignmentPreference, unusedValueAssignmentSeverity,

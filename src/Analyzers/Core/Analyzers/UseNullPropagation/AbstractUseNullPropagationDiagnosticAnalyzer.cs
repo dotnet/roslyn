@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
             var option = context.GetAnalyzerOptions().PreferNullPropagation;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var syntaxFacts = GetSyntaxFacts();

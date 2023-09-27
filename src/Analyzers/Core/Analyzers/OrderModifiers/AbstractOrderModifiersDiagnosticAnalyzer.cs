@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
             var option = GetPreferredOrderStyle(context);
-            if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
+            if (ShouldSkipAnalysis(context, option.Notification)
+                || !_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
             }

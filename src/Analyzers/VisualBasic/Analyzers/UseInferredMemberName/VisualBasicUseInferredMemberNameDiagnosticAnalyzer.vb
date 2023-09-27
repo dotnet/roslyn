@@ -44,7 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim syntaxTree = context.Node.SyntaxTree
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
             Dim preference = context.GetAnalyzerOptions().PreferInferredTupleNames
-            If Not preference.Value OrElse Not CanSimplifyTupleName(argument, DirectCast(syntaxTree.Options, VisualBasicParseOptions)) Then
+            If Not preference.Value OrElse
+               ShouldSkipAnalysis(context, preference.Notification) OrElse
+               Not CanSimplifyTupleName(argument, DirectCast(syntaxTree.Options, VisualBasicParseOptions)) Then
                 Return
             End If
 

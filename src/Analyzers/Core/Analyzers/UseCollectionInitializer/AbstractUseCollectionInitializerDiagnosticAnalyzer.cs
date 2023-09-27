@@ -134,8 +134,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var preferExpressionOption = context.GetAnalyzerOptions().PreferCollectionExpression;
 
             // not point in analyzing if both options are off.
-            if (!preferInitializerOption.Value && !preferExpressionOption.Value)
+            if (!preferInitializerOption.Value
+                && !preferExpressionOption.Value
+                && !ShouldSkipAnalysis(context.FilterTree, context.Options, ImmutableArray.Create(preferInitializerOption.Notification, preferExpressionOption.Notification)))
+            {
                 return;
+            }
 
             // Object creation can only be converted to collection initializer if it implements the IEnumerable type.
             var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);

@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             var option = context.GetAnalyzerOptions().ForEachExplicitCastInSource;
             Contract.ThrowIfFalse(option.Value is ForEachExplicitCastInSourcePreference.Always or ForEachExplicitCastInSourcePreference.WhenStronglyTyped);
 
+            if (ShouldSkipAnalysis(context, option.Notification))
+                return;
+
             if (semanticModel.GetOperation(node, cancellationToken) is not IForEachLoopOperation loopOperation)
                 return;
 

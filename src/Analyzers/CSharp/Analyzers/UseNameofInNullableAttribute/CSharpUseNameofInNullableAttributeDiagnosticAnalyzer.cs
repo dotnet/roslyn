@@ -51,6 +51,9 @@ internal sealed class CSharpUseNameofInAttributeDiagnosticAnalyzer : AbstractBui
 
     private void AnalyzeAttribute(SyntaxNodeAnalysisContext context)
     {
+        if (ShouldSkipAnalysis(context, notification: null))
+            return;
+
         var cancellationToken = context.CancellationToken;
         var attribute = (AttributeSyntax)context.Node;
         var semanticModel = context.SemanticModel;

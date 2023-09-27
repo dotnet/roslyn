@@ -43,7 +43,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
@@ -82,7 +82,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var matches = TryGetMatches(semanticModel, expression, cancellationToken);

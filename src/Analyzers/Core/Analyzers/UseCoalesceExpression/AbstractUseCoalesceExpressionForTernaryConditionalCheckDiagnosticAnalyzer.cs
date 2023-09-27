@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
             var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var syntaxFacts = GetSyntaxFacts();

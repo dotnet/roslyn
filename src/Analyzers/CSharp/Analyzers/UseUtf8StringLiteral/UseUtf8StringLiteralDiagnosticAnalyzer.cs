@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
 
             // Don't offer if the user doesn't want it
             var option = context.GetCSharpAnalyzerOptions().PreferUtf8StringLiterals;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             // Only replace arrays with initializers

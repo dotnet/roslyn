@@ -112,6 +112,9 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
         public void AnalyzeInvocationOperation(OperationAnalysisContext context, INamedTypeSymbol enumerableType, IMethodSymbol whereMethod, ImmutableArray<IMethodSymbol> linqMethods)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             if (context.Operation.Syntax.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
                 // Do not analyze linq methods that contain diagnostics.

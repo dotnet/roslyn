@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowBlankLinesBetweenConsecutiveBraces;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);

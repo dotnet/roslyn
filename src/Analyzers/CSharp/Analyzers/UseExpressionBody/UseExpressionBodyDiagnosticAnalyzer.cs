@@ -58,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var grandparent = context.Node.GetRequiredParent().GetRequiredParent();
 
                 if (grandparent.Kind() == SyntaxKind.PropertyDeclaration &&
-                    AnalyzeSyntax(options, grandparent, UseExpressionBodyForPropertiesHelper.Instance) != null)
+                    AnalyzeSyntax(options, grandparent, context, UseExpressionBodyForPropertiesHelper.Instance) != null)
                 {
                     return;
                 }
 
                 if (grandparent.Kind() == SyntaxKind.IndexerDeclaration &&
-                    AnalyzeSyntax(options, grandparent, UseExpressionBodyForIndexersHelper.Instance) != null)
+                    AnalyzeSyntax(options, grandparent, context, UseExpressionBodyForIndexersHelper.Instance) != null)
                 {
                     return;
                 }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 if (helper.SyntaxKinds.Contains(nodeKind))
                 {
-                    var diagnostic = AnalyzeSyntax(options, context.Node, helper);
+                    var diagnostic = AnalyzeSyntax(options, context.Node, context, helper);
                     if (diagnostic != null)
                     {
                         context.ReportDiagnostic(diagnostic);
@@ -84,12 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private static Diagnostic? AnalyzeSyntax(
-            CSharpCodeGenerationOptions options, SyntaxNode declaration, UseExpressionBodyHelper helper)
+        private Diagnostic? AnalyzeSyntax(
+            CSharpCodeGenerationOptions options, SyntaxNode declaration, SyntaxNodeAnalysisContext context, UseExpressionBodyHelper helper)
         {
             var preference = helper.GetExpressionBodyPreference(options);
-            var severity = preference.Notification.Severity;
+            if (ShouldSkipAnalysis(context, preference.Notification))
+                return null;
 
+            var severity = preference.Notification.Severity;
             if (helper.CanOfferUseExpressionBody(preference, declaration, forAnalyzer: true))
             {
                 var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden

@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
         protected void AnalyzeAction(OperationAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             if (!IsValidTypeofAction(context) || !IsValidOperation(context.Operation))
             {
                 return;

@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, simplifierOptions, cancellationToken);
-            if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
+            if (!typeStyle.IsStylePreferred
+                || ShouldSkipAnalysis(context, typeStyle.Notification)
+                || !typeStyle.CanConvert())
             {
                 return;
             }

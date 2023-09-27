@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         private void AnalyzeConditionalExpression(SyntaxNodeAnalysisContext context)
         {
             var styleOption = context.GetAnalyzerOptions().PreferSimplifiedBooleanExpressions;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;

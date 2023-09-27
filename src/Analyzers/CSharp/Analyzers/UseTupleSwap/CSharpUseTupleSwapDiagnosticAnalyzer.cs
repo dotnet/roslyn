@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
         {
             var cancellationToken = syntaxContext.CancellationToken;
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferTupleSwap;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
                 return;
 
             // `var expr_temp = expr_a`;

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
 
             var option = GetStylePreference(context);
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var (matched, canSimplify) = TryMatchPattern(ifOperation, context.ContainingSymbol);

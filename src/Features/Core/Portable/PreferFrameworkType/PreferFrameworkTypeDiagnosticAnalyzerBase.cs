@@ -62,8 +62,10 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
             // if the user never prefers this style, do not analyze at all.
             // we don't know the context of the node yet, so check all predefined type option preferences and bail early.
-            if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration) &&
-                !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess))
+            if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration)
+                && !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess)
+                && ShouldSkipAnalysis(context.FilterTree, context.Options, ImmutableArray.Create(
+                    options.PreferPredefinedTypeKeywordInDeclaration.Notification, options.PreferPredefinedTypeKeywordInMemberAccess.Notification)))
             {
                 return;
             }

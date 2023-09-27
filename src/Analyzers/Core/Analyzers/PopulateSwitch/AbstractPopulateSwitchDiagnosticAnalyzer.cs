@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var switchOperation = (TSwitchOperation)context.Operation;
             if (switchOperation.Syntax is not TSwitchSyntax switchBlock || IsSwitchTypeUnknown(switchOperation))
                 return;

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // User has disabled this feature.
                 return;

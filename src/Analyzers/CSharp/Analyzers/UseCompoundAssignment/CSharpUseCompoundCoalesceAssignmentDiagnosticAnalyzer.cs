@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
 
             // Bail immediately if the user has disabled this feature.
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var coalesceLeft = coalesceExpression.Left;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
 
             // Bail immediately if the user has disabled this feature.
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             if (ifStatement.Else != null)

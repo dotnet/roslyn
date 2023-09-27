@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     }
                 });
 
-                static bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
+                bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
                 {
                     if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
                         return false;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
                     {
                         var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
-                        return preferAutoProps.Value && preferAutoProps.Notification.Severity != ReportDiagnostic.Suppress;
+                        return preferAutoProps.Value && !ShouldSkipAnalysis(tree, context.Options, preferAutoProps.Notification);
                     }))
                     {
                         return false;

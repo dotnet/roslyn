@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                   options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
+        protected static ImmutableArray<NotificationOption2> GetAllNotifications(SimplifierOptions options)
+            => ImmutableArray.Create(options.PreferPredefinedTypeKeywordInDeclaration.Notification, options.PreferPredefinedTypeKeywordInMemberAccess.Notification);
+
         protected sealed override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(AnalyzeCompilation);

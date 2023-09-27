@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var options = context.GetAnalyzerOptions();
             var preference = ParenthesesDiagnosticAnalyzersHelper.GetLanguageOption(options, precedence);
 
-            if (preference.Notification.Severity == ReportDiagnostic.Suppress)
+            if (ShouldSkipAnalysis(context, preference.Notification))
             {
                 // User doesn't care about these parens.  So nothing for us to do.
                 return;

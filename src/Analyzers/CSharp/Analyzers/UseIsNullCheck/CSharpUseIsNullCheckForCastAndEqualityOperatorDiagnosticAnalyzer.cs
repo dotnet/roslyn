@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }

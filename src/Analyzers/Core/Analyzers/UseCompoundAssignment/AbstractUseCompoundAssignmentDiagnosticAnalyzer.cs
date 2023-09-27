@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             var syntaxTree = assignment.SyntaxTree;
             var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
