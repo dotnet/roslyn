@@ -7012,6 +7012,57 @@ static class Program
                 expectedOutput: IncludeExpectedOutput(expectedOutput));
         }
 
+        [Fact]
+        public void SpreadElement_LengthSideEffects()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                struct S : IEnumerable<object>
+                {
+                    internal static int TotalUse;
+                    internal int InstanceUse;
+                    private object[] _items;
+                    public S(object[] items) { _items = items; }
+                    public int Length => GetLength();
+                    private int GetLength()
+                    {
+                        Console.WriteLine("Length");
+                        InstanceUse++;
+                        TotalUse++;
+                        return _items.Length;
+                    }
+                    public IEnumerator<object> GetEnumerator()
+                    {
+                        foreach (var item in _items) yield return item;
+                    }
+                    IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var s = new S(new object[] { 1, 2, 3 });
+                        Console.WriteLine("Before: {0}, {1}", s.InstanceUse, S.TotalUse);
+                        object[] a = [..s];
+                        Console.WriteLine("After: {0}, {1}", s.InstanceUse, S.TotalUse);
+                        a.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: IncludeExpectedOutput("""
+                    Before: 0, 0
+                    Length
+                    After: 0, 1
+                    [1, 2, 3], 
+                    """));
+        }
+
         [CombinatorialData]
         [Theory]
         public void ArrayEmpty_01([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)
