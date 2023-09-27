@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis
             WriteInvocations(effectiveSeverities);
         }
 
-        private ImmutableArray<(string DescriptorId, int DesciptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> WriteRules()
+        private ImmutableArray<(string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> WriteRules()
         {
-            var effectiveSeveritiesBuilder = ArrayBuilder<(string DescriptorId, int DesciptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)>.GetInstance(_descriptors.Count);
+            var effectiveSeveritiesBuilder = ArrayBuilder<(string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)>.GetInstance(_descriptors.Count);
 
             if (_descriptors.Count > 0)
             {
