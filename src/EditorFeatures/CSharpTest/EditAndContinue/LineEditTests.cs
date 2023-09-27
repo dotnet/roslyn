@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+#pragma warning disable IDE0055 // Collection expression formatting
 
 using System;
 using System.Collections.Immutable;
@@ -516,7 +517,7 @@ class C<T>
 {
     static void Bar()
     {
-        Console.ReadLine(2);
+/******/Console.ReadLine(2);
     }
 }
 ";
@@ -525,7 +526,7 @@ class C<T>
 {
     static void Bar()
     {
-        /*edit*/Console.ReadLine(2);
+/******//*edit*/Console.ReadLine(2);
     }
 }";
 
@@ -533,7 +534,7 @@ class C<T>
 
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "\r\n        /*edit*/", FeaturesResources.method) },
+                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "/******//*edit*/", FeaturesResources.method) },
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifyLineEdits(
@@ -550,7 +551,7 @@ class C
 {
     static void Bar<T>()
     {
-        /*edit*/Console.ReadLine(2);
+/******//*edit*/Console.ReadLine(2);
     }
 }
 ";
@@ -559,14 +560,14 @@ class C
 {
     static void Bar<T>()
     {
-        Console.ReadLine(2);
+/******/Console.ReadLine(2);
     }
 }";
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "\r\n        ", FeaturesResources.method) },
+                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "/******/", FeaturesResources.method) },
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifyLineEdits(
@@ -986,7 +987,6 @@ record  C(int P);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
                 });
-
         }
 
         [Fact]
@@ -1153,7 +1153,7 @@ class C<T>
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "public C(int a)", GetResource("constructor")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "base", GetResource("constructor"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifyLineEdits(
@@ -1618,16 +1618,13 @@ class C<T>
             var src2 = @"
 class C<T>
 {
-    static int Goo = 1 +  1;
+    static int Goo = 1 +/**/1;
 }";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[]
-                {
-                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "class C<T>", GetResource("static constructor", "C()"))
-                },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "/**/", GetResource("field"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifyLineEdits(

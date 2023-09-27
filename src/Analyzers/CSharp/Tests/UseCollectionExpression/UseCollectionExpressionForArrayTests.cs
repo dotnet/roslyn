@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -1070,15 +1071,6 @@ public class UseCollectionExpressionForArrayTests
                     public XAttribute(int[] values) { }
                 }
                 """,
-            FixedState =
-                {
-                    // THis will tart working once https://github.com/dotnet/roslyn/issues/69133 is fixed.
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(1,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                        DiagnosticResult.CompilerError("CS0182").WithSpan(1, 4, 1, 13),
-                    }
-                },
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
@@ -2717,6 +2709,37 @@ public class UseCollectionExpressionForArrayTests
                     3,
                 ];
                 """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int[] i =
+                [|{|]
+                    1,
+                    2,
+                    3,
+                };
+                """.ReplaceLineEndings(endOfLine),
+            FixedCode = """
+                int[] i =
+                [
+                    1,
+                    2,
+                    3,
+                ];
+                """.ReplaceLineEndings(endOfLine),
             LanguageVersion = LanguageVersion.CSharp12,
             TestState =
             {

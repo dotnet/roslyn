@@ -92,12 +92,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// For a given node associated with entering a state of a state machine in the new compilation,
         /// returns the ordinal of the corresponding state in the previous version of the state machine.
         /// </summary>
+        /// <param name="syntax">Await expression, await foreach statement, yield return statement, or try block syntax node.</param>
         /// <returns>
         /// True if there is a corresponding node in the previous code version that matches the given <paramref name="syntax"/>.
         /// </returns>
-        /// <remarks>
-        /// <paramref name="syntax"/> is an await expression, yield return statement, or try block syntax node.
-        /// </remarks>
-        public abstract bool TryGetPreviousStateMachineState(SyntaxNode syntax, out StateMachineState state);
+        public abstract bool TryGetPreviousStateMachineState(SyntaxNode syntax, AwaitDebugId awaitId, out StateMachineState state);
     }
 }

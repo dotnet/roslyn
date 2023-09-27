@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap = null;
             IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? lambdaMap = null;
             IReadOnlyDictionary<int, DebugId>? closureMap = null;
-            IReadOnlyDictionary<int, StateMachineState>? stateMachineStateMap = null;
+            IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId debugId), StateMachineState>? stateMachineStateMap = null;
             StateMachineState? firstUnusedIncreasingStateMachineState = null;
             StateMachineState? firstUnusedDecreasingStateMachineState = null;
 
@@ -388,11 +388,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private static void MakeStateMachineStateMap(
             ImmutableArray<StateMachineStateDebugInfo> debugInfos,
-            out IReadOnlyDictionary<int, StateMachineState>? map)
+            out IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId debugId), StateMachineState>? map)
         {
             map = debugInfos.IsDefault ?
                 null :
-                debugInfos.ToDictionary(entry => entry.SyntaxOffset, entry => entry.StateNumber);
+                debugInfos.ToDictionary(entry => (entry.SyntaxOffset, entry.AwaitId), entry => entry.StateNumber);
         }
 
         private static void GetStateMachineFieldMapFromPreviousCompilation(

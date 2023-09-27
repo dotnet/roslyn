@@ -376,6 +376,54 @@ public class C
         }
 
         [Fact]
+        public void TestParameterRename()
+        {
+            var source1 = @"
+public class C
+{
+    public void M(int a, int b, int c) { }
+}
+";
+            var source2 = @"
+public class C
+{
+    public void M(int a, int x, int c) { }
+}
+";
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var b = ((IMethodSymbol)compilation1.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()).Parameters[1];
+            var key = SymbolKey.CreateString(b);
+            var resolved = SymbolKey.ResolveString(key, compilation2).Symbol;
+            Assert.Equal("x", resolved?.Name);
+        }
+
+        [Fact]
+        public void TestParameterReorder()
+        {
+            var source1 = @"
+public class C
+{
+    public void M(int a, int b, int c) { }
+}
+";
+            var source2 = @"
+public class C
+{
+    public void M(int b, int a, int c) { }
+}
+";
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var b = ((IMethodSymbol)compilation1.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()).Parameters[1];
+            var key = SymbolKey.CreateString(b);
+            var resolved = SymbolKey.ResolveString(key, compilation2).Symbol;
+            Assert.Equal("b", resolved?.Name);
+        }
+
+        [Fact]
         public void TestTypeParameters()
         {
             var source = @"

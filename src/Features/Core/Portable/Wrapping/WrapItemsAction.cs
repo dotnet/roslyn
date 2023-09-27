@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -21,8 +20,11 @@ namespace Microsoft.CodeAnalysis.Wrapping
     /// invoked.
     /// </summary>
     internal sealed class WrapItemsAction(string title, string parentTitle, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument)
-        : DocumentChangeAction(title, createChangedDocument, title, CodeActionPriority.Low)
+        : DocumentChangeAction(title, createChangedDocument, GetSortTitle(parentTitle, title), CodeActionPriority.Low)
     {
+        private static string GetSortTitle(string title, string parentTitle)
+            => $"{parentTitle}_{title}";
+
         // Keeps track of the invoked code actions.  That way we can prioritize those code actions 
         // in the future since they're more likely the ones the user wants.  This is important as 
         // we have 9 different code actions offered (3 major groups, with 3 actions per group).  
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
         public string ParentTitle { get; } = parentTitle;
 
-        public string SortTitle { get; } = parentTitle + "_" + title;
+        public string SortTitle { get; } = GetSortTitle(parentTitle, title);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2969,6 +2970,56 @@ Keyword("async"));
                 Keyword("string"),
                 Identifier("b"),
                 Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer1(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                delegate* unmanaged[Fastcall, Stdcall, Thiscall]<int> fp;
+                """,
+                testHost,
+                parseOptions: null,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Class("Fastcall"),
+                Punctuation.Comma,
+                Class("Stdcall"),
+                Punctuation.Comma,
+                Class("Thiscall"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Local("fp"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer2(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                delegate* unmanaged[Member]<int> fp;
+                """,
+                testHost,
+                parseOptions: null,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Identifier("Member"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Local("fp"),
                 Punctuation.Semicolon);
         }
     }

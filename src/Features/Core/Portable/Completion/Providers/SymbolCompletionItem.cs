@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private const string InsertionTextProperty = "InsertionText";
 
-        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
-        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
+        private static readonly Action<IReadOnlyList<ISymbol>, ImmutableDictionary<string, string>.Builder> s_addSymbolEncoding = AddSymbolEncoding;
+        private static readonly Action<IReadOnlyList<ISymbol>, ImmutableDictionary<string, string>.Builder> s_addSymbolInfo = AddSymbolInfo;
         private static readonly char[] s_projectSeperators = new[] { ';' };
 
         private static CompletionItem CreateWorker(
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             IReadOnlyList<ISymbol> symbols,
             CompletionItemRules rules,
             int contextPosition,
-            Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
+            Action<IReadOnlyList<ISymbol>, ImmutableDictionary<string, string>.Builder> symbolEncoder,
             string? sortText = null,
             string? insertionText = null,
             string? filterText = null,
@@ -42,14 +42,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Glyph? glyph = null,
             bool isComplexTextEdit = false)
         {
-            var props = properties ?? ImmutableDictionary<string, string>.Empty;
+            var builder = properties != null ? properties.ToBuilder() : ImmutableDictionary<string, string>.Empty.ToBuilder();
 
             if (insertionText != null)
             {
-                props = props.Add(InsertionTextProperty, insertionText);
+                builder.Add(InsertionTextProperty, insertionText);
             }
 
-            props = props.Add("ContextPosition", contextPosition.ToString());
+            builder.Add("ContextPosition", contextPosition.ToString());
+            AddSupportedPlatforms(builder, supportedPlatforms);
+            symbolEncoder(symbols, builder);
 
             var firstSymbol = symbols[0];
             var item = CommonCompletionItem.Create(
@@ -62,26 +64,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 sortText: sortText ?? firstSymbol.Name,
                 glyph: glyph ?? firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
-                properties: props,
+                properties: builder.ToImmutable(),
                 tags: tags,
                 isComplexTextEdit: isComplexTextEdit);
 
-            item = WithSupportedPlatforms(item, supportedPlatforms);
-            return symbolEncoder(symbols, item);
+            return item;
         }
 
-        public static CompletionItem AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, CompletionItem item)
-            => item.AddProperty("Symbols", EncodeSymbols(symbols));
+        private static void AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, ImmutableDictionary<string, string>.Builder properties)
+            => properties.Add("Symbols", EncodeSymbols(symbols));
 
-        public static CompletionItem AddSymbolInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
+        private static void AddSymbolInfo(IReadOnlyList<ISymbol> symbols, ImmutableDictionary<string, string>.Builder properties)
         {
             var symbol = symbols[0];
             var isGeneric = symbol.GetArity() > 0;
-            item = item
-                .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
-                .AddProperty("SymbolName", symbol.Name);
+            properties.Add("SymbolKind", ((int)symbol.Kind).ToString());
+            properties.Add("SymbolName", symbol.Name);
 
-            return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
+            if (isGeneric)
+                properties.Add("IsGeneric", isGeneric.ToString());
         }
 
         public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
@@ -212,17 +213,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return document;
         }
 
-        private static CompletionItem WithSupportedPlatforms(CompletionItem completionItem, SupportedPlatformData? supportedPlatforms)
+        private static void AddSupportedPlatforms(ImmutableDictionary<string, string>.Builder properties, SupportedPlatformData? supportedPlatforms)
         {
             if (supportedPlatforms != null)
             {
-                return completionItem
-                    .AddProperty("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id)))
-                    .AddProperty("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id)));
-            }
-            else
-            {
-                return completionItem;
+                properties.Add("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id)));
+                properties.Add("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id)));
             }
         }
 

@@ -1409,7 +1409,7 @@ class C1
             var document2 = solution.GetDocument(document1.Id);
 
             var diagnostics1 = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-            AssertEx.Equal(new[] { "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter) },
+            AssertEx.Equal(new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
                 diagnostics1.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             // validate solution update status and emit:
@@ -1436,7 +1436,7 @@ class C1
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
                 }, _telemetryLog);
             }
             else
@@ -1445,7 +1445,7 @@ class C1
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                     "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
                 }, _telemetryLog);
             }
         }
@@ -1547,7 +1547,7 @@ class C { int Y => 2; }
             var generatedDocument = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).Single();
 
             var diagnostics1 = await service.GetDocumentDiagnosticsAsync(generatedDocument, s_noActiveSpans, CancellationToken.None);
-            AssertEx.Equal(new[] { "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter) },
+            AssertEx.Equal(new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
                 diagnostics1.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -1622,8 +1622,7 @@ class C { int Y => 2; }
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
             AssertEx.Equal(new[]
                 {
-                    "ENC0113: " + string.Format(FeaturesResources.Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime, FeaturesResources.method),
-                    "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter)
+                    "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)
                 },
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
@@ -1649,9 +1648,8 @@ class C { int Y => 2; }
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=2|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=113|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
                 }, _telemetryLog);
             }
             else
@@ -1659,9 +1657,8 @@ class C { int Y => 2; }
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=2|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=113|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}",
-                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=21|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
+                    "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={00000000-AAAA-AAAA-AAAA-111111111111}"
                 }, _telemetryLog);
             }
         }
@@ -1742,7 +1739,7 @@ class C { int Y => 2; }
             // Rude Edits reported:
             var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
             AssertEx.Equal(
-                new[] { "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter) },
+                new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -1756,7 +1753,7 @@ class C { int Y => 2; }
             // Rude Edits still reported:
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
             AssertEx.Equal(
-                new[] { "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter) },
+                new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -4545,7 +4542,7 @@ class C
 
             result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
             AssertEx.Equal(
-                new[] { "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter) },
+                new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             Assert.Empty(result.updates);
@@ -4611,7 +4608,7 @@ class C
             // Rude edit
             result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
             AssertEx.Equal(
-                new[] { "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter) },
+                new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             Assert.Empty(result.updates);

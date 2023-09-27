@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// The sequence of AssemblySymbols the Binder can choose from.
             /// </summary>
-            public abstract IEnumerable<TAssemblySymbol> AvailableSymbols { get; }
+            public abstract ImmutableArray<TAssemblySymbol> AvailableSymbols { get; }
 
             /// <summary>
             /// Check if provided AssemblySymbol is created for assembly described by this instance. 

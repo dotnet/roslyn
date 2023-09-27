@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     {SyntaxKind.LessThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.LessThanToken}}
                 }
 
-            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
+            Private ReadOnly _spans As TextSpanIntervalTree
             Private ReadOnly _cancellationToken As CancellationToken
 
             Shared Sub New()
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
-                _spans = New SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)(New TextSpanIntervalIntrospector(), spans)
+                _spans = New TextSpanIntervalTree(spans)
                 _cancellationToken = cancellationToken
             End Sub
 
