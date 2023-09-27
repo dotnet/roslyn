@@ -4452,6 +4452,44 @@ End Class
             Assert.Equal("Target(Of )", typeInAttribute.ToTestDisplayString())
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_GenericParameter()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class A
+    Inherits System.Attribute
+
+    Public Sub New(e As B(Of Integer).E)
+    End Sub
+End Class
+
+Public Class B(Of T)
+    Public Enum E
+        X
+    End Enum
+
+    Public Const C As E = CType(33, E)
+End Class
+
+<A(B(Of Integer).C)>
+Class C
+End Class
+    ]]></file>
+</compilation>
+
+            Dim verifier = CompileAndVerify(source, symbolValidator:=
+                Sub(m)
+                    Dim c = m.GlobalNamespace.GetTypeMember("C")
+                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+                    Assert.False(attr.HasErrors)
+                    Assert.Empty(attr.NamedArguments)
+                    Dim arg = attr.ConstructorArguments.Single()
+                    Assert.Equal(33, arg.Value)
+                End Sub)
+            verifier.VerifyDiagnostics()
+        End Sub
+
         <Fact, WorkItem(879792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879792")>
         Public Sub Bug879792()
             Dim source2 =

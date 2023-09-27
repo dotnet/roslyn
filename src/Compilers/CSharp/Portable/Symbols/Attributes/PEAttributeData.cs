@@ -102,7 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypedConstant[]? lazyConstructorArguments = null;
                 KeyValuePair<string, TypedConstant>[]? lazyNamedArguments = null;
 
-                if (!_decoder.GetCustomAttribute(_handle, out lazyConstructorArguments, out lazyNamedArguments))
+                // If an attribute argument contains a generic parameter, the decoder needs to know the attribute type.
+                var decoderWithType = AttributeClass is { } c ? new MetadataDecoder(_decoder.ModuleSymbol, c) : _decoder;
+
+                if (!decoderWithType.GetCustomAttribute(_handle, out lazyConstructorArguments, out lazyNamedArguments))
                 {
                     _lazyHasErrors = ThreeState.True;
                 }

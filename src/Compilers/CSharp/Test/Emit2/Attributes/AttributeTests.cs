@@ -4578,6 +4578,71 @@ class Program
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_GenericParameter()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public A(B<int>.E e) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_GenericParameter_NestedClass()
+        {
+            var source = """
+                class A1<T>
+                {
+                    public class A2 : System.Attribute
+                    {
+                        public A2(T t) { }
+                    }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A1<B<int>.E>.A2(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A2");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+            });
+            verifier.VerifyDiagnostics();
+        }
+
         [WorkItem(542223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542223")]
         [Fact]
         public void AttributeArgumentAsEnumFromMetadata()

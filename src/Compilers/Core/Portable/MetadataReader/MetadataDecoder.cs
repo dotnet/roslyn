@@ -1334,6 +1334,7 @@ tryAgain:
 
             elementTypeCode = SerializationTypeCode.Invalid;
             elementType = null;
+            bool isNoPiaLocalType = false;
 
             switch (paramTypeCode)
             {
@@ -1361,29 +1362,43 @@ tryAgain:
 
                 case SignatureTypeCode.TypeHandle:
                     // The type of the parameter can either be an enum type or System.Type.
-                    bool isNoPiaLocalType;
                     type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
-
-                    var underlyingEnumType = GetEnumUnderlyingType(type);
-
-                    // Spec: If the parameter kind is an enum -- simply store the value of the enum's underlying integer type.
-                    if ((object)underlyingEnumType != null)
-                    {
-                        Debug.Assert(!isNoPiaLocalType);
-
-                        // GetEnumUnderlyingType always returns a valid enum underlying type
-                        typeCode = underlyingEnumType.SpecialType.ToSerializationType();
-                        return;
-                    }
-
-                    if ((object)type == SystemTypeSymbol)
-                    {
-                        Debug.Assert(!isNoPiaLocalType);
-                        typeCode = SerializationTypeCode.Type;
-                        return;
-                    }
-
                     break;
+
+                case SignatureTypeCode.GenericTypeParameter:
+                    if (!sigReader.TryReadCompressedInteger(out int paramPosition))
+                    {
+                        throw new UnsupportedSignatureContent();
+                    }
+
+                    type = GetGenericTypeArgumentSymbol(paramPosition);
+                    break;
+
+                case SignatureTypeCode.GenericTypeInstance:
+                    type = DecodeGenericTypeInstanceOrThrow(ref sigReader, out isNoPiaLocalType);
+                    break;
+
+                default:
+                    throw new UnsupportedSignatureContent();
+            }
+
+            var underlyingEnumType = GetEnumUnderlyingType(type);
+
+            // Spec: If the parameter kind is an enum -- simply store the value of the enum's underlying integer type.
+            if ((object)underlyingEnumType != null)
+            {
+                Debug.Assert(!isNoPiaLocalType);
+
+                // GetEnumUnderlyingType always returns a valid enum underlying type
+                typeCode = underlyingEnumType.SpecialType.ToSerializationType();
+                return;
+            }
+
+            if ((object)type == SystemTypeSymbol)
+            {
+                Debug.Assert(!isNoPiaLocalType);
+                typeCode = SerializationTypeCode.Type;
+                return;
             }
 
             throw new UnsupportedSignatureContent();
@@ -2215,6 +2230,7 @@ tryAgain:
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(string moduleName, ref MetadataTypeName emittedName, out bool isNoPiaLocalType);
 
         protected abstract TypeSymbol GetGenericTypeParamSymbol(int position);
+        protected abstract TypeSymbol GetGenericTypeArgumentSymbol(int position);
         protected abstract TypeSymbol GetGenericMethodTypeParamSymbol(int position);
 
         private static TypedConstant CreateArrayTypedConstant(TypeSymbol type, ImmutableArray<TypedConstant> array)
