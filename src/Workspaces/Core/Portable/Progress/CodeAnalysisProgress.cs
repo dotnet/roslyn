@@ -27,7 +27,8 @@ public sealed class CodeAnalysisProgress
     internal string? DescriptionValue { get; init; }
 
     /// <summary>
-    /// Updates the UI showing the progress of the current operation to the specified <paramref name="description"/>.
+    /// When passed to an appropriate <see cref="IProgress{T}"/>, will updates the UI showing the progress of the
+    /// current operation to the specified <paramref name="description"/>.
     /// </summary>
     /// <example>
     /// progress.Report(CodeAnalysisProgress.Description("Renaming files"));
@@ -36,9 +37,10 @@ public sealed class CodeAnalysisProgress
         => new() { DescriptionValue = description ?? throw new ArgumentNullException(nameof(description)) };
 
     /// <summary>
-    /// Adds the requested number of incomplete items to the UI showing the progress of the current operation.  This is
-    /// commonly presented with a progress bar.  An optional <paramref name="description"/> can also be provided to
-    /// update the UI accordingly (see <see cref="Description"/>).
+    /// When passed to an appropriate <see cref="IProgress{T}"/>, will add the requested number of incomplete items to
+    /// the UI showing the progress of the current operation.  This is commonly presented with a progress bar.  An
+    /// optional <paramref name="description"/> can also be provided to update the UI accordingly (see <see
+    /// cref="Description"/>).
     /// </summary>
     /// <param name="count">The number of incomplete items left to perform.</param>
     /// <param name="description">Optional description to update the UI to.</param>
@@ -53,9 +55,10 @@ public sealed class CodeAnalysisProgress
         };
 
     /// <summary>
-    /// By default, indicates that an item of work has transitioned from being incomplete (see <see
-    /// cref="AddIncompleteItems"/> to complete.  This is commonly presented with a progress bar. An optional <paramref
-    /// name="description"/> can also be provided to update the UI accordingly (see <see cref="Description"/>).
+    /// By default, When passed to an appropriate <see cref="IProgress{T}"/>, will indicate that an item of work has
+    /// transitioned from being incomplete (see <see cref="AddIncompleteItems"/> to complete.  This is commonly
+    /// presented with a progress bar. An optional <paramref name="description"/> can also be provided to update the UI
+    /// accordingly (see <see cref="Description"/>).
     /// </summary>
     /// <remarks>
     /// Multiple items of work can be transitioned to be complete by passing an explicit value to <paramref
@@ -75,8 +78,9 @@ public sealed class CodeAnalysisProgress
         };
 
     /// <summary>
-    /// Indicates that all progress should be reset for the current operation. This is normally done when the code
-    /// action is performing some new phase and wishes for the UI progress bar to restart from the beginning.
+    /// When passed to an appropriate <see cref="IProgress{T}"/>, will indicate that all progress should be reset for
+    /// the current operation. This is normally done when the code action is performing some new phase and wishes for
+    /// the UI progress bar to restart from the beginning.
     /// </summary>
     /// <remarks>
     /// Currently internal as only roslyn needs this in the impl of our suggested action (we use a progress bar to
