@@ -26,5 +26,4 @@ internal sealed class FixAllCodeAction : AbstractFixAllCodeAction
 
     protected override bool IsInternalProvider(IFixAllState fixAllState)
         => true; // FixAll support is internal for the language server.
-    
 }
