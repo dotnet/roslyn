@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
         public string SortTitle { get; } = GetSortTitle(parentTitle, title);
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             // For preview, we don't want to compute the normal operations.  Specifically, we don't
             // want to compute the stateful operation that tracks which code action was triggered.
-            return base.ComputeOperationsAsync(cancellationToken);
+            return await base.ComputeOperationsAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)

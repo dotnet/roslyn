@@ -120,9 +120,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         private bool IsNonProgressComputeOperationsAsyncOverridden()
         {
+#pragma warning disable RS0030 // Do not use banned APIs
             return IsNonProgressApiOverridden(
                 s_isNonProgressComputeOperationsAsyncOverridden,
                 static codeAction => new Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>>(codeAction.ComputeOperationsAsync).Method.DeclaringType != typeof(CodeAction));
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         private bool IsNonProgressGetChangedSolutionAsyncOverridden()
@@ -260,6 +262,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 : SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
         }
 
+#pragma warning disable RS0030 // Do not use banned APIs
+
         /// <summary>
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see
         /// cref="CodeActionOperation"/>'s.  Prefer overriding this method over <see
@@ -285,9 +289,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
         }
 
+#pragma warning restore RS0030 // Do not use banned APIs
+
         /// <summary>
         /// Override this method if you want to implement a <see cref="CodeAction"/> that has a set of preview operations that are different
-        /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
+        /// than the operations produced by <see cref="ComputeOperationsAsync(IProgress{CodeAnalysisProgress}, CancellationToken)"/>.
         /// </summary>
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             => await ComputeOperationsAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
