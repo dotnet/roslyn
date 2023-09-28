@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     /// <summary>
     /// Marker interface for individual Roslyn languages to expose what diagnostics IDs they have are 'build only'. This
-    /// affects how the VS LSP client will handle and dedupe related diagnostics produced by Roslyn for live diagnostics
+    /// affects how the LSP client will handle and dedupe related diagnostics produced by Roslyn for live diagnostics
     /// against the diagnostics produced by CPS when a build is performed.
     /// </summary>
     internal interface ILspBuildOnlyDiagnostics

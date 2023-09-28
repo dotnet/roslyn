@@ -779,11 +779,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out var elementType);
-            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder &&
-                elementType is null)
+            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
-                Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
-                return;
+                Debug.Assert(elementType is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
+                if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations))
+                {
+                    Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
+                    return;
+                }
+                Debug.Assert(elementTypeWithAnnotations.HasType);
+                elementType = elementTypeWithAnnotations.Type;
             }
 
             bool reportedErrors = false;

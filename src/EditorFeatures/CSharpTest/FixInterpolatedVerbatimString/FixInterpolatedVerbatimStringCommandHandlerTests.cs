@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
             var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
             var view = workspace.Documents.Single().GetTextView();
 
-            MarkupTestFile.GetSpans(expectedOutputMarkup,
-                out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out var expectedSpans);
 
             Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.GetText());
             Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);

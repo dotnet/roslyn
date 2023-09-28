@@ -546,6 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.RequiresLocationAttribute |
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.NullableContextAttribute |
@@ -744,6 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.DynamicAttribute |
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.RequiresLocationAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
@@ -963,28 +965,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const int characterNumberParameterIndex = 2;
 
             var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
-            if (!attributeSyntax.SyntaxTree.Options.Features.ContainsKey("InterceptorsPreview") && interceptorsNamespaces.IsEmpty)
+            var thisNamespaceNames = getNamespaceNames();
+            var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
+            if (!foundAnyMatch)
             {
-                // InterceptorsPreview feature flag wasn't specified, and a non-empty value for InterceptorsPreviewNamespaces wasn't specified.
-                var namespaceNames = getNamespaceNames();
-                reportFeatureNotEnabled(diagnostics, attributeSyntax, namespaceNames);
-                namespaceNames.Free();
+                reportFeatureNotEnabled(diagnostics, attributeSyntax, thisNamespaceNames);
+                thisNamespaceNames.Free();
                 return;
             }
-
-            if (!interceptorsNamespaces.IsEmpty)
-            {
-                // when InterceptorsPreviewNamespaces are present, ensure the interceptor is within one of the indicated namespaces
-                var thisNamespaceNames = getNamespaceNames();
-                var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
-                if (!foundAnyMatch)
-                {
-                    reportFeatureNotEnabled(diagnostics, attributeSyntax, thisNamespaceNames);
-                    thisNamespaceNames.Free();
-                    return;
-                }
-                thisNamespaceNames.Free();
-            }
+            thisNamespaceNames.Free();
 
             var attributeFilePath = (string?)attributeArguments[0].Value;
             if (attributeFilePath is null)
@@ -1140,6 +1129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static bool isDeclaredInNamespace(ArrayBuilder<string> thisNamespaceNames, ImmutableArray<string> namespaceSegments)
             {
                 Debug.Assert(namespaceSegments.Length > 0);
+                if (namespaceSegments is ["global"])
+                {
+                    return true;
+                }
+
                 if (namespaceSegments.Length > thisNamespaceNames.Count)
                 {
                     // the enabled NS has more components than interceptor's NS, so it will never match.
@@ -1158,10 +1152,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)
             {
-                var suggestedProperty = namespaceNames.Count == 0
-                    ? "<Features>$(Features);InterceptorsPreview</Features>"
-                    : $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
-                diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, suggestedProperty);
+                if (namespaceNames.Count == 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorGlobalNamespace, attributeSyntax);
+                }
+                else
+                {
+                    var recommendedProperty = $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
+                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, recommendedProperty);
+                }
             }
         }
 

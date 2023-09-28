@@ -100,18 +100,22 @@ namespace Microsoft.CodeAnalysis
                 return expectedText;
             }
 
-            public static string GetExpectedV1ErrorLogResultsAndRulesText(Compilation compilation)
+            public static string GetExpectedV1ErrorLogResultsAndRulesText(Compilation compilation, bool warnAsError = false)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
                 var filePath = GetUriForPath(tree.FilePath);
+                var effectiveSeverity1 = warnAsError || Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
+                var effectiveSeverity2 = warnAsError || Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
+                var warningLevelText = warnAsError ? string.Empty : @"
+            ""warningLevel"": 1,";
 
                 return @"
       ""results"": [
         {
           ""ruleId"": """ + Descriptor1.Id + @""",
-          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + effectiveSeverity1 + @""",
           ""message"": """ + Descriptor1.MessageFormat + @""",
           ""locations"": [
             {
@@ -126,13 +130,13 @@ namespace Microsoft.CodeAnalysis
               }
             }
           ],
-          ""properties"": {
-            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          ""properties"": {" +
+             warningLevelText + GetExpectedPropertiesMapText() + @"
           }
         },
         {
           ""ruleId"": """ + Descriptor2.Id + @""",
-          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + effectiveSeverity2 + @""",
           ""message"": """ + Descriptor2.MessageFormat + @""",
           ""properties"": {" +
              GetExpectedPropertiesMapText() + @"
@@ -251,19 +255,23 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
-            public static string GetExpectedV2ErrorLogResultsText(Compilation compilation)
+            public static string GetExpectedV2ErrorLogResultsText(Compilation compilation, bool warnAsError = false)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
                 var filePath = GetUriForPath(tree.FilePath);
+                var effectiveSeverity1 = warnAsError || Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
+                var effectiveSeverity2 = warnAsError || Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
+                var warningLevelText = warnAsError ? string.Empty : @"
+            ""warningLevel"": 1,";
 
                 return
 @"      ""results"": [
         {
           ""ruleId"": """ + Descriptor1.Id + @""",
           ""ruleIndex"": 0,
-          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + effectiveSeverity1 + @""",
           ""message"": {
             ""text"": """ + Descriptor1.MessageFormat + @"""
           },
@@ -282,14 +290,14 @@ namespace Microsoft.CodeAnalysis
               }
             }
           ],
-          ""properties"": {
-            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          ""properties"": {" +
+             warningLevelText + GetExpectedPropertiesMapText() + @"
           }
         },
         {
           ""ruleId"": """ + Descriptor2.Id + @""",
           ""ruleIndex"": 1,
-          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + effectiveSeverity2 + @""",
           ""message"": {
             ""text"": """ + Descriptor2.MessageFormat + @"""
           },
@@ -370,6 +378,67 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return string.Empty;
+            }
+
+            public static string GetExpectedV2ErrorLogInvocationsText(
+                params (string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)[] overriddenEffectiveSeveritiesWithIndex)
+            {
+                if (overriddenEffectiveSeveritiesWithIndex.Length == 0)
+                {
+                    return string.Empty;
+                }
+
+                var first = true;
+                var overridesContent = string.Empty;
+                foreach (var (id, index, effectiveSeverities) in overriddenEffectiveSeveritiesWithIndex)
+                {
+                    foreach (var effectiveSeverity in effectiveSeverities.OrderBy(Comparer<ReportDiagnostic>.Default))
+                    {
+                        if (first)
+                        {
+                            first = false;
+                        }
+                        else
+                        {
+                            overridesContent += ",";
+                        }
+
+                        overridesContent += $@"
+            {{
+              ""descriptor"": {{
+                ""id"": ""{id}"",
+                ""index"": {index}
+              }},
+              ""configuration"": {{
+                {GetConfigurationPropertyString(effectiveSeverity)}
+              }}
+            }}";
+                    }
+                }
+
+                return $@"""invocations"": [
+        {{
+          ""executionSuccessful"": true,
+          ""ruleConfigurationOverrides"": [{overridesContent}
+          ]
+        }}
+      ]";
+            }
+
+            private static string GetConfigurationPropertyString(ReportDiagnostic severity)
+            {
+                if (severity == ReportDiagnostic.Suppress)
+                    return @"""enabled"": false";
+
+                var severityString = severity switch
+                {
+                    ReportDiagnostic.Error => "error",
+                    ReportDiagnostic.Warn => "warning",
+                    ReportDiagnostic.Info or ReportDiagnostic.Hidden => "note",
+                    _ => throw ExceptionUtilities.UnexpectedValue(severity)
+                };
+
+                return $@"""level"": ""{severityString}""";
             }
 
             internal static string GetExpectedV2ErrorLogRulesText(

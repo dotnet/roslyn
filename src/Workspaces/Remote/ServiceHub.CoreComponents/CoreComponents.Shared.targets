@@ -148,8 +148,11 @@
         For example, we could be referecing S.C.I 7.0 but VS still ships .NET 6. Usually this is a transient state, and the
         two would eventually be in sync. But we'd need to include those binaries during the out-of-sync period.
         Note, for the same reasone, we can't safely exclude shared dependencies from ServiceHub host folder.
+
+        Always include BCL in the vsix for non-official build to avoid breakage. Since VS used on CI machines
+        as well as by external contributors usually lags behind our insertion target.
       -->
-      <_PublishRuntimeLibraries>true</_PublishRuntimeLibraries>
+      <_ExcludeRuntimeLibraries Condition="'$(OfficialBuild)' == 'true'">true</_ExcludeRuntimeLibraries>
     </PropertyGroup>
     <ItemGroup>
       <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
@@ -158,8 +161,7 @@
 
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
       <_ExcludedFiles Include="$(PublishDir)runtimes\**\*.*" />
-
-      <_ExcludedFiles Condition="'$(_PublishRuntimeLibraries)' == 'false'" Include="@(_RuntimeLibrariesInPublishDir)" />
+      <_ExcludedFiles Condition="'$(_ExcludeRuntimeLibraries)' == 'true'" Include="@(_RuntimeLibrariesInPublishDir)" />
     </ItemGroup>
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
