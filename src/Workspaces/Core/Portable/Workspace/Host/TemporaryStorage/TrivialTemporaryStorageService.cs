@@ -4,11 +4,9 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,9 +20,6 @@ namespace Microsoft.CodeAnalysis
 
         public ITemporaryStreamStorageInternal CreateTemporaryStreamStorage()
             => new StreamStorage();
-
-        public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
-            => new TextStorage();
 
         private sealed class StreamStorage : ITemporaryStreamStorageInternal
         {
@@ -74,38 +69,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                 }
-            }
-        }
-
-        private sealed class TextStorage : ITemporaryTextStorageInternal
-        {
-            private SourceText? _sourceText;
-
-            public void Dispose()
-                => _sourceText = null;
-
-            public SourceText ReadText(CancellationToken cancellationToken)
-                => _sourceText ?? throw new InvalidOperationException();
-
-            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken)
-                => Task.FromResult(ReadText(cancellationToken));
-
-            public void WriteText(SourceText text, CancellationToken cancellationToken)
-            {
-                // This is a trivial implementation, indeed. Note, however, that we retain a strong
-                // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
-                // is appropriate for this trivial implementation.
-                var existingValue = Interlocked.CompareExchange(ref _sourceText, text, null);
-                if (existingValue is not null)
-                {
-                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-                }
-            }
-
-            public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
-            {
-                WriteText(text, cancellationToken);
-                return Task.CompletedTask;
             }
         }
     }
