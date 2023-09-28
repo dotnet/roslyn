@@ -132,13 +132,20 @@
     <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433; we pass
          BuildInParallel="false" to avoid multiple builds potentially building the same project at the same time, but since we
          expect the builds to have completed by this point they should be fast.  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)" Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup" BuildInParallel="false" Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework);RuntimeIdentifier=">
+    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
+         Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
+         BuildInParallel="false"
+         Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework);RuntimeIdentifier=">
       <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
     </MSBuild>
 
     <ItemGroup>
       <!-- We set Pack="false" because we only care about the RID-specific folders -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)" Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'" Pack="false" TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
+         Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
+         Pack="false"
+         TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
+         CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 
