@@ -12,30 +12,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     /// and RunCodeActionsHandler. The class provides enough information for each handler to identify the code
     /// action that it is dealing with. The information is passed along via the Data property in LSP.VSCodeAction. 
     /// </summary>
-    internal class CodeActionResolveData
-    {
-        /// <summary>
-        /// The unique identifier of a code action. No two code actions should have the same unique identifier.
-        /// </summary>
-        /// <remarks>
-        /// The unique identifier is currently set as:
-        /// name of top level code action + '|' + name of nested code action + '|' + name of nested nested code action + etc.
-        /// e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
-        /// </remarks>
-        public string UniqueIdentifier { get; }
-
-        public ImmutableArray<string> CustomTags { get; }
-
-        public LSP.Range Range { get; }
-
-        public LSP.TextDocumentIdentifier TextDocument { get; }
-
-        public CodeActionResolveData(string uniqueIdentifier, ImmutableArray<string> customTags, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
-        {
-            UniqueIdentifier = uniqueIdentifier;
-            CustomTags = customTags;
-            Range = range;
-            TextDocument = textDocument;
-        }
-    }
+    /// <param name="UniqueIdentifier"> The unique identifier of a code action. No two code actions should have the same unique identifier. </param>
+    /// <param name="CustomTags"></param>
+    /// <param name="Range"></param>
+    /// <param name="TextDocument"></param>
+    internal record CodeActionResolveData(string UniqueIdentifier, ImmutableArray<string> CustomTags, LSP.Range Range, LSP.TextDocumentIdentifier TextDocument) : DocumentResolveData(TextDocument);
 }

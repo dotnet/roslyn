@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
         private readonly WellKnownLspServerKinds _serverKind;
+        private readonly IEnumerable<Lazy<ICapabilityRegistrationsProvider>>? _capabilityRegistrationsProviders;
 
         public RoslynLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
@@ -30,11 +32,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ILspServiceLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind)
+            WellKnownLspServerKinds serverKind,
+            IEnumerable<Lazy<ICapabilityRegistrationsProvider>>? capabilityRegistrationsProviders = null)
             : base(jsonRpc, logger)
         {
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;
+            _capabilityRegistrationsProviders = capabilityRegistrationsProviders;
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
@@ -100,10 +104,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             OnInitialized();
-            return Task.CompletedTask;
+
+            if (_capabilityRegistrationsProviders != null)
+            {
+                var clientLanguageServerManager = GetLspServices().GetRequiredService<IClientLanguageServerManager>();
+                foreach (var provider in _capabilityRegistrationsProviders)
+                {
+                    var registrations = provider.Value.GetRegistrations();
+                    if (registrations != null)
+                    {
+                        // Call LSP method client/registerCapability
+                        await RoslynLanguageServer.RegisterCapabilityAsync(clientLanguageServerManager, registrations, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+        }
+
+        private static ValueTask RegisterCapabilityAsync(IClientLanguageServerManager clientLanguageServerManager, ImmutableArray<Registration> registrations, CancellationToken cancellationToken)
+        {
+            var registrationParams = new RegistrationParams()
+            {
+                Registrations = registrations.AsArray()
+            };
+
+            return clientLanguageServerManager.SendRequestAsync("client/registerCapability", registrationParams, cancellationToken);
         }
     }
 }

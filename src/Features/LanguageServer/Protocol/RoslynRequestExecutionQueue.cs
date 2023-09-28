@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -13,6 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
         private readonly IInitializeManager _initializeManager;
+        private readonly LspWorkspaceManager _lspWorkspaceManager;
 
         /// <summary>
         /// Serial access is guaranteed by the queue.
@@ -23,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             : base(languageServer, logger, handlerProvider)
         {
             _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
+            _lspWorkspaceManager = languageServer.GetLspServices().GetRequiredService<LspWorkspaceManager>();
         }
 
         public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
@@ -37,6 +42,48 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 return nonMutatingRequestTask.ReportNonFatalErrorAsync();
             }
+        }
+
+        /// <inheritdoc/>
+        protected override IMethodHandler GetHandlerForRequest(IQueueItem<RequestContext> work)
+        {
+            var handlers = _handlerProvider.GetMethodHandlers(work.MethodName, work.RequestType, work.ResponseType);
+            var defaultHandler = handlers.First(h => string.IsNullOrEmpty(h.Metadata)).Value;
+            var identifier = RoslynRequestExecutionQueue.GetTextDocumentIdentifier(work, defaultHandler);
+            if (identifier is null)
+            {
+                return defaultHandler;
+            }
+
+            var language =  _lspWorkspaceManager.GetLanguageForUri(identifier.Uri);
+
+            return handlers.SingleOrDefault(h => string.Equals(h.Metadata, language, StringComparison.OrdinalIgnoreCase))?.Value ?? defaultHandler;
+        }
+
+        protected static TextDocumentIdentifier? GetTextDocumentIdentifier(IQueueItem<RequestContext> work, IMethodHandler handler)
+        {
+            var textIdentifier = work.GetTextDocumentIdentifier<TextDocumentIdentifier>(handler);
+            if (textIdentifier != null)
+            {
+                return textIdentifier;
+            }
+
+            var nullIdentifier = work.GetTextDocumentIdentifier<TextDocumentIdentifier?>(handler);
+            if (nullIdentifier != null)
+            {
+                return nullIdentifier;
+            }
+
+            var uri = work.GetTextDocumentIdentifier<Uri?>(handler);
+            if (uri != null)
+            {
+                return new TextDocumentIdentifier
+                {
+                    Uri = uri,
+                };
+            }
+
+            return null;
         }
 
         /// <summary>

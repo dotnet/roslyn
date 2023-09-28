@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -16,5 +14,5 @@ public interface IHandlerProvider
 {
     ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods();
 
-    IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType);
+    ImmutableArray<Lazy<IMethodHandler, string?>> GetMethodHandlers(string method, Type? requestType, Type? responseType);
 }

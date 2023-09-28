@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
+        private static readonly LanguageInformation s_xamlLanguageInformation = new("XAML", string.Empty);
 
         private static readonly Dictionary<string, LanguageInformation> s_extensionToLanguageInformation = new()
         {
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".csx", s_csharpLanguageInformation },
             { ".vb", s_vbLanguageInformation },
             { ".vbx", s_vbLanguageInformation },
+            { ".xaml", s_xamlLanguageInformation },
         };
 
         public LspMiscellaneousFilesWorkspace(HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
@@ -86,7 +88,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
             if (matchingDocument != null)
             {
-                OnDocumentRemoved(matchingDocument);
+                if (CurrentSolution.ContainsDocument(matchingDocument))
+                {
+                    OnDocumentRemoved(matchingDocument);
+                }
+                else if (CurrentSolution.ContainsAdditionalDocument(matchingDocument))
+                {
+                    OnAdditionalDocumentRemoved(matchingDocument);
+                }
 
                 // Also remove the project - we always create a new project for each misc file we add
                 // so it should never have other documents in it.
@@ -114,6 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 "csharp" => s_csharpLanguageInformation,
                 "vb" => s_vbLanguageInformation,
+                "xaml" => s_xamlLanguageInformation,
                 _ => null,
             };
         }

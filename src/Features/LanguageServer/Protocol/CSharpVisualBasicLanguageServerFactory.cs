@@ -12,6 +12,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using StreamJsonRpc;
 using Microsoft.CodeAnalysis.Host;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -19,13 +20,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
+        private readonly IEnumerable<Lazy<ICapabilityRegistrationsProvider>> _capabilityRegistrationsProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVisualBasicLanguageServerFactory(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider)
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
+            [ImportMany] IEnumerable<Lazy<ICapabilityRegistrationsProvider>> capabilityRegistrationsProviders)
         {
             _lspServiceProvider = lspServiceProvider;
+            _capabilityRegistrationsProviders = capabilityRegistrationsProviders;
         }
 
         public AbstractLanguageServer<RequestContext> Create(
@@ -33,7 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
             ILspServiceLogger logger,
-            HostServices hostServices)
+            HostServices hostServices,
+            IEnumerable<Lazy<ICapabilityRegistrationsProvider>>? capabilityRegistrationsProviders = null)
         {
             var server = new RoslynLanguageServer(
                 _lspServiceProvider,
@@ -42,7 +47,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 logger,
                 hostServices,
                 ProtocolConstants.RoslynLspLanguages,
-                serverKind);
+                serverKind,
+                _capabilityRegistrationsProviders);
 
             return server;
         }
@@ -52,5 +58,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
             return Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, logger, hostServices);
         }
+
     }
 }

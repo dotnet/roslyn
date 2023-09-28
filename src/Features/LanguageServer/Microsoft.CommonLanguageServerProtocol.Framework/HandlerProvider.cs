@@ -17,7 +17,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal class HandlerProvider : IHandlerProvider
 {
     private readonly ILspServices _lspServices;
-    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
+    private ImmutableDictionary<RequestHandlerMetadata, List<Lazy<IMethodHandler, string?>>>? _requestHandlers;
 
     public HandlerProvider(ILspServices lspServices)
     {
@@ -25,23 +25,23 @@ internal class HandlerProvider : IHandlerProvider
     }
 
     /// <summary>
-    /// Get the MethodHandler for a particular request.
+    /// Get the <see cref="IMethodHandler"/>s for a particular request.
     /// </summary>
     /// <param name="method">The method name being made.</param>
     /// <param name="requestType">The requestType for this method.</param>
     /// <param name="responseType">The responseType for this method.</param>
     /// <returns>The handler for this request.</returns>
-    public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType)
+    public ImmutableArray<Lazy<IMethodHandler, string?>> GetMethodHandlers(string method, Type? requestType, Type? responseType)
     {
         var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType);
 
         var requestHandlers = GetRequestHandlers();
-        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler))
+        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandlers))
         {
             throw new InvalidOperationException($"Missing handler for {requestHandlerMetadata.MethodName}");
         }
 
-        return lazyHandler.Value;
+        return lazyHandlers.ToImmutableArray();
     }
 
     public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
@@ -50,14 +50,14 @@ internal class HandlerProvider : IHandlerProvider
         return requestHandlers.Keys.ToImmutableArray();
     }
 
-    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
+    private ImmutableDictionary<RequestHandlerMetadata, List<Lazy<IMethodHandler, string?>>> GetRequestHandlers()
         => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices);
 
-    private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
+    private static ImmutableDictionary<RequestHandlerMetadata, List<Lazy<IMethodHandler, string?>>> CreateMethodToHandlerMap(ILspServices lspServices)
     {
-        var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
+        var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, List<Lazy<IMethodHandler, string?>>>();
 
-        var methodHash = new HashSet<string>();
+        var methodHash = new HashSet<(string, string?)>();
 
         if (lspServices.SupportsGetRegisteredServices())
         {
@@ -75,16 +75,24 @@ internal class HandlerProvider : IHandlerProvider
 
                     CheckForDuplicates(method, methodHash);
 
-                    requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() =>
+                    var lazyHandler = new Lazy<IMethodHandler, string?>(() =>
+                    {
+                        var lspService = lspServices.TryGetService(handlerType);
+                        if (lspService is null)
                         {
-                            var lspService = lspServices.TryGetService(handlerType);
-                            if (lspService is null)
-                            {
-                                throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
-                            }
+                            throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
+                        }
 
-                            return (IMethodHandler)lspService;
-                        }));
+                        return (IMethodHandler)lspService;
+                    }, method.Language);
+
+                    var requestHandlerMetadata = new RequestHandlerMetadata(method.Name, requestResponseType.RequestType, requestResponseType.ResponseType);
+                    if (!requestHandlerDictionary.TryGetValue(requestHandlerMetadata, out var methodHandlers))
+                    {
+                        methodHandlers = new List<Lazy<IMethodHandler, string?>>();
+                        requestHandlerDictionary.Add(requestHandlerMetadata, methodHandlers);
+                    }
+                    methodHandlers.Add(lazyHandler);
                 }
             }
         }
@@ -100,7 +108,13 @@ internal class HandlerProvider : IHandlerProvider
                 var method = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
                 CheckForDuplicates(method, methodHash);
 
-                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() => handler));
+                var requestHandlerMetadata = new RequestHandlerMetadata(method.Name, requestResponseType.RequestType, requestResponseType.ResponseType);
+                if (!requestHandlerDictionary.TryGetValue(requestHandlerMetadata, out var methodHandlers))
+                {
+                    methodHandlers = new List<Lazy<IMethodHandler, string?>>();
+                    requestHandlerDictionary.Add(requestHandlerMetadata, methodHandlers);
+                }
+                methodHandlers.Add(new Lazy<IMethodHandler, string?>(() => handler, method.Language));
             }
         }
 
@@ -108,15 +122,15 @@ internal class HandlerProvider : IHandlerProvider
 
         return requestHandlerDictionary.ToImmutable();
 
-        static void CheckForDuplicates(string methodName, HashSet<string> existingMethods)
+        static void CheckForDuplicates((string, string?) method, HashSet<(string, string?)> existingMethods)
         {
-            if (!existingMethods.Add(methodName))
+            if (!existingMethods.Add(method))
             {
-                throw new InvalidOperationException($"Method {methodName} was implemented more than once.");
+                throw new InvalidOperationException($"Method {method.Item1} was implemented more than once.");
             }
         }
 
-        static string GetRequestHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
+        static (string Name, string? Language) GetRequestHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
         {
             // Get the LSP method name from the handler's method name attribute.
             var methodAttribute = GetMethodAttributeFromClassOrInterface(handlerType);
@@ -130,7 +144,7 @@ internal class HandlerProvider : IHandlerProvider
                 }
             }
 
-            return methodAttribute.Method;
+            return (methodAttribute.Method, methodAttribute.Language);
 
             static LanguageServerEndpointAttribute? GetMethodAttributeFromHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
             {

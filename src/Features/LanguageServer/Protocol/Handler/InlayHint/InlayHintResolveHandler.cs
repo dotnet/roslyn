@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.InlayHint request)
-            => GetInlayHintResolveData(request).TextDocument;
+            => ProtocolConversions.GetTextDocument(request.Data) ?? throw new ArgumentException();
 
         public async Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
         {

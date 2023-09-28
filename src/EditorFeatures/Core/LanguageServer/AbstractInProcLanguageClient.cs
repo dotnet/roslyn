@@ -218,7 +218,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
             ILspServiceLogger logger,
-            HostServices hostServices)
+            HostServices hostServices,
+            IEnumerable<Lazy<ICapabilityRegistrationsProvider>>? capabilityRegistrationsProviders = null)
         {
             var server = new RoslynLanguageServer(
                 LspServiceProvider,
@@ -227,7 +228,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 logger,
                 hostServices,
                 SupportedLanguages,
-                serverKind);
+                serverKind,
+                capabilityRegistrationsProviders);
 
             return server;
         }

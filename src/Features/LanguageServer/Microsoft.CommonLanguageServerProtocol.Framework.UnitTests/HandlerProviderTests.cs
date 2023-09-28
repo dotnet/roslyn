@@ -17,8 +17,8 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
 
-        var methodHander = handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, TestMethodHandler.ResponseType);
-        Assert.Same(TestMethodHandler.Instance, methodHander);
+        var methodHandlers = handlerProvider.GetMethodHandlers(TestMethodHandler.Name, TestMethodHandler.RequestType, TestMethodHandler.ResponseType);
+        Assert.Same(TestMethodHandler.Instance, methodHandlers.Single().Value);
     }
 
     [Theory]
@@ -27,8 +27,8 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
 
-        var methodHander = handlerProvider.GetMethodHandler(TestParameterlessMethodHandler.Name, requestType: null, TestParameterlessMethodHandler.ResponseType);
-        Assert.Same(TestParameterlessMethodHandler.Instance, methodHander);
+        var methodHandlers = handlerProvider.GetMethodHandlers(TestParameterlessMethodHandler.Name, requestType: null, TestParameterlessMethodHandler.ResponseType);
+        Assert.Same(TestParameterlessMethodHandler.Instance, methodHandlers.Single().Value);
     }
 
     [Theory]
@@ -37,8 +37,8 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
 
-        var methodHander = handlerProvider.GetMethodHandler(TestNotificationHandler.Name, TestNotificationHandler.RequestType, responseType: null);
-        Assert.Same(TestNotificationHandler.Instance, methodHander);
+        var methodHandlers = handlerProvider.GetMethodHandlers(TestNotificationHandler.Name, TestNotificationHandler.RequestType, responseType: null);
+        Assert.Same(TestNotificationHandler.Instance, methodHandlers.Single().Value);
     }
 
     [Theory]
@@ -47,8 +47,8 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
 
-        var methodHander = handlerProvider.GetMethodHandler(TestParameterlessNotificationHandler.Name, requestType: null, responseType: null);
-        Assert.Same(TestParameterlessNotificationHandler.Instance, methodHander);
+        var methodHandlers = handlerProvider.GetMethodHandlers(TestParameterlessNotificationHandler.Name, requestType: null, responseType: null);
+        Assert.Same(TestParameterlessNotificationHandler.Instance, methodHandlers.Single().Value);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: false);
 
-        Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler("UndefinedMethod", TestMethodHandler.RequestType, TestMethodHandler.ResponseType));
+        Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandlers("UndefinedMethod", TestMethodHandler.RequestType, TestMethodHandler.ResponseType));
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: false);
 
-        Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, responseType: typeof(long)));
+        Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandlers(TestMethodHandler.Name, TestMethodHandler.RequestType, responseType: typeof(long)));
     }
 
     [Theory]
@@ -80,6 +80,26 @@ public class HandlerProviderTests
             r => Assert.Equal(TestNotificationHandler.Name, r.MethodName),
             r => Assert.Equal(TestParameterlessMethodHandler.Name, r.MethodName),
             r => Assert.Equal(TestParameterlessNotificationHandler.Name, r.MethodName));
+    }
+
+    [Fact]
+    public void GetMethodHandler_LanguageHandlers()
+    {
+        var handlerProvider = new TestHandlerWithLanguageProvider(providers: new[]
+        {
+            (TestXamlLanguageHandler.Metadata, TestXamlLanguageHandler.Instance, TestXamlLanguageHandler.Language),
+            (TestDefaultLanguageHandler.Metadata, TestDefaultLanguageHandler.Instance, TestDefaultLanguageHandler.Language),
+        });
+
+        var methodHandlers = handlerProvider.GetMethodHandlers(TestDefaultLanguageHandler.Name, TestDefaultLanguageHandler.RequestType, TestDefaultLanguageHandler.ResponseType).OrderBy(h => h.Metadata);
+
+        Assert.Collection(methodHandlers,
+            m => Assert.Equal(TestDefaultLanguageHandler.Language, m.Metadata),
+            m => Assert.Equal(TestXamlLanguageHandler.Language, m.Metadata));
+
+        Assert.Collection(methodHandlers,
+            m => Assert.Equal(TestDefaultLanguageHandler.Instance, m.Value),
+            m => Assert.Equal(TestXamlLanguageHandler.Instance, m.Value));
     }
 
     private static HandlerProvider GetHandlerProvider(bool supportsGetRegisteredServices)

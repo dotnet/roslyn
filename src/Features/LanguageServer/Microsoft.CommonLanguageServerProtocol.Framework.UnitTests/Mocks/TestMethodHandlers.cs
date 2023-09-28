@@ -149,3 +149,36 @@ public class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
         throw new NotImplementedException();
     }
 }
+
+[LanguageServerEndpoint(Name, Language)]
+internal class TestDefaultLanguageHandler : IRequestHandler<int, string, TestRequestContext>
+{
+    public const string Name = "Language";
+    public const string? Language = null;
+    public static readonly IMethodHandler Instance = new TestDefaultLanguageHandler();
+
+    public bool MutatesSolutionState => true;
+    public static Type RequestType = typeof(int);
+    public static Type ResponseType = typeof(string);
+    public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType);
+
+    public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
+        => Task.FromResult<string>(null);
+}
+
+[LanguageServerEndpoint(Name, Language)]
+internal class TestXamlLanguageHandler : IRequestHandler<int, string, TestRequestContext>
+{
+    public const string Name = TestDefaultLanguageHandler.Name;
+    public const string? Language = "xaml";
+    public static readonly IMethodHandler Instance = new TestXamlLanguageHandler();
+
+    public bool MutatesSolutionState => true;
+    public static Type RequestType = typeof(int);
+    public static Type ResponseType = typeof(string);
+    public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType);
+
+    public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
+        => Task.FromResult("xaml");
+}
+

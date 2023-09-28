@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var caretLocation = testLspServer.GetLocations("caret").Single();
 
-            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, new LSP.TextDocumentIdentifier
+            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), CustomTags: ImmutableArray<string>.Empty, caretLocation.Range, new LSP.TextDocumentIdentifier
             {
                 Uri = caretLocation.Uri
             });

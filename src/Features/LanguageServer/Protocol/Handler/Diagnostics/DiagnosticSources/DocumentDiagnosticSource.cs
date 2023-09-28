@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal sealed class DocumentDiagnosticSource
-    : AbstractDocumentDiagnosticSource<Document>
+    : AbstractDocumentDiagnosticSource<TextDocument>
 {
     public DiagnosticKind DiagnosticKind { get; }
 
-    public DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Document document)
+    public DocumentDiagnosticSource(DiagnosticKind diagnosticKind, TextDocument document)
         : base(document)
     {
         DiagnosticKind = diagnosticKind;

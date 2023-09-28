@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -24,7 +25,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -265,7 +268,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
         }
 
-        public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(Document document)
+        public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
             => new LSP.TextDocumentIdentifier { Uri = document.GetURI() };
 
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
@@ -830,7 +833,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return formattingOptions;
         }
 
-        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
+        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, TextDocument document, bool featureSupportsMarkdown)
             => GetDocumentationMarkupContent(tags, document.Project.Language, featureSupportsMarkdown);
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
@@ -943,6 +946,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Start = LinePositionToPosition(mappedSpanResult.LinePositionSpan.Start),
                 End = LinePositionToPosition(mappedSpanResult.LinePositionSpan.End)
             };
+        }
+
+        /// <summary>
+        /// Retrieves the <see cref="LSP.TextDocumentIdentifier"/> from the request data.
+        /// </summary>
+        public static LSP.TextDocumentIdentifier? GetTextDocument(object? requestData)
+        {
+            Contract.ThrowIfNull(requestData);
+            var resolveData = ((JToken)requestData).ToObject<DocumentResolveData>();
+            return resolveData?.TextDocument;
         }
     }
 }
