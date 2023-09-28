@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return true;
 
             // If _minimumReportedSeverity is 'Hidden', then we are reporting diagnostics with all severities.
-            if (_minimumReportedSeverity.Value == DiagnosticSeverity.Hidden)
+            if (_minimumReportedSeverity!.Value == DiagnosticSeverity.Hidden)
                 return false;
 
             // If the severity is explicitly configured with `option_name = option_value:severity`,
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 }
 
                 Debug.Assert(editorConfigSeverity != null);
-                if (EditorConfigSeverityStrings.TryParse(editorConfigSeverity, out var effectiveReportDiagnostic)
+                if (EditorConfigSeverityStrings.TryParse(editorConfigSeverity!, out var effectiveReportDiagnostic)
                     && effectiveReportDiagnostic.ToDiagnosticSeverity() is { } effectiveSeverity
                     && effectiveSeverity >= _minimumReportedSeverity.Value)
                 {
