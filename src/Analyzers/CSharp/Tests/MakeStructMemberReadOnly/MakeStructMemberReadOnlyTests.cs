@@ -1404,4 +1404,336 @@ public sealed class MakeStructMemberReadOnlyTests
             """,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void RecalculateHash()
+            	{
+            		SHA1.HashData(Data, Hash);
+            	}
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void RecalculateHash()
+            	{
+                    TakesSpan(Data);
+            	}
+
+                readonly void TakesSpan(Span<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan2_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void RecalculateHash()
+            	{
+                    TakesSpan(this.Data);
+            	}
+
+                readonly void TakesSpan(Span<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void [|RecalculateHash|]()
+            	{
+                    TakesReadOnlySpan(Data);
+            	}
+
+                readonly void TakesReadOnlySpan(ReadOnlySpan<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public readonly void RecalculateHash()
+            	{
+                    TakesReadOnlySpan(Data);
+            	}
+
+                readonly void TakesReadOnlySpan(ReadOnlySpan<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan3_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void [|RecalculateHash|]()
+            	{
+                    TakesReadOnlySpan(this.Data);
+            	}
+
+                readonly void TakesReadOnlySpan(ReadOnlySpan<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public readonly void RecalculateHash()
+            	{
+                    TakesReadOnlySpan(this.Data);
+            	}
+
+                readonly void TakesReadOnlySpan(ReadOnlySpan<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void [|RecalculateHash|]()
+            	{
+                    TakesByteArray(Data);
+            	}
+
+                readonly void TakesByteArray(ByteArray20 bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public readonly void RecalculateHash()
+            	{
+                    TakesByteArray(Data);
+            	}
+
+                readonly void TakesByteArray(ByteArray20 bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan4_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void [|RecalculateHash|]()
+            	{
+                    TakesByteArray(this.Data);
+            	}
+
+                readonly void TakesByteArray(ByteArray20 bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public readonly void RecalculateHash()
+            	{
+                    TakesByteArray(this.Data);
+            	}
+
+                readonly void TakesByteArray(ByteArray20 bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

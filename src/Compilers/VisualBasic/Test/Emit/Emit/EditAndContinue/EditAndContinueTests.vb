@@ -240,6 +240,52 @@ End Class
             End Using
         End Sub
 
+        <Fact>
+        Public Sub ModifyMethod_ParameterModifiers_RefOut()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Public Sub F(ByRef x As Integer)
+        x = 1
+    End Sub
+End Class
+                    ",
+                    validator:=Sub(g)
+                               End Sub).
+                AddGeneration(
+                    source:="
+Imports System.Runtime.InteropServices
+Class C
+    Public Sub F(<Out> ByRef x As Integer)
+        x = 1
+    End Sub
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=Sub(g)
+                                   g.VerifyTypeDefNames()
+                                   g.VerifyMethodDefNames("F")
+
+                                   g.VerifyEncLogDefinitions(
+                                   {
+                                       Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                                   })
+
+                                   g.VerifyEncMapDefinitions(
+                                   {
+                                       Handle(2, TableIndex.MethodDef),
+                                       Handle(1, TableIndex.Param)
+                                   })
+                               End Sub).
+                Verify()
+            End Using
+        End Sub
+
         <WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
         <Fact>
         Public Sub PartialMethod()
@@ -1342,6 +1388,324 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
+        Public Sub Event_Delete()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(1)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(2)
+        End RemoveHandler
+        RaiseEvent()
+            System.Console.WriteLine(3)
+        End RaiseEvent
+    End Event
+End Class
+",
+                    validator:=
+                        Sub(g)
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.raise_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.E"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E")
+                            g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
+
+                            ' We should update the Event table entry to indicate that the event has been deleted:
+                            ' TODO: https://github.com/dotnet/roslyn/issues/69834
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(10)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(20)
+        End RemoveHandler
+        RaiseEvent()
+            System.Console.WriteLine(30)
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E")
+                            g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   30
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Event_TypeChange()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(1)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(2)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    validator:=
+                        Sub(g)
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Boolean)
+        AddHandler(value As System.Action(Of Boolean))
+            System.Console.WriteLine(10)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Boolean))
+            System.Console.WriteLine(20)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C.E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.add_E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.remove_E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' We do not update raise_E since its signature has not changed.
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E")
+                            g.VerifyDeletedMembers("C: {add_E, remove_E}")
+
+                            ' New event is added to the Event table associated with the new accessors.
+                            ' Events can't be overloaded on type so we will update the existing Event table entry.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(100)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(200)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C.E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.add_E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.remove_E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' We do not update raise_E since its signature has not changed.
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E")
+                            g.VerifyDeletedMembers("C: {add_E, remove_E}")
+
+                            ' Updating existing members, no new additions.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(8, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(9, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   100
+  IL_0003:  call       0x0A000008
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       13 (0xd)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4     0xc8
+  IL_0006:  call       0x0A000008
+  IL_000b:  nop
+  IL_000c:  ret
+}
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000009
+  IL_0005:  throw
+}
+")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
         Public Sub UpdateType_AddAttributes()
             Dim source0 = "
 Class C
@@ -1686,7 +2050,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(837315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837315")>
-        Public Sub AddingSetAccessor()
+        Public Sub Property_Insert_Setter()
             Dim source0 =
 <compilation>
     <file name="a.vb">
@@ -1764,7 +2128,7 @@ End Module</file>
         End Sub
 
         <Fact>
-        Public Sub PropertyGetterReturnValueVariable()
+        Public Sub Property_GetterReturnValueVariable()
             Dim source0 =
 <compilation>
     <file name="a.vb">
@@ -1818,6 +2182,420 @@ End Module</file>
   IL_0008:  ldloc.0
   IL_0009:  ret
 }")
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
+        Public Sub Property_TypeChange()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Integer)
+        Get
+            Console.WriteLine(1)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Integer))
+            Console.WriteLine(2)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Boolean)
+        Get
+            Console.WriteLine(10)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Boolean))
+            Console.WriteLine(20)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.set_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' old accessors are updated to throw, new accessors are added:
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            ' New property is added to the Property table associated with the new accessors.
+                            ' Properties can be overloaded on name and signature, so we need to insert a new entry for the new signature.
+                            '
+                            ' We keep the existing entry as is, which is not ideal since reflection now returns both the old and the new properties rather than just the new one.
+                            ' Consider updating the existing Property table entry to change the property name to _deleted.
+                            ' TODO: https://github.com/dotnet/roslyn/issues/69834
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' Action<int> get_P
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' set_P(Action<int>)
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' Action<bool> get_P
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' set_P(Action<bool>)
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty), ' Action<bool> P
+                                Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<bool> P <-> Action<bool> get_P
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<bool> P <-> set_P(Action<bool>)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ldnull
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Integer)
+        Get
+            Console.WriteLine(100)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Integer))
+            Console.WriteLine(200)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.set_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' old accessors are updated to throw, new accessors are added:
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            ' Changing the signature back updates the the original property and accessors.
+                            ' No new property/method is added.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<bool> get_P
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<bool>)
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<int> get_P
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<int>)
+                                Row(1, TableIndex.Property, EditAndContinueOperation.Default),  ' Action<int> P
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<int> P <-> Action<int> get_P
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<int> P <-> set_P(Action<int>)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   100
+  IL_0003:  call       0x0A000008
+  IL_0008:  nop
+  IL_0009:  ldnull
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}
+{
+  // Code size       13 (0xd)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4     0xc8
+  IL_0006:  call       0x0A000008
+  IL_000b:  nop
+  IL_000c:  ret
+}
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000009
+  IL_0005:  throw
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Property_Delete()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' deleted getter is updated to throw:
+                            g.VerifyMethodDefNames("get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000005
+  IL_0005:  throw
+}")
+                        End Sub).
+                        AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 2
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.get_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            g.VerifyMethodDefNames("get_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Property_DeleteGetter()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    WriteOnly Property P As Integer
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyDeletedMembers("C: {get_P}")
+
+                            ' deleted getter is updated to throw:
+                            g.VerifyMethodDefNames("get_P")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000005
+  IL_0005:  throw
+}")
+                        End Sub).
+                        AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 2
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.get_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyDeletedMembers("C: {get_P}")
+
+                            g.VerifyMethodDefNames("get_P")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}")
+                        End Sub).
+                    Verify()
             End Using
         End Sub
 

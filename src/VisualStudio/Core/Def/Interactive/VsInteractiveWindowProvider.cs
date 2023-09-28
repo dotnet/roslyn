@@ -11,18 +11,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -98,13 +97,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             if (_vsInteractiveWindow is ToolWindowPane interactiveWindowPane)
             {
-                evaluator.OnBeforeReset += platform => interactiveWindowPane.Caption = Title + platform switch
-                {
-                    InteractiveHostPlatform.Desktop64 => " (.NET Framework " + ServicesVSResources.Bitness64 + ")",
-                    InteractiveHostPlatform.Desktop32 => " (.NET Framework " + ServicesVSResources.Bitness32 + ")",
-                    InteractiveHostPlatform.Core => " (.NET Core)",
-                    _ => throw ExceptionUtilities.Unreachable()
-                };
+                var defaultPlatform = evaluator.ResetOptions.Platform;
+                Contract.ThrowIfFalse(defaultPlatform.HasValue);
+                interactiveWindowPane.Caption = Title + GetFrameworkForTitle(defaultPlatform.Value);
+                evaluator.OnBeforeReset += platform => interactiveWindowPane.Caption = Title + GetFrameworkForTitle(platform);
             }
 
             var window = _vsInteractiveWindow.InteractiveWindow;
@@ -125,6 +121,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             window.InitializeAsync();
 
             LogSession(LogMessage.Window, LogMessage.Create);
+
+            static string GetFrameworkForTitle(InteractiveHostPlatform platform) => platform switch
+            {
+                InteractiveHostPlatform.Desktop64 => " (.NET Framework " + ServicesVSResources.Bitness64 + ")",
+                InteractiveHostPlatform.Desktop32 => " (.NET Framework " + ServicesVSResources.Bitness32 + ")",
+                InteractiveHostPlatform.Core => " (.NET Core)",
+                _ => throw ExceptionUtilities.Unreachable()
+            };
         }
 
         public IVsInteractiveWindow Open(int instanceId, bool focus)

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2640,6 +2641,118 @@ Operators.Equals,
 Keyword("async"));
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember1(TestHost testHost)
+        {
+            await TestAsync("""
+                class C
+                {
+                    [|partial|]
+                }
+                """,
+                testHost,
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember2(TestHost testHost)
+        {
+            await TestAsync("""
+                class C
+                {
+                    [|public partial|]
+                }
+                """,
+                testHost,
+                Keyword("public"),
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember1_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                class C
+                {
+                    [|partial|]
+                }
+                """,
+                testHost,
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember2_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                class C
+                {
+                    [|public partial|]
+                }
+                """,
+                testHost,
+                Keyword("public"),
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial1(TestHost testHost)
+        {
+            await TestAsync("""
+                partial
+                """,
+                testHost,
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial2(TestHost testHost)
+        {
+            await TestAsync("""
+                public partial
+                """,
+                testHost,
+                Keyword("public"),
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial1_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                [|partial|]
+                """,
+                testHost,
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial2_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                [|public partial|]
+                """,
+                testHost,
+                Keyword("public"),
+                Class("partial"));
+        }
+
         /// <seealso cref="SemanticClassifierTests.LocalFunctionUse"/>
         /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
         [Theory, CombinatorialData]
@@ -2857,6 +2970,56 @@ Keyword("async"));
                 Keyword("string"),
                 Identifier("b"),
                 Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer1(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                delegate* unmanaged[Fastcall, Stdcall, Thiscall]<int> fp;
+                """,
+                testHost,
+                parseOptions: null,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Class("Fastcall"),
+                Punctuation.Comma,
+                Class("Stdcall"),
+                Punctuation.Comma,
+                Class("Thiscall"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Local("fp"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer2(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                delegate* unmanaged[Member]<int> fp;
+                """,
+                testHost,
+                parseOptions: null,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Identifier("Member"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Local("fp"),
                 Punctuation.Semicolon);
         }
     }

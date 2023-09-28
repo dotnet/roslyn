@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            var cancellationToken = context.CancellationToken;
             var options = context.GetCSharpAnalyzerOptions().GetCodeGenerationOptions();
 
             var nodeKind = context.Node.Kind();
@@ -58,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var grandparent = context.Node.GetRequiredParent().GetRequiredParent();
 
                 if (grandparent.Kind() == SyntaxKind.PropertyDeclaration &&
-                    AnalyzeSyntax(options, grandparent, context, UseExpressionBodyForPropertiesHelper.Instance) != null)
+                    AnalyzeSyntax(options, grandparent, context, UseExpressionBodyForPropertiesHelper.Instance, cancellationToken) != null)
                 {
                     return;
                 }
 
                 if (grandparent.Kind() == SyntaxKind.IndexerDeclaration &&
-                    AnalyzeSyntax(options, grandparent, context, UseExpressionBodyForIndexersHelper.Instance) != null)
+                    AnalyzeSyntax(options, grandparent, context, UseExpressionBodyForIndexersHelper.Instance, cancellationToken) != null)
                 {
                     return;
                 }
@@ -72,9 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             foreach (var helper in _helpers)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (helper.SyntaxKinds.Contains(nodeKind))
                 {
-                    var diagnostic = AnalyzeSyntax(options, context.Node, context, helper);
+                    var diagnostic = AnalyzeSyntax(options, context.Node, context, helper, cancellationToken);
                     if (diagnostic != null)
                     {
                         context.ReportDiagnostic(diagnostic);
@@ -85,14 +88,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         private Diagnostic? AnalyzeSyntax(
-            CSharpCodeGenerationOptions options, SyntaxNode declaration, SyntaxNodeAnalysisContext context, UseExpressionBodyHelper helper)
+            CSharpCodeGenerationOptions options, SyntaxNode declaration, SyntaxNodeAnalysisContext context, UseExpressionBodyHelper helper, CancellationToken cancellationToken)
         {
             var preference = helper.GetExpressionBodyPreference(options);
             if (ShouldSkipAnalysis(context, preference.Notification))
                 return null;
 
             var severity = preference.Notification.Severity;
-            if (helper.CanOfferUseExpressionBody(preference, declaration, forAnalyzer: true))
+
+            if (helper.CanOfferUseExpressionBody(preference, declaration, forAnalyzer: true, cancellationToken))
             {
                 var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()

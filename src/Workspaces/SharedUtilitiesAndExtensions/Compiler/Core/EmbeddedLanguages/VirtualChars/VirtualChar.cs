@@ -99,6 +99,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public bool IsWhiteSpace
             => SurrogateChar != 0 ? char.IsWhiteSpace(SurrogateChar) : Rune.IsWhiteSpace(Rune);
 
+        /// <inheritdoc cref="Rune.Utf16SequenceLength" />
+        public int Utf16SequenceLength => SurrogateChar != 0 ? 1 : Rune.Utf16SequenceLength;
+
         #region equality
 
         public static bool operator ==(VirtualChar ch1, char ch2)

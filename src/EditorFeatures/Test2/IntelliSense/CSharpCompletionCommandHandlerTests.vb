@@ -11925,5 +11925,74 @@ public class C(int x) : Base(x)
                 Await state.AssertCompletionItemsContainAll("X")
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestItemsSorted() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Program
+{
+    public static void Main()
+    {
+        $$
+    }
+}
+             ]]></Document>)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+
+                ' trigger completion with import completion enabled
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+
+                Dim completionItems = state.GetCompletionItems()
+                Dim manuallySortedItems = completionItems.ToList()
+                manuallySortedItems.Sort()
+
+                Assert.True(manuallySortedItems.SequenceEqual(completionItems))
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base(int x)
+{
+}
+
+public class C() : Base($$)
+{
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", ":")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public abstract class Base(int x)
+{
+}
+
+public class C() : Base($$)
+{
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", ":")
+            End Using
+        End Function
     End Class
 End Namespace

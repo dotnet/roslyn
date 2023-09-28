@@ -46,17 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
 
-        protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var name = NameGenerator.GenerateUniqueName("MyClass", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-            var classDeclaration = useAccessibility is true
-                ? generator.ClassDeclaration(name, accessibility: Accessibility.Public)
-                : generator.ClassDeclaration(name);
-
-            return classDeclaration;
+            return generator.ClassDeclaration(name);
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)

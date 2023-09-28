@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal sealed override bool IsFileLocal => _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false }, lazyDisplayFileName: { } };
-        internal sealed override FileIdentifier? AssociatedFileIdentifier
+        internal sealed override FileIdentifier AssociatedFileIdentifier
         {
             get
             {
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Therefore we can use `_lazyUncommonProperties` directly to avoid additional computations.
                 // Also important, that computing full uncommon properties here may lead to stack overflow if there is a circular dependency between types in the metadata.
                 return _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
-                    ? new FileIdentifier { FilePathChecksumOpt = checksum, DisplayFilePath = displayFileName }
+                    ? FileIdentifier.Create(checksum, displayFileName)
                     : null;
             }
         }

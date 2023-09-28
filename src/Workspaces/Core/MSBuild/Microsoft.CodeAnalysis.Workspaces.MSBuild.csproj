@@ -4,7 +4,6 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
     <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
     <!-- NuGet -->
@@ -17,11 +16,6 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
-      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
@@ -29,14 +23,12 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="WorkspaceMSBuildResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
@@ -45,4 +37,23 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
+  <!--
+    Include the BuildHost binaries into this package as well. At the moment, we're including it in lib because we're internally using it as a library in-process. Once
+    we move to launching it, we'll need to move this to the content path instead, since we'll be deploying both the .NET Framework and .NET Core versions, no matter
+    which platform you are targeting.
+    -->
+    <PropertyGroup>
+      <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);GetBuildHostBinaries</TargetsForTfmSpecificBuildOutput>
+      <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificBuildOutput);GetBuildHostDebugSymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
+    </PropertyGroup>
+    <Target Name="GetBuildHostBinaries" DependsOnTargets="ResolveReferences">
+        <MSBuild Projects="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Targets="_GetBuildOutputFilesWithTfm">
+          <Output TaskParameter="TargetOutputs" ItemName="BuildOutputInPackage" />
+        </MSBuild>
+    </Target>
+    <Target Name="GetBuildHostDebugSymbols">
+      <MSBuild Projects="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Targets="_GetDebugSymbolsWithTfm">
+        <Output TaskParameter="TargetOutputs" ItemName="_TargetPathsToSymbolsWithTfm" />
+      </MSBuild>
+    </Target>
 </Project>

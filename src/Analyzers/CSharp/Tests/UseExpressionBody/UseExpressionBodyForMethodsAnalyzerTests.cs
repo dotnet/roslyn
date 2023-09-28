@@ -517,6 +517,328 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69783")]
+        public async Task TestDirectives3()
+        {
+            var code = """
+                #define DEBUG
+                using System;
+
+                class Program
+                {
+                    void Method()
+                    {
+                #if DEBUG
+                        Console.WriteLine(0);
+                #else
+                        Console.WriteLine(1);
+                        Console.WriteLine(2);
+                #endif
+                    }
+                }
+                """;
+            await TestWithUseExpressionBody(code, code);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+        public async Task TestDirectives4()
+        {
+            var code = """
+                #define RELEASE
+                using System;
+
+                class Program
+                {
+                    {|IDE0022:void Method()
+                    {
+                #if DEBUG
+                        Console.WriteLine(0);
+                #else
+                        Console.WriteLine(1);
+                #endif
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                #define RELEASE
+                using System;
+
+                class Program
+                {
+                    void Method() =>
+                #if DEBUG
+                        Console.WriteLine(0);
+                #else
+                        Console.WriteLine(1);
+                #endif
+
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+        public async Task TestDirectives5()
+        {
+            var code = """
+                #define DEBUG
+                using System;
+
+                class Program
+                {
+                    {|IDE0022:void Method()
+                    {
+                #if DEBUG
+                        Console.WriteLine(0);
+                #else
+                        throw new System.NotImplementedException();
+                #endif
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                #define DEBUG
+                using System;
+
+                class Program
+                {
+                    void Method() =>
+                #if DEBUG
+                        Console.WriteLine(0);
+                #else
+                        throw new System.NotImplementedException();
+                #endif
+
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+        public async Task TestDirectives6()
+        {
+            var code = """
+                #define RELEASE
+                using System;
+
+                class Program
+                {
+                    {|IDE0022:void Method()
+                    {
+                #if DEBUG
+                        Console.WriteLine(0);
+                #else
+                        throw new System.NotImplementedException();
+                #endif
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                #define RELEASE
+                using System;
+
+                class Program
+                {
+                    void Method() =>
+                #if DEBUG
+                        Console.WriteLine(0);
+                #else
+                        throw new System.NotImplementedException();
+                #endif
+
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69783")]
+        public async Task TestDirectives7()
+        {
+            var code = """
+                #define DEBUG
+                using System;
+
+                class Program
+                {
+                    void Method()
+                    {
+                #if DEBUG
+                #endif
+                        Console.WriteLine(0);
+                    }
+                }
+                """;
+            await TestWithUseExpressionBody(code, code);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69783")]
+        public async Task TestDirectives8()
+        {
+            var code = """
+                #define DEBUG
+                using System;
+
+                class Program
+                {
+                    void Method()
+                    {
+                        Console.WriteLine(0);
+                #if DEBUG
+                #endif
+                    }
+                }
+                """;
+            await TestWithUseExpressionBody(code, code);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69783")]
+        public async Task TestDirectives9()
+        {
+            var code = """
+                #define DEBUG
+                using System;
+
+                class Program
+                {
+                    void Method()
+                    {
+                #if DEBUG
+                        Console.WriteLine(0);
+                #else
+                        Console.WriteLine(1);
+                #endif
+
+                #if DEBUG
+                #endif
+                    }
+                }
+                """;
+            await TestWithUseExpressionBody(code, code);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+        public async Task TestDirectives10()
+        {
+            var code = """
+                #define DEBUG
+                using System;
+
+                class Program
+                {
+                    {|IDE0022:void Method()
+                    {
+                #if DEBUG
+                        Console.WriteLine(0);
+                #elif RELEASE
+                        Console.WriteLine(1);
+                #else
+                        Console.WriteLine(2);
+                #endif
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                #define DEBUG
+                using System;
+
+                class Program
+                {
+                    void Method() =>
+                #if DEBUG
+                        Console.WriteLine(0);
+                #elif RELEASE
+                        Console.WriteLine(1);
+                #else
+                        Console.WriteLine(2);
+                #endif
+
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+        public async Task TestDirectives11()
+        {
+            var code = """
+                #define RELEASE
+                using System;
+
+                class Program
+                {
+                    {|IDE0022:void Method()
+                    {
+                #if DEBUG
+                        Console.WriteLine(0);
+                #elif RELEASE
+                        Console.WriteLine(1);
+                #else
+                        Console.WriteLine(2);
+                #endif
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                #define RELEASE
+                using System;
+
+                class Program
+                {
+                    void Method() =>
+                #if DEBUG
+                        Console.WriteLine(0);
+                #elif RELEASE
+                        Console.WriteLine(1);
+                #else
+                        Console.WriteLine(2);
+                #endif
+
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+        public async Task TestDirectives12()
+        {
+            var code = """
+                #define OTHER
+                using System;
+
+                class Program
+                {
+                    {|IDE0022:void Method()
+                    {
+                #if DEBUG
+                        Console.WriteLine(0);
+                #elif RELEASE
+                        Console.WriteLine(1);
+                #else
+                        Console.WriteLine(2);
+                #endif
+                    }|}
+                }
+                """;
+            var fixedCode = """
+                #define OTHER
+                using System;
+
+                class Program
+                {
+                    void Method() =>
+                #if DEBUG
+                        Console.WriteLine(0);
+                #elif RELEASE
+                        Console.WriteLine(1);
+                #else
+                        Console.WriteLine(2);
+                #endif
+
+                }
+                """;
+            await TestWithUseExpressionBody(code, fixedCode);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6()
         {

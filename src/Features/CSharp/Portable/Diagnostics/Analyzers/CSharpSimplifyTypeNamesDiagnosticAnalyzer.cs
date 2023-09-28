@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return simplifier.Diagnostics;
         }
 
-        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
+        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree)
         {
             var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
             if (ShouldSkipAnalysis(context.FilterTree, context.Options, GetAllNotifications(options)))

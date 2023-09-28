@@ -2,19 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
+
+internal partial class NavigateToHighlightReferenceCommandHandler
 {
-    internal partial class NavigateToHighlightReferenceCommandHandler
+    private sealed class StartComparer : IComparer<SnapshotSpan>
     {
-        private class StartComparer : IComparer<SnapshotSpan>
+        public static readonly StartComparer Instance = new();
+
+        private StartComparer()
         {
-            public int Compare(SnapshotSpan x, SnapshotSpan y)
-                => x.Start.CompareTo(y.Start);
         }
+
+        public int Compare(SnapshotSpan x, SnapshotSpan y)
+            => x.Start.CompareTo(y.Start);
     }
 }
