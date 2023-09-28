@@ -25,7 +25,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         }
 
         fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, fixAllContext.Progress, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
@@ -38,15 +38,15 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         }
 
         return await GetFixAllOperationsAsync(
-            codeAction, showPreviewChangesDialog, fixAllContext.ProgressTracker, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+            codeAction, showPreviewChangesDialog, fixAllContext.Progress, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
     }
 
     protected async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-            CodeAction codeAction,
-            bool showPreviewChangesDialog,
-            IProgressTracker progressTracker,
-            IFixAllState fixAllState,
-            CancellationToken cancellationToken)
+        CodeAction codeAction,
+        bool showPreviewChangesDialog,
+        IProgress<CodeAnalysisProgress> progressTracker,
+        IFixAllState fixAllState,
+        CancellationToken cancellationToken)
     {
         // We have computed the fix all occurrences code fix.
         // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
@@ -63,7 +63,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         cancellationToken.ThrowIfCancellationRequested();
         var newSolution = await codeAction.GetChangedSolutionInternalAsync(
-            fixAllState.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            fixAllState.Solution, progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (newSolution is null)
         {
