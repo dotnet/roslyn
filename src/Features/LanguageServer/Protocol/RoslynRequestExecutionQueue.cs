@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return defaultHandler;
             }
 
-            var language =  _lspWorkspaceManager.GetLanguageForUri(identifier.Uri);
+            var language = _lspWorkspaceManager.GetLanguageForUri(identifier.Uri);
 
             return handlers.SingleOrDefault(h => string.Equals(h.Metadata, language, StringComparison.OrdinalIgnoreCase))?.Value ?? defaultHandler;
         }

@@ -58,6 +58,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
             return Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, logger, hostServices);
         }
-
     }
 }
