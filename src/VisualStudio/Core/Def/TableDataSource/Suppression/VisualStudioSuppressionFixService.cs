@@ -373,7 +373,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     if (showPreviewChangesDialog)
                     {
-                        newSolution = FixAllGetFixesService.PreviewChanges(
+                        var fixAllService = newSolution.Services.GetRequiredService<IFixAllGetFixesService>();
+                        newSolution = fixAllService.PreviewChanges(
                             _workspace.CurrentSolution,
                             newSolution,
                             fixAllPreviewChangesTitle: title,

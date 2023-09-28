@@ -12,32 +12,21 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using StreamJsonRpc;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
-    /// <summary>
-    /// Resolves a code action by filling out its Edit property. The handler is triggered only when a user hovers over a
-    /// code action. This system allows the basic code action data to be computed quickly, and the complex data, to be
-    /// computed only when necessary (i.e. when hovering/previewing a code action).
-    /// <para>
-    /// This system only supports text edits to documents.  In the future, supporting complex edits (including changes to
-    /// project files) would be desirable.
-    /// </para>
-    /// </summary>
-    [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionResolveHandler)), Shared]
-    [Method(LSP.Methods.CodeActionResolveName)]
-    internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.CodeAction, LSP.CodeAction>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionFixAllResolveHandler)), Shared]
+    [Method("codeAction/resolveFixAll")]
+    internal class CodeActionFixAllResolveHandler : ILspServiceDocumentRequestHandler<RoslynFixAllCodeAction, RoslynFixAllCodeAction>
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -45,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionResolveHandler(
+        public CodeActionFixAllResolveHandler(
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             IGlobalOptionService globalOptions)
@@ -56,25 +45,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public bool MutatesSolutionState => false;
+
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeAction request)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynFixAllCodeAction request)
             => ((JToken)request.Data!).ToObject<CodeActionResolveData>()!.TextDocument;
 
-        public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
+        public async Task<RoslynFixAllCodeAction> HandleRequestAsync(RoslynFixAllCodeAction request, RequestContext context, CancellationToken cancellationToken)
         {
-            var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
-            Assumes.Present(data);
-
-            // Fix All Code Action does not need further resolution since it already has the command callback
-            // when the action is initially created.
-            if (data.FixAllFlavors is not null)
-            {
-                return codeAction;
-            }
-
             var document = context.GetRequiredDocument();
-            var solution = document.Project.Solution;
+            var data = ((JToken)request.Data!).ToObject<CodeActionResolveData>();
+            Assumes.Present(data);
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
@@ -84,19 +65,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 options,
                 _codeFixService,
                 _codeRefactoringService,
-                fixAllScope: null,
+                request.Scope,
                 cancellationToken).ConfigureAwait(false);
 
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(codeActionToResolve);
 
-            var operations = await codeActionToResolve.GetOperationsAsync(
-                solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+            var fixAllCodeAction = (FixAllCodeAction)codeActionToResolve;
+            Contract.ThrowIfNull(fixAllCodeAction);
 
+            var operations = await fixAllCodeAction.ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             var edit = await CodeActionResolveHelper.GetCodeActionResolveEditsAsync(context, data, operations, cancellationToken).ConfigureAwait(false);
 
-            codeAction.Edit = edit;
-            return codeAction;
+            request.Edit = edit;
+            return request;
         }
     }
 }
