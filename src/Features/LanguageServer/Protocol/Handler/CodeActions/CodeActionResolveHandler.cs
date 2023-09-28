@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             Assumes.Present(data);
 
+            // Fix All Code Action does not need further resolution since it already has the command callback
+            // when the action is initially created.
             if (data.FixAllFlavors is not null)
             {
                 return codeAction;
