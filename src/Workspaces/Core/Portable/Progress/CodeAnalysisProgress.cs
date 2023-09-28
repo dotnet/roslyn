@@ -55,22 +55,17 @@ public sealed class CodeAnalysisProgress
         };
 
     /// <summary>
-    /// By default, When passed to an appropriate <see cref="IProgress{T}"/>, will indicate that an item of work has
+    /// When passed to an appropriate <see cref="IProgress{T}"/>, will indicate that some items of work have
     /// transitioned from being incomplete (see <see cref="AddIncompleteItems"/> to complete.  This is commonly
     /// presented with a progress bar. An optional <paramref name="description"/> can also be provided to update the UI
     /// accordingly (see <see cref="Description"/>).
     /// </summary>
-    /// <remarks>
-    /// Multiple items of work can be transitioned to be complete by passing an explicit value to <paramref
-    /// name="count"/>.
-    /// </remarks>
-    /// <param name="count">The number of items that were completed.  Defaults to <c>1</c> for the trivial case where
-    /// only a single item has been completed.  Must be greater than or equal to 1.</param>
+    /// <param name="count">The number of items that were completed. Must be greater than or equal to 1.</param>
     /// <param name="description">Optional description to update the UI to.</param>
     /// <example>
     /// progress.Report(CodeAnalysisProgress.CompleteItem());
     /// </example>
-    public static CodeAnalysisProgress CompleteItem(int count = 1, string? description = null)
+    public static CodeAnalysisProgress CompleteItems(int count, string? description = null)
         => new()
         {
             CompleteItemValue = count >= 1 ? count : throw new ArgumentOutOfRangeException(nameof(count)),
@@ -97,8 +92,7 @@ internal sealed class CodeAnalysisProgressTracker(Action<string?, int, int>? upd
     private int _completedItems;
     private int _totalItems;
 
-    public CodeAnalysisProgressTracker()
-        : this(null)
+    public CodeAnalysisProgressTracker() : this(updateAction: null)
     {
     }
 

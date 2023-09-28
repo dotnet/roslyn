@@ -19,12 +19,12 @@ internal static class CodeAnalysisProgressExtensions
     /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
     /// </summary>
     public static void ItemCompleted(this IProgress<CodeAnalysisProgress> progress)
-        => progress.Report(CodeAnalysisProgress.CompleteItem());
+        => progress.Report(CodeAnalysisProgress.CompleteItems(count: 1));
 
     /// <summary>
     /// Opens a scope that will call <see cref="IProgress{T}.Report(T)"/> with an instance of <see
-    /// cref="CodeAnalysisProgress.CompleteItem"/> on <paramref name="progress"/> once disposed. This is useful to easily
-    /// wrap a series of operations and now that progress will be reported no matter how it completes.
+    /// cref="CodeAnalysisProgress.CompleteItems"/> on <paramref name="progress"/> once disposed. This is useful to
+    /// easily wrap a series of operations and now that progress will be reported no matter how it completes.
     /// </summary>
     public static ItemCompletedDisposer ItemCompletedScope(this IProgress<CodeAnalysisProgress> progress, string? description = null)
     {
@@ -37,6 +37,6 @@ internal static class CodeAnalysisProgressExtensions
     public readonly struct ItemCompletedDisposer(IProgress<CodeAnalysisProgress> progress) : IDisposable
     {
         public void Dispose()
-            => progress.Report(CodeAnalysisProgress.CompleteItem());
+            => progress.ItemCompleted();
     }
 }
