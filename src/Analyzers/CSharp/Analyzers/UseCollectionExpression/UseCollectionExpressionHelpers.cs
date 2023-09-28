@@ -512,7 +512,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         memberAccess = memberAccessExpression;
-        if (semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is not IMethodSymbol  { IsStatic: true } createMethod)
+        if (semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is not IMethodSymbol { IsStatic: true } createMethod)
             return false;
 
         if (semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol is not INamedTypeSymbol factoryType)
