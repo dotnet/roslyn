@@ -4278,54 +4278,57 @@ static class Program
                 """);
             verifier.VerifyIL("Program.Create2", """
                 {
-                  // Code size       30 (0x1e)
+                  // Code size       31 (0x1f)
                   .maxstack  3
-                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0005:  dup
-                  IL_0006:  ldc.i4.1
-                  IL_0007:  box        "int"
-                  IL_000c:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_0011:  dup
-                  IL_0012:  ldc.i4.2
-                  IL_0013:  box        "int"
-                  IL_0018:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_001d:  ret
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  newobj     "System.Collections.Generic.List<object>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  box        "int"
+                  IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0012:  dup
+                  IL_0013:  ldc.i4.2
+                  IL_0014:  box        "int"
+                  IL_0019:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_001e:  ret
                 }
                 """);
             verifier.VerifyIL("Program.Create3", """
                 {
-                  // Code size       27 (0x1b)
+                  // Code size       28 (0x1c)
                   .maxstack  3
-                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                  IL_0005:  dup
-                  IL_0006:  ldc.i4.3
-                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                  IL_000c:  dup
-                  IL_000d:  ldc.i4.4
-                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                  IL_0013:  dup
-                  IL_0014:  ldc.i4.5
-                  IL_0015:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                  IL_001a:  ret
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.3
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_000d:  dup
+                  IL_000e:  ldc.i4.4
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0014:  dup
+                  IL_0015:  ldc.i4.5
+                  IL_0016:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_001b:  ret
                 }
                 """);
             verifier.VerifyIL("Program.Create4", """
                 {
-                  // Code size       34 (0x22)
+                  // Code size       35 (0x23)
                   .maxstack  3
                   .locals init (long? V_0)
-                  IL_0000:  newobj     "System.Collections.Generic.List<long?>..ctor()"
-                  IL_0005:  dup
-                  IL_0006:  ldloca.s   V_0
-                  IL_0008:  initobj    "long?"
-                  IL_000e:  ldloc.0
-                  IL_000f:  callvirt   "void System.Collections.Generic.List<long?>.Add(long?)"
-                  IL_0014:  dup
-                  IL_0015:  ldc.i4.7
-                  IL_0016:  conv.i8
-                  IL_0017:  newobj     "long?..ctor(long)"
-                  IL_001c:  callvirt   "void System.Collections.Generic.List<long?>.Add(long?)"
-                  IL_0021:  ret
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  newobj     "System.Collections.Generic.List<long?>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  initobj    "long?"
+                  IL_000f:  ldloc.0
+                  IL_0010:  callvirt   "void System.Collections.Generic.List<long?>.Add(long?)"
+                  IL_0015:  dup
+                  IL_0016:  ldc.i4.7
+                  IL_0017:  conv.i8
+                  IL_0018:  newobj     "long?..ctor(long)"
+                  IL_001d:  callvirt   "void System.Collections.Generic.List<long?>.Add(long?)"
+                  IL_0022:  ret
                 }
                 """);
         }
@@ -5530,11 +5533,11 @@ static class Program
                                     int V_3,
                                     int V_4)
                       IL_0000:  ldarg.0
-                      IL_0001:  dup
-                      IL_0002:  ldlen
-                      IL_0003:  conv.i4
-                      IL_0004:  ldc.i4.0
-                      IL_0005:  stloc.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stloc.0
+                      IL_0003:  dup
+                      IL_0004:  ldlen
+                      IL_0005:  conv.i4
                       IL_0006:  newarr     "int"
                       IL_000b:  stloc.1
                       IL_000c:  stloc.2
@@ -5581,10 +5584,10 @@ static class Program
                                     int V_5)
                       IL_0000:  ldarg.0
                       IL_0001:  stloc.1
-                      IL_0002:  ldloca.s   V_1
-                      IL_0004:  call       "int System.ReadOnlySpan<int>.Length.get"
-                      IL_0009:  ldc.i4.0
-                      IL_000a:  stloc.2
+                      IL_0002:  ldc.i4.0
+                      IL_0003:  stloc.2
+                      IL_0004:  ldloca.s   V_1
+                      IL_0006:  call       "int System.ReadOnlySpan<int>.Length.get"
                       IL_000b:  newarr     "int"
                       IL_0010:  stloc.3
                       IL_0011:  ldloca.s   V_1
@@ -5672,13 +5675,13 @@ static class Program
                       IL_000a:  ldarg.0
                       IL_000b:  stloc.1
                       IL_000c:  stloc.2
-                      IL_000d:  ldloca.s   V_1
-                      IL_000f:  call       "int System.ReadOnlySpan<int>.Length.get"
-                      IL_0014:  ldloca.s   V_2
-                      IL_0016:  call       "int System.ReadOnlySpan<int>.Length.get"
-                      IL_001b:  add
-                      IL_001c:  ldc.i4.0
-                      IL_001d:  stloc.3
+                      IL_000d:  ldc.i4.0
+                      IL_000e:  stloc.3
+                      IL_000f:  ldloca.s   V_1
+                      IL_0011:  call       "int System.ReadOnlySpan<int>.Length.get"
+                      IL_0016:  ldloca.s   V_2
+                      IL_0018:  call       "int System.ReadOnlySpan<int>.Length.get"
+                      IL_001d:  add
                       IL_001e:  newarr     "int"
                       IL_0023:  stloc.s    V_4
                       IL_0025:  ldloca.s   V_1
@@ -5946,10 +5949,10 @@ static class Program
                                 int V_6,
                                 int V_7)
                   IL_0000:  ldarg.0
-                  IL_0001:  dup
-                  IL_0002:  callvirt   "int System.Array.Length.get"
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  stloc.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  callvirt   "int System.Array.Length.get"
                   IL_0009:  newarr     "int"
                   IL_000e:  stloc.1
                   IL_000f:  stloc.2
@@ -6037,11 +6040,11 @@ static class Program
                                 int V_3,
                                 int V_4)
                   IL_0000:  ldarg.0
-                  IL_0001:  dup
-                  IL_0002:  ldlen
-                  IL_0003:  conv.i4
-                  IL_0004:  ldc.i4.0
-                  IL_0005:  stloc.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  ldlen
+                  IL_0005:  conv.i4
                   IL_0006:  newarr     "object"
                   IL_000b:  stloc.1
                   IL_000c:  stloc.2
@@ -6085,11 +6088,11 @@ static class Program
                                 int V_3,
                                 int V_4)
                   IL_0000:  ldarg.0
-                  IL_0001:  dup
-                  IL_0002:  ldlen
-                  IL_0003:  conv.i4
-                  IL_0004:  ldc.i4.0
-                  IL_0005:  stloc.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  ldlen
+                  IL_0005:  conv.i4
                   IL_0006:  newarr     "long?"
                   IL_000b:  stloc.1
                   IL_000c:  stloc.2
@@ -6134,11 +6137,11 @@ static class Program
                                 int V_3,
                                 T V_4)
                   IL_0000:  ldarg.0
-                  IL_0001:  dup
-                  IL_0002:  ldlen
-                  IL_0003:  conv.i4
-                  IL_0004:  ldc.i4.0
-                  IL_0005:  stloc.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  ldlen
+                  IL_0005:  conv.i4
                   IL_0006:  newarr     "U"
                   IL_000b:  stloc.1
                   IL_000c:  stloc.2
@@ -6287,10 +6290,10 @@ static class Program
                                     System.Collections.Generic.List<dynamic>.Enumerator V_2,
                                     object V_3)
                       IL_0000:  ldarg.0
-                      IL_0001:  dup
-                      IL_0002:  callvirt   "int System.Collections.Generic.List<dynamic>.Count.get"
-                      IL_0007:  ldc.i4.0
-                      IL_0008:  stloc.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stloc.0
+                      IL_0003:  dup
+                      IL_0004:  callvirt   "int System.Collections.Generic.List<dynamic>.Count.get"
                       IL_0009:  newarr     "int"
                       IL_000e:  stloc.1
                       IL_000f:  callvirt   "System.Collections.Generic.List<dynamic>.Enumerator System.Collections.Generic.List<dynamic>.GetEnumerator()"
@@ -6573,13 +6576,13 @@ static class Program
                   IL_0000:  ldarg.0
                   IL_0001:  ldarg.1
                   IL_0002:  stloc.0
-                  IL_0003:  dup
-                  IL_0004:  callvirt   "int System.Collections.Generic.List<T>.Count.get"
-                  IL_0009:  ldloc.0
-                  IL_000a:  callvirt   "int System.Collections.Generic.List<T>.Count.get"
-                  IL_000f:  add
-                  IL_0010:  ldc.i4.0
-                  IL_0011:  stloc.1
+                  IL_0003:  ldc.i4.0
+                  IL_0004:  stloc.1
+                  IL_0005:  dup
+                  IL_0006:  callvirt   "int System.Collections.Generic.List<T>.Count.get"
+                  IL_000b:  ldloc.0
+                  IL_000c:  callvirt   "int System.Collections.Generic.List<T>.Count.get"
+                  IL_0011:  add
                   IL_0012:  newarr     "T"
                   IL_0017:  stloc.2
                   IL_0018:  callvirt   "System.Collections.Generic.List<T>.Enumerator System.Collections.Generic.List<T>.GetEnumerator()"
@@ -6727,17 +6730,17 @@ static class Program
                   IL_0049:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
                   IL_004e:  call       "System.Collections.Generic.List<int> Program.Identity<System.Collections.Generic.List<int>>(string, System.Collections.Generic.List<int>)"
                   IL_0053:  stloc.2
-                  IL_0054:  ldloc.0
-                  IL_0055:  ldlen
-                  IL_0056:  conv.i4
-                  IL_0057:  ldloc.1
-                  IL_0058:  callvirt   "int System.Array.Length.get"
-                  IL_005d:  add
-                  IL_005e:  ldloc.2
-                  IL_005f:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
-                  IL_0064:  add
-                  IL_0065:  ldc.i4.0
-                  IL_0066:  stloc.3
+                  IL_0054:  ldc.i4.0
+                  IL_0055:  stloc.3
+                  IL_0056:  ldloc.0
+                  IL_0057:  ldlen
+                  IL_0058:  conv.i4
+                  IL_0059:  ldloc.1
+                  IL_005a:  callvirt   "int System.Array.Length.get"
+                  IL_005f:  add
+                  IL_0060:  ldloc.2
+                  IL_0061:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
+                  IL_0066:  add
                   IL_0067:  newarr     "int"
                   IL_006c:  stloc.s    V_4
                   IL_006e:  ldloc.0
@@ -7010,6 +7013,122 @@ static class Program
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
                 expectedOutput: IncludeExpectedOutput(expectedOutput));
+        }
+
+        [Fact]
+        public void KnownLength_List()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = F0();
+                        var y = F1();
+                        var z = F2(y);
+                        z.Report();
+                    }
+                    static List<int> F0() => [];
+                    static List<int> F1() => [1, 2, 3];
+                    static List<object> F2(List<int> c) => [4, ..c];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "[4, 1, 2, 3], ");
+            verifier.VerifyIL("Program.F0", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F1", """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_000d:  dup
+                  IL_000e:  ldc.i4.2
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_0014:  dup
+                  IL_0015:  ldc.i4.3
+                  IL_0016:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_001b:  ret
+                }
+                """);
+            // Ideally, should use .ctor(int capacity) since the spread has known length.
+            verifier.VerifyIL("Program.F2", """
+                {
+                  // Code size       74 (0x4a)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.Generic.List<int>.Enumerator V_1,
+                                int V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldc.i4.4
+                  IL_0008:  box        "int"
+                  IL_000d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_0012:  ldarg.0
+                  IL_0013:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
+                  IL_0018:  stloc.1
+                  .try
+                  {
+                    IL_0019:  br.s       IL_002f
+                    IL_001b:  ldloca.s   V_1
+                    IL_001d:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
+                    IL_0022:  stloc.2
+                    IL_0023:  ldloc.0
+                    IL_0024:  ldloc.2
+                    IL_0025:  box        "int"
+                    IL_002a:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_002f:  ldloca.s   V_1
+                    IL_0031:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
+                    IL_0036:  brtrue.s   IL_001b
+                    IL_0038:  leave.s    IL_0048
+                  }
+                  finally
+                  {
+                    IL_003a:  ldloca.s   V_1
+                    IL_003c:  constrained. "System.Collections.Generic.List<int>.Enumerator"
+                    IL_0042:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0047:  endfinally
+                  }
+                  IL_0048:  ldloc.0
+                  IL_0049:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void KnownLength_List_MissingConstructor()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        List<int> x = [];
+                        List<int> y = [1, 2, 3];
+                        List<object> z = [4, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ctorInt32);
+            comp.VerifyEmitDiagnostics(
+                // (7,23): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         List<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 23));
         }
 
         [Fact]
@@ -9100,7 +9219,7 @@ partial class Program
             verifier.VerifyIL("B..ctor(int, int, int)",
                 """
                 {
-                  // Code size       33 (0x21)
+                  // Code size       34 (0x22)
                   .maxstack  5
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.2
@@ -9113,12 +9232,13 @@ partial class Program
                   IL_000c:  ldc.i4.1
                   IL_000d:  ldarg.3
                   IL_000e:  stelem.i4
-                  IL_000f:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                  IL_0014:  dup
-                  IL_0015:  ldarg.3
-                  IL_0016:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
-                  IL_001b:  call       "A..ctor(int[], System.Collections.Generic.List<int>)"
-                  IL_0020:  ret
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0015:  dup
+                  IL_0016:  ldarg.3
+                  IL_0017:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_001c:  call       "A..ctor(int[], System.Collections.Generic.List<int>)"
+                  IL_0021:  ret
                 }
                 """);
         }
@@ -15516,11 +15636,11 @@ partial class Program
                                     int V_3,
                                     T V_4)
                       IL_0000:  ldarg.2
-                      IL_0001:  dup
-                      IL_0002:  ldlen
-                      IL_0003:  conv.i4
-                      IL_0004:  ldc.i4.0
-                      IL_0005:  stloc.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stloc.0
+                      IL_0003:  dup
+                      IL_0004:  ldlen
+                      IL_0005:  conv.i4
                       IL_0006:  newarr     "T"
                       IL_000b:  stloc.1
                       IL_000c:  stloc.2
@@ -16395,11 +16515,11 @@ partial class Program
                   IL_0008:  ldarg.0
                   IL_0009:  brfalse.s  IL_0049
                   IL_000b:  ldarg.1
-                  IL_000c:  dup
-                  IL_000d:  ldlen
-                  IL_000e:  conv.i4
-                  IL_000f:  ldc.i4.0
-                  IL_0010:  stloc.1
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  stloc.1
+                  IL_000e:  dup
+                  IL_000f:  ldlen
+                  IL_0010:  conv.i4
                   IL_0011:  newarr     "T"
                   IL_0016:  stloc.2
                   IL_0017:  stloc.3
@@ -16851,12 +16971,12 @@ partial class Program
                   IL_002b:  ldc.i4.2
                   IL_002c:  call       "InlineArrayAsSpan<<>y__InlineArray2<int?>, int?>(ref <>y__InlineArray2<int?>, int)"
                   IL_0031:  stloc.2
-                  IL_0032:  ldc.i4.1
-                  IL_0033:  ldloca.s   V_2
-                  IL_0035:  call       "int System.Span<int?>.Length.get"
-                  IL_003a:  add
-                  IL_003b:  ldc.i4.0
-                  IL_003c:  stloc.3
+                  IL_0032:  ldc.i4.0
+                  IL_0033:  stloc.3
+                  IL_0034:  ldc.i4.1
+                  IL_0035:  ldloca.s   V_2
+                  IL_0037:  call       "int System.Span<int?>.Length.get"
+                  IL_003c:  add
                   IL_003d:  newarr     "object"
                   IL_0042:  stloc.s    V_4
                   IL_0044:  ldloca.s   V_2

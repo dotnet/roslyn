@@ -133,13 +133,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
 
-            var rewrittenReceiver = VisitExpression(node.CollectionCreation);
+            var elements = node.Elements;
+            BoundExpression? rewrittenReceiver;
+
+            // If the collection type is List<T> and there are no spread elements, use .ctor(int capacity).
+            // We should expand this optimization to allow spread elements with known length as well.
+            if (ShouldUseKnownLength(node, out int numberIncludingLastSpread) &&
+                numberIncludingLastSpread == 0 &&
+                elements.Length > 0 &&
+                collectionType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T)))
+            {
+                // List<ElementType> list = new(N + s1.Length + ...);
+                var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember((NamedTypeSymbol)collectionType);
+                var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
+                rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
+                localsBuilder.Free();
+            }
+            else
+            {
+                rewrittenReceiver = VisitExpression(node.CollectionCreation);
+            }
+
             Debug.Assert(rewrittenReceiver is { });
 
             // Create a temp for the collection.
             BoundAssignmentOperator assignmentToTemp;
             BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
-            var elements = node.Elements;
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
             sideEffects.Add(assignmentToTemp);
 
@@ -441,11 +460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
-            // int length = N + s1.Length + ...;
-            BoundLocal lengthTemp = _factory.StoreToTemp(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
-            localsBuilder.Add(lengthTemp);
-            sideEffects.Add(assignmentToTemp);
-
             // int index = 0;
             BoundLocal indexTemp = _factory.StoreToTemp(
                 _factory.Literal(0),
@@ -454,9 +468,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             localsBuilder.Add(indexTemp);
             sideEffects.Add(assignmentToTemp);
 
-            // ElementType[] array = new ElementType[length];
+            // ElementType[] array = new ElementType[N + s1.Length + ...];
             BoundLocal arrayTemp = _factory.StoreToTemp(
-                new BoundArrayCreation(syntax, ImmutableArray.Create<BoundExpression>(lengthTemp), initializerOpt: null, arrayType),
+                new BoundArrayCreation(syntax,
+                    ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)),
+                    initializerOpt: null,
+                    arrayType),
                 out assignmentToTemp,
                 isKnownToReferToTempIfReferenceType: true);
             localsBuilder.Add(arrayTemp);
@@ -642,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GetKnownLengthExpression(ImmutableArray<BoundExpression> elements, int numberIncludingLastSpread, ArrayBuilder<BoundLocal> rewrittenExpressions)
         {
-            Debug.Assert(rewrittenExpressions.Count == numberIncludingLastSpread);
+            Debug.Assert(rewrittenExpressions.Count >= numberIncludingLastSpread);
 
             int initialLength = 0;
             BoundExpression? sum = null;
