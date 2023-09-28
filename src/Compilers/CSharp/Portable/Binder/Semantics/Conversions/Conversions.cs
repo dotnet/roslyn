@@ -177,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
             {
+                // The constructor check logic needs to be rectified
+                // See details in tracking issue https://github.com/dotnet/roslyn/issues/70182
                 if (!_binder.TryBindIEnumerableCollectionInstance(targetType, syntax, BindingDiagnosticBag.Discarded, out var collectionCreation)
                     || collectionCreation.HasAnyErrors)
                 {
