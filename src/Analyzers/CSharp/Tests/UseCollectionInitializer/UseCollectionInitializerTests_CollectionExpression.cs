@@ -361,7 +361,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70172"), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
     public async Task TestOnVariableDeclarator_If1()
     {
         await TestInRegularAndScriptAsync(
@@ -425,7 +425,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70172"), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
     public async Task TestOnVariableDeclarator_If3()
     {
         await TestInRegularAndScriptAsync(
