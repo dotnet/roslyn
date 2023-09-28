@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //
             // goo.Baz<|
             //
-            // This could either be an incomlete generic type or method, or a binary less than operator
+            // This could either be an incomplete generic type or method, or a binary less than operator
             // To ensure that we are in the generic case, we need to match at least one generic method or type,
             // and all other candidates to be types or methods.
             var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
@@ -1036,6 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     _ => false,
                 };
             });
+
             if (!anyGeneric)
                 return false;
 
