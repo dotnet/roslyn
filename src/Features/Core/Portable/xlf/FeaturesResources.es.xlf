@@ -785,6 +785,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">'Buscar todas las referencias' no invocado en el símbolo aplicable</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corregir error de escritura "{0}"</target>

@@ -71,6 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool SupportsTupleDeconstruction(ParseOptions options)
             => options.LanguageVersion() >= LanguageVersion.CSharp7;
 
+        // Should be supported in C# 13.
+        public bool SupportsCollectionExpressionNaturalType(ParseOptions options)
+            => false;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
