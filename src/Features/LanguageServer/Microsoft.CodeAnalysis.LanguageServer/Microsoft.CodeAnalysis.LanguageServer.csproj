@@ -75,6 +75,13 @@
     <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworksVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+
+    <!--
+      Ensure we include the sqlite assemblies and their native dependencies in our package to enable persistent storage.
+    -->
+    <PackageReference Include="SQLitePCLRaw.core" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SQLitePCLRawbundle_greenVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -129,20 +136,13 @@
     <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433; we pass
          BuildInParallel="false" to avoid multiple builds potentially building the same project at the same time, but since we
          expect the builds to have completed by this point they should be fast.  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
-             Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
-             BuildInParallel="false"
-             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework);RuntimeIdentifier=">
+    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)" Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup" BuildInParallel="false" Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework);RuntimeIdentifier=">
       <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
     </MSBuild>
 
     <ItemGroup>
       <!-- We set Pack="false" because we only care about the RID-specific folders -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
-               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               Pack="false"
-               TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
-               CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="%(NetFrameworkBuildHostAssets.Identity)" Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'" Pack="false" TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 
