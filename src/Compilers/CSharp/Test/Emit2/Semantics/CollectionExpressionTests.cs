@@ -7063,6 +7063,83 @@ static class Program
                     """));
         }
 
+        [Fact]
+        public void SpreadElement_LengthObsolete()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private object[] _items;
+                    public MyCollection(object[] items) { _items = items; }
+                    [Obsolete(null, error: true)] public int Count => _items.Length;
+                    IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [];
+                        MyCollection y = new([1, 2, 3]);
+                        object[] z = [..x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (17,30): warning CS0612: 'MyCollection.Count' is obsolete
+                //         object[] z = [..x, ..y];
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "y").WithArguments("MyCollection.Count").WithLocation(17, 30));
+        }
+
+        [Fact]
+        public void SpreadElement_LengthUseSiteError()
+        {
+            string assemblyA = GetUniqueName();
+            string sourceA = """
+                public class A
+                {
+                }
+                """;
+            var comp = CreateCompilation(sourceA, assemblyName: assemblyA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Collections;
+                public class B : A
+                {
+                    private object[] _items;
+                    public B(object[] items) { _items = items; }
+                    public IEnumerator GetEnumerator() => _items.GetEnumerator();
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            string sourceC = """
+                class C
+                {
+                    static object[] F(B b) => [..b];
+                }
+                """;
+            comp = CreateCompilation(sourceC, references: new[] { refA, refB });
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceC, references: new[] { refB });
+            comp.VerifyEmitDiagnostics(
+                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static object[] F(B b) => [..b];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34),
+                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static object[] F(B b) => [..b];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34),
+                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static object[] F(B b) => [..b];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34));
+        }
+
         [CombinatorialData]
         [Theory]
         public void ArrayEmpty_01([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)

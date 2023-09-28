@@ -6,6 +6,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundCollectionExpressionBase
     {
+        /// <summary>
+        /// Returns true if the collection expression contains any spreads.
+        /// </summary>
+        /// <param name="numberIncludingLastSpread">The number of elements up to and including the
+        /// last spread element. If the length of the collection expression is known, this is the number
+        /// of elements evaluated before any are added to the collection instance in lowering.</param>
+        /// <param name="hasKnownLength">True if all the spread elements are countable.</param>
         internal bool HasSpreadElements(out int numberIncludingLastSpread, out bool hasKnownLength)
         {
             hasKnownLength = true;

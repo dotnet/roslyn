@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Binder.Error(diagnostics, ErrorCode.ERR_BadAttributeArgument, node.Syntax);
                     attrHasErrors = true;
-                    return new TypedConstant(spread.Expression.Type, TypedConstantKind.Error, null);
+                    return new TypedConstant(spread.Expression.Type, TypedConstantKind.Error, value: null);
                 }
                 return VisitExpression(node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
             }
