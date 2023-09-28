@@ -785,6 +785,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">未对适用的符号调用“查找所有引用”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">修正笔误“{0}”</target>

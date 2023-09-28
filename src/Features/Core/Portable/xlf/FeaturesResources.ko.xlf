@@ -785,6 +785,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">해당 기호에서 '모든 참조 찾기'가 호출되지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">오타 '{0}' 수정</target>

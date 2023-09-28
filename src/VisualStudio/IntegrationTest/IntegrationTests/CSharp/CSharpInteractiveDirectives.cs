@@ -169,7 +169,7 @@ Process.GetCurrentProcess().ProcessName");
 REPL commands:
   #cls, #clear         Clears the contents of the editor window, leaving history and execution context intact.
   #help                Display help on specified command, or all available commands and key bindings if none specified.
-  #reset               Reset the execution environment to the initial state, keep history.
+  #reset               Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.
 Script directives:
   #r                   Add a metadata reference to specified assembly and all its dependencies, e.g. #r ""myLib.dll"".
   #load                Load specified script file and execute it, e.g. #load ""myScript.csx"".");
@@ -263,12 +263,12 @@ public static void Main(string[] args)
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("13.1");
             VisualStudio.InteractiveWindow.SubmitText("double M() { return M(); }");
             VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Stack overflow.");
             VisualStudio.InteractiveWindow.SubmitText("M()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");
             VisualStudio.InteractiveWindow.SubmitText("double M() { return M(); }");
             VisualStudio.InteractiveWindow.SubmitText("M()");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("Stack overflow.");
             VisualStudio.InteractiveWindow.SubmitText("double M() { return 13.2; }");
             VisualStudio.InteractiveWindow.SubmitText("M()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("13.2");
@@ -282,6 +282,9 @@ public static void Main(string[] args)
 Loading context from 'CSharpInteractive.rsp'.");
             VisualStudio.InteractiveWindow.SubmitText("#reset noconfig");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("Resetting execution engine.");
+            VisualStudio.InteractiveWindow.SubmitText("#reset 64");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput(@"Resetting execution engine.
+Loading context from 'CSharpInteractive.rsp'.");
         }
     }
 }
