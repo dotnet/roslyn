@@ -104,7 +104,6 @@ internal partial class SolutionState
             var projectId = this.ProjectState.Id;
             var infosOpt = await connection.TryInvokeAsync(
                 solution,
-                this.ProjectState.Id,
                 (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, this.ProjectState.Id, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
