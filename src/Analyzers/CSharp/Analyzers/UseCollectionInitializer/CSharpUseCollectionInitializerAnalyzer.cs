@@ -64,13 +64,11 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             return false;
         }
 
-        var individualElementCount = 0;
-        var initializer = _objectCreationExpression.Initializer;
-        if (initializer != null)
-            individualElementCount += initializer.Expressions.Count;
+        // The original collection could have been passed elements explicitly in its initializer.  Ensure we account for
+        // that as well.
+        var individualElementCount = _objectCreationExpression.Initializer?.Expressions.Count ?? 0;
 
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var spreadElements);
-
         foreach (var match in matches)
         {
             switch (match.Statement)
