@@ -645,6 +645,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_ITuple:
                     case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
                     case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_CollectionsMarshal:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -1057,6 +1058,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
+                    case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:
+                    case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T:
                         // Not always available.
                         continue;
                 }

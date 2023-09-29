@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (collectionTypeKind == CollectionExpressionTypeKind.ListInterface ||
+                if ((collectionTypeKind is CollectionExpressionTypeKind.ListInterface or CollectionExpressionTypeKind.List) ||
                     node.HasSpreadElements(out _, out _))
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
@@ -664,7 +664,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // gives a consistent behavior, regardless of collection expression elements.
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
+
+                    if (collectionTypeKind is CollectionExpressionTypeKind.List)
+                    {
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
+                    }
+                    else
+                    {
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
+                    }
                 }
 
                 var elementConversions = conversion.UnderlyingConversions;

@@ -613,6 +613,9 @@ namespace Microsoft.CodeAnalysis
         System_Collections_Generic_List_T__IndexOf,
         System_Collections_Generic_List_T__ToArray,
 
+        System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+        System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

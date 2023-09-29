@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
+                    case CollectionExpressionTypeKind.List:
+                        return CreateAndPopulateList(node, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return VisitCollectionBuilderCollectionExpression(node);
                     case CollectionExpressionTypeKind.ListInterface:
@@ -134,25 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
 
             var elements = node.Elements;
-            BoundExpression? rewrittenReceiver;
-
-            // If the collection type is List<T> and there are no spread elements, use .ctor(int capacity).
-            // We should expand this optimization to allow spread elements with known length as well.
-            if (ShouldUseKnownLength(node, out int numberIncludingLastSpread) &&
-                numberIncludingLastSpread == 0 &&
-                elements.Length > 0 &&
-                collectionType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T)))
-            {
-                // List<ElementType> list = new(N + s1.Length + ...);
-                var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember((NamedTypeSymbol)collectionType);
-                var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
-                rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
-                localsBuilder.Free();
-            }
-            else
-            {
-                rewrittenReceiver = VisitExpression(node.CollectionCreation);
-            }
+            var rewrittenReceiver = VisitExpression(node.CollectionCreation);
 
             Debug.Assert(rewrittenReceiver is { });
 
@@ -485,9 +469,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsBuilder,
                 numberIncludingLastSpread,
                 sideEffects,
-                (ArrayBuilder<BoundExpression> expressions, BoundExpression receiver, BoundExpression rewrittenValue) =>
+                (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue) =>
                 {
-                    addArrayElement(expressions, receiver, indexTemp, rewrittenValue);
+                    Debug.Assert(arrayTemp.Type is ArrayTypeSymbol);
+                    Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
+
+                    var expressionSyntax = rewrittenValue.Syntax;
+                    var elementType = ((ArrayTypeSymbol)arrayTemp.Type).ElementType;
+
+                    // array[index] = element;
+                    expressions.Add(
+                        new BoundAssignmentOperator(
+                            expressionSyntax,
+                            _factory.ArrayAccess(arrayTemp, indexTemp),
+                            rewrittenValue,
+                            isRef: false,
+                            elementType));
+                    // index = index + 1;
+                    expressions.Add(
+                        new BoundAssignmentOperator(
+                            expressionSyntax,
+                            indexTemp,
+                            _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                            isRef: false,
+                            indexTemp.Type));
                 });
 
             var locals = localsBuilder.SelectAsArray(l => l.LocalSymbol);
@@ -499,32 +504,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.ToImmutableAndFree(),
                 arrayTemp,
                 arrayType);
-
-            void addArrayElement(ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression indexTemp, BoundExpression rewrittenValue)
-            {
-                Debug.Assert(arrayTemp.Type is ArrayTypeSymbol);
-                Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
-
-                var expressionSyntax = rewrittenValue.Syntax;
-                var elementType = ((ArrayTypeSymbol)arrayTemp.Type).ElementType;
-
-                // array[index] = element;
-                expressions.Add(
-                    new BoundAssignmentOperator(
-                        expressionSyntax,
-                        _factory.ArrayAccess(arrayTemp, indexTemp),
-                        rewrittenValue,
-                        isRef: false,
-                        elementType));
-                // index = index + 1;
-                expressions.Add(
-                    new BoundAssignmentOperator(
-                        expressionSyntax,
-                        indexTemp,
-                        _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
-                        isRef: false,
-                        indexTemp.Type));
-            }
         }
 
         /// <summary>
@@ -538,7 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Placeholder is null);
 
             var elements = node.Elements;
-            var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(ImmutableArray.Create(elementType));
+            var typeArguments = ImmutableArray.Create(elementType);
+            var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArguments);
 
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
@@ -547,8 +527,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
             RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
+            bool useOptimizations = false;
+            MethodSymbol? setCount = null;
+            MethodSymbol? asSpan = null;
+
+            // Do not use optimizations in async method since the optimizations require Span<T>.
+            if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)
+            {
+                setCount = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T))?.Construct(typeArguments);
+                asSpan = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T))?.Construct(typeArguments);
+
+                if (setCount is { } && asSpan is { })
+                {
+                    useOptimizations = true;
+                }
+            }
+
             BoundObjectCreationExpression rewrittenReceiver;
-            if (useKnownLength && elements.Length > 0)
+            if (useKnownLength && elements.Length > 0 && !useOptimizations)
             {
                 // List<ElementType> list = new(N + s1.Length + ...);
                 var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
@@ -567,19 +563,80 @@ namespace Microsoft.CodeAnalysis.CSharp
             localsBuilder.Add(listTemp);
             sideEffects.Add(assignmentToTemp);
 
-            var addMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__Add)).AsMember(collectionType);
-            AddCollectionExpressionElements(
-                elements,
-                listTemp,
-                localsBuilder,
-                numberIncludingLastSpread,
-                sideEffects,
-                (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue) =>
-                {
-                    // list.Add(element);
-                    expressions.Add(
-                        _factory.Call(listTemp, addMethod, rewrittenValue));
-                });
+            // Use Span<T> if CollectionsMarshal methods are available, otherwise use List<T>.Add().
+            if (useOptimizations)
+            {
+                Debug.Assert(useKnownLength);
+                Debug.Assert(setCount is { });
+                Debug.Assert(asSpan is { });
+
+                // CollectionsMarshal.SetCount<ElementType>(list, N + s1.Length + ...);
+                sideEffects.Add(_factory.Call(receiver: null, setCount, listTemp, GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
+
+                // var span = CollectionsMarshal.AsSpan<ElementType(list);
+                BoundLocal spanTemp = _factory.StoreToTemp(_factory.Call(receiver: null, asSpan, listTemp), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+                localsBuilder.Add(spanTemp);
+                sideEffects.Add(assignmentToTemp);
+
+                // Populate the span.
+                var spanGetItem = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item)).AsMember((NamedTypeSymbol)spanTemp.Type);
+
+                // int index = 0;
+                BoundLocal indexTemp = _factory.StoreToTemp(
+                    _factory.Literal(0),
+                    out assignmentToTemp,
+                    isKnownToReferToTempIfReferenceType: true);
+                localsBuilder.Add(indexTemp);
+                sideEffects.Add(assignmentToTemp);
+
+                AddCollectionExpressionElements(
+                    elements,
+                    spanTemp,
+                    localsBuilder,
+                    numberIncludingLastSpread,
+                    sideEffects,
+                    (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue) =>
+                    {
+                        Debug.Assert(spanTemp.Type is NamedTypeSymbol);
+                        Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
+
+                        var expressionSyntax = rewrittenValue.Syntax;
+                        var elementType = ((NamedTypeSymbol)spanTemp.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+
+                        // span[index] = element;
+                        expressions.Add(
+                            new BoundAssignmentOperator(
+                                expressionSyntax,
+                                _factory.Call(spanTemp, spanGetItem, indexTemp),
+                                rewrittenValue,
+                                isRef: false,
+                                elementType));
+                        // index = index + 1;
+                        expressions.Add(
+                            new BoundAssignmentOperator(
+                                expressionSyntax,
+                                indexTemp,
+                                _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                                isRef: false,
+                                indexTemp.Type));
+                    });
+            }
+            else
+            {
+                var addMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__Add)).AsMember(collectionType);
+                AddCollectionExpressionElements(
+                    elements,
+                    listTemp,
+                    localsBuilder,
+                    numberIncludingLastSpread,
+                    sideEffects,
+                    (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue) =>
+                    {
+                        // list.Add(element);
+                        expressions.Add(
+                            _factory.Call(listTemp, addMethod, rewrittenValue));
+                    });
+            }
 
             var locals = localsBuilder.SelectAsArray(l => l.LocalSymbol);
             localsBuilder.Free();

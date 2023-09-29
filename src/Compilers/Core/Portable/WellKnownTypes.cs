@@ -313,6 +313,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
         System_Runtime_InteropServices_MemoryMarshal,
+        System_Runtime_InteropServices_CollectionsMarshal,
 
         System_Text_StringBuilder,
 
@@ -640,6 +641,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
             "System.Runtime.InteropServices.MemoryMarshal",
+            "System.Runtime.InteropServices.CollectionsMarshal",
 
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
