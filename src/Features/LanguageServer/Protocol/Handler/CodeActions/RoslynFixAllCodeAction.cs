@@ -6,12 +6,11 @@ using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+
+[DataContract]
+internal sealed class RoslynFixAllCodeAction(string scope) : CodeAction
 {
-    [DataContract]
-    internal class RoslynFixAllCodeAction(string scope) : CodeAction
-    {
-        [JsonProperty(PropertyName = "scope")]
-        public string Scope { get; } = scope;
-    }
+    [JsonProperty(PropertyName = "scope")]
+    public string Scope { get; } = scope;
 }
