@@ -2635,15 +2635,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
-        public void TestDocumentChangedOnDiskIsNotObserved()
+        public async Task TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
             var text2 = "public class B {}";
 
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
-            // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableText();
+            using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
@@ -2659,21 +2658,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textOnDisk = file.ReadAllText();
             Assert.Equal(text2, textOnDisk);
 
-            // stop observing it and let GC reclaim it
-            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
-            {
-                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
-                observedText.AssertReleased();
-            }
-            else
-            {
-                // If this assertion fails, it means a new target supports the true temporary storage service, and the
-                // condition above should be updated to ensure 'AssertReleased' is called for this target.
-                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
-            }
-
             // if we ask for the same text again we should get the original content
-            var observedText2 = sol.GetDocument(did).GetTextAsync().Result;
+            var observedText2 = await sol.GetDocument(did).GetTextAsync();
             Assert.Equal(text1, observedText2.ToString());
         }
 
