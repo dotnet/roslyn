@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -211,11 +213,6 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
             // Don't bother analyzing for the collection expression case if the lang/version doesn't even support it.
             if (!this.AreCollectionExpressionsSupported(context.Compilation))
-                return null;
-
-            // TODO: support updating if there is a single 'int capacity' argument provided.
-            var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
-            if (arguments.Count != 0)
                 return null;
 
             var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
