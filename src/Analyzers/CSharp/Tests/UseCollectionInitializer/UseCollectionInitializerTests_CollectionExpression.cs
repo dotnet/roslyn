@@ -4493,6 +4493,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
+            using System.Linq;
 
             class C
             {
@@ -4508,10 +4509,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """,
             """
             using System.Collections.Generic;
+            using System.Linq;
 
             class C
             {
-                void M(int[] x, IList<int> y)
+                void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [0, .. x, .. y, 1];
                 }
@@ -4525,12 +4527,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
+            using System.Linq;
 
             class C
             {
                 void M(int[] x, IEnumerable<int> y)
                 {
-                    List<int> c = [|new|] List<int>(x.Length + y.Count() + 2) { 0, 1 }
+                    List<int> c = [|new|] List<int>(x.Length + y.Count() + 2) { 0, 1 };
                     [|c.AddRange(|]x);
                     [|c.AddRange(|]y);
                 }
@@ -4538,10 +4541,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """,
             """
             using System.Collections.Generic;
+            using System.Linq;
 
             class C
             {
-                void M(int[] x, IList<int> y)
+                void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [0, 1, .. x, .. y];
                 }
@@ -4586,6 +4590,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
+            using System.Linq;
 
             class C
             {
@@ -4593,18 +4598,19 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>(1 + x.Length + y.Count() + 1);
                     [|c.Add(|]0);
-                    [|c.AddRange|](x);
-                    [|c.AddRange|](y);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
                     [|c.Add(|]1);
                 }
             }
             """,
             """
             using System.Collections.Generic;
+            using System.Linq;
 
             class C
             {
-                void M(int[] x, IList<int> y)
+                void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [0, .. x, .. y, 1];
                 }
@@ -4618,6 +4624,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         await TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
+            using System.Linq;
 
             class C
             {
@@ -4704,6 +4711,39 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = new List<int>(x);
                     c.Add(0);
                     c.AddRange(y);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity20()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + y.Count() + 2) { 0 };
+                    [|c.Add(|]1);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [0, 1, .. x, .. y];
                 }
             }
             """);
