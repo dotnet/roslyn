@@ -85,7 +85,6 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
 
                 case ForEachStatementSyntax foreachStatement:
                     // foreach (var v in expr) x.Add(v).  Have to make sure we see expr.Count in the capacity list.
-
                     spreadElements.Add(foreachStatement.Expression);
                     continue;
 
