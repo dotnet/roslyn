@@ -4823,4 +4823,40 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             }
             """);
     }
+
+    [Fact]
+    public async Task TestCapacity21()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 + y.Count());
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = new List<int>(1 + y.Count())
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                }
+            }
+            """);
+    }
 }
