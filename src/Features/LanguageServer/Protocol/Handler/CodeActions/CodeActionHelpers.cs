@@ -400,13 +400,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             // actions may have the same title (e.g. there could be multiple code actions with
             // the title "Warning" that appear in the code action menu if there are multiple
             // diagnostics on the same line).
-            foreach (var c in codeActions)
+            foreach (var codeAction in codeActions)
             {
-                var action = CheckForMatchingAction(c, distinctTitle);
+                var action = CheckForMatchingAction(codeAction, distinctTitle);
                 if (action != null)
-                {
                     return action;
-                }
             }
 
             return null;
