@@ -70,7 +70,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         if (initializer != null)
             individualElementCount += initializer.Expressions.Count;
 
-        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var spreadElements);
+        using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var spreadElements);
 
         foreach (var match in matches)
         {
@@ -80,7 +80,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
                     // x.AddRange(y).  Have to make sure we see y.Count in the capacity list.
                     // x.Add(y, z).  Increment the total number of elements by the arg count.
                     if (match.UseSpread)
-                        spreadElements.Add(invocation.ArgumentList.Arguments[0]);
+                        spreadElements.Add(invocation.ArgumentList.Arguments[0].Expression);
                     else
                         individualElementCount += invocation.ArgumentList.Arguments.Count;
 
