@@ -105,9 +105,11 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -136,22 +138,22 @@ class C1 : CodeFixProvider
 
             var expected = new[]
             {
-                // Test0.cs(21,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(21, 29),
-                // Test0.cs(22,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(22, 29),
                 // Test0.cs(23,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
                 GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(23, 29),
-                // Test0.cs(26,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(26, 29),
-                // Test0.cs(27,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(27, 29),
+                // Test0.cs(24,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(24, 29),
+                // Test0.cs(25,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(25, 29),
                 // Test0.cs(28,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(28, 29)
+                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(28, 29),
+                // Test0.cs(29,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(29, 29),
+                // Test0.cs(30,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(30, 29)
             };
 
-            // Test0.cs(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
+            // Test0.cs(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
             await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
 
@@ -162,9 +164,11 @@ class C1 : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -211,60 +215,24 @@ class C1 : CodeFixProvider
     }
 ";
 
-            // Test0.cs(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
+            // Test0.cs(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic);
         }
 
         [Fact]
-        public async Task CSharp_CodeActionCreate_NoDiagnosticsOnSubTypeAsync()
+        public async Task CSharp_CodeActionCreate_DiagnosticsOnExportedCodeFixProviderTypeAsync()
         {
             var source = @"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
-class C2 : C1
-{
-}
-
-class C1 : CodeFixProvider
-{
-    public override ImmutableArray<string> FixableDiagnosticIds
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        var equivalenceKey = ""equivalenceKey"";
-        var codeAction2_1 = CodeAction.Create(""Title2_1"", _ => Task.FromResult(context.Document), equivalenceKey);
-        return null;
-    }
-";
-
-            // Test0.cs(12,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(12, 7, "C1");
-
-            await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic);
-        }
-
-        [Fact]
-        public async Task CSharp_CodeActionCreate_DiagnosticsOnAbstractTypeAsync()
-        {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeActions;
-
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C2))]
 class C2 : C1
 {
 }
@@ -287,12 +255,12 @@ abstract class C1 : CodeFixProvider
 ";
             var expected = new[]
             {
-                // Test0.cs(24,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(24, 29)
+                // Test0.cs(26,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(26, 29)
             };
 
-            // Test0.cs(12,16): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(12, 16, "C1");
+            // Test0.cs(10,16): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C2");
 
             await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
@@ -304,9 +272,11 @@ abstract class C1 : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -326,12 +296,12 @@ class C1 : CodeFixProvider
 
             var expected = new[]
             {
-                // Test0.cs(20,26): warning RS1011: 'MyCodeActionNoEquivalenceKey' has the default value of 'null' for property 'EquivalenceKey'. Either override this property on 'MyCodeActionNoEquivalenceKey' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.
-                GetCSharpOverrideCodeActionEquivalenceKeyExpectedDiagnostic(20, 26, "MyCodeActionNoEquivalenceKey")
+                // Test0.cs(22,26): warning RS1011: 'MyCodeActionNoEquivalenceKey' has the default value of 'null' for property 'EquivalenceKey'. Either override this property on 'MyCodeActionNoEquivalenceKey' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.
+                GetCSharpOverrideCodeActionEquivalenceKeyExpectedDiagnostic(22, 26, "MyCodeActionNoEquivalenceKey")
             };
 
-            // Test0.cs(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
+            // Test0.cs(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true, expected: expected);
         }
@@ -343,9 +313,11 @@ class C1 : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -371,8 +343,8 @@ class C1 : CodeFixProvider
         return null;
     }
 ";
-            // Test0.cs(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
+            // Test0.cs(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true);
         }
@@ -387,9 +359,11 @@ class C1 : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -515,9 +489,11 @@ End Class
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
 Class C1
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -543,22 +519,22 @@ Class C1
 
             var expected = new[]
             {
-                // Test0.vb(18,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(18, 23),
-                // Test0.vb(19,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(19, 23),
                 // Test0.vb(20,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
                 GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(20, 23),
-                // Test0.vb(23,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(23, 23),
-                // Test0.vb(24,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(24, 23),
+                // Test0.vb(21,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(21, 23),
+                // Test0.vb(22,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(22, 23),
                 // Test0.vb(25,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(25, 23)
+                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(25, 23),
+                // Test0.vb(26,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(26, 23),
+                // Test0.vb(27,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(27, 23)
             };
 
-            // Test0.vb(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
+            // Test0.vb(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
@@ -570,9 +546,11 @@ Class C1
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
 Class C1
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -614,60 +592,24 @@ Class C1
 		Return Nothing
 	End Function
 ";
-            // Test0.vb(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
+            // Test0.vb(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic);
         }
 
         [Fact]
-        public async Task VisualBasic_CodeActionCreate_NoDiagnosticsOnSubTypeAsync()
+        public async Task VisualBasic_CodeActionCreate_DiagnosticsOnExportedCodeFixProviderTypeAsync()
         {
             var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
-Class C2
-    Inherits C1
-End Class
-
-Class C1
-	Inherits CodeFixProvider
-	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
-
-	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-		Dim equivalenceKey = ""equivalenceKey""
-		Dim codeAction2_1 = CodeAction.Create(""Title2_1"", Function(x) Task.FromResult(context.Document), equivalenceKey)
-		Return Nothing
-	End Function
-
-	Private Function GetKey() As String
-		Return Nothing
-	End Function
-";
-            // Test0.vb(12,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(12, 7, "C1");
-
-            await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic);
-        }
-
-        [Fact]
-        public async Task VisualBasic_CodeActionCreate_DiagnosticsOnAbstractTypeAsync()
-        {
-            var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeActions
-
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C2))>
 Class C2
     Inherits C1
 End Class
@@ -691,12 +633,12 @@ MustInherit Class C1
 ";
             var expected = new[]
             {
-                // Test0.vb(21,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
-                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(21, 23)
+                // Test0.vb(23,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
+                GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(23, 23)
             };
 
-            // Test0.vb(12,19): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(12, 19, "C1");
+            // Test0.vb(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C2");
 
             await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
@@ -708,9 +650,11 @@ MustInherit Class C1
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
 Class C1
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -727,12 +671,12 @@ Class C1
 
             var expected = new[]
             {
-                // Test0.vb(17,20): warning RS1011: 'MyCodeActionNoEquivalenceKey' has the default value of 'null' for property 'EquivalenceKey'. Either override this property on 'MyCodeActionNoEquivalenceKey' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.
-                GetBasicOverrideCodeActionEquivalenceKeyExpectedDiagnostic(17, 20, "MyCodeActionNoEquivalenceKey")
+                // Test0.vb(19,20): warning RS1011: 'MyCodeActionNoEquivalenceKey' has the default value of 'null' for property 'EquivalenceKey'. Either override this property on 'MyCodeActionNoEquivalenceKey' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.
+                GetBasicOverrideCodeActionEquivalenceKeyExpectedDiagnostic(19, 20, "MyCodeActionNoEquivalenceKey")
             };
 
-            // Test0.vb(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
+            // Test0.vb(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true, expected: expected);
         }
@@ -744,9 +688,11 @@ Class C1
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
 Class C1
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -769,8 +715,8 @@ Class C1
 		Return Nothing
 	End Function
 ";
-            // Test0.vb(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
-            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
+            // Test0.vb(10,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
+            var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(10, 7, "C1");
 
             await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true);
         }
