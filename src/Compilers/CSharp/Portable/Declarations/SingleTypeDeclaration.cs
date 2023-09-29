@@ -252,12 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                // empty names are never equal
-                if (thisDecl.name.Length == 0)
-                {
-                    return false;
-                }
-
                 if ((object)thisDecl.SyntaxReference.SyntaxTree != otherDecl.SyntaxReference.SyntaxTree
                     && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
                         || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))

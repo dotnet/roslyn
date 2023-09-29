@@ -1322,29 +1322,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
                     this.CheckMemberNameDistinctFromType(t, diagnostics);
 
-                    // Never evaluate conflicts on types with missing identifiers
-                    if (t.Name.Length > 0)
+                    var key = (t.Name, t.Arity, t.AssociatedSyntaxTree);
+                    SourceNamedTypeSymbol? other;
+                    if (conflictDict.TryGetValue(key, out other))
                     {
-                        var key = (t.Name, t.Arity, t.AssociatedSyntaxTree);
-                        SourceNamedTypeSymbol? other;
-                        if (conflictDict.TryGetValue(key, out other))
+                        if (Locations.Length == 1 || IsPartial)
                         {
-                            if (Locations.Length == 1 || IsPartial)
+                            if (t.IsPartial && other.IsPartial)
                             {
-                                if (t.IsPartial && other.IsPartial)
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, t.GetFirstLocation(), t);
-                                }
-                                else
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, t.GetFirstLocation(), this, t.Name);
-                                }
+                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, t.GetFirstLocation(), t);
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, t.GetFirstLocation(), this, t.Name);
                             }
                         }
-                        else
-                        {
-                            conflictDict.Add(key, t);
-                        }
+                    }
+                    else
+                    {
+                        conflictDict.Add(key, t);
                     }
 
                     symbols.Add(t);
@@ -1375,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Struct:
-                    if (this.Name.Length > 0 && member.Name == this.Name)
+                    if (member.Name == this.Name)
                     {
                         diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.GetFirstLocation(), this.Name);
                     }
