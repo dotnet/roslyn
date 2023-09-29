@@ -675,7 +675,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function GetCachedDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, includeSuppressedDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
+            Public Function GetCachedDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, includeSuppressedDiagnostics As Boolean, includeLocalDocumentDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
@@ -692,6 +692,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Function
 
             Public Function ForceAnalyzeAsync(solution As Solution, onProjectAnalyzed As Action(Of Project), projectId As ProjectId, cancellationToken As CancellationToken) As Task Implements IDiagnosticAnalyzerService.ForceAnalyzeAsync
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function WasForceAnalyzed(projectId As ProjectId) As Boolean Implements IDiagnosticAnalyzerService.WasForceAnalyzed
                 Throw New NotImplementedException()
             End Function
 

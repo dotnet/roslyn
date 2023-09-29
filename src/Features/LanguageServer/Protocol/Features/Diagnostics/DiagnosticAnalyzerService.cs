@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // use eventMap and taskQueue to serialize events
         private readonly EventMap _eventMap = new();
         private readonly TaskQueue _eventQueue;
+        private readonly IDiagnosticsRefresher _diagnosticsRefresher;
+        private readonly ConcurrentSet<ProjectId> _forceAnalyzedProjectIds = new();
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
+            _diagnosticsRefresher = diagnosticsRefresher;
 
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
 
@@ -138,11 +141,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
-                return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+                return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
@@ -178,7 +181,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (project != null)
                     {
                         await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                        _forceAnalyzedProjectIds.Add(projectId);
                         onProjectAnalyzed(project);
+                        _diagnosticsRefresher.RequestWorkspaceRefresh();
                     }
                 }
                 else
@@ -190,7 +195,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         tasks[index++] = Task.Run(async () =>
                             {
                                 await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                                _forceAnalyzedProjectIds.Add(project.Id);
                                 onProjectAnalyzed(project);
+                                _diagnosticsRefresher.RequestWorkspaceRefresh();
                             }, cancellationToken);
                     }
 
@@ -198,6 +205,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
+
+        public bool WasForceAnalyzed(ProjectId projectId) => _forceAnalyzedProjectIds.Contains(projectId);
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
             Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)

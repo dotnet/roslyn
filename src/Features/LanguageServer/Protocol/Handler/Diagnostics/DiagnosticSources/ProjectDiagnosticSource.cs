@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -11,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed record class ProjectDiagnosticSource(Project Project, Func<DiagnosticAnalyzer, bool>? ShouldIncludeAnalyzer) : IDiagnosticSource
+internal sealed record class ProjectDiagnosticSource(Project Project, Func<DiagnosticAnalyzer, bool>? ShouldIncludeAnalyzer, bool CachedDiagnosticsOnly) : IDiagnosticSource
 {
     public ProjectOrDocumentId GetId() => new(Project.Id);
     public Project GetProject() => Project;
@@ -25,13 +26,19 @@ internal sealed record class ProjectDiagnosticSource(Project Project, Func<Diagn
         RequestContext context,
         CancellationToken cancellationToken)
     {
+        if (CachedDiagnosticsOnly)
+        {
+            Debug.Assert(diagnosticAnalyzerService.WasForceAnalyzed(Project.Id));
+            return await diagnosticAnalyzerService.GetCachedDiagnosticsAsync(Project.Solution.Workspace, Project.Id,
+                documentId: null, includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+        }
+
         // Directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
         // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
         // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
         // and do not need to be adjusted.
-        var projectDiagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(Project.Solution, Project.Id,
-            diagnosticIds: null, ShouldIncludeAnalyzer, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
-        return projectDiagnostics;
+        return await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(Project.Solution, Project.Id,
+            diagnosticIds: null, ShouldIncludeAnalyzer, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
     }
 
     public string ToDisplayString() => Project.Name;

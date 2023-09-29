@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new ValueTask<ImmutableArray<DiagnosticData>>(GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics: true, cancellationToken));
             }
 
-            return new ValueTask<ImmutableArray<DiagnosticData>>(GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics: true, cancellationToken));
+            return new ValueTask<ImmutableArray<DiagnosticData>>(GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken));
         }
     }
 }

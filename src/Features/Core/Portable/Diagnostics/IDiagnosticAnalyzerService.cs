@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get diagnostics currently stored in the source. returned diagnostic might be out-of-date if solution has changed but analyzer hasn't run for the new solution.
         /// </summary>
-        Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+        Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get diagnostics for the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
@@ -49,6 +49,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Force computes diagnostics and raises diagnostic events for the given project or solution. all diagnostics returned should be up-to-date with respect to the given project or solution.
         /// </summary>
         Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="projectId"/> was force analyzed by invoking
+        /// <see cref="ForceAnalyzeAsync(Solution, Action{Project}, ProjectId?, CancellationToken)"/> on the project or the solution.
+        /// </summary>
+        bool WasForceAnalyzed(ProjectId projectId);
 
         /// <summary>
         /// Get diagnostics of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned should be up-to-date with respect to the given solution.

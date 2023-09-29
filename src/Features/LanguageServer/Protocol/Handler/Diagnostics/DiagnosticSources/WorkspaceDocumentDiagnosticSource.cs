@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,11 +15,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
     private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer;
+    private readonly bool _cachedDiagnosticsOnly;
 
-    public WorkspaceDocumentDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+    public WorkspaceDocumentDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool cachedDiagnosticsOnly)
         : base(document)
     {
         _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
+        _cachedDiagnosticsOnly = cachedDiagnosticsOnly;
     }
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -26,6 +29,14 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
         RequestContext context,
         CancellationToken cancellationToken)
     {
+        if (_cachedDiagnosticsOnly)
+        {
+            Debug.Assert(diagnosticAnalyzerService.WasForceAnalyzed(Document.Project.Id));
+            var diagnostics = await diagnosticAnalyzerService.GetCachedDiagnosticsAsync(Document.Project.Solution.Workspace,
+                Document.Project.Id, Document.Id, includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+            return diagnostics;
+        }
+
         if (Document is SourceGeneratedDocument sourceGeneratedDocument)
         {
             // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.

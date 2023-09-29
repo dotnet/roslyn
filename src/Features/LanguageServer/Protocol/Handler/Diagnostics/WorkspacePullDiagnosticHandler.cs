@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
             if (category == null || category == PullDiagnosticCategories.WorkspaceDocumentsAndProject)
-                return await GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken).ConfigureAwait(false);
+                return await GetDiagnosticSourcesAsync(context, GlobalOptions, DiagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
 
             // if it's a category we don't recognize, return nothing.
             return ImmutableArray<IDiagnosticSource>.Empty;
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         public static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
-            RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+            RequestContext context, IGlobalOptionService globalOptions, IDiagnosticAnalyzerService diagnosticAnalyzerService, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -176,8 +176,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             async Task AddDocumentsAndProject(Project project, CancellationToken cancellationToken)
             {
+                // If Full solution analysis is disabled, and the project wasn't force analyzed by other means (such as "Run Code Analysis" command)
+                // then we can bail out and return no workspace diagnostics for this project.
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
-                if (!fullSolutionAnalysisEnabled)
+                if (!fullSolutionAnalysisEnabled && !diagnosticAnalyzerService.WasForceAnalyzed(project.Id))
                     return;
 
                 var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
@@ -189,19 +191,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     documents = documents.AddRange(sourceGeneratedDocuments);
                 }
 
-                Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
-                    ? ShouldIncludeAnalyzer : null;
+                // If full solution analysis is disabled, we only return cached diagnostics.
+                // Note that project or solution wide diagnostics might have been computed from other
+                // means, such as running "Run Code Analysis" command to explicitly force compute
+                // analyzer diagnostics for a given project or the entire solution.
+                var cachedDiagnosticsOnly = !fullSolutionAnalysisEnabled;
+
                 foreach (var document in documents)
                 {
                     if (!ShouldSkipDocument(context, document))
-                        result.Add(new WorkspaceDocumentDiagnosticSource(document, shouldIncludeAnalyzer));
+                        result.Add(new WorkspaceDocumentDiagnosticSource(document, ShouldIncludeAnalyzer, cachedDiagnosticsOnly));
                 }
 
                 // Finally, add the project source to get project specific diagnostics, not associated with any document.
-                result.Add(new ProjectDiagnosticSource(project, shouldIncludeAnalyzer));
+                result.Add(new ProjectDiagnosticSource(project, ShouldIncludeAnalyzer, cachedDiagnosticsOnly));
 
                 bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
                 {
+                    // If full solution analysis is disabled, we will only be returning cached diagnostics.
+                    // So, we don't need to exclude any analyzers here.
+                    if (!fullSolutionAnalysisEnabled)
+                        return true;
+
                     if (analyzer.IsCompilerAnalyzer())
                         return compilerFullSolutionAnalysisEnabled;
                     else

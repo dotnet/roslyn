@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache
             => throw new NotImplementedException();
 
+        public bool WasForceAnalyzed(ProjectId projectId) => false;
+
         public IGlobalOptionService GlobalOptions { get; }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
