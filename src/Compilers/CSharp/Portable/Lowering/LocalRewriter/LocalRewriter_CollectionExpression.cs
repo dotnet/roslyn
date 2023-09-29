@@ -136,11 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elements = node.Elements;
             BoundExpression? rewrittenReceiver;
 
-            // If the collection type is List<T> and there are no spread elements, use .ctor(int capacity).
             // We should expand this optimization to allow spread elements with known length as well.
-            if (ShouldUseKnownLength(node, out int numberIncludingLastSpread) &&
+            bool setCapacityIfPossible = ShouldUseKnownLength(node, out int numberIncludingLastSpread) &&
                 numberIncludingLastSpread == 0 &&
-                elements.Length > 0 &&
+                elements.Length > 0;
+
+            // If the collection type is List<T> and there are no spread elements, use .ctor(int capacity).
+            if (setCapacityIfPossible &&
                 collectionType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T)))
             {
                 // List<ElementType> list = new(N + s1.Length + ...);
@@ -148,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
                 rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
                 localsBuilder.Free();
+                setCapacityIfPossible = false;
             }
             else
             {
@@ -166,6 +169,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(placeholder is { });
 
             AddPlaceholderReplacement(placeholder, temp);
+
+            var ensureCapacityInvocation = node.EnsureCapacityInvocation;
+            if (ensureCapacityInvocation is { } && setCapacityIfPossible)
+            {
+                var ensureCapacityArgumentPlaceholder = node.EnsureCapacityArgumentPlaceholder;
+                Debug.Assert(ensureCapacityArgumentPlaceholder is { });
+
+                // int length = N + s1.Length + ...;
+                var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
+                var lengthExpression = GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder);
+                localsBuilder.Free();
+
+                AddPlaceholderReplacement(ensureCapacityArgumentPlaceholder, lengthExpression);
+                sideEffects.Add(VisitExpression(ensureCapacityInvocation));
+                RemovePlaceholderReplacement(ensureCapacityArgumentPlaceholder);
+            }
 
             foreach (var element in elements)
             {

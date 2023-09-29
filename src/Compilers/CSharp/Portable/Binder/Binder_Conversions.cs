@@ -619,6 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
+            BoundValuePlaceholder? ensureCapacityArgumentPlaceholder = null;
+            BoundExpression? ensureCapacityInvocation = null;
 
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
             {
@@ -642,7 +644,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
                 }
 
+                // PROTOTYPE: What does BinderFlags.CollectionInitializerAddMethod do,
+                // and does that apply for EnsureCapacity as well?
                 var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+
+                // Bind to an applicable EnsureCapacity() method since lowering might use it.
+                if (!node.HasSpreadElements(out _, out bool hasKnownLength) || hasKnownLength)
+                {
+                    var invocationDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
+                    if (collectionInitializerAddMethodBinder.TryBindEnsureCapacity(
+                        node,
+                        implicitReceiver,
+                        invocationDiagnostics,
+                        out ensureCapacityArgumentPlaceholder,
+                        out ensureCapacityInvocation))
+                    {
+                        diagnostics.AddRange(invocationDiagnostics);
+                    }
+                    invocationDiagnostics.Free();
+                }
+
                 foreach (var element in elements)
                 {
                     BoundExpression convertedElement = BindCollectionExpressionElementAddMethod(
@@ -701,6 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
+                ensureCapacityArgumentPlaceholder,
+                ensureCapacityInvocation,
                 collectionBuilderMethod,
                 collectionBuilderInvocationPlaceholder,
                 collectionBuilderInvocationConversion,
@@ -734,6 +757,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private bool TryBindEnsureCapacity(
+            BoundUnconvertedCollectionExpression node,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics,
+            out BoundValuePlaceholder? argumentPlaceholder,
+            out BoundExpression? invocation)
+        {
+            var syntax = node.Syntax;
+            var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, syntax);
+            argumentPlaceholder = new BoundValuePlaceholder(syntax, intType);
+            invocation = MakeInvocationExpression(
+                syntax,
+                implicitReceiver,
+                "EnsureCapacity",
+                ImmutableArray.Create<BoundExpression>(argumentPlaceholder),
+                diagnostics);
+            if (invocation.HasErrors) // PROTOTYPE: This seems too fragile.
+            {
+                argumentPlaceholder = null;
+                invocation = null;
+                return false;
+            }
+            return true;
+        }
+
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
         {
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
@@ -763,6 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
+                ensureCapacityArgumentPlaceholder: null,
+                ensureCapacityInvocation: null,
                 collectionBuilderMethod: null,
                 collectionBuilderInvocationPlaceholder: null,
                 collectionBuilderInvocationConversion: null,

@@ -7259,6 +7259,112 @@ static class Program
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34));
         }
 
+        // PROTOTYPE: Test inaccessible method.
+        // PROTOTYPE: Test optional parameters.
+        // PROTOTYPE: Test params parameter.
+        // PROTOTYPE: Should be used with spreads of known length.
+        // PROTOTYPE: Test with EnsureCapacity with errors. (Ignore method, drop diagnostics.)
+        // PROTOTYPE: Test with EnsureCapacity with use-site errors. (Report these.)
+
+        [Fact]
+        public void EnsureCapacity()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private List<T> _list = new();
+                    internal void EnsureCapacity(int c) { _list.Capacity = c; }
+                    internal void Add(T t) { _list.Add(t); }
+                    internal int Count => _list.Count;
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = F1();
+                        var y = F2(x);
+                        y.Report();
+                    }
+                    static MyCollection<int> F1() => [1, 2, 3];
+                    static MyCollection<object> F2(MyCollection<int> c) => [4, ..c];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "[4, 1, 2, 3], ");
+            verifier.VerifyIL("Program.F1", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  3
+                  IL_0000:  newobj     "MyCollection<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldc.i4.3
+                  IL_0007:  callvirt   "void MyCollection<int>.EnsureCapacity(int)"
+                  IL_000c:  dup
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  callvirt   "void MyCollection<int>.Add(int)"
+                  IL_0013:  dup
+                  IL_0014:  ldc.i4.2
+                  IL_0015:  callvirt   "void MyCollection<int>.Add(int)"
+                  IL_001a:  dup
+                  IL_001b:  ldc.i4.3
+                  IL_001c:  callvirt   "void MyCollection<int>.Add(int)"
+                  IL_0021:  ret
+                }
+                """);
+            // PROTOTYPE: Should use EnsureCapacity().
+            verifier.VerifyIL("Program.F2", """
+                {
+                  // Code size       70 (0x46)
+                  .maxstack  2
+                  .locals init (MyCollection<object> V_0,
+                                System.Collections.IEnumerator V_1,
+                                object V_2,
+                                System.IDisposable V_3)
+                  IL_0000:  newobj     "MyCollection<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldc.i4.4
+                  IL_0008:  box        "int"
+                  IL_000d:  callvirt   "void MyCollection<object>.Add(object)"
+                  IL_0012:  ldarg.0
+                  IL_0013:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
+                  IL_0018:  stloc.1
+                  .try
+                  {
+                    IL_0019:  br.s       IL_0029
+                    IL_001b:  ldloc.1
+                    IL_001c:  callvirt   "object System.Collections.IEnumerator.Current.get"
+                    IL_0021:  stloc.2
+                    IL_0022:  ldloc.0
+                    IL_0023:  ldloc.2
+                    IL_0024:  callvirt   "void MyCollection<object>.Add(object)"
+                    IL_0029:  ldloc.1
+                    IL_002a:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_002f:  brtrue.s   IL_001b
+                    IL_0031:  leave.s    IL_0044
+                  }
+                  finally
+                  {
+                    IL_0033:  ldloc.1
+                    IL_0034:  isinst     "System.IDisposable"
+                    IL_0039:  stloc.3
+                    IL_003a:  ldloc.3
+                    IL_003b:  brfalse.s  IL_0043
+                    IL_003d:  ldloc.3
+                    IL_003e:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0043:  endfinally
+                  }
+                  IL_0044:  ldloc.0
+                  IL_0045:  ret
+                }
+                """);
+        }
+
         [CombinatorialData]
         [Theory]
         public void ArrayEmpty_01([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)
