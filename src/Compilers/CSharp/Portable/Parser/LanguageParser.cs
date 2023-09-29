@@ -5965,8 +5965,7 @@ parse_member_name:;
                 // Example: X this[IEnumerable<string parameter] => 
                 //                 current token:     ^^^^^^^^^
                 if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken
-                    && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken
-                    && tokenBreaksTypeArgumentList(this.PeekToken(2)))
+                    && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
                 {
                     break;
                 }
@@ -5989,38 +5988,50 @@ parse_member_name:;
                 var contextualKind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
                 switch (contextualKind)
                 {
+                    // Example: x is IEnumerable<string or IList<int>
                     case SyntaxKind.OrKeyword:
+                    // Example: x is IEnumerable<string and IDisposable
                     case SyntaxKind.AndKeyword:
-                    case SyntaxKind.NotKeyword:
                         return true;
                 }
 
-                return token.Kind
-                    // Example: IEnumerable<string Method<T>()
-                    is SyntaxKind.LessThanToken
+                switch (token.Kind)
+                {
                     // Example: Method<string(argument)
-                    or SyntaxKind.OpenParenToken
+                    // Note: We would do a bad job handling a tuple argument with a missing comma,
+                    //       like: Method<string (int x, int y)>
+                    //       but since we do not look as far as possible to determine whether it is
+                    //       a tuple type or an argument list, we resort to considering it as an
+                    //       argument list
+                    case SyntaxKind.OpenParenToken:
+
+                    // Example: IEnumerable<string Method<T>() --- (< in <T>)
+                    case SyntaxKind.LessThanToken:
                     // Example: Method(IEnumerable<string parameter)
-                    or SyntaxKind.CloseParenToken
+                    case SyntaxKind.CloseParenToken:
                     // Example: IEnumerable<string field;
-                    or SyntaxKind.SemicolonToken
+                    case SyntaxKind.SemicolonToken:
                     // Example: IEnumerable<string Property { get; set; }
-                    or SyntaxKind.OpenBraceToken
+                    case SyntaxKind.OpenBraceToken:
                     // Example:
                     // {
                     //     IEnumerable<string field
                     // }
-                    or SyntaxKind.CloseBraceToken
+                    case SyntaxKind.CloseBraceToken:
                     // Examples:
                     // - IEnumerable<string field = null;
                     // - Method(IEnumerable<string parameter = null)
-                    or SyntaxKind.EqualsToken
+                    case SyntaxKind.EqualsToken:
                     // Example: IEnumerable<string Property => null;
-                    or SyntaxKind.EqualsGreaterThanToken
+                    case SyntaxKind.EqualsGreaterThanToken:
                     // Example: IEnumerable<string this[string key] { get; set; }
-                    or SyntaxKind.ThisKeyword
+                    case SyntaxKind.ThisKeyword:
                     // Example: static IEnumerable<string operator +(A left, A right);
-                    or SyntaxKind.OperatorKeyword;
+                    case SyntaxKind.OperatorKeyword:
+                        return true;
+                }
+
+                return false;
             }
         }
 
