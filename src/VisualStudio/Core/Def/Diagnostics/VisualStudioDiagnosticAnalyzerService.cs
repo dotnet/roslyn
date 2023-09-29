@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
@@ -44,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly IThreadingContext _threadingContext;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly IGlobalOptionService _globalOptions;
 
         private IServiceProvider? _serviceProvider;
@@ -58,7 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             IThreadingContext threadingContext,
             IVsHierarchyItemManager vsHierarchyItemManager,
             IAsynchronousOperationListenerProvider listenerProvider,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             IGlobalOptionService globalOptions)
         {
             _workspace = workspace;
@@ -66,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             _diagnosticService = diagnosticService;
             _threadingContext = threadingContext;
             _vsHierarchyItemManager = vsHierarchyItemManager;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             _globalOptions = globalOptions;
         }
@@ -326,20 +322,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 otherProjectsForMultiTfmProject = ImmutableArray<Project>.Empty;
             }
 
-            bool isAnalysisDisabled;
-            if (project != null)
-            {
-                isAnalysisDisabled = _globalOptions.IsAnalysisDisabled(project.Language);
-            }
-            else
-            {
-                isAnalysisDisabled = true;
-                foreach (var language in solution.Projects.Select(p => p.Language).Distinct())
-                {
-                    isAnalysisDisabled = isAnalysisDisabled && _globalOptions.IsAnalysisDisabled(language);
-                }
-            }
-
             // Force complete analyzer execution in background.
             _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
@@ -359,54 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 foreach (var otherProject in otherProjectsForMultiTfmProject)
                     await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
-
-                // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
-                // then ForceAnalyzeAsync will not cause analyzers to execute.
-                // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
-                HandleProjectsWithDisabledAnalysis();
             });
-
-            return;
-
-            void HandleProjectsWithDisabledAnalysis()
-            {
-                RoslynDebug.Assert(solution != null);
-
-                // First clear all special host diagostics for all involved projects.
-                var projects = project != null ? otherProjectsForMultiTfmProject.Add(project) : solution.Projects;
-                foreach (var project in projects)
-                {
-                    _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(project.Id, key: this);
-                }
-
-                // Now compute the new host diagostics for all projects with disabled analysis.
-                var projectsWithDisabledAnalysis = isAnalysisDisabled
-                    ? projects.ToImmutableArray()
-                    : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
-                if (!projectsWithDisabledAnalysis.IsEmpty)
-                {
-                    // Compute diagnostics by overriding project's RunCodeAnalysis flag to true.
-                    var tasks = new System.Threading.Tasks.Task<ImmutableArray<DiagnosticData>>[projectsWithDisabledAnalysis.Length];
-                    for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
-                    {
-                        var project = projectsWithDisabledAnalysis[index];
-                        project = project.Solution.WithRunAnalyzers(project.Id, runAnalyzers: true).GetProject(project.Id)!;
-                        tasks[index] = Task.Run(
-                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id, documentId: null,
-                                        includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None));
-                    }
-
-                    Task.WhenAll(tasks).Wait();
-
-                    // Report new host diagnostics.
-                    for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
-                    {
-                        var project = projectsWithDisabledAnalysis[index];
-                        var diagnostics = tasks[index].Result;
-                        _hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(project.Id, key: this, diagnostics);
-                    }
-                }
-            }
         }
 
         private Project? GetProject(IVsHierarchy? hierarchy)
