@@ -68,6 +68,9 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         // that as well.
         var individualElementCount = _objectCreationExpression.Initializer?.Expressions.Count ?? 0;
 
+        // Walk the matches, determining what individual elements are added as-is, as well as what values are going to
+        // be spread into the final collection.  We'll then ensure a correspondance between both and the expression the
+        // user is currently passing to the 'capacity' argument to make sure they're entirely congruent.
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var spreadElements);
         foreach (var match in matches)
         {
