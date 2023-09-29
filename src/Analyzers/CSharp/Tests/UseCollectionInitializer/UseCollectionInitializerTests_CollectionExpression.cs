@@ -1354,10 +1354,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = new List<int>(1)
-                    {
-                        1
-                    };
+                    List<int> c = [1];
                 }
             }
             """);
@@ -4621,7 +4618,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact]
     public async Task TestCapacity15()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -4630,8 +4627,26 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, IEnumerable<int> y)
                 {
-                    List<int> c = new List<int>(1 + x.Length + y.Count());
-                    c.Add(0);
+                    List<int> c = [|new|] List<int>(1 + x.Length + y.Count());
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                    c.AddRange(y);
+                    c.Add(1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 + x.Length + y.Count())
+                    {
+                        0
+                    };
                     c.AddRange(x);
                     c.AddRange(y);
                     c.Add(1);
@@ -4643,7 +4658,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact]
     public async Task TestCapacity16()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4651,8 +4666,23 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, IEnumerable<int> y)
                 {
-                    List<int> c = new List<int>(1 - x.Length);
-                    c.Add(0);
+                    List<int> c = [|new|] List<int>(1 - x.Length);
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 - x.Length)
+                    {
+                        0
+                    };
                     c.AddRange(x);
                 }
             }
@@ -4662,7 +4692,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact]
     public async Task TestCapacity17()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4670,8 +4700,23 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, IEnumerable<int> y)
                 {
-                    List<int> c = new List<int>(1);
-                    c.Add(0);
+                    List<int> c = [|new|] List<int>(1);
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1)
+                    {
+                        0
+                    };
                     c.AddRange(x);
                 }
             }
@@ -4681,7 +4726,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact]
     public async Task TestCapacity18()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4689,8 +4734,23 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, int[] y)
                 {
-                    List<int> c = new List<int>(1 + x.Length + y.Length);
-                    c.Add(0);
+                    List<int> c = [|new|] List<int>(1 + x.Length + y.Length);
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = new List<int>(1 + x.Length + y.Length)
+                    {
+                        0
+                    };
                     c.AddRange(x);
                 }
             }
@@ -4700,7 +4760,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact]
     public async Task TestCapacity19()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -4708,8 +4768,23 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, int[] y)
                 {
-                    List<int> c = new List<int>(x);
-                    c.Add(0);
+                    List<int> c = [|new|] List<int>(x);
+                    [|c.Add(|]0);
+                    c.AddRange(y);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = new List<int>(x)
+                    {
+                        0
+                    };
                     c.AddRange(y);
                 }
             }
