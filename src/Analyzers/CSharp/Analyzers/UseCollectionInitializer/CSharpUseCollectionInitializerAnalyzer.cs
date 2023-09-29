@@ -119,7 +119,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         }
 
         // Determine the total constant value provided in the expression.  For each constant we see, remove that
-        // constant from the pieces list.
+        // constant from the pieces list.  That way the pieces list only corresponds to the values to spread.
         var totalConstantValue = 0;
         for (var i = expressionPieces.Count - 1; i >= 0; i--)
         {
