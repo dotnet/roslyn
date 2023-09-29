@@ -4,8 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -27,10 +29,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// registered by this code refactoring provider across the supported <see cref="CodeFixes.FixAllScope"/>s.
         /// Return null if the provider doesn't support fix all operation.
         /// </summary>
-        /// <remarks>
-        /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
-        /// </remarks>
-        internal virtual FixAllProvider? GetFixAllProvider()
+        [Experimental(ExperimentalApis.FixAllRefactoring)]
+        public virtual FixAllProvider? GetFixAllProvider()
             => null;
 
         /// <summary>

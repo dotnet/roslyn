@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
 
-        internal sealed override FixAllProvider? GetFixAllProvider()
+        public sealed override FixAllProvider? GetFixAllProvider()
         {
             if (SupportedFixAllScopes.IsEmpty)
                 return null;

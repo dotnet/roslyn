@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -45,22 +44,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
         }
 
-        public FixAllState(
-            FixAllProvider fixAllProvider,
-            Project project,
-            TextSpan selectionSpan,
-            CodeRefactoringProvider codeRefactoringProvider,
-            CodeActionOptionsProvider optionsProvider,
-            FixAllScope fixAllScope,
-            CodeAction codeAction)
-            : this(fixAllProvider, document: null, project ?? throw new ArgumentNullException(nameof(project)), selectionSpan, codeRefactoringProvider,
-                   optionsProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
-        {
-        }
-
         private FixAllState(
             FixAllProvider fixAllProvider,
-            Document? document,
+            Document document,
             Project project,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
@@ -78,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             return new FixAllState(
                 this.FixAllProvider,
-                document,
+                document ?? throw new ArgumentNullException(nameof(document)),
                 project,
                 _selectionSpan,
                 this.Provider,

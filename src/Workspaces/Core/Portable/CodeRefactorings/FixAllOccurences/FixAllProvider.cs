@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -17,10 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <summary>
     /// Implement this abstract type to provide fix all occurrences support for code refactorings.
     /// </summary>
-    /// <remarks>
-    /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
-    /// </remarks>
-    internal abstract class FixAllProvider : IFixAllProvider
+    [Experimental(ExperimentalApis.FixAllRefactoring)]
+    public abstract class FixAllProvider : IFixAllProvider
     {
         private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
             = ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
