@@ -97,23 +97,23 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             }
         }
 
-        var expression = argumentList.Arguments[0].Expression;
+        // Now, break up an expression like `1 + x.Length + y.Count` into the parts separated by the +'s
+        var currentArgumentExpression = argumentList.Arguments[0].Expression;
         using var _2 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var expressionPieces);
 
-        // Break up an expression like `1 + x.Length + y.Count` into the parts separated by the +'s
         while (true)
         {
-            if (expression is BinaryExpressionSyntax binaryExpression)
+            if (currentArgumentExpression is BinaryExpressionSyntax binaryExpression)
             {
                 if (binaryExpression.Kind() != SyntaxKind.AddExpression)
                     return false;
 
                 expressionPieces.Add(binaryExpression.Right);
-                expression = binaryExpression.Left;
+                currentArgumentExpression = binaryExpression.Left;
             }
             else
             {
-                expressionPieces.Add(expression);
+                expressionPieces.Add(currentArgumentExpression);
                 break;
             }
         }
