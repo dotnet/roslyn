@@ -2458,7 +2458,7 @@ class C
                 Assert.Equal(string.Empty, namedType.Name);
 
                 var typeMembers = namedType.GetMembers();
-                Assert.Equal(2, typeMembers.Length);
+                Assert.Equal(3, typeMembers.Length);
 
                 var method = typeMembers.OfType<MethodSymbol>().First(m => m is { MethodKind: not MethodKind.Constructor });
                 Assert.Equal("F", method.Name);
@@ -2466,7 +2466,7 @@ class C
                 Assert.True(uniqueMethods.Add(method));
             }
 
-            Assert.Equal(2, namespaceMembers.Length);
+            Assert.Equal(1, namespaceMembers.Length);
         }
 
         [Fact]
@@ -2626,7 +2626,7 @@ class C
                 var typeMembers = namedType.GetMembers();
 
                 var nestedTypes = typeMembers.OfType<TypeSymbol>().ToArray();
-                Assert.Equal(8, nestedTypes.Length);
+                Assert.Equal(7, nestedTypes.Length);
 
                 foreach (var nestedType in nestedTypes)
                 {
@@ -2634,7 +2634,7 @@ class C
                 }
             }
 
-            Assert.Equal(16, uniqueTypes.Count);
+            Assert.Equal(7, uniqueTypes.Count);
         }
     }
 }
