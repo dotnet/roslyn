@@ -5915,22 +5915,96 @@ class Program
         [Fact]
         public void TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
         {
-            var source = @"
-class Program
-{
-    static int Coalesce(int? x)
-    {
-        return x ?? 0;
-    }
-}";
+            var source = """
+                class Program
+                {
+                    static int Coalesce(int? x)
+                    {
+                        return x ?? 0;
+                    }
+                }
+                """;
+
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
 
+            // We gracefully fallback to calling `GetValueOrDefault(defaultValue)` member
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("Program.Coalesce", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  call       "int int?.GetValueOrDefault(int)"
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+        {
+            var source = """
+                class Program
+                {
+                    static int Coalesce(int? x)
+                    {
+                        return x ?? 0;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue);
+
             comp.VerifyEmitDiagnostics(
-                // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                // (5,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         return x ?? 0;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(5, 16)
                 );
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableNonDefaultConstant_MissingGetValueOrDefaultWithDefaultValue()
+        {
+            var source = """
+                class Program
+                {
+                    static int Coalesce(int? x)
+                    {
+                        return x ?? 1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue);
+
+            // We gracefully fallback to less efficient implementation with branching
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("Program.Coalesce", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (int? V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  call       "bool int?.HasValue.get"
+                  IL_0009:  brtrue.s   IL_000d
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
+                  IL_000d:  ldloca.s   V_0
+                  IL_000f:  call       "int int?.GetValueOrDefault()"
+                  IL_0014:  ret
+                }
+                """);
         }
 
         [Fact]

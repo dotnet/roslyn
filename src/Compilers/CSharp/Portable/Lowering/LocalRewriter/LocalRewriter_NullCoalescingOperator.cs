@@ -139,15 +139,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
                 if (unwrappedRight.IsDefaultValue() &&
                     rewrittenRight.Type.Equals(leftUnderlyingType, TypeCompareKind.AllIgnoreOptions) &&
-                    TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
+                    _compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault) is MethodSymbol getValueOrDefaultGeneric)
                 {
+                    var getValueOrDefault = getValueOrDefaultGeneric.AsMember((NamedTypeSymbol)rewrittenLeft.Type);
                     return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
                 }
 
                 if (rewrittenRight.ConstantValueOpt is not null &&
                     rewrittenRight.Type.Equals(leftUnderlyingType, TypeCompareKind.AllIgnoreOptions) &&
-                    TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, out MethodSymbol getValueOrDefaultDefaultValue))
+                    _compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue) is MethodSymbol getValueOrDefaultDefaultValueGeneric)
                 {
+                    var getValueOrDefaultDefaultValue = getValueOrDefaultDefaultValueGeneric.AsMember((NamedTypeSymbol)rewrittenLeft.Type);
                     return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultDefaultValue, rewrittenRight);
                 }
             }
