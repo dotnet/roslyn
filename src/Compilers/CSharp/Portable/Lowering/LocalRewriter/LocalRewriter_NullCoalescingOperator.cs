@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
                 }
 
+                // Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right value is a constant of type T
                 if (rewrittenRight.ConstantValueOpt is not null &&
                     rewrittenRight.Type.Equals(leftUnderlyingType, TypeCompareKind.AllIgnoreOptions) &&
                     _compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue) is MethodSymbol getValueOrDefaultDefaultValueGeneric)
