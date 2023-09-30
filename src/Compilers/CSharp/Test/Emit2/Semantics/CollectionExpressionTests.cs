@@ -17918,7 +17918,7 @@ partial class Program
                 string?[] x2 = [null];
 
                 #nullable disable
-                string[] 
+                string[]
                 #nullable enable
                     x3 = [null];
                 """;
@@ -17927,6 +17927,27 @@ partial class Program
                 // (2,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // string[] x1 = [null];
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 16)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_ArrayCollection_Nested()
+        {
+            string src = """
+                #nullable enable
+                string[][] x1 = [[null]];
+                string?[][] x2 = [[null]];
+
+                #nullable disable
+                string[][]
+                #nullable enable
+                    x3 = [[null]];
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // string[][] x1 = [[null]];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 19)
                 );
         }
 
