@@ -16,10 +16,8 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation;
-using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -373,14 +371,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     if (showPreviewChangesDialog)
                     {
-                        newSolution = FixAllGetFixesService.PreviewChanges(
+                        var fixAllService = newSolution.Services.GetRequiredService<IFixAllGetFixesService>();
+                        newSolution = fixAllService.PreviewChanges(
+                            _workspace,
                             _workspace.CurrentSolution,
                             newSolution,
-                            fixAllPreviewChangesTitle: title,
-                            fixAllTopLevelHeader: title,
                             fixAllKind: FixAllKind.CodeFix,
-                            languageOpt: languageServices?.Count == 1 ? languageServices.Single().Language : null,
-                            workspace: _workspace);
+                            previewChangesTitle: title,
+                            topLevelHeader: title,
+                            language: languageServices?.Count == 1 ? languageServices.Single().Language : null,
+                            correlationId: null,
+                            cancellationToken);
                         if (newSolution == null)
                         {
                             return;

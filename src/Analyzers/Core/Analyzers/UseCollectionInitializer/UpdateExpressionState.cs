@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -41,7 +39,7 @@ internal readonly struct UpdateExpressionState<
     /// <summary>
     /// The statement containing <see cref="StartExpression"/>
     /// </summary>
-    public readonly TStatementSyntax ContainingStatement;
+    public readonly TStatementSyntax? ContainingStatement;
 
     /// <summary>
     /// The name of the value being mutated.  It is whatever the new object-creation or collection-builder is assigned to.
@@ -70,7 +68,9 @@ internal readonly struct UpdateExpressionState<
     }
 
     public IEnumerable<TStatementSyntax> GetSubsequentStatements()
-        => UseCollectionInitializerHelpers.GetSubsequentStatements(SyntaxFacts, ContainingStatement);
+        => ContainingStatement is null
+            ? SpecializedCollections.EmptyEnumerable<TStatementSyntax>()
+            : UseCollectionInitializerHelpers.GetSubsequentStatements(SyntaxFacts, ContainingStatement);
 
     /// <summary>
     /// <see langword="true"/> if this <paramref name="expression"/> is a reference to the object-creation value, or the
@@ -424,7 +424,9 @@ internal readonly struct UpdateExpressionState<
                 if (whenFalse is null)
                 {
                     // add the form `.. x ? [y] : []` to the result
-                    return new Match<TStatementSyntax>(ifStatement, UseSpread: true);
+                    return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
+                        ? new Match<TStatementSyntax>(ifStatement, UseSpread: true)
+                        : null;
                 }
 
                 var whenFalseStatements = whenFalse.ToImmutableArray();

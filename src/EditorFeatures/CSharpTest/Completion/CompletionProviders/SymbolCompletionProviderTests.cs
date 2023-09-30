@@ -12391,6 +12391,55 @@ public static class Extension
             await VerifyItemExistsAsync(source, "C");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
+        public async Task PropertyAndGenericExtensionMethodCandidates()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class C
+                {
+                    void M()
+                    {
+                        int foo;
+                        List<int> list;
+                        if (list.Count < $$)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "foo");
+            await VerifyItemExistsAsync(source, "M");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "Int32");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
+        public async Task GenericWithNonGenericOverload()
+        {
+            var source = """
+                class C
+                {
+                    void M(C other)
+                    {
+                        if (other.A < $$)
+                        {
+                        }
+                    }
+
+                    void A() { }
+                    void A<T>() { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "other");
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""

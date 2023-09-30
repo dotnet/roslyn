@@ -39,7 +39,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     }
 }";
 
-            Roslyn.Test.Utilities.MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
+            Roslyn.Test.Utilities.MarkupTestFile.GetSpans(input, out var text, out var spans);
 
             VisualStudio.Editor.SetText(text);
 
@@ -94,10 +94,7 @@ class C
     [|#endregion|]
 }";
 
-            Test.Utilities.MarkupTestFile.GetSpans(
-                input,
-                out var text,
-                out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(input, out var text, out var spans);
 
             VisualStudio.Editor.SetText(text);
 

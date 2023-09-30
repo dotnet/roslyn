@@ -690,6 +690,7 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow"/>
+    <Field Name="DebugInfo" Type="BoundAwaitExpressionDebugInfo" Null="NotApplicable"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
@@ -1892,6 +1893,10 @@
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Construct method for collection types with [CollectionBuilder]. -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
+    <!-- Placeholder for collection builder method invocation. -->
+    <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Conversion from collection builder method invocation to collection type. -->
+    <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
     <!-- Collection expression elements. -->
     <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>

@@ -6,22 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 {
@@ -79,8 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 
             if (expectedOutputMarkup != null)
             {
-                MarkupTestFile.GetSpans(expectedOutputMarkup,
-                    out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
+                MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out var expectedSpans);
 
                 Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
 

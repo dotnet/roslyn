@@ -377,6 +377,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // An inline array passed as a Span<T> can be written into by the callee, despite no ref at the callsite.  e.g.:
+            //
+            // void Mutate(Span<byte> bytes);
+            // Mutate(this.inlineArray)
+            if (expression.Parent is ArgumentSyntax)
+            {
+                var expressionTypes = semanticModel.GetTypeInfo(expression, cancellationToken);
+                if (expressionTypes.ConvertedType.IsSpan() &&
+                    expressionTypes.Type.IsInlineArray())
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 

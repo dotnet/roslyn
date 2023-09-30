@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             string markup, ParseOptions options = null, bool swapAnglesWithBrackets = false)
         {
             MarkupTestFile.GetPositionAndSpans(markup,
-                out var text, out int cursorPosition, out var expectedSpans);
+                out var text, out var cursorPosition, out var expectedSpans);
 
             // needed because markup test file can't support [|[|] to indicate selecting
             // just an open bracket.

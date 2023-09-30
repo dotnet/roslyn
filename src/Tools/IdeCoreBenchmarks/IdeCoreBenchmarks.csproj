@@ -7,7 +7,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
-    <LangVersion>9</LangVersion>
+    <LangVersion>11</LangVersion>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
@@ -39,6 +39,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Cache" Version="$(MicrosoftVisualStudioCacheVersion)" />
     <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <PackageReference Include="System.Private.Uri" Version="$(SystemPrivateUriVersion)" />
   </ItemGroup>
 
   <ItemGroup>

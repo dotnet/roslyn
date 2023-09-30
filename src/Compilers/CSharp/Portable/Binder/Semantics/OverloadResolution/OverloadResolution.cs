@@ -3729,7 +3729,7 @@ outerDefault:
             // * for a ref or out parameter, the type of the argument is identical to the type of the corresponding 
             //   parameter. After all, a ref or out parameter is an alias for the argument passed.
             ArrayBuilder<Conversion> conversions = null;
-            ArrayBuilder<int> badArguments = null;
+            BitVector badArguments = default;
             for (int argumentPosition = 0; argumentPosition < paramCount; argumentPosition++)
             {
                 BoundExpression argument = arguments.Argument(argumentPosition);
@@ -3744,8 +3744,12 @@ outerDefault:
                     }
                     else
                     {
-                        badArguments = badArguments ?? ArrayBuilder<int>.GetInstance();
-                        badArguments.Add(argumentPosition);
+                        if (badArguments.IsNull)
+                        {
+                            badArguments = BitVector.Create(argumentPosition + 1);
+                        }
+
+                        badArguments[argumentPosition] = true;
                         conversion = Conversion.NoConversion;
                     }
                 }
@@ -3798,15 +3802,19 @@ outerDefault:
                         // lambda binding in particular, for instance, with LINQ expressions.
                         // Note that BuildArgumentsForErrorRecovery will still bind some number
                         // of overloads for the semantic model.
-                        Debug.Assert(badArguments == null);
+                        Debug.Assert(badArguments.IsNull);
                         Debug.Assert(conversions == null);
-                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, ImmutableArray.Create(argumentPosition), ImmutableArray.Create(conversion));
+                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, MemberAnalysisResult.CreateBadArgumentsWithPosition(argumentPosition), ImmutableArray.Create(conversion));
                     }
 
                     if (!conversion.Exists)
                     {
-                        badArguments ??= ArrayBuilder<int>.GetInstance();
-                        badArguments.Add(argumentPosition);
+                        if (badArguments.IsNull)
+                        {
+                            badArguments = BitVector.Create(argumentPosition + 1);
+                        }
+
+                        badArguments[argumentPosition] = true;
                     }
                 }
 
@@ -3821,7 +3829,7 @@ outerDefault:
                     conversions.Add(conversion);
                 }
 
-                if (badArguments != null && !completeResults)
+                if (!badArguments.IsNull && !completeResults)
                 {
                     break;
                 }
@@ -3829,9 +3837,9 @@ outerDefault:
 
             MemberAnalysisResult result;
             var conversionsArray = conversions != null ? conversions.ToImmutableAndFree() : default(ImmutableArray<Conversion>);
-            if (badArguments != null)
+            if (!badArguments.IsNull)
             {
-                result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments.ToImmutableAndFree(), conversionsArray);
+                result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments, conversionsArray);
             }
             else
             {

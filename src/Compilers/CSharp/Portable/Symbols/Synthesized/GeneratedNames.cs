@@ -361,6 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        internal const string AnonymousTypeNameWithoutModulePrefix = "<>f__AnonymousType";
+        internal const string AnonymousDelegateNameWithoutModulePrefix = "<>f__AnonymousDelegate";
         internal const string ActionDelegateNamePrefix = "<>A";
         internal const string FuncDelegateNamePrefix = "<>F";
         private const int DelegateNamePrefixLength = 3;
@@ -462,6 +464,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = "<>y__InlineArray" + arrayLength;
 
             // Synthesized inline arrays need to have unique name across generations because they are not reused.
+            return (generation > 0) ? name + GenerationSeparator + generation : name;
+        }
+
+        internal static string MakeSynthesizedReadOnlyListName(bool hasKnownLength, int generation)
+        {
+            Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');
+            string name = hasKnownLength ? "<>z__ReadOnlyArray" : "<>z__ReadOnlyList";
+
+            // Synthesized list types need to have unique name across generations because they are not reused.
             return (generation > 0) ? name + GenerationSeparator + generation : name;
         }
 

@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
+        private const string NewLineFollowedByReplPromptText = "\n> ";
 
         private readonly string _viewCommand;
         private readonly Guid _windowId;
@@ -80,7 +81,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var replText = GetReplText();
 
             // find last prompt and remove
-            var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            var lastPromptIndex = GetLastPromptIndex(replText);
 
             if (lastPromptIndex > 0)
             {
@@ -99,9 +100,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetLastReplOutput()
         {
             // TODO: This may be flaky if the last submission contains ReplPromptText
-
             var replText = GetReplTextWithoutPrompt();
-            var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            var lastPromptIndex = GetLastPromptIndex(replText);
             if (lastPromptIndex > 0)
                 replText = replText[lastPromptIndex..];
 
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             // TODO: This may be flaky if the last submission contains ReplPromptText or ReplSubmissionText
 
             var replText = GetReplText();
-            var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            var lastPromptIndex = GetLastPromptIndex(replText);
             replText = replText[(lastPromptIndex + ReplPromptText.Length)..];
 
             var lastSubmissionTextIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
@@ -261,6 +261,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             Contract.ThrowIfNull(_interactiveWindow);
             return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer);
+        }
+
+        private static int GetLastPromptIndex(string replText)
+        {
+            return replText.LastIndexOf(NewLineFollowedByReplPromptText) + "\n".Length;
         }
     }
 }

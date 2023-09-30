@@ -19,14 +19,16 @@ internal sealed class MethodKeywordRecommender() : AbstractSyntacticSingleKeywor
 
         var token = context.TargetToken;
 
-        if (token.Kind() == SyntaxKind.OpenBracketToken &&
-            token.Parent.IsKind(SyntaxKind.AttributeList))
+        if (token.Kind() == SyntaxKind.OpenBracketToken)
         {
-            var ancestor = token.Parent.FirstAncestorOrSelf<SyntaxNode>(n => n is
-                PropertyDeclarationSyntax or
-                EventDeclarationSyntax or
-                TypeDeclarationSyntax(kind: SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration) { ParameterList: not null });
-            return ancestor != null;
+            return token.Parent is AttributeListSyntax
+            {
+                Parent: PropertyDeclarationSyntax
+                    or EventDeclarationSyntax
+                    or AccessorDeclarationSyntax
+                    or LocalFunctionStatementSyntax
+                    or TypeDeclarationSyntax(kind: SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration) { ParameterList: not null }
+            };
         }
 
         return false;
