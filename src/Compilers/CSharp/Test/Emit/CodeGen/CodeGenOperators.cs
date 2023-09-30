@@ -4,17 +4,14 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -5771,7 +5768,7 @@ class Program
         }
 
         [Fact]
-        public void TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+        public void TestNullCoalesce_NullableWithNonDefault()
         {
             var source = @"
 class Program
@@ -5825,19 +5822,12 @@ class Program
 *null*";
             var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyIL("Program.CoalesceWithNonDefault1", @"{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (int? V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brtrue.s   IL_000d
-  IL_000b:  ldc.i4.2
-  IL_000c:  ret
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.2
+  IL_0003:  call       ""int int?.GetValueOrDefault(int)""
+  IL_0008:  ret
 }");
             comp.VerifyIL("Program.CoalesceWithNonDefault2", @"{
   // Code size       21 (0x15)
@@ -5937,9 +5927,6 @@ class Program
             comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             comp.VerifyEmitDiagnostics(
-                // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //         return x ?? 0;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16),
                 // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         return x ?? 0;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16)

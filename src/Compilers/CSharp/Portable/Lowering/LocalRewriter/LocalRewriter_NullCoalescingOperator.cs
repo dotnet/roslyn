@@ -5,8 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -132,13 +130,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
-            if (rewrittenLeft.Type.IsNullableType()
-                && RemoveIdentityConversions(rewrittenRight).IsDefaultValue()
-                && rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions)
-                && TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
+            // Optimizations related to nullable value types
+            if (rewrittenLeft.Type.IsNullableType())
             {
-                return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+                var leftUnderlyingType = rewrittenLeft.Type.GetNullableUnderlyingType();
+                var unwrappedRight = RemoveIdentityConversions(rewrittenRight);
+
+                // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
+                if (unwrappedRight.IsDefaultValue() &&
+                    rewrittenRight.Type.Equals(leftUnderlyingType, TypeCompareKind.AllIgnoreOptions) &&
+                    TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
+                {
+                    return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+                }
+
+                if (rewrittenRight.ConstantValueOpt is not null &&
+                    rewrittenRight.Type.Equals(leftUnderlyingType, TypeCompareKind.AllIgnoreOptions) &&
+                    TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, out MethodSymbol getValueOrDefaultDefaultValue))
+                {
+                    return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultDefaultValue, rewrittenRight);
+                }
             }
 
             // We lower left ?? right to
