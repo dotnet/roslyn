@@ -5767,7 +5767,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
         public void TestNullCoalesce_NullableWithNonDefault()
         {
             var source = @"
@@ -5912,7 +5912,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
         public void TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
         {
             var source = """
@@ -5944,7 +5944,7 @@ class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
         public void TestNullCoalesce_NullableDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
         {
             var source = """
@@ -5968,7 +5968,7 @@ class Program
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
         public void TestNullCoalesce_NullableNonDefaultConstant_MissingGetValueOrDefaultWithDefaultValue()
         {
             var source = """
