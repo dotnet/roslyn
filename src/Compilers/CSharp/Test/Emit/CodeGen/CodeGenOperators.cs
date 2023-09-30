@@ -6007,6 +6007,30 @@ class Program
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void TestNullCoalesce_NullableNonDefaultConstant_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+        {
+            var source = """
+                class Program
+                {
+                    static int Coalesce(int? x)
+                    {
+                        return x ?? 1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         return x ?? 1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(5, 16)
+                );
+        }
+
         [Fact]
         public void TestNullCoalesce_UnconstrainedTypeParameter_OldLanguageVersion()
         {
