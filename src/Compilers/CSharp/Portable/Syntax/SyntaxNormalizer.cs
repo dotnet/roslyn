@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            if (IsWord(token.Kind()) && IsWord(next.Kind()))
+            if (IsWordOrNumerical(token.Kind()) && IsWordOrNumerical(next.Kind()))
             {
                 return true;
             }
@@ -1257,6 +1257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static bool IsWord(SyntaxKind kind)
         {
             return kind == SyntaxKind.IdentifierToken || IsKeyword(kind);
+        }
+
+        private static bool IsWordOrNumerical(SyntaxKind kind)
+        {
+            return kind == SyntaxKind.IdentifierToken || kind == SyntaxKind.NumericLiteralToken || IsKeyword(kind);
         }
 
         private static bool IsKeyword(SyntaxKind kind)
