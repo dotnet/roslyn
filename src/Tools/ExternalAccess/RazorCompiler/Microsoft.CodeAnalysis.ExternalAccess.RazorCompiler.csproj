@@ -20,7 +20,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests" />
-  
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
+
     <!--
       ⚠ ONLY RAZOR ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
