@@ -5958,5 +5958,13 @@ $"  ///  </summary>{Environment.NewLine}" +
                 }
                 """);
         }
+
+        [Fact]
+        [WorkItem(70135, "https://github.com/dotnet/roslyn/issues/70135")]
+        public void TestNormalizeNumericCharacter()
+        {
+            var syntaxNode1 = SyntaxFactory.ParseExpression("1 is var i").NormalizeWhitespace();
+            Assert.Equal("1 is var i", syntaxNode1.ToFullString());
+        }
     }
 }

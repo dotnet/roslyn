@@ -555,14 +555,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(70135, "https://github.com/dotnet/roslyn/issues/70135")]
-        public void TestSpacingNumeric()
-        {
-            var syntaxNode1 = SyntaxFactory.ParseExpression("1 is var i").NormalizeWhitespace();
-            Assert.Equal("1 is var i", syntaxNode1.ToFullString());
-        }
-
-        [Fact]
         [WorkItem(37467, "https://github.com/dotnet/roslyn/issues/37467")]
         public void TestUnnecessarySemicolon()
         {
