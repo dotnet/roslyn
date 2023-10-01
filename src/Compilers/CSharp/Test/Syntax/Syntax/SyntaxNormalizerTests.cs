@@ -5960,10 +5960,19 @@ $"  ///  </summary>{Environment.NewLine}" +
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
-        public void TestNormalizeNumericCharacter()
+        public void TestNormalizeLiteralCharacter()
         {
             var syntaxNode1 = SyntaxFactory.ParseExpression("1 is var i").NormalizeWhitespace();
             Assert.Equal("1 is var i", syntaxNode1.ToFullString());
+
+            var syntaxNode2 = SyntaxFactory.ParseStatement("if (\"\" is var I)").NormalizeWhitespace();
+            Assert.Equal("if (\"\" is var I)", syntaxNode2.ToFullString());
+
+            var syntaxNode3 = SyntaxFactory.ParseStatement("if ('' is var I)").NormalizeWhitespace();
+            Assert.Equal("if ('' is var I)", syntaxNode3.ToFullString());
+
+            var syntaxNode4 = SyntaxFactory.ParseStatement("if ('x' is var I)").NormalizeWhitespace();
+            Assert.Equal("if ('x' is var I)", syntaxNode4.ToFullString());
         }
     }
 }

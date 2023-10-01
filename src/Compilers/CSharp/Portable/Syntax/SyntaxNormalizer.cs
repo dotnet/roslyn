@@ -1261,7 +1261,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsWordOrNumerical(SyntaxKind kind)
         {
-            return kind == SyntaxKind.IdentifierToken || kind == SyntaxKind.NumericLiteralToken || IsKeyword(kind);
+            return kind == SyntaxKind.IdentifierToken
+                || kind == SyntaxKind.StringLiteralToken
+                || kind == SyntaxKind.CharacterLiteralToken
+                || kind == SyntaxKind.NumericLiteralToken
+                || IsKeyword(kind);
         }
 
         private static bool IsKeyword(SyntaxKind kind)
