@@ -85,28 +85,3 @@ public sealed class CodeAnalysisProgress
     internal static CodeAnalysisProgress Clear()
         => new() { ClearValue = true };
 }
-
-internal sealed class CodeAnalysisProgressTracker(Action<string?, int, int>? updateAction) : IProgress<CodeAnalysisProgress>
-{
-    private string? _description;
-    private int _completedItems;
-    private int _totalItems;
-
-    public CodeAnalysisProgressTracker() : this(updateAction: null)
-    {
-    }
-
-    public void Report(CodeAnalysisProgress value)
-    {
-        if (value.DescriptionValue != null)
-            _description = value.DescriptionValue;
-
-        if (value.IncompleteItemsValue != null)
-            Interlocked.Add(ref _totalItems, value.IncompleteItemsValue.Value);
-
-        if (value.CompleteItemValue != null)
-            Interlocked.Add(ref _completedItems, value.CompleteItemValue.Value);
-
-        updateAction?.Invoke(_description, _completedItems, _totalItems);
-    }
-}
