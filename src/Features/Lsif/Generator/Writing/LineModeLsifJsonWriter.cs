@@ -15,26 +15,26 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
     /// </summary>
     internal sealed partial class LineModeLsifJsonWriter : ILsifJsonWriter
     {
+        public static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            Formatting = Newtonsoft.Json.Formatting.None,
+            NullValueHandling = NullValueHandling.Ignore,
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            TypeNameHandling = TypeNameHandling.None,
+            Converters = new[] { new LsifConverter() }
+        };
+
         private readonly object _writeGate = new object();
         private readonly TextWriter _outputWriter;
-        private readonly JsonSerializerSettings _settings;
 
         public LineModeLsifJsonWriter(TextWriter outputWriter)
         {
-            _settings = new JsonSerializerSettings
-            {
-                Formatting = Newtonsoft.Json.Formatting.None,
-                NullValueHandling = NullValueHandling.Ignore,
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                TypeNameHandling = TypeNameHandling.None,
-                Converters = new[] { new LsifConverter() }
-            };
             _outputWriter = outputWriter;
         }
 
         public void Write(Element element)
         {
-            var line = JsonConvert.SerializeObject(element, _settings);
+            var line = JsonConvert.SerializeObject(element, SerializerSettings);
 
             lock (_writeGate)
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
         {
             var lines = new List<string>();
             foreach (var element in elements)
-                lines.Add(JsonConvert.SerializeObject(element, _settings));
+                lines.Add(JsonConvert.SerializeObject(element, SerializerSettings));
 
             lock (_writeGate)
             {
