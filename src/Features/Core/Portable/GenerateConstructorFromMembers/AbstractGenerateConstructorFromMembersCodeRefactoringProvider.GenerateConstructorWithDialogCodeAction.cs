@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                object options, CancellationToken cancellationToken)
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     if (state.MatchingConstructor.IsImplicitlyDeclared)
                     {
                         var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
-                        return await codeAction.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+                        return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
                     }
 
                     var constructorReference = state.MatchingConstructor.DeclaringSyntaxReferences[0];
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions)
                         : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
 
-                    return await codeAction.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+                    return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return null;
 
             var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, optionsProvider, scope, originalCodeAction);
-            var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
+            var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
             return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
-            await applyChangesOperation.TryApplyAsync(workspace, workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
+            await applyChangesOperation.TryApplyAsync(workspace, workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
 
             foreach (var document in workspace.Documents)
             {
