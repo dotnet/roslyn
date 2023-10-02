@@ -4859,4 +4859,100 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             }
             """);
     }
+
+    [Fact]
+    public async Task TestCapacity22()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + x.Length + 2);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]x);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [0, .. x, .. y, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity23()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + 2);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]x);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [0, .. x, .. y, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity24()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + x.Length + x.Length + 2);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]x);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [0, .. x, .. y, 1];
+                }
+            }
+            """);
+    }
 }

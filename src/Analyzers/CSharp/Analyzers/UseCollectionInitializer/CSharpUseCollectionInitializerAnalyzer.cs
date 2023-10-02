@@ -140,6 +140,8 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         if (expressionPieces.Count != spreadElements.Count)
             return false;
 
+        // Now make sure we have a match for each part of `x.Length + y.Length` to an element being spread
+        // into the collection.
         foreach (var piece in expressionPieces)
         {
             // we support x.Length, x.Count, and x.Count()
