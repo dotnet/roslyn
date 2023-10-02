@@ -15,31 +15,17 @@ internal static class IUIThreadOperationContextExtensions
         => context.Scopes.LastOrDefault().GetCodeAnalysisProgress();
 
     public static IProgress<CodeAnalysisProgress> GetCodeAnalysisProgress(this IUIThreadOperationScope? scope)
-        => new CodeAnalysisProgressCallback((description, completedItems, totalItems) =>
-        {
-            if (scope != null)
-            {
-                if (description != null)
-                    scope.Description = description;
+        => scope is null ? CodeAnalysisProgress.None : new UIThreadOperationScopeProgress(scope);
 
-                scope.Progress.Report(new ProgressInfo(completedItems, totalItems));
-            }
-        });
-
-    private sealed class CodeAnalysisProgressCallback(Action<string?, int, int>? updateAction) : IProgress<CodeAnalysisProgress>
+    private sealed class UIThreadOperationScopeProgress(IUIThreadOperationScope scope) : IProgress<CodeAnalysisProgress>
     {
-        private string? _description;
         private int _completedItems;
         private int _totalItems;
-
-        public CodeAnalysisProgressCallback() : this(updateAction: null)
-        {
-        }
 
         public void Report(CodeAnalysisProgress value)
         {
             if (value.DescriptionValue != null)
-                _description = value.DescriptionValue;
+                scope.Description = value.DescriptionValue;
 
             if (value.IncompleteItemsValue != null)
                 Interlocked.Add(ref _totalItems, value.IncompleteItemsValue.Value);
@@ -47,7 +33,8 @@ internal static class IUIThreadOperationContextExtensions
             if (value.CompleteItemValue != null)
                 Interlocked.Add(ref _completedItems, value.CompleteItemValue.Value);
 
-            updateAction?.Invoke(_description, _completedItems, _totalItems);
+            scope.Progress.Report(new ProgressInfo(_completedItems, _totalItems));
+
         }
     }
 }
