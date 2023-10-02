@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             }
 
             var fixAllContext = await GetFixAllContextAsync(
-                solution, CodeFixProvider, diagnosticsByProject, options, progressTracker, cancellationToken).ConfigureAwait(false);
+                solution, CodeFixProvider, diagnosticsByProject, options, cancellationToken).ConfigureAwait(false);
             var fixAllProvider = CodeFixProvider.GetFixAllProvider();
             RoslynDebug.AssertNotNull(fixAllProvider);
 
-            return await ApplyCodeFixAsync(fixAllProvider, fixAllContext, cancellationToken).ConfigureAwait(false);
+            return await ApplyCodeFixAsync(fixAllProvider, fixAllContext, progressTracker, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetDiagnosticsByProjectAsync(
@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             CodeFixProvider codeFixProvider,
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
             CodeActionOptionsProvider options,
-            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             var diagnosticProvider = new DiagnosticProvider(diagnosticsByProject);
@@ -131,20 +130,20 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                     diagnosticIds: codeFixProvider.FixableDiagnosticIds,
                     fixAllDiagnosticProvider: diagnosticProvider,
                     options),
-                progressTracker,
                 cancellationToken);
         }
 
         private static async Task<Solution> ApplyCodeFixAsync(
             FixAllProvider fixAllProvider,
             FixAllContext fixAllContext,
+            IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
-            var fixAllAction = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+            var fixAllAction = await fixAllProvider.GetFixAsync(fixAllContext, progress).ConfigureAwait(false);
             RoslynDebug.AssertNotNull(fixAllAction);
 
             var operations = await fixAllAction.GetOperationsAsync(
-                fixAllContext.Solution, fixAllContext.Progress, cancellationToken).ConfigureAwait(false);
+                fixAllContext.Solution, progress, cancellationToken).ConfigureAwait(false);
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
             RoslynDebug.AssertNotNull(applyChangesOperation);
 

@@ -21,8 +21,8 @@ internal sealed class FixAllCodeAction : AbstractFixAllCodeAction
     public override string Title
         => _title;
 
-    protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
-        => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
+    protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, CancellationToken cancellationToken)
+        => new FixAllContext((FixAllState)fixAllState, cancellationToken);
 
     protected override bool IsInternalProvider(IFixAllState fixAllState)
         => true; // FixAll support is internal for the language server.

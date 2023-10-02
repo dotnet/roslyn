@@ -18,7 +18,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 {
     public async Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
     {
-        var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
+        var codeAction = await GetFixAllCodeActionAsync(fixAllContext, progress).ConfigureAwait(false);
         if (codeAction == null)
         {
             return fixAllContext.Solution;
@@ -29,16 +29,16 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
     }
 
     public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-        IFixAllContext fixAllContext, bool showPreviewChangesDialog)
+        IFixAllContext fixAllContext, bool showPreviewChangesDialog, IProgress<CodeAnalysisProgress> progress)
     {
-        var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
+        var codeAction = await GetFixAllCodeActionAsync(fixAllContext, progress).ConfigureAwait(false);
         if (codeAction == null)
         {
             return ImmutableArray<CodeActionOperation>.Empty;
         }
 
         return await GetFixAllOperationsAsync(
-            codeAction, showPreviewChangesDialog, fixAllContext.Progress, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+            codeAction, showPreviewChangesDialog, progress, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
     }
 
     protected async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
@@ -158,7 +158,8 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         return currentSolution;
     }
 
-    private static async Task<CodeAction?> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
+    private static async Task<CodeAction?> GetFixAllCodeActionAsync(
+        IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
     {
         var fixAllKind = fixAllContext.State.FixAllKind;
         var functionId = fixAllKind switch
@@ -180,7 +181,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             CodeAction? action = null;
             try
             {
-                action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext, progress).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

@@ -640,12 +640,12 @@ End Class
 
             Private Class ModifySolutionFixAll : Inherits FixAllProvider
 
-                Public Overrides Function GetFixAsync(fixAllContext As FixAllContext) As Task(Of CodeAction)
+                Public Overrides Function GetFixAsync(fixAllContext As FixAllContext, progress As IProgress(Of CodeAnalysisProgress)) As Task(Of CodeAction)
                     Dim solution = fixAllContext.Solution
                     Return Task.FromResult(CodeAction.Create(
                                            "Remove default case",
-                                           Async Function(cancellationToken)
-                                               Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync()
+                                           Async Function(progress1, cancellationToken)
+                                               Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress1)
                                                Dim project As Project = Nothing
                                                For Each kvp In toFix
                                                    Dim document = kvp.Key
@@ -685,12 +685,12 @@ End Class
                     Return {FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom}
                 End Function
 
-                Public Overrides Function GetFixAsync(fixAllContext As FixAllContext) As Task(Of CodeAction)
+                Public Overrides Function GetFixAsync(fixAllContext As FixAllContext, progress As IProgress(Of CodeAnalysisProgress)) As Task(Of CodeAction)
                     Dim solution = fixAllContext.Solution
                     Return Task.FromResult(CodeAction.Create(
                                            "Remove default case",
-                                           Async Function(cancellationToken)
-                                               Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync()
+                                           Async Function(progress1, cancellationToken)
+                                               Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress1)
                                                Dim project As Project = Nothing
                                                For Each kvp In toFix
                                                    Dim document = kvp.Key

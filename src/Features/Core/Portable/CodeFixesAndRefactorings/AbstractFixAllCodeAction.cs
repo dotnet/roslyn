@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         /// <summary>
         /// Creates a new <see cref="IFixAllContext"/> with the given parameters.
         /// </summary>
-        protected abstract IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
+        protected abstract IFixAllContext CreateFixAllContext(IFixAllState fixAllState, CancellationToken cancellationToken);
 
         public override string Title
             => this.FixAllState.Scope switch
@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 
             var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
-            var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
+            var fixAllContext = CreateFixAllContext(FixAllState, cancellationToken);
             progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
-            return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
+            return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog, progressTracker);
         }
 
         protected sealed override Task<Solution?> GetChangedSolutionAsync(
@@ -76,10 +76,10 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 
             var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
-            var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
+            var fixAllContext = CreateFixAllContext(FixAllState, cancellationToken);
             progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
-            return service.GetFixAllChangedSolutionAsync(fixAllContext);
+            return service.GetFixAllChangedSolutionAsync(fixAllContext, progressTracker);
         }
 
         // internal for testing purposes.

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
                     FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
 
-            public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+            public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
             {
                 // currently there's no FixAll support for local suppression, just bail out
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForLocalSuppression(fixAllContext.CodeActionEquivalenceKey))
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return fixAllContext.Document != null
                         ? GlobalSuppressMessageFixAllCodeAction.Create(
                             title, suppressionFixer, fixAllContext.Document,
-                            await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false),
+                            await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress).ConfigureAwait(false),
                             fallbackOptions)
                         : GlobalSuppressMessageFixAllCodeAction.Create(
                             title, suppressionFixer, fixAllContext.Project,
@@ -56,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey))
                 {
                     var batchFixer = new PragmaWarningBatchFixAllProvider(suppressionFixer);
-                    return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                    return await batchFixer.GetFixAsync(fixAllContext, progress).ConfigureAwait(false);
                 }
 
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForRemoveSuppression(fixAllContext.CodeActionEquivalenceKey))
                 {
                     var batchFixer = RemoveSuppressionCodeAction.GetBatchFixer(suppressionFixer);
-                    return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                    return await batchFixer.GetFixAsync(fixAllContext, progress).ConfigureAwait(false);
                 }
 
                 throw ExceptionUtilities.Unreachable();

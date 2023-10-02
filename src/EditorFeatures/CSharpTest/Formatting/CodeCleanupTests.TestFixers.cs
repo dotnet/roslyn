@@ -82,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
             private class ModifySolutionFixAll : FixAllProvider
             {
-                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
                 {
                     var solution = fixAllContext.Solution;
                     return Task.FromResult<CodeAction?>(CodeAction.Create(
                             "Remove default case",
-                            async cancellationToken =>
+                            async (progress, cancellationToken) =>
                             {
-                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync();
+                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress);
                                 Project? project = null;
                                 foreach (var kvp in toFix)
                                 {
@@ -138,14 +138,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                     return new[] { FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom };
                 }
 
-                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
                 {
                     var solution = fixAllContext.Solution;
                     return Task.FromResult<CodeAction?>(CodeAction.Create(
                             "Remove default case",
-                            async cancellationToken =>
+                            async (progress, cancellationToken) =>
                             {
-                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync();
+                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress);
                                 Project? project = null;
                                 foreach (var kvp in toFix)
                                 {

@@ -4,6 +4,7 @@
 
 // Ignore Spelling: loc kvp
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,13 +29,14 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
     /// </summary>
     private sealed class CSharpUsePrimaryConstructorFixAllProvider : FixAllProvider
     {
-        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
         {
             return DefaultFixAllProviderHelpers.GetFixAsync(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsHelperAsync);
         }
 
-        private static async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
+        private static async Task<Solution?> FixAllContextsHelperAsync(
+            FixAllContext originalContext, ImmutableArray<FixAllContext> contexts, IProgress<CodeAnalysisProgress> progress)
         {
             var cancellationToken = originalContext.CancellationToken;
             var removeMembers = originalContext.CodeActionEquivalenceKey == nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_members);
@@ -43,7 +45,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
 
             foreach (var currentContext in contexts)
             {
-                var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
+                var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
+                    currentContext, progress).ConfigureAwait(false);
                 foreach (var (document, diagnostics) in documentToDiagnostics)
                 {
                     foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))

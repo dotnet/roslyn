@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 var title = fixAllContext.GetDefaultFixAllTitle();
                 return CodeAction.Create(
                     title,
-                    cancellationToken => FixAllByDocumentAsync(
+                    (progress, cancellationToken) => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,
-                        fixAllContext.GetProgressTracker(),
+                        progress,
 #if CODE_STYLE
                         CodeActionOptions.DefaultProvider,
 #else
