@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -70,6 +69,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsPotentialModifier(this SyntaxToken token, out SyntaxKind modifierKind)
+        {
+            var tokenKind = token.Kind();
+            modifierKind = SyntaxKind.None;
+
+            switch (tokenKind)
+            {
+                case SyntaxKind.PublicKeyword:
+                case SyntaxKind.InternalKeyword:
+                case SyntaxKind.ProtectedKeyword:
+                case SyntaxKind.PrivateKeyword:
+                case SyntaxKind.SealedKeyword:
+                case SyntaxKind.AbstractKeyword:
+                case SyntaxKind.StaticKeyword:
+                case SyntaxKind.VirtualKeyword:
+                case SyntaxKind.ExternKeyword:
+                case SyntaxKind.NewKeyword:
+                case SyntaxKind.OverrideKeyword:
+                case SyntaxKind.ReadOnlyKeyword:
+                case SyntaxKind.VolatileKeyword:
+                case SyntaxKind.UnsafeKeyword:
+                case SyntaxKind.AsyncKeyword:
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.RequiredKeyword:
+                case SyntaxKind.FileKeyword:
+                case SyntaxKind.PartialKeyword:
+                    modifierKind = tokenKind;
+                    return true;
+                case SyntaxKind.IdentifierToken:
+                    if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
+                    {
+                        modifierKind = SyntaxKind.AsyncKeyword;
+                    }
+                    if (token.HasMatchingText(SyntaxKind.FileKeyword))
+                    {
+                        modifierKind = SyntaxKind.FileKeyword;
+                    }
+                    if (token.HasMatchingText(SyntaxKind.PartialKeyword))
+                    {
+                        modifierKind = SyntaxKind.PartialKeyword;
+                    }
+                    return modifierKind != SyntaxKind.None;
+                default:
+                    return false;
+            }
         }
 
         public static bool IsLiteral(this SyntaxToken token)

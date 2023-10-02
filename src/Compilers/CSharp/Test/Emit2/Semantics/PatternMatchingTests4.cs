@@ -3470,6 +3470,67 @@ class Program
                 );
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]
+        public void Pointer_Pattern_Comparison([CombinatorialValues("<", ">", "<=", ">=")] string op, bool not)
+        {
+            var source = $$"""
+                class C
+                {
+                    unsafe void M(void* p)
+                    {
+                        if (p is {{(not ? "not " : "    ") + op}} null) { }
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (5,22): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is     < null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, $"{op} null").WithArguments("void*").WithLocation(5, 22));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]
+        public void Pointer_Pattern_Equality([CombinatorialValues("==", "!=")] string op, bool not)
+        {
+            var source = $$"""
+                class C
+                {
+                    unsafe void M(void* p)
+                    {
+                        if (p is {{(not ? "not " : "    ") + op}} null) { }
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (5,22): error CS1525: Invalid expression term '=='
+                //         if (p is     == null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, op).WithArguments(op).WithLocation(5, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]
+        public void Pointer_Pattern_Complex()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(void* p)
+                    {
+                        if (p is < null or > null) { }
+                        if (p is < null or null) { }
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (5,18): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is < null or > null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< null").WithArguments("void*").WithLocation(5, 18),
+                // (5,28): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is < null or > null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> null").WithArguments("void*").WithLocation(5, 28),
+                // (6,18): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is < null or null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< null").WithArguments("void*").WithLocation(6, 18));
+        }
+
         [Fact]
         public void UnmatchedInput_06()
         {

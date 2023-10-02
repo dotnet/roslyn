@@ -2970,6 +2970,7 @@ class Program
                     case ErrorCode.ERR_SymbolDefinedInAssembly:
                     case ErrorCode.ERR_InterceptorArityNotCompatible:
                     case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                    case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 
