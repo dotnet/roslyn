@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -82,14 +83,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
             private class ModifySolutionFixAll : FixAllProvider
             {
-                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var solution = fixAllContext.Solution;
                     return Task.FromResult<CodeAction?>(CodeAction.Create(
                             "Remove default case",
                             async (progress, cancellationToken) =>
                             {
-                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress);
+                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress, cancellationToken);
                                 Project? project = null;
                                 foreach (var kvp in toFix)
                                 {
@@ -138,14 +139,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                     return new[] { FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom };
                 }
 
-                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+                public override Task<CodeAction?> GetFixAsync(
+                    FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var solution = fixAllContext.Solution;
                     return Task.FromResult<CodeAction?>(CodeAction.Create(
                             "Remove default case",
                             async (progress, cancellationToken) =>
                             {
-                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress);
+                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress, cancellationToken);
                                 Project? project = null;
                                 foreach (var kvp in toFix)
                                 {

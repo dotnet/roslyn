@@ -640,28 +640,29 @@ End Class
 
             Private Class ModifySolutionFixAll : Inherits FixAllProvider
 
-                Public Overrides Function GetFixAsync(fixAllContext As FixAllContext, progress As IProgress(Of CodeAnalysisProgress)) As Task(Of CodeAction)
+                Public Overrides Function GetFixAsync(fixAllContext As FixAllContext, progress As IProgress(Of CodeAnalysisProgress), cancellationToken1 As CancellationToken) As Task(Of CodeAction)
                     Dim solution = fixAllContext.Solution
+                    Dim action = Async Function(progress1 As IProgress(Of CodeAnalysisProgress), cancellationToken As CancellationToken)
+                                     Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress1, cancellationToken)
+                                     Dim project As Project = Nothing
+                                     For Each kvp In toFix
+                                         Dim document = kvp.Key
+                                         project = document.Project
+                                         Dim diagnostics = kvp.Value
+                                         Dim root = Await document.GetSyntaxRootAsync(cancellationToken)
+                                         For Each diagnostic In diagnostics
+                                             Dim node = (Await diagnostic.Location.SourceTree.GetRootAsync(cancellationToken)).FindNode(diagnostic.Location.SourceSpan)
+                                             document = document.WithSyntaxRoot(root.RemoveNode(node.Parent, SyntaxRemoveOptions.KeepNoTrivia))
+                                         Next
+
+                                         solution = solution.WithDocumentText(document.Id, Await document.GetTextAsync())
+                                     Next
+
+                                     Return solution.AddDocument(DocumentId.CreateNewId(project.Id), "new.vb", SourceText.From(""))
+                                 End Function
                     Return Task.FromResult(CodeAction.Create(
                                            "Remove default case",
-                                           Async Function(progress1, cancellationToken)
-                                               Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress1)
-                                               Dim project As Project = Nothing
-                                               For Each kvp In toFix
-                                                   Dim document = kvp.Key
-                                                   project = document.Project
-                                                   Dim diagnostics = kvp.Value
-                                                   Dim root = Await document.GetSyntaxRootAsync(cancellationToken)
-                                                   For Each diagnostic In diagnostics
-                                                       Dim node = (Await diagnostic.Location.SourceTree.GetRootAsync(cancellationToken)).FindNode(diagnostic.Location.SourceSpan)
-                                                       document = document.WithSyntaxRoot(root.RemoveNode(node.Parent, SyntaxRemoveOptions.KeepNoTrivia))
-                                                   Next
-
-                                                   solution = solution.WithDocumentText(document.Id, Await document.GetTextAsync())
-                                               Next
-
-                                               Return solution.AddDocument(DocumentId.CreateNewId(project.Id), "new.vb", SourceText.From(""))
-                                           End Function,
+                                           action,
                                            NameOf(TestThirdPartyCodeFix)))
                 End Function
             End Class
@@ -685,20 +686,20 @@ End Class
                     Return {FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom}
                 End Function
 
-                Public Overrides Function GetFixAsync(fixAllContext As FixAllContext, progress As IProgress(Of CodeAnalysisProgress)) As Task(Of CodeAction)
+                Public Overrides Function GetFixAsync(fixAllContext As FixAllContext, progress As IProgress(Of CodeAnalysisProgress), cancellationToken As CancellationToken) As Task(Of CodeAction)
                     Dim solution = fixAllContext.Solution
                     Return Task.FromResult(CodeAction.Create(
                                            "Remove default case",
-                                           Async Function(progress1, cancellationToken)
-                                               Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress1)
+                                           Async Function(progress1, cancellationToken1)
+                                               Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress1, cancellationToken1)
                                                Dim project As Project = Nothing
                                                For Each kvp In toFix
                                                    Dim document = kvp.Key
                                                    project = document.Project
                                                    Dim diagnostics = kvp.Value
-                                                   Dim root = Await document.GetSyntaxRootAsync(cancellationToken)
+                                                   Dim root = Await document.GetSyntaxRootAsync(cancellationToken1)
                                                    For Each diagnostic In diagnostics
-                                                       Dim node = (Await diagnostic.Location.SourceTree.GetRootAsync(cancellationToken)).FindNode(diagnostic.Location.SourceSpan)
+                                                       Dim node = (Await diagnostic.Location.SourceTree.GetRootAsync(cancellationToken1)).FindNode(diagnostic.Location.SourceSpan)
                                                        document = document.WithSyntaxRoot(root.RemoveNode(node.Parent, SyntaxRemoveOptions.KeepNoTrivia))
                                                    Next
 
