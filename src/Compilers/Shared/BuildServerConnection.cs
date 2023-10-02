@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         // Spend up to 20s connecting to a new process, to allow time for it to start.
         internal const int TimeOutMsNewProcess = 20000;
-        
+
         // To share a mutex between processes the name should have the Global prefix
         private const string GlobalMutexPrefix = "Global\\";
 
