@@ -741,7 +741,7 @@
       <trans-unit id="AnalyzerDriverThrows">
         <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
 {2}</source>
-        <target state="new">Analyzer driver threw an exception of type '{0}' with message '{1}'.
+        <target state="translated">分析器驅動程式擲回類型 '{0}' 的例外狀況，訊息為 '{1}'。
 {2}</target>
         <note>{0}: Type name
 {1}: Localized exception message
