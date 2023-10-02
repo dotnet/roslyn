@@ -284,8 +284,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 var cancellationToken = context.UserCancellationToken;
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var progress = context.GetCodeAnalysisProgress();
-
                 var documentDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(
                     diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, cancellationToken).ConfigureAwait(false);
 
@@ -314,6 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
                 var languageServices = projectDiagnosticsToFixMap.Select(p => p.Key.Services).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Services)).ToHashSet();
 
+                var progress = context.GetCodeAnalysisProgress();
                 foreach (var languageService in languageServices)
                 {
                     // Use the Fix multiple occurrences service to compute a bulk suppression fix for the specified document and project diagnostics,
