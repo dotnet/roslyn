@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
@@ -16,6 +17,6 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
     internal interface IFixAllProvider
     {
         IEnumerable<FixAllScope> GetSupportedFixAllScopes();
-        Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress);
+        Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken);
     }
 }

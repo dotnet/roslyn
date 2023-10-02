@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         object Provider { get; }
         FixAllScope Scope { get; }
         string? CodeActionEquivalenceKey { get; }
-        CancellationToken CancellationToken { get; }
 
         string GetDefaultFixAllTitle();
         IFixAllContext With(

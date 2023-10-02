@@ -63,8 +63,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public string? CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
 
         /// <summary>
-        /// CancellationToken for fix all session.
+        /// Obsolete.  Use the cancellation token passed into the fix all methods instead.
         /// </summary>
+        [Obsolete("Use the cancellation token passed into the fix all methods instead", error: false)]
         public CancellationToken CancellationToken { get; }
 
         #region IFixAllContext implementation
@@ -211,7 +212,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
         {
             State = state;
+#pragma warning disable CS0618 // Type or member is obsolete
             this.CancellationToken = cancellationToken;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         /// <summary>
@@ -254,7 +257,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets all the diagnostics in the given <paramref name="filterSpan"/> for the given <paramref name="document"/> filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        internal async Task<ImmutableArray<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan filterSpan)
+        internal async Task<ImmutableArray<Diagnostic>> GetDocumentSpanDiagnosticsAsync(
+            Document document, TextSpan filterSpan, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -267,8 +271,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var getDiagnosticsTask = State.DiagnosticProvider is FixAllContext.SpanBasedDiagnosticProvider spanBasedDiagnosticProvider
-                ? spanBasedDiagnosticProvider.GetDocumentSpanDiagnosticsAsync(document, filterSpan, this.CancellationToken)
-                : State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
+                ? spanBasedDiagnosticProvider.GetDocumentSpanDiagnosticsAsync(document, filterSpan, cancellationToken)
+                : State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, cancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, filterSpan).ConfigureAwait(false);
         }
 
@@ -304,7 +308,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// If <paramref name="includeAllDocumentDiagnostics"/> is false, then returns only project-level diagnostics which have no source location.
         /// Otherwise, returns all diagnostics in the project, including the document diagnostics for all documents in the given project.
         /// </summary>
-        private async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project, bool includeAllDocumentDiagnostics)
+        private async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(
+            Project project, bool includeAllDocumentDiagnostics, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(project);
 
@@ -314,14 +319,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var getDiagnosticsTask = includeAllDocumentDiagnostics
-                ? State.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken)
-                : State.DiagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
+                ? State.DiagnosticProvider.GetAllDiagnosticsAsync(project, cancellationToken)
+                : State.DiagnosticProvider.GetProjectDiagnosticsAsync(project, cancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, filterSpan: null).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Gets a new <see cref="FixAllContext"/> with the given cancellationToken.
         /// </summary>
+        [Obsolete("Cancellation tokens should no longer be accessed off of a FixAllContext value.", error: false)]
         public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
         {
             // TODO: We should change this API to be a virtual method, as the class is not sealed.
@@ -339,13 +345,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Optional<string?> codeActionEquivalenceKey = default)
         {
             var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
+#pragma warning disable CS0618 // Type or member is obsolete
             return State == newState ? this : new FixAllContext(newState, CancellationToken);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IProgress<CodeAnalysisProgress> progress)
-            => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this, progress);
+        internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this, progress, cancellationToken);
 
-        internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync()
-            => DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
+        internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(CancellationToken cancellationToken)
+            => DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this, cancellationToken);
     }
 }

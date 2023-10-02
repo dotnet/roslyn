@@ -47,11 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public string? CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
 
         /// <summary>
-        /// CancellationToken for fix all session.
-        /// </summary>
-        public CancellationToken CancellationToken { get; }
-
-        /// <summary>
         /// Project to fix all occurrences.
         /// Note that this property will always be the containing project of <see cref="Document"/>
         /// for publicly exposed FixAllContext instance. However, we might create an intermediate FixAllContext
@@ -77,25 +72,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             => this.With(documentAndProject, scope, codeActionEquivalenceKey);
         #endregion
 
-        internal FixAllContext(
-            FixAllState state,
-            CancellationToken cancellationToken)
+        internal FixAllContext(FixAllState state)
         {
             State = state;
-            this.CancellationToken = cancellationToken;
-        }
-
-        /// <summary>
-        /// Gets a new <see cref="FixAllContext"/> with the given cancellationToken.
-        /// </summary>
-        public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
-        {
-            if (this.CancellationToken == cancellationToken)
-            {
-                return this;
-            }
-
-            return new FixAllContext(State, cancellationToken);
         }
 
         /// <summary>
@@ -111,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Optional<string?> codeActionEquivalenceKey = default)
         {
             var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-            return State == newState ? this : new FixAllContext(newState, CancellationToken);
+            return State == newState ? this : new FixAllContext(newState);
         }
 
         internal string GetDefaultFixAllTitle()

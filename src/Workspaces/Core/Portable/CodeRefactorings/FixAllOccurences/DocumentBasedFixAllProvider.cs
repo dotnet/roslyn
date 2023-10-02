@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
@@ -18,13 +18,14 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     /// <summary>
-    /// Provides a base class to write a <see cref="FixAllProvider"/> for refactorings that fixes documents independently.
-    /// This type should be used in the case where the code refactoring(s) only affect individual <see cref="Document"/>s.
+    /// Provides a base class to write a <see cref="FixAllProvider"/> for refactorings that fixes documents
+    /// independently. This type should be used in the case where the code refactoring(s) only affect individual <see
+    /// cref="Document"/>s.
     /// </summary>
     /// <remarks>
     /// This type provides suitable logic for fixing large solutions in an efficient manner.  Projects are serially
-    /// processed, with all the documents in the project being processed in parallel. 
-    /// <see cref="FixAllAsync(FixAllContext, Document, Optional{ImmutableArray{TextSpan}})"/> is invoked for each document for implementors to process.
+    /// processed, with all the documents in the project being processed in parallel. <see cref="FixAllAsync"/> is
+    /// invoked for each document for implementors to process.
     ///
     /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
     /// </remarks>
@@ -63,20 +64,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <para>-or-</para>
         /// <para><see langword="null"/>, if no changes were made to the document.</para>
         /// </returns>
-        protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans);
+        protected virtual Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans, CancellationToken cancellationToken)
+            => FixAllAsync(fixAllContext, document, fixAllSpans, cancellationToken);
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             => _supportedFixAllScopes;
 
-        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => DefaultFixAllProviderHelpers.GetFixAsync(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsHelperAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsHelperAsync, cancellationToken);
 
-        private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts, IProgress<CodeAnalysisProgress> progress)
-            => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                    progress,
-                    this.GetFixAllTitle(originalFixAllContext),
-                    GetFixedDocumentsAsync);
+        private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(
+                originalFixAllContext,
+                fixAllContexts,
+                progress,
+                this.GetFixAllTitle(originalFixAllContext),
+                GetFixedDocumentsAsync,
+                cancellationToken);
 
         /// <summary>
         /// Attempts to apply fix all operations returning, for each updated document, either
@@ -85,12 +90,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
                 or FixAllScope.ContainingMember or FixAllScope.ContainingType);
-
-            var cancellationToken = fixAllContext.CancellationToken;
 
             using var _1 = progressTracker.ItemCompletedScope();
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
+                    var newDocument = await this.FixAllAsync(fixAllContext, document, spans, cancellationToken).ConfigureAwait(false);
                     if (newDocument == null || newDocument == document)
                         return default;
 

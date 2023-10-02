@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -38,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
-        public abstract Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress);
+        public abstract Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken);
 
         #region IFixAllProvider implementation
-        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
-            => this.GetFixAsync((FixAllContext)fixAllContext, progress);
+        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            => this.GetFixAsync((FixAllContext)fixAllContext, progress, cancellationToken);
         #endregion
 
         /// <summary>
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
         /// will be considered.
         /// </param>
-        public static FixAllProvider Create(Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync)
+        public static FixAllProvider Create(Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, CancellationToken, Task<Document?>> fixAllAsync)
             => Create(fixAllAsync, DefaultSupportedFixAllScopes);
 
         /// <summary>
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// and should not be part of the supported scopes.
         /// </param>
         public static FixAllProvider Create(
-            Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
+            Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, CancellationToken, Task<Document?>> fixAllAsync,
             ImmutableArray<FixAllScope> supportedFixAllScopes)
         {
             if (fixAllAsync is null)
@@ -92,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         private sealed class CallbackDocumentBasedFixAllProvider(
-            Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
+            Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, CancellationToken, Task<Document?>> fixAllAsync,
             ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
         {
-            protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans)
-                => fixAllAsync(context, document, fixAllSpans);
+            protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans, CancellationToken cancellationToken)
+                => fixAllAsync(context, document, fixAllSpans, cancellationToken);
         }
     }
 }

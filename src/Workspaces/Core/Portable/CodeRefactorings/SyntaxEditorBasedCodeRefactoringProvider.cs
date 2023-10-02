@@ -29,10 +29,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return null;
 
             return FixAllProvider.Create(
-                async (fixAllContext, document, fixAllSpans) =>
-                {
-                    return await this.FixAllAsync(document, fixAllSpans, fixAllContext.GetOptionsProvider(), fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false);
-                },
+                async (fixAllContext, document, fixAllSpans, cancellationToken) =>
+                    await this.FixAllAsync(document, fixAllSpans, fixAllContext.GetOptionsProvider(), fixAllContext.CodeActionEquivalenceKey, cancellationToken).ConfigureAwait(false),
                 SupportedFixAllScopes);
         }
 

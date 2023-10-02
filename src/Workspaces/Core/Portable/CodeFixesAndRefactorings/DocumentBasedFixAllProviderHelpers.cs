@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             ImmutableArray<TFixAllContext> fixAllContexts,
             IProgress<CodeAnalysisProgress> progressTracker,
             string progressTrackerDescription,
-            Func<TFixAllContext, IProgress<CodeAnalysisProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            Func<TFixAllContext, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync,
+            CancellationToken cancellationToken)
             where TFixAllContext : IFixAllContext
         {
             progressTracker.Report(CodeAnalysisProgress.Description(progressTrackerDescription));
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             {
                 Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
                     or FixAllScope.ContainingMember or FixAllScope.ContainingType);
-                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker, getFixedDocumentsAsync).ConfigureAwait(false);
+                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker, getFixedDocumentsAsync, cancellationToken).ConfigureAwait(false);
             }
 
             return currentSolution;
@@ -55,14 +56,15 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             Solution currentSolution,
             TFixAllContext fixAllContext,
             IProgress<CodeAnalysisProgress> progressTracker,
-            Func<TFixAllContext, IProgress<CodeAnalysisProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            Func<TFixAllContext, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync,
+            CancellationToken cancellationToken)
             where TFixAllContext : IFixAllContext
         {
             // First, compute and apply the fixes.
-            var docIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+            var docIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // Then, cleanup the new doc roots, and apply the results to the solution.
-            currentSolution = await CleanupAndApplyChangesAsync(progressTracker, currentSolution, docIdToNewRootOrText, fixAllContext.CancellationToken).ConfigureAwait(false);
+            currentSolution = await CleanupAndApplyChangesAsync(progressTracker, currentSolution, docIdToNewRootOrText, cancellationToken).ConfigureAwait(false);
 
             return currentSolution;
         }

@@ -68,3 +68,5 @@ M:Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputeOperationsAsync(System.Th
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedSolutionAsync(CSystem.Threading.CancellationToken); Use overload that takes progress
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedDocumentAsync(CancellationToken); Use overload that takes progress
 M:Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext); Use overload that takes progress
+M:Microsoft.CodeAnalysis.CodeFixes.FixAllContext.CancellationToken; Use methods that are passed the cancellation token
+M:Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CancellationToken; Use methods that are passed the cancellation token

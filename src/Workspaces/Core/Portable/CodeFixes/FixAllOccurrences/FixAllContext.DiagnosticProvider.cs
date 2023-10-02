@@ -41,15 +41,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
 
             internal static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
-                FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+                FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
-                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext, progress).ConfigureAwait(false);
+                var result = await GetDocumentDiagnosticsToFixWorkerAsync(
+                    fixAllContext, progress, cancellationToken).ConfigureAwait(false);
 
                 // Filter out any documents that we don't have any diagnostics for.
                 return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
 
                 static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(
-                    FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+                    FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
                     {
@@ -59,20 +60,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     using (Logger.LogBlock(
                             FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
                             FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
-                            fixAllContext.CancellationToken))
+                            cancellationToken))
                     {
-                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progress).ConfigureAwait(false);
+                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
+                            fixAllContext, progress, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
             internal static async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
-                FixAllContext fixAllContext)
+                FixAllContext fixAllContext, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Diagnostics,
                     FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
-                    fixAllContext.CancellationToken))
+                    cancellationToken))
                 {
                     var project = fixAllContext.Project;
                     if (project != null)

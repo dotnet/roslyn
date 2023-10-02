@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,10 +20,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal static partial class FixAllContextHelper
     {
         public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
-            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
-
             var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
 
             var document = fixAllContext.Document;
@@ -51,8 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             document.GetLanguageService<IFixAllSpanMappingService>() is { } spanMappingService)
                         {
                             var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(document,
-                                diagnosticSpan.Value, fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
-                            return await GetSpanDiagnosticsAsync(fixAllContext, documentsAndSpans).ConfigureAwait(false);
+                                diagnosticSpan.Value, fixAllContext.Scope, cancellationToken).ConfigureAwait(false);
+                            return await GetSpanDiagnosticsAsync(
+                                fixAllContext, documentsAndSpans, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return await GetDocumentDiagnosticsToFixAsync(
-                fixAllContext.Solution, allDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
+                fixAllContext.Solution, allDiagnostics, cancellationToken).ConfigureAwait(false);
 
             async Task AddDocumentDiagnosticsAsync(ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>> diagnostics, Project projectToFix)
             {
@@ -108,14 +106,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetSpanDiagnosticsAsync(
                 FixAllContext fixAllContext,
-                IEnumerable<KeyValuePair<Document, ImmutableArray<TextSpan>>> documentsAndSpans)
+                IEnumerable<KeyValuePair<Document, ImmutableArray<TextSpan>>> documentsAndSpans,
+                CancellationToken cancellationToken)
             {
                 var builder = PooledDictionary<Document, ArrayBuilder<Diagnostic>>.GetInstance();
                 foreach (var (document, spans) in documentsAndSpans)
                 {
                     foreach (var span in spans)
                     {
-                        var documentDiagnostics = await fixAllContext.GetDocumentSpanDiagnosticsAsync(document, span).ConfigureAwait(false);
+                        var documentDiagnostics = await fixAllContext.GetDocumentSpanDiagnosticsAsync(
+                            document, span, cancellationToken).ConfigureAwait(false);
                         builder.MultiAddRange(document, documentDiagnostics);
                     }
                 }

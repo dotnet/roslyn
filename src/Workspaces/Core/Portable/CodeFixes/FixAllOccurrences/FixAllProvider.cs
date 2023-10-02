@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -59,11 +60,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public virtual IEnumerable<string> GetSupportedFixAllDiagnosticIds(CodeFixProvider originalCodeFixProvider)
             => originalCodeFixProvider.FixableDiagnosticIds;
 
+#pragma warning disable CS0618 // Type or member is obsolete
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
         public virtual Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-            => GetFixAsync(fixAllContext, CodeAnalysisProgress.None);
+            => GetFixAsync(fixAllContext, CodeAnalysisProgress.None, fixAllContext.CancellationToken);
+#pragma warning restore CS0618 // Type or member is obsolete
 
 #pragma warning disable RS0030 // Do not use banned APIs
         /// <summary>
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// cref="GetFixAsync(FixAllContext)"/> when computation is long running and progress should be shown to the
         /// user.
         /// </summary>
-        public virtual async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+        public virtual async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             // If the subclass overrode `ComputeOperationsAsync(CancellationToken)` then we must call into that in
             // order to preserve whatever logic our subclass had had for determining the new solution.
@@ -97,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
         /// will be considered.
         /// </param>
+        [Obsolete("Use overload that takes a callback that accepts a cancellation token instead.", error: false)]
         public static FixAllProvider Create(Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync)
             => Create(fixAllAsync, DefaultSupportedFixAllScopes);
 
@@ -116,8 +120,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Note that <see cref="FixAllScope.Custom"/> is not supported by the <see cref="DocumentBasedFixAllProvider"/>
         /// and should not be part of the supported scopes.
         /// </param>
+        [Obsolete("Use overload that takes a callback that accepts a cancellation token instead.", error: false)]
         public static FixAllProvider Create(
             Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
+            ImmutableArray<FixAllScope> supportedFixAllScopes)
+        {
+            return Create((ctx, doc, dxs, _) => fixAllAsync(ctx, doc, dxs), supportedFixAllScopes);
+        }
+
+        /// <inheritdoc cref="Create(Func{FixAllContext, Document, ImmutableArray{Diagnostic}, Task{Document?}}, ImmutableArray{FixAllScope})"/>
+        public static FixAllProvider Create(
+            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, CancellationToken, Task<Document?>> fixAllAsync,
             ImmutableArray<FixAllScope> supportedFixAllScopes)
         {
             if (fixAllAsync is null)
@@ -133,16 +146,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         #region IFixAllProvider implementation
-        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
-            => this.GetFixAsync((FixAllContext)fixAllContext, progress);
+        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            => this.GetFixAsync((FixAllContext)fixAllContext, progress, cancellationToken);
         #endregion
 
         private class CallbackDocumentBasedFixAllProvider(
-            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
+            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, CancellationToken, Task<Document?>> fixAllAsync,
             ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
         {
-            protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
-                => fixAllAsync(context, document, diagnostics);
+            protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+                => fixAllAsync(context, document, diagnostics, cancellationToken);
         }
     }
 }

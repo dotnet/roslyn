@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </remarks>
     public abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
+        private static readonly Dictionary<Type, bool> s_isNonCancellationFixAllAsyncOverridden = new();
+
         private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
 
         protected DocumentBasedFixAllProvider()
@@ -41,9 +44,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _supportedFixAllScopes = supportedFixAllScopes;
         }
 
+        private bool IsNonProgressApiOverridden(Dictionary<Type, bool> dictionary, Func<DocumentBasedFixAllProvider, bool> computeResult)
+        {
+            var type = this.GetType();
+            lock (dictionary)
+            {
+                return dictionary.GetOrAdd(type, computeResult(this));
+            }
+        }
+
+        private bool IsNonNonCancellationFixAllAsyncOverridden()
+        {
+#pragma warning disable RS0030 // Do not use banned APIs
+            return IsNonProgressApiOverridden(
+                s_isNonCancellationFixAllAsyncOverridden,
+                static provider => new Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>>(provider.FixAllAsync).Method.DeclaringType != typeof(DocumentBasedFixAllProvider));
+#pragma warning restore RS0030 // Do not use banned APIs
+        }
+
         /// <summary>
         /// Produce a suitable title for the fix-all <see cref="CodeAction"/> this type creates in <see
-        /// cref="GetFixAsync(FixAllContext, IProgress{CodeAnalysisProgress})"/>.  Override this if customizing that title is desired.
+        /// cref="GetFixAsync"/>.  Override this if customizing that title is desired.
         /// </summary>
         protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
             => fixAllContext.GetDefaultFixAllTitle();
@@ -62,40 +83,51 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <para>-or-</para>
         /// <para><see langword="null"/>, if no changes were made to the document.</para>
         /// </returns>
-        protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
+        [Obsolete("Override FixAllAsyncm method that takes a cancellation token", error: false)]
+        protected virtual Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+            => FixAllAsync(fixAllContext, document, diagnostics, fixAllContext.CancellationToken);
+
+        protected virtual Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        {
+
+        }
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             => _supportedFixAllScopes;
 
-        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => DefaultFixAllProviderHelpers.GetFixAsync(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsHelperAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsHelperAsync, cancellationToken);
 
         private Task<Solution?> FixAllContextsHelperAsync(
-            FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts, IProgress<CodeAnalysisProgress> progress)
+            FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                    progress,
-                    this.GetFixAllTitle(originalFixAllContext),
-                    DetermineDiagnosticsAndGetFixedDocumentsAsync);
+                progress,
+                this.GetFixAllTitle(originalFixAllContext),
+                DetermineDiagnosticsAndGetFixedDocumentsAsync,
+                cancellationToken);
 
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> DetermineDiagnosticsAndGetFixedDocumentsAsync(
             FixAllContext fixAllContext,
-            IProgress<CodeAnalysisProgress> progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
             // First, determine the diagnostics to fix.
-            var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+            var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
-            return await GetFixedDocumentsAsync(fixAllContext, progressTracker, diagnostics).ConfigureAwait(false);
+            return await GetFixedDocumentsAsync(fixAllContext, progressTracker, diagnostics, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
-        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             using var _ = progressTracker.ItemCompletedScope();
-            return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+            return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
+                fixAllContext, progressTracker, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -105,10 +137,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
+            FixAllContext fixAllContext,
+            IProgress<CodeAnalysisProgress> progressTracker,
+            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
-
             using var _1 = progressTracker.ItemCompletedScope();
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
 
@@ -123,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     tasks.Add(Task.Run(async () =>
                     {
-                        var newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
+                        var newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics, cancellationToken).ConfigureAwait(false);
                         if (newDocument == null || newDocument == document)
                             return default;
 
