@@ -8,7 +8,6 @@ abstract Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.FixAllAsyn
 abstract Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.GetAllDiagnosticsAsync(Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>
 abstract Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.GetDocumentDiagnosticsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>
 abstract Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.GetProjectDiagnosticsAsync(Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>
-abstract Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
 abstract Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.ComputeRefactoringsAsync(Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext context) -> System.Threading.Tasks.Task
 abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.GetChildren(TNode node) -> System.Collections.Generic.IEnumerable<TNode>
 abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.GetDescendants(TNode node) -> System.Collections.Generic.IEnumerable<TNode>
@@ -1463,7 +1462,6 @@ override Microsoft.CodeAnalysis.VersionStamp.GetHashCode() -> int
 override Microsoft.CodeAnalysis.VersionStamp.ToString() -> string
 override Microsoft.CodeAnalysis.WorkspaceDiagnostic.ToString() -> string
 override Microsoft.CodeAnalysis.XmlDocumentationProvider.GetDocumentationForSymbol(string documentationMemberID, System.Globalization.CultureInfo preferredCulture, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> string
-override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
 override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.FixAllScope>
 static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AdditiveTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
 static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AllTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
