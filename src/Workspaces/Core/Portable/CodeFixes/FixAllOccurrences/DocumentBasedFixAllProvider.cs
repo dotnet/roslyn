@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private bool IsNonNonCancellationFixAllAsyncOverridden()
         {
-#pragma warning disable RS0030 // Do not use banned APIs
+#pragma warning disable CS0618 // Type or member is obsolete
             return IsNonProgressApiOverridden(
                 s_isNonCancellationFixAllAsyncOverridden,
                 static provider => new Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>>(provider.FixAllAsync).Method.DeclaringType != typeof(DocumentBasedFixAllProvider));
-#pragma warning restore RS0030 // Do not use banned APIs
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         /// <summary>
@@ -87,10 +87,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected virtual Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             => FixAllAsync(fixAllContext, document, diagnostics, fixAllContext.CancellationToken);
 
+#pragma warning disable CS0618 // Type or member is obsolete
         protected virtual Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-
+            if (IsNonNonCancellationFixAllAsyncOverridden())
+            {
+                return FixAllAsync(fixAllContext, document, diagnostics);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             => _supportedFixAllScopes;

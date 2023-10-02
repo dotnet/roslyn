@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         switch (fixAllContext.Scope)
                         {
                             case FixAllScope.Project:
-                                var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
+                                var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                                 var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(project, diagnostics));
                                 return ImmutableDictionary.CreateRange(kvp);
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 var tasks = project.Solution.Projects.Select(async p => new
                                 {
                                     Project = p,
-                                    Diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(p).ConfigureAwait(false)
+                                    Diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(p, cancellationToken).ConfigureAwait(false)
                                 }).ToArray();
 
                                 await Task.WhenAll(tasks).ConfigureAwait(false);

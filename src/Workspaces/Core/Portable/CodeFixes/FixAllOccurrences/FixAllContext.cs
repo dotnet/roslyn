@@ -220,7 +220,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
+        [Obsolete("Use overload that accepts a CancellationToken.", error: false)]
+        public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
+            => GetDocumentDiagnosticsAsync(document, this.CancellationToken);
+
+        /// <inheritdoc cref=" GetDocumentDiagnosticsAsync(Document)"/>
+        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -232,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
+            var getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, cancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, filterSpan: null).ConfigureAwait(false);
         }
 
@@ -279,28 +284,38 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets all the project-level diagnostics, i.e. diagnostics with no source location, in the given project filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
+        [Obsolete("Use overload that accepts a CancellationToken.", error: false)]
         public Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
+            => GetProjectDiagnosticsAsync(project, this.CancellationToken);
+
+        /// <inheritdoc cref="GetProjectDiagnosticsAsync(Project)"/>
+        public Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false);
+            return GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false, cancellationToken);
         }
 
         /// <summary>
         /// Gets all the diagnostics in the given project filtered by <see cref="DiagnosticIds"/>.
         /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
         /// </summary>
+        [Obsolete("Use overload that accepts a CancellationToken.", error: false)]
         public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project)
+            => GetAllDiagnosticsAsync(project, this.CancellationToken);
+
+        /// <inheritdoc cref="GetAllDiagnosticsAsync(Project)"/>
+        public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true);
+            return GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true, cancellationToken);
         }
 
         /// <summary>

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Note: We avoid fixing diagnostics in generated code.
                     if (document != null && !await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
+                        var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
                         return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty.SetItem(document, documentDiagnostics);
                     }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     break;
 
                 case FixAllScope.Project:
-                    allDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+                    allDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                     break;
 
                 case FixAllScope.Solution:
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 try
                 {
-                    var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
+                    var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix, cancellationToken).ConfigureAwait(false);
                     diagnostics.TryAdd(projectToFix.Id, projectDiagnostics);
                 }
                 finally

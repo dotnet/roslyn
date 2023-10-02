@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
         {
             // First, determine the diagnostics to fix for that context.
-            var documentToDiagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+            var documentToDiagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // Second, process all those diagnostics, merging the cumulative set of text changes per document into docIdToTextMerger.
             await AddDocumentChangesAsync(
@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(
-            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             using var _ = progressTracker.ItemCompletedScope();
 
-            var documentToDiagnostics = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progressTracker).ConfigureAwait(false);
+            var documentToDiagnostics = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progressTracker, cancellationToken).ConfigureAwait(false);
 
             var filtered = documentToDiagnostics.Where(kvp =>
             {
