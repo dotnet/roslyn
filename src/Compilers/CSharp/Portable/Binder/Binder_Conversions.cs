@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
             {
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                if (!TryBindIEnumerableCollectionInstance(targetType, syntax, diagnostics, out collectionCreation))
+                if (!tryBindIEnumerableCollectionInstance(targetType, syntax, diagnostics, out collectionCreation))
                 {
                     collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
                 }
@@ -710,30 +710,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SpecialType.System_Collections_Generic_IReadOnlyList_T
                 };
             }
-        }
 
-        internal bool TryBindIEnumerableCollectionInstance(TypeSymbol targetType, SyntaxNode syntax, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? result)
-        {
-            if (targetType is NamedTypeSymbol namedType)
+            bool tryBindIEnumerableCollectionInstance(TypeSymbol targetType, SyntaxNode syntax, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? result)
             {
-                var analyzedArguments = AnalyzedArguments.GetInstance();
-                // https://github.com/dotnet/roslyn/issues/68785: Use ctor with `int capacity` when the size is known.
-                result = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
-                result.WasCompilerGenerated = true;
-                analyzedArguments.Free();
-                return true;
-            }
-            else if (targetType is TypeParameterSymbol typeParameter)
-            {
-                var arguments = AnalyzedArguments.GetInstance();
-                result = BindTypeParameterCreationExpression(syntax, typeParameter, arguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
-                arguments.Free();
-                return true;
-            }
+                if (targetType is NamedTypeSymbol namedType)
+                {
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
+                    // https://github.com/dotnet/roslyn/issues/68785: Use ctor with `int capacity` when the size is known.
+                    result = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
+                    result.WasCompilerGenerated = true;
+                    analyzedArguments.Free();
+                    return true;
+                }
+                else if (targetType is TypeParameterSymbol typeParameter)
+                {
+                    var arguments = AnalyzedArguments.GetInstance();
+                    result = BindTypeParameterCreationExpression(syntax, typeParameter, arguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                    arguments.Free();
+                    return true;
+                }
 
-            Debug.Assert(false);
-            result = null;
-            return false;
+                Debug.Assert(false);
+                result = null;
+                return false;
+            }
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
@@ -793,35 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool reportedErrors = false;
 
-            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
-            {
-                if (this.TryBindIEnumerableCollectionInstance(targetType, node.Syntax, diagnostics, out var collectionCreation))
-                {
-                    if (collectionCreation.HasAnyErrors)
-                    {
-                        reportedErrors = true;
-                    }
-                }
-                else
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                BoundObjectOrCollectionValuePlaceholder? implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(node.Syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
-                foreach (var element in node.Elements)
-                {
-                    _ = BindCollectionExpressionElementAddMethod(
-                        element,
-                        collectionInitializerAddMethodBinder,
-                        implicitReceiver,
-                        diagnostics,
-                        out bool hasErrors);
-                    reportedErrors = reportedErrors || hasErrors;
-                }
-                Debug.Assert(reportedErrors);
-            }
-            else if (collectionTypeKind != CollectionExpressionTypeKind.None &&
+            if (collectionTypeKind != CollectionExpressionTypeKind.None &&
                 elementType is { })
             {
                 var elements = node.Elements;

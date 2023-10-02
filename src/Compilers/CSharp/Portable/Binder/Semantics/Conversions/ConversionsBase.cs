@@ -1648,7 +1648,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
-            else if (implementsIEnumerable(compilation, destination))
+            else if (implementsGenericIEnumerable(compilation, destination, out elementType))
+            {
+                return CollectionExpressionTypeKind.CollectionInitializer;
+            }
+            else if (implementsIEnumerable(compilation, destination) && !implementsGenericIEnumerable(compilation, destination, out _))
             {
                 elementType = null;
                 return CollectionExpressionTypeKind.CollectionInitializer;
@@ -1697,6 +1701,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Instead, we just walk the implemented interfaces.
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
+
+            }
+
+            static bool implementsGenericIEnumerable(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            {
+                ImmutableArray<NamedTypeSymbol> allInterfaces;
+                switch (targetType.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
+                        break;
+                    case TypeKind.TypeParameter:
+                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
+                        break;
+                    default:
+                        elementType = null;
+                        return false;
+                }
+
+                // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
+                // That method checks for an implicit conversion from IEnumerable to the collection type, to
+                // match earlier implementation, even though it states that walking the implemented interfaces
+                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
+                // to check for nullable to disallow: Nullable<StructCollection> s = [];
+                // Instead, we just walk the implemented interfaces.
+                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+                foreach (var @interface in allInterfaces)
+                {
+                    if (areEqual(@interface.OriginalDefinition, ienumerableType))
+                    {
+                        elementType = @interface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                        return true;
+                    }
+                }
+
+                elementType = null;
+                return false;
             }
 
             static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)

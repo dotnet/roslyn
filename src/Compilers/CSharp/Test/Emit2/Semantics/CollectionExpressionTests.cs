@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1010,16 +1011,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var x = F([1, null]);
-                        x.Report(includeType: true);
                         int?[] y = [null, 2];
                         var z = F([..y]);
-                        z.Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                expectedOutput: "(System.Nullable<System.Int32>[]) [1, null], (System.Nullable<System.Int32>[]) [null, 2], ");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
+                //         var x = F([1, null]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(15, 17),
+                // (17,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
+                //         var z = F([..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(17, 17)
+                );
         }
 
         [Fact]
@@ -1079,16 +1083,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var x = F([1, (string)null]);
-                        x.Report(includeType: true);
                         int?[] y = [null, 2];
                         var z = F([..y]);
-                        z.Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                expectedOutput: "(MyCollection2) [1, null], (MyCollection1) [null, 2], ");
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (22,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection1)' and 'Program.F(MyCollection2)'
+                //         var x = F([1, (string)null]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection1)", "Program.F(MyCollection2)").WithLocation(22, 17),
+                // (24,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection1)' and 'Program.F(MyCollection2)'
+                //         var z = F([..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection1)", "Program.F(MyCollection2)").WithLocation(24, 17)
+                );
         }
 
         [Fact]
@@ -2335,15 +2342,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (6,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F([], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "string").WithLocation(6, 11),
-                // (7,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(6, 11),
+                // (7,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F([default], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[default]").WithArguments("1", "collection expressions", "string").WithLocation(7, 11),
-                // (8,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[default]").WithArguments("string", "0").WithLocation(7, 11),
+                // (7,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         F([default], ['B']);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "default").WithArguments("string", "Add").WithLocation(7, 12),
+                // (8,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F(['A'], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "['A']").WithArguments("1", "collection expressions", "string").WithLocation(8, 11));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['A']").WithArguments("string", "0").WithLocation(8, 11),
+                // (8,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         F(['A'], ['B']);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'A'").WithArguments("string", "Add").WithLocation(8, 12));
         }
 
         [Fact]
@@ -9960,12 +9973,12 @@ partial class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(6,24): error CS0416: 'T': an attribute argument cannot use type parameters
+                // (6,24): error CS0416: 'T': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(T), "ToString")]
                 Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(T)").WithArguments("T").WithLocation(6, 24),
-                // 0.cs(19,45): error CS1061: 'Container<string>.MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<string>.MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                // (19,45): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         Container<string>.MyCollection y = [null];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "null").WithArguments("Container<string>.MyCollection", "Add").WithLocation(19, 45));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(19, 45));
         }
 
         [CombinatorialData]
@@ -13220,9 +13233,15 @@ partial class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,49): error CS1503: Argument 2: cannot convert from 'collection expressions' to 'string'
+                // (6,49): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
-                Diagnostic(ErrorCode.ERR_BadArgType, "['h', 'i']").WithArguments("2", "collection expressions", "string").WithLocation(6, 49));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['h', 'i']").WithArguments("string", "0").WithLocation(6, 49),
+                // (6,50): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'h'").WithArguments("string", "Add").WithLocation(6, 50),
+                // (6,55): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'i'").WithArguments("string", "Add").WithLocation(6, 55));
         }
 
         [Fact]
@@ -13320,18 +13339,12 @@ partial class Program
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyEmitDiagnostics(
-                // 1.cs(5,32): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer has some invalid arguments
+                // 1.cs(5,32): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         MyCollection<int> c = [string.Empty, 2, null];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "string.Empty").WithArguments("MyCollection<int>.Add(int)").WithLocation(5, 32),
-                // 1.cs(5,32): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(5, 32),
+                // 1.cs(5,49): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         MyCollection<int> c = [string.Empty, 2, null];
-                Diagnostic(ErrorCode.ERR_BadArgType, "string.Empty").WithArguments("1", "string", "int").WithLocation(5, 32),
-                // 1.cs(5,49): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(int)' for the collection initializer has some invalid arguments
-                //         MyCollection<int> c = [string.Empty, 2, null];
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "null").WithArguments("MyCollection<int>.Add(int)").WithLocation(5, 49),
-                // 1.cs(5,49): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
-                //         MyCollection<int> c = [string.Empty, 2, null];
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(5, 49));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(5, 49));
         }
 
         [InlineData("int[]")]
@@ -17359,10 +17372,11 @@ partial class Program
                     }
                 }
                 """;
+            // There's now a conversion from [] to string
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS0019: Operator '+' cannot be applied to operands of type 'collection expressions' and 'List<int>'
+                // (7,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         [] + list;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "[] + list").WithArguments("+", "collection expressions", "System.Collections.Generic.List<int>").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [] + list;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "[] + list").WithLocation(7, 9));
@@ -17914,13 +17928,14 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
-        public void MissingCtor()
+        public void MissingCtor_GenericIEnumerable()
         {
             string source = """
                 using System.Collections;
                 using System.Collections.Generic;
 
-                C x = [];
+                C x = [1]; // 1
+                C.M([1]); // 2
 
                 class C : IEnumerable<int>
                 {
@@ -17928,18 +17943,275 @@ partial class Program
                     IEnumerator IEnumerable.GetEnumerator() => null;
                     IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
                     public void Add(int i) { }
+
+                    public static void M(C c) { }
+                    public static void M(int[] i) { }
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
                 // (4,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
-                // C x = [];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("s", "C.C(string)").WithLocation(4, 7)
+                // C x = [1]; // 1
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1]").WithArguments("s", "C.C(string)").WithLocation(4, 7),
+                // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(C)' and 'C.M(int[])'
+                // C.M([1]); // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(C)", "C.M(int[])").WithLocation(5, 3)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
+
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsIdentity);
+            Assert.Null(model.GetTypeInfo(collections[1]).Type);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
-        public void MissingCtor_TypeParameter()
+        public void MissingCtor_GenericIEnumerable_Spread()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                int[] values = [1];
+                C x = [..values]; // 1
+                C.M([..values]); // 2
+
+                class C : IEnumerable<int>
+                {
+                    public C(string s) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    public void Add(int i) { }
+
+                    public static void M(C c) { }
+                    public static void M(int[] i) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
+                // C x = [..values]; // 1
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[..values]").WithArguments("s", "C.C(string)").WithLocation(5, 7),
+                // (6,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(C)' and 'C.M(int[])'
+                // C.M([..values]); // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(C)", "C.M(int[])").WithLocation(6, 3)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
+
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsCollectionExpression);
+            Assert.Null(model.GetTypeInfo(collections[1]).Type);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_IEnumerable()
+        {
+            string source = """
+                using System.Collections;
+
+                C x = [1]; // 1
+                C.M([1]); // 2
+
+                class C : IEnumerable
+                {
+                    public C(string s) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public void Add(int i) { }
+
+                    public static void M(C c) { }
+                    public static void M(int[] i) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
+                // C x = [1]; // 1
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1]").WithArguments("s", "C.C(string)").WithLocation(3, 7),
+                // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(C)' and 'C.M(int[])'
+                // C.M([1]); // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(C)", "C.M(int[])").WithLocation(4, 3)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
+
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsIdentity);
+            Assert.Null(model.GetTypeInfo(collections[1]).Type);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_IEnumerable_Spread()
+        {
+            string source = """
+                using System.Collections;
+
+                int[] values = [1];
+                C x = [..values]; // 1
+                C.M([..values]); // 2
+
+                class C : IEnumerable
+                {
+                    public C(string s) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public void Add(int i) { }
+
+                    public static void M(C c) { }
+                    public static void M(int[] i) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,7): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'C.C(string)'
+                // C x = [..values]; // 1
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[..values]").WithArguments("s", "C.C(string)").WithLocation(4, 7),
+                // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(C)' and 'C.M(int[])'
+                // C.M([..values]); // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(C)", "C.M(int[])").WithLocation(5, 3)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
+
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsCollectionExpression);
+            Assert.Null(model.GetTypeInfo(collections[1]).Type);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_IEnumerable_WithWrongGenericIEnumerable()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                C x = [1]; // 1
+
+                class C : IEnumerable<string>
+                {
+                    public C(string s) { }
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public void Add(int i) { }
+
+                    public static void M(C c) { }
+                    public static void M(int[] i) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,8): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                // C x = [1]; // 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(4, 8)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+
+            var conversion = model.GetConversion(collection);
+            Assert.False(conversion.IsValid);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_IEnumerable_WithWrongGenericIEnumerable_Spread()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                int[] values = [1];
+                C x = [..values]; // 1
+
+                class C : IEnumerable<string>
+                {
+                    public C(string s) { }
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public void Add(int i) { }
+
+                    public static void M(C c) { }
+                    public static void M(int[] i) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,10): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                // C x = [..values]; // 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "values").WithArguments("int", "string").WithLocation(5, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Last();
+            Assert.Equal("[..values]", collection.ToString());
+
+            var conversion = model.GetConversion(collection);
+            Assert.False(conversion.IsValid);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_IEnumerable_WithWrongGenericIEnumerable_Invocation()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                C.M([1]);
+
+                class C : IEnumerable<string>
+                {
+                    public C(string s) { }
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public void Add(int i) { }
+
+                    public static void M(C c) { }
+                    public static void M(int[] i) { System.Console.Write("RAN"); }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+
+            var conversion = model.GetConversion(collection);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsCollectionExpression);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_TypeParameter_GenericIEnumerable()
         {
             string source = """
                 using System.Collections;
@@ -17968,7 +18240,8 @@ partial class Program
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
 
             var conversion1 = model.GetConversion(collections[0]);
-            Assert.False(conversion1.IsValid);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
 
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
@@ -17987,12 +18260,174 @@ partial class Program
             Assert.Equal("T3", typeInfo3.ConvertedType.ToTestDisplayString());
 
             var conversion4 = model.GetConversion(collections[3]);
-            Assert.False(conversion4.IsValid);
+            Assert.True(conversion4.IsValid);
+            Assert.True(conversion4.IsCollectionExpression);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_TypeParameter_IEnumerable()
+        {
+            string source = """
+                using System.Collections;
+
+                class C
+                {
+                    static T1 Create1<T1>() where T1 : IEnumerable => []; // 1
+                    static T2 Create2<T2>() where T2 : IEnumerable, new() => [];
+                    static T3 Create3<T3>() where T3 : struct, IEnumerable => [];
+                    static T4 Create4<T4>() where T4 : class, IEnumerable => []; // 2
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,55): error CS0304: Cannot create an instance of the variable type 'T1' because it does not have the new() constraint
+                //     static T1 Create1<T1>() where T1 : IEnumerable => []; // 1
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T1").WithLocation(5, 55),
+                // (8,62): error CS0304: Cannot create an instance of the variable type 'T4' because it does not have the new() constraint
+                //     static T4 Create4<T4>() where T4 : class, IEnumerable => []; // 2
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T4").WithLocation(8, 62)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
+
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsCollectionExpression);
+
+            var typeInfo2 = model.GetTypeInfo(collections[1]);
+            Assert.Null(typeInfo2.Type);
+            Assert.Equal("T2", typeInfo2.ConvertedType.ToTestDisplayString());
+
+            var conversion3 = model.GetConversion(collections[2]);
+            Assert.True(conversion3.IsValid);
+            Assert.True(conversion3.IsCollectionExpression);
+
+            var typeInfo3 = model.GetTypeInfo(collections[2]);
+            Assert.Null(typeInfo3.Type);
+            Assert.Equal("T3", typeInfo3.ConvertedType.ToTestDisplayString());
+
+            var conversion4 = model.GetConversion(collections[3]);
+            Assert.True(conversion4.IsValid);
+            Assert.True(conversion4.IsCollectionExpression);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_TypeParameter_IEnumerable_WithWrongGenericIEnumerable()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static T1 Create1<T1>() where T1 : IEnumerable, IEnumerable<string> => []; // 1
+                    static T2 Create2<T2>() where T2 : IEnumerable, IEnumerable<string>, new() => [];
+                    static T3 Create3<T3>() where T3 : struct, IEnumerable, IEnumerable<string> => [];
+                    static T4 Create4<T4>() where T4 : class, IEnumerable, IEnumerable<string> => []; // 2
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,76): error CS0304: Cannot create an instance of the variable type 'T1' because it does not have the new() constraint
+                //     static T1 Create1<T1>() where T1 : IEnumerable, IEnumerable<string> => []; // 1
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T1").WithLocation(6, 76),
+                // (9,83): error CS0304: Cannot create an instance of the variable type 'T4' because it does not have the new() constraint
+                //     static T4 Create4<T4>() where T4 : class, IEnumerable, IEnumerable<string> => []; // 2
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T4").WithLocation(9, 83)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
+
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsCollectionExpression);
+
+            var typeInfo2 = model.GetTypeInfo(collections[1]);
+            Assert.Null(typeInfo2.Type);
+            Assert.Equal("T2", typeInfo2.ConvertedType.ToTestDisplayString());
+
+            var conversion3 = model.GetConversion(collections[2]);
+            Assert.True(conversion3.IsValid);
+            Assert.True(conversion3.IsCollectionExpression);
+
+            var typeInfo3 = model.GetTypeInfo(collections[2]);
+            Assert.Null(typeInfo3.Type);
+            Assert.Equal("T3", typeInfo3.ConvertedType.ToTestDisplayString());
+
+            var conversion4 = model.GetConversion(collections[3]);
+            Assert.True(conversion4.IsValid);
+            Assert.True(conversion4.IsCollectionExpression);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        public void MissingCtor_TypeParameter_WrongGenericIEnumerable()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static T1 Create1<T1>() where T1 : IEnumerable<string> => []; // 1
+                    static T2 Create2<T2>() where T2 : IEnumerable<string>, new() => [];
+                    static T3 Create3<T3>() where T3 : struct, IEnumerable<string> => [];
+                    static T4 Create4<T4>() where T4 : class, IEnumerable<string> => []; // 2
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,63): error CS0304: Cannot create an instance of the variable type 'T1' because it does not have the new() constraint
+                //     static T1 Create1<T1>() where T1 : IEnumerable<string> => []; // 1
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T1").WithLocation(5, 63),
+                // (8,70): error CS0304: Cannot create an instance of the variable type 'T4' because it does not have the new() constraint
+                //     static T4 Create4<T4>() where T4 : class, IEnumerable<string> => []; // 2
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T4").WithLocation(8, 70)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
+
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsCollectionExpression);
+
+            var typeInfo2 = model.GetTypeInfo(collections[1]);
+            Assert.Null(typeInfo2.Type);
+            Assert.Equal("T2", typeInfo2.ConvertedType.ToTestDisplayString());
+
+            var conversion3 = model.GetConversion(collections[2]);
+            Assert.True(conversion3.IsValid);
+            Assert.True(conversion3.IsCollectionExpression);
+
+            var typeInfo3 = model.GetTypeInfo(collections[2]);
+            Assert.Null(typeInfo3.Type);
+            Assert.Equal("T3", typeInfo3.ConvertedType.ToTestDisplayString());
+
+            var conversion4 = model.GetConversion(collections[3]);
+            Assert.True(conversion4.IsValid);
+            Assert.True(conversion4.IsCollectionExpression);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
         public void OptionalParameterCtor()
         {
+            // Should we bind the constructor or use lookup? Tracked by https://github.com/dotnet/roslyn/issues/70182
             string source = """
                 using System.Collections;
                 using System.Collections.Generic;
@@ -18036,11 +18471,19 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (17,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'AbstractCollection'
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (17,11): error CS0144: Cannot create an instance of the abstract type or interface 'AbstractCollection'
                 //         F([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "AbstractCollection").WithLocation(17, 11)
-                );
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "[]").WithArguments("AbstractCollection").WithLocation(17, 11)
+            );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            Assert.Equal("[]", collection.ToString());
+            var conversion1 = model.GetConversion(collection);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -18071,11 +18514,24 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (20,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (20,11): error CS0122: 'NoConstructorCollection.NoConstructorCollection()' is inaccessible due to its protection level
                 //         F([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(20, 11)
+                Diagnostic(ErrorCode.ERR_BadAccess, "[]").WithArguments("NoConstructorCollection.NoConstructorCollection()").WithLocation(20, 11)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+            Assert.Equal("[1, 2, 3]", collections[0].ToString());
+            var conversion1 = model.GetConversion(collections[0]);
+            Assert.True(conversion1.IsValid);
+            Assert.True(conversion1.IsCollectionExpression);
+
+            Assert.Equal("[]", collections[1].ToString());
+            var conversion2 = model.GetConversion(collections[1]);
+            Assert.True(conversion2.IsValid);
+            Assert.True(conversion2.IsCollectionExpression);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -18087,6 +18543,7 @@ partial class Program
 
                 class NoConstructorCollection : IEnumerable<int>
                 {
+                    static NoConstructorCollection field = [];
                     private NoConstructorCollection() { }
                     IEnumerator IEnumerable.GetEnumerator() => null;
                     IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
@@ -18104,11 +18561,19 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (18,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (19,11): error CS0122: 'NoConstructorCollection.NoConstructorCollection()' is inaccessible due to its protection level
                 //         F([1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(18, 11)
+                Diagnostic(ErrorCode.ERR_BadAccess, "[1, 2, 3]").WithArguments("NoConstructorCollection.NoConstructorCollection()").WithLocation(19, 11)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var collection = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Last();
+            Assert.Equal("[1, 2, 3]", collection.ToString());
+            var conversion = model.GetConversion(collection);
+            Assert.True(conversion.IsValid);
+            Assert.True(conversion.IsCollectionExpression);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -18146,15 +18611,11 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            Assert.Equal("F([])", invocation.ToString());
-
-            Assert.Equal("void Program.F(System.Collections.Generic.List<System.Int32> c)",
-                model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (27,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(AbstractCollection)' and 'Program.F(NoConstructorCollection)'
+                //         F([]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(AbstractCollection)", "Program.F(NoConstructorCollection)").WithLocation(27, 9)
+                );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -18230,6 +18691,126 @@ partial class Program
                   IL_0042:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void OverloadResolution_ReadOnlySpanPreferredOverList()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+
+                C.M([1, 2, 3]);
+
+                class C
+                {
+                    public static void M(ReadOnlySpan<int> values)
+                    {
+                        System.Console.Write($"{values[0]} {values[1]} {values[2]}");
+                    }
+
+                    public static void M(List<int> values) => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2 3");
+        }
+
+        [Fact]
+        public void OverloadResolution_ListPreferredOverIEnumerable()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                C.M([1, 2, 3]);
+
+                class C
+                {
+                    public static void M(List<int> values)
+                    {
+                        System.Console.Write($"{values[0]} {values[1]} {values[2]}");
+                    }
+
+                    public static void M(IEnumerable<int> values) => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2 3");
+        }
+
+        [Fact]
+        public void OverloadResolution_ListOfRightTypePreferred()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                C.M([1, 2, 3]);
+
+                class C
+                {
+                    public static void M(List<int> values)
+                    {
+                        System.Console.Write($"{values[0]} {values[1]} {values[2]}");
+                    }
+
+                    public static void M(List<string> values) => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2 3");
+        }
+
+        [Fact]
+        public void OverloadResolution_StringVsReadOnlySpanChar()
+        {
+            string source = """
+                using System;
+
+                C.M(['a', 'b', 'c']);
+
+                class C
+                {
+                    public static void M(string s) => throw null;
+
+                    public static void M(ReadOnlySpan<char> s)
+                    {
+                        System.Console.Write($"{s[0]} {s[1]} {s[2]}");
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "a b c");
+        }
+
+        [Fact]
+        public void OverloadResolution_StringVsSpanInt()
+        {
+            string source = """
+                using System;
+
+                C.M(['a', 'b', 'c']);
+
+                class C
+                {
+                    public static void M(string s) => throw null;
+                    public static void M(ReadOnlySpan<int> s) => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(string)' and 'C.M(ReadOnlySpan<int>)'
+                // C.M(['a', 'b', 'c']);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string)", "C.M(System.ReadOnlySpan<int>)").WithLocation(3, 3)
+                );
         }
     }
 }

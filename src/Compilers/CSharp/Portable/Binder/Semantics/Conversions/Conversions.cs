@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -173,34 +174,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            Debug.Assert(collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer || elementType is { });
-
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
             {
-                // The constructor check logic needs to be rectified
-                // See details in tracking issue https://github.com/dotnet/roslyn/issues/70182
-                if (!_binder.TryBindIEnumerableCollectionInstance(targetType, syntax, BindingDiagnosticBag.Discarded, out var collectionCreation)
-                    || collectionCreation.HasAnyErrors)
+                if (elementType is { })
                 {
-                    return Conversion.NoConversion;
-                }
-
-                var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                var diagnostics = BindingDiagnosticBag.Discarded;
-                var collectionInitializerAddMethodBinder = _binder.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
-                foreach (var element in node.Elements)
-                {
-                    _ = _binder.BindCollectionExpressionElementAddMethod(
-                        element,
-                        collectionInitializerAddMethodBinder,
-                        implicitReceiver,
-                        diagnostics,
-                        out bool hasErrors);
-                    if (hasErrors)
+                    var elements = node.Elements;
+                    foreach (var element in elements)
                     {
-                        return Conversion.NoConversion;
+                        Conversion elementConversion = element switch
+                        {
+                            BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
+                            _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
+                        };
+
+                        if (!elementConversion.Exists)
+                        {
+                            return Conversion.NoConversion;
+                        }
                     }
                 }
+
                 return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, default);
             }
             else
