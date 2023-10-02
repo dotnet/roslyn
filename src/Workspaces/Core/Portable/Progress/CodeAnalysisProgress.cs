@@ -96,52 +96,17 @@ internal sealed class CodeAnalysisProgressTracker(Action<string?, int, int>? upd
     {
     }
 
-    public string? Description
-    {
-        get => _description;
-        set
-        {
-            _description = value;
-            Update();
-        }
-    }
-
-    public int CompletedItems => _completedItems;
-
-    public int TotalItems => _totalItems;
-
-    public void AddItems(int count)
-    {
-        Interlocked.Add(ref _totalItems, count);
-        Update();
-    }
-
-    public void CompleteItems(int count)
-    {
-        Interlocked.Add(ref _completedItems, count);
-        Update();
-    }
-
-    public void Clear()
-    {
-        _totalItems = 0;
-        _completedItems = 0;
-        _description = null;
-        Update();
-    }
-
-    private void Update()
-        => updateAction?.Invoke(_description, _completedItems, _totalItems);
-
     public void Report(CodeAnalysisProgress value)
     {
         if (value.DescriptionValue != null)
-            this.Description = value.DescriptionValue;
+            _description = value.DescriptionValue;
 
         if (value.IncompleteItemsValue != null)
-            this.AddItems(value.IncompleteItemsValue.Value);
+            Interlocked.Add(ref _totalItems, value.IncompleteItemsValue.Value);
 
         if (value.CompleteItemValue != null)
-            this.CompleteItems(value.CompleteItemValue.Value);
+            Interlocked.Add(ref _completedItems, value.CompleteItemValue.Value);
+
+        updateAction?.Invoke(_description, _completedItems, _totalItems);
     }
 }
