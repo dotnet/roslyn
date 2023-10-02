@@ -93,10 +93,11 @@ namespace Microsoft.CodeAnalysis.Host
                 var staleSolution = _lastCompileTimeSolution;
                 var compileTimeSolution = designTimeSolution;
 
+                using var _1 = PooledHashSet<ProjectId>.GetInstance(out var projectsWithDesignTimeDocuments);
                 foreach (var (_, projectState) in compileTimeSolution.State.ProjectStates)
                 {
-                    using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
-                    using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
+                    using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
+                    using var _3 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
 
                     foreach (var (_, configState) in projectState.AnalyzerConfigDocumentStates.States)
                     {
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Host
                             if (documentState.Attributes.DesignTimeOnly || IsRazorDesignTimeDocument(documentState))
                             {
                                 documentIdsToRemove.Add(documentState.Id);
+                                projectsWithDesignTimeDocuments.Add(documentState.Id.ProjectId);
                             }
                         }
 
@@ -133,7 +135,24 @@ namespace Microsoft.CodeAnalysis.Host
                 compileTimeSolution = _designTimeToCompileTimeSolution.GetValue(designTimeSolution, _ => compileTimeSolution);
                 _lastCompileTimeSolution = compileTimeSolution;
 
+                if (projectsWithDesignTimeDocuments.Count > 0)
+                {
+                    // HACK: Pre-request all razor source generated documents to warm up the caches
+                    _ = LoadSourceGeneratedDocumentsAsync(compileTimeSolution, projectsWithDesignTimeDocuments.ToImmutableArray(), CancellationToken.None);
+                }
+
                 return compileTimeSolution;
+            }
+        }
+
+        private static async Task LoadSourceGeneratedDocumentsAsync(Solution solution, ImmutableArray<ProjectId> projectsWithDesignTimeDocuments, CancellationToken cancellationToken)
+        {
+            foreach (var projectId in projectsWithDesignTimeDocuments)
+            {
+                var project = solution.GetRequiredProject(projectId);
+
+                // We want to run the source generators, but no need to pre-allocate lots of source generator documents
+                _ = await solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
             }
         }
 
