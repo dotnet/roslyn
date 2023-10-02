@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         }
 
         public override FixAllProvider? GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) => await UpdateDocumentAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
+            => FixAllProvider.Create(async (context, document, diagnostics, cancellationToken)
+                => await UpdateDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false));
     }
 }

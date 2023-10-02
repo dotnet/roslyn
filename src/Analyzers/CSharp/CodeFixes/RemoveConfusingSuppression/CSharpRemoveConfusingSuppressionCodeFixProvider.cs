@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
         }
 
         public override FixAllProvider GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) =>
+            => FixAllProvider.Create(async (context, document, diagnostics, cancellationToken) =>
                 await FixAllAsync(
                     document, diagnostics,
                     context.CodeActionEquivalenceKey == NegateExpression,
-                    context.CancellationToken).ConfigureAwait(false));
+                    cancellationToken).ConfigureAwait(false));
     }
 }
