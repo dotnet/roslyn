@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Linq;
 #endif
 
-#pragma warning disable 8618
+#pragma warning disable CS8618
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace Metalama.Compiler;
@@ -39,7 +39,6 @@ public sealed class TransformerContext
         AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
         TransformerOptions options,
         ImmutableArray<ManagedResource> manifestResources,
-        IServiceProvider? services,
         DiagnosticBag diagnostics,
         IAnalyzerAssemblyLoader assemblyLoader)
     {
@@ -47,7 +46,6 @@ public sealed class TransformerContext
         Options = options;
         AnalyzerConfigOptionsProvider = analyzerConfigOptionsProvider;
         Resources = manifestResources;
-        Services = services;
         _diagnostics = diagnostics;
         _assemblyLoader = assemblyLoader;
     }
@@ -129,7 +127,9 @@ public sealed class TransformerContext
     }
 
     /// <summary>
-    /// Gets or sets the <see cref="Compilation"/>. Transformers typically replace the value of this property. 
+    /// Gets the original <see cref="Compilation"/>.
+    /// Transformers typically modify the compilation by using methods on this <see cref="TransformerContext" />,
+    /// though such modifications are not reflection on this property.
     /// </summary>
     public Compilation Compilation { get; }
 
@@ -147,12 +147,6 @@ public sealed class TransformerContext
     /// Gets the list of managed resources. 
     /// </summary>
     public ImmutableArray<ManagedResource> Resources { get; }
-
-    /// <summary>
-    /// Gets the services initialized by the compiler. This property can be <c>null</c> when the compiler API
-    /// is called from the Workspace scenario, e.g. in Metalama.Try.
-    /// </summary>
-    public IServiceProvider? Services { get; }
 
     /// <summary>
     /// Adds a <see cref="Diagnostic"/> to the user's compilation.
@@ -239,7 +233,5 @@ public sealed class TransformerOptions
         RequiresCodeCoverageAnnotations = requiresCodeCoverageAnnotations;
     }
 
-    private TransformerOptions() { }
-
-    public static TransformerOptions Default { get; } = new();
+    public static TransformerOptions Default { get; } = new(requiresCodeCoverageAnnotations: false);
 }

@@ -11,8 +11,6 @@ using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Metalama.Compiler;
-using Metalama.Backstage.Extensibility;
-using Metalama.Backstage.Licensing.Consumption;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {

@@ -9,6 +9,7 @@
     <Import_RootNamespace>Metalama.Compiler</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)InitializeServicesContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ManagedResource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AttachedProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerAnnotations.cs" />
@@ -17,6 +18,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Intrinsics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISourceTransformer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RefAssemblyResourceMarker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\IExceptionReporter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ILogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ServicesHolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxTreeTransformation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedFileMapping.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedFilesMap.cs" />

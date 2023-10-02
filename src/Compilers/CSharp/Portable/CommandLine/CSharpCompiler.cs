@@ -8,20 +8,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Runtime.InteropServices;
 using Metalama.Compiler;
 using Metalama.Compiler.Interface.TypeForwards;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Metalama.Backstage.Diagnostics;
-using Metalama.Backstage.Extensibility;
-using Metalama.Backstage.Licensing;
-using Metalama.Backstage.Licensing.Consumption;
-using Metalama.Backstage.Telemetry;
+using Metalama.Compiler.Services;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
 
@@ -37,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetalamaCompilerInterfaces.Initialize();
         }
     }
-    
+
     internal abstract class CSharpCompiler : CommonCompiler
     {
         internal const string ResponseFileName = "csc.rsp";
@@ -426,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // <Metalama>
 
         private protected override TransformersResult RunTransformers(
-            Compilation inputCompilation, IServiceProvider serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
+            Compilation inputCompilation, ServicesHolder? servicesHolder, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotate.
@@ -435,36 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
 
-            // Enforce licensing.
-            var licenseManager = serviceProvider.GetService<ILicenseConsumptionService>();
-            if (licenseManager != null)
-            {
-                var projectPath = GetMSBuildProjectFullPath(analyzerConfigProvider);
-                var projectName = Path.GetFileNameWithoutExtension(projectPath) ?? "unknown";
-
-                if (!licenseManager.CanConsume(LicenseRequirement.Free, projectName))
-                {
-                    // We only emit the generic invalid license error when no specific error message
-                    // comes from the license manager to avoid confusion of users.
-                    if (!licenseManager.Messages.Any(m => m.IsError))
-                    {
-                        diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                            (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
-                    }
-                    else
-                    {
-                       // Errors are emitted by the CommonCompiler.DisposeServices() method.
-                    }
-
-                    return TransformersResult.Failure(inputCompilation);
-                }
-            }
-
             // Run transformers.
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
             var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions,
-                analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);
+                analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, servicesHolder, cancellationToken);
 
             Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
 
@@ -480,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ImmutableArray<ResourceDescription> manifestResources,
             IAnalyzerAssemblyLoader assemblyLoader,
-            IServiceProvider? services,
+            ServicesHolder? services,
             CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotating
@@ -495,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
             HashSet<SyntaxTree> addedTrees = new();
 
-            AnalyzerConfigOptionsProvider getMappedAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider)
+            AnalyzerConfigOptionsProvider GetMappedAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider)
                 => CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees(
                     optionsProvider,
                     oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree)));
@@ -529,16 +498,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Map the options provider to the annotated syntax trees.
                 var mappedOptionProvider =
-                    getMappedAnalyzerConfigOptionsProvider(sourceOnlyAnalyzersOptions.AnalyzerOptions
+                    GetMappedAnalyzerConfigOptionsProvider(sourceOnlyAnalyzersOptions.AnalyzerOptions
                         .AnalyzerConfigOptionsProvider);
                 var mappedOptions = new AnalyzerOptions(sourceOnlyAnalyzersOptions.AnalyzerOptions.AdditionalFiles,
                     mappedOptionProvider);
 
                 annotatedInputCompilation = ExecuteSourceOnlyAnalyzers(
-                    sourceOnlyAnalyzersOptions with { AnalyzerOptions = mappedOptions}, 
+                    sourceOnlyAnalyzersOptions with { AnalyzerOptions = mappedOptions},
                     annotatedInputCompilation,
                     diagnostics,
-                    GetLogger(services),
+                    services?.Logger ?? NullLogger.Instance,
                     cancellationToken);
             }
 
@@ -556,7 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzerConfigProvider,
                         transformerOptions,
                         inputResources.AddRange(addedResources),
-                        services,
                         transformerDiagnostics,
                         assemblyLoader);
                     transformer.Execute(context);
@@ -664,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  replacements, 
                 new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
                 addedResources.SelectAsArray( m => m.Resource),
-                getMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider) );
+                GetMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider) );
         }
         // </Metalama>
 
