@@ -65,7 +65,7 @@ public sealed class CodeAnalysisProgress
     /// <example>
     /// progress.Report(CodeAnalysisProgress.CompleteItem());
     /// </example>
-    public static CodeAnalysisProgress CompleteItems(int count, string? description = null)
+    public static CodeAnalysisProgress AddCompleteItems(int count, string? description = null)
         => new()
         {
             CompleteItemValue = count >= 1 ? count : throw new ArgumentOutOfRangeException(nameof(count)),
