@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
-        public abstract Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext);
+        public abstract Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress);
 
         #region IFixAllProvider implementation
-        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext)
-            => this.GetFixAsync((FixAllContext)fixAllContext);
+        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+            => this.GetFixAsync((FixAllContext)fixAllContext, progress);
         #endregion
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 {
-    public async Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
+    public async Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
     {
         var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
         if (codeAction == null)
@@ -25,7 +25,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         }
 
         fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, fixAllContext.Progress, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, progress, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(

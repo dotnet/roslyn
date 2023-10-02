@@ -18,8 +18,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     public abstract class FixAllProvider : IFixAllProvider
     {
+        private static readonly Dictionary<Type, bool> s_isNonProgressGetFixAsyncOverridden = new();
+
         private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
             = ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
+
+        private bool IsNonProgressApiOverridden(Dictionary<Type, bool> dictionary, Func<FixAllProvider, bool> computeResult)
+        {
+            var type = this.GetType();
+            lock (dictionary)
+            {
+                return dictionary.GetOrAdd(type, computeResult(this));
+            }
+        }
+
+        private bool IsNonProgressGetFixAsyncOverridden()
+        {
+#pragma warning disable RS0030 // Do not use banned APIs
+            return IsNonProgressApiOverridden(
+                s_isNonProgressGetFixAsyncOverridden,
+                static codeAction => new Func<FixAllContext, Task<CodeAction?>>(codeAction.GetFixAsync).Method.DeclaringType != typeof(CodeAction));
+#pragma warning restore RS0030 // Do not use banned APIs
+        }
 
         /// <summary>
         /// Gets the supported scopes for fixing all occurrences of a diagnostic.
@@ -42,7 +62,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
-        public abstract Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext);
+        public virtual Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            => GetFixAsync(fixAllContext, CodeAnalysisProgress.None);
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        /// <summary>
+        /// Gets fix all occurrences fix for the given fixAllContext. Prefer overriding this method over <see
+        /// cref="GetFixAsync(FixAllContext)"/> when computation is long running and progress should be shown to the
+        /// user.
+        /// </summary>
+        public virtual async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+        {
+            // If the subclass overrode `ComputeOperationsAsync(CancellationToken)` then we must call into that in
+            // order to preserve whatever logic our subclass had had for determining the new solution.
+            if (IsNonProgressGetFixAsyncOverridden())
+            {
+                return await GetFixAsync(fixAllContext).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+#pragma warning restore RS0030 // Do not use banned APIs
 
         /// <summary>
         /// Create a <see cref="FixAllProvider"/> that fixes documents independently.  This should be used instead of
@@ -91,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         #region IFixAllProvider implementation
-        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext)
-            => this.GetFixAsync((FixAllContext)fixAllContext);
+        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+            => this.GetFixAsync((FixAllContext)fixAllContext, progress);
         #endregion
 
         private class CallbackDocumentBasedFixAllProvider(

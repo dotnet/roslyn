@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
                 FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
 
-        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
             => DefaultFixAllProviderHelpers.GetFixAsync(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsAsync);
 
         private async Task<Solution?> FixAllContextsAsync(
             FixAllContext originalFixAllContext,
@@ -86,11 +86,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await AddDocumentChangesAsync(fixAllContext, progressTracker, docIdToTextMerger, documentToDiagnostics).ConfigureAwait(false);
         }
 
-        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
         {
             using var _ = progressTracker.ItemCompletedScope();
 
-            var documentToDiagnostics = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
+            var documentToDiagnostics = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progressTracker).ConfigureAwait(false);
 
             var filtered = documentToDiagnostics.Where(kvp =>
             {

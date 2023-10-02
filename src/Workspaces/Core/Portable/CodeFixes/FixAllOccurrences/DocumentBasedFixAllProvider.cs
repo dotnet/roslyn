@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// Produce a suitable title for the fix-all <see cref="CodeAction"/> this type creates in <see
-        /// cref="GetFixAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
+        /// cref="GetFixAsync(FixAllContext, IProgress{CodeAnalysisProgress})"/>.  Override this if customizing that title is desired.
         /// </summary>
         protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
             => fixAllContext.GetDefaultFixAllTitle();
@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             => _supportedFixAllScopes;
 
-        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
             => DefaultFixAllProviderHelpers.GetFixAsync(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsHelperAsync);
 
         private Task<Solution?> FixAllContextsHelperAsync(
             FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts, IProgress<CodeAnalysisProgress> progress)

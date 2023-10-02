@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        public IProgress<CodeAnalysisProgress> Progress { get; }
-
         /// <summary>
         /// Project to fix all occurrences.
         /// Note that this property will always be the containing project of <see cref="Document"/>
@@ -81,11 +79,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         internal FixAllContext(
             FixAllState state,
-            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             State = state;
-            this.Progress = progressTracker;
             this.CancellationToken = cancellationToken;
         }
 
@@ -99,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return this;
             }
 
-            return new FixAllContext(State, this.Progress, cancellationToken);
+            return new FixAllContext(State, cancellationToken);
         }
 
         /// <summary>
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Optional<string?> codeActionEquivalenceKey = default)
         {
             var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-            return State == newState ? this : new FixAllContext(newState, this.Progress, CancellationToken);
+            return State == newState ? this : new FixAllContext(newState, CancellationToken);
         }
 
         internal string GetDefaultFixAllTitle()
