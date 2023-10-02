@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 #endif
-            
+
             [Fact]
             [WorkItem(70166, "https://github.com/dotnet/roslyn/issues/70166")]
             public void TestIfMutexIsGlobal()
