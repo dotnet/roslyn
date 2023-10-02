@@ -4886,7 +4886,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, IList<int> y)
                 {
-                    List<int> c = [0, .. x, .. y, 1];
+                    List<int> c = [0, .. x, .. x, 1];
                 }
             }
             """);
@@ -4905,9 +4905,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>(x.Length + 2);
                     [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]x);
-                    [|c.Add(|]1);
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
                 }
             }
             """,
@@ -4918,7 +4918,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, IList<int> y)
                 {
-                    List<int> c = [0, .. x, .. y, 1];
+                    List<int> c = new List<int>(x.Length + 2)
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
                 }
             }
             """);
@@ -4937,9 +4943,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>(x.Length + x.Length + x.Length + 2);
                     [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]x);
-                    [|c.Add(|]1);
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
                 }
             }
             """,
@@ -4950,7 +4956,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, IList<int> y)
                 {
-                    List<int> c = [0, .. x, .. y, 1];
+                    List<int> c = new List<int>(x.Length + x.Length + x.Length + 2)
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
                 }
             }
             """);
