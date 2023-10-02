@@ -942,6 +942,11 @@
         <target state="translated">Свойства экземпляра в интерфейсах не могут иметь инициализаторы.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="new">Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
         <target state="translated">Метод '{0}' должен быть неуниверсалом или иметь арность {1} для соответствия '{2}'.</target>

@@ -942,6 +942,11 @@
         <target state="translated">Właściwości wystąpienia w interfejsach nie mogą mieć inicjatorów.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="new">Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
         <target state="translated">'{0}' metody nie może być rodzajowa lub musi mieć {1} liczby argumentów, aby była zgodna z '{2}'.</target>

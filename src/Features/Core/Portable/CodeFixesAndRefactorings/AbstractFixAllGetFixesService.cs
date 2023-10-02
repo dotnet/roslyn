@@ -74,13 +74,13 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         if (showPreviewChangesDialog)
         {
             newSolution = PreviewChanges(
+                workspace,
                 fixAllState.Project.Solution,
                 newSolution,
+                fixAllState.FixAllKind,
                 FeaturesResources.Fix_all_occurrences,
                 codeAction.Title,
-                fixAllState.FixAllKind,
                 fixAllState.Project.Language,
-                workspace,
                 fixAllState.CorrelationId,
                 cancellationToken);
             if (newSolution == null)
@@ -94,15 +94,15 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
     }
 
     public Solution? PreviewChanges(
+        Workspace workspace,
         Solution currentSolution,
         Solution? newSolution,
-        string fixAllPreviewChangesTitle,
-        string fixAllTopLevelHeader,
         FixAllKind fixAllKind,
-        string? languageOpt,
-        Workspace workspace,
-        int? correlationId = null,
-        CancellationToken cancellationToken = default)
+        string previewChangesTitle,
+        string topLevelHeader,
+        string? language,
+        int? correlationId,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -126,14 +126,14 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             }),
             cancellationToken))
         {
-            var glyph = languageOpt == null
+            var glyph = language == null
                 ? Glyph.Assembly
-                : languageOpt == LanguageNames.CSharp
+                : language == LanguageNames.CSharp
                     ? Glyph.CSharpProject
                     : Glyph.BasicProject;
 
             var changedSolution = GetChangedSolution(
-                workspace, currentSolution, newSolution, fixAllTopLevelHeader, fixAllPreviewChangesTitle, glyph);
+                workspace, currentSolution, newSolution, previewChangesTitle, topLevelHeader, glyph);
 
             if (changedSolution == null)
             {
