@@ -387,24 +387,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool IsSZArrayOrArrayInterface(this TypeSymbol type, out TypeWithAnnotations elementType)
-        {
-            if (type is ArrayTypeSymbol { IsSZArray: true } arrayType)
-            {
-                elementType = arrayType.ElementTypeWithAnnotations;
-                return true;
-            }
-
-            if (type.IsArrayInterface(out TypeWithAnnotations typeArg))
-            {
-                elementType = typeArg;
-                return true;
-            }
-
-            elementType = default;
-            return false;
-        }
-
         public static bool IsFunctionPointer(this TypeSymbol type)
         {
             return type.TypeKind == TypeKind.FunctionPointer;

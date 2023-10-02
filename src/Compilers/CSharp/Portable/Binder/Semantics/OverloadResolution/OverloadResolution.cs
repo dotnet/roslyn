@@ -2533,7 +2533,7 @@ outerDefault:
 
             // C1 and C2 are collection expression conversions and
             // T1 is a span_type with iteration type E1, and
-            // T2 is an array_or_array_interface_type with iteration type E2, and
+            // T2 is an array_or_array_interface_or_string_type with iteration type E2, and
             // - E1 is implicitly convertible to E2
             if (conv1.Kind == ConversionKind.CollectionExpression &&
                 conv2.Kind == ConversionKind.CollectionExpression)
@@ -2541,14 +2541,14 @@ outerDefault:
                 TypeSymbol elementType;
                 TypeWithAnnotations typeArg;
                 if ((conv1.GetCollectionExpressionTypeKind(out elementType) is CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan) &&
-                    t2.IsSZArrayOrArrayInterface(out typeArg))
+                    IsSZArrayOrArrayInterfaceOrString(t2, out typeArg))
                 {
                     return Conversions.ClassifyImplicitConversionFromType(elementType, typeArg.Type, ref useSiteInfo).IsImplicit ?
                         BetterResult.Left :
                         BetterResult.Neither;
                 }
                 if ((conv2.GetCollectionExpressionTypeKind(out elementType) is CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan) &&
-                    t1.IsSZArrayOrArrayInterface(out typeArg))
+                    IsSZArrayOrArrayInterfaceOrString(t1, out typeArg))
                 {
                     return Conversions.ClassifyImplicitConversionFromType(elementType, typeArg.Type, ref useSiteInfo).IsImplicit ?
                         BetterResult.Right :
@@ -2559,6 +2559,30 @@ outerDefault:
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
             //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
+        }
+
+        private bool IsSZArrayOrArrayInterfaceOrString(TypeSymbol type, out TypeWithAnnotations elementType)
+        {
+            if (type.SpecialType == SpecialType.System_String)
+            {
+                elementType = TypeWithAnnotations.Create(Compilation.GetSpecialType(SpecialType.System_Char));
+                return true;
+            }
+
+            if (type is ArrayTypeSymbol { IsSZArray: true } arrayType)
+            {
+                elementType = arrayType.ElementTypeWithAnnotations;
+                return true;
+            }
+
+            if (type.IsArrayInterface(out TypeWithAnnotations typeArg))
+            {
+                elementType = typeArg;
+                return true;
+            }
+
+            elementType = default;
+            return false;
         }
 
         private bool ExpressionMatchExactly(BoundExpression node, TypeSymbol t, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
