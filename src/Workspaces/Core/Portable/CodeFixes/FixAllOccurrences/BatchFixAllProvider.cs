@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task<Solution?> FixAllContextsAsync(
             FixAllContext originalFixAllContext,
-            ImmutableArray<FixAllContext> fixAllContexts)
+            ImmutableArray<FixAllContext> fixAllContexts,
+            IProgress<CodeAnalysisProgress> progressTracker)
         {
             var cancellationToken = originalFixAllContext.CancellationToken;
-            var progressTracker = originalFixAllContext.Progress;
             progressTracker.Report(CodeAnalysisProgress.Description(originalFixAllContext.GetDefaultFixAllTitle()));
 
             // We have 2*P + 1 pieces of work.  Computing diagnostics and fixes/changes per context, and then one pass
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Now determine all the document changes caused from these diagnostics.
             var allChangedDocumentsInDiagnosticsOrder =
-                await GetAllChangedDocumentsInDiagnosticsOrderAsync(fixAllContext, orderedDiagnostics).ConfigureAwait(false);
+                await GetAllChangedDocumentsInDiagnosticsOrderAsync(fixAllContext, orderedDiagnostics, progressTracker).ConfigureAwait(false);
 
             // Finally, take all the changes made to each document and merge them together into docIdToTextMerger to
             // keep track of the total set of changes to any particular document.
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// diagnostic will appear later than those for an earlier diagnostic.
         /// </summary>
         private static async Task<ImmutableArray<Document>> GetAllChangedDocumentsInDiagnosticsOrderAsync(
-            FixAllContext fixAllContext, ImmutableArray<Diagnostic> orderedDiagnostics)
+            FixAllContext fixAllContext, ImmutableArray<Diagnostic> orderedDiagnostics, IProgress<CodeAnalysisProgress> progress)
         {
             var solution = fixAllContext.Solution;
             var cancellationToken = fixAllContext.CancellationToken;
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     foreach (var codeAction in codeActions)
                     {
                         var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
-                            solution, fixAllContext.Progress, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            solution, progress, cancellationToken: cancellationToken).ConfigureAwait(false);
                         if (changedSolution != null)
                         {
                             var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());

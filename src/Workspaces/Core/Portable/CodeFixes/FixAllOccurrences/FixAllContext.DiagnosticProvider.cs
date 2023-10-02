@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -39,14 +40,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             /// </summary>
             public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
 
-            internal static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
+            internal static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+                FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
             {
-                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
+                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext, progress).ConfigureAwait(false);
 
                 // Filter out any documents that we don't have any diagnostics for.
                 return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
 
-                static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
+                static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(
+                    FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
                 {
                     if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
                     {
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
                             fixAllContext.CancellationToken))
                     {
-                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progress).ConfigureAwait(false);
                     }
                 }
             }

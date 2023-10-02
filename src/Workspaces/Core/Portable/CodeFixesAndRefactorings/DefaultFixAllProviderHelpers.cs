@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -23,40 +22,43 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         public static async Task<CodeAction?> GetFixAsync<TFixAllContext>(
             string title,
             TFixAllContext fixAllContext,
-            Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
+            IProgress<CodeAnalysisProgress> progress,
+            Func<TFixAllContext, ImmutableArray<TFixAllContext>, IProgress<CodeAnalysisProgress>, Task<Solution?>> fixAllContextsAsync)
             where TFixAllContext : IFixAllContext
         {
             var solution = fixAllContext.Scope switch
             {
                 FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
-                    => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+                    => await GetDocumentFixesAsync(fixAllContext, progress, fixAllContextsAsync).ConfigureAwait(false),
+                FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, progress, fixAllContextsAsync).ConfigureAwait(false),
+                FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, progress, fixAllContextsAsync).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
             };
 
             if (solution == null)
                 return null;
 
-            return CodeAction.Create(
-                title, c => Task.FromResult(solution));
+            return CodeAction.Create(title, _ => Task.FromResult(solution));
         }
 
         private static Task<Solution?> GetDocumentFixesAsync<TFixAllContext>(
             TFixAllContext fixAllContext,
-            Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
+            IProgress<CodeAnalysisProgress> progress,
+            Func<TFixAllContext, ImmutableArray<TFixAllContext>, IProgress<CodeAnalysisProgress>, Task<Solution?>> fixAllContextsAsync)
             where TFixAllContext : IFixAllContext
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
+            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext), progress);
 
         private static Task<Solution?> GetProjectFixesAsync<TFixAllContext>(
             TFixAllContext fixAllContext,
-            Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
+            IProgress<CodeAnalysisProgress> progress,
+            Func<TFixAllContext, ImmutableArray<TFixAllContext>, IProgress<CodeAnalysisProgress>, Task<Solution?>> fixAllContextsAsync)
             where TFixAllContext : IFixAllContext
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create((TFixAllContext)fixAllContext.With((document: null, fixAllContext.Project))));
+            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create((TFixAllContext)fixAllContext.With((document: null, fixAllContext.Project))), progress);
 
         private static Task<Solution?> GetSolutionFixesAsync<TFixAllContext>(
             TFixAllContext fixAllContext,
-            Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
+            IProgress<CodeAnalysisProgress> progress,
+            Func<TFixAllContext, ImmutableArray<TFixAllContext>, IProgress<CodeAnalysisProgress>, Task<Solution?>> fixAllContextsAsync)
             where TFixAllContext : IFixAllContext
         {
             var solution = fixAllContext.Solution;
@@ -79,7 +81,8 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
                                                 .Where(p => p.Language == fixAllContext.Project.Language);
             return fixAllContextsAsync(
                 fixAllContext,
-                sortedProjects.SelectAsArray(p => (TFixAllContext)fixAllContext.With((document: null, project: p), scope: FixAllScope.Project)));
+                sortedProjects.SelectAsArray(p => (TFixAllContext)fixAllContext.With((document: null, project: p), scope: FixAllScope.Project)),
+                progress);
         }
     }
 }

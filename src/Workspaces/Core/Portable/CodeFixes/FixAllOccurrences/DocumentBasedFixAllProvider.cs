@@ -71,9 +71,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => DefaultFixAllProviderHelpers.GetFixAsync(
                 fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
-        private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
+        private Task<Solution?> FixAllContextsHelperAsync(
+            FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts, IProgress<CodeAnalysisProgress> progress)
             => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                    originalFixAllContext.Progress,
+                    progress,
                     this.GetFixAllTitle(originalFixAllContext),
                     DetermineDiagnosticsAndGetFixedDocumentsAsync);
 
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
         {
             using var _ = progressTracker.ItemCompletedScope();
-            return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+            return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTracker).ConfigureAwait(false);
         }
 
         /// <summary>
