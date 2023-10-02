@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 fixAllProvider, diagnostics, fixer, testDriver, document,
                 scope.Value, equivalenceKey, testDriver.FallbackOptions);
             var fixAllContext = new FixAllContext(fixAllState, CancellationToken.None);
-            var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext, CodeAnalysisProgress.None);
+            var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext, CodeAnalysisProgress.None, CancellationToken.None);
 
             // We have collapsed the fixes down to the single fix-all fix, so we just let our
             // caller know they should pull that entry out of the result.

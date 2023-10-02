@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
                 => ImmutableArray.Create(FixAllScope.Solution);
 
-            public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+            public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 Debug.Assert(fixAllContext.Scope == FixAllScope.Solution);
                 return Task.FromResult<CodeAction?>(new FixAllCodeAction(EnableNullableReferenceTypesInSolutionAsync));
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                             continue;
 
                         solution = await EnableNullableReferenceTypesAsync(project, purpose,
-                            fixAllContext.GetOptionsProvider(), progress, fixAllContext.CancellationToken).ConfigureAwait(false);
+                            fixAllContext.GetOptionsProvider(), progress, cancellationToken).ConfigureAwait(false);
                     }
 
                     return solution;

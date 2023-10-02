@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             var fixAllContext = CreateFixAllContext(FixAllState, cancellationToken);
             progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
-            return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog, progressTracker);
+            return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog, progressTracker, cancellationToken);
         }
 
         protected sealed override Task<Solution?> GetChangedSolutionAsync(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             var fixAllContext = CreateFixAllContext(FixAllState, cancellationToken);
             progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
 
-            return service.GetFixAllChangedSolutionAsync(fixAllContext, progressTracker);
+            return service.GetFixAllChangedSolutionAsync(fixAllContext, progressTracker, cancellationToken);
         }
 
         // internal for testing purposes.

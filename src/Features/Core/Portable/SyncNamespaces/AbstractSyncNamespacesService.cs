@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
-            var fixAllAction = await fixAllProvider.GetFixAsync(fixAllContext, progress).ConfigureAwait(false);
+            var fixAllAction = await fixAllProvider.GetFixAsync(fixAllContext, progress, cancellationToken).ConfigureAwait(false);
             RoslynDebug.AssertNotNull(fixAllAction);
 
             var operations = await fixAllAction.GetOperationsAsync(

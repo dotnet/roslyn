@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         }
 
         public override FixAllProvider GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false));
+            => FixAllProvider.Create(async (context, document, diagnostics, cancellationToken)
+                => await FixAllAsync(document, diagnostics, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false));
     }
 }

@@ -26,26 +26,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     /// </summary>
     internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
     {
-        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             if (fixAllContext.Document != null)
             {
-                var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress).ConfigureAwait(false);
-                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext, progress).ConfigureAwait(false);
+                var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress, cancellationToken).ConfigureAwait(false);
+                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext, progress, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                var projectsAndDiagnosticsToFixMap = await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false);
-                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext, progress).ConfigureAwait(false);
+                var projectsAndDiagnosticsToFixMap = await fixAllContext.GetProjectDiagnosticsToFixAsync(cancellationToken).ConfigureAwait(false);
+                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext, progress, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllContext fixAllContext,
-            IProgress<CodeAnalysisProgress> progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
                 progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
 
                 var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActionsAsync(
-                    documentsAndDiagnosticsToFixMap, fixAllContext, progressTracker).ConfigureAwait(false);
+                    documentsAndDiagnosticsToFixMap, fixAllContext, progressTracker, cancellationToken).ConfigureAwait(false);
 
                 if (diagnosticsAndCodeActions.Length > 0)
                 {
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActionsAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllContext fixAllContext,
-            IProgress<CodeAnalysisProgress> progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
             var fixAllState = fixAllContext.State;
             var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
 
@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
             FixAllContext fixAllContext,
-            IProgress<CodeAnalysisProgress> progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
             var fixAllState = fixAllContext.State;
 
             if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())

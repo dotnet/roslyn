@@ -27,13 +27,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
         {
             public static readonly CustomFixAllProvider Instance = new();
 
-            public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var diagnostics = fixAllContext.Scope switch
                 {
-                    FixAllScope.Document when fixAllContext.Document is not null => await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false),
-                    FixAllScope.Project => await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false),
-                    FixAllScope.Solution => await GetSolutionDiagnosticsAsync(fixAllContext).ConfigureAwait(false),
+                    FixAllScope.Document when fixAllContext.Document is not null
+                        => await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document, cancellationToken).ConfigureAwait(false),
+                    FixAllScope.Project
+                        => await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project, cancellationToken).ConfigureAwait(false),
+                    FixAllScope.Solution
+                        => await GetSolutionDiagnosticsAsync(fixAllContext, cancellationToken).ConfigureAwait(false),
                     _ => default
                 };
 
@@ -55,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                         cancellationToken),
                     title);
 
-                static async Task<ImmutableArray<Diagnostic>> GetSolutionDiagnosticsAsync(FixAllContext fixAllContext)
+                static async Task<ImmutableArray<Diagnostic>> GetSolutionDiagnosticsAsync(FixAllContext fixAllContext, CancellationToken cancellationToken)
                 {
                     var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
 
                     foreach (var project in fixAllContext.Solution.Projects)
                     {
-                        var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+                        var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                         diagnostics.AddRange(projectDiagnostics);
                     }
 

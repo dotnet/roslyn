@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <inheritdoc cref="Create(Func{FixAllContext, Document, ImmutableArray{Diagnostic}, Task{Document?}}, ImmutableArray{FixAllScope})"/>
         public static FixAllProvider Create(
+            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, CancellationToken, Task<Document?>> fixAllAsync)
+            => Create(fixAllAsync, DefaultSupportedFixAllScopes);
+
+        /// <inheritdoc cref="Create(Func{FixAllContext, Document, ImmutableArray{Diagnostic}, Task{Document?}}, ImmutableArray{FixAllScope})"/>
+        public static FixAllProvider Create(
             Func<FixAllContext, Document, ImmutableArray<Diagnostic>, CancellationToken, Task<Document?>> fixAllAsync,
             ImmutableArray<FixAllScope> supportedFixAllScopes)
         {

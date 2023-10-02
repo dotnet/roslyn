@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
         }
 
         public override FixAllProvider? GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
+            => FixAllProvider.Create(async (context, document, diagnostics, cancellationToken)
+                => await FixAllAsync(document, diagnostics, cancellationToken).ConfigureAwait(false));
     }
 }

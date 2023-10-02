@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         }
 
         public override FixAllProvider GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) =>
-                await this.FixAllAsync(document, diagnostics, context.CodeActionEquivalenceKey, context.CancellationToken).ConfigureAwait(false));
+            => FixAllProvider.Create(async (context, document, diagnostics, cancellationToken) =>
+                await this.FixAllAsync(document, diagnostics, context.CodeActionEquivalenceKey, cancellationToken).ConfigureAwait(false));
     }
 }

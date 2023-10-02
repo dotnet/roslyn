@@ -9,36 +9,36 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 {
-    public async Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+    public async Task<Solution?> GetFixAllChangedSolutionAsync(
+        IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
-        var codeAction = await GetFixAllCodeActionAsync(fixAllContext, progress).ConfigureAwait(false);
+        var codeAction = await GetFixAllCodeActionAsync(fixAllContext, progress, cancellationToken).ConfigureAwait(false);
         if (codeAction == null)
         {
             return fixAllContext.Solution;
         }
 
-        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, progress, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.Solution, progress, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-        IFixAllContext fixAllContext, bool showPreviewChangesDialog, IProgress<CodeAnalysisProgress> progress)
+        IFixAllContext fixAllContext, bool showPreviewChangesDialog, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
-        var codeAction = await GetFixAllCodeActionAsync(fixAllContext, progress).ConfigureAwait(false);
+        var codeAction = await GetFixAllCodeActionAsync(fixAllContext, progress, cancellationToken).ConfigureAwait(false);
         if (codeAction == null)
         {
             return ImmutableArray<CodeActionOperation>.Empty;
         }
 
         return await GetFixAllOperationsAsync(
-            codeAction, showPreviewChangesDialog, progress, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+            codeAction, showPreviewChangesDialog, progress, fixAllContext.State, cancellationToken).ConfigureAwait(false);
     }
 
     protected async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
@@ -159,7 +159,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
     }
 
     private static async Task<CodeAction?> GetFixAllCodeActionAsync(
-        IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+        IFixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
         var fixAllKind = fixAllContext.State.FixAllKind;
         var functionId = fixAllKind switch
@@ -176,12 +176,12 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
                 m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
                 m[FixAllLogger.FixAllScope] = fixAllContext.State.Scope.ToString();
             }),
-            fixAllContext.CancellationToken))
+            cancellationToken))
         {
             CodeAction? action = null;
             try
             {
-                action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext, progress).ConfigureAwait(false);
+                action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext, progress, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

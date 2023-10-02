@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
                     FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
 
-            public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+            public override async Task<CodeAction> GetFixAsync(
+                FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 // currently there's no FixAll support for local suppression, just bail out
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForLocalSuppression(fixAllContext.CodeActionEquivalenceKey))
@@ -46,24 +48,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return fixAllContext.Document != null
                         ? GlobalSuppressMessageFixAllCodeAction.Create(
                             title, suppressionFixer, fixAllContext.Document,
-                            await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress).ConfigureAwait(false),
+                            await fixAllContext.GetDocumentDiagnosticsToFixAsync(progress, cancellationToken).ConfigureAwait(false),
                             fallbackOptions)
                         : GlobalSuppressMessageFixAllCodeAction.Create(
                             title, suppressionFixer, fixAllContext.Project,
-                            await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false),
+                            await fixAllContext.GetProjectDiagnosticsToFixAsync(cancellationToken).ConfigureAwait(false),
                             fallbackOptions);
                 }
 
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey))
                 {
                     var batchFixer = new PragmaWarningBatchFixAllProvider(suppressionFixer);
-                    return await batchFixer.GetFixAsync(fixAllContext, progress).ConfigureAwait(false);
+                    return await batchFixer.GetFixAsync(fixAllContext, progress, cancellationToken).ConfigureAwait(false);
                 }
 
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForRemoveSuppression(fixAllContext.CodeActionEquivalenceKey))
                 {
                     var batchFixer = RemoveSuppressionCodeAction.GetBatchFixer(suppressionFixer);
-                    return await batchFixer.GetFixAsync(fixAllContext, progress).ConfigureAwait(false);
+                    return await batchFixer.GetFixAsync(fixAllContext, progress, cancellationToken).ConfigureAwait(false);
                 }
 
                 throw ExceptionUtilities.Unreachable();

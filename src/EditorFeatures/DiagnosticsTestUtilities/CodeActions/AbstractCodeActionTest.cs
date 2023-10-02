@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return null;
 
             var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, optionsProvider, scope, originalCodeAction);
-            var fixAllContext = new FixAllContext(fixAllState, CancellationToken.None);
-            return await fixAllProvider.GetFixAsync(fixAllContext, CodeAnalysisProgress.None).ConfigureAwait(false);
+            var fixAllContext = new FixAllContext(fixAllState);
+            return await fixAllProvider.GetFixAsync(fixAllContext, CodeAnalysisProgress.None, CancellationToken.None).ConfigureAwait(false);
         }
 
         protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)

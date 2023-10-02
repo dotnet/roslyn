@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -29,16 +30,15 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
     /// </summary>
     private sealed class CSharpUsePrimaryConstructorFixAllProvider : FixAllProvider
     {
-        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress)
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             return DefaultFixAllProviderHelpers.GetFixAsync(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsHelperAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, progress, FixAllContextsHelperAsync, cancellationToken);
         }
 
         private static async Task<Solution?> FixAllContextsHelperAsync(
-            FixAllContext originalContext, ImmutableArray<FixAllContext> contexts, IProgress<CodeAnalysisProgress> progress)
+            FixAllContext originalContext, ImmutableArray<FixAllContext> contexts, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            var cancellationToken = originalContext.CancellationToken;
             var removeMembers = originalContext.CodeActionEquivalenceKey == nameof(CSharpCodeFixesResources.Use_primary_constructor_and_remove_members);
 
             var solutionEditor = new SolutionEditor(originalContext.Solution);
@@ -46,7 +46,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
             foreach (var currentContext in contexts)
             {
                 var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
-                    currentContext, progress).ConfigureAwait(false);
+                    currentContext, progress, cancellationToken).ConfigureAwait(false);
                 foreach (var (document, diagnostics) in documentToDiagnostics)
                 {
                     foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))

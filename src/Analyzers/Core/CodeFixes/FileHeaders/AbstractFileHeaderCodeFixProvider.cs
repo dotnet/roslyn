@@ -227,12 +227,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         }
 
         public override FixAllProvider GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) =>
+            => FixAllProvider.Create(async (context, document, diagnostics, cancellationToken) =>
             {
                 if (diagnostics.IsEmpty)
                     return null;
 
-                return await this.GetTransformedDocumentAsync(document, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false);
+                return await this.GetTransformedDocumentAsync(document, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
             });
     }
 }

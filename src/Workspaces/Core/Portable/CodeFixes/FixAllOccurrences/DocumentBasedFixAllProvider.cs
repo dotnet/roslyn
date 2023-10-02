@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <para>-or-</para>
         /// <para><see langword="null"/>, if no changes were made to the document.</para>
         /// </returns>
-        [Obsolete("Override FixAllAsyncm method that takes a cancellation token", error: false)]
+        [Obsolete("Override FixAllAsync method that takes a cancellation token", error: false)]
         protected virtual Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             => FixAllAsync(fixAllContext, document, diagnostics, fixAllContext.CancellationToken);
 
