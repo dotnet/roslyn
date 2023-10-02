@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 #pragma warning disable RS0030 // Do not use banned APIs
             return IsNonProgressApiOverridden(
                 s_isNonProgressGetFixAsyncOverridden,
-                static codeAction => new Func<FixAllContext, Task<CodeAction?>>(codeAction.GetFixAsync).Method.DeclaringType != typeof(CodeAction));
+                static provider => new Func<FixAllContext, Task<CodeAction?>>(provider.GetFixAsync).Method.DeclaringType != typeof(FixAllProvider));
 #pragma warning restore RS0030 // Do not use banned APIs
         }
 
