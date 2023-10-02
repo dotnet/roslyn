@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracki
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LspProtocol = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -53,18 +54,18 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         };
 
         private readonly ILsifJsonWriter _lsifJsonWriter;
-        private readonly TextWriter _logFile;
+        private readonly ILogger _logger;
         private readonly IdFactory _idFactory = new IdFactory();
 
-        private Generator(ILsifJsonWriter lsifJsonWriter, TextWriter logFile)
+        private Generator(ILsifJsonWriter lsifJsonWriter, ILogger logger)
         {
             _lsifJsonWriter = lsifJsonWriter;
-            _logFile = logFile;
+            _logger = logger;
         }
 
-        public static Generator CreateAndWriteCapabilitiesVertex(ILsifJsonWriter lsifJsonWriter, TextWriter logFile)
+        public static Generator CreateAndWriteCapabilitiesVertex(ILsifJsonWriter lsifJsonWriter, ILogger logger)
         {
-            var generator = new Generator(lsifJsonWriter, logFile);
+            var generator = new Generator(lsifJsonWriter, logger);
 
             // Pass the set of supported SemanticTokenTypes. Order must match the order used for serialization of
             // semantic tokens array. This array is analogous to the equivalent array in
@@ -167,8 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         var exception = tasks[i].Exception!.InnerExceptions.Single();
                         exceptions.Add(exception);
 
-                        await _logFile.WriteLineAsync($"Exception while processing {documents[i].FilePath}:");
-                        await _logFile.WriteLineAsync(exception.ToString());
+                        _logger.LogError(exception, $"Exception while processing {documents[i].FilePath}");
                     }
                 }
 
