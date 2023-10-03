@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Performs the same action as <see cref="AddMissingImportsAsync(Document, AddMissingImportsAnalysisResult, SyntaxFormattingOptions, IProgress{CodeAnalysisProgress}, CancellationToken)"/> but
-        /// with a predetermined analysis of the input instead of recalculating it
+        /// Performs the same action as <see cref="AddMissingImportsAsync(Document, TextSpan, AddMissingImportsOptions,
+        /// IProgress{CodeAnalysisProgress}, CancellationToken)"/> but with a predetermined analysis of the input
+        /// instead of recalculating it
         /// </summary>
         Task<Document> AddMissingImportsAsync(Document document, AddMissingImportsAnalysisResult analysisResult, SyntaxFormattingOptions formattingOptions, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
     }
