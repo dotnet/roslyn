@@ -37,10 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly SyntaxListPool _pool = new SyntaxListPool();
         private bool _isDelimited;
 
-        internal DocumentationCommentParser(Lexer lexer, LexerMode modeflags)
-            : base(lexer, LexerMode.XmlDocComment | LexerMode.XmlDocCommentLocationStart | modeflags, oldTree: null, changes: null, allowModeReset: true)
+        internal DocumentationCommentParser(Lexer lexer)
+            : base(lexer, LexerMode.None, oldTree: null, changes: null, allowModeReset: true)
         {
-            _isDelimited = (modeflags & LexerMode.XmlDocCommentStyleDelimited) != 0;
         }
 
         internal void ReInitialize(LexerMode modeflags)

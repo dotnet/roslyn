@@ -2710,21 +2710,13 @@ top:
         private CSharpSyntaxNode LexXmlDocComment(XmlDocCommentStyle style)
         {
             var saveMode = _mode;
-            bool isTerminated;
 
-            var mode = style == XmlDocCommentStyle.SingleLine
-                    ? LexerMode.XmlDocCommentStyleSingleLine
-                    : LexerMode.XmlDocCommentStyleDelimited;
-            if (_xmlParser == null)
-            {
-                _xmlParser = new DocumentationCommentParser(this, mode);
-            }
-            else
-            {
-                _xmlParser.ReInitialize(mode);
-            }
+            _xmlParser ??= new DocumentationCommentParser(this);
+            _xmlParser.ReInitialize(style == XmlDocCommentStyle.SingleLine
+                ? LexerMode.XmlDocCommentStyleSingleLine
+                : LexerMode.XmlDocCommentStyleDelimited);
 
-            var docComment = _xmlParser.ParseDocumentationComment(out isTerminated);
+            var docComment = _xmlParser.ParseDocumentationComment(out var isTerminated);
 
             // We better have finished with the whole comment. There should be error
             // code in the implementation of ParseXmlDocComment that ensures this.
