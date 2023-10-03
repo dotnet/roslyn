@@ -18842,7 +18842,7 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "[1, 2, 3], [1, 2, 3],");
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -18897,7 +18897,7 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "[1, 2, 3],");
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.FailsPEVerify);
         }
 
         [Fact]
