@@ -178,8 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (elementType is { })
                 {
-                    var elements = node.Elements;
-                    foreach (var element in elements)
+                    foreach (var element in node.Elements)
                     {
                         Conversion elementConversion = element switch
                         {

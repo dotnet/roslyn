@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18427,7 +18426,6 @@ partial class Program
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
         public void OptionalParameterCtor()
         {
-            // Should we bind the constructor or use lookup? Tracked by https://github.com/dotnet/roslyn/issues/70182
             string source = """
                 using System.Collections;
                 using System.Collections.Generic;
