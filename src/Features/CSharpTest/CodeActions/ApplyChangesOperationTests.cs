@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions
 
                 public override string Title => "Title";
 
-                protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                     => Task.FromResult<Solution?>(_changedSolution);
             }
         }
@@ -257,7 +257,7 @@ class Program2
             Assert.True(workspace.TryApplyChanges(changedSolution));
 
             // Now try to apply the refactoring, even though an intervening edit happened.
-            var result = await operation.TryApplyAsync(workspace, originalSolution, new ProgressTracker(), CancellationToken.None);
+            var result = await operation.TryApplyAsync(workspace, originalSolution, CodeAnalysisProgress.None, CancellationToken.None);
 
             Assert.Equal(success, result);
         }

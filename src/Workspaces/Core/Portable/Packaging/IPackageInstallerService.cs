@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Packaging
             Workspace workspace, DocumentId documentId,
             string? source, string packageName,
             string? version, bool includePrerelease,
-            IProgressTracker progressTracker, CancellationToken cancellationToken);
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 

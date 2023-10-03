@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -72,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The symbol from the earlier compilation, or null if the edit represents an addition.
         /// </param>
         /// <param name="newSymbol">
-        /// The symbol from the later compilation, or null if the edit represents a deletion.
+        /// The symbol from the later compilation, or the symbol of the containing type
+        /// from the later compilation if <paramref name="kind"/> is <see cref="SemanticEditKind.Delete"/>.
         /// </param>
         /// <param name="syntaxMap">
         /// A map from syntax node in the later compilation to syntax node in the previous compilation, 
@@ -103,10 +105,20 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentNullException(nameof(oldSymbol));
             }
 
-            if (newSymbol == null && kind != SemanticEditKind.Delete)
+            if (newSymbol == null)
             {
                 throw new ArgumentNullException(nameof(newSymbol));
             }
+
+            // Syntax map is only meaningful for update edits that preserve local variables.
+            Debug.Assert(syntaxMap == null || (kind == SemanticEditKind.Update && preserveLocalVariables));
+
+            // Partial methods should be implementations, not definitions.
+            Debug.Assert(oldSymbol is not IMethodSymbol { PartialImplementationPart: not null });
+            Debug.Assert(newSymbol is not IMethodSymbol { PartialImplementationPart: not null });
+
+            // Check symbol kinds that can be deleted:
+            Debug.Assert(kind != SemanticEditKind.Delete || oldSymbol is IMethodSymbol or IPropertySymbol or IEventSymbol);
 
             if (instrumentation.IsDefault)
             {

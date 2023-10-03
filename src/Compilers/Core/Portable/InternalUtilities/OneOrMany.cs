@@ -120,6 +120,9 @@ namespace Roslyn.Utilities
 
         public T First() => this[0];
 
+        public T? FirstOrDefault()
+            => HasOneItem ? _one : _many.FirstOrDefault();
+
         public T? FirstOrDefault(Func<T, bool> predicate)
         {
             if (HasOneItem)

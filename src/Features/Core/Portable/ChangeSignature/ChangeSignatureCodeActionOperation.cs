@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// Show the confirmation message, if available, before attempting to apply the changes.
         /// </summary>
         internal sealed override Task<bool> TryApplyAsync(
-            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             return ApplyWorker(workspace, originalSolution, progressTracker, cancellationToken) ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
-        private bool ApplyWorker(Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        private bool ApplyWorker(Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (ConfirmationMessage != null)
             {

@@ -52,10 +52,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
 
   Stop-Processes
 
-  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
-  # in our CI builds
-  # https://github.com/NuGet/Home/issues/12373
-  $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
+  $restoreUseStaticGraphEvaluation = $true
 
   Write-Host "Building $solution using $bootstrapDir"
   MSBuild $toolsetBuildProj `

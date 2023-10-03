@@ -688,7 +688,7 @@ public partial class UseCollectionExpressionForBuilderTests
         }.RunAsync();
     }
 
-    [Theory, MemberData(nameof(SuccessCreationPatterns)), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/70172"), MemberData(nameof(SuccessCreationPatterns)), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
     public async Task TestWithIfStatement1(string pattern)
     {
         await new VerifyCS.Test
@@ -770,7 +770,7 @@ public partial class UseCollectionExpressionForBuilderTests
         }.RunAsync();
     }
 
-    [Theory, MemberData(nameof(SuccessCreationPatterns)), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/70172"), MemberData(nameof(SuccessCreationPatterns)), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
     public async Task TestWithIfStatement3(string pattern)
     {
         await new VerifyCS.Test

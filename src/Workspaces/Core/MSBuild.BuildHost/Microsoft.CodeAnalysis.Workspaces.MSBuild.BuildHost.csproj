@@ -45,4 +45,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
+  <PropertyGroup>
+    <!-- Force a deps.json to be included when packaging the language server, so we get proper assembly resolution using the directory as a binding path -->
+    <_UseBuildDependencyFile>true</_UseBuildDependencyFile>
+  </PropertyGroup>
 </Project>

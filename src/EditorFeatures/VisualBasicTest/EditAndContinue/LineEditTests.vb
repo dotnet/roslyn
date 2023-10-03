@@ -369,7 +369,7 @@ End Class
 
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
-                diagnostics:={Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, vbCrLf & "            ", FeaturesResources.method)},
+                diagnostics:={Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "            ", FeaturesResources.method)},
                 capabilities:=EditAndContinueCapabilities.Baseline)
 
             edits.VerifyLineEdits(
@@ -400,7 +400,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
-                diagnostics:={Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, vbCrLf & "        ", FeaturesResources.method)},
+                diagnostics:={Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "        ", FeaturesResources.method)},
                 capabilities:=EditAndContinueCapabilities.Baseline)
 
             edits.VerifyLineEdits(
@@ -1028,7 +1028,7 @@ End Class
                 Array.Empty(Of SequencePointUpdates),
                 diagnostics:=
                 {
-                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "Class C(Of T)", GetResource("constructor", "New()"))
+                    Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "  ", GetResource("field"))
                 },
                 capabilities:=EditAndContinueCapabilities.Baseline)
 
