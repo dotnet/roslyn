@@ -181,11 +181,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             // in editorconfig/globalconfig options to a severity that is greater than or equal to
             // the minimum reported severity.
             // If so, we should execute analysis. Otherwise, analysis should be skipped.
+            // See https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#scope
+            // for precedence rules for configuring severity of a single rule ID, a category of rule IDs
+            // or all analyzer rule IDs.
 
             var severityOptionsProvider = compilationOptions.SyntaxTreeOptionsProvider!;
             var globalOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
             var treeOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
 
+            // See https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#scope
+            // for supported analyzer bulk configuration formats.
             const string DotnetAnalyzerDiagnosticPrefix = "dotnet_analyzer_diagnostic";
             const string CategoryPrefix = "category";
             const string SeveritySuffix = "severity";
@@ -199,8 +204,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
                     continue;
 
-                string? editorConfigSeverity;
-                var categoryConfigurationKey = $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{descriptor.Category}.{SeveritySuffix}";
+                // First check if the diagnostic ID has been explicitly configured with `dotnet_diagnostic` entry.
                 if (severityOptionsProvider.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredReportDiagnostic)
                     || severityOptionsProvider.TryGetGlobalDiagnosticValue(descriptor.Id, cancellationToken, out configuredReportDiagnostic))
                 {
@@ -212,7 +216,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
                     continue;
                 }
-                else if (treeOptions.TryGetValue(categoryConfigurationKey, out editorConfigSeverity)
+
+                // Next, check if the descriptor's category has been bulk configured with `dotnet_analyzer_diagnostic.category-Category.severity` entry.
+                // or severity of all analyzer diagnostics has been bulk configured with `dotnet_analyzer_diagnostic.severity` entry.
+                var categoryConfigurationKey = $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{descriptor.Category}.{SeveritySuffix}";
+                if (treeOptions.TryGetValue(categoryConfigurationKey, out var editorConfigSeverity)
                     || globalOptions.TryGetValue(categoryConfigurationKey, out editorConfigSeverity))
                 {
                 }
