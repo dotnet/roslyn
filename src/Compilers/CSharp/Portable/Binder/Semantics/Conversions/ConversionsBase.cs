@@ -1700,8 +1700,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                 }
 
-                var ienumerableType = compilation.GetSpecialType(specialInterface);
-                return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), ienumerableType);
+                var specialType = compilation.GetSpecialType(specialInterface);
+                return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
 
             static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)

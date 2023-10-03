@@ -195,33 +195,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+                bool isCompatible = false;
                 foreach (var @interface in allInterfaces)
                 {
                     if (isCompatibleIEnumerableT(@interface, ienumerableType, elements, ref useSiteInfo))
                     {
-                        return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default);
+                        isCompatible = true;
                     }
                 }
 
-                return Conversion.NoConversion;
+                return isCompatible
+                    ? Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default)
+                    : Conversion.NoConversion;
             }
 
             Debug.Assert(elementType is { });
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                Conversion elementConversion = element switch
-                {
-                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                    _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
-                };
+                Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
                 if (!elementConversion.Exists)
                 {
                     builder.Free();
                     return Conversion.NoConversion;
                 }
+
                 builder.Add(elementConversion);
             }
+
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
 
             bool isCompatibleIEnumerableT(NamedTypeSymbol targetInterface, NamedTypeSymbol ienumerableType,
@@ -241,12 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var element in elements)
                 {
-                    Conversion elementConversion = element switch
-                    {
-                        BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                        _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
-                    };
-
+                    Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
                     if (!elementConversion.Exists)
                     {
                         return false;
@@ -254,6 +250,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return true;
+            }
+
+            Conversion convertElement(BoundExpression element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                return element switch
+                {
+                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
+                    _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
+                };
             }
         }
 
