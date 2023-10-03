@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -24,12 +25,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class FixerWithFixAllAnalyzer : DiagnosticAnalyzer
     {
-        private const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         private const string CreateMethodName = "Create";
         private const string EquivalenceKeyPropertyName = "EquivalenceKey";
         private const string EquivalenceKeyParameterName = "equivalenceKey";
-        internal const string CodeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
-        private const string ExportCodeFixProviderAttributeMetadataName = "Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute";
         internal const string GetFixAllProviderMethodName = "GetFixAllProvider";
 
         private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = CreateLocalizableResourceString(nameof(CodeActionNeedsEquivalenceKeyDescription));
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            INamedTypeSymbol? codeFixProviderSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeFixProviderMetadataName);
+            INamedTypeSymbol? codeFixProviderSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCodeFixesCodeFixProvider);
             if (codeFixProviderSymbol == null)
             {
                 return;
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            INamedTypeSymbol? codeActionSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeActionMetadataName);
+            INamedTypeSymbol? codeActionSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCodeActionsCodeAction);
             if (codeActionSymbol == null)
             {
                 return;
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            INamedTypeSymbol? exportCodeFixProviderAttributeSymbol = context.Compilation.GetOrCreateTypeByMetadataName(ExportCodeFixProviderAttributeMetadataName);
+            INamedTypeSymbol? exportCodeFixProviderAttributeSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCodeFixesExportCodeFixProviderAttribute);
             if (exportCodeFixProviderAttributeSymbol == null)
             {
                 return;

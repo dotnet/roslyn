@@ -32,6 +32,9 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
         public const string MicrosoftAspNetCoreMvcRoutingHttpMethodAttribute = "Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute";
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
+        public const string MicrosoftCodeAnalysisCodeActionsCodeAction = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
+        public const string MicrosoftCodeAnalysisCodeFixesCodeFixProvider = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
+        public const string MicrosoftCodeAnalysisCodeFixesExportCodeFixProviderAttribute = "Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute";
         public const string MicrosoftCodeAnalysisCompilation = "Microsoft.CodeAnalysis.Compilation";
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
         public const string MicrosoftCodeAnalysisCSharpCSharpExtensions = "Microsoft.CodeAnalysis.CSharp.CSharpExtensions";
