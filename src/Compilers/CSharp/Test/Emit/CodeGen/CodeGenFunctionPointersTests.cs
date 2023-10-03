@@ -11632,6 +11632,7 @@ class C<T> {}
                 Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.Equal(0, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -11688,6 +11689,7 @@ class C<T> {}
                 Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.Equal(0, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12072,6 +12074,7 @@ class C<T> {}
                 Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.Equal(33, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12208,6 +12211,7 @@ class C<T> {}
                 Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.Equal(33, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12239,6 +12243,7 @@ class C<T> {}
                 Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.True(arg.Values.IsEmpty);
+                Assert.Equal("B<delegate*<System.Void>[]>.E[]", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12280,6 +12285,7 @@ class C<T> {}
                 {
                     Assert.True(arg.Values.IsEmpty);
                 }
+                Assert.Equal("B<delegate*<System.Void>[]>.E[]", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }

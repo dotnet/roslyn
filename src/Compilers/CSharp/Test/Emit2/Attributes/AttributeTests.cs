@@ -4579,7 +4579,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
-        public void Attribute_GenericParameter()
+        public void Attribute_GenericTypeInParameter_Constructor()
         {
             var source = """
                 class A : System.Attribute
@@ -4605,12 +4605,111 @@ class Program
                 Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
-        public void Attribute_GenericParameter_NestedClass()
+        public void Attribute_GenericTypeInParameter_Property()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public B<int>.E E { get; set; }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(E = B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.ConstructorArguments);
+                var arg = attr.NamedArguments.Single();
+                Assert.Equal("E", arg.Key);
+                Assert.Equal(33, arg.Value.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Value.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Constructor()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<B<int>.E>(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Property()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public T Prop { get; set; }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<B<int>.E>(Prop = B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.ConstructorArguments);
+                var arg = attr.NamedArguments.Single();
+                Assert.Equal("Prop", arg.Key);
+                Assert.Equal(33, arg.Value.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Value.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_NestedClass()
         {
             var source = """
                 class A1<T>
@@ -4639,6 +4738,98 @@ class Program
                 Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Object()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                enum E { }
+
+                [A<object>(C.X)]
+                class C
+                {
+                    public const E X = (E)33;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Constant()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                [A<int>(33)]
+                class C
+                {
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("System.Int32", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_NestedGeneric()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(B<T>.E t) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<int>(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }

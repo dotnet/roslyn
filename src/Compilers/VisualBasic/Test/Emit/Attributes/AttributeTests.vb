@@ -4453,7 +4453,7 @@ End Class
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
-        Public Sub Attribute_GenericParameter()
+        Public Sub Attribute_GenericTypeInParameter_Constructor()
             Dim source =
 <compilation>
     <file><![CDATA[
@@ -4486,6 +4486,46 @@ End Class
                     Assert.Empty(attr.NamedArguments)
                     Dim arg = attr.ConstructorArguments.Single()
                     Assert.Equal(33, arg.Value)
+                    Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+                End Sub)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_GenericTypeInParameter_Property()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class A
+    Inherits System.Attribute
+
+    Public Property E As B(Of Integer).E
+End Class
+
+Public Class B(Of T)
+    Public Enum E
+        X
+    End Enum
+
+    Public Const C As E = CType(33, E)
+End Class
+
+<A(E:=B(Of Integer).C)>
+Class C
+End Class
+    ]]></file>
+</compilation>
+
+            Dim verifier = CompileAndVerify(source, symbolValidator:=
+                Sub(m)
+                    Dim c = m.GlobalNamespace.GetTypeMember("C")
+                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+                    Assert.False(attr.HasErrors)
+                    Assert.Empty(attr.ConstructorArguments)
+                    Dim arg = attr.NamedArguments.Single()
+                    Assert.Equal("E", arg.Key)
+                    Assert.Equal(33, arg.Value.Value)
+                    Assert.Equal("B(Of System.Int32).E", arg.Value.Type.ToTestDisplayString())
                 End Sub)
             verifier.VerifyDiagnostics()
         End Sub
