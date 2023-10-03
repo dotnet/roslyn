@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Indicates the minimum reported diagnostic severity for this analysis context.
         /// Analyzer diagnostics with severity lesser than this severity are not reported.
         /// </summary>
-        public virtual DiagnosticSeverity MinimumReportedSeverity => throw new NotImplementedException();
+        public virtual DiagnosticSeverity MinimumReportedSeverity => DiagnosticSeverity.Hidden;
 
         /// <summary>
         /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
