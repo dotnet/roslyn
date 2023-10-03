@@ -1651,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
             {
                 elementType = null;
-                return CollectionExpressionTypeKind.GenericIEnumerable;
+                return CollectionExpressionTypeKind.ImplementsIEnumerableT;
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {
@@ -1662,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // to check for nullable to disallow: Nullable<StructCollection> s = [];
                 // Instead, we just walk the implemented interfaces.
                 elementType = null;
-                return CollectionExpressionTypeKind.IEnumerable;
+                return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
             else if (isListInterface(compilation, destination, out elementType))
             {

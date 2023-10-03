@@ -174,11 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var elements = node.Elements;
-            if (collectionTypeKind == CollectionExpressionTypeKind.IEnumerable)
+            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
                 return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default);
             }
-            else if (collectionTypeKind == CollectionExpressionTypeKind.GenericIEnumerable)
+            else if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT)
             {
                 ImmutableArray<NamedTypeSymbol> allInterfaces;
                 switch (targetType.TypeKind)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
                 foreach (var @interface in allInterfaces)
                 {
-                    if (isCompatibleGenericIEnumerable(@interface, ienumerableType, elements, ref useSiteInfo))
+                    if (isCompatibleIEnumerableT(@interface, ienumerableType, elements, ref useSiteInfo))
                     {
                         return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default);
                     }
@@ -224,9 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
 
-            bool isCompatibleGenericIEnumerable(NamedTypeSymbol targetInterface, NamedTypeSymbol ienumerableType,
+            bool isCompatibleIEnumerableT(NamedTypeSymbol targetInterface, NamedTypeSymbol ienumerableType,
                 ImmutableArray<BoundExpression> elements, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
+                Debug.Assert(ienumerableType.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
                 if (!ReferenceEquals(targetInterface.OriginalDefinition, ienumerableType))
                 {
                     return false;

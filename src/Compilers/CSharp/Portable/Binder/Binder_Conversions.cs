@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
 
-            if (collectionTypeKind is CollectionExpressionTypeKind.GenericIEnumerable or CollectionExpressionTypeKind.IEnumerable)
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableT or CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
                 if (targetType is NamedTypeSymbol namedType)
