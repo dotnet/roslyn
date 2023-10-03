@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType);
                 switch (collectionTypeKind)
                 {
-                    case CollectionExpressionTypeKind.CollectionInitializer:
+                    case CollectionExpressionTypeKind.GenericIEnumerable:
+                    case CollectionExpressionTypeKind.IEnumerable:
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.Array:
                     case CollectionExpressionTypeKind.Span:

@@ -619,10 +619,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
 
-            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
+            if (collectionTypeKind is CollectionExpressionTypeKind.GenericIEnumerable or CollectionExpressionTypeKind.IEnumerable)
             {
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                if (!tryBindIEnumerableCollectionInstance(targetType, syntax, diagnostics, out collectionCreation))
+                if (targetType is NamedTypeSymbol namedType)
+                {
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
+                    // https://github.com/dotnet/roslyn/issues/68785: Use ctor with `int capacity` when the size is known.
+                    collectionCreation = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
+                    collectionCreation.WasCompilerGenerated = true;
+                    analyzedArguments.Free();
+                }
+                else if (targetType is TypeParameterSymbol typeParameter)
+                {
+                    var arguments = AnalyzedArguments.GetInstance();
+                    collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, arguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                    arguments.Free();
+                }
+                else
                 {
                     collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
                 }
@@ -709,30 +723,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
                         SpecialType.System_Collections_Generic_IReadOnlyList_T
                 };
-            }
-
-            bool tryBindIEnumerableCollectionInstance(TypeSymbol targetType, SyntaxNode syntax, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundExpression? result)
-            {
-                if (targetType is NamedTypeSymbol namedType)
-                {
-                    var analyzedArguments = AnalyzedArguments.GetInstance();
-                    // https://github.com/dotnet/roslyn/issues/68785: Use ctor with `int capacity` when the size is known.
-                    result = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
-                    result.WasCompilerGenerated = true;
-                    analyzedArguments.Free();
-                    return true;
-                }
-                else if (targetType is TypeParameterSymbol typeParameter)
-                {
-                    var arguments = AnalyzedArguments.GetInstance();
-                    result = BindTypeParameterCreationExpression(syntax, typeParameter, arguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
-                    arguments.Free();
-                    return true;
-                }
-
-                Debug.Assert(false);
-                result = null;
-                return false;
             }
         }
 

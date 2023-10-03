@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -172,32 +173,71 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
+            var elements = node.Elements;
+            if (collectionTypeKind == CollectionExpressionTypeKind.IEnumerable)
             {
-                if (elementType is { })
+                return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default);
+            }
+            else if (collectionTypeKind == CollectionExpressionTypeKind.GenericIEnumerable)
+            {
+                ImmutableArray<NamedTypeSymbol> allInterfaces;
+                switch (targetType.TypeKind)
                 {
-                    foreach (var element in node.Elements)
-                    {
-                        Conversion elementConversion = element switch
-                        {
-                            BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                            _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
-                        };
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
+                        break;
+                    case TypeKind.TypeParameter:
+                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(targetType.TypeKind);
+                }
 
-                        if (!elementConversion.Exists)
-                        {
-                            return Conversion.NoConversion;
-                        }
+                var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+                foreach (var @interface in allInterfaces)
+                {
+                    if (isCompatibleGenericIEnumerable(@interface, ienumerableType, elements, ref useSiteInfo))
+                    {
+                        return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default);
                     }
                 }
 
-                return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, default);
+                return Conversion.NoConversion;
             }
-            else
+
+            Debug.Assert(elementType is { });
+            var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
+            foreach (var element in elements)
             {
-                Debug.Assert(elementType is { });
-                var elements = node.Elements;
-                var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
+                Conversion elementConversion = element switch
+                {
+                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
+                    _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
+                };
+                if (!elementConversion.Exists)
+                {
+                    builder.Free();
+                    return Conversion.NoConversion;
+                }
+                builder.Add(elementConversion);
+            }
+            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
+
+            bool isCompatibleGenericIEnumerable(NamedTypeSymbol targetInterface, NamedTypeSymbol ienumerableType,
+                ImmutableArray<BoundExpression> elements, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (!ReferenceEquals(targetInterface.OriginalDefinition, ienumerableType))
+                {
+                    return false;
+                }
+
+                var targetElementType = targetInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                return elementsCanAllConvert(elements, targetElementType.Type, ref useSiteInfo);
+            }
+
+            bool elementsCanAllConvert(ImmutableArray<BoundExpression> elements, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
                 foreach (var element in elements)
                 {
                     Conversion elementConversion = element switch
@@ -205,14 +245,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
                         _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
                     };
+
                     if (!elementConversion.Exists)
                     {
-                        builder.Free();
-                        return Conversion.NoConversion;
+                        return false;
                     }
-                    builder.Add(elementConversion);
                 }
-                return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
+
+                return true;
             }
         }
 

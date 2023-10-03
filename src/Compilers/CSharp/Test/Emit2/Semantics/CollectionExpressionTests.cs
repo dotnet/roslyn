@@ -9975,9 +9975,9 @@ partial class Program
                 // (6,24): error CS0416: 'T': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(T), "ToString")]
                 Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(T)").WithArguments("T").WithLocation(6, 24),
-                // (19,45): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                // (19,44): error CS9174: Cannot initialize type 'Container<string>.MyCollection' with a collection expression because the type is not constructible.
                 //         Container<string>.MyCollection y = [null];
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(19, 45));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[null]").WithArguments("Container<string>.MyCollection").WithLocation(19, 44));
         }
 
         [CombinatorialData]
@@ -13338,12 +13338,9 @@ partial class Program
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyEmitDiagnostics(
-                // 1.cs(5,32): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                // 1.cs(5,31): error CS9174: Cannot initialize type 'MyCollection<int>' with a collection expression because the type is not constructible.
                 //         MyCollection<int> c = [string.Empty, 2, null];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(5, 32),
-                // 1.cs(5,49): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
-                //         MyCollection<int> c = [string.Empty, 2, null];
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(5, 49));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[string.Empty, 2, null]").WithArguments("MyCollection<int>").WithLocation(5, 31));
         }
 
         [InlineData("int[]")]
@@ -17965,6 +17962,8 @@ partial class Program
             Assert.True(conversion1.IsValid);
             Assert.True(conversion1.IsCollectionExpression);
 
+            // Note: we should probably not be getting a valid & collection conversion here
+            // Tracked by https://github.com/dotnet/roslyn/issues/70217
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
             Assert.True(conversion2.IsIdentity);
@@ -18011,6 +18010,8 @@ partial class Program
             Assert.True(conversion1.IsValid);
             Assert.True(conversion1.IsCollectionExpression);
 
+            // Note: we should not be getting a collection conversion here (see test above for contrast)
+            // Tracked by https://github.com/dotnet/roslyn/issues/70217
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
             Assert.True(conversion2.IsCollectionExpression);
@@ -18119,16 +18120,13 @@ partial class Program
                     IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
                     IEnumerator IEnumerable.GetEnumerator() => null;
                     public void Add(int i) { }
-
-                    public static void M(C c) { }
-                    public static void M(int[] i) { }
                 }
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (4,8): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                // (4,7): error CS9174: Cannot initialize type 'C' with a collection expression because the type is not constructible.
                 // C x = [1]; // 1
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(4, 8)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("C").WithLocation(4, 7)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -18162,9 +18160,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (5,10): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                // (5,7): error CS9174: Cannot initialize type 'C' with a collection expression because the type is not constructible.
                 // C x = [..values]; // 1
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "values").WithArguments("int", "string").WithLocation(5, 10)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[..values]").WithArguments("C").WithLocation(5, 7)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -18210,7 +18208,7 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
-        public void MissingCtor_TypeParameter_GenericIEnumerable()
+        public void MissingCtor_TypeParameter_GenericIEnumerable_NoElements()
         {
             string source = """
                 using System.Collections;
@@ -18325,20 +18323,26 @@ partial class Program
 
                 class C
                 {
-                    static T1 Create1<T1>() where T1 : IEnumerable, IEnumerable<string> => []; // 1
-                    static T2 Create2<T2>() where T2 : IEnumerable, IEnumerable<string>, new() => [];
-                    static T3 Create3<T3>() where T3 : struct, IEnumerable, IEnumerable<string> => [];
-                    static T4 Create4<T4>() where T4 : class, IEnumerable, IEnumerable<string> => []; // 2
+                    static T1 Create1<T1>() where T1 : IEnumerable, IEnumerable<string> => [1]; // 1
+                    static T2 Create2<T2>() where T2 : IEnumerable, IEnumerable<string>, new() => [2]; // 2
+                    static T3 Create3<T3>() where T3 : struct, IEnumerable, IEnumerable<string> => [3]; // 3
+                    static T4 Create4<T4>() where T4 : class, IEnumerable, IEnumerable<string> => [4]; // 4
                 }
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (6,76): error CS0304: Cannot create an instance of the variable type 'T1' because it does not have the new() constraint
-                //     static T1 Create1<T1>() where T1 : IEnumerable, IEnumerable<string> => []; // 1
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T1").WithLocation(6, 76),
-                // (9,83): error CS0304: Cannot create an instance of the variable type 'T4' because it does not have the new() constraint
-                //     static T4 Create4<T4>() where T4 : class, IEnumerable, IEnumerable<string> => []; // 2
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T4").WithLocation(9, 83)
+                // (6,76): error CS9174: Cannot initialize type 'T1' with a collection expression because the type is not constructible.
+                //     static T1 Create1<T1>() where T1 : IEnumerable, IEnumerable<string> => [1]; // 1
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("T1").WithLocation(6, 76),
+                // (7,83): error CS9174: Cannot initialize type 'T2' with a collection expression because the type is not constructible.
+                //     static T2 Create2<T2>() where T2 : IEnumerable, IEnumerable<string>, new() => [2]; // 2
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("T2").WithLocation(7, 83),
+                // (8,84): error CS9174: Cannot initialize type 'T3' with a collection expression because the type is not constructible.
+                //     static T3 Create3<T3>() where T3 : struct, IEnumerable, IEnumerable<string> => [3]; // 3
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("T3").WithLocation(8, 84),
+                // (9,83): error CS9174: Cannot initialize type 'T4' with a collection expression because the type is not constructible.
+                //     static T4 Create4<T4>() where T4 : class, IEnumerable, IEnumerable<string> => [4]; // 4
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[4]").WithArguments("T4").WithLocation(9, 83)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -18346,28 +18350,24 @@ partial class Program
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
 
             var conversion1 = model.GetConversion(collections[0]);
-            Assert.True(conversion1.IsValid);
-            Assert.True(conversion1.IsCollectionExpression);
+            Assert.False(conversion1.IsValid);
 
             var conversion2 = model.GetConversion(collections[1]);
-            Assert.True(conversion2.IsValid);
-            Assert.True(conversion2.IsCollectionExpression);
+            Assert.False(conversion2.IsValid);
 
             var typeInfo2 = model.GetTypeInfo(collections[1]);
             Assert.Null(typeInfo2.Type);
             Assert.Equal("T2", typeInfo2.ConvertedType.ToTestDisplayString());
 
             var conversion3 = model.GetConversion(collections[2]);
-            Assert.True(conversion3.IsValid);
-            Assert.True(conversion3.IsCollectionExpression);
+            Assert.False(conversion3.IsValid);
 
             var typeInfo3 = model.GetTypeInfo(collections[2]);
             Assert.Null(typeInfo3.Type);
             Assert.Equal("T3", typeInfo3.ConvertedType.ToTestDisplayString());
 
             var conversion4 = model.GetConversion(collections[3]);
-            Assert.True(conversion4.IsValid);
-            Assert.True(conversion4.IsCollectionExpression);
+            Assert.False(conversion4.IsValid);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -18378,20 +18378,26 @@ partial class Program
 
                 class C
                 {
-                    static T1 Create1<T1>() where T1 : IEnumerable<string> => []; // 1
-                    static T2 Create2<T2>() where T2 : IEnumerable<string>, new() => [];
-                    static T3 Create3<T3>() where T3 : struct, IEnumerable<string> => [];
-                    static T4 Create4<T4>() where T4 : class, IEnumerable<string> => []; // 2
+                    static T1 Create1<T1>() where T1 : IEnumerable<string> => [1]; // 1
+                    static T2 Create2<T2>() where T2 : IEnumerable<string>, new() => [2]; // 2
+                    static T3 Create3<T3>() where T3 : struct, IEnumerable<string> => [3]; // 3
+                    static T4 Create4<T4>() where T4 : class, IEnumerable<string> => [4]; // 4
                 }
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (5,63): error CS0304: Cannot create an instance of the variable type 'T1' because it does not have the new() constraint
-                //     static T1 Create1<T1>() where T1 : IEnumerable<string> => []; // 1
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T1").WithLocation(5, 63),
-                // (8,70): error CS0304: Cannot create an instance of the variable type 'T4' because it does not have the new() constraint
-                //     static T4 Create4<T4>() where T4 : class, IEnumerable<string> => []; // 2
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "[]").WithArguments("T4").WithLocation(8, 70)
+                // (5,63): error CS9174: Cannot initialize type 'T1' with a collection expression because the type is not constructible.
+                //     static T1 Create1<T1>() where T1 : IEnumerable<string> => [1]; // 1
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("T1").WithLocation(5, 63),
+                // (6,70): error CS9174: Cannot initialize type 'T2' with a collection expression because the type is not constructible.
+                //     static T2 Create2<T2>() where T2 : IEnumerable<string>, new() => [2]; // 2
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("T2").WithLocation(6, 70),
+                // (7,71): error CS9174: Cannot initialize type 'T3' with a collection expression because the type is not constructible.
+                //     static T3 Create3<T3>() where T3 : struct, IEnumerable<string> => [3]; // 3
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("T3").WithLocation(7, 71),
+                // (8,70): error CS9174: Cannot initialize type 'T4' with a collection expression because the type is not constructible.
+                //     static T4 Create4<T4>() where T4 : class, IEnumerable<string> => [4]; // 4
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[4]").WithArguments("T4").WithLocation(8, 70)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -18399,28 +18405,24 @@ partial class Program
             var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
 
             var conversion1 = model.GetConversion(collections[0]);
-            Assert.True(conversion1.IsValid);
-            Assert.True(conversion1.IsCollectionExpression);
+            Assert.False(conversion1.IsValid);
 
             var conversion2 = model.GetConversion(collections[1]);
-            Assert.True(conversion2.IsValid);
-            Assert.True(conversion2.IsCollectionExpression);
+            Assert.False(conversion2.IsValid);
 
             var typeInfo2 = model.GetTypeInfo(collections[1]);
             Assert.Null(typeInfo2.Type);
             Assert.Equal("T2", typeInfo2.ConvertedType.ToTestDisplayString());
 
             var conversion3 = model.GetConversion(collections[2]);
-            Assert.True(conversion3.IsValid);
-            Assert.True(conversion3.IsCollectionExpression);
+            Assert.False(conversion3.IsValid);
 
             var typeInfo3 = model.GetTypeInfo(collections[2]);
             Assert.Null(typeInfo3.Type);
             Assert.Equal("T3", typeInfo3.ConvertedType.ToTestDisplayString());
 
             var conversion4 = model.GetConversion(collections[3]);
-            Assert.True(conversion4.IsValid);
-            Assert.True(conversion4.IsCollectionExpression);
+            Assert.False(conversion4.IsValid);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -18619,7 +18621,6 @@ partial class Program
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
         public void CollectionBuilder_MissingCtor()
         {
-            // The constructor requirement is ignored for [CollectionBuilder] types
             string source = """
                 using System;
                 using System.Collections;
@@ -18809,6 +18810,187 @@ partial class Program
                 // C.M(['a', 'b', 'c']);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string)", "C.M(System.ReadOnlySpan<int>)").WithLocation(3, 3)
                 );
+        }
+
+        [Fact]
+        public void GenericIEnumerable_NarrowerConversionToAdd()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                MyCollection1<int> x = [1, 2, 3];
+                x.Report();
+                MyCollection2<object, int> y = [1, 2, 3];
+                y.Report();
+
+                class MyCollection1<T> : IEnumerable
+                {
+                    private List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(T t) { _list.Add(t); }
+                }
+
+                class MyCollection2<TElement, TAdd> : IEnumerable<TElement> where TAdd : TElement
+                {
+                    private List<TElement> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<TElement> IEnumerable<TElement>.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(TAdd u) { _list.Add(u); }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1, 2, 3], [1, 2, 3],");
+        }
+
+        [Fact]
+        public void GenericIEnumerable_NarrowerConversionToAdd_WiderElements()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                MyCollection2<object, int> y = [new object()];
+
+                class MyCollection2<TElement, TAdd> : IEnumerable<TElement> where TAdd : TElement
+                {
+                    private List<TElement> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<TElement> IEnumerable<TElement>.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(TAdd u) { _list.Add(u); }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,33): error CS1950: The best overloaded Add method 'MyCollection2<object, int>.Add(int)' for the collection initializer has some invalid arguments
+                // MyCollection2<object, int> y = [new object()];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "new object()").WithArguments("MyCollection2<object, int>.Add(int)").WithLocation(4, 33),
+                // (4,33): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                // MyCollection2<object, int> y = [new object()];
+                Diagnostic(ErrorCode.ERR_BadArgType, "new object()").WithArguments("1", "object", "int").WithLocation(4, 33)
+                );
+        }
+
+        [Fact]
+        public void GenericIEnumerable_DifferentConversionToAdd()
+        {
+            // For purpose of conversion, we rely on conversion from numeric literal to uint (from IEnumerable<uint>)
+            // But for purpose of execution, we rely on conversion from numeric literal to sbyte (from Add(sbyte))
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                MyCollection x = [1, 2, 3];
+                x.Report();
+
+                class MyCollection : IEnumerable<uint>
+                {
+                    private List<uint> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<uint> IEnumerable<uint>.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(sbyte s) { _list.Add((uint)s); }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1, 2, 3],");
+        }
+
+        [Fact]
+        public void GenericIEnumerable_NoConversionToAdd()
+        {
+            // For purpose of conversion, we rely on conversion from numeric literal to uint (from IEnumerable<uint>)
+            // But for purpose of execution, we rely on conversion from numeric literal to sbyte (from Add(sbyte))
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                MyCollection x = [uint.MaxValue];
+
+                class MyCollection : IEnumerable<uint>
+                {
+                    private List<uint> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator<uint> IEnumerable<uint>.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(sbyte s) { _list.Add((uint)s); }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(4,19): error CS1950: The best overloaded Add method 'MyCollection.Add(sbyte)' for the collection initializer has some invalid arguments
+                // MyCollection x = [uint.MaxValue];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "uint.MaxValue").WithArguments("MyCollection.Add(sbyte)").WithLocation(4, 19),
+                // 0.cs(4,19): error CS1503: Argument 1: cannot convert from 'uint' to 'sbyte'
+                // MyCollection x = [uint.MaxValue];
+                Diagnostic(ErrorCode.ERR_BadArgType, "uint.MaxValue").WithArguments("1", "uint", "sbyte").WithLocation(4, 19)
+                );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        [InlineData("IEnumerable<int>, IEnumerable<string>")]
+        [InlineData("IEnumerable<string>, IEnumerable<int>")]
+        [InlineData("IString, IInteger")]
+        [InlineData("IInteger, IString")]
+        public void ConvertToCorrectIEnumerable(string interfaces)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [1];
+
+                interface IString : IEnumerable<string> { }
+                interface IInteger : IEnumerable<int> { }
+
+                class Collection : {{interfaces}}
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+                    public void Add(int i) { System.Console.Write("RAN"); }
+                    public void Add(string s) => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
+        [InlineData("IEnumerable<int>, IEnumerable<long>")]
+        [InlineData("IEnumerable<long>, IEnumerable<int>")]
+        [InlineData("ILong, IInteger")]
+        [InlineData("IInteger, ILong")]
+        public void ConvertToCorrectIEnumerable_MultipleValid(string interfaces)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [1];
+
+                interface ILong : IEnumerable<long> { }
+                interface IInteger : IEnumerable<int> { }
+
+                class Collection : {{interfaces}}
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<long> IEnumerable<long>.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+                    public void Add(int i) { System.Console.Write("RAN"); }
+                    public void Add(long s) => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
         }
     }
 }

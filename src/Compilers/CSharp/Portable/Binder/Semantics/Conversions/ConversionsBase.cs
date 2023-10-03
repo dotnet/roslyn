@@ -1648,14 +1648,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
-            else if (implementsGenericIEnumerable(compilation, destination, out elementType))
-            {
-                return CollectionExpressionTypeKind.CollectionInitializer;
-            }
-            else if (implementsIEnumerable(compilation, destination) && !implementsGenericIEnumerable(compilation, destination, out _))
+            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
             {
                 elementType = null;
-                return CollectionExpressionTypeKind.CollectionInitializer;
+                return CollectionExpressionTypeKind.GenericIEnumerable;
+            }
+            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
+            {
+                // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
+                // That method checks for an implicit conversion from IEnumerable to the collection type, to
+                // match earlier implementation, even though it states that walking the implemented interfaces
+                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
+                // to check for nullable to disallow: Nullable<StructCollection> s = [];
+                // Instead, we just walk the implemented interfaces.
+                elementType = null;
+                return CollectionExpressionTypeKind.IEnumerable;
             }
             else if (isListInterface(compilation, destination, out elementType))
             {
@@ -1668,7 +1675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 1 } namedType
-                    && areEqual(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
+                    && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
                 {
                     elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                     return true;
@@ -1677,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            static bool implementsIEnumerable(CSharpCompilation compilation, TypeSymbol targetType)
+            static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
             {
                 ImmutableArray<NamedTypeSymbol> allInterfaces;
                 switch (targetType.TypeKind)
@@ -1693,52 +1700,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                 }
 
-                // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
-                // That method checks for an implicit conversion from IEnumerable to the collection type, to
-                // match earlier implementation, even though it states that walking the implemented interfaces
-                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
-                // to check for nullable to disallow: Nullable<StructCollection> s = [];
-                // Instead, we just walk the implemented interfaces.
-                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
-                return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
-
-            }
-
-            static bool implementsGenericIEnumerable(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
-            {
-                ImmutableArray<NamedTypeSymbol> allInterfaces;
-                switch (targetType.TypeKind)
-                {
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
-                        break;
-                    case TypeKind.TypeParameter:
-                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
-                        break;
-                    default:
-                        elementType = null;
-                        return false;
-                }
-
-                // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
-                // That method checks for an implicit conversion from IEnumerable to the collection type, to
-                // match earlier implementation, even though it states that walking the implemented interfaces
-                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
-                // to check for nullable to disallow: Nullable<StructCollection> s = [];
-                // Instead, we just walk the implemented interfaces.
-                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-                foreach (var @interface in allInterfaces)
-                {
-                    if (areEqual(@interface.OriginalDefinition, ienumerableType))
-                    {
-                        elementType = @interface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                        return true;
-                    }
-                }
-
-                elementType = null;
-                return false;
+                var ienumerableType = compilation.GetSpecialType(specialInterface);
+                return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), ienumerableType);
             }
 
             static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
@@ -1759,11 +1722,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 elementType = null;
                 return false;
-            }
-
-            static bool areEqual(TypeSymbol a, TypeSymbol b)
-            {
-                return a.Equals(b, TypeCompareKind.AllIgnoreOptions);
             }
         }
 #nullable disable
