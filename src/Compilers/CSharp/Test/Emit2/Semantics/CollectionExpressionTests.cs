@@ -18713,7 +18713,7 @@ partial class Program
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1 2 3");
+            CompileAndVerify(comp, expectedOutput: "1 2 3", verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -18737,7 +18737,7 @@ partial class Program
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1 2 3");
+            CompileAndVerify(comp, expectedOutput: "1 2 3", verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -18761,7 +18761,7 @@ partial class Program
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1 2 3");
+            CompileAndVerify(comp, expectedOutput: "1 2 3", verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -18785,7 +18785,7 @@ partial class Program
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "a b c");
+            CompileAndVerify(comp, expectedOutput: "a b c", verify: Verification.FailsPEVerify);
         }
 
         [Fact]
