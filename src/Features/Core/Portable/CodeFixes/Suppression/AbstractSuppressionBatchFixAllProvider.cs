@@ -237,23 +237,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             var solution = fixAllState.Solution;
             var newSolution = await TryMergeFixesAsync(
-                solution, batchOfFixes, fixAllState, progressTracker, cancellationToken).ConfigureAwait(false);
+                solution, batchOfFixes, progressTracker, cancellationToken).ConfigureAwait(false);
             if (newSolution != null && newSolution != solution)
             {
-                var title = GetFixAllTitle(fixAllState);
+                var title = FixAllHelper.GetDefaultFixAllTitle(fixAllState.Scope, title: fixAllState.DiagnosticIds.First(), fixAllState.Document!, fixAllState.Project);
                 return CodeAction.SolutionChangeAction.Create(title, _ => Task.FromResult(newSolution), title);
             }
 
             return null;
         }
 
-        public virtual string GetFixAllTitle(FixAllState fixAllState)
-            => FixAllHelper.GetDefaultFixAllTitle(fixAllState.Scope, title: fixAllState.DiagnosticIds.First(), fixAllState.Document!, fixAllState.Project);
-
-        public virtual async Task<Solution> TryMergeFixesAsync(
+        private static async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
-            FixAllState fixAllState,
             IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
