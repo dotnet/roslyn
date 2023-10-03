@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             // Descriptors check verifies if any of the diagnostic IDs reported by this analyzer
             // have been escalated to a severity that they must be executed.
 
-            Debug.Assert(Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomConfigurable));
+            Debug.Assert(notification.HasValue == Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomConfigurable));
             Debug.Assert(_minimumReportedSeverity != null);
 
             if (notification?.Severity == ReportDiagnostic.Suppress)
