@@ -589,11 +589,33 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private ApiName GetApiName(ISymbol symbol)
             {
-                return new ApiName(
-                    getApiString(symbol, s_publicApiFormat),
-                    getApiString(symbol, s_publicApiFormatWithNullability));
+                var experimentName = getExperimentName(symbol);
 
-                string getApiString(ISymbol symbol, SymbolDisplayFormat format)
+                return new ApiName(
+                    getApiString(_compilation, symbol, experimentName, s_publicApiFormat),
+                    getApiString(_compilation, symbol, experimentName, s_publicApiFormatWithNullability));
+
+                static string? getExperimentName(ISymbol symbol)
+                {
+                    for (var current = symbol; current is not null; current = current.ContainingSymbol)
+                    {
+                        foreach (var attribute in current.GetAttributes())
+                        {
+                            if (attribute.AttributeClass is { Name: "ExperimentalAttribute", ContainingSymbol: INamespaceSymbol { Name: nameof(System.Diagnostics.CodeAnalysis), ContainingNamespace: { Name: nameof(System.Diagnostics), ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true } } } })
+                            {
+                                if (attribute.ConstructorArguments is not [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string diagnosticId }])
+                                    return "???";
+
+                                return diagnosticId;
+
+                            }
+                        }
+                    }
+
+                    return null;
+                }
+
+                static string getApiString(Compilation compilation, ISymbol symbol, string? experimentName, SymbolDisplayFormat format)
                 {
                     string publicApiName = symbol.ToDisplayString(format);
 
@@ -625,9 +647,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         return string.Empty;
                     }
 
-                    if (symbol.ContainingAssembly != null && !symbol.ContainingAssembly.Equals(_compilation.Assembly))
+                    if (symbol.ContainingAssembly != null && !symbol.ContainingAssembly.Equals(compilation.Assembly))
                     {
                         publicApiName += $" (forwarded, contained in {symbol.ContainingAssembly.Name})";
+                    }
+
+                    if (experimentName != null)
+                    {
+                        publicApiName = "[" + experimentName + "]" + publicApiName;
                     }
 
                     return publicApiName;
