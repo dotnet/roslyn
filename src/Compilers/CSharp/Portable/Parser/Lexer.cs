@@ -82,8 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly LexerCache _cache;
         private readonly bool _allowPreprocessorDirectives;
         private readonly bool _interpolationFollowedByColon;
-        private DocumentationCommentParser? _xmlParser;
         private int _badTokenCount; // cumulative count of bad tokens produced
+
+        // Expensive to continually recreate.  So just initialize/reinitialize these sub parsers on demand.
+
+        private DocumentationCommentParser? _xmlParser;
+        private DirectiveParser? _directiveParser;
 
         internal struct TokenInfo
         {
@@ -124,10 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _cache.Free();
 
-            if (_xmlParser != null)
-            {
-                _xmlParser.Dispose();
-            }
+            _xmlParser?.Dispose();
+            _directiveParser?.Dispose();
 
             base.Dispose();
         }
@@ -2349,10 +2351,10 @@ top:
             CSharpSyntaxNode directive;
             var saveMode = _mode;
 
-            using (var dp = new DirectiveParser(this, _directives))
-            {
-                directive = dp.ParseDirective(isActive, endIsActive, afterFirstToken, afterNonWhitespaceOnLine);
-            }
+            _directiveParser ??= new DirectiveParser(this);
+            _directiveParser.ReInitialize(_directives);
+
+            directive = _directiveParser.ParseDirective(isActive, endIsActive, afterFirstToken, afterNonWhitespaceOnLine);
 
             this.AddTrivia(directive, ref triviaList);
             _directives = directive.ApplyDirectives(_directives);
