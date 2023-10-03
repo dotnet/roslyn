@@ -9,15 +9,9 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class CodeAnalysisProgressExtensions
 {
-    /// <summary>
-    /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
-    /// </summary>
     public static void AddItems(this IProgress<CodeAnalysisProgress> progress, int count)
         => progress.Report(CodeAnalysisProgress.AddIncompleteItems(count));
 
-    /// <summary>
-    /// Bridge method from original <see cref="IProgressTracker"/> api to <see cref="IProgress{T}"/>.
-    /// </summary>
     public static void ItemCompleted(this IProgress<CodeAnalysisProgress> progress)
         => progress.Report(CodeAnalysisProgress.AddCompleteItems(count: 1));
 
