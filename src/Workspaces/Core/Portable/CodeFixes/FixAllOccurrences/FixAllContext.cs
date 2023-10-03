@@ -67,9 +67,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal IProgress<CodeAnalysisProgress> Progress { get; }
-
-        IProgress<CodeAnalysisProgress> IFixAllContext.Progress => Progress;
+        /// <summary>
+        /// Progress sink for reporting the progress of a fix-all operation.
+        /// </summary>
+        public IProgress<CodeAnalysisProgress> Progress { get; }
 
         #region IFixAllContext implementation
         IFixAllState IFixAllContext.State => this.State;
