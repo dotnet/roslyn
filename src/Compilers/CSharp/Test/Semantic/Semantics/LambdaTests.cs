@@ -4881,9 +4881,9 @@ class Program
                 delegate int D2([Optional, DefaultParameterValue(1)] int x);
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,13): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (3,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D1)' and 'C.M(D2)'
                 // new C().M(([Optional] int x = 1) => x);
-                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(3, 13),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D1)", "C.M(D2)").WithLocation(3, 9),
                 // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D1)' and 'C.M(D2)'
                 // new C().M((int x = 1) => x);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D1)", "C.M(D2)").WithLocation(4, 9));
@@ -8328,9 +8328,9 @@ class Program
                 delegate int D(params int[] xs);
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // (3,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D)' and 'C.M(Func<int[], int>)'
                 // new C().M(([ParamArray] int[] xs) => xs.Length);
-                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "ParamArray").WithLocation(3, 13),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D)", "C.M(System.Func<int[], int>)").WithLocation(3, 9),
                 // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D)' and 'C.M(Func<int[], int>)'
                 // new C().M((params int[] xs) => xs.Length);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D)", "C.M(System.Func<int[], int>)").WithLocation(4, 9));
