@@ -230,6 +230,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 }
                 else
                 {
+                    // No diagnostic ID or bulk configuration for the descriptor.
+                    // Check if the descriptor's default severity is greater than or equals the minimum reported severiity.
+                    if (descriptor.IsEnabledByDefault && descriptor.DefaultSeverity >= _minimumReportedSeverity.Value)
+                        return false;
+
+                    // Otherwise, we can skip this descriptor as it cannot contribute a diagnostic that will be reported.
                     continue;
                 }
 
