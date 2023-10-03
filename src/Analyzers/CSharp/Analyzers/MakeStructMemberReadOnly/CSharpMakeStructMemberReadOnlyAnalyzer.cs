@@ -65,7 +65,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 var declaration = reference.GetSyntax(cancellationToken);
                 var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree);
                 option = options.PreferReadOnlyStructMember;
-                if (!option.Value || ShouldSkipAnalysis(declaration.SyntaxTree, context.Options, option.Notification))
+                if (!option.Value || ShouldSkipAnalysis(declaration.SyntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
                     return false;
 
                 // Skip analysis if the analysis filter span does not contain the primary location where we would report a diagnostic.

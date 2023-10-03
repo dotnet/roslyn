@@ -139,7 +139,9 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         // not point in analyzing if both options are off.
         if (!preferInitializerOption.Value
             && !preferExpressionOption.Value
-            && !ShouldSkipAnalysis(context.FilterTree, context.Options, ImmutableArray.Create(preferInitializerOption.Notification, preferExpressionOption.Notification)))
+            && !ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
+                    ImmutableArray.Create(preferInitializerOption.Notification, preferExpressionOption.Notification),
+                    context.CancellationToken))
         {
             return;
         }

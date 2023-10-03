@@ -28,12 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInArrowExpressionClause;
-            if (option.Value || ShouldSkipAnalysis(context, option.Notification))
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
             Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));

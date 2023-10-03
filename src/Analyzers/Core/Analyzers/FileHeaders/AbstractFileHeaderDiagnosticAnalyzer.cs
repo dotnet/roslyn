@@ -36,11 +36,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(HandleSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => HandleSyntaxTree(treeContext, context.Compilation.Options)));
 
-        private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void HandleSyntaxTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
-            if (ShouldSkipAnalysis(context, notification: null))
+            if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
                 return;
 
             var tree = context.Tree;

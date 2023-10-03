@@ -255,7 +255,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
 
                 var styleOption = options.GetCSharpAnalyzerOptions(reference.SyntaxTree).PreferPrimaryConstructors;
                 if (!styleOption.Value
-                    || diagnosticAnalyzer.ShouldSkipAnalysis(reference.SyntaxTree, context.Options, styleOption.Notification))
+                    || diagnosticAnalyzer.ShouldSkipAnalysis(reference.SyntaxTree, context.Options, context.Compilation.Options, styleOption.Notification, cancellationToken))
                 {
                     return null;
                 }

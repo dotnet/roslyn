@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -87,27 +88,37 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected abstract void InitializeWorker(AnalysisContext context);
 
         protected bool ShouldSkipAnalysis(SemanticModelAnalysisContext context, NotificationOption2? notification)
-            => ShouldSkipAnalysis(context.FilterTree, context.Options, notification);
+            => ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, notification, context.CancellationToken);
 
         protected bool ShouldSkipAnalysis(SyntaxNodeAnalysisContext context, NotificationOption2? notification)
-            => ShouldSkipAnalysis(context.Node.SyntaxTree, context.Options, notification);
+            => ShouldSkipAnalysis(context.Node.SyntaxTree, context.Options, context.Compilation.Options, notification, context.CancellationToken);
 
-        protected bool ShouldSkipAnalysis(SyntaxTreeAnalysisContext context, NotificationOption2? notification)
-            => ShouldSkipAnalysis(context.Tree, context.Options, notification);
+        protected bool ShouldSkipAnalysis(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions, NotificationOption2? notification)
+            => ShouldSkipAnalysis(context.Tree, context.Options, compilationOptions, notification, context.CancellationToken);
 
         protected bool ShouldSkipAnalysis(CodeBlockAnalysisContext context, NotificationOption2? notification)
-            => ShouldSkipAnalysis(context.FilterTree, context.Options, notification);
+            => ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, notification, context.CancellationToken);
 
         protected bool ShouldSkipAnalysis(OperationAnalysisContext context, NotificationOption2? notification)
-            => ShouldSkipAnalysis(context.FilterTree, context.Options, notification);
+            => ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options, notification, context.CancellationToken);
 
         protected bool ShouldSkipAnalysis(OperationBlockAnalysisContext context, NotificationOption2? notification)
-            => ShouldSkipAnalysis(context.FilterTree, context.Options, notification);
+            => ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options, notification, context.CancellationToken);
 
-        protected bool ShouldSkipAnalysis(SyntaxTree tree, AnalyzerOptions analyzerOptions, NotificationOption2? notification)
-            => ShouldSkipAnalysis(tree, analyzerOptions, notification, performDescriptorsCheck: true);
+        protected bool ShouldSkipAnalysis(
+            SyntaxTree tree,
+            AnalyzerOptions analyzerOptions,
+            CompilationOptions compilationOptions,
+            NotificationOption2? notification,
+            CancellationToken cancellationToken)
+            => ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, performDescriptorsCheck: true, cancellationToken);
 
-        protected bool ShouldSkipAnalysis(SyntaxTree tree, AnalyzerOptions analyzerOptions, ImmutableArray<NotificationOption2> notifications)
+        protected bool ShouldSkipAnalysis(
+            SyntaxTree tree,
+            AnalyzerOptions analyzerOptions,
+            CompilationOptions compilationOptions,
+            ImmutableArray<NotificationOption2> notifications,
+            CancellationToken cancellationToken)
         {
             // We need to check if the analyzer's severity has been escalated either via 'option_name = option_value:severity'
             // setting or 'dotnet_diagnostic.RuleId.severity = severity'.
@@ -122,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             // Check if any of the notifications are enabled, if so we need to execute analysis.
             foreach (var notification in notifications)
             {
-                if (!ShouldSkipAnalysis(tree, analyzerOptions, notification, performDescriptorsCheck))
+                if (!ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, performDescriptorsCheck, cancellationToken))
                     return false;
 
                 if (performDescriptorsCheck)
@@ -132,7 +143,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return true;
         }
 
-        private bool ShouldSkipAnalysis(SyntaxTree tree, AnalyzerOptions analyzerOptions, NotificationOption2? notification, bool performDescriptorsCheck)
+        private bool ShouldSkipAnalysis(
+            SyntaxTree tree,
+            AnalyzerOptions analyzerOptions,
+            CompilationOptions compilationOptions,
+            NotificationOption2? notification,
+            bool performDescriptorsCheck,
+            CancellationToken cancellationToken)
         {
             // We need to check if the analyzer's severity has been escalated either via 'option_name = option_value:severity'
             // setting or 'dotnet_diagnostic.RuleId.severity = severity'.
@@ -141,7 +158,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             // Descriptors check verifies if any of the diagnostic IDs reported by this analyzer
             // have been escalated to a severity that they must be executed.
 
-            Debug.Assert(notification.HasValue == Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomConfigurable));
             Debug.Assert(_minimumReportedSeverity != null);
 
             if (notification?.Severity == ReportDiagnostic.Suppress)
@@ -166,11 +182,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             // the minimum reported severity.
             // If so, we should execute analysis. Otherwise, analysis should be skipped.
 
+            var severityOptionsProvider = compilationOptions.SyntaxTreeOptionsProvider!;
             var globalOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
             var treeOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
 
             const string DotnetAnalyzerDiagnosticPrefix = "dotnet_analyzer_diagnostic";
-            const string DotnetDiagnosticPrefix = "dotnet_diagnostic";
             const string CategoryPrefix = "category";
             const string SeveritySuffix = "severity";
 
@@ -183,11 +199,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
                     continue;
 
-                var idConfigurationKey = $"{DotnetDiagnosticPrefix}.{descriptor.Id}.{SeveritySuffix}";
+                string? editorConfigSeverity;
                 var categoryConfigurationKey = $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{descriptor.Category}.{SeveritySuffix}";
-                if (treeOptions.TryGetValue(idConfigurationKey, out var editorConfigSeverity)
-                    || globalOptions.TryGetValue(idConfigurationKey, out editorConfigSeverity)
-                    || treeOptions.TryGetValue(categoryConfigurationKey, out editorConfigSeverity)
+                if (severityOptionsProvider.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredReportDiagnostic)
+                    || severityOptionsProvider.TryGetGlobalDiagnosticValue(descriptor.Id, cancellationToken, out configuredReportDiagnostic))
+                {
+                    if (configuredReportDiagnostic.ToDiagnosticSeverity() is { } configuredSeverity
+                        && configuredSeverity >= _minimumReportedSeverity.Value)
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+                else if (treeOptions.TryGetValue(categoryConfigurationKey, out editorConfigSeverity)
                     || globalOptions.TryGetValue(categoryConfigurationKey, out editorConfigSeverity))
                 {
                 }

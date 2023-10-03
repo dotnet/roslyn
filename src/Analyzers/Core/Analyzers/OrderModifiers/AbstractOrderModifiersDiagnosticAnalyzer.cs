@@ -34,14 +34,15 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeSyntaxTree(treeContext, context.Compilation.Options)));
 
         protected abstract CodeStyleOption2<string> GetPreferredOrderStyle(SyntaxTreeAnalysisContext context);
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = GetPreferredOrderStyle(context);
-            if (ShouldSkipAnalysis(context, option.Notification)
+            if (ShouldSkipAnalysis(context, compilationOptions, option.Notification)
                 || !_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 var sourceTree = symbolContext.Symbol.Locations.FirstOrDefault()?.SourceTree;
                 if (sourceTree == null
-                    || ShouldSkipAnalysis(sourceTree, symbolContext.Options, notification: null))
+                    || ShouldSkipAnalysis(sourceTree, symbolContext.Options, symbolContext.Compilation.Options, notification: null, symbolContext.CancellationToken))
                 {
                     return;
                 }

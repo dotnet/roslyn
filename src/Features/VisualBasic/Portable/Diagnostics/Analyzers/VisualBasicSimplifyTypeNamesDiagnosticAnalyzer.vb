@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim cancellationToken = context.CancellationToken
 
             Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
-            If (ShouldSkipAnalysis(context.FilterTree, context.Options, GetAllNotifications(simplifierOptions))) Then
+            If (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(simplifierOptions), cancellationToken)) Then
                 Return ImmutableArray(Of Diagnostic).Empty
             End If
 
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
         Protected Overrides Function AnalyzeSemanticModel(context As SemanticModelAnalysisContext, root As SyntaxNode, codeBlockIntervalTree As TextSpanIntervalTree) As ImmutableArray(Of Diagnostic)
             Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
-            If (ShouldSkipAnalysis(context.FilterTree, context.Options, GetAllNotifications(simplifierOptions))) Then
+            If (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(simplifierOptions), context.CancellationToken)) Then
                 Return ImmutableArray(Of Diagnostic).Empty
             End If
 

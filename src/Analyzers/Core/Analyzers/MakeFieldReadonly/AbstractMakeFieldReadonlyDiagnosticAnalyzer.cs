@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var option = GetCodeStyleOption(field, options, out var location);
                     if (option == null
                         || !option.Value
-                        || ShouldSkipAnalysis(location.SourceTree!, options, option.Notification))
+                        || ShouldSkipAnalysis(location.SourceTree!, options, context.Compilation.Options, option.Notification, cancellationToken))
                     {
                         return default;
                     }

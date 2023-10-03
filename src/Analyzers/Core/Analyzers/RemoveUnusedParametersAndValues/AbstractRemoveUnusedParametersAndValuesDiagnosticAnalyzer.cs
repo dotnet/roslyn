@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
         }
 
-        private bool TryGetOptions(SyntaxTree syntaxTree, AnalyzerOptions analyzerOptions, out Options options)
+        private bool TryGetOptions(SyntaxTree syntaxTree, AnalyzerOptions analyzerOptions, CompilationOptions compilationOptions, CancellationToken cancellationToken, out Options options)
         {
             options = null;
 
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(GetUnusedValueAssignmentOption(optionsProvider));
 
             var notifications = ImmutableArray.Create(unusedParametersOption.Notification, unusedValueExpressionStatementSeverity, unusedValueAssignmentSeverity);
-            if (ShouldSkipAnalysis(syntaxTree, analyzerOptions, notifications))
+            if (ShouldSkipAnalysis(syntaxTree, analyzerOptions, compilationOptions, notifications, cancellationToken))
                 return false;
 
             options = new Options(unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity,

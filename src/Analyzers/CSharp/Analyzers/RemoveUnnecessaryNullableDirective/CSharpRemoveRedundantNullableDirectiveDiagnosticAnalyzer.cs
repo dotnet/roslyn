@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                     return;
                 }
 
-                var defaultNullableContext = ((CSharpCompilation)context.Compilation).Options.NullableContextOptions;
+                var compilationOptions = context.Compilation.Options;
+                var defaultNullableContext = ((CSharpCompilationOptions)compilationOptions).NullableContextOptions;
                 context.RegisterSyntaxTreeAction(context =>
                 {
-                    if (ShouldSkipAnalysis(context, notification: null))
+                    if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
                         return;
 
                     var root = context.GetAnalysisRoot(findInTrivia: true);

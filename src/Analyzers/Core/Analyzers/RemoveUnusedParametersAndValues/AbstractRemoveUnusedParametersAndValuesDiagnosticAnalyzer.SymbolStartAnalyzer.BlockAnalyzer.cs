@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         var firstBlock = context.OperationBlocks[0];
                         if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
                                                                                     context.Options,
+                                                                                    context.Compilation.Options,
+                                                                                    context.CancellationToken,
                                                                                     out options))
                         {
                             return false;

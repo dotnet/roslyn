@@ -64,8 +64,9 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             // we don't know the context of the node yet, so check all predefined type option preferences and bail early.
             if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration)
                 && !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess)
-                && ShouldSkipAnalysis(context.FilterTree, context.Options, ImmutableArray.Create(
-                    options.PreferPredefinedTypeKeywordInDeclaration.Notification, options.PreferPredefinedTypeKeywordInMemberAccess.Notification)))
+                && ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
+                    ImmutableArray.Create(options.PreferPredefinedTypeKeywordInDeclaration.Notification, options.PreferPredefinedTypeKeywordInMemberAccess.Notification),
+                    context.CancellationToken))
             {
                 return;
             }

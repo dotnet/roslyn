@@ -34,12 +34,13 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetAnalyzerOptions().AllowStatementImmediatelyAfterBlock;
-            if (option.Value || ShouldSkipAnalysis(context, option.Notification))
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
             Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);

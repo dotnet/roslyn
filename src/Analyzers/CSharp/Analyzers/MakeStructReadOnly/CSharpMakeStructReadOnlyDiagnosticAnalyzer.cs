@@ -93,7 +93,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
 
         var options = context.GetCSharpAnalyzerOptions(typeDeclaration.SyntaxTree);
         option = options.PreferReadOnlyStruct;
-        if (!option.Value || ShouldSkipAnalysis(typeDeclaration.SyntaxTree, context.Options, option.Notification))
+        if (!option.Value || ShouldSkipAnalysis(typeDeclaration.SyntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
             return false;
 
         // Now, ensure we have at least one field and that all fields are readonly.

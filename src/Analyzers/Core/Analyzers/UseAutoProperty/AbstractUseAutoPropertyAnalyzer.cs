@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
                     {
                         var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
-                        return preferAutoProps.Value && !ShouldSkipAnalysis(tree, context.Options, preferAutoProps.Notification);
+                        return preferAutoProps.Value && !ShouldSkipAnalysis(tree, context.Options, context.Compilation.Options, preferAutoProps.Notification, context.CancellationToken);
                     }))
                     {
                         return false;

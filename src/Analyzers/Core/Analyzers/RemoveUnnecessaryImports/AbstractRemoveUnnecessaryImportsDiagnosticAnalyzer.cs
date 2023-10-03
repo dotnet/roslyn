@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             if (tree is null || tree.Options.DocumentationMode != DocumentationMode.None)
                 return;
 
-            if (ShouldSkipAnalysis(tree, context.Options, notification: null))
+            if (ShouldSkipAnalysis(tree, context.Options, compilation.Options, notification: null, context.CancellationToken))
                 return;
 
             var effectiveSeverity = _classificationIdDescriptor.GetEffectiveSeverity(compilation.Options, tree, context.Options);
