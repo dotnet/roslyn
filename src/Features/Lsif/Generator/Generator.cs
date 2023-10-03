@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 // Just get the pure-lsp semantic tokens here.
                 new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true },
                 document,
-                range: null,
+                ranges: null,
                 options: Classification.ClassificationOptions.Default,
                 cancellationToken: CancellationToken.None);
 

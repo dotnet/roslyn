@@ -7599,7 +7599,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
   <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
-    <value>The 'interceptors' experimental feature is not enabled. Add '{0}' to your project.</value>
+    <value>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</value>
+  </data>
+  <data name="ERR_InterceptorGlobalNamespace" xml:space="preserve">
+    <value>An interceptor cannot be declared in the global namespace.</value>
   </data>
   <data name="ERR_InterceptorContainingTypeCannotBeGeneric" xml:space="preserve">
     <value>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</value>
@@ -7801,5 +7804,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
     <value>Ref field should be ref-assigned before use.</value>
+  </data>
+  <data name="ERR_ExpectedInterpolatedString" xml:space="preserve">
+    <value>Expected interpolated string</value>
   </data>
 </root>

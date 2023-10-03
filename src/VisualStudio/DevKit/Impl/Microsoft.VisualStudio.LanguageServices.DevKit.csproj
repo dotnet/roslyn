@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <IsPackable>true</IsPackable>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") Language Server Protocol internal.
     </PackageDescription>

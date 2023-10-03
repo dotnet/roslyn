@@ -507,8 +507,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case TypeKind.Enum:
                     case TypeKind.Delegate:
-                    //C# interfaces don't have fields so the flag doesn't really matter, but Dev10 omits it
-                    case TypeKind.Interface:
                         return false;
                 }
 

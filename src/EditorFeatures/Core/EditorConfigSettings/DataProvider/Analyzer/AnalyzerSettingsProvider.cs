@@ -16,7 +16,7 @@ using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSet
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer
 {
-    internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, DiagnosticSeverity>
+    internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 

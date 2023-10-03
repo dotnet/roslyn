@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
@@ -13,10 +14,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-
-#if !COCOA
-using System.Linq;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -43,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
         }
 
-#if !COCOA
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
             => GetAdornment(textView) switch
             {
@@ -131,29 +127,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
             }
         }
-#else
-        protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-            => false;
-
-        protected override void SetFocusToTextView(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-
-        protected override void SetFocusToAdornment(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-
-        protected override void SetAdornmentFocusToNextElement(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-
-        protected override void SetAdornmentFocusToPreviousElement(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-#endif
     }
 }
