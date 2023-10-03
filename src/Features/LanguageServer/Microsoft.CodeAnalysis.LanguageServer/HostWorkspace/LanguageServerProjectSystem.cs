@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.BuildHostProcessManager;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -96,7 +98,10 @@ internal sealed class LanguageServerProjectSystem
 
             // If we don't have a .NET Core SDK on this machine at all, try .NET Framework
             if (!await buildHost.HasUsableMSBuildAsync(solutionFilePath, CancellationToken.None))
-                buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetFramework, CancellationToken.None);
+            {
+                var kind = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
+                buildHost = await buildHostProcessManager.GetBuildHostAsync(kind, CancellationToken.None);
+            }
 
             foreach (var project in await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None))
             {
