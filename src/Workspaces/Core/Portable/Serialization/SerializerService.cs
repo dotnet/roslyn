@@ -151,15 +151,15 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.SolutionState:
-                    SolutionStateChecksums.Serialize((SolutionStateChecksums)value, writer);
+                    ((SolutionStateChecksums)value).Serialize(writer);
                     return;
 
                 case WellKnownSynchronizationKind.ProjectState:
-                    ProjectStateChecksums.Serialize((ProjectStateChecksums)value, writer);
+                    ((ProjectStateChecksums)value).Serialize(writer);
                     return;
 
                 case WellKnownSynchronizationKind.DocumentState:
-                    DocumentStateChecksums.Serialize((DocumentStateChecksums)value, writer);
+                    ((DocumentStateChecksums)value).Serialize(writer);
                     return;
 
                 case WellKnownSynchronizationKind.ChecksumCollection:

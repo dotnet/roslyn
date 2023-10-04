@@ -45,15 +45,15 @@ internal sealed class SolutionStateChecksums(
         checksums.Add(this.FrozenSourceGeneratedDocumentText);
     }
 
-    public static void Serialize(SolutionStateChecksums value, ObjectWriter writer)
+    public void Serialize(ObjectWriter writer)
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
-        value.Checksum.WriteTo(writer);
-        value.Attributes.WriteTo(writer);
-        value.Projects.WriteTo(writer);
-        value.AnalyzerReferences.WriteTo(writer);
-        value.FrozenSourceGeneratedDocumentIdentity.WriteTo(writer);
-        value.FrozenSourceGeneratedDocumentText.WriteTo(writer);
+        this.Checksum.WriteTo(writer);
+        this.Attributes.WriteTo(writer);
+        this.Projects.WriteTo(writer);
+        this.AnalyzerReferences.WriteTo(writer);
+        this.FrozenSourceGeneratedDocumentIdentity.WriteTo(writer);
+        this.FrozenSourceGeneratedDocumentText.WriteTo(writer);
     }
 
     public static SolutionStateChecksums Deserialize(ObjectReader reader)
@@ -174,19 +174,19 @@ internal class ProjectStateChecksums(
         this.AnalyzerConfigDocuments.AddAllTo(checksums);
     }
 
-    public static void Serialize(ProjectStateChecksums value, ObjectWriter writer)
+    public void Serialize(ObjectWriter writer)
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
-        value.Checksum.WriteTo(writer);
-        value.Info.WriteTo(writer);
-        value.CompilationOptions.WriteTo(writer);
-        value.ParseOptions.WriteTo(writer);
-        value.Documents.WriteTo(writer);
-        value.ProjectReferences.WriteTo(writer);
-        value.MetadataReferences.WriteTo(writer);
-        value.AnalyzerReferences.WriteTo(writer);
-        value.AdditionalDocuments.WriteTo(writer);
-        value.AnalyzerConfigDocuments.WriteTo(writer);
+        this.Checksum.WriteTo(writer);
+        this.Info.WriteTo(writer);
+        this.CompilationOptions.WriteTo(writer);
+        this.ParseOptions.WriteTo(writer);
+        this.Documents.WriteTo(writer);
+        this.ProjectReferences.WriteTo(writer);
+        this.MetadataReferences.WriteTo(writer);
+        this.AnalyzerReferences.WriteTo(writer);
+        this.AdditionalDocuments.WriteTo(writer);
+        this.AnalyzerConfigDocuments.WriteTo(writer);
     }
 
     public static ProjectStateChecksums Deserialize(ObjectReader reader)
@@ -295,12 +295,12 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
         checksums.Add(this.Text);
     }
 
-    public static void Serialize(DocumentStateChecksums checksums, ObjectWriter writer)
+    public void Serialize(ObjectWriter writer)
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
-        checksums.Checksum.WriteTo(writer);
-        checksums.Info.WriteTo(writer);
-        checksums.Text.WriteTo(writer);
+        this.Checksum.WriteTo(writer);
+        this.Info.WriteTo(writer);
+        this.Text.WriteTo(writer);
     }
 
     public static DocumentStateChecksums Deserialize(ObjectReader reader)
