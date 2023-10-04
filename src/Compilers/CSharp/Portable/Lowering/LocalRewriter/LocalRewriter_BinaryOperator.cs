@@ -1862,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Tries to get member of a nullable value type in a soft manner (without reporting an error if member is not found).
-        /// Prefer this when doing optimizations, so if a special member is precent, compiler generates more optimal code,
+        /// Prefer this when doing optimizations, so if a special member is present, compiler generates more optimal code,
         /// but if not, just gracefully fallbacks to less optimal version without reporting unnecessary errors
         /// </summary>
         private bool TryGetNullableMethodSoft(TypeSymbol nullableType, SpecialMember specialMember, [NotNullWhen(true)] out MethodSymbol? result)
