@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     return;
                 }
 
-                var checksum = (Checksum)checksums.Children[i];
+                var checksum = checksums.Children[i];
                 var value = values[i];
 
                 if (searchingChecksumsLeft.Remove(checksum))
