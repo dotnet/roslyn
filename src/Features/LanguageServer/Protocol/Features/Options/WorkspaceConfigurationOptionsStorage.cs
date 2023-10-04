@@ -18,7 +18,7 @@ internal static class WorkspaceConfigurationOptionsStorage
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
-            RunSourceGeneratorsInProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInProcessOnly));
+            RunSourceGeneratorsInSameProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInSameProcessOnly));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
@@ -35,8 +35,8 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
         "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);
 
-    public static readonly Option2<bool> RunSourceGeneratorsInProcessOnly = new(
-        "dotnet_run_source_generators_in_process_only", WorkspaceConfigurationOptions.Default.RunSourceGeneratorsInProcessOnly);
+    public static readonly Option2<bool> RunSourceGeneratorsInSameProcessOnly = new(
+        "dotnet_run_source_generators_in_same_process_only", WorkspaceConfigurationOptions.Default.RunSourceGeneratorsInSameProcessOnly);
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
