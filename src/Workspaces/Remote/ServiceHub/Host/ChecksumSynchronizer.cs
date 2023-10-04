@@ -103,27 +103,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             foreach (var checksum in checksums)
             {
-                var checksumObject = await _assetProvider.GetAssetAsync<ChecksumWithChildren>(checksum, cancellationToken).ConfigureAwait(false);
+                var checksumObject = await _assetProvider.GetAssetAsync<ChecksumCollection>(checksum, cancellationToken).ConfigureAwait(false);
                 AddIfNeeded(set, checksumObject.Children);
             }
         }
 
-        private void AddIfNeeded(HashSet<Checksum> checksums, ImmutableArray<IChecksummedObject> checksumOrCollections)
+        private void AddIfNeeded(HashSet<Checksum> checksums, ImmutableArray<Checksum> checksumCollection)
         {
-            foreach (var checksumOrCollection in checksumOrCollections)
-            {
-                switch (checksumOrCollection)
-                {
-                    case Checksum checksum:
-                        AddIfNeeded(checksums, checksum);
-                        continue;
-                    case ChecksumCollection checksumCollection:
-                        AddIfNeeded(checksums, checksumCollection.Children);
-                        continue;
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(checksumOrCollection);
-            }
+            foreach (var checksum in checksumCollection)
+                AddIfNeeded(checksums, checksum);
         }
 
         private void AddIfNeeded(HashSet<Checksum> checksums, Checksum checksum)

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 => await _validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
         }
 
-        internal sealed class ChecksumObjectCollection<T> : IEnumerable<T> where T : ChecksumWithChildren
+        internal sealed class ChecksumObjectCollection<T> : IEnumerable<T>
         {
             public ImmutableArray<T> Children { get; }
 
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             }
         }
 
-        internal static void ChecksumWithChildrenEqual(ChecksumWithChildren checksums1, ChecksumWithChildren checksums2)
+        internal static void ChecksumWithChildrenEqual(ChecksumCollection checksums1, ChecksumCollection checksums2)
         {
             Assert.Equal(checksums1.Checksum, checksums2.Checksum);
             Assert.Equal(checksums1.Children.Length, checksums2.Children.Length);
@@ -266,14 +266,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 var child2 = checksums2.Children[i];
 
                 Assert.Equal(child1.GetType(), child2.GetType());
-
-                if (child1 is Checksum)
-                {
-                    Assert.Equal((Checksum)child1, (Checksum)child2);
-                    continue;
-                }
-
-                ChecksumWithChildrenEqual((ChecksumCollection)child1, (ChecksumCollection)child2);
+                Assert.Equal(child1, child2);
             }
         }
 
@@ -331,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task VerifySynchronizationObjectInServiceAsync(SolutionAsset syncObject)
             => await VerifyChecksumInServiceAsync(syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
 
-        internal async Task VerifySynchronizationObjectInServiceAsync<T>(ChecksumObjectCollection<T> syncObject) where T : ChecksumWithChildren
+        internal async Task VerifySynchronizationObjectInServiceAsync<T>(ChecksumObjectCollection<T> syncObject)
             => await VerifyChecksumInServiceAsync(syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
 
         internal async Task VerifyChecksumInServiceAsync(Checksum checksum, WellKnownSynchronizationKind kind)
@@ -342,10 +335,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }
 
-        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, ChecksumObjectCollection<T> checksumObject2) where T : ChecksumWithChildren
+        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, ChecksumObjectCollection<T> checksumObject2)
             => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
 
-        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, SolutionAsset checksumObject2) where T : ChecksumWithChildren
+        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, SolutionAsset checksumObject2)
             => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
 
         internal static void SynchronizationObjectEqual(SolutionAsset checksumObject1, SolutionAsset checksumObject2)

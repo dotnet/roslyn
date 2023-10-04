@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class TestUtils
     {
-        public static void RemoveChecksums(this Dictionary<Checksum, object> map, ChecksumWithChildren checksums)
+        public static void RemoveChecksums(this Dictionary<Checksum, object> map, ChecksumCollection checksums)
         {
             var set = new HashSet<Checksum>();
             set.AppendChecksums(checksums);
@@ -225,22 +225,14 @@ namespace Microsoft.CodeAnalysis.Remote
             return set;
         }
 
-        public static void AppendChecksums(this HashSet<Checksum> set, ChecksumWithChildren checksums)
+        public static void AppendChecksums(this HashSet<Checksum> set, ChecksumCollection checksums)
         {
             set.Add(checksums.Checksum);
 
             foreach (var child in checksums.Children)
             {
-                if (child is Checksum checksum)
-                {
-                    if (checksum != Checksum.Null)
-                        set.Add(checksum);
-                }
-
-                if (child is ChecksumCollection collection)
-                {
-                    set.AppendChecksums(collection);
-                }
+                if (child != Checksum.Null)
+                    set.Add(child);
             }
         }
     }
