@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
         {
+            if (args.IsEmpty)
+                return;
+
             // all diagnostics events are serialized.
             var ev = _eventMap.GetEventHandlers<EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>>(DiagnosticsUpdatedEventName);
             if (ev.HasHandlers)
@@ -61,12 +64,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // this is to reduce for such case to happen.
                 void raiseEvents(ImmutableArray<DiagnosticsUpdatedArgs> args)
                 {
+                    if (args.IsEmpty)
+                        return;
+
                     ev.RaiseEvent(
-                        static (handler, arg) =>
-                        {
-                            if (!arg.args.IsEmpty)
-                                handler(arg.self, arg.args);
-                        },
+                        static (handler, arg) => handler(arg.self, arg.args),
                         (self: this, args));
                 }
 

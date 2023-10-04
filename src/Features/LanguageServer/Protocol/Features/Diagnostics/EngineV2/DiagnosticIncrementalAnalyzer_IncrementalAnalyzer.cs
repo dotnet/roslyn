@@ -85,10 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                if (argsBuilder.Count > 0)
-                {
-                    AnalyzerService.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
-                }
+                AnalyzerService.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
 
                 // Then, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
                 if (nonCachedAnalyzersAndStates.Count > 0)
@@ -102,10 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                         PersistAndAddDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), computedData, analyzer, state);
 
-                        if (argsBuilder.Count > 0)
-                        {
-                            AnalyzerService.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
-                        }
+                        AnalyzerService.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
                     }
                 }
             }

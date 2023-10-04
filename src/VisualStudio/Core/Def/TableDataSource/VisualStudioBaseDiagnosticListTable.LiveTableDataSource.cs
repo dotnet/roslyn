@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     {
                         if (_workspace != e.Workspace)
                         {
-                            return;
+                            continue;
                         }
 
                         // if we're in lsp mode we never respond to any diagnostics we hear about, lsp client is fully
@@ -217,14 +217,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         if (diagnostics.Length == 0)
                         {
                             OnDataRemoved(e);
-                            return;
+                            continue;
                         }
 
                         var count = diagnostics.Where(ShouldInclude).Count();
                         if (count <= 0)
                         {
                             OnDataRemoved(e);
-                            return;
+                            continue;
                         }
 
                         OnDataAddedOrChanged(e);

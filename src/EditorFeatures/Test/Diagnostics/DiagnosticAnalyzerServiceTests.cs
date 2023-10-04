@@ -621,7 +621,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     var diagnostics = e.Diagnostics;
                     if (diagnostics.Length == 0)
                     {
-                        return;
+                        continue;
                     }
 
                     var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
@@ -789,7 +789,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     var diagnostics = e.Diagnostics;
                     if (diagnostics.Length == 0)
                     {
-                        return;
+                        continue;
                     }
 
                     diagnostic = Assert.Single(diagnostics);
@@ -1026,7 +1026,7 @@ class A
                     var diagnostics = e.Diagnostics;
                     if (diagnostics.IsEmpty)
                     {
-                        return;
+                        continue;
                     }
 
                     Assert.Null(diagnostic);
@@ -1271,7 +1271,7 @@ class A
                 {
                     var diagnostics = e.Diagnostics;
                     if (diagnostics.Length == 0)
-                        return;
+                        continue;
 
                     var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
                     if (liveId.Analyzer is GeneratorDiagnosticsPlaceholderAnalyzer)

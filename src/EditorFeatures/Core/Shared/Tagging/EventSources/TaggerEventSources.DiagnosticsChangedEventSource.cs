@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -19,11 +18,26 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             private void OnDiagnosticsUpdated(object? sender, ImmutableArray<DiagnosticsUpdatedArgs> e)
             {
-                if (e.FirstOrDefault() is not { } first)
-                    return;
+                var textContainer = _subjectBuffer.AsTextContainer();
+                var anyChanged = false;
+                Workspace? lastWorkspace = null;
+                DocumentId? documentId = null;
+                foreach (var args in e)
+                {
+                    if (args.Workspace != lastWorkspace)
+                    {
+                        lastWorkspace = args.Workspace;
+                        documentId = args.Workspace.GetDocumentIdInCurrentContext(textContainer);
+                    }
 
-                var documentId = first.Workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-                if (e.Any(static (args, expectedDocumentId) => args.DocumentId == expectedDocumentId, documentId))
+                    if (args.DocumentId == documentId)
+                    {
+                        anyChanged = true;
+                        break;
+                    }
+                }
+
+                if (anyChanged)
                 {
                     this.RaiseChanged();
                 }
