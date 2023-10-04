@@ -18091,6 +18091,40 @@ partial class Program
         }
 
         [Fact]
+        public void ElementNullability_CollectionBuilderCollection_NullableElements()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection<int?>? x1 = [null];
+                MyCollection<int>? x2 = [0];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void ElementNullability_CollectionBuilderCollection_NonNullableString()
         {
             string src = """
@@ -18264,7 +18298,7 @@ partial class Program
                 using System.Runtime.CompilerServices;
 
                 #nullable enable
-                M("hi", [null]); // 1
+                M("hi", [null]);
                 M((string?)null, [null]);
 
                 void M<T>(T t, MyCollection<T> mc) { }
@@ -18687,6 +18721,25 @@ partial class Program
                 // string[] y1 = [.. M(null)];
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 21)
                 );
+        }
+
+        [Fact]
+        public void SpreadNullability_SplitExpression()
+        {
+            // https://github.com/dotnet/roslyn/issues/68786: We should check the spreads without asserting in DebugVerifier
+#if RELEASE
+            string src = """
+                #nullable enable
+                object x = "";
+                object[] y1 = [..(x is null)];
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (3,18): error CS1579: foreach statement cannot operate on variables of type 'bool' because 'bool' does not contain a public instance or extension definition for 'GetEnumerator'
+                // object[] y1 = [..(x is null)];
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "(x is null)").WithArguments("bool", "GetEnumerator").WithLocation(3, 18)
+                );
+#endif
         }
     }
 }
