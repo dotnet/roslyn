@@ -34,8 +34,14 @@ namespace Microsoft.CodeAnalysis
         // Dedicated pools for the byte[]s we use to create checksums from two or three existing checksums. Sized to
         // exactly the space needed to splat the existing checksum data into the array and then hash it.
 
-        // Note: number of elements here should be computed based on what we need from our varous collection-with-children objects.
+        // Note: number of elements here should be computed based on what we need from our various collection-with-children objects.
         private static readonly ObjectPool<byte[]>[] s_checksumByteArrayPool = new ObjectPool<byte[]>[10];
+
+        static Checksum()
+        {
+            for (var i = 0; i < s_checksumByteArrayPool.Length; i++)
+                s_checksumByteArrayPool[i] = new(() => new byte[HashSize * i]);
+        }
 
 #endif
 
@@ -192,21 +198,9 @@ namespace Microsoft.CodeAnalysis
 
 #if !NET5_0_OR_GREATER
 
-        private static ObjectPool<byte[]> GetObjectPool(int checksumCount)
-        {
-            Contract.ThrowIfTrue(checksumCount >= s_checksumByteArrayPool.Length);
-            if (s_checksumByteArrayPool[checksumCount] is null)
-                Interlocked.CompareExchange(ref s_checksumByteArrayPool[checksumCount], CreateObjectPool(checksumCount), comparand: null);
-
-            return s_checksumByteArrayPool[checksumCount];
-
-            static ObjectPool<byte[]> CreateObjectPool(int checksumCount)
-                => new(() => new byte[HashSize * checksumCount]);
-        }
-
         private static PooledObject<byte[]> GetPooledByteArray(int checksumCount)
         {
-            var objectPool = GetObjectPool(checksumCount);
+            var objectPool = s_checksumByteArrayPool[checksumCount];
             return objectPool.GetPooledObject();
         }
 
