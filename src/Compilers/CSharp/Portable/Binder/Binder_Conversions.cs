@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT
-                && findSingleIEnumerableTImplementation() is { } implementation)
+                && findSingleIEnumerableTImplementation(targetType, Compilation) is { } implementation)
             {
                 // If we have a single IEnumerable<T> implementation, we can report conversion errors against that element type below
                 elementType = implementation.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
@@ -835,23 +835,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return;
 
-            NamedTypeSymbol? findSingleIEnumerableTImplementation()
+            static NamedTypeSymbol? findSingleIEnumerableTImplementation(TypeSymbol targetType, CSharpCompilation compilation)
             {
-                ImmutableArray<NamedTypeSymbol> allInterfaces;
-                switch (targetType.TypeKind)
-                {
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
-                        break;
-                    case TypeKind.TypeParameter:
-                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(targetType.TypeKind);
-                }
-
-                var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
+                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
                 NamedTypeSymbol? singleIEnumerableImplementation = null;
                 foreach (var @interface in allInterfaces)
                 {

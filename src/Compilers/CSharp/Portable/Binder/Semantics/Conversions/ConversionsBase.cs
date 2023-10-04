@@ -1686,20 +1686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
             {
-                ImmutableArray<NamedTypeSymbol> allInterfaces;
-                switch (targetType.TypeKind)
-                {
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
-                        break;
-                    case TypeKind.TypeParameter:
-                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
-                        break;
-                    default:
-                        return false;
-                }
-
+                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }

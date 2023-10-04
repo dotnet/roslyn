@@ -180,20 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT)
             {
-                ImmutableArray<NamedTypeSymbol> allInterfaces;
-                switch (targetType.TypeKind)
-                {
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
-                        break;
-                    case TypeKind.TypeParameter:
-                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(targetType.TypeKind);
-                }
-
+                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
                 bool isCompatible = false;
                 foreach (var @interface in allInterfaces)

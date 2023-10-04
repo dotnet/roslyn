@@ -19064,18 +19064,17 @@ partial class Program
 
                 class C
                 {
-                    T M<T>() where T : ICollection
+                    T M<T>() where T : IColl
                     {
                         return ["hi", null];
                     }
                 }
 
-                interface ICollection : IEnumerable<int>
+                interface IColl : IEnumerable<int>
                 {
                     IEnumerator IEnumerable.GetEnumerator() => null;
                     IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
-
-                    public void Add(int i) { System.Console.Write("RAN"); }
+                    public void Add(int i);
                 }
                 """;
 
