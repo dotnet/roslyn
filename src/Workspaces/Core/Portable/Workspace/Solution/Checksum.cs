@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         // Explicitly implement this method as default jit for records on netfx doesn't properly devirtualize the
         // standard calls to EqualityComparer<HashData>.Default.Equals
         public bool Equals(Checksum other)
-            => Hash.Equals(other.Hash);
+            => other != null && Hash.Equals(other.Hash);
 
         // Directly call into Hash to avoid any overhead that records add when hashing things like the EqualityContract
         public override int GetHashCode()
