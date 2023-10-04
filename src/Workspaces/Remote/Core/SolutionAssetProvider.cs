@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using var _ = FlowControlHelper.TrySuppressFlow();
             return GetAssetsSuppressedFlowAsync(pipeWriter, solutionChecksum, checksums, cancellationToken);
 
-            static async ValueTask GetAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
+            async ValueTask GetAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
             {
                 // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
                 // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
