@@ -741,7 +741,7 @@
       <trans-unit id="AnalyzerDriverThrows">
         <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
 {2}</source>
-        <target state="new">Analyzer driver threw an exception of type '{0}' with message '{1}'.
+        <target state="translated">Ovladač analyzátoru způsobil výjimku typu {0} se zprávou {1}.
 {2}</target>
         <note>{0}: Type name
 {1}: Localized exception message
