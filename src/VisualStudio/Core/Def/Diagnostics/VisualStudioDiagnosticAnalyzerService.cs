@@ -39,11 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly IVsService<IVsStatusbar> _statusbar;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache;
         private readonly IThreadingContext _threadingContext;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
 
         private IServiceProvider? _serviceProvider;
 
@@ -52,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public VisualStudioDiagnosticAnalyzerService(
             VisualStudioWorkspace workspace,
             IVsService<SVsStatusbar, IVsStatusbar> statusbar,
-            IDiagnosticAnalyzerService diagnosticService,
+            DiagnosticAnalyzerInfoCache.SharedGlobalCache diagnosticAnalyzerInfoCache,
             IThreadingContext threadingContext,
             IVsHierarchyItemManager vsHierarchyItemManager,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -60,11 +61,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             _workspace = workspace;
             _statusbar = statusbar;
-            _diagnosticService = diagnosticService;
+            _diagnosticAnalyzerInfoCache = diagnosticAnalyzerInfoCache.AnalyzerInfoCache;
             _threadingContext = threadingContext;
             _vsHierarchyItemManager = vsHierarchyItemManager;
             _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             _globalOptions = globalOptions;
+            _codeAnalysisService = workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
         }
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
@@ -89,12 +91,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
         {
             var currentSolution = _workspace.CurrentSolution;
-            var infoCache = _diagnosticService.AnalyzerInfoCache;
             var hostAnalyzers = currentSolution.State.Analyzers;
 
             if (hierarchy == null)
             {
-                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
+                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache));
             }
 
             // Analyzers are only supported for C# and VB currently.
@@ -107,11 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var project = projectsWithHierarchy.FirstOrDefault();
                 if (project == null)
                 {
-                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache));
                 }
                 else
                 {
-                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project));
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project));
                 }
             }
             else
@@ -121,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
                 foreach (var project in projectsWithHierarchy)
                 {
-                    var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project);
+                    var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project);
                     foreach (var (displayName, descriptors) in descriptorsPerReference)
                     {
                         if (descriptorsMap.TryGetValue(displayName, out var existingDescriptors))
@@ -337,10 +338,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 await TaskScheduler.Default;
 
                 var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
-                await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                await _codeAnalysisService.RunAnalysisAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
 
                 foreach (var otherProject in otherProjectsForMultiTfmProject)
-                    await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
+                    await _codeAnalysisService.RunAnalysisAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
             });
         }
 

@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly EventMap _eventMap = new();
         private readonly TaskQueue _eventQueue;
         private readonly IDiagnosticsRefresher _diagnosticsRefresher;
-        private readonly ConcurrentSet<ProjectId> _forceAnalyzedProjectIds = new();
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
@@ -171,42 +170,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public async Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken)
+        public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
-            if (_map.TryGetValue(solution.Workspace, out var analyzer))
+            if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
             {
-                if (projectId != null)
-                {
-                    var project = solution.GetProject(projectId);
-                    if (project != null)
-                    {
-                        await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
-                        _forceAnalyzedProjectIds.Add(projectId);
-                        onProjectAnalyzed(project);
-                        _diagnosticsRefresher.RequestWorkspaceRefresh();
-                    }
-                }
-                else
-                {
-                    var tasks = new Task[solution.ProjectIds.Count];
-                    var index = 0;
-                    foreach (var project in solution.Projects)
-                    {
-                        tasks[index++] = Task.Run(async () =>
-                            {
-                                await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
-                                _forceAnalyzedProjectIds.Add(project.Id);
-                                onProjectAnalyzed(project);
-                                _diagnosticsRefresher.RequestWorkspaceRefresh();
-                            }, cancellationToken);
-                    }
-
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
+                await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
             }
         }
-
-        public bool WasForceAnalyzed(ProjectId projectId) => _forceAnalyzedProjectIds.Contains(projectId);
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
             Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)

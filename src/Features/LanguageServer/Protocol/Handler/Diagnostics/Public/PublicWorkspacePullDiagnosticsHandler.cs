@@ -129,7 +129,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
         WorkspaceDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
     {
         // Task list items are not reported through the public LSP diagnostic API.
-        return WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, DiagnosticAnalyzerService, cancellationToken);
+        return WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)

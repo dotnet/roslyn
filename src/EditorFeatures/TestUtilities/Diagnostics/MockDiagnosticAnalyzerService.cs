@@ -47,14 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache
             => throw new NotImplementedException();
 
-        public bool WasForceAnalyzed(ProjectId projectId) => false;
-
         public IGlobalOptionService GlobalOptions { get; }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
             => throw new NotImplementedException();
 
-        public Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken)
+        public Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)

@@ -46,15 +46,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Force computes diagnostics and raises diagnostic events for the given project or solution. all diagnostics returned should be up-to-date with respect to the given project or solution.
+        /// Force analyzes the given project by running all applicable analyzers on the project and caching the reported analyzer diagnostics.
         /// </summary>
-        Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Returns true if the given <paramref name="projectId"/> was force analyzed by invoking
-        /// <see cref="ForceAnalyzeAsync(Solution, Action{Project}, ProjectId?, CancellationToken)"/> on the project or the solution.
-        /// </summary>
-        bool WasForceAnalyzed(ProjectId projectId);
+        Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get diagnostics of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
