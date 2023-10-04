@@ -1259,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return kind == SyntaxKind.IdentifierToken || IsKeyword(kind);
         }
 
-        private static bool IsWordOrNumerical(SyntaxKind kind)
+        private static bool IsWordOrLiteral(SyntaxKind kind)
         {
             return SyntaxFacts.IsLiteral(kind)
                 || IsKeyword(kind)
