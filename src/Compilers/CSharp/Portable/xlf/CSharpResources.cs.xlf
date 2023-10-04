@@ -954,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">Metoda '{0}' musí být pro porovnání '{1}' neobecná.</target>
+        <target state="translated">Metoda {0} musí být neobecná, aby odpovídala {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
