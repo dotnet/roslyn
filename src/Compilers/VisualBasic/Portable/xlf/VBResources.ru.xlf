@@ -616,7 +616,7 @@ optionstrict[+|-]                Принудительное применени
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">Генератору "{0}" не удалось создать источник. Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате. Тип возникшего исключения: "{1}", сообщение: "{2}".
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.
@@ -631,7 +631,7 @@ optionstrict[+|-]                Принудительное применени
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">Не удалось инициализировать генератор "{0}". Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате. Тип возникшего исключения: "{1}", сообщение: "{2}".
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.
