@@ -385,7 +385,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
             }
 
-            public WorkspaceConfigurationOptions Options => WorkspaceConfigurationOptions.Default with { RunSourceGeneratorsInProcessOnly = true };
+            public WorkspaceConfigurationOptions Options => WorkspaceConfigurationOptions.Default with { RunSourceGeneratorsInSameProcessOnly = true };
         }
 
         private static async Task TestInProcAndRemoteWorkspaceWorker(

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Host
 #else
             false,
 #endif
-        [property: DataMember(Order = 5)] bool RunSourceGeneratorsInProcessOnly = false)
+        [property: DataMember(Order = 5)] bool RunSourceGeneratorsInSameProcessOnly = false)
     {
         public WorkspaceConfigurationOptions()
             : this(CacheStorage: StorageDatabase.SQLite)
@@ -66,6 +66,6 @@ namespace Microsoft.CodeAnalysis.Host
             EnableOpeningSourceGeneratedFiles: false,
             DisableSharedSyntaxTrees: false,
             DisableRecoverableText: false,
-            RunSourceGeneratorsInProcessOnly: false);
+            RunSourceGeneratorsInSameProcessOnly: false);
     }
 }
