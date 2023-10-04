@@ -41,7 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnosticService = GetDiagnosticService(workspace);
             diagnosticService.Register(source);
 
-            diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
+            diagnosticService.DiagnosticsUpdated += (s, o) =>
+            {
+                foreach (var _ in o)
+                    mutex.Set();
+            };
 
             var id = Tuple.Create(workspace, document);
             var diagnostic = RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, document.Id, id);
@@ -71,7 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnosticService = GetDiagnosticService(workspace);
             diagnosticService.Register(source);
 
-            diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
+            diagnosticService.DiagnosticsUpdated += (s, o) =>
+            {
+                foreach (var _ in o)
+                    mutex.Set();
+            };
 
             var id = Tuple.Create(workspace, document);
             RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, document.Id, id);
@@ -148,16 +156,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             void MarkCalled(object sender, ImmutableArray<DiagnosticsUpdatedArgs> args)
             {
-                // event is serialized. no concurrent call
-                if (++count == 3)
+                foreach (var _ in args)
                 {
-                    mutex.Set();
+                    // event is serialized. no concurrent call
+                    if (++count == 3)
+                    {
+                        mutex.Set();
+                    }
                 }
             }
 
             void MarkSet(object sender, ImmutableArray<DiagnosticsUpdatedArgs> args)
             {
-                mutex.Set();
+                foreach (var _ in args)
+                    mutex.Set();
             }
         }
 
