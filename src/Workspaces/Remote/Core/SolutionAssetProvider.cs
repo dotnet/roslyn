@@ -33,23 +33,35 @@ namespace Microsoft.CodeAnalysis.Remote
             _services = services;
         }
 
-        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
+        public ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
         {
-            // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
-            // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
-            // allow the calling side know to stop reading results.
-            Exception? exception = null;
-            try
+            // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
+            // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
+            // CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return GetAssetsSuppressedFlowAsync(pipeWriter, solutionChecksum, checksums, cancellationToken);
+
+            static async ValueTask GetAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
             {
-                await GetAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
+                // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
+                // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
+                // allow the calling side know to stop reading results.
+                Exception? exception = null;
+                try
+                {
+                    await GetAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when ((exception = ex) == null)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+                finally
+                {
+                    await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
+                }
             }
         }
 

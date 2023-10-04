@@ -80,11 +80,24 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(
+        public static ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(
             PipeReader pipeReader, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-            return ReadData(stream, solutionChecksum, checksums, serializerService, cancellationToken);
+            // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
+            // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
+            // CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, checksums, serializerService, cancellationToken);
+
+            static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataSuppressedFlowAsync(
+                PipeReader pipeReader, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+            {
+                using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
+                return ReadData(stream, solutionChecksum, checksums, serializerService, cancellationToken);
+            }
         }
 
         public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
