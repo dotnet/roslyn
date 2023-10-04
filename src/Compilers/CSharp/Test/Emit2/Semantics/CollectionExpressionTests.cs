@@ -19072,8 +19072,6 @@ partial class Program
 
                 interface IColl : IEnumerable<int>
                 {
-                    IEnumerator IEnumerable.GetEnumerator() => null;
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
                     public void Add(int i);
                 }
                 """;
