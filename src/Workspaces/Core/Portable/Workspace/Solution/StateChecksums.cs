@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    internal sealed class SolutionStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
+    internal sealed class SolutionStateChecksums(ImmutableArray<IChecksummedObject> children) : ChecksumWithChildren(children)
     {
         public SolutionStateChecksums(
             Checksum attributesChecksum,
@@ -21,15 +21,15 @@ namespace Microsoft.CodeAnalysis.Serialization
             ChecksumCollection analyzerReferenceChecksums,
             Checksum frozenSourceGeneratedDocumentIdentity,
             Checksum frozenSourceGeneratedDocumentText)
-            : this(ImmutableArray.Create<object>(attributesChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText))
+            : this(ImmutableArray.Create<IChecksummedObject>(attributesChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText))
         {
         }
 
-        public Checksum Attributes => (Checksum)Children[0];
+        public Checksum Attributes => Children[0].Checksum;
         public ChecksumCollection Projects => (ChecksumCollection)Children[1];
         public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[2];
-        public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[3];
-        public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[4];
+        public Checksum FrozenSourceGeneratedDocumentIdentity => Children[3].Checksum;
+        public Checksum FrozenSourceGeneratedDocumentText => Children[4].Checksum;
 
         public async Task FindAsync(
             SolutionState state,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
     }
 
-    internal class ProjectStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
+    internal class ProjectStateChecksums(ImmutableArray<IChecksummedObject> children) : ChecksumWithChildren(children)
     {
         public ProjectStateChecksums(
             Checksum infoChecksum,
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             ChecksumCollection analyzerReferenceChecksums,
             ChecksumCollection additionalDocumentChecksums,
             ChecksumCollection analyzerConfigDocumentChecksums)
-            : this(ImmutableArray.Create<object>(
+            : this(ImmutableArray.Create<IChecksummedObject>(
                 infoChecksum,
                 compilationOptionsChecksum,
                 parseOptionsChecksum,
@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public Checksum Info => (Checksum)Children[0];
-        public Checksum CompilationOptions => (Checksum)Children[1];
-        public Checksum ParseOptions => (Checksum)Children[2];
+        public Checksum Info => Children[0].Checksum;
+        public Checksum CompilationOptions => Children[1].Checksum;
+        public Checksum ParseOptions => Children[2].Checksum;
 
         public ChecksumCollection Documents => (ChecksumCollection)Children[3];
 
@@ -199,15 +199,15 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
     }
 
-    internal class DocumentStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
+    internal class DocumentStateChecksums(ImmutableArray<IChecksummedObject> children) : ChecksumWithChildren(children)
     {
         public DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum)
-            : this(ImmutableArray.Create<object>(infoChecksum, textChecksum))
+            : this(ImmutableArray.Create<IChecksummedObject>(infoChecksum, textChecksum))
         {
         }
 
-        public Checksum Info => (Checksum)Children[0];
-        public Checksum Text => (Checksum)Children[1];
+        public Checksum Info => Children[0].Checksum;
+        public Checksum Text => Children[1].Checksum;
 
         public async Task FindAsync(
             TextDocumentState state,

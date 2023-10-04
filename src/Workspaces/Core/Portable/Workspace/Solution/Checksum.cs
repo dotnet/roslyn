@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     [DataContract]
     internal sealed partial record class Checksum(
-        [property: DataMember(Order = 0)] Checksum.HashData Hash) : IObjectWritable
+        [property: DataMember(Order = 0)] Checksum.HashData Hash) : IObjectWritable, IChecksummedObject
     {
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfFalse(MemoryMarshal.TryRead(checksum, out HashData hash));
             return new Checksum(hash);
         }
+
+        Checksum IChecksummedObject.Checksum => this;
 
         public string ToBase64String()
         {

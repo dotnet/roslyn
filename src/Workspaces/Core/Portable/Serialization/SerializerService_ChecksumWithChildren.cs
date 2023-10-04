@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private const byte ChecksumKind = 0;
         private const byte ChecksumWithChildrenKind = 1;
 
-        private static readonly ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<object>, ChecksumWithChildren>> s_creatorMap = CreateCreatorMap();
+        private static readonly ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<IChecksummedObject>, ChecksumWithChildren>> s_creatorMap = CreateCreatorMap();
 
         public void SerializeChecksumWithChildren(ChecksumWithChildren checksums, ObjectWriter writer, CancellationToken cancellationToken)
         {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             var checksum = Checksum.ReadFrom(reader);
 
             var childrenCount = reader.ReadInt32();
-            var children = ImmutableArray.CreateBuilder<object>(childrenCount);
+            using var _ = ArrayBuilder<IChecksummedObject>.GetInstance(childrenCount, out var children);
 
             for (var i = 0; i < childrenCount; i++)
             {
@@ -75,15 +75,15 @@ namespace Microsoft.CodeAnalysis.Serialization
                 }
             }
 
-            var checksums = s_creatorMap[kind](children.MoveToImmutable());
+            var checksums = s_creatorMap[kind](children.ToImmutableAndClear());
             Contract.ThrowIfFalse(checksums.Checksum == checksum);
 
             return checksums;
         }
 
-        private static ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<object>, ChecksumWithChildren>> CreateCreatorMap()
+        private static ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<IChecksummedObject>, ChecksumWithChildren>> CreateCreatorMap()
         {
-            return ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<object>, ChecksumWithChildren>>.Empty
+            return ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<IChecksummedObject>, ChecksumWithChildren>>.Empty
                 .Add(WellKnownSynchronizationKind.SolutionState, children => new SolutionStateChecksums(children))
                 .Add(WellKnownSynchronizationKind.ProjectState, children => new ProjectStateChecksums(children))
                 .Add(WellKnownSynchronizationKind.DocumentState, children => new DocumentStateChecksums(children))
