@@ -8,19 +8,19 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    /// <summary>
-    /// this is a collection that has its own checksum and contains only checksum or checksum collection as its children.
-    /// </summary>
-    internal abstract class ChecksumWithChildren(ImmutableArray<IChecksummedObject> children) : IChecksummedObject
-    {
-        public Checksum Checksum { get; } = CreateChecksum(children);
+    ///// <summary>
+    ///// this is a collection that has its own checksum and contains only checksum or checksum collection as its children.
+    ///// </summary>
+    //internal abstract class ChecksumWithChildren(ImmutableArray<IChecksummedObject> children) : IChecksummedObject
+    //{
+    //    public Checksum Checksum { get; } = CreateChecksum(children);
 
-        public ImmutableArray<IChecksummedObject> Children { get; } = children;
+    //    public ImmutableArray<IChecksummedObject> Children { get; } = children;
 
-        private static Checksum CreateChecksum(ImmutableArray<IChecksummedObject> children)
-        {
-            // given children must be either Checksum or Checksums (collection of a checksum)
-            return Checksum.Create(children);
-        }
-    }
+    //    private static Checksum CreateChecksum(ImmutableArray<IChecksummedObject> children)
+    //    {
+    //        // given children must be either Checksum or Checksums (collection of a checksum)
+    //        return Checksum.Create(children);
+    //    }
+    //}
 }

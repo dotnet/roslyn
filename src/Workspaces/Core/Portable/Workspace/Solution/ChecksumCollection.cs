@@ -18,14 +18,16 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// <summary>
     /// collection which children is checksum.
     /// </summary>
-    internal class ChecksumCollection(ImmutableArray<Checksum> checksums)
-        : ChecksumWithChildren(checksums.CastArray<IChecksummedObject>()), IReadOnlyCollection<Checksum>
+    internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IReadOnlyCollection<Checksum>, IChecksummedObject
     {
-        public int Count => Children.Length;
-        public Checksum this[int index] => checksums[index];
+        public Checksum Checksum { get; } = Checksum.Create(children);
+
+        public int Count => children.Length;
+        public Checksum this[int index] => children[index];
+        public ImmutableArray<Checksum> Children => children;
 
         public ImmutableArray<Checksum>.Enumerator GetEnumerator()
-            => checksums.GetEnumerator();
+            => children.GetEnumerator();
 
         IEnumerator<Checksum> IEnumerable<Checksum>.GetEnumerator()
         {
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         internal static void Find<T>(
             IReadOnlyList<T> values,
-            ChecksumWithChildren checksums,
+            ChecksumCollection checksums,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken)
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             writer.WriteInt32(this.Count);
             foreach (var obj in this.Children)
-                obj.Checksum.WriteTo(writer);
+                obj.WriteTo(writer);
         }
 
         public static ChecksumCollection ReadFrom(ObjectReader reader)
