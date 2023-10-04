@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -82,7 +81,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
     // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
     public new ParseOptions ParseOptions => base.ParseOptions!;
 
-    public Checksum GetTextChecksum()
+    private Checksum GetTextChecksum()
         => _lazyTextChecksum.Value;
 
     public SourceGeneratedDocumentContentIdentity GetContentIdentity()

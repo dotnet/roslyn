@@ -181,7 +181,7 @@ internal partial class SolutionState
                         sourceText,
                         ProjectState.ParseOptions!,
                         ProjectState.LanguageServices);
-                    Contract.ThrowIfTrue(generatedDocument.GetTextChecksum() != contentIdentity.Checksum, "Checksums must match!");
+                    Contract.ThrowIfTrue(generatedDocument.GetContentIdentity() != contentIdentity, "Checksums must match!");
                     generatedDocumentsBuilder.Add(generatedDocument);
                 }
                 else
@@ -189,7 +189,7 @@ internal partial class SolutionState
                     // a document that already matched something locally.
                     var existingDocument = generatorInfo.Documents.GetRequiredState(documentId);
                     Contract.ThrowIfTrue(existingDocument.Identity != documentIdentity, "Identies must match!");
-                    Contract.ThrowIfTrue(existingDocument.GetTextChecksum() != contentIdentity.Checksum, "Checksums must match!");
+                    Contract.ThrowIfTrue(existingDocument.GetContentIdentity() != contentIdentity, "Checksums must match!");
 
                     if (existingDocument.ParseOptions.Equals(this.ProjectState.ParseOptions))
                     {
