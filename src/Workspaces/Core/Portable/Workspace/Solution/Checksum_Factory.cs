@@ -257,6 +257,20 @@ namespace Microsoft.CodeAnalysis
             return Create(stream);
         }
 
+        public static Checksum Create(ImmutableArray<IChecksummedObject> checksums)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                foreach (var checksum in checksums)
+                    checksum.Checksum.WriteTo(writer);
+            }
+
+            stream.Position = 0;
+            return Create(stream);
+        }
+
         public static Checksum Create(ImmutableArray<byte> bytes)
         {
             using var stream = SerializableBytes.CreateWritableStream();

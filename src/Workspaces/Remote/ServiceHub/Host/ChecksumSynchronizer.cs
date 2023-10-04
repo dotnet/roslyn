@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask SynchronizeAssets_NoLockAsync(ImmutableArray<object> checksumOrCollections, CancellationToken cancellationToken)
+        private async ValueTask SynchronizeAssets_NoLockAsync(ImmutableArray<IChecksummedObject> checksumOrCollections, CancellationToken cancellationToken)
         {
             // get children of solution checksum object at once
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private void AddIfNeeded(HashSet<Checksum> checksums, ImmutableArray<object> checksumOrCollections)
+        private void AddIfNeeded(HashSet<Checksum> checksums, ImmutableArray<IChecksummedObject> checksumOrCollections)
         {
             foreach (var checksumOrCollection in checksumOrCollections)
             {

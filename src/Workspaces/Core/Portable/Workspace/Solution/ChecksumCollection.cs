@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// <summary>
     /// collection which children is checksum.
     /// </summary>
-    internal class ChecksumCollection(ImmutableArray<object> checksums) : ChecksumWithChildren(checksums), IReadOnlyCollection<Checksum>
+    internal class ChecksumCollection(ImmutableArray<IChecksummedObject> checksums) : ChecksumWithChildren(checksums), IReadOnlyCollection<Checksum>
     {
-        public ChecksumCollection(ImmutableArray<Checksum> checksums) : this(checksums.CastArray<object>())
+        public ChecksumCollection(ImmutableArray<Checksum> checksums) : this(checksums.CastArray<IChecksummedObject>())
         {
         }
 
         public int Count => Children.Length;
-        public Checksum this[int index] => (Checksum)Children[index];
+        public Checksum this[int index] => Children[index].Checksum;
 
         public IEnumerator<Checksum> GetEnumerator()
             => this.Children.Cast<Checksum>().GetEnumerator();
