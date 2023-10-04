@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
     /// also update the wrapping most-recently-used list when the code action is actually
     /// invoked.
     /// </summary>
-    internal class WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
+    internal sealed class WrapItemsAction(string title, string parentTitle, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument)
         : DocumentChangeAction(title, createChangedDocument, GetSortTitle(parentTitle, title), CodeActionPriority.Low)
     {
         private static string GetSortTitle(string title, string parentTitle)
@@ -37,20 +36,17 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
         public string SortTitle { get; } = GetSortTitle(parentTitle, title);
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             // For preview, we don't want to compute the normal operations.  Specifically, we don't
             // want to compute the stateful operation that tracks which code action was triggered.
-            return base.ComputeOperationsAsync(cancellationToken);
+            return await base.ComputeOperationsAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            var operations = await base.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
-            var operationsList = operations.ToList();
-
-            operationsList.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
-            return operationsList;
+            var operations = await base.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
+            return operations.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
         }
 
         public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)

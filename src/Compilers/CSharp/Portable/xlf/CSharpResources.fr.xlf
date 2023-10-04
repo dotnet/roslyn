@@ -579,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedInterpolatedString">
         <source>Expected interpolated string</source>
-        <target state="new">Expected interpolated string</target>
+        <target state="translated">Chaîne interpolée attendue</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -944,7 +944,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
         <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
-        <target state="new">Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</target>
+        <target state="translated">Impossible d'intercepter « {0} » car il ne s'agit pas d'un appel d'une méthode membre ordinaire.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
@@ -984,7 +984,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorGlobalNamespace">
         <source>An interceptor cannot be declared in the global namespace.</source>
-        <target state="new">An interceptor cannot be declared in the global namespace.</target>
+        <target state="translated">Un intercepteur ne peut pas être déclaré dans l'espace de noms global.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
@@ -1064,7 +1064,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</target>
+        <target state="translated">La fonctionnalité expérimentale « intercepteurs » n'est pas activée dans cet espace de noms. Ajoutez « {0} » à votre projet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -4171,7 +4171,7 @@
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">Le générateur « {0} » n'a pas réussi à générer la source. Cela ne contribuera pas à la sortie et des erreurs de compilation pourraient en résulter. L'exception était de type « {1} » avec le message « {2} ».
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.
@@ -4186,7 +4186,7 @@
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">Le générateur « {0} » n'a pas pu s'initialiser. Cela ne contribuera pas à la sortie et des erreurs de compilation pourraient en résulter. L'exception était de type « {1} » avec le message « {2} ».
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.

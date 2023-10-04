@@ -102,6 +102,15 @@ namespace Microsoft.CodeAnalysis
         public static Func<IEnumerable<Checksum>, string> GetChecksumsLogInfo { get; }
             = checksums => string.Join("|", checksums.Select(c => c.ToString()));
 
+        // Explicitly implement this method as default jit for records on netfx doesn't properly devirtualize the
+        // standard calls to EqualityComparer<HashData>.Default.Equals
+        public bool Equals(Checksum other)
+            => other != null && Hash.Equals(other.Hash);
+
+        // Directly call into Hash to avoid any overhead that records add when hashing things like the EqualityContract
+        public override int GetHashCode()
+            => Hash.GetHashCode();
+
         /// <summary>
         /// This structure stores the 20-byte hash as an inline value rather than requiring the use of
         /// <c>byte[]</c>.
@@ -136,6 +145,11 @@ namespace Microsoft.CodeAnalysis
                 // The checksum is already a hash. Just read a 4-byte value to get a well-distributed hash code.
                 return (int)Data1;
             }
+
+            // Explicitly implement this method as default jit for records on netfx doesn't properly devirtualize the
+            // standard calls to EqualityComparer<long>.Default.Equals
+            public bool Equals(HashData other)
+                => this.Data1 == other.Data1 && this.Data2 == other.Data2 && this.Data3 == other.Data3;
         }
     }
 }

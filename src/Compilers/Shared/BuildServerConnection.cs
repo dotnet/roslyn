@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         // Spend up to 20s connecting to a new process, to allow time for it to start.
         internal const int TimeOutMsNewProcess = 20000;
 
+        // To share a mutex between processes the name should have the Global prefix
+        private const string GlobalMutexPrefix = "Global\\";
+
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
@@ -581,12 +584,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetServerMutexName(string pipeName)
         {
-            return $"{pipeName}.server";
+            return $"{GlobalMutexPrefix}{pipeName}.server";
         }
 
         internal static string GetClientMutexName(string pipeName)
         {
-            return $"{pipeName}.client";
+            return $"{GlobalMutexPrefix}{pipeName}.client";
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var document = fixAllContext.Document;
             var project = fixAllContext.Project;
 
-            var progressTracker = fixAllContext.GetProgressTracker();
+            var progressTracker = fixAllContext.Progress;
 
             switch (fixAllContext.Scope)
             {

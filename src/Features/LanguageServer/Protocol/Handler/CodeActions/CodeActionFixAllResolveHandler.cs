@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -61,7 +60,7 @@ internal sealed class CodeActionFixAllResolveHandler(
         var fixAllCodeAction = (FixAllCodeAction)codeActionToResolve;
         Contract.ThrowIfNull(fixAllCodeAction);
 
-        var operations = await fixAllCodeAction.GetOperationsAsync(document.Project.Solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+        var operations = await fixAllCodeAction.GetOperationsAsync(document.Project.Solution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
         var edit = await CodeActionResolveHelper.GetCodeActionResolveEditsAsync(context, data, operations, cancellationToken).ConfigureAwait(false);
 
         request.Edit = edit;

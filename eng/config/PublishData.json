@@ -177,7 +177,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.8",
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.8P3]"
     },

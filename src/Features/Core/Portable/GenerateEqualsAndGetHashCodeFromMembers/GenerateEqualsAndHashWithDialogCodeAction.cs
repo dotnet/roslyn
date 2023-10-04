@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
-        private class GenerateEqualsAndGetHashCodeWithDialogCodeAction(
+        private sealed class GenerateEqualsAndGetHashCodeWithDialogCodeAction(
             GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
             Document document,
             SyntaxNode typeDeclaration,
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     _viableMembers, _pickMembersOptions);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var action = new GenerateEqualsAndGetHashCodeAction(
                     _document, _typeDeclaration, _containingType, result.Members, _fallbackOptions,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
-                return await action.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+                return await action.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title
