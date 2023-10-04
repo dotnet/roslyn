@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            if (IsWordOrNumericLiteral(token.Kind()) && IsWordOrNumericLiteral(next.Kind()))
+            if (IsWordOrLiteral(token.Kind()) && IsWordOrLiteral(next.Kind()))
             {
                 return true;
             }
