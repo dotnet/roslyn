@@ -31,10 +31,9 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
 
             using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>.GetInstance(documentStates.Ids.Count, out var result);
 
-            foreach (var id in documentStates.Ids)
+            foreach (var (id, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
-                var state = documentStates.GetRequiredState(id);
                 var documentIdentity = state.Identity;
                 var contentIdentity = new SourceGeneratedDocumentContentIdentity(
                     state.GetTextChecksum(), state.SourceText.Encoding?.WebName, state.SourceText.ChecksumAlgorithm);
