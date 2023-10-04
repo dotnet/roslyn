@@ -4,12 +4,14 @@
 
 #nullable disable
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -77,6 +79,23 @@ namespace Microsoft.CodeAnalysis.Serialization
                     result[checksum] = value;
                 }
             }
+        }
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteInt32(this.Count);
+            foreach (var obj in this.Children)
+                obj.Checksum.WriteTo(writer);
+        }
+
+        public static ChecksumCollection ReadFrom(ObjectReader reader)
+        {
+            var count = reader.ReadInt32();
+            using var _ = ArrayBuilder<Checksum>.GetInstance(count, out var result);
+            for (var i = 0; i < count; i++)
+                result.Add(Checksum.ReadFrom(reader));
+
+            return new(result.ToImmutableAndClear());
         }
     }
 }

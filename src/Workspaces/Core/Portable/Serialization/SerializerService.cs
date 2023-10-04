@@ -109,12 +109,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (value is ChecksumWithChildren checksumWithChildren)
-                {
-                    SerializeChecksumWithChildren(checksumWithChildren, writer, cancellationToken);
-                    return;
-                }
-
                 switch (kind)
                 {
                     case WellKnownSynchronizationKind.Null:
@@ -157,6 +151,22 @@ namespace Microsoft.CodeAnalysis.Serialization
                         SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
                         return;
 
+                    case WellKnownSynchronizationKind.SolutionState:
+                        SolutionStateChecksums.Serialize((SolutionStateChecksums)value, writer);
+                        return;
+
+                    case WellKnownSynchronizationKind.ProjectState:
+                        ProjectStateChecksums.Serialize((ProjectStateChecksums)value, writer);
+                        return;
+
+                    case WellKnownSynchronizationKind.DocumentState:
+                        DocumentStateChecksums.Serialize((DocumentStateChecksums)value, writer);
+                        return;
+
+                    case WellKnownSynchronizationKind.ChecksumCollection:
+                        SerializeChecksumCollection((ChecksumCollection)value, writer, cancellationToken);
+                        return;
+
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
                         // serialize it
@@ -177,10 +187,16 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return default;
 
                     case WellKnownSynchronizationKind.SolutionState:
+                        return (T)(object)SolutionStateChecksums.Deserialize(reader);
+
                     case WellKnownSynchronizationKind.ProjectState:
+                        return (T)(object)ProjectStateChecksums.Deserialize(reader);
+
                     case WellKnownSynchronizationKind.DocumentState:
+                        return (T)(object)DocumentStateChecksums.Deserialize(reader);
+
                     case WellKnownSynchronizationKind.ChecksumCollection:
-                        return (T)(object)DeserializeChecksumWithChildren(reader, cancellationToken);
+                        return (T)(object)DeserializeChecksumCollection(reader, cancellationToken);
 
                     case WellKnownSynchronizationKind.SolutionAttributes:
                         return (T)(object)SolutionInfo.SolutionAttributes.ReadFrom(reader);

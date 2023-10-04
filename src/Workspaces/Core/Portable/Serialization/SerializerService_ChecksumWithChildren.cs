@@ -19,15 +19,20 @@ namespace Microsoft.CodeAnalysis.Serialization
         private const byte ChecksumKind = 0;
         private const byte ChecksumWithChildrenKind = 1;
 
-        private static readonly ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<IChecksummedObject>, ChecksumWithChildren>> s_creatorMap = CreateCreatorMap();
-
-        public void SerializeChecksumWithChildren(ChecksumWithChildren checksums, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeChecksumCollection(ChecksumCollection checksums, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = checksums.GetWellKnownSynchronizationKind();
             writer.WriteInt32((int)kind);
             checksums.Checksum.WriteTo(writer);
+
+            if (kind == WellKnownSynchronizationKind.DocumentState)
+            {
+                DocumentStateChecksums.Serialize(writer, (DocumentStateChecksums)checksums);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(kind);
 
             writer.WriteInt32(checksums.Children.Length);
             foreach (var child in checksums.Children)
@@ -48,12 +53,19 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        private static ChecksumWithChildren DeserializeChecksumWithChildren(ObjectReader reader, CancellationToken cancellationToken)
+        private static IChecksummedObject DeserializeChecksummedObject(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
             var checksum = Checksum.ReadFrom(reader);
+
+            if (kind == WellKnownSynchronizationKind.DocumentState)
+            {
+                return DocumentStateChecksums.Deserialize(reader, checksum, cancellationToken);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(kind);
 
             var childrenCount = reader.ReadInt32();
             using var _ = ArrayBuilder<IChecksummedObject>.GetInstance(childrenCount, out var children);
@@ -86,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             return ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<IChecksummedObject>, ChecksumWithChildren>>.Empty
                 .Add(WellKnownSynchronizationKind.SolutionState, children => new SolutionStateChecksums(children))
                 .Add(WellKnownSynchronizationKind.ProjectState, children => new ProjectStateChecksums(children))
-                .Add(WellKnownSynchronizationKind.DocumentState, children => new DocumentStateChecksums(children))
                 .Add(WellKnownSynchronizationKind.ChecksumCollection, children => new ChecksumCollection(children));
         }
     }
