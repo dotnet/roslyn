@@ -123,15 +123,12 @@ internal partial class SolutionState
                 Contract.ThrowIfFalse(documentId.IsSourceGenerated);
 
                 var existingDocument = generatorInfo.Documents.GetState(documentId);
-                if (existingDocument?.Identity == documentIdentity)
+
+                // Can keep what we have if it has the same doc and content identity.
+                if (existingDocument?.Identity == documentIdentity &&
+                    existingDocument.GetContentIdentity() == contentIdentity)
                 {
-                    // ensure that the doc we have matches the content expected.
-                    if (existingDocument.GetTextChecksum() == contentIdentity.Checksum &&
-                        existingDocument.SourceText.Encoding?.WebName == contentIdentity.EncodingName &&
-                        existingDocument.SourceText.ChecksumAlgorithm == contentIdentity.ChecksumAlgorithm)
-                    {
-                        continue;
-                    }
+                    continue;
                 }
 
                 // Couldn't find a matching generated doc.  Add this to the list to pull down.
