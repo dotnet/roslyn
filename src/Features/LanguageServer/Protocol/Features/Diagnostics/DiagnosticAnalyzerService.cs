@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // use eventMap and taskQueue to serialize events
         private readonly EventMap _eventMap = new();
         private readonly TaskQueue _eventQueue;
-        private readonly IDiagnosticsRefresher _diagnosticsRefresher;
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
@@ -53,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
-            _diagnosticsRefresher = diagnosticsRefresher;
 
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
 
