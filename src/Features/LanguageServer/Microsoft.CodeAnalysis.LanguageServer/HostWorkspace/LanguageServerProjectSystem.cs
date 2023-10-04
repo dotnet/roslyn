@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -173,13 +172,8 @@ internal sealed class LanguageServerProjectSystem
         // TODO: support configuration switching
 
         var binaryLogPath = GetMSBuildBinaryLogPath();
-        var runBuildInProcess = _globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadInProcess);
 
-        if (runBuildInProcess)
-            _logger.LogInformation("In-process project loading is enabled.");
-
-        await using var buildHostProcessManager = !runBuildInProcess ? new BuildHostProcessManager(_loggerFactory, binaryLogPath) : null;
-        var inProcessBuildHost = runBuildInProcess ? new BuildHost(_loggerFactory, binaryLogPath) : null;
+        await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory, binaryLogPath);
 
         var displayedToast = 0;
 
@@ -191,7 +185,7 @@ internal sealed class LanguageServerProjectSystem
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, inProcessBuildHost, cancellationToken);
+                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
                     if (errorKind is LSP.MessageType.Error)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
@@ -210,9 +204,6 @@ internal sealed class LanguageServerProjectSystem
         finally
         {
             _logger.LogInformation($"Completed (re)load of all projects in {stopwatch.Elapsed}");
-
-            if (inProcessBuildHost != null)
-                await inProcessBuildHost.ShutdownAsync();
         }
     }
 
@@ -229,14 +220,13 @@ internal sealed class LanguageServerProjectSystem
         return binaryLogPath;
     }
 
-    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager? buildHostProcessManager, BuildHost? inProcessBuildHost, CancellationToken cancellationToken)
+    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         try
         {
             var projectPath = projectToLoad.Path;
 
-            // If we have a process manager, then get an OOP process; otherwise we're still using in-proc builds so just fetch one in-process
-            var buildHost = inProcessBuildHost ?? await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
+            var buildHost = await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
 
             if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
             {
