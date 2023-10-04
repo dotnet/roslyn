@@ -314,12 +314,12 @@
       </trans-unit>
       <trans-unit id="Roslyn_Test_Code">
         <source>Roslyn Test Code</source>
-        <target state="new">Roslyn Test Code</target>
+        <target state="translated">Código de prueba de Roslyn</target>
         <note />
       </trans-unit>
       <trans-unit id="Roslyn_Test_Code_Markup">
         <source>Roslyn Test Code Markup</source>
-        <target state="new">Roslyn Test Code Markup</target>
+        <target state="translated">Marcado de código de prueba de Roslyn</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
