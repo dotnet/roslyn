@@ -4,8 +4,10 @@
 
 using System;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -82,6 +84,9 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
 
     public Checksum GetTextChecksum()
         => _lazyTextChecksum.Value;
+
+    public SourceGeneratedDocumentContentIdentity GetContentIdentity()
+        => new(this.GetTextChecksum(), this.SourceText.Encoding?.WebName, this.SourceText.ChecksumAlgorithm);
 
     protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
