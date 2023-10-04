@@ -176,12 +176,8 @@ internal class SemanticTokensRefreshQueue :
                 // If the document's attributes haven't changed, then use the document's URI for
                 //   the call to EnqueueSemanticTokenRefreshNotification which will enable the
                 //   tracking check before sending the WorkspaceSemanticTokensRefreshName message.
-                if (oldDocument?.State.Attributes is IChecksummedObject oldChecksumObject
-                    && newDocument.State.Attributes is IChecksummedObject newChecksumObject
-                    && oldChecksumObject.Checksum == newChecksumObject.Checksum)
-                {
+                if (oldDocument?.State.Attributes.Checksum == newDocument.State.Attributes.Checksum)
                     documentUri = newDocument.GetURI();
-                }
             }
         }
 
