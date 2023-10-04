@@ -9975,9 +9975,9 @@ partial class Program
                 // (6,24): error CS0416: 'T': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(T), "ToString")]
                 Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(T)").WithArguments("T").WithLocation(6, 24),
-                // (19,44): error CS9174: Cannot initialize type 'Container<string>.MyCollection' with a collection expression because the type is not constructible.
+                // (19,45): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         Container<string>.MyCollection y = [null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[null]").WithArguments("Container<string>.MyCollection").WithLocation(19, 44));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(19, 45));
         }
 
         [CombinatorialData]
@@ -13338,9 +13338,12 @@ partial class Program
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyEmitDiagnostics(
-                // 1.cs(5,31): error CS9174: Cannot initialize type 'MyCollection<int>' with a collection expression because the type is not constructible.
+                // 1.cs(5,32): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         MyCollection<int> c = [string.Empty, 2, null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[string.Empty, 2, null]").WithArguments("MyCollection<int>").WithLocation(5, 31));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(5, 32),
+                // 1.cs(5,49): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         MyCollection<int> c = [string.Empty, 2, null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(5, 49));
         }
 
         [InlineData("int[]")]
@@ -18124,9 +18127,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (4,7): error CS9174: Cannot initialize type 'C' with a collection expression because the type is not constructible.
+                // (4,8): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 // C x = [1]; // 1
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("C").WithLocation(4, 7)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(4, 8)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -18160,9 +18163,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (5,7): error CS9174: Cannot initialize type 'C' with a collection expression because the type is not constructible.
+                // (5,10): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 // C x = [..values]; // 1
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[..values]").WithArguments("C").WithLocation(5, 7)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "values").WithArguments("int", "string").WithLocation(5, 10)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -18331,18 +18334,18 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (6,76): error CS9174: Cannot initialize type 'T1' with a collection expression because the type is not constructible.
+                // (6,77): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //     static T1 Create1<T1>() where T1 : IEnumerable, IEnumerable<string> => [1]; // 1
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("T1").WithLocation(6, 76),
-                // (7,83): error CS9174: Cannot initialize type 'T2' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(6, 77),
+                // (7,84): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //     static T2 Create2<T2>() where T2 : IEnumerable, IEnumerable<string>, new() => [2]; // 2
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("T2").WithLocation(7, 83),
-                // (8,84): error CS9174: Cannot initialize type 'T3' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(7, 84),
+                // (8,85): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //     static T3 Create3<T3>() where T3 : struct, IEnumerable, IEnumerable<string> => [3]; // 3
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("T3").WithLocation(8, 84),
-                // (9,83): error CS9174: Cannot initialize type 'T4' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "string").WithLocation(8, 85),
+                // (9,84): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //     static T4 Create4<T4>() where T4 : class, IEnumerable, IEnumerable<string> => [4]; // 4
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[4]").WithArguments("T4").WithLocation(9, 83)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "4").WithArguments("int", "string").WithLocation(9, 84)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -18386,18 +18389,18 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (5,63): error CS9174: Cannot initialize type 'T1' with a collection expression because the type is not constructible.
+                // (5,64): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //     static T1 Create1<T1>() where T1 : IEnumerable<string> => [1]; // 1
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("T1").WithLocation(5, 63),
-                // (6,70): error CS9174: Cannot initialize type 'T2' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(5, 64),
+                // (6,71): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //     static T2 Create2<T2>() where T2 : IEnumerable<string>, new() => [2]; // 2
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("T2").WithLocation(6, 70),
-                // (7,71): error CS9174: Cannot initialize type 'T3' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(6, 71),
+                // (7,72): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //     static T3 Create3<T3>() where T3 : struct, IEnumerable<string> => [3]; // 3
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("T3").WithLocation(7, 71),
-                // (8,70): error CS9174: Cannot initialize type 'T4' with a collection expression because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "string").WithLocation(7, 72),
+                // (8,71): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //     static T4 Create4<T4>() where T4 : class, IEnumerable<string> => [4]; // 4
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[4]").WithArguments("T4").WithLocation(8, 70)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "4").WithArguments("int", "string").WithLocation(8, 71)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -18936,7 +18939,7 @@ partial class Program
         [InlineData("IEnumerable<string>, IEnumerable<int>")]
         [InlineData("IString, IInteger")]
         [InlineData("IInteger, IString")]
-        public void ConvertToCorrectIEnumerable(string interfaces)
+        public void GenericIEnumerable(string interfaces)
         {
             string source = $$"""
                 using System.Collections;
@@ -18967,7 +18970,7 @@ partial class Program
         [InlineData("IEnumerable<long>, IEnumerable<int>")]
         [InlineData("ILong, IInteger")]
         [InlineData("IInteger, ILong")]
-        public void ConvertToCorrectIEnumerable_MultipleValid(string interfaces)
+        public void GenericIEnumerable_MultipleValid(string interfaces)
         {
             string source = $$"""
                 using System.Collections;
@@ -18991,6 +18994,287 @@ partial class Program
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "RAN");
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void GenericIEnumerable_MultipleInvalid(string typeKind)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = ["hi"];
+
+                {{typeKind}} Collection : IEnumerable<int>, IEnumerable<long>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<long> IEnumerable<long>.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+                    public void Add(int i) { System.Console.Write("RAN"); }
+                    public void Add(long s) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,16): error CS9174: Cannot initialize type 'Collection' with a collection expression because the type is not constructible.
+                // Collection c = ["hi"];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, @"[""hi""]").WithArguments("Collection").WithLocation(4, 16)
+                );
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void GenericIEnumerable_SingleInvalid(string typeKind)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = ["hi", null];
+
+                {{typeKind}} Collection : IEnumerable<int>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+                    public void Add(int i) { System.Console.Write("RAN"); }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                // Collection c = ["hi", null];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hi""").WithArguments("string", "int").WithLocation(4, 17),
+                // (4,23): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                // Collection c = ["hi", null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void GenericIEnumerable_SingleInvalid_TypeParameter()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    T M<T>() where T : ICollection
+                    {
+                        return ["hi", null];
+                    }
+                }
+
+                interface ICollection : IEnumerable<int>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+                    public void Add(int i) { System.Console.Write("RAN"); }
+                }
+                """;
+
+            CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         return ["hi", null];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hi""").WithArguments("string", "int").WithLocation(8, 17),
+                // (8,23): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         return ["hi", null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 23)
+                );
+        }
+
+        [Fact]
+        public void GenericIEnumerable_TwoCompatibleInterfaces()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [new C()];
+
+                interface I1 { }
+                interface I2 { }
+
+                class C : I1, I2 { }
+
+                class Collection : IEnumerable<I1>, IEnumerable<I2>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<I1> IEnumerable<I1>.GetEnumerator() => null;
+                    IEnumerator<I2> IEnumerable<I2>.GetEnumerator() => null;
+
+                    public void Add(I1 i) => throw null;
+                    public void Add(I2 i) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,17): error CS0121: The call is ambiguous between the following methods or properties: 'Collection.Add(I1)' and 'Collection.Add(I2)'
+                // Collection c = [new C()];
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Collection.Add(I1)", "Collection.Add(I2)").WithLocation(4, 17)
+                );
+        }
+
+        [Theory]
+        [InlineData("I1, I2")]
+        [InlineData("I2, I1")]
+        public void GenericIEnumerable_TwoCompatibleInterfaces_SingleAdd(string interfaces)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [new C()];
+
+                interface I1 { }
+                interface I2 { }
+
+                class C : {{interfaces}} { }
+
+                class Collection : IEnumerable<I1>, IEnumerable<I2>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<I1> IEnumerable<I1>.GetEnumerator() => null;
+                    IEnumerator<I2> IEnumerable<I2>.GetEnumerator() => null;
+
+                    public void Add(I1 i) { System.Console.Write("RAN"); }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN"));
+        }
+
+        [Fact]
+        public void GenericIEnumerable_ImplicitConversionFromSourceType()
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [new Source()];
+
+                class Source
+                {
+                    public static implicit operator Destination(Source s)
+                    {
+                        System.Console.Write("RAN ");
+                        return new Destination();
+                    }
+                }
+
+                class Destination { }
+
+                class Collection : IEnumerable<Destination>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<Destination> IEnumerable<Destination>.GetEnumerator() => null;
+                    public void Add(Destination d) { System.Console.Write("RAN2"); }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN RAN2"));
+        }
+
+        [Fact]
+        public void GenericIEnumerable_ExplicitConversionFromSourceType()
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [new Source()];
+
+                class Source
+                {
+                    public static explicit operator Destination(Source s) => throw null;
+                }
+
+                class Destination { }
+
+                class Collection : IEnumerable<Destination>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<Destination> IEnumerable<Destination>.GetEnumerator() => null;
+                    public void Add(Destination d) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,17): error CS0029: Cannot implicitly convert type 'Source' to 'Destination'
+                // Collection c = [new Source()];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Source()").WithArguments("Source", "Destination").WithLocation(4, 17)
+                );
+        }
+
+        [Fact]
+        public void GenericIEnumerable_ImplicitConversionToDestinationType()
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [new Source()];
+
+                class Source { }
+
+                class Destination 
+                {
+                    public static implicit operator Destination(Source s)
+                    {
+                        System.Console.Write("RAN ");
+                        return new Destination();
+                    }
+                }
+
+                class Collection : IEnumerable<Destination>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<Destination> IEnumerable<Destination>.GetEnumerator() => null;
+                    public void Add(Destination d) { System.Console.Write("RAN2"); }
+                }
+                """;
+
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN RAN2"));
+        }
+
+        [Fact]
+        public void GenericIEnumerable_ExplicitConversionToDestinationType()
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+
+                Collection c = [new Source()];
+
+                class Source { }
+
+                class Destination
+                {
+                    public static explicit operator Destination(Source s) => throw null;
+                }
+
+                class Collection : IEnumerable<Destination>
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    IEnumerator<Destination> IEnumerable<Destination>.GetEnumerator() => null;
+                    public void Add(Destination d) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,17): error CS0029: Cannot implicitly convert type 'Source' to 'Destination'
+                // Collection c = [new Source()];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Source()").WithArguments("Source", "Destination").WithLocation(4, 17)
+                );
         }
     }
 }

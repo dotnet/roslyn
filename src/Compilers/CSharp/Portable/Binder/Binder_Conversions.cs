@@ -781,6 +781,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = elementTypeWithAnnotations.Type;
             }
 
+            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT
+                && findSingleIEnumerableTImplementation() is { } implementation)
+            {
+                // If we have a single IEnumerable<T> implementation, we can report conversion errors against that element type below
+                elementType = implementation.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            }
+
             bool reportedErrors = false;
 
             if (collectionTypeKind != CollectionExpressionTypeKind.None &&
@@ -824,6 +831,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!reportedErrors)
             {
                 Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, node.Syntax, targetType);
+            }
+
+            return;
+
+            NamedTypeSymbol? findSingleIEnumerableTImplementation()
+            {
+                ImmutableArray<NamedTypeSymbol> allInterfaces;
+                switch (targetType.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
+                        break;
+                    case TypeKind.TypeParameter:
+                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(targetType.TypeKind);
+                }
+
+                var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+                NamedTypeSymbol? singleIEnumerableImplementation = null;
+                foreach (var @interface in allInterfaces)
+                {
+                    if (ReferenceEquals(@interface.OriginalDefinition, ienumerableType))
+                    {
+                        if (singleIEnumerableImplementation is not null)
+                        {
+                            return null;
+                        }
+
+                        singleIEnumerableImplementation = @interface;
+                    }
+                }
+
+                return singleIEnumerableImplementation;
             }
         }
 
