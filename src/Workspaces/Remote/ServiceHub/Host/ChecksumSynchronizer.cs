@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
             var checksums = pooledObject.Object;
 
-            await CollectChecksumChildrenAsync(checksums, projectChecksums, cancellationToken).ConfigureAwait(false);
+            await CollectProjectStateChecksums(checksums, projectChecksums, cancellationToken).ConfigureAwait(false);
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
@@ -104,6 +104,15 @@ namespace Microsoft.CodeAnalysis.Remote
             foreach (var checksum in checksums)
             {
                 var checksumObject = await _assetProvider.GetAssetAsync<ChecksumCollection>(checksum, cancellationToken).ConfigureAwait(false);
+                AddIfNeeded(set, checksumObject.Children);
+            }
+        }
+
+        private async ValueTask CollectProjectStateChecksums(HashSet<Checksum> set, IReadOnlyCollection<Checksum> checksums, CancellationToken cancellationToken)
+        {
+            foreach (var checksum in checksums)
+            {
+                var checksumObject = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(checksum, cancellationToken).ConfigureAwait(false);
                 AddIfNeeded(set, checksumObject.Children);
             }
         }
