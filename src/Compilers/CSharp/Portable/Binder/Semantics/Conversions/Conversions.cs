@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (isCompatibleIEnumerableT(@interface, ienumerableType, elements, ref useSiteInfo))
                     {
                         isCompatible = true;
+                        // Continue to collect all remaining use-site information
                     }
                 }
 
