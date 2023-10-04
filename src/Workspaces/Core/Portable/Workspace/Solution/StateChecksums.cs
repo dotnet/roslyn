@@ -37,12 +37,12 @@ internal sealed class SolutionStateChecksums(
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
-        checksums.Add(this.Checksum);
-        checksums.Add(this.Attributes);
+        checksums.AddIfNotNullChecksum(this.Checksum);
+        checksums.AddIfNotNullChecksum(this.Attributes);
         this.Projects.AddAllTo(checksums);
         this.AnalyzerReferences.AddAllTo(checksums);
-        checksums.Add(this.FrozenSourceGeneratedDocumentIdentity);
-        checksums.Add(this.FrozenSourceGeneratedDocumentText);
+        checksums.AddIfNotNullChecksum(this.FrozenSourceGeneratedDocumentIdentity);
+        checksums.AddIfNotNullChecksum(this.FrozenSourceGeneratedDocumentText);
     }
 
     public void Serialize(ObjectWriter writer)
@@ -60,11 +60,11 @@ internal sealed class SolutionStateChecksums(
     {
         var checksum = Checksum.ReadFrom(reader);
         var result = new SolutionStateChecksums(
-            Checksum.ReadFrom(reader),
-            ChecksumCollection.ReadFrom(reader),
-            ChecksumCollection.ReadFrom(reader),
-            Checksum.ReadFrom(reader),
-            Checksum.ReadFrom(reader));
+            attributesChecksum: Checksum.ReadFrom(reader),
+            projectChecksums: ChecksumCollection.ReadFrom(reader),
+            analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            frozenSourceGeneratedDocumentIdentity: Checksum.ReadFrom(reader),
+            frozenSourceGeneratedDocumentText: Checksum.ReadFrom(reader));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
@@ -162,10 +162,10 @@ internal class ProjectStateChecksums(
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
-        checksums.Add(this.Checksum);
-        checksums.Add(this.Info);
-        checksums.Add(this.CompilationOptions);
-        checksums.Add(this.ParseOptions);
+        checksums.AddIfNotNullChecksum(this.Checksum);
+        checksums.AddIfNotNullChecksum(this.Info);
+        checksums.AddIfNotNullChecksum(this.CompilationOptions);
+        checksums.AddIfNotNullChecksum(this.ParseOptions);
         this.Documents.AddAllTo(checksums);
         this.ProjectReferences.AddAllTo(checksums);
         this.MetadataReferences.AddAllTo(checksums);
@@ -193,15 +193,15 @@ internal class ProjectStateChecksums(
     {
         var checksum = Checksum.ReadFrom(reader);
         var result = new ProjectStateChecksums(
-            Checksum.ReadFrom(reader),
-            Checksum.ReadFrom(reader),
-            Checksum.ReadFrom(reader),
-            ChecksumCollection.ReadFrom(reader),
-            ChecksumCollection.ReadFrom(reader),
-            ChecksumCollection.ReadFrom(reader),
-            ChecksumCollection.ReadFrom(reader),
-            ChecksumCollection.ReadFrom(reader),
-            ChecksumCollection.ReadFrom(reader));
+            infoChecksum: Checksum.ReadFrom(reader),
+            compilationOptionsChecksum: Checksum.ReadFrom(reader),
+            parseOptionsChecksum: Checksum.ReadFrom(reader),
+            documentChecksums: ChecksumCollection.ReadFrom(reader),
+            projectReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            metadataReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            additionalDocumentChecksums: ChecksumCollection.ReadFrom(reader),
+            analyzerConfigDocumentChecksums: ChecksumCollection.ReadFrom(reader));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
@@ -290,9 +290,9 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
-        checksums.Add(this.Checksum);
-        checksums.Add(this.Info);
-        checksums.Add(this.Text);
+        checksums.AddIfNotNullChecksum(this.Checksum);
+        checksums.AddIfNotNullChecksum(this.Info);
+        checksums.AddIfNotNullChecksum(this.Text);
     }
 
     public void Serialize(ObjectWriter writer)
@@ -306,7 +306,9 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
     public static DocumentStateChecksums Deserialize(ObjectReader reader)
     {
         var checksum = Checksum.ReadFrom(reader);
-        var result = new DocumentStateChecksums(Checksum.ReadFrom(reader), Checksum.ReadFrom(reader));
+        var result = new DocumentStateChecksums(
+            infoChecksum: Checksum.ReadFrom(reader),
+            textChecksum: Checksum.ReadFrom(reader));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }

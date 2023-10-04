@@ -151,4 +151,13 @@ namespace Microsoft.CodeAnalysis
                 => this.Data1 == other.Data1 && this.Data2 == other.Data2 && this.Data3 == other.Data3;
         }
     }
+
+    internal static class ChecksumExtensions
+    {
+        public static void AddIfNotNullChecksum(this HashSet<Checksum> checksums, Checksum checksum)
+        {
+            if (checksum != Checksum.Null)
+                checksums.Add(checksum);
+        }
+    }
 }
