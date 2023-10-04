@@ -1686,12 +1686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // to check for nullable to disallow: Nullable<StructCollection> s = [];
                 // Instead, we just walk the implemented interfaces.
 
-                var interfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
-                return includesIEnumerable(compilation, interfaces);
-            }
-
-            static bool includesIEnumerable(CSharpCompilation compilation, ImmutableArray<NamedTypeSymbol> allInterfaces)
-            {
+                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
             }

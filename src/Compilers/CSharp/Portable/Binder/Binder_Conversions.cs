@@ -664,12 +664,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // gives a consistent behavior, regardless of collection expression elements.
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
 
-                    if (collectionTypeKind is CollectionExpressionTypeKind.List)
-                    {
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
-                    }
-                    else
+                    if (collectionTypeKind != CollectionExpressionTypeKind.List)
                     {
                         _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                     }
