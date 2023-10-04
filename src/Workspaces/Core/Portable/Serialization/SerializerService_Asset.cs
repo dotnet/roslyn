@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService
     {
-        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        private static void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             text.Serialize(writer, context, cancellationToken);
         }
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return serializableSourceText.GetText(cancellationToken);
         }
 
-        public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        private void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return service.ReadParseOptionsFrom(reader, cancellationToken);
         }
 
-        public void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
         }
 
-        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        private void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return ReadMetadataReferenceFrom(reader, cancellationToken);
         }
 
-        public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
