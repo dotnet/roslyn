@@ -35,6 +35,16 @@ internal sealed class SolutionStateChecksums(
     public Checksum FrozenSourceGeneratedDocumentIdentity => frozenSourceGeneratedDocumentIdentity;
     public Checksum FrozenSourceGeneratedDocumentText => frozenSourceGeneratedDocumentText;
 
+    public void AllAllTo(HashSet<Checksum> checksums)
+    {
+        checksums.Add(this.Checksum);
+        checksums.Add(this.Attributes);
+        this.Projects.AddAllTo(checksums);
+        this.AnalyzerReferences.AddAllTo(checksums);
+        checksums.Add(this.FrozenSourceGeneratedDocumentIdentity);
+        checksums.Add(this.FrozenSourceGeneratedDocumentText);
+    }
+
     public static void Serialize(SolutionStateChecksums value, ObjectWriter writer)
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
@@ -150,6 +160,20 @@ internal class ProjectStateChecksums(
     public ChecksumCollection AdditionalDocuments => additionalDocumentChecksums;
     public ChecksumCollection AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
 
+    public void AllAllTo(HashSet<Checksum> checksums)
+    {
+        checksums.Add(this.Checksum);
+        checksums.Add(this.Info);
+        checksums.Add(this.CompilationOptions);
+        checksums.Add(this.ParseOptions);
+        this.Documents.AddAllTo(checksums);
+        this.ProjectReferences.AddAllTo(checksums);
+        this.MetadataReferences.AddAllTo(checksums);
+        this.AnalyzerReferences.AddAllTo(checksums);
+        this.AdditionalDocuments.AddAllTo(checksums);
+        this.AnalyzerConfigDocuments.AddAllTo(checksums);
+    }
+
     public static void Serialize(ProjectStateChecksums value, ObjectWriter writer)
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
@@ -263,6 +287,13 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
     public Checksum Checksum { get; } = Checksum.Create(infoChecksum, textChecksum);
     public Checksum Info => infoChecksum;
     public Checksum Text => textChecksum;
+
+    public void AllAllTo(HashSet<Checksum> checksums)
+    {
+        checksums.Add(this.Checksum);
+        checksums.Add(this.Info);
+        checksums.Add(this.Text);
+    }
 
     public static void Serialize(DocumentStateChecksums checksums, ObjectWriter writer)
     {

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKind.ChecksumCollection:
-                        SerializeChecksumCollection((ChecksumCollection)value, writer, cancellationToken);
+                        ((ChecksumCollection)value).WriteTo(writer);
                         return;
 
                     default:
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)DocumentStateChecksums.Deserialize(reader);
 
                     case WellKnownSynchronizationKind.ChecksumCollection:
-                        return (T)(object)DeserializeChecksumCollection(reader, cancellationToken);
+                        return (T)(object)ChecksumCollection.ReadFrom(reader);
 
                     case WellKnownSynchronizationKind.SolutionAttributes:
                         return (T)(object)SolutionInfo.SolutionAttributes.ReadFrom(reader);

@@ -115,17 +115,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 var set = new HashSet<Checksum>();
 
                 var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, CancellationToken.None).ConfigureAwait(false);
-                set.AppendChecksums(solutionChecksums);
+                solutionChecksums.AllAllTo(set);
 
                 foreach (var projectChecksum in solutionChecksums.Projects)
                 {
                     var projectChecksums = await assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, CancellationToken.None).ConfigureAwait(false);
-                    set.AppendChecksums(projectChecksums);
+                    projectChecksums.AddAllTo(set);
 
                     foreach (var documentChecksum in projectChecksums.Documents.Concat(projectChecksums.AdditionalDocuments).Concat(projectChecksums.AnalyzerConfigDocuments))
                     {
                         var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, CancellationToken.None).ConfigureAwait(false);
-                        set.AppendChecksums(documentChecksums);
+                        documentChecksums.AddAllTo(set);
                     }
                 }
 

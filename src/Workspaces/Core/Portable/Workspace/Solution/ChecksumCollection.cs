@@ -8,7 +8,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,20 +18,30 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// <summary>
     /// collection which children is checksum.
     /// </summary>
-    internal class ChecksumCollection(ImmutableArray<IChecksummedObject> checksums) : ChecksumWithChildren(checksums), IReadOnlyCollection<Checksum>
+    internal class ChecksumCollection(ImmutableArray<Checksum> checksums)
+        : ChecksumWithChildren(checksums.CastArray<IChecksummedObject>()), IReadOnlyCollection<Checksum>
     {
-        public ChecksumCollection(ImmutableArray<Checksum> checksums) : this(checksums.CastArray<IChecksummedObject>())
+        public int Count => Children.Length;
+        public Checksum this[int index] => checksums[index];
+
+        public ImmutableArray<Checksum>.Enumerator GetEnumerator()
+            => checksums.GetEnumerator();
+
+        IEnumerator<Checksum> IEnumerable<Checksum>.GetEnumerator()
         {
+            foreach (var checksum in this)
+                yield return checksum;
         }
 
-        public int Count => Children.Length;
-        public Checksum this[int index] => Children[index].Checksum;
-
-        public IEnumerator<Checksum> GetEnumerator()
-            => this.Children.Cast<Checksum>().GetEnumerator();
-
         IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+            => ((IEnumerable<Checksum>)this).GetEnumerator();
+
+        public void AddAllTo(HashSet<Checksum> checksums)
+        {
+            checksums.Add(this.Checksum);
+            foreach (var checksum in this)
+                checksums.Add(checksum);
+        }
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
         internal static async Task FindAsync<TState>(
