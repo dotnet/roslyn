@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await RunWithSolutionAsync(
                 assetProvider,
                 solutionChecksum,
+                projectId: null,
                 workspaceVersion,
                 updatePrimaryBranch: true,
                 implementation: static _ => ValueTaskFactory.FromResult(false),
@@ -95,15 +96,17 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
+            ProjectId? projectId,
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
+            return RunWithSolutionAsync(assetProvider, solutionChecksum, projectId, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
         }
 
         private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
+            ProjectId? projectId,
             int workspaceVersion,
             bool updatePrimaryBranch,
             Func<Solution, ValueTask<T>> implementation,
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
-            var (inFlightSolution, solutionTask) = await AcquireSolutionAndIncrementInFlightCountAsync().ConfigureAwait(false);
+            var (inFlightSolution, solutionTask) = await AcquireSolutionAndIncrementInFlightCountAsync(projectId).ConfigureAwait(false);
 
             try
             {
@@ -133,14 +136,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
-            async ValueTask<(InFlightSolution inFlightSolution, Task<Solution> solutionTask)> AcquireSolutionAndIncrementInFlightCountAsync()
+            async ValueTask<(InFlightSolution inFlightSolution, Task<Solution> solutionTask)> AcquireSolutionAndIncrementInFlightCountAsync(
+                ProjectId? projectId)
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     try
                     {
                         inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
-                            assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch);
+                            assetProvider, solutionChecksum, projectId, workspaceVersion, updatePrimaryBranch);
                         solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
 
                         // We must have at least 1 for the in-flight-count (representing this current in-flight call).
@@ -241,10 +245,18 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task<Solution> ComputeDisconnectedSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
+            ProjectId? projectId,
             CancellationToken cancellationToken)
         {
             try
             {
+                if (projectId != null)
+                {
+                    var project = this.CurrentSolution.GetProject(projectId);
+                    if (project != null)
+                        await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                }
+
                 // Try to create the solution snapshot incrementally off of the workspaces CurrentSolution first.
                 var updater = new SolutionCreator(Services.HostServices, assetProvider, this.CurrentSolution);
                 if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
@@ -358,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 CancellationToken cancellationToken)
             {
                 var (solution, _) = await _remoteWorkspace.RunWithSolutionAsync(
-                    assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
+                    assetProvider, solutionChecksum, projectId: null, workspaceVersion, updatePrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
                 return solution;
             }
         }

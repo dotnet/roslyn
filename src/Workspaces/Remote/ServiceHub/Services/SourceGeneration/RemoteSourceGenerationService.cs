@@ -24,7 +24,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
     public ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>> GetSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(solutionChecksum, async solution =>
+        return RunServiceAsync(solutionChecksum, projectId, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
@@ -48,7 +48,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
     public ValueTask<ImmutableArray<string>> GetContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(solutionChecksum, async solution =>
+        return RunServiceAsync(solutionChecksum, projectId, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);

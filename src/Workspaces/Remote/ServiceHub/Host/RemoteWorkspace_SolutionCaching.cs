@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
+            ProjectId? projectId,
             int workspaceVersion,
             bool updatePrimaryBranch)
         {
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             CheckCacheInvariants_NoLock();
 
-            var solution = GetOrCreateSolutionAndAddInFlightCount_NoLock();
+            var solution = GetOrCreateSolutionAndAddInFlightCount_NoLock(projectId);
 
             // The solution must now have a valid in-flight-count.
             Contract.ThrowIfTrue(solution.InFlightCount < 1);
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return solution;
 
-            InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock()
+            InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock(ProjectId? projectId)
             {
                 Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
@@ -89,7 +90,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // our caller. 
                 solution = new InFlightSolution(
                     this, solutionChecksum,
-                    async cancellationToken => cachedSolution ?? await ComputeDisconnectedSolutionAsync(assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false));
+                    async cancellationToken => cachedSolution ?? await ComputeDisconnectedSolutionAsync(
+                        assetProvider, solutionChecksum, projectId, cancellationToken).ConfigureAwait(false));
                 Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
                 _solutionChecksumToSolution.Add(solutionChecksum, solution);

@@ -82,8 +82,15 @@ namespace Microsoft.CodeAnalysis.Remote
         protected void Log(TraceEventType errorType, string message)
             => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
 
+        protected ValueTask<T> RunWithSolutionAsync<T>(
+            Checksum solutionChecksum,
+            Func<Solution, ValueTask<T>> implementation,
+            CancellationToken cancellationToken)
+            => RunWithSolutionAsync(solutionChecksum, projectId: null, implementation, cancellationToken);
+
         protected async ValueTask<T> RunWithSolutionAsync<T>(
             Checksum solutionChecksum,
+            ProjectId? projectId,
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
@@ -92,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var (_, result) = await workspace.RunWithSolutionAsync(
                 assetProvider,
                 solutionChecksum,
+                projectId,
                 implementation,
                 cancellationToken).ConfigureAwait(false);
 
@@ -106,9 +114,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected ValueTask<T> RunServiceAsync<T>(
             Checksum solutionChecksum, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+            => RunServiceAsync(solutionChecksum, projectId: null, implementation, cancellationToken);
+
+        protected ValueTask<T> RunServiceAsync<T>(
+            Checksum solutionChecksum, ProjectId? projectId, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             return RunServiceAsync(
-                c => RunWithSolutionAsync(solutionChecksum, implementation, c), cancellationToken);
+                c => RunWithSolutionAsync(solutionChecksum, projectId, implementation, c), cancellationToken);
         }
 
         internal static async ValueTask<T> RunServiceImplAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
