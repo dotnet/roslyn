@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var set = new HashSet<Checksum>();
 
                 var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, CancellationToken.None).ConfigureAwait(false);
-                solutionChecksums.AllAllTo(set);
+                solutionChecksums.AddAllTo(set);
 
                 foreach (var projectChecksum in solutionChecksums.Projects)
                 {
@@ -204,11 +204,24 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static HashSet<Checksum> Flatten(ChecksumWithChildren checksums)
+        private static HashSet<Checksum> Flatten(SolutionStateChecksums checksums)
         {
             var set = new HashSet<Checksum>();
-            set.AppendChecksums(checksums);
+            checksums.AddAllTo(set);
+            return set;
+        }
 
+        private static HashSet<Checksum> Flatten(ProjectStateChecksums checksums)
+        {
+            var set = new HashSet<Checksum>();
+            checksums.AddAllTo(set);
+            return set;
+        }
+
+        private static HashSet<Checksum> Flatten(DocumentStateChecksums checksums)
+        {
+            var set = new HashSet<Checksum>();
+            checksums.AddAllTo(set);
             return set;
         }
 

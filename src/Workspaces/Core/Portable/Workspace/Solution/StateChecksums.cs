@@ -35,7 +35,7 @@ internal sealed class SolutionStateChecksums(
     public Checksum FrozenSourceGeneratedDocumentIdentity => frozenSourceGeneratedDocumentIdentity;
     public Checksum FrozenSourceGeneratedDocumentText => frozenSourceGeneratedDocumentText;
 
-    public void AllAllTo(HashSet<Checksum> checksums)
+    public void AddAllTo(HashSet<Checksum> checksums)
     {
         checksums.Add(this.Checksum);
         checksums.Add(this.Attributes);
@@ -160,7 +160,7 @@ internal class ProjectStateChecksums(
     public ChecksumCollection AdditionalDocuments => additionalDocumentChecksums;
     public ChecksumCollection AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
 
-    public void AllAllTo(HashSet<Checksum> checksums)
+    public void AddAllTo(HashSet<Checksum> checksums)
     {
         checksums.Add(this.Checksum);
         checksums.Add(this.Info);
@@ -288,7 +288,7 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
     public Checksum Info => infoChecksum;
     public Checksum Text => textChecksum;
 
-    public void AllAllTo(HashSet<Checksum> checksums)
+    public void AddAllTo(HashSet<Checksum> checksums)
     {
         checksums.Add(this.Checksum);
         checksums.Add(this.Info);

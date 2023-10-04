@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
 
             var checksums = await _remoteWorkspace.CurrentSolution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            checksums.AllAllTo(pinnedChecksums);
+            checksums.AddAllTo(pinnedChecksums);
         }
 
         private sealed class Entry

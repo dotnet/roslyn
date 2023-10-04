@@ -40,7 +40,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 var solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 // second, get direct children of the solution
-                await SynchronizeAssets_NoLockAsync(solutionChecksumObject.Children, cancellationToken).ConfigureAwait(false);
+                {
+                    using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+                    var checksums = pooledObject.Object;
+
+                    solutionChecksumObject.AddAllTo(checksums);
+                    checksums.Remove(solutionChecksumObject.Checksum);
+                    await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                }
 
                 // third and last get direct children for all projects and documents in the solution 
                 await SynchronizeProjectAssets_NoLockAsync(solutionChecksumObject.Projects, cancellationToken).ConfigureAwait(false);
@@ -89,16 +96,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private async ValueTask SynchronizeAssets_NoLockAsync(HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             // get children of solution checksum object at once
-            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async ValueTask SynchronizeAssets_NoLockAsync(ImmutableArray<IChecksummedObject> checksumOrCollections, CancellationToken cancellationToken)
-        {
-            // get children of solution checksum object at once
-            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-            var checksums = pooledObject.Object;
-
-            AddIfNeeded(checksums, checksumOrCollections);
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
