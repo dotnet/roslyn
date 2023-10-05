@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         None = 0,
         Array,
+        ImmutableArray,
         Span,
         ReadOnlySpan,
         List,
