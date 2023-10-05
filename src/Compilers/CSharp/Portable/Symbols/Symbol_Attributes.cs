@@ -197,7 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return true;
         }
-#nullable disable
 
         /// <summary>
         /// This method is called by the binder when it is finished binding a set of attributes on the symbol so that

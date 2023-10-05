@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// an attribute argument.
         /// </summary>
         internal abstract UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete);
-#nullable disable
 
         /// <summary>
         /// Returns true if this method is an extension method.

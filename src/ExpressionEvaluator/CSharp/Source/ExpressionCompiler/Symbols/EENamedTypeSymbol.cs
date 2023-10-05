@@ -387,6 +387,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             methodName = null;
             return false;
         }
-#nullable disable
     }
 }

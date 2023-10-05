@@ -352,6 +352,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             methodName = null;
             return false;
         }
-#nullable disable
     }
 }

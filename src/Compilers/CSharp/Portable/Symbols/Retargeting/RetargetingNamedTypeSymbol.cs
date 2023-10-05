@@ -424,6 +424,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
             return result;
         }
-#nullable disable
     }
 }

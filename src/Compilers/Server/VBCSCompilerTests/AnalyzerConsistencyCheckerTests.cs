@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 #if NETFRAMEWORK
-#nullable disable
 
 using System;
 using System.Collections.Generic;
