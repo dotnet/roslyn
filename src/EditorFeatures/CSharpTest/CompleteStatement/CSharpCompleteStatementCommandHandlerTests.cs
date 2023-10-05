@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -4246,7 +4244,7 @@ public class ClassC
             var expected = code.Replace("$$", ";$$");
 
             Verify(code, expected, ExecuteTest,
-                setOptionsOpt: workspace =>
+                setOptions: workspace =>
                 {
                     var globalOptions = workspace.GetService<IGlobalOptionService>();
                     globalOptions.SetGlobalOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, false);
