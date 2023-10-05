@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionBuilder,
         ImplementsIEnumerableT,
         ImplementsIEnumerable,
-        ListInterface,
+        ArrayInterface,
     }
 }

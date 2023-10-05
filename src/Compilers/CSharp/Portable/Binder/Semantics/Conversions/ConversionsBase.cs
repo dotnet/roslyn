@@ -1673,9 +1673,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = default;
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
-            else if (isListInterface(compilation, destination, out elementType))
+            else if (destination.IsArrayInterface(out TypeWithAnnotations typeArg))
             {
-                return CollectionExpressionTypeKind.ListInterface;
+                elementType = typeArg.Type;
+                return CollectionExpressionTypeKind.ArrayInterface;
             }
 
             elementType = default;
@@ -1700,7 +1701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
 
-            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
+            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
                 if (targetType is NamedTypeSymbol
                     {
@@ -1713,10 +1714,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
                     })
                 {
-                    elementType = typeArg;
+                    elementType = typeArg.Type;
                     return true;
                 }
-                elementType = default;
+                elementType = null;
                 return false;
             }
         }
