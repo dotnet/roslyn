@@ -1636,6 +1636,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CollectionExpressionTypeKind.Array;
                 }
             }
+            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out elementType)
+                && compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is not null)
+            {
+                return CollectionExpressionTypeKind.ImmutableArray;
+            }
             else if (isSpanOrListType(compilation, destination, WellKnownType.System_Span_T, out elementType))
             {
                 return CollectionExpressionTypeKind.Span;

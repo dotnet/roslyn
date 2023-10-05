@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
+                    case CollectionExpressionTypeKind.ImmutableArray:
+                        Debug.Assert(elementType is { });
+                        return VisitImmutableArrayCollectionExpression(node, elementType);
                     case CollectionExpressionTypeKind.List:
                         return CreateAndPopulateList(node, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
@@ -58,6 +61,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.Syntax = previousSyntax;
             }
+        }
+
+        private BoundExpression VisitImmutableArrayCollectionExpression(BoundCollectionExpression node, TypeSymbol elementType)
+        {
+            var elementTypeWithAnnotations = TypeWithAnnotations.Create(elementType);
+            var arrayCreation = VisitArrayOrSpanCollectionExpression(
+                node,
+                CollectionExpressionTypeKind.Array,
+                ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementTypeWithAnnotations),
+                elementTypeWithAnnotations);
+            var asImmutableArray = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T)!;
+            // ImmutableCollectionsMarshal.AsImmutableArray(arrayCreation)
+            return _factory.StaticCall(asImmutableArray.Construct(elementType), ImmutableArray.Create(arrayCreation));
         }
 
         private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol collectionType, TypeWithAnnotations elementType)

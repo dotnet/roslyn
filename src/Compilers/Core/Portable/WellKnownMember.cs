@@ -615,8 +615,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
         System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+        System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
 
-        Count
+        Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
     }

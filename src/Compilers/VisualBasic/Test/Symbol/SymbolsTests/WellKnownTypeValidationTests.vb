@@ -528,6 +528,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
@@ -561,7 +562,8 @@ End Namespace
                          WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
                          WellKnownType.System_Runtime_CompilerServices_Unsafe,
                          WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
-                         WellKnownType.System_Runtime_InteropServices_CollectionsMarshal
+                         WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
+                         WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -608,6 +610,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
@@ -640,7 +643,8 @@ End Namespace
                          WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
                          WellKnownType.System_Runtime_CompilerServices_Unsafe,
                          WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
-                         WellKnownType.System_Runtime_InteropServices_CollectionsMarshal
+                         WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
+                         WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -804,7 +808,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T,
                          WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
-                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T
                         ' Not always available.
                         Continue For
                 End Select
@@ -1003,7 +1008,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T,
                          WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
-                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T
                         ' Not always available.
                         Continue For
                 End Select
