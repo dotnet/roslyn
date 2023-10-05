@@ -3008,7 +3008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: "(System.Object[]) [2, 3], (System.Object[]) [1, 2, 3], ");
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
+        [Fact]
         public void TypeInference_Spread_07()
         {
             string source = """
@@ -3030,7 +3030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
+        [Fact]
         public void TypeInference_Spread_08()
         {
             string source = """
@@ -22517,7 +22517,7 @@ partial class Program
                 );
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
+        [Fact]
         public void SpreadNullability()
         {
             string src = """
@@ -22533,7 +22533,7 @@ partial class Program
             CreateCompilation(src).VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
+        [Fact]
         public void SpreadNullability_CheckExpressions()
         {
             string src = """
@@ -22551,7 +22551,7 @@ partial class Program
                 );
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
+        [Fact]
         public void SpreadNullability_SplitExpression()
         {
             // https://github.com/dotnet/roslyn/issues/68786: We should check the spreads without asserting in DebugVerifier
