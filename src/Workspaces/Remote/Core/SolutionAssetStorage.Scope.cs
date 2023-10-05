@@ -124,7 +124,7 @@ internal partial class SolutionAssetStorage
             }
         }
 
-        private async Task FindAssetsAsync(HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
+        private async Task FindAssetsAsync(HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object?> result, CancellationToken cancellationToken)
         {
             var solutionState = this.Solution;
             if (solutionState.TryGetStateChecksums(out var stateChecksums))
