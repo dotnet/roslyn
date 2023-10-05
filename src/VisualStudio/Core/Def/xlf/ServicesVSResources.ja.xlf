@@ -969,7 +969,7 @@
       </trans-unit>
       <trans-unit id="Not_applicable">
         <source>Not applicable</source>
-        <target state="new">Not applicable</target>
+        <target state="translated">適用なし</target>
         <note />
       </trans-unit>
       <trans-unit id="Omit_if_default">

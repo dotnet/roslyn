@@ -603,12 +603,18 @@ namespace Microsoft.CodeAnalysis
         System_Collections_Generic_IList_T__Insert,
         System_Collections_Generic_IList_T__RemoveAt,
 
+        System_Collections_Generic_List_T__ctor,
+        System_Collections_Generic_List_T__ctorInt32,
+        System_Collections_Generic_List_T__Add,
         System_Collections_Generic_List_T__Count,
         System_Collections_Generic_List_T__Contains,
         System_Collections_Generic_List_T__CopyTo,
         System_Collections_Generic_List_T__get_Item,
         System_Collections_Generic_List_T__IndexOf,
         System_Collections_Generic_List_T__ToArray,
+
+        System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+        System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
 
         Count
 
