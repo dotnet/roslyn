@@ -583,6 +583,35 @@ class Page
             AssertEx.Equal(expectedLineMappings, actualLineMappings);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/9051")]
+        public void Diagnostics_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+#line (3, 3) - (6, 6) ""a.txt""
+A(); // 1
+#line (3, 3) - (6, 6) 8 ""a.txt""
+        A(); // 2
+#line 3
+  A(); // 3
+    }
+}".NormalizeLineEndings();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
+                // A(); // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
+                // (3,3): error CS0103: The name 'A' does not exist in the current context
+                //   A(); // 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
+                // a.txt(3,4): error CS0103: The name 'A' does not exist in the current context
+                //         A(); // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 4));
+        }
+
         [Fact]
         public void SequencePoints()
         {
