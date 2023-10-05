@@ -297,20 +297,17 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
 
     public void Serialize(ObjectWriter writer)
     {
-        // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
-        this.Checksum.WriteTo(writer);
+        // We don't write out the checksum itself as it would bloat the size of this message. If there is corruption
+        // (which should never ever happen), it will be detected at the project level.
         this.Info.WriteTo(writer);
         this.Text.WriteTo(writer);
     }
 
     public static DocumentStateChecksums Deserialize(ObjectReader reader)
     {
-        var checksum = Checksum.ReadFrom(reader);
-        var result = new DocumentStateChecksums(
+        return new DocumentStateChecksums(
             infoChecksum: Checksum.ReadFrom(reader),
             textChecksum: Checksum.ReadFrom(reader));
-        Contract.ThrowIfFalse(result.Checksum == checksum);
-        return result;
     }
 
     public async Task FindAsync(
