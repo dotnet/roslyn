@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -131,7 +130,9 @@ namespace Microsoft.CodeAnalysis
             public void WriteTo(Span<byte> span)
             {
                 Contract.ThrowIfFalse(span.Length >= HashSize);
+#pragma warning disable CS9191 // The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in this)));
+#pragma warning restore CS9191
             }
 
             public static unsafe HashData FromPointer(HashData* hash)
@@ -150,6 +151,15 @@ namespace Microsoft.CodeAnalysis
             // standard calls to EqualityComparer<long>.Default.Equals
             public bool Equals(HashData other)
                 => this.Data1 == other.Data1 && this.Data2 == other.Data2 && this.Data3 == other.Data3;
+        }
+    }
+
+    internal static class ChecksumExtensions
+    {
+        public static void AddIfNotNullChecksum(this HashSet<Checksum> checksums, Checksum checksum)
+        {
+            if (checksum != Checksum.Null)
+                checksums.Add(checksum);
         }
     }
 }

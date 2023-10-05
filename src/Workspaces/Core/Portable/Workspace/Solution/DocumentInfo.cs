@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis
                 return new DocumentAttributes(documentId, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }
 
-            Checksum IChecksummedObject.Checksum
+            public Checksum Checksum
                 => _lazyChecksum ??= Checksum.Create(this);
         }
     }
