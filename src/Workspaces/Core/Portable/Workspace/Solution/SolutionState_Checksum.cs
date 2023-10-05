@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis
                                 return stateChecksums.Checksum;
 
                             // We have never computed the checksum for this project.  Don't send anything for it.
-                            return null;
+                            return (Checksum?)null;
                         })
                         .ToArray();
 
@@ -157,9 +158,13 @@ namespace Microsoft.CodeAnalysis
                         _ => new ChecksumCollection(AnalyzerReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
 
                     var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+                    using var _ = ArrayBuilder<Checksum>.GetInstance(projectChecksums.Length, out var nonNullChecksums);
+                    foreach (var checksum in projectChecksums)
+                        nonNullChecksums.AddIfNotNull(checksum);
+
                     return new SolutionStateChecksums(
                         attributesChecksum,
-                        new ChecksumCollection(projectChecksums.WhereNotNull().ToImmutableArray()),
+                        new ChecksumCollection(nonNullChecksums.ToImmutableAndClear()),
                         analyzerReferenceChecksums,
                         frozenSourceGeneratedDocumentIdentityChecksum,
                         frozenSourceGeneratedDocumentTextChecksum);

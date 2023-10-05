@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     // various factory methods. all these are just helper methods
-    internal partial record class Checksum
+    internal readonly partial record struct Checksum
     {
         // https://github.com/dotnet/runtime/blob/f2db6d6093c54e5eeb9db2d8dcbe15b2db92ad8c/src/libraries/System.Security.Cryptography.Algorithms/src/System/Security/Cryptography/SHA256.cs#L18-L19
         private const int SHA256HashSizeBytes = 256 / 8;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        public static Checksum Create(ReadOnlySpan<Checksum.HashData> hashes)
+        public static Checksum Create(ReadOnlySpan<Checksum> hashes)
         {
 #if NET
             return CreateUsingSpans(hashes);
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis
             return objectPool.GetPooledObject();
         }
 
-        private static Checksum CreateUsingByteArrays(ReadOnlySpan<Checksum.HashData> checksums)
+        private static Checksum CreateUsingByteArrays(ReadOnlySpan<Checksum> checksums)
         {
             using var bytes = GetPooledByteArray(checksumCount: checksums.Length);
 
@@ -226,23 +226,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2)
-            => CreateUsingByteArrays(stackalloc[] { checksum1.Hash, checksum2.Hash });
+            => CreateUsingByteArrays(stackalloc[] { checksum1, checksum2 });
 
         private static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2, Checksum checksum3)
-            => CreateUsingByteArrays(stackalloc[] { checksum1.Hash, checksum2.Hash, checksum3.Hash });
+            => CreateUsingByteArrays(stackalloc[] { checksum1, checksum2, checksum3 });
 
 #else
 
         // Optimized helpers that do not need to allocate any arrays to combine hashes.
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2)
-            => CreateUsingSpans(stackalloc[] { checksum1.Hash, checksum2.Hash });
+            => CreateUsingSpans(stackalloc[] { checksum1, checksum2 });
 
         private static Checksum CreateUsingSpans(Checksum checksum1, Checksum checksum2, Checksum checksum3)
-            => CreateUsingSpans(stackalloc[] { checksum1.Hash, checksum2.Hash, checksum3.Hash });
+            => CreateUsingSpans(stackalloc[] { checksum1, checksum2, checksum3 });
 
         private static Checksum CreateUsingSpans(
-            ReadOnlySpan<Checksum.HashData> hashes)
+            ReadOnlySpan<Checksum> hashes)
         {
             Span<byte> hashResultSpan = stackalloc byte[SHA256HashSizeBytes];
 

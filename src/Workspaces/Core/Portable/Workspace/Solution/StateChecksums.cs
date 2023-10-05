@@ -22,11 +22,11 @@ internal sealed class SolutionStateChecksums(
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
-        attributesChecksum.Hash,
-        projectChecksums.Checksum.Hash,
-        analyzerReferenceChecksums.Checksum.Hash,
-        frozenSourceGeneratedDocumentIdentity.Hash,
-        frozenSourceGeneratedDocumentText.Hash,
+        attributesChecksum,
+        projectChecksums.Checksum,
+        analyzerReferenceChecksums.Checksum,
+        frozenSourceGeneratedDocumentIdentity,
+        frozenSourceGeneratedDocumentText,
     });
 
     public Checksum Attributes => attributesChecksum;
@@ -136,15 +136,15 @@ internal class ProjectStateChecksums(
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
-        infoChecksum.Hash,
-        compilationOptionsChecksum.Hash,
-        parseOptionsChecksum.Hash,
-        documentChecksums.Checksum.Hash,
-        projectReferenceChecksums.Checksum.Hash,
-        metadataReferenceChecksums.Checksum.Hash,
-        analyzerReferenceChecksums.Checksum.Hash,
-        additionalDocumentChecksums.Checksum.Hash,
-        analyzerConfigDocumentChecksums.Checksum.Hash,
+        infoChecksum,
+        compilationOptionsChecksum,
+        parseOptionsChecksum,
+        documentChecksums.Checksum,
+        projectReferenceChecksums.Checksum,
+        metadataReferenceChecksums.Checksum,
+        analyzerReferenceChecksums.Checksum,
+        additionalDocumentChecksums.Checksum,
+        analyzerConfigDocumentChecksums.Checksum,
     });
 
     public Checksum Info => infoChecksum;

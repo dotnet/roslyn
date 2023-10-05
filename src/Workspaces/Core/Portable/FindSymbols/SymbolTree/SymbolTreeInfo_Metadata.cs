@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return await GetInfoForMetadataReferenceSlowAsync(
-                solutionServices, solutionKey, reference, checksum, cancellationToken).ConfigureAwait(false);
+                solutionServices, solutionKey, reference, checksum.Value, cancellationToken).ConfigureAwait(false);
 
             static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
                 SolutionServices services,
@@ -212,9 +212,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // So our checksum is just the checksum for the PEReference itself.
             // First see if the value is already in the cache, to avoid an allocation if possible.
             if (ChecksumCache.TryGetValue(reference, out var cached))
-            {
-                return cached;
-            }
+                return cached.Value;
 
             // Break things up to the fast path above and this slow path where we allocate a closure.
             return GetMetadataChecksumSlow(services, reference, cancellationToken);
