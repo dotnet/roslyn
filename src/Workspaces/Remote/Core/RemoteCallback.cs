@@ -3,11 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
+using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -23,6 +27,17 @@ namespace Microsoft.CodeAnalysis.Remote
     internal readonly struct RemoteCallback<T>
         where T : class
     {
+        // We pick a value that is the largest multiple of 4096 that is still smaller than the large object heap threshold (85K). 
+        // The CopyTo/CopyToAsync buffer is short-lived and is likely to be collected at Gen0, and it offers a significant 
+        // improvement in Copy performance. 
+        private const int DefaultCopyBufferSize = 81920;
+
+        private static readonly ObjectPool<Pipe> s_pipePool = new(() => new Pipe(new PipeOptions(
+            pool: new PinnedBlockMemoryPool(),
+            readerScheduler: PipeScheduler.Inline,
+            writerScheduler: PipeScheduler.Inline,
+            minimumSegmentSize: DefaultCopyBufferSize)));
+
         private readonly T _callback;
 
         public RemoteCallback(T callback)
@@ -102,10 +117,11 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
+
+            var pipe = s_pipePool.Allocate();
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var pipe = new Pipe();
 
                 // Kick off the work to do the writing to the pipe asynchronously.  It will start hot and will be able
                 // to do work as the reading side attempts to pull in the data it is writing.
@@ -123,6 +139,11 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
                 throw new OperationCanceledIgnoringCallerTokenException(exception);
+            }
+            finally
+            {
+                pipe.Reset();
+                s_pipePool.Free(pipe);
             }
 
             async Task WriteAsync(T service, PipeWriter pipeWriter)
@@ -234,6 +255,137 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Indicates bug on client side or in serialization, report NFW and propagate the exception.
             return FatalError.ReportAndPropagate(exception);
+        }
+
+        // Copied from: https://github.com/dotnet/aspnetcore/blob/main/src/Shared/Buffers.MemoryPool/PinnedBlockMemoryPool.cs
+        internal sealed class PinnedBlockMemoryPool : MemoryPool<byte>
+        {
+            /// <summary>
+            /// The size of a block. 4096 is chosen because most operating systems use 4k pages.
+            /// </summary>
+            private const int _blockSize = 4096;
+
+            /// <summary>
+            /// Max allocation block size for pooled blocks,
+            /// larger values can be leased but they will be disposed after use rather than returned to the pool.
+            /// </summary>
+            public override int MaxBufferSize { get; } = _blockSize;
+
+            /// <summary>
+            /// The size of a block. 4096 is chosen because most operating systems use 4k pages.
+            /// </summary>
+            public static int BlockSize => _blockSize;
+
+            /// <summary>
+            /// Thread-safe collection of blocks which are currently in the pool. A slab will pre-allocate all of the block tracking objects
+            /// and add them to this collection. When memory is requested it is taken from here first, and when it is returned it is re-added.
+            /// </summary>
+            private readonly ConcurrentQueue<MemoryPoolBlock> _blocks = new ConcurrentQueue<MemoryPoolBlock>();
+
+            /// <summary>
+            /// This is part of implementing the IDisposable pattern.
+            /// </summary>
+            private bool _isDisposed; // To detect redundant calls
+
+            private readonly object _disposeSync = new object();
+
+            /// <summary>
+            /// This default value passed in to Rent to use the default value for the pool.
+            /// </summary>
+            private const int AnySize = -1;
+
+            public override IMemoryOwner<byte> Rent(int size = AnySize)
+            {
+                if (size > _blockSize)
+                    throw new ArgumentOutOfRangeException(nameof(size));
+
+                if (_isDisposed)
+                    throw new ObjectDisposedException(this.GetType().Name);
+
+                if (_blocks.TryDequeue(out var block))
+                {
+                    // block successfully taken from the stack - return it
+                    return block;
+                }
+
+                return new MemoryPoolBlock(this, BlockSize);
+            }
+
+            /// <summary>
+            /// Called to return a block to the pool. Once Return has been called the memory no longer belongs to the caller, and
+            /// Very Bad Things will happen if the memory is read of modified subsequently. If a caller fails to call Return and the
+            /// block tracking object is garbage collected, the block tracking object's finalizer will automatically re-create and return
+            /// a new tracking object into the pool. This will only happen if there is a bug in the server, however it is necessary to avoid
+            /// leaving "dead zones" in the slab due to lost block tracking objects.
+            /// </summary>
+            /// <param name="block">The block to return. It must have been acquired by calling Lease on the same memory pool instance.</param>
+            internal void Return(MemoryPoolBlock block)
+            {
+#if BLOCK_LEASE_TRACKING
+            Debug.Assert(block.Pool == this, "Returned block was not leased from this pool");
+            Debug.Assert(block.IsLeased, $"Block being returned to pool twice: {block.Leaser}{Environment.NewLine}");
+            block.IsLeased = false;
+#endif
+
+                if (!_isDisposed)
+                {
+                    _blocks.Enqueue(block);
+                }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (_isDisposed)
+                {
+                    return;
+                }
+
+                lock (_disposeSync)
+                {
+                    _isDisposed = true;
+
+                    if (disposing)
+                    {
+                        // Discard blocks in pool
+                        while (_blocks.TryDequeue(out _))
+                        {
+
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Wraps an array allocated in the pinned object heap in a reusable block of managed memory
+        /// </summary>
+        internal sealed class MemoryPoolBlock : IMemoryOwner<byte>
+        {
+            internal MemoryPoolBlock(PinnedBlockMemoryPool pool, int length)
+            {
+                Pool = pool;
+
+#if NET
+                var pinnedArray = GC.AllocateUninitializedArray<byte>(length, pinned: true);
+#else
+                var pinnedArray = new byte[length];
+                GCHandle.Alloc(pinnedArray, GCHandleType.Pinned);
+#endif
+
+                Memory = MemoryMarshal.CreateFromPinnedArray(pinnedArray, 0, pinnedArray.Length);
+            }
+
+            /// <summary>
+            /// Back-reference to the memory pool which this block was allocated from. It may only be returned to this pool.
+            /// </summary>
+            public PinnedBlockMemoryPool Pool { get; }
+
+            public Memory<byte> Memory { get; }
+
+            public void Dispose()
+            {
+                Pool.Return(this);
+            }
         }
     }
 }
