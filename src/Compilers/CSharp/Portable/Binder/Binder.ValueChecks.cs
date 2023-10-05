@@ -14,7 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#nullable enable
     internal partial class RefSafetyAnalysis
     {
         private enum EscapeLevel : uint

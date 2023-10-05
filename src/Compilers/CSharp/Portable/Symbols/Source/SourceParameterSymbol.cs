@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </remarks>
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
     {
-#nullable enable
         protected SymbolCompletionState state;
         protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
