@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         // https://github.com/dotnet/runtime/blob/f2db6d6093c54e5eeb9db2d8dcbe15b2db92ad8c/src/libraries/System.Security.Cryptography.Algorithms/src/System/Security/Cryptography/SHA256.cs#L18-L19
         private const int SHA256HashSizeBytes = 256 / 8;
 
-#if NET5_0_OR_GREATER
+#if NET
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
             new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 #else
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             new(SHA256.Create, size: 20);
 #endif
 
-#if !NET5_0_OR_GREATER
+#if !NET
         // Dedicated pools for the byte[]s we use to create checksums from two or three existing checksums. Sized to
         // exactly the space needed to splat the existing checksum data into the array and then hash it.
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
         public static Checksum Create(IEnumerable<string> values)
         {
-#if NET5_0_OR_GREATER
+#if NET
             using var pooledHash = s_incrementalHashPool.GetPooledObject();
 
             foreach (var value in values)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
 
         public static Checksum Create(string value)
         {
-#if NET5_0_OR_GREATER
+#if NET
             Span<byte> hash = stackalloc byte[SHA256HashSizeBytes];
             SHA256.HashData(MemoryMarshal.AsBytes(value.AsSpan()), hash);
             return From(hash);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
             Span<byte> hash = stackalloc byte[SHA256HashSizeBytes];
             SHA256.HashData(stream, hash);
             return From(hash);
-#elif NET5_0_OR_GREATER
+#elif NET
             using var pooledHash = s_incrementalHashPool.GetPooledObject();
             Span<byte> buffer = stackalloc byte[SharedPools.ByteBufferSize];
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-#if !NET5_0_OR_GREATER
+#if !NET
 
         private static PooledObject<byte[]> GetPooledByteArray(int checksumCount)
         {
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis
             return Create(stream);
         }
 
-#if !NET5_0_OR_GREATER
+#if !NET
         private static void AppendData(SHA256 hash, byte[] buffer, string value)
         {
             var stringBytes = MemoryMarshal.AsBytes(value.AsSpan());
