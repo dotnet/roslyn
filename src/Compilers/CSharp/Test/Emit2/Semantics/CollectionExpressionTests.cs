@@ -18723,11 +18723,10 @@ partial class Program
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
         public void SpreadNullability_SplitExpression()
         {
             // https://github.com/dotnet/roslyn/issues/68786: We should check the spreads without asserting in DebugVerifier
-#if RELEASE
             string src = """
                 #nullable enable
                 object x = "";
@@ -18739,7 +18738,6 @@ partial class Program
                 // object[] y1 = [..(x is null)];
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "(x is null)").WithArguments("bool", "GetEnumerator").WithLocation(3, 18)
                 );
-#endif
         }
     }
 }
