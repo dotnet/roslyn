@@ -3,17 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Buffers;
-using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Pipelines;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -33,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private const int DefaultCopyBufferSize = 81920;
 
         private static readonly ObjectPool<Pipe> s_pipePool = new(() => new Pipe(new PipeOptions(
-            pool: new PinnedBlockMemoryPool(),
             readerScheduler: PipeScheduler.Inline,
             writerScheduler: PipeScheduler.Inline,
             minimumSegmentSize: DefaultCopyBufferSize)));
@@ -118,14 +113,14 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
         {
 
-            var pipe = s_pipePool.Allocate();
-            var succeeded = false;
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Kick off the work to do the writing to the pipe asynchronously.  It will start hot and will be able
                 // to do work as the reading side attempts to pull in the data it is writing.
+
+                var pipe = s_pipePool.Allocate();
 
                 var writeTask = WriteAsync(_callback, pipe.Writer);
                 var readTask = ReadAsync(pipe.Reader);
@@ -135,20 +130,23 @@ namespace Microsoft.CodeAnalysis.Remote
                 // use fire-and-forget here and avoids us having to consider things like async-tracking-tokens for
                 // testing purposes.
                 await Task.WhenAll(writeTask, readTask).ConfigureAwait(false);
-                succeeded = true;
-                return await readTask.ConfigureAwait(false);
+                var result = await readTask.ConfigureAwait(false);
+
+                // we can only get here if reading fully succeeded, which also means that writing fully succeeded. That
+                // means that both the pipe reader and writer are fully completed and nothing else will complete them.
+                //
+                // In this case, return the pipe to the pool since we know everything is done with this.  We *cannot* do
+                // this in the general case (where reading/writing failed for some reason).  See the comment in
+                // WriteAsync.  StreamJsonRPC may still touch the pipe after the fact which might cause corruption if we
+                // attempted to return it to the pool and allowed another call to have access to it.
+                pipe.Reset();
+                s_pipePool.Free(pipe);
+
+                return result;
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
                 throw new OperationCanceledIgnoringCallerTokenException(exception);
-            }
-            finally
-            {
-                if (succeeded)
-                {
-                    pipe.Reset();
-                    s_pipePool.Free(pipe);
-                }
             }
 
             async Task WriteAsync(T service, PipeWriter pipeWriter)
@@ -261,6 +259,5 @@ namespace Microsoft.CodeAnalysis.Remote
             // Indicates bug on client side or in serialization, report NFW and propagate the exception.
             return FatalError.ReportAndPropagate(exception);
         }
-
     }
 }
