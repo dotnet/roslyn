@@ -113,12 +113,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// cref="PipeReader"/>, but no harm will happen if it does.</param>
         /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
         public async ValueTask<TResult> InvokeAsync<TResult>(
-            Func<T, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<T, PipeWriter, CancellationToken, ValueTask<bool>> invocation,
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
 
             var pipe = s_pipePool.Allocate();
+            var succeeded = false;
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -134,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // use fire-and-forget here and avoids us having to consider things like async-tracking-tokens for
                 // testing purposes.
                 await Task.WhenAll(writeTask, readTask).ConfigureAwait(false);
+                succeeded = true;
                 return await readTask.ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
@@ -142,8 +144,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             finally
             {
-                pipe.Reset();
-                s_pipePool.Free(pipe);
+                if (succeeded)
+                {
+                    pipe.Reset();
+                    s_pipePool.Free(pipe);
+                }
             }
 
             async Task WriteAsync(T service, PipeWriter pipeWriter)
