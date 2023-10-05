@@ -4306,6 +4306,27 @@ public class Bar
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WpfFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70224")]
+        public void TestNotBeforeKeywordInSwitchExpression()
+        {
+            var code = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString$$ switch
+        {
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3
+        }
+    }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
