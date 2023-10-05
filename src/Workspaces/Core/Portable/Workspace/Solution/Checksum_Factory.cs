@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-#if !NET5_0_OR_GREATER
+#if !NET
 
         private static Checksum CreateUsingByteArrays(Checksum checksum1, Checksum checksum2)
         {
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis
             return Create(stream);
         }
 
-#if !NET5_0_OR_GREATER
+#if !NET
         private static void AppendData(SHA256 hash, byte[] buffer, string value)
         {
             var stringBytes = MemoryMarshal.AsBytes(value.AsSpan());
