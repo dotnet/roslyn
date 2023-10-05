@@ -137,6 +137,25 @@ internal partial class CSharpRecommendationService
                 }
             }
 
+            if (node.HasAncestor<IsPatternExpressionSyntax>() || node.Parent.IsKind(SyntaxKind.IsExpression))
+            {
+                // We are building a pattern expression, and thus we can only access either constants, types or namespaces
+                // For example, we are evaluating:
+                // - namespace qualification (e.g. `is System.$$`)
+                // - type qualification (e.g. `is Type.$$`, `is Type.Nested.$$`)
+                // - alias qualification (e.g. `is global::$$`)
+                // If we are after an 'is' keyword, `node.Parent` is a BinaryExpressionSyntax(SyntaxKind.IsExpression)
+                // If we are in any other scenario, `node` has an ancestor that is the IsPatternExpressionSyntax enclosing the pattern expression
+                return node switch
+                {
+                    MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
+                        => GetSymbolsOffOfExpressionInConstantPattern(memberAccess.Expression),
+                    QualifiedNameSyntax qualifiedName => GetSymbolsOffOfExpressionInConstantPattern(qualifiedName.Left),
+                    AliasQualifiedNameSyntax aliasName => GetSymbolsOffOfAlias(aliasName.Alias),
+                    _ => default,
+                };
+            }
+
             return node switch
             {
                 MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
@@ -147,7 +166,7 @@ internal partial class CSharpRecommendationService
                 // This code should be executing only if the cursor is between two dots in a `..` token.
                 RangeExpressionSyntax rangeExpression => GetSymbolsOffOfRangeExpression(rangeExpression),
                 QualifiedNameSyntax qualifiedName => GetSymbolsOffOfName(qualifiedName.Left),
-                AliasQualifiedNameSyntax aliasName => GetSymbolsOffOffAlias(aliasName.Alias),
+                AliasQualifiedNameSyntax aliasName => GetSymbolsOffOfAlias(aliasName.Alias),
                 MemberBindingExpressionSyntax => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
                 _ => default,
             };
@@ -227,7 +246,7 @@ internal partial class CSharpRecommendationService
             return ImmutableArray<ISymbol>.CastUp(symbols);
         }
 
-        private RecommendedSymbols GetSymbolsOffOffAlias(IdentifierNameSyntax alias)
+        private RecommendedSymbols GetSymbolsOffOfAlias(IdentifierNameSyntax alias)
         {
             var aliasSymbol = _context.SemanticModel.GetAliasInfo(alias, _cancellationToken);
             if (aliasSymbol == null)
@@ -464,6 +483,21 @@ internal partial class CSharpRecommendationService
                     : symbols.WhereAsArray(s => s.IsNamespace()));
             }
 
+            return new RecommendedSymbols(symbols);
+        }
+
+        private RecommendedSymbols GetSymbolsOffOfExpressionInConstantPattern(ExpressionSyntax? originalExpression)
+        {
+            if (originalExpression is null)
+                return default;
+
+            var boundSymbol = _context.SemanticModel.GetSymbolInfo(originalExpression, _cancellationToken).Symbol;
+
+            if (boundSymbol is not INamespaceOrTypeSymbol namespaceOrType)
+                return default;
+
+            var symbols = namespaceOrType.GetMembers()
+                .WhereAsArray(s => s is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true });
             return new RecommendedSymbols(symbols);
         }
 

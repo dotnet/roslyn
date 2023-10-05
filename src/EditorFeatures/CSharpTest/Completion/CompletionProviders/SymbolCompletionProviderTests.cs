@@ -12440,6 +12440,122 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "other");
         }
 
+        public static readonly IEnumerable<object[]> PatternMatchingPrecedingPatterns = new object[][]
+        {
+            ["is"],
+            ["is ("],
+            ["is not"],
+            ["is (not"],
+            ["is not ("],
+            ["is Constants.A and"],
+            ["is (Constants.A and"],
+            ["is Constants.A and ("],
+            ["is Constants.A and not"],
+            ["is (Constants.A and not"],
+            ["is Constants.A and (not"],
+            ["is Constants.A and not ("],
+            ["is Constants.A or"],
+            ["is (Constants.A or"],
+            ["is Constants.A or ("],
+            ["is Constants.A or not"],
+            ["is (Constants.A or not"],
+            ["is Constants.A or (not"],
+            ["is Constants.A or not ("],
+        };
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_01(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} Constants.$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "D");
+            await VerifyItemIsAbsentAsync(source, "M");
+            await VerifyItemExistsAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_02(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} Constants.R.$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemIsAbsentAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "D");
+            await VerifyItemIsAbsentAsync(source, "M");
+            await VerifyItemIsAbsentAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_03(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} $$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemExistsAsync(source, "Constants");
+            await VerifyItemExistsAsync(source, "System");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_04(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} global::$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            // In scripts, we also get a Script class containing our defined types
+            await VerifyItemExistsAsync(source, "C", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "Constants", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "System");
+        }
+
+        private static string WrapPatternMatchingSource(string returnedExpression)
+        {
+            return $$"""
+                class C
+                {
+                    bool M(string input)
+                    {
+                {{returnedExpression}}
+                    }
+                }
+
+                public static class Constants
+                {
+                    public const string
+                        A = "a",
+                        B = "b",
+                        C = "c";
+
+                    public static readonly string D = "d";
+                    public static string E => "e";
+
+                    public static void M() { }
+
+                    public record R
+                    {
+                        public const string
+                            A = "a",
+                            B = "b";
+
+                        public static readonly string D = "d";
+                        public static string E => "e";
+
+                        public static void M() { }
+                    }
+                }
+                """;
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""
