@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
+                // Send events for cached analyzers as a batch. The preceding loop is expected to quickly aggregate
+                // results from cached analyzers, since it will not wait for analyzers that are not already complete.
                 AnalyzerService.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
 
                 // Then, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
@@ -99,6 +101,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                         PersistAndAddDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), computedData, analyzer, state);
 
+                        // Send events for non-cached analyzers as soon as they complete, to avoid delaying error list
+                        // updates when a subset of the analyzers takes a noticeably longer time to complete.
                         AnalyzerService.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
                     }
                 }
