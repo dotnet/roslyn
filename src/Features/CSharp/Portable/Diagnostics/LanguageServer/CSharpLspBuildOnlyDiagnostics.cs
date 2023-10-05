@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS9160", // ErrorCode.ERR_InterceptorCannotInterceptNameof
         "CS9163", // ErrorCode.ERR_SymbolDefinedInAssembly
         "CS9177", // ErrorCode.ERR_InterceptorArityNotCompatible
-        "CS9178" // ErrorCode.ERR_InterceptorCannotBeGeneric
+        "CS9178", // ErrorCode.ERR_InterceptorCannotBeGeneric
+        "CS9207" // ErrorCode.ERR_InterceptableMethodMustBeOrdinary
         )]
     [Shared]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics

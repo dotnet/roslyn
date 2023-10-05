@@ -405,6 +405,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static ImmutableArray<NamedTypeSymbol> GetAllInterfacesOrEffectiveInterfaces(this TypeSymbol type)
+        {
+            switch (type.TypeKind)
+            {
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                    return type.AllInterfacesNoUseSiteDiagnostics;
+
+                case TypeKind.TypeParameter:
+                    {
+                        var typeParameter = (TypeParameterSymbol)type;
+                        return typeParameter.EffectiveBaseClassNoUseSiteDiagnostics.AllInterfacesNoUseSiteDiagnostics.Concat(typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics);
+                    }
+                default:
+                    return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+        }
+
         // If the type is a delegate type, it returns it. If the type is an
         // expression tree type associated with a delegate type, it returns
         // the delegate type. Otherwise, null.

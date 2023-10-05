@@ -579,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedInterpolatedString">
         <source>Expected interpolated string</source>
-        <target state="new">Expected interpolated string</target>
+        <target state="translated">보간된 문자열이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -942,6 +942,11 @@
         <target state="translated">인터페이스의 인스턴스 속성은 이니셜라이저를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="translated">'{0}'은(는) 일반 멤버 메서드의 호출이 아니므로 가로챌 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
         <target state="translated">메서드 '{0}' 제네릭이 아니거나 '{2}' 일치시킬 진법 {1} 있어야 합니다.</target>
@@ -979,7 +984,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorGlobalNamespace">
         <source>An interceptor cannot be declared in the global namespace.</source>
-        <target state="new">An interceptor cannot be declared in the global namespace.</target>
+        <target state="translated">전역 네임스페이스에서 인터셉터를 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
@@ -1059,7 +1064,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</target>
+        <target state="translated">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -4166,7 +4171,7 @@
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">생성기 '{0}'이(가) 소스를 생성하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.
@@ -4181,7 +4186,7 @@
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">생성기 '{0}'이(가) 초기화하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.

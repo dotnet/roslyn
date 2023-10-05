@@ -7602,6 +7602,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorGlobalNamespace" xml:space="preserve">
     <value>An interceptor cannot be declared in the global namespace.</value>
   </data>
+  <data name="ERR_InterceptableMethodMustBeOrdinary" xml:space="preserve">
+    <value>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</value>
+  </data>
   <data name="ERR_InterceptorContainingTypeCannotBeGeneric" xml:space="preserve">
     <value>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</value>
   </data>

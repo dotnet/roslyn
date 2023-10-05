@@ -616,7 +616,7 @@
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">生成器“{0}”未能生成源。它不会影响输出，因此可能会造成编译错误。异常的类型为“{1}”，显示消息“{2}”.
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.
@@ -631,7 +631,7 @@
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">生成器“{0}”未能初始化。它不会影响输出，因此可能会造成编译错误。异常的类型为“{1}”，显示消息“{2}”。
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.
