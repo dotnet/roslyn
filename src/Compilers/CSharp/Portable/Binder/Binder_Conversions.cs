@@ -782,10 +782,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
-            var elementType = elementTypeWithAnnotations.Type;
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
-                Debug.Assert(elementType is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
+                Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
                 if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
                 {
                     Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
@@ -794,6 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(elementTypeWithAnnotations.HasType);
             }
 
+            var elementType = elementTypeWithAnnotations.Type;
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT
                 && findSingleIEnumerableTImplementation(targetType, Compilation) is { } implementation)
             {
