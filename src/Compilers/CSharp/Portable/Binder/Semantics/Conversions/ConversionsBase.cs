@@ -1624,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
         }
 
-        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
         {
             Debug.Assert(compilation is { });
 
@@ -1632,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arrayType.IsSZArray)
                 {
-                    elementType = arrayType.ElementType;
+                    elementType = arrayType.ElementTypeWithAnnotations;
                     return CollectionExpressionTypeKind.Array;
                 }
             }
@@ -1659,7 +1659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
             {
-                elementType = null;
+                elementType = default;
                 return CollectionExpressionTypeKind.ImplementsIEnumerableT;
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
@@ -1670,27 +1670,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
                 // to check for nullable to disallow: Nullable<StructCollection> s = [];
                 // Instead, we just walk the implemented interfaces.
-                elementType = null;
+                elementType = default;
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
-            else if (destination.IsArrayInterface(out TypeWithAnnotations typeArg))
+            else if (destination.IsArrayInterface(out elementType))
             {
-                elementType = typeArg.Type;
                 return CollectionExpressionTypeKind.ArrayInterface;
             }
 
-            elementType = null;
+            elementType = default;
             return CollectionExpressionTypeKind.None;
 
-            static bool isSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            static bool isSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 1 } namedType
                     && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
                 {
-                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                     return true;
                 }
-                elementType = null;
+                elementType = default;
                 return false;
             }
 

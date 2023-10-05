@@ -8514,11 +8514,16 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/68786: // 2 should be reported as a warning (compare with array initializer: new object[] { null }).
             comp.VerifyEmitDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(7, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(7, 9),
+                // (8,23): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         object[] y = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 23),
+                // (10,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = [2, null]; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 17));
         }
 
         [Fact]
@@ -8545,11 +8550,16 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/68786: // 2 and 3 should be reported as warnings.
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9),
+                // (9,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         List<object> y = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 27),
+                // (11,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = [2, null]; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 17));
         }
 
         [Fact]
@@ -21725,6 +21735,837 @@ partial class Program
                   IL_005c:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void ElementNullability_ArrayCollection()
+        {
+            string src = """
+                #nullable enable
+                string[] x1 = [null];
+                string?[] x2 = [null];
+
+                #nullable disable
+                string[]
+                #nullable enable
+                    x3 = [null];
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // string[] x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 16)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_ArrayCollection_Nested()
+        {
+            string src = """
+                #nullable enable
+                string[][] x1 = [[null]];
+                string?[][] x2 = [[null]];
+
+                #nullable disable
+                string[][]
+                #nullable enable
+                    x3 = [[null]];
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // string[][] x1 = [[null]];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_ArrayCollection_NullableValueTypes()
+        {
+            string src = """
+                #nullable enable
+                int[] x1 = [null];
+                int?[] x2 = [null];
+
+                #nullable disable
+                int[]
+                #nullable enable
+                    x3 = [null];
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,13): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                // int[] x1 = [null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(2, 13),
+                // (2,13): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
+                // int[] x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(2, 13),
+                // (8,11): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //     x3 = [null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 11),
+                // (8,11): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
+                //     x3 = [null];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(8, 11)
+                );
+        }
+
+        [Theory]
+        [InlineData("System.Span")]
+        [InlineData("System.ReadOnlySpan")]
+        public void ElementNullability_SpanCollection(string spanType)
+        {
+            string src = $$"""
+                #nullable enable
+                {{spanType}}<string?> x1 = [null];
+                {{spanType}}<string> x2 = [null];
+
+                #nullable disable
+                {{spanType}}<string>
+                #nullable enable
+                    x3 = [null];
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+               // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+               // System.ReadOnlySpan<string> x2 = [null];
+               Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+               );
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_Generic()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection<string?> x1 = [null];
+                MyCollection<string> x2 = [null];
+
+                #nullable disable
+                MyCollection<string>
+                #nullable enable
+                    x3 = [null];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // MyCollection<string> x2 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_Nullable()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection<string?>? x1 = [null];
+                MyCollection<string>? x2 = [null];
+
+                #nullable disable
+                MyCollection<string>?
+                #nullable enable
+                    x3 = [null];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,29): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // MyCollection<string>? x2 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 29)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_NullableElements()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection<int?>? x1 = [null];
+                MyCollection<int>? x2 = [0];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_NonNullableString()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection x1 = [null];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection : IEnumerable<string>
+                {
+                    private readonly List<string> _list;
+                    public MyCollection(List<string> list) { _list = list; }
+                    public IEnumerator<string> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection Create(ReadOnlySpan<string> items) // non-nullable string
+                    {
+                        return new MyCollection(new List<string>(items.ToArray()));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // MyCollection x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 20)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_NullableString()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection x1 = [null];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection : IEnumerable<string?>
+                {
+                    private readonly List<string?> _list;
+                    public MyCollection(List<string?> list) { _list = list; }
+                    public IEnumerator<string?> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection Create(ReadOnlySpan<string?> items) // nullable string
+                    {
+                        return new MyCollection(new List<string?>(items.ToArray()));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_ConstrainedCreate()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection<string?> x1 = [null];
+                MyCollection<string> x2 = [null];
+
+                #nullable disable
+                MyCollection<string>
+                #nullable enable
+                    x3 = [null];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) where T : notnull
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            // Note: we warn on x3 because the of type substitution rules for oblivious type argument
+            //   into Create method with MyCollection<T!> return type
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // MyCollection<string?> x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
+                // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // MyCollection<string> x2 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28),
+                // (13,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     x3 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 11)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_NotNullCreate()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection<string?> x1 = [null];
+                MyCollection<string> x2 = [null];
+
+                #nullable disable
+                MyCollection<string>
+                #nullable enable
+                    x3 = [null];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T?> items) where T : notnull
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T?>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // MyCollection<string?> x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_InInference()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                M("hi", [null]);
+                M((string?)null, [null]);
+
+                void M<T>(T t, MyCollection<T> mc) { }
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            // https://github.com/dotnet/roslyn/issues/68786: Incorrect symbols (nullability wasn't updated)
+            Assert.Equal("""M("hi", [null])""", invocations[0].ToString());
+            Assert.Equal("void M<System.String>(System.String t, MyCollection<System.String> mc)",
+                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            Assert.Equal("M((string?)null, [null])", invocations[1].ToString());
+            Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_InInference_WithExactBounds()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                string notNull = "hi";
+                M(ref notNull, [null]); // 1
+
+                string? maybeNull = null;
+                M(ref maybeNull, [null]);
+
+                void M<T>(ref T t, MyCollection<T> mc) { }
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/68786: missing diagnostics
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            Assert.Equal("M(ref notNull, [null])", invocations[0].ToString());
+            Assert.Equal("void M<System.String!>(ref System.String! t, MyCollection<System.String!> mc)",
+                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            Assert.Equal("M(ref maybeNull, [null])", invocations[1].ToString());
+            Assert.Equal("void M<System.String?>(ref System.String? t, MyCollection<System.String?> mc)",
+                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_Var()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                string notNullString = "hi";
+                var notNull = M(notNullString);
+                notNull = [null]; // 1
+
+                string? maybeNullString = null;
+                var maybeNull = M(maybeNullString);
+                maybeNull = [null];
+
+                #nullable disable
+                string obliviousString = null;
+                #nullable enable
+
+                var oblivious = M(obliviousString);
+                oblivious = [null];
+
+                MyCollection<T> M<T>(T t) => throw null!;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/68786: Missing diagnostic for 1
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_InInference_SingleParameter()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                M([(string?)null]);
+                M(["hi"]);
+                M(["hi", null]);
+
+                void M<T>(MyCollection<T> mc) { }
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            // https://github.com/dotnet/roslyn/issues/68786: Incorrect symbols (nullability wasn't updated)
+            Assert.Equal("M([(string?)null])", invocations[0].ToString());
+            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
+                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            Assert.Equal("""M(["hi"])""", invocations[1].ToString());
+            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
+                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            Assert.Equal("""M(["hi", null])""", invocations[2].ToString());
+            Assert.Equal("void M<System.String>(MyCollection<System.String> mc)",
+                model.GetSymbolInfo(invocations[2]).Symbol.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_NullReturningCreate()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection<string?> x1 = [null];
+                MyCollection<string> x2 = [null];
+
+                #nullable disable
+                MyCollection<string>
+                #nullable enable
+                    x3 = [null];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T>? Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (7,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // MyCollection<string?> x1 = [null];
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "[null]").WithLocation(7, 28),
+                // (8,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // MyCollection<string> x2 = [null];
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "[null]").WithLocation(8, 27),
+                // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // MyCollection<string> x2 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionBuilderCollection_NullReturningCreate_WithAttribute()
+        {
+            string src = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                #nullable enable
+                MyCollection<string?> x1 = [null];
+                MyCollection<string> x2 = [null];
+
+                #nullable disable
+                MyCollection<string>
+                #nullable enable
+                    x3 = [null];
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                public class MyCollectionBuilder
+                {
+                    [return: System.Diagnostics.CodeAnalysis.NotNull]
+                    public static MyCollection<T>? Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()!));
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // MyCollection<string> x2 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_CollectionInitializerCollection()
+        {
+            string src = """
+                using System.Collections;
+
+                #nullable enable
+
+                CNotNull x1 = [null]; // 1
+                CNullable x2 = [null];
+                COblivious x3 = [null];
+
+                class CNotNull : IEnumerable
+                {
+                    public CNotNull() { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(string s) { }
+                }
+
+                class CNullable : IEnumerable
+                {
+                    public CNullable() { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(string? s) { }
+                }
+
+                class COblivious : IEnumerable
+                {
+                    public COblivious() { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                #nullable disable
+                    public void Add(string s) { }
+                }
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (5,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // CNotNull x1 = [null]; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 16)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_InterfaceTypeCollection()
+        {
+            string src = """
+                using System.Collections.Generic;
+
+                #nullable enable
+                IEnumerable<string?> x1 = [null];
+                IEnumerable<string> x2 = [null];
+
+                #nullable disable
+                IEnumerable<string>
+                #nullable enable
+                    x3 = [null];
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (5,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // IEnumerable<string> x2 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 27)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_NoConversion()
+        {
+            string src = """
+                #nullable enable
+                int[] x = [null];
+                int y = null;
+                """;
+
+            // Note: the nullability diagnostic is superfluous and results from the bound tree
+            //   not containing element conversions in the error case.
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,12): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                // int[] x = [null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(2, 12),
+                // (2,12): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
+                // int[] x = [null];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(2, 12),
+                // (3,9): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                // int y = null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(3, 9)
+                );
+        }
+
+        [Fact]
+        public void ElementNullability_CheckExpressions()
+        {
+            string src = """
+                #nullable enable
+                object? o = null;
+                string[] x = [o.ToString()];
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (3,15): warning CS8602: Dereference of a possibly null reference.
+                // string[] x = [o.ToString()];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(3, 15)
+                );
+        }
+
+        [Fact]
+        public void SpreadNullability()
+        {
+            string src = """
+                #nullable enable
+                string[]? x1 = null;
+                string[] x2 = new string[0];
+
+                string[] y1 = [.. x1];
+                string[] y2 = [.. x2];
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/68786: We should check the spreads
+            CreateCompilation(src).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void SpreadNullability_CheckExpressions()
+        {
+            string src = """
+                #nullable enable
+                string[] y1 = [.. M(null)];
+                string[] y2 = [.. M(new object())];
+
+                string[] M(object o) => throw null!;
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // string[] y1 = [.. M(null)];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 21)
+                );
+        }
+
+        [Fact]
+        public void SpreadNullability_SplitExpression()
+        {
+            // https://github.com/dotnet/roslyn/issues/68786: We should check the spreads without asserting in DebugVerifier
+            string src = """
+                #nullable enable
+                object x = "";
+                object[] y1 = [..(x is null)];
+                """;
+
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (3,18): error CS1579: foreach statement cannot operate on variables of type 'bool' because 'bool' does not contain a public instance or extension definition for 'GetEnumerator'
+                // object[] y1 = [..(x is null)];
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "(x is null)").WithArguments("bool", "GetEnumerator").WithLocation(3, 18)
+                );
         }
     }
 }
