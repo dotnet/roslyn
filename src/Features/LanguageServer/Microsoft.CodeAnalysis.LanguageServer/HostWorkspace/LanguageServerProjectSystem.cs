@@ -6,8 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,7 +14,6 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -29,11 +26,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class LanguageServerProjectSystem
 {
     /// <summary>
-    /// A single gate for code that is adding work to <see cref="_projectsToLoadAndReload" /> and modifying <see cref="_msbuildLoaded" />.
-    /// This is just we don't have code simultaneously trying to load and unload solutions at once.
+    /// A single gate for code that is adding work to <see cref="_projectsToLoadAndReload" />. This is just we don't have code simultaneously trying to load and unload solutions at once.
     /// </summary>
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-    private bool _msbuildLoaded = false;
 
     /// <summary>
     /// The suffix to use for the binary log name; incremented each time we have a new build. Should be incremented with <see cref="Interlocked.Increment(ref int)"/>.
@@ -89,27 +84,23 @@ internal sealed class LanguageServerProjectSystem
 
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
-        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!))
-            await OpenSolutionCoreAsync(solutionFilePath);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
-    private async Task OpenSolutionCoreAsync(string solutionFilePath)
-    {
         using (await _gate.DisposableWaitAsync())
         {
             _logger.LogInformation($"Loading {solutionFilePath}...");
-            var solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(solutionFilePath);
             _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
 
-            foreach (var project in solutionFile.ProjectsInOrder)
-            {
-                if (project.ProjectType == Microsoft.Build.Construction.SolutionProjectType.SolutionFolder)
-                {
-                    continue;
-                }
+            // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
+            // and we don't want any MSBuild registration to set environment variables in our process that might impact child processes.
+            await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory);
+            var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetCore, CancellationToken.None);
 
-                _projectsToLoadAndReload.AddWork(new ProjectToLoad(project.AbsolutePath, project.ProjectGuid));
+            // If we don't have a .NET Core SDK on this machine at all, try .NET Framework
+            if (!await buildHost.HasUsableMSBuildAsync(solutionFilePath, CancellationToken.None))
+                buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetFramework, CancellationToken.None);
+
+            foreach (var project in await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None))
+            {
+                _projectsToLoadAndReload.AddWork(new ProjectToLoad(project.ProjectPath, project.ProjectGuid));
             }
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
@@ -133,39 +124,6 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    private async Task<bool> TryEnsureMSBuildLoadedAsync(string workingDirectory)
-    {
-        using (await _gate.DisposableWaitAsync())
-        {
-            if (_msbuildLoaded)
-            {
-                return true;
-            }
-            else
-            {
-                var msbuildDiscoveryOptions = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = workingDirectory };
-                var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(msbuildDiscoveryOptions);
-                var msbuildInstance = msbuildInstances.FirstOrDefault();
-
-                if (msbuildInstance != null)
-                {
-                    MSBuildLocator.RegisterInstance(msbuildInstance);
-                    _logger.LogInformation($"Loaded MSBuild in-process from {msbuildInstance.MSBuildPath}");
-                    _msbuildLoaded = true;
-
-                    return true;
-                }
-                else
-                {
-                    _logger.LogError($"Unable to find a MSBuild to use to load {workingDirectory}.");
-                    await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, LanguageServerResources.There_were_problems_loading_your_projects_See_log_for_details, CancellationToken.None, ShowToastNotification.ShowCSharpLogsCommand);
-
-                    return false;
-                }
-            }
-        }
-    }
-
     private async ValueTask LoadOrReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectPathsToLoadOrReload, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -173,13 +131,8 @@ internal sealed class LanguageServerProjectSystem
         // TODO: support configuration switching
 
         var binaryLogPath = GetMSBuildBinaryLogPath();
-        var runBuildInProcess = _globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadInProcess);
 
-        if (runBuildInProcess)
-            _logger.LogInformation("In-process project loading is enabled.");
-
-        await using var buildHostProcessManager = !runBuildInProcess ? new BuildHostProcessManager(_loggerFactory, binaryLogPath) : null;
-        var inProcessBuildHost = runBuildInProcess ? new BuildHost(_loggerFactory, binaryLogPath) : null;
+        await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory, binaryLogPath);
 
         var displayedToast = 0;
 
@@ -191,7 +144,7 @@ internal sealed class LanguageServerProjectSystem
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, inProcessBuildHost, cancellationToken);
+                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
                     if (errorKind is LSP.MessageType.Error)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
@@ -210,9 +163,6 @@ internal sealed class LanguageServerProjectSystem
         finally
         {
             _logger.LogInformation($"Completed (re)load of all projects in {stopwatch.Elapsed}");
-
-            if (inProcessBuildHost != null)
-                await inProcessBuildHost.ShutdownAsync();
         }
     }
 
@@ -229,14 +179,13 @@ internal sealed class LanguageServerProjectSystem
         return binaryLogPath;
     }
 
-    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager? buildHostProcessManager, BuildHost? inProcessBuildHost, CancellationToken cancellationToken)
+    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         try
         {
             var projectPath = projectToLoad.Path;
 
-            // If we have a process manager, then get an OOP process; otherwise we're still using in-proc builds so just fetch one in-process
-            var buildHost = inProcessBuildHost ?? await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
+            var buildHost = await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
 
             if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
             {

@@ -48,20 +48,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Debug.Assert(assetMap != null);
 
-            var count = 0;
             foreach (var checksum in checksums)
             {
                 var asset = assetMap[checksum];
 
+                // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the
+                // pipe for the reader on the other side to read.  This allows the item-writing to remain entirely
+                // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
+                // entire stream of data into the pipe before it gets sent to the other side.
                 WriteAsset(writer, serializer, context, asset, cancellationToken);
-
-                // Flush every so often.  We don't want to flush on each write as that can be expensive.  But we also
-                // want to push reasonable chunks of data across the pipe so the host can start reading them.
-                // Note: our caller will flush teh remaining data at the end as well.
-                if (count % 512 == 0)
-                    await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-                count++;
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return;
@@ -78,17 +74,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static async ValueTask<ImmutableArray<object>> ReadDataAsync(
-            PipeReader pipeReader, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-            return ReadData(stream, solutionChecksum, checksums, serializerService, cancellationToken);
+            return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
         }
 
-        public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
-
-            using var _ = ArrayBuilder<object>.GetInstance(checksums.Length, out var results);
+            using var _ = ArrayBuilder<object>.GetInstance(objectCount, out var results);
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
@@ -97,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var responseSolutionChecksum = Checksum.ReadFrom(reader);
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
 
-            for (int i = 0, n = checksums.Length; i < n; i++)
+            for (int i = 0, n = objectCount; i < n; i++)
             {
                 var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 

@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assetCache.TryGetAsset<object>(checksum, out _);
         }
 
-        public async ValueTask SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeAssetsAsync(HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
+            Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
             if (checksums.Count == 0)
                 return;
 
