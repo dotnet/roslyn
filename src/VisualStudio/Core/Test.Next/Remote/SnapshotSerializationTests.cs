@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
 
-            Assert.NotNull(checksum);
+            Assert.True(checksum != Checksum.Null);
         }
 
         [Fact]
