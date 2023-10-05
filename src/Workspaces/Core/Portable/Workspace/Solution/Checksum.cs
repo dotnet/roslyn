@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
         public void WriteTo(Span<byte> span)
         {
             Contract.ThrowIfFalse(span.Length >= HashSize);
-            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in this)));
+            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(this)));
         }
 
         public static Checksum ReadFrom(ObjectReader reader)
