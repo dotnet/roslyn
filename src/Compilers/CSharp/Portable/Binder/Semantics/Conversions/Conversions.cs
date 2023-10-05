@@ -173,9 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            Debug.Assert(collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableT 
-                || elementType is { });
-
             var elements = node.Elements;
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
