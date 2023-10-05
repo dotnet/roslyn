@@ -247,7 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundKind.ObjectInitializerExpression,
             BoundKind.CollectionInitializerExpression,
             BoundKind.DynamicCollectionElementInitializer);
-
 #endif
 
         /// <summary>
