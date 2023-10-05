@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Debug.Assert(assetMap != null);
 
+            var count = 0;
             foreach (var checksum in checksums)
             {
                 var asset = assetMap[checksum];
@@ -57,7 +58,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
                 // entire stream of data into the pipe before it gets sent to the other side.
                 WriteAsset(writer, serializer, context, asset, cancellationToken);
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+                // Flush every so often.  We don't want to flush on each write as that can be expensive.  But we also
+                // want to push reasonable chunks of data across the pipe so the host can start reading them.
+                // Note: our caller will flush teh remaining data at the end as well.
+                if (++count % 512 == 0)
+                    await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return;
