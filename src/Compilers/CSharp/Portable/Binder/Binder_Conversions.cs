@@ -616,8 +616,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var elements = node.Elements;
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
+            BoundValuePlaceholder? ensureCapacityArgumentPlaceholder = null;
+            BoundExpression? ensureCapacityInvocation = null;
 
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
             {
@@ -640,33 +643,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
                 }
-            }
-            else if ((collectionTypeKind == CollectionExpressionTypeKind.ListInterface && isListInterfaceThatRequiresList(targetType)) ||
-                elements.Any(e => e is BoundCollectionExpressionSpreadElement)) // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
-            {
-                Debug.Assert(elementType is { });
 
-                var implicitReceiverType = GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, node.Syntax).Construct(elementType);
-                implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, implicitReceiverType) { WasCompilerGenerated = true };
-
-                var analyzedArguments = AnalyzedArguments.GetInstance();
-                // https://github.com/dotnet/roslyn/issues/68785: Use well-known List<T> constructor directly
-                // rather than lookup, and use the constructor with `int capacity` when the size is known.
-                collectionCreation = BindClassCreationExpression(syntax, implicitReceiver!.Type.Name, syntax, implicitReceiverType, analyzedArguments, diagnostics);
-                collectionCreation.WasCompilerGenerated = true;
-                analyzedArguments.Free();
-
-                if (collectionTypeKind != CollectionExpressionTypeKind.ListInterface)
-                {
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
-                }
-            }
-
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
-
-            if (implicitReceiver is { })
-            {
+                // PROTOTYPE: What does BinderFlags.CollectionInitializerAddMethod do,
+                // and does that apply for EnsureCapacity as well?
                 var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+
+                // Bind to an applicable EnsureCapacity() method since lowering might use it.
+                if (!node.HasSpreadElements(out _, out bool hasKnownLength) || hasKnownLength)
+                {
+                    var invocationDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
+                    if (collectionInitializerAddMethodBinder.TryBindEnsureCapacity(
+                        node,
+                        implicitReceiver,
+                        invocationDiagnostics,
+                        out ensureCapacityArgumentPlaceholder,
+                        out ensureCapacityInvocation))
+                    {
+                        diagnostics.AddRange(invocationDiagnostics);
+                    }
+                    invocationDiagnostics.Free();
+                }
+
                 foreach (var element in elements)
                 {
                     BoundExpression convertedElement = BindCollectionExpressionElementAddMethod(
@@ -680,6 +677,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (collectionTypeKind == CollectionExpressionTypeKind.ListInterface ||
+                    node.HasSpreadElements(out _, out _))
+                {
+                    // Verify the existence of the List<T> members that may be used in lowering, even
+                    // though not all will be used for any particular collection expression. Checking all
+                    // gives a consistent behavior, regardless of collection expression elements.
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
+                }
+
                 var elementConversions = conversion.UnderlyingConversions;
 
                 Debug.Assert(elementType is { });
@@ -690,15 +698,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var element = elements[i];
                     var elementConversion = elementConversions[i];
-                    var convertedElement = CreateConversion(
-                        element.Syntax,
-                        element,
-                        elementConversion,
-                        isCast: false,
-                        conversionGroupOpt: null,
-                        wasCompilerGenerated: true,
-                        destination: elementType,
-                        diagnostics);
+                    var convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
+                        bindSpreadElement(
+                            spreadElement,
+                            elementType,
+                            elementConversion,
+                            diagnostics) :
+                        CreateConversion(
+                            element.Syntax,
+                            element,
+                            elementConversion,
+                            isCast: false,
+                            conversionGroupOpt: null,
+                            wasCompilerGenerated: true,
+                            destination: elementType,
+                            diagnostics);
                     builder.Add(convertedElement!);
                 }
             }
@@ -708,22 +722,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
+                ensureCapacityArgumentPlaceholder,
+                ensureCapacityInvocation,
                 collectionBuilderMethod,
                 collectionBuilderInvocationPlaceholder,
                 collectionBuilderInvocationConversion,
                 builder.ToImmutableAndFree(),
                 targetType);
 
-            static bool isListInterfaceThatRequiresList(TypeSymbol targetType)
+            BoundExpression bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
             {
-                return targetType is not
-                {
-                    OriginalDefinition.SpecialType:
-                        SpecialType.System_Collections_Generic_IEnumerable_T or
-                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
-                        SpecialType.System_Collections_Generic_IReadOnlyList_T
-                };
+                var enumeratorInfo = element.EnumeratorInfoOpt;
+                Debug.Assert(enumeratorInfo is { });
+                Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
+
+                var elementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+                var convertElement = CreateConversion(
+                    element.Syntax,
+                    elementPlaceholder,
+                    elementConversion,
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    wasCompilerGenerated: true,
+                    destination: elementType,
+                    diagnostics);
+                return element.Update(
+                    element.Expression,
+                    expressionPlaceholder: element.ExpressionPlaceholder,
+                    conversion: element.Conversion,
+                    enumeratorInfo,
+                    elementPlaceholder: elementPlaceholder,
+                    iteratorBody: new BoundExpressionStatement(syntax, convertElement) { WasCompilerGenerated = true },
+                    lengthOrCount: element.LengthOrCount);
             }
+        }
+
+        private bool TryBindEnsureCapacity(
+            BoundUnconvertedCollectionExpression node,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics,
+            out BoundValuePlaceholder? argumentPlaceholder,
+            out BoundExpression? invocation)
+        {
+            var syntax = node.Syntax;
+            var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, syntax);
+            argumentPlaceholder = new BoundValuePlaceholder(syntax, intType);
+            invocation = MakeInvocationExpression(
+                syntax,
+                implicitReceiver,
+                "EnsureCapacity",
+                ImmutableArray.Create<BoundExpression>(argumentPlaceholder),
+                diagnostics);
+            if (invocation.HasErrors) // PROTOTYPE: This seems too fragile.
+            {
+                argumentPlaceholder = null;
+                invocation = null;
+                return false;
+            }
+            return true;
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
@@ -755,6 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
+                ensureCapacityArgumentPlaceholder: null,
+                ensureCapacityInvocation: null,
                 collectionBuilderMethod: null,
                 collectionBuilderInvocationPlaceholder: null,
                 collectionBuilderInvocationConversion: null,

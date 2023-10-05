@@ -4171,6 +4171,29 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
+                // System_Collections_Generic_List_T__ctor
+                (byte)MemberFlags.Constructor,                                                                                               // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    0,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
+                // System_Collections_Generic_List_T__ctorInt32
+                (byte)MemberFlags.Constructor,                                                                                               // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    1,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Collections_Generic_List_T__Add
+                (byte)MemberFlags.Method,                                                           // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                 // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
                 // System_Collections_Generic_List_T__Count
                 (byte)MemberFlags.Property,                                                         // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
@@ -4734,6 +4757,9 @@ namespace Microsoft.CodeAnalysis
                 "IndexOf",                                  // System_Collections_Generic_IList_T__IndexOf,
                 "Insert",                                   // System_Collections_Generic_IList_T__Insert,
                 "RemoveAt",                                 // System_Collections_Generic_IList_T__RemoveAt,
+                ".ctor",                                    // System_Collections_Generic_List_T__ctor,
+                ".ctor",                                    // System_Collections_Generic_List_T__ctorInt32,
+                "Add",                                      // System_Collections_Generic_List_T__Add
                 "Count",                                    // System_Collections_Generic_List_T__Count,
                 "Contains",                                 // System_Collections_Generic_List_T__Contains,
                 "CopyTo",                                   // System_Collections_Generic_List_T__CopyTo,
