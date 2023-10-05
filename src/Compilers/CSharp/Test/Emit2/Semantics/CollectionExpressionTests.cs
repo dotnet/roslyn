@@ -1248,15 +1248,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("System.Span<T>", "System.Collections.Generic.IReadOnlyList<T>", "System.Span<System.Int32>")]
         [InlineData("System.Span<T>", "System.Collections.Generic.ICollection<T>", "System.Span<System.Int32>")]
         [InlineData("System.Span<T>", "System.Collections.Generic.IList<T>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<T>", "System.Collections.Generic.HashSet<T>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<T>", "System.ReadOnlySpan<object>", null)] // rule requires ref struct and non- ref struct
-        [InlineData("RefStructCollection<T>", "T[]", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection })]
-        [InlineData("RefStructCollection<T>", "RefStructCollection<object>", null, new[] { example_RefStructCollection })] // rule requires ref struct and non- ref struct
-        [InlineData("RefStructCollection<int>", "GenericClassCollection<object>", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection, example_GenericClassCollection })]
+        [InlineData("System.ReadOnlySpan<T>", "T[]", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.Collections.Generic.IEnumerable<T>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.Collections.Generic.IReadOnlyCollection<T>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.Collections.Generic.IReadOnlyList<T>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.Collections.Generic.ICollection<T>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.Collections.Generic.IList<T>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.Span<T>", "System.Collections.Generic.HashSet<T>", null)] // rule requires array or array interface
+        [InlineData("System.Span<T>", "System.ReadOnlySpan<object>", null)] // rule requires array or array interface
+        [InlineData("RefStructCollection<T>", "T[]", null, new[] { example_RefStructCollection })] // rule requires span
+        [InlineData("RefStructCollection<T>", "RefStructCollection<object>", null, new[] { example_RefStructCollection })] // rule requires span
+        [InlineData("RefStructCollection<int>", "GenericClassCollection<object>", null, new[] { example_RefStructCollection, example_GenericClassCollection })] // rule requires span
         [InlineData("RefStructCollection<object>", "GenericClassCollection<int>", null, new[] { example_RefStructCollection, example_GenericClassCollection })] // cannot convert object to int
-        [InlineData("RefStructCollection<int>", "NonGenericClassCollection", "RefStructCollection<System.Int32>", new[] { example_RefStructCollection, example_NonGenericClassCollection })]
-        [InlineData("GenericClassCollection<T>", "T[]", null, new[] { example_GenericClassCollection })] // rule requires ref struct
-        [InlineData("NonGenericClassCollection", "object[]", null, new[] { example_NonGenericClassCollection })] // rule requires ref struct
+        [InlineData("RefStructCollection<int>", "NonGenericClassCollection", null, new[] { example_RefStructCollection, example_NonGenericClassCollection })] // rule requires span
+        [InlineData("GenericClassCollection<T>", "T[]", null, new[] { example_GenericClassCollection })] // rule requires span
+        [InlineData("NonGenericClassCollection", "object[]", null, new[] { example_NonGenericClassCollection })] // rule requires span
         [InlineData("System.ReadOnlySpan<T>", "object[]", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "long[]", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "short[]", null)] // cannot convert int to short
@@ -1271,10 +1277,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", null)] // cannot convert between ReadOnlySpan<object> and ReadOnlySpan<long>
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<string>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IEnumerable<int?>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyCollection<int?>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyList<int?>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", "System.Span<System.Int32>")]
         [InlineData("System.Span<int?>", "int[]", null)] // cannot convert int? to int
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IEnumerable<int>", null)] // cannot convert int? to int
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyCollection<int>", null)] // cannot convert int? to int
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyList<int>", null)] // cannot convert int? to int
+        [InlineData("System.Span<int?>", "System.Collections.Generic.ICollection<int>", null)] // cannot convert int? to int
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IList<int>", null)] // cannot convert int? to int
+        [InlineData("System.ReadOnlySpan<int>", "object[]", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyCollection<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyList<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "int[]", null)] // cannot convert object to int
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IEnumerable<int>", null)] // cannot convert object to int
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyCollection<int>", null)] // cannot convert object to int
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyList<int>", null)] // cannot convert object to int
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.ICollection<int>", null)] // cannot convert object to int
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IList<int>", null)] // cannot convert object to int
         [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<System.Int32>")]
-        [InlineData("int[]", "object[]", null)] // rule requires ref struct
-        [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", null)] // rule requires ref struct
+        [InlineData("int[]", "object[]", null)] // rule requires span
+        [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", null)] // rule requires span
         public void BetterConversionFromExpression_01(string type1, string type2, string expectedType, string[] additionalSources = null)
         {
             string source = $$"""
@@ -1586,6 +1614,168 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     MyCollection2<T>
                     MyCollection2<object>
                     """));
+        }
+
+        [Theory]
+        [InlineData("System.ReadOnlySpan<char>")]
+        [InlineData("System.Span<char>")]
+        public void BetterConversionFromExpression_String_01(string spanType)
+        {
+            string source = $$"""
+                using System;
+                using static System.Console;
+
+                class Program
+                {
+                    static void F1({{spanType}} value) { WriteLine("F1({{spanType}})"); }
+                    static void F1(string value) { WriteLine("F1(string)"); }
+                    static void F2(string value) { WriteLine("F2(string)"); }
+                    static void F2({{spanType}} value) { WriteLine("F2({{spanType}})"); }
+
+                    static void Main()
+                    {
+                        F1([]);
+                        F2([]);
+                        F1(['a', 'b', 'c']);
+                        F2(['1', '2', '3']);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput($$"""
+                F1({{spanType}})
+                F2({{spanType}})
+                F1({{spanType}})
+                F2({{spanType}})
+                """));
+        }
+
+        [Theory]
+        [InlineData("System.ReadOnlySpan<int>")]
+        [InlineData("System.Span<int>")]
+        [InlineData("System.ReadOnlySpan<object>")]
+        [InlineData("System.Span<object>")]
+        public void BetterConversionFromExpression_String_02(string spanType)
+        {
+            string source = $$"""
+                using System;
+                using static System.Console;
+
+                class Program
+                {
+                    static void F1({{spanType}} value) { WriteLine("F1({{spanType}})"); }
+                    static void F1(string value) { WriteLine("F1(string)"); }
+                    static void F2(string value) { WriteLine("F2(string)"); }
+                    static void F2({{spanType}} value) { WriteLine("F2({{spanType}})"); }
+
+                    static void Main()
+                    {
+                        F1([]);
+                        F2([]);
+                        F1(['a', 'b', 'c']);
+                        F2(['1', '2', '3']);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(ReadOnlySpan<int>)' and 'Program.F1(string)'
+                //         F1([]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments($"Program.F1({spanType})", "Program.F1(string)").WithLocation(13, 9),
+                // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(string)' and 'Program.F2(ReadOnlySpan<int>)'
+                //         F2([]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(string)", $"Program.F2({spanType})").WithLocation(14, 9),
+                // (15,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(ReadOnlySpan<int>)' and 'Program.F1(string)'
+                //         F1(['a', 'b', 'c']);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments($"Program.F1({spanType})", "Program.F1(string)").WithLocation(15, 9),
+                // (16,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(string)' and 'Program.F2(ReadOnlySpan<int>)'
+                //         F2(['1', '2', '3']);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(string)", $"Program.F2({spanType})").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData("System.ReadOnlySpan<byte>")]
+        [InlineData("System.Span<byte>")]
+        public void BetterConversionFromExpression_String_03(string spanType)
+        {
+            string source = $$"""
+                using System;
+                using static System.Console;
+
+                class Program
+                {
+                    static void F1({{spanType}} value) { WriteLine("F1({{spanType}})"); }
+                    static void F1(string value) { WriteLine("F1(string)"); }
+                    static void F2(string value) { WriteLine("F2(string)"); }
+                    static void F2({{spanType}} value) { WriteLine("F2({{spanType}})"); }
+
+                    static void Main()
+                    {
+                        F1([]);
+                        F2([]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(ReadOnlySpan<byte>)' and 'Program.F1(string)'
+                //         F1([]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments($"Program.F1({spanType})", $"Program.F1(string)").WithLocation(13, 9),
+                // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(string)' and 'Program.F2(ReadOnlySpan<byte>)'
+                //         F2([]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments($"Program.F2(string)", $"Program.F2({spanType})").WithLocation(14, 9));
+        }
+
+        [Theory]
+        [InlineData("System.ReadOnlySpan<MyChar>")]
+        [InlineData("System.Span<MyChar>")]
+        public void BetterConversionFromExpression_String_04(string spanType)
+        {
+            string source = $$"""
+                using System;
+                using static System.Console;
+
+                class MyChar
+                {
+                    private readonly int _i;
+                    public MyChar(int i) { _i = i; }
+                    public static implicit operator MyChar(int i) => new MyChar(i);
+                    public static implicit operator char(MyChar c) => (char)c._i;
+                }
+
+                class Program
+                {
+                    static void F1({{spanType}} value) { WriteLine("F1({{spanType}})"); }
+                    static void F1(string value) { WriteLine("F1(string)"); }
+                    static void F2(string value) { WriteLine("F2(string)"); }
+                    static void F2({{spanType}} value) { WriteLine("F2({{spanType}})"); }
+
+                    static void Main()
+                    {
+                        F1([]);
+                        F2([]);
+                        F1(['a', 'b', 'c']);
+                        F2(['1', '2', '3']);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput($$"""
+                F1({{spanType}})
+                F2({{spanType}})
+                F1({{spanType}})
+                F2({{spanType}})
+                """));
         }
 
         [Fact]
@@ -20634,8 +20824,10 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 2 3"), verify: Verification.FailsPEVerify);
+            comp.VerifyEmitDiagnostics(
+                // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(ReadOnlySpan<int>)' and 'C.M(List<int>)'
+                // C.M([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.ReadOnlySpan<int>)", "C.M(System.Collections.Generic.List<int>)").WithLocation(4, 3));
         }
 
         [Fact]

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return CreateAndPopulateList(node, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return VisitCollectionBuilderCollectionExpression(node);
-                    case CollectionExpressionTypeKind.ListInterface:
+                    case CollectionExpressionTypeKind.ArrayInterface:
                         return VisitListInterfaceCollectionExpression(node);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);

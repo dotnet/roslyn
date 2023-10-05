@@ -1673,9 +1673,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = null;
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
-            else if (isListInterface(compilation, destination, out elementType))
+            else if (destination.IsArrayInterface(out TypeWithAnnotations typeArg))
             {
-                return CollectionExpressionTypeKind.ListInterface;
+                elementType = typeArg.Type;
+                return CollectionExpressionTypeKind.ArrayInterface;
             }
 
             elementType = null;
@@ -1698,26 +1699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
-            }
-
-            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
-            {
-                if (targetType is NamedTypeSymbol
-                    {
-                        OriginalDefinition.SpecialType:
-                            SpecialType.System_Collections_Generic_IEnumerable_T or
-                            SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
-                            SpecialType.System_Collections_Generic_IReadOnlyList_T or
-                            SpecialType.System_Collections_Generic_ICollection_T or
-                            SpecialType.System_Collections_Generic_IList_T,
-                        TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
-                    })
-                {
-                    elementType = typeArg.Type;
-                    return true;
-                }
-                elementType = null;
-                return false;
             }
         }
 #nullable disable

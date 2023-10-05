@@ -367,6 +367,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
         }
 
+        internal static bool IsArrayInterface(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+        {
+            if (type is NamedTypeSymbol
+                {
+                    OriginalDefinition.SpecialType:
+                        SpecialType.System_Collections_Generic_IEnumerable_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyList_T or
+                        SpecialType.System_Collections_Generic_ICollection_T or
+                        SpecialType.System_Collections_Generic_IList_T,
+                    TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
+                })
+            {
+                typeArgument = typeArg;
+                return true;
+            }
+            typeArgument = default;
+            return false;
+        }
+
         public static bool IsFunctionPointer(this TypeSymbol type)
         {
             return type.TypeKind == TypeKind.FunctionPointer;
