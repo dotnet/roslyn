@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
             var checksums = pooledObject.Object;
 
-            await CollectProjectStateChecksums(checksums, projectChecksums, cancellationToken).ConfigureAwait(false);
+            await CollectProjectStateChecksumsAsync(checksums, projectChecksums, cancellationToken).ConfigureAwait(false);
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
@@ -103,21 +103,30 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             foreach (var checksum in checksums)
             {
-                var checksumObject = await _assetProvider.GetAssetAsync<ChecksumCollection>(checksum, cancellationToken).ConfigureAwait(false);
-                AddIfNeeded(set, checksumObject.Children);
+                var checksumObject = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(checksum, cancellationToken).ConfigureAwait(false);
+                AddIfNeeded(set, checksumObject.Info);
+                AddIfNeeded(set, checksumObject.Text);
             }
         }
 
-        private async ValueTask CollectProjectStateChecksums(HashSet<Checksum> set, IReadOnlyCollection<Checksum> checksums, CancellationToken cancellationToken)
+        private async ValueTask CollectProjectStateChecksumsAsync(HashSet<Checksum> set, IReadOnlyCollection<Checksum> checksums, CancellationToken cancellationToken)
         {
             foreach (var checksum in checksums)
             {
                 var checksumObject = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(checksum, cancellationToken).ConfigureAwait(false);
-                AddIfNeeded(set, checksumObject.Children);
+                AddIfNeeded(set, checksumObject.Info);
+                AddIfNeeded(set, checksumObject.CompilationOptions);
+                AddIfNeeded(set, checksumObject.ParseOptions);
+                AddIfNeeded(set, checksumObject.Documents);
+                AddIfNeeded(set, checksumObject.ProjectReferences);
+                AddIfNeeded(set, checksumObject.MetadataReferences);
+                AddIfNeeded(set, checksumObject.AnalyzerReferences);
+                AddIfNeeded(set, checksumObject.AdditionalDocuments);
+                AddIfNeeded(set, checksumObject.AnalyzerConfigDocuments);
             }
         }
 
-        private void AddIfNeeded(HashSet<Checksum> checksums, ImmutableArray<Checksum> checksumCollection)
+        private void AddIfNeeded(HashSet<Checksum> checksums, ChecksumCollection checksumCollection)
         {
             foreach (var checksum in checksumCollection)
                 AddIfNeeded(checksums, checksum);
