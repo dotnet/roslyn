@@ -45,8 +45,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             Assert.Empty(results);
 
-            // Verify no document diagnostics even after running code analysis.
+            // Verify document pull diagnostics are unaffected by running code analysis.
             await testLspServer.RunCodeAnalysisAsync(document.Project.Id);
+            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Empty(results);
         }
 
