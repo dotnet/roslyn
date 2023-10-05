@@ -1636,13 +1636,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CollectionExpressionTypeKind.Array;
                 }
             }
-            else if (isSpanType(compilation, destination, WellKnownType.System_Span_T, out elementType))
+            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Span_T, out elementType))
             {
                 return CollectionExpressionTypeKind.Span;
             }
-            else if (isSpanType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
+            else if (isSpanOrListType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
             {
                 return CollectionExpressionTypeKind.ReadOnlySpan;
+            }
+            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Collections_Generic_List_T, out elementType))
+            {
+                return CollectionExpressionTypeKind.List;
             }
             else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
             {
@@ -1672,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             elementType = null;
             return CollectionExpressionTypeKind.None;
 
-            static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            static bool isSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 1 } namedType
                     && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
