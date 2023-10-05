@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = node.Syntax;
             var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
-
+            var elementType = elementTypeWithAnnotations.Type;
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.None:
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+                        _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out elementTypeWithAnnotations);
                         elementType = elementTypeWithAnnotations.Type;
                         if (elementType is null)
                         {
@@ -173,7 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            Debug.Assert(collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable || elementType is { });
+            Debug.Assert(collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableT 
+                || elementType is { });
+
             var elements = node.Elements;
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {

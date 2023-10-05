@@ -793,6 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(elementTypeWithAnnotations.HasType);
             }
 
+            var elementType = elementTypeWithAnnotations.Type;
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT
                 && findSingleIEnumerableTImplementation(targetType, Compilation) is { } implementation)
             {
@@ -801,7 +802,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool reportedErrors = false;
-            var elementType = elementTypeWithAnnotations.Type;
 
             if (collectionTypeKind != CollectionExpressionTypeKind.None &&
                 elementType is { })

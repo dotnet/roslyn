@@ -2818,7 +2818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: "(System.Object[]) [2, 3], (System.Object[]) [1, 2, 3], ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
         public void TypeInference_Spread_07()
         {
             string source = """
@@ -2840,7 +2840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
         public void TypeInference_Spread_08()
         {
             string source = """
@@ -8360,11 +8360,16 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/68786: // 2 and 3 should be reported as warnings.
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9),
+                // (9,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         List<object> y = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 27),
+                // (11,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = [2, null]; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 17));
         }
 
         [Fact]
@@ -21977,7 +21982,7 @@ partial class Program
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
         public void SpreadNullability()
         {
             string src = """
@@ -21993,7 +21998,7 @@ partial class Program
             CreateCompilation(src).VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/68786")]
         public void SpreadNullability_CheckExpressions()
         {
             string src = """
