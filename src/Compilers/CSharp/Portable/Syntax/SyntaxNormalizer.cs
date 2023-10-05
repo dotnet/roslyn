@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            if (IsWord(token.Kind()) && IsWord(next.Kind()))
+            if (IsWordOrLiteral(token.Kind()) && IsWordOrLiteral(next.Kind()))
             {
                 return true;
             }
@@ -1257,6 +1257,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static bool IsWord(SyntaxKind kind)
         {
             return kind == SyntaxKind.IdentifierToken || IsKeyword(kind);
+        }
+
+        private static bool IsWordOrLiteral(SyntaxKind kind)
+        {
+            return SyntaxFacts.IsLiteral(kind)
+                || IsKeyword(kind)
+                || kind == SyntaxKind.InterpolatedStringEndToken
+                || kind == SyntaxKind.InterpolatedRawStringEndToken;
         }
 
         private static bool IsKeyword(SyntaxKind kind)
