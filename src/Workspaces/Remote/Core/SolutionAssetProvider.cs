@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _services = services;
         }
 
-        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
+        public async ValueTask WriteAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
             // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
             // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Exception? exception = null;
             try
             {
-                await GetAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
+                await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
             {
@@ -53,33 +52,41 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask GetAssetsWorkerAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
+        private async ValueTask WriteAssetsWorkerAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 
             SolutionAsset? singleAsset = null;
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
+            PooledDictionary<Checksum, SolutionAsset>? assetMap = null;
 
-            if (checksums.Length == 1)
+            try
             {
-                singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
+
+                if (checksums.Length == 1)
+                {
+                    singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    assetMap = await scope.GetAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using var stream = new PipeWriterStream(pipeWriter);
+                await RemoteHostAssetSerialization.WriteDataAsync(
+                    stream, singleAsset, assetMap, serializer, scope.ReplicationContext,
+                    solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
+
+                // Ensure any last data written into the stream makes it into the pipe.
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
-            else
+            finally
             {
-                assetMap = await scope.GetAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                assetMap?.Free();
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var stream = new PipeWriterStream(pipeWriter);
-            await RemoteHostAssetSerialization.WriteDataAsync(
-                stream, singleAsset, assetMap, serializer, scope.ReplicationContext,
-                solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
-
-            // Ensure any last data written into the stream makes it into the pipe.
-            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -93,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <remarks>
         /// Note: this stream does not have to <see cref="PipeWriter.Complete"/> the underlying <see cref="_writer"/> it
         /// is holding onto (including within <see cref="Flush"/>, <see cref="FlushAsync"/>, or <see cref="Dispose"/>).
-        /// Responsibility for that is solely in the hands of <see cref="GetAssetsAsync"/>.
+        /// Responsibility for that is solely in the hands of <see cref="WriteAssetsAsync"/>.
         /// </remarks>
         private class PipeWriterStream : Stream, IDisposableObservable
         {
