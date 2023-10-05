@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
 
-            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableT or CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
                 if (targetType is NamedTypeSymbol namedType)
@@ -794,25 +794,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = elementTypeWithAnnotations.Type;
             }
 
+            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT
+                && findSingleIEnumerableTImplementation(targetType, Compilation) is { } implementation)
+            {
+                // If we have a single IEnumerable<T> implementation, we can report conversion errors against that element type below
+                elementType = implementation.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            }
+
             bool reportedErrors = false;
 
-            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionInitializer)
-            {
-                BoundObjectOrCollectionValuePlaceholder? implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(node.Syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
-                foreach (var element in node.Elements)
-                {
-                    _ = BindCollectionExpressionElementAddMethod(
-                        element,
-                        collectionInitializerAddMethodBinder,
-                        implicitReceiver,
-                        diagnostics,
-                        out bool hasErrors);
-                    reportedErrors = reportedErrors || hasErrors;
-                }
-                Debug.Assert(reportedErrors);
-            }
-            else if (collectionTypeKind != CollectionExpressionTypeKind.None &&
+            if (collectionTypeKind != CollectionExpressionTypeKind.None &&
                 elementType is { })
             {
                 var elements = node.Elements;
@@ -853,6 +844,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!reportedErrors)
             {
                 Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, node.Syntax, targetType);
+            }
+
+            return;
+
+            static NamedTypeSymbol? findSingleIEnumerableTImplementation(TypeSymbol targetType, CSharpCompilation compilation)
+            {
+                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
+                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+                NamedTypeSymbol? singleIEnumerableImplementation = null;
+                foreach (var @interface in allInterfaces)
+                {
+                    if (ReferenceEquals(@interface.OriginalDefinition, ienumerableType))
+                    {
+                        if (singleIEnumerableImplementation is not null)
+                        {
+                            return null;
+                        }
+
+                        singleIEnumerableImplementation = @interface;
+                    }
+                }
+
+                return singleIEnumerableImplementation;
             }
         }
 

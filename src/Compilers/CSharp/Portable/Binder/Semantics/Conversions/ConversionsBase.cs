@@ -1652,10 +1652,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
-            else if (implementsIEnumerable(compilation, destination))
+            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
             {
                 elementType = null;
-                return CollectionExpressionTypeKind.CollectionInitializer;
+                return CollectionExpressionTypeKind.ImplementsIEnumerableT;
+            }
+            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
+            {
+                // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
+                // That method checks for an implicit conversion from IEnumerable to the collection type, to
+                // match earlier implementation, even though it states that walking the implemented interfaces
+                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
+                // to check for nullable to disallow: Nullable<StructCollection> s = [];
+                // Instead, we just walk the implemented interfaces.
+                elementType = null;
+                return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
             else if (isListInterface(compilation, destination, out elementType))
             {
@@ -1668,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 1 } namedType
-                    && areEqual(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
+                    && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
                 {
                     elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                     return true;
@@ -1677,18 +1688,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            static bool implementsIEnumerable(CSharpCompilation compilation, TypeSymbol targetType)
+            static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
             {
-                // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
-                // That method checks for an implicit conversion from IEnumerable to the collection type, to
-                // match earlier implementation, even though it states that walking the implemented interfaces
-                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
-                // to check for nullable to disallow: Nullable<StructCollection> s = [];
-                // Instead, we just walk the implemented interfaces.
-
                 var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
-                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
-                return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
+                var specialType = compilation.GetSpecialType(specialInterface);
+                return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
 
             static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
@@ -1709,11 +1713,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 elementType = null;
                 return false;
-            }
-
-            static bool areEqual(TypeSymbol a, TypeSymbol b)
-            {
-                return a.Equals(b, TypeCompareKind.AllIgnoreOptions);
             }
         }
 #nullable disable
