@@ -108,11 +108,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// cref="PipeReader"/>, but no harm will happen if it does.</param>
         /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
         public async ValueTask<TResult> InvokeAsync<TResult>(
-            Func<T, PipeWriter, CancellationToken, ValueTask<bool>> invocation,
+            Func<T, PipeWriter, CancellationToken, ValueTask> invocation,
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
-
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
