@@ -1699,26 +1699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
-
-            static bool isListInterface(CSharpCompilation compilation, TypeSymbol targetType, [NotNullWhen(true)] out TypeSymbol? elementType)
-            {
-                if (targetType is NamedTypeSymbol
-                    {
-                        OriginalDefinition.SpecialType:
-                            SpecialType.System_Collections_Generic_IEnumerable_T or
-                            SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
-                            SpecialType.System_Collections_Generic_IReadOnlyList_T or
-                            SpecialType.System_Collections_Generic_ICollection_T or
-                            SpecialType.System_Collections_Generic_IList_T,
-                        TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
-                    })
-                {
-                    elementType = typeArg.Type;
-                    return true;
-                }
-                elementType = null;
-                return false;
-            }
         }
 #nullable disable
 
