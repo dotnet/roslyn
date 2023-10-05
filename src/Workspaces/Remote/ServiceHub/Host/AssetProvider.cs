@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -129,10 +130,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
-                var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                var checksumsArray = checksums.ToImmutableArray();
+                var assets = await RequestAssetsAsync(checksumsArray, cancellationToken).ConfigureAwait(false);
 
-                foreach (var (checksum, value) in assets)
-                    _assetCache.GetOrAdd(checksum, value);
+                Contract.ThrowIfTrue(checksumsArray.Length != assets.Length);
+
+                for (int i = 0, n = assets.Length; i < n; i++)
+                    _assetCache.GetOrAdd(checksumsArray[i], assets[i]);
             }
         }
 
@@ -140,21 +144,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Debug.Assert(checksum != Checksum.Null);
 
-            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
-            checksums.Add(checksum);
-
-            var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-            return assets.Single().value;
+            var assets = await RequestAssetsAsync(ImmutableArray.Create(checksum), cancellationToken).ConfigureAwait(false);
+            return assets.Single();
         }
 
-        private async Task<ImmutableArray<(Checksum checksum, object value)>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<object>> RequestAssetsAsync(ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
             Debug.Assert(!checksums.Contains(Checksum.Null));
 
-            if (checksums.Count == 0)
-            {
-                return ImmutableArray<(Checksum, object)>.Empty;
-            }
+            if (checksums.Length == 0)
+                return ImmutableArray<object>.Empty;
 
             return await _assetSource.GetAssetsAsync(_solutionChecksum, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }

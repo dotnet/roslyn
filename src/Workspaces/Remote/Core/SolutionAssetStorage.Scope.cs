@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -65,15 +67,15 @@ internal partial class SolutionAssetStorage
         /// Retrieve assets of specified <paramref name="checksums"/> available within <see langword="this"/> from
         /// the storage.
         /// </summary>
-        public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(
-            Checksum[] checksums, CancellationToken cancellationToken)
+        public async ValueTask<PooledDictionary<Checksum, SolutionAsset>> GetAssetsAsync(
+            ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 
             var numberOfChecksumsToSearch = checksumsToFind.Object.Count;
-            var result = new Dictionary<Checksum, SolutionAsset>(numberOfChecksumsToSearch);
+            var result = PooledDictionary<Checksum, SolutionAsset>.GetInstance();
 
             if (checksumsToFind.Object.Remove(Checksum.Null))
             {
