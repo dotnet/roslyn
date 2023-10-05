@@ -1636,13 +1636,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CollectionExpressionTypeKind.Array;
                 }
             }
-            else if (isSpanType(compilation, destination, WellKnownType.System_Span_T, out elementType))
+            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Span_T, out elementType))
             {
                 return CollectionExpressionTypeKind.Span;
             }
-            else if (isSpanType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
+            else if (isSpanOrListType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
             {
                 return CollectionExpressionTypeKind.ReadOnlySpan;
+            }
+            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Collections_Generic_List_T, out elementType))
+            {
+                return CollectionExpressionTypeKind.List;
             }
             else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
             {
@@ -1661,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             elementType = null;
             return CollectionExpressionTypeKind.None;
 
-            static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            static bool isSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 1 } namedType
                     && areEqual(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
@@ -1675,26 +1679,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool implementsIEnumerable(CSharpCompilation compilation, TypeSymbol targetType)
             {
-                ImmutableArray<NamedTypeSymbol> allInterfaces;
-                switch (targetType.TypeKind)
-                {
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                        allInterfaces = targetType.AllInterfacesNoUseSiteDiagnostics;
-                        break;
-                    case TypeKind.TypeParameter:
-                        allInterfaces = ((TypeParameterSymbol)targetType).AllEffectiveInterfacesNoUseSiteDiagnostics;
-                        break;
-                    default:
-                        return false;
-                }
-
                 // This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
                 // That method checks for an implicit conversion from IEnumerable to the collection type, to
                 // match earlier implementation, even though it states that walking the implemented interfaces
                 // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
                 // to check for nullable to disallow: Nullable<StructCollection> s = [];
                 // Instead, we just walk the implemented interfaces.
+
+                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 return allInterfaces.Any(static (a, b) => areEqual(a, b), ienumerableType);
             }
