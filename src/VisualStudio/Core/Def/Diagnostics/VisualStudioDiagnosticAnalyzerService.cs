@@ -337,11 +337,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 await TaskScheduler.Default;
 
-                var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
-                await _codeAnalysisService.RunAnalysisAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                var onAfterProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnAfterProjectAnalyzed : (Action<Project>)((Project _) => { });
+                await _codeAnalysisService.RunAnalysisAsync(solution, project?.Id, onAfterProjectAnalyzed, CancellationToken.None).ConfigureAwait(false);
 
                 foreach (var otherProject in otherProjectsForMultiTfmProject)
-                    await _codeAnalysisService.RunAnalysisAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
+                    await _codeAnalysisService.RunAnalysisAsync(solution, otherProject.Id, onAfterProjectAnalyzed, CancellationToken.None).ConfigureAwait(false);
             });
         }
 
@@ -400,7 +400,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     dueTime: TimeSpan.FromSeconds(5), period: TimeSpan.FromSeconds(5));
             }
 
-            internal void OnProjectAnalyzed(Project _)
+            internal void OnAfterProjectAnalyzed(Project _)
             {
                 Interlocked.Increment(ref _analyzedProjectCount);
                 UpdateStatusCore();

@@ -213,16 +213,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     {
                         // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
                         var documentDiagnosticSource = fullSolutionAnalysisEnabled
-                            ? WorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, shouldIncludeAnalyzer)
-                            : WorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
+                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, shouldIncludeAnalyzer)
+                            : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
                         result.Add(documentDiagnosticSource);
                     }
                 }
 
                 // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
                 var projectDiagnosticSource = fullSolutionAnalysisEnabled
-                    ? ProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, shouldIncludeAnalyzer)
-                    : ProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
+                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, shouldIncludeAnalyzer)
+                    : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
                 result.Add(projectDiagnosticSource);
 
                 bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)

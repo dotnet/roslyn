@@ -11,19 +11,15 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract class ProjectDiagnosticSource : IDiagnosticSource
+internal abstract class AbstractProjectDiagnosticSource(Project project)
+    : IDiagnosticSource
 {
-    protected ProjectDiagnosticSource(Project project)
-    {
-        Project = project;
-    }
+    protected Project Project => project;
 
-    protected Project Project { get; }
-
-    public static ProjectDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+    public static AbstractProjectDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         => new FullSolutionAnalysisDiagnosticSource(project, shouldIncludeAnalyzer);
 
-    public static ProjectDiagnosticSource CreateForCodeAnalysisDiagnostics(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
+    public static AbstractProjectDiagnosticSource CreateForCodeAnalysisDiagnostics(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(project, codeAnalysisService);
 
     public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
@@ -36,10 +32,8 @@ internal abstract class ProjectDiagnosticSource : IDiagnosticSource
             : null;
     public string ToDisplayString() => Project.Name;
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) : ProjectDiagnosticSource(project)
+    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) : AbstractProjectDiagnosticSource(project)
     {
-        private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
-
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
@@ -50,20 +44,18 @@ internal abstract class ProjectDiagnosticSource : IDiagnosticSource
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
             return await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(Project.Solution, Project.Id,
-                diagnosticIds: null, _shouldIncludeAnalyzer, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                diagnosticIds: null, shouldIncludeAnalyzer, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) : ProjectDiagnosticSource(project)
+    private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) : AbstractProjectDiagnosticSource(project)
     {
-        private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService = codeAnalysisService;
-
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            return _codeAnalysisService.GetProjectDiagnosticsAsync(Project.Id, Project.Solution.Workspace, cancellationToken);
+            return codeAnalysisService.GetLastComputedProjectDiagnosticsAsync(Project.Id, cancellationToken);
         }
     }
 }

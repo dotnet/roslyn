@@ -10,23 +10,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
+internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument document) : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
-    protected WorkspaceDocumentDiagnosticSource(TextDocument document)
-        : base(document)
-    {
-    }
-
-    public static WorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         => new FullSolutionAnalysisDiagnosticSource(document, shouldIncludeAnalyzer);
 
-    public static WorkspaceDocumentDiagnosticSource CreateForCodeAnalysisDiagnostics(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
+    public static AbstractWorkspaceDocumentDiagnosticSource CreateForCodeAnalysisDiagnostics(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(document, codeAnalysisService);
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) : WorkspaceDocumentDiagnosticSource(document)
+    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
-        private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
-
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
@@ -45,23 +38,21 @@ internal abstract class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiag
                 // However we can include them as a part of workspace pull when FSA is on.
                 var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
                     Document.Project.Solution, Document.Project.Id, Document.Id,
-                    diagnosticIds: null, _shouldIncludeAnalyzer, includeSuppressedDiagnostics: false,
+                    diagnosticIds: null, shouldIncludeAnalyzer, includeSuppressedDiagnostics: false,
                     includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
                 return documentDiagnostics;
             }
         }
     }
 
-    private sealed class CodeAnalysisDiagnosticSource(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) : WorkspaceDocumentDiagnosticSource(document)
+    private sealed class CodeAnalysisDiagnosticSource(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
-        private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService = codeAnalysisService;
-
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            return _codeAnalysisService.GetDocumentDiagnosticsAsync(Document.Id, Document.Project.Solution.Workspace, cancellationToken);
+            return codeAnalysisService.GetLastComputedDocumentDiagnosticsAsync(Document.Id, cancellationToken);
         }
     }
 }
