@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 SolutionAssetProvider.ServiceDescriptor,
                 (callback, cancellationToken) => callback.InvokeAsync(
                     (proxy, pipeWriter, cancellationToken) => proxy.WriteAssetsAsync(pipeWriter, solutionChecksum, checksums, cancellationToken),
-                    (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums, serializerService, cancellationToken),
+                    (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums.Length, serializerService, cancellationToken),
                     cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }

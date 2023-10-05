@@ -74,17 +74,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static async ValueTask<ImmutableArray<object>> ReadDataAsync(
-            PipeReader pipeReader, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-            return ReadData(stream, solutionChecksum, checksums, serializerService, cancellationToken);
+            return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
         }
 
-        public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
-
-            using var _ = ArrayBuilder<object>.GetInstance(checksums.Length, out var results);
+            using var _ = ArrayBuilder<object>.GetInstance(objectCount, out var results);
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var responseSolutionChecksum = Checksum.ReadFrom(reader);
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
 
-            for (int i = 0, n = checksums.Length; i < n; i++)
+            for (int i = 0, n = objectCount; i < n; i++)
             {
                 var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 

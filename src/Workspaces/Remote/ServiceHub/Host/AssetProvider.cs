@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async ValueTask SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
+            Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
             if (checksums.Count == 0)
                 return;
 
