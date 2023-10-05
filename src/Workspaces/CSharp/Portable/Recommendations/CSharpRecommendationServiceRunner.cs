@@ -137,7 +137,8 @@ internal partial class CSharpRecommendationService
                 }
             }
 
-            if (node.HasAncestor<IsPatternExpressionSyntax>() || node.Parent.IsKind(SyntaxKind.IsExpression))
+            if ((node.GetAncestor<IsPatternExpressionSyntax>() is { } isPattern && isPattern.Pattern.Span.Contains(node.Span)) ||
+                node.CheckParent<BinaryExpressionSyntax>(s => s is BinaryExpressionSyntax(SyntaxKind.IsExpression) && s.Right.Span.Contains(node.Span)))
             {
                 // We are building a pattern expression, and thus we can only access either constants, types or namespaces
                 // For example, we are evaluating:

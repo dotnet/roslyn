@@ -12518,6 +12518,18 @@ public static class Extension
             await VerifyItemExistsAsync(source, "System");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        public async Task PatternMatching_05()
+        {
+            var expression = $"return $$ is Constants.A";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "input");
+            await VerifyItemExistsAsync(source, "Constants");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemExistsAsync(source, "M");
+        }
+
         private static string WrapPatternMatchingSource(string returnedExpression)
         {
             return $$"""
