@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
@@ -35,13 +36,8 @@ namespace Microsoft.CodeAnalysis
         // exactly the space needed to splat the existing checksum data into the array and then hash it.
 
         // Note: number of elements here should be computed based on what we need from our various collection-with-children objects.
-        private static readonly ObjectPool<byte[]>[] s_checksumByteArrayPool = new ObjectPool<byte[]>[10];
-
-        static Checksum()
-        {
-            for (var i = 0; i < s_checksumByteArrayPool.Length; i++)
-                s_checksumByteArrayPool[i] = new(() => new byte[HashSize * i]);
-        }
+        private static readonly ObjectPool<byte[]>[] s_checksumByteArrayPool =
+            Enumerable.Range(0, 11).Select(i => new ObjectPool<byte[]>(() => new byte[HashSize * i])).ToArray();
 
 #endif
 
