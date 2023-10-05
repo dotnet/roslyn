@@ -41,7 +41,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // Check if this is the case.
         if (neededBuildHostKind == BuildHostProcessKind.NetFramework)
         {
-            if (!await buildHost.IsProjectFileSupportedAsync(projectFilePath, cancellationToken))
+            if (!await buildHost.HasUsableMSBuildAsync(projectFilePath, cancellationToken))
             {
                 // It's not usable, so we'll fall back to the .NET Core one.
                 _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
@@ -52,7 +52,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return buildHost;
     }
 
-    private async Task<IBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
+    public async Task<IBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -211,7 +211,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return BuildHostProcessKind.NetFramework;
     }
 
-    private enum BuildHostProcessKind
+    public enum BuildHostProcessKind
     {
         NetCore,
         NetFramework
