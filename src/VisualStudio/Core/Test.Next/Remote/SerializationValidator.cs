@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -218,10 +219,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static void AssertChecksumCollectionEqual(ChecksumCollection collection1, ChecksumCollection collection2)
         {
             Assert.Equal(collection1.Checksum, collection2.Checksum);
-            Assert.Equal(collection1.Children.Length, collection2.Children.Length);
-
-            for (var i = 0; i < collection1.Children.Length; i++)
-                Assert.Equal(collection1.Children[i], collection2.Children[i]);
+            AssertEx.Equal(collection1.Children, collection2.Children);
         }
 
         internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)
