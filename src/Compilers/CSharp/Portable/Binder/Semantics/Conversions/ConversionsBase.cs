@@ -1673,9 +1673,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = default;
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
-            else if (destination.IsArrayInterface(out TypeWithAnnotations typeArg))
+            else if (destination.IsArrayInterface(out elementType))
             {
-                elementType = typeArg.Type;
                 return CollectionExpressionTypeKind.ArrayInterface;
             }
 
