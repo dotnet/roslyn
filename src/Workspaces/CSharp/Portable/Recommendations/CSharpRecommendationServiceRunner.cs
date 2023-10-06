@@ -120,6 +120,47 @@ internal partial class CSharpRecommendationService
             return ImmutableArray<ISymbol>.Empty;
         }
 
+        private static bool IsInsideRightHandOfPatternExpressionSyntax(SyntaxNode? node)
+        {
+            var previousNode = node;
+            node = node?.Parent;
+            while (node is not null)
+            {
+                var kind = node.Kind();
+                if (SyntaxFacts.IsAccessorDeclaration(kind) ||
+                    SyntaxFacts.IsTypeDeclaration(kind) ||
+                    SyntaxFacts.IsNamespaceMemberDeclaration(kind))
+                {
+                    return false;
+                }
+
+                switch (node.Kind())
+                {
+                    case SyntaxKind.LocalDeclarationStatement:
+                    case SyntaxKind.LocalFunctionStatement:
+                    case SyntaxKind.MethodDeclaration:
+                    case SyntaxKind.AnonymousMethodExpression:
+                        return false;
+
+                    case SyntaxKind.IsPatternExpression:
+                        {
+                            var isPattern = (IsPatternExpressionSyntax)node;
+                            return isPattern.Pattern == previousNode;
+                        }
+                    case SyntaxKind.IsExpression:
+                        {
+                            var expression = (BinaryExpressionSyntax)node;
+                            return expression.Right == previousNode;
+                        }
+                }
+
+                previousNode = node;
+                node = node.Parent;
+            }
+
+            return false;
+        }
+
         private RecommendedSymbols GetSymbolsOffOfContainer()
         {
             // Ensure that we have the correct token in A.B| case
@@ -137,8 +178,7 @@ internal partial class CSharpRecommendationService
                 }
             }
 
-            if ((node.GetAncestor<IsPatternExpressionSyntax>() is { } isPattern && isPattern.Pattern.Span.Contains(node.Span)) ||
-                node.CheckParent<BinaryExpressionSyntax>(s => s is BinaryExpressionSyntax(SyntaxKind.IsExpression) && s.Right.Span.Contains(node.Span)))
+            if (IsInsideRightHandOfPatternExpressionSyntax(node))
             {
                 // We are building a pattern expression, and thus we can only access either constants, types or namespaces
                 // For example, we are evaluating:
