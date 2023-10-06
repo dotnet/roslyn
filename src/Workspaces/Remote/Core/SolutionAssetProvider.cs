@@ -155,9 +155,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Requires.NotNull(buffer, nameof(buffer));
                 Verify.NotDisposed(this);
 
-                var span = _writer.GetSpan(count);
-                buffer.AsSpan(offset, count).CopyTo(span);
-                _writer.Advance(count);
+                _writer.Write(buffer.AsSpan(offset, count));
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -180,9 +178,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override void Write(ReadOnlySpan<byte> buffer)
             {
                 Verify.NotDisposed(this);
-                var span = _writer.GetSpan(buffer.Length);
-                buffer.CopyTo(span);
-                _writer.Advance(buffer.Length);
+                _writer.Write(buffer);
             }
 
             public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken)
