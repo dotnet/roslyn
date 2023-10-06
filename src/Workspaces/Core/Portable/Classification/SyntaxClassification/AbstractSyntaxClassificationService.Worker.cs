@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     list.Clear();
-                    classifier.AddClassifications(syntax, _semanticModel, _options, list, _cancellationToken);
+                    classifier.AddClassifications(syntax, _textSpan, _semanticModel, _options, list, _cancellationToken);
                     AddClassifications(list);
                 }
             }
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     list.Clear();
-                    classifier.AddClassifications(syntax, _semanticModel, _options, list, _cancellationToken);
+                    classifier.AddClassifications(syntax, _textSpan, _semanticModel, _options, list, _cancellationToken);
                     AddClassifications(list);
                 }
 

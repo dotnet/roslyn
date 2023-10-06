@@ -4753,30 +4753,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundCollectionExpressionSpreadElement(
                         syntax,
                         expression,
+                        expressionPlaceholder: null,
+                        conversion: null,
                         enumeratorInfoOpt: null,
+                        lengthOrCount: null,
                         elementPlaceholder: null,
-                        addElementPlaceholder: null,
-                        addMethodInvocation: null,
-                        type: CreateErrorType(),
+                        iteratorBody: null,
                         hasErrors);
                 }
 
+                Debug.Assert(expression.Type is { });
+
+                var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
                 var enumeratorInfo = builder.Build(location: default);
                 var collectionType = enumeratorInfo.CollectionType;
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 Debug.Assert(conversion.IsValid);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
-                expression = ConvertForEachCollection(expression, conversion, collectionType, diagnostics);
-                var elementPlaceholder = new BoundValuePlaceholder(syntax.Expression, enumeratorInfo.ElementType);
+                var convertedExpression = ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+                BoundExpression? lengthOrCount;
+                if (!TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+                {
+                    lengthOrCount = null;
+                }
                 return new BoundCollectionExpressionSpreadElement(
                     syntax,
                     expression,
+                    expressionPlaceholder: expressionPlaceholder,
+                    conversion: convertedExpression,
                     enumeratorInfo,
-                    elementPlaceholder: elementPlaceholder,
-                    addElementPlaceholder: null,
-                    addMethodInvocation: null,
-                    type: enumeratorInfo.CollectionType,
+                    lengthOrCount: lengthOrCount,
+                    elementPlaceholder: null,
+                    iteratorBody: null,
                     hasErrors: false)
                 { WasCompilerGenerated = true };
             }
@@ -5938,11 +5947,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return element.Update(
                     BindToNaturalType(element.Expression, BindingDiagnosticBag.Discarded, reportNoTargetType: false),
+                    expressionPlaceholder: element.ExpressionPlaceholder,
+                    conversion: null,
                     enumeratorInfo,
-                    element.ElementPlaceholder,
-                    element.AddElementPlaceholder,
-                    element.AddMethodInvocation,
-                    element.Type);
+                    lengthOrCount: null,
+                    elementPlaceholder: null,
+                    iteratorBody: null);
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
@@ -5955,11 +5965,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
             return element.Update(
                 element.Expression,
+                expressionPlaceholder: element.ExpressionPlaceholder,
+                conversion: element.Conversion,
                 enumeratorInfo,
-                element.ElementPlaceholder,
-                addElementPlaceholder,
-                new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true },
-                element.Type);
+                lengthOrCount: element.LengthOrCount,
+                elementPlaceholder: addElementPlaceholder,
+                iteratorBody: new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true });
         }
 #nullable disable
 

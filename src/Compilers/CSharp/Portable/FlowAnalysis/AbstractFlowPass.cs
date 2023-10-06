@@ -2764,8 +2764,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // foreach [await] ( var v in node.Expression ) { node.Body; node.ContinueLabel: } node.BreakLabel:
             VisitForEachExpression(node);
-            var breakState = this.State.Clone();
             LoopHead(node);
+            var breakState = this.State.Clone();
             VisitForEachIterationVariables(node);
             VisitStatement(node.Body);
             ResolveContinues(node.ContinueLabel);

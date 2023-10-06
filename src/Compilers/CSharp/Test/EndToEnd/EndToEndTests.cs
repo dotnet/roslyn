@@ -168,6 +168,85 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
             }
         }
 
+        // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
+        // the compiler can handle. 
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
+        public void OverflowOnFluentCall_ExtensionMethods()
+        {
+            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime) switch
+            {
+                (8, ExecutionConfiguration.Debug, false) => 750,
+                (8, ExecutionConfiguration.Release, false) => 750, // Should be ~3_400, but is flaky.
+                (4, ExecutionConfiguration.Debug, true) => 450,
+                (4, ExecutionConfiguration.Release, true) => 1_600,
+                (8, ExecutionConfiguration.Debug, true) => 1_100,
+                (8, ExecutionConfiguration.Release, true) => 3_300,
+                _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}")
+            };
+
+            // Un-comment the call below to figure out the new limits.
+            //testLimits();
+
+            try
+            {
+                tryCompileDeepFluentCalls(numberFluentCalls);
+            }
+            catch (Exception e)
+            {
+                testLimits(e);
+            }
+
+            void testLimits(Exception innerException = null)
+            {
+                for (int i = 0; i < int.MaxValue; i += 10)
+                {
+                    try
+                    {
+                        tryCompileDeepFluentCalls(i);
+                    }
+                    catch (Exception e)
+                    {
+                        if (innerException != null)
+                        {
+                            e = new AggregateException(e, innerException);
+                        }
+
+                        throw new Exception($"Depth: {i}, Bytes: {IntPtr.Size}, Config: {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}", e);
+                    }
+                }
+            }
+
+            void tryCompileDeepFluentCalls(int depth)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine("""
+                    static class E
+                    {
+                        public static C M(this C c, string x) { return c; }
+                    }
+                    class C
+                    {
+                        static C GetC() => new C();
+                        void M2()
+                        {
+                            GetC()
+                    """);
+                for (int i = 0; i < depth; i++)
+                {
+                    builder.AppendLine(""".M("test")""");
+                }
+                builder.AppendLine("""; } }""");
+
+                var source = builder.ToString();
+                RunInThread(() =>
+                {
+                    var options = TestOptions.DebugDll.WithConcurrentBuild(false);
+                    var compilation = CreateCompilation(source, options: options);
+                    compilation.VerifyEmitDiagnostics();
+                });
+            }
+        }
+
         [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
@@ -501,7 +580,7 @@ $@"        if (F({i}))
                     """, $"C{i}.cs"));
             }
 
-            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview"), expectedOutput: makeExpectedOutput());
+            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global"), expectedOutput: makeExpectedOutput());
             verifier.VerifyDiagnostics();
 
             string makeExpectedOutput()

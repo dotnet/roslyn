@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
+            LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 

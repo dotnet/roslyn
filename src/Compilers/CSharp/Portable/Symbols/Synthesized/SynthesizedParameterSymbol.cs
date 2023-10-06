@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedParameterSymbolBase : ParameterSymbol
     {
-        private readonly MethodSymbol? _container;
+        private readonly Symbol? _container;
         private readonly TypeWithAnnotations _type;
         private readonly int _ordinal;
         private readonly string _name;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ScopedKind _scope;
 
         public SynthesizedParameterSymbolBase(
-            MethodSymbol? container,
+            Symbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -217,13 +217,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ScopedKind EffectiveScope => _scope;
 
-        internal sealed override bool UseUpdatedEscapeRules => _container?.UseUpdatedEscapeRules ?? false;
+        internal sealed override bool UseUpdatedEscapeRules =>
+            _container switch
+            {
+                MethodSymbol method => method.UseUpdatedEscapeRules,
+                Symbol symbol => symbol.ContainingModule.UseUpdatedEscapeRules,
+                _ => false,
+            };
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
     {
         private SynthesizedParameterSymbol(
-            MethodSymbol? container,
+            Symbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -238,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsMetadataOut => RefKind == RefKind.Out;
 
         public static ParameterSymbol Create(
-            MethodSymbol? container,
+            Symbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -282,25 +288,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>Synthesized parameters to add to destination method.</returns>
         internal static ImmutableArray<ParameterSymbol> DeriveParameters(MethodSymbol sourceMethod, MethodSymbol destinationMethod)
         {
-            var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
+            return sourceMethod.Parameters.SelectAsArray(
+                static (oldParam, destinationMethod) => DeriveParameter(destinationMethod, oldParam),
+                destinationMethod);
+        }
 
-            foreach (var oldParam in sourceMethod.Parameters)
-            {
-                Debug.Assert(!(oldParam is SynthesizedComplexParameterSymbol));
-                //same properties as the old one, just change the owner
-                builder.Add(Create(
-                    destinationMethod,
-                    oldParam.TypeWithAnnotations,
-                    oldParam.Ordinal,
-                    oldParam.RefKind,
-                    oldParam.Name,
-                    oldParam.EffectiveScope,
-                    oldParam.ExplicitDefaultConstantValue,
-                    oldParam.RefCustomModifiers,
-                    baseParameterForAttributes: null));
-            }
-
-            return builder.ToImmutableAndFree();
+        internal static ParameterSymbol DeriveParameter(Symbol destination, ParameterSymbol oldParam)
+        {
+            Debug.Assert(!(oldParam is SynthesizedComplexParameterSymbol));
+            //same properties as the old one, just change the owner
+            return Create(
+                destination,
+                oldParam.TypeWithAnnotations,
+                oldParam.Ordinal,
+                oldParam.RefKind,
+                oldParam.Name,
+                oldParam.EffectiveScope,
+                oldParam.ExplicitDefaultConstantValue,
+                oldParam.RefCustomModifiers,
+                baseParameterForAttributes: null);
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -327,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _hasUnscopedRefAttribute;
 
         public SynthesizedComplexParameterSymbol(
-            MethodSymbol? container,
+            Symbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,

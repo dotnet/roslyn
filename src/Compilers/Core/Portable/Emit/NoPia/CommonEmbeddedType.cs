@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         TEmbeddedParameter,
         TEmbeddedTypeParameter>
     {
-        internal abstract class CommonEmbeddedType : Cci.INamespaceTypeDefinition
+        internal abstract class CommonEmbeddedType : Cci.IEmbeddedDefinition, Cci.INamespaceTypeDefinition
         {
             public readonly TEmbeddedTypesManager TypeManager;
             public readonly TNamedTypeSymbol UnderlyingNamedType;

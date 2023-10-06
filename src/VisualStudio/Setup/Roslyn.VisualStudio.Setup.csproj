@@ -178,6 +178,17 @@
       <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
+      <Name>Workspaces.MSBuild</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+      <!-- Don't ngen the BuildHost executable. We don't expect it to be used in Visual Studio scenarios, except for third-party extensions that might be using it.
+           At the moment, it's consumed not as a running executable but rather as a library, and it also has some dependencies for the executable portion, like
+           command line parsing and MSBuildLocator that we don't expect to be shipping either. -->
+      <Ngen>false</Ngen>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
       <Name>CSharpWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>

@@ -206,22 +206,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 #nullable enable
-        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
-            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, out state, out resumeLabel);
+        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
+            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, awaitId, out state, out resumeLabel);
 
-        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax);
-            AddStateDebugInfo(awaitOrYieldReturnSyntax, stateNumber);
+            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax, awaitId);
+            AddStateDebugInfo(awaitOrYieldReturnSyntax, awaitId, stateNumber);
             AddState(stateNumber, out resumeLabel);
         }
 
-        protected void AddStateDebugInfo(SyntaxNode node, StateMachineState state)
+        protected void AddStateDebugInfo(SyntaxNode node, AwaitDebugId awaitId, StateMachineState state)
         {
             Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
-            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, state));
+            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, awaitId, state));
         }
 
         protected void AddState(StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)

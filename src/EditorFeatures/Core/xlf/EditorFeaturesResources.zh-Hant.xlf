@@ -312,6 +312,16 @@
         <target state="translated">為符號的檔案重新命名(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
+      <trans-unit id="Roslyn_Test_Code">
+        <source>Roslyn Test Code</source>
+        <target state="translated">Roslyn 測試程式碼</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Roslyn_Test_Code_Markup">
+        <source>Roslyn Test Code Markup</source>
+        <target state="translated">Roslyn 測試程式碼標記</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">分割註解</target>

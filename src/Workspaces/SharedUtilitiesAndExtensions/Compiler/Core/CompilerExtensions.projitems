@@ -264,6 +264,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IPublicOption.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\PublicOptionFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Progress\NullProgress.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\AbstractBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFactsExtensions.cs" />
@@ -513,7 +514,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PredefinedType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PredefinedTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleIntervalTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SpecialTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />

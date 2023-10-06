@@ -28,54 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
-            while (true)
+            while (token.IsPotentialModifier(out var modifierKind))
             {
-                switch (token.Kind())
-                {
-                    case SyntaxKind.PublicKeyword:
-                    case SyntaxKind.InternalKeyword:
-                    case SyntaxKind.ProtectedKeyword:
-                    case SyntaxKind.PrivateKeyword:
-                    case SyntaxKind.SealedKeyword:
-                    case SyntaxKind.AbstractKeyword:
-                    case SyntaxKind.StaticKeyword:
-                    case SyntaxKind.VirtualKeyword:
-                    case SyntaxKind.ExternKeyword:
-                    case SyntaxKind.NewKeyword:
-                    case SyntaxKind.OverrideKeyword:
-                    case SyntaxKind.ReadOnlyKeyword:
-                    case SyntaxKind.VolatileKeyword:
-                    case SyntaxKind.UnsafeKeyword:
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.RefKeyword:
-                    case SyntaxKind.OutKeyword:
-                    case SyntaxKind.InKeyword:
-                    case SyntaxKind.RequiredKeyword:
-                    case SyntaxKind.FileKeyword:
-                        result.Add(token.Kind());
-                        positionBeforeModifiers = token.FullSpan.Start;
-                        token = token.GetPreviousToken(includeSkipped: true);
-                        continue;
-                    case SyntaxKind.IdentifierToken:
-                        if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
-                        {
-                            result.Add(SyntaxKind.AsyncKeyword);
-                            positionBeforeModifiers = token.FullSpan.Start;
-                            token = token.GetPreviousToken(includeSkipped: true);
-                            continue;
-                        }
-                        if (token.HasMatchingText(SyntaxKind.FileKeyword))
-                        {
-                            result.Add(SyntaxKind.FileKeyword);
-                            positionBeforeModifiers = token.FullSpan.Start;
-                            token = token.GetPreviousToken(includeSkipped: true);
-                            continue;
-                        }
-
-                        break;
-                }
-
-                break;
+                result.Add(modifierKind);
+                positionBeforeModifiers = token.FullSpan.Start;
+                token = token.GetPreviousToken(includeSkipped: true);
             }
 
             return result;

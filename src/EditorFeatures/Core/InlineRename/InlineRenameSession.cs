@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Updates the replacement text for the rename session and propagates it to all live buffers.
         /// </summary>
-        internal void ApplyReplacementText(string replacementText, bool propagateEditImmediately)
+        internal void ApplyReplacementText(string replacementText, bool propagateEditImmediately, bool updateSelection = true)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     foreach (var openBuffer in _openTextBuffers.Values)
                     {
-                        openBuffer.ApplyReplacementText();
+                        openBuffer.ApplyReplacementText(updateSelection);
                     }
                 }
 

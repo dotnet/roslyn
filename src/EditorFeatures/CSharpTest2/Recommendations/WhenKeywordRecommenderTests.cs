@@ -218,150 +218,165 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterCustomType()
-            => await VerifyKeywordAsync(@"
-class SyntaxNode { }
-class C
-{
-    void M() { switch (new object()) { case SyntaxNode $$ } }
-}");
+            => await VerifyKeywordAsync("""
+                class SyntaxNode { }
+                class C
+                {
+                    void M() { switch (new object()) { case SyntaxNode $$ } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterCustomType_BeforeBreak()
-            => await VerifyKeywordAsync(@"
-class SyntaxNode { }
-class C
-{
-    void M() { switch (new object()) { case SyntaxNode $$ break; } }
-}");
+            => await VerifyKeywordAsync("""
+                class SyntaxNode { }
+                class C
+                {
+                    void M() { switch (new object()) { case SyntaxNode $$ break; } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterCustomType_BeforeWhen()
-            => await VerifyKeywordAsync(@"
-class SyntaxNode { }
-class C
-{
-    void M() { switch (new object()) { case SyntaxNode $$ when } }
-}");
+            => await VerifyKeywordAsync("""
+                class SyntaxNode { }
+                class C
+                {
+                    void M() { switch (new object()) { case SyntaxNode $$ when } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAlias()
-            => await VerifyKeywordAsync(@"
-using Type = System.String;
-class C
-{
-    void M() { switch (new object()) { case Type $$ } }
-}");
+            => await VerifyKeywordAsync("""
+                using Type = System.String;
+                class C
+                {
+                    void M() { switch (new object()) { case Type $$ } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAlias_BeforeBreak()
-            => await VerifyKeywordAsync(@"
-using Type = System.String;
-class C
-{
-    void M() { switch (new object()) { case Type $$ break; } }
-}");
+            => await VerifyKeywordAsync("""
+                using Type = System.String;
+                class C
+                {
+                    void M() { switch (new object()) { case Type $$ break; } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAlias_BeforeWhen()
-            => await VerifyKeywordAsync(@"
-using Type = System.String;
-class C
-{
-    void M() { switch (new object()) { case Type $$ when } }
-}");
+            => await VerifyKeywordAsync("""
+                using Type = System.String;
+                class C
+                {
+                    void M() { switch (new object()) { case Type $$ when } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName()
-    => await VerifyKeywordAsync(@"
-class ValueTuple { }
-class ValueTuple<T> { }
-class C
-{
-    void M() { switch (new object()) { case ValueTuple $$ } }
-}");
+    => await VerifyKeywordAsync("""
+        class ValueTuple { }
+        class ValueTuple<T> { }
+        class C
+        {
+            void M() { switch (new object()) { case ValueTuple $$ } }
+        }
+        """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName_BeforeBreak()
-            => await VerifyKeywordAsync(@"
-class ValueTuple { }
-class ValueTuple<T> { }
-class C
-{
-    void M() { switch (new object()) { case ValueTuple $$ break; } }
-}");
+            => await VerifyKeywordAsync("""
+                class ValueTuple { }
+                class ValueTuple<T> { }
+                class C
+                {
+                    void M() { switch (new object()) { case ValueTuple $$ break; } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName_BeforeWhen()
-            => await VerifyKeywordAsync(@"
-class ValueTuple { }
-class ValueTuple<T> { }
-class C
-{
-    void M() { switch (new object()) { case ValueTuple $$ when } }
-}");
+            => await VerifyKeywordAsync("""
+                class ValueTuple { }
+                class ValueTuple<T> { }
+                class C
+                {
+                    void M() { switch (new object()) { case ValueTuple $$ when } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterColorColor()
-            => await VerifyKeywordAsync(@"
-class Color { }
-class C
-{
-    const Color Color = null;
-    void M() { switch (new object()) { case Color $$ } }
-}");
+            => await VerifyKeywordAsync("""
+                class Color { }
+                class C
+                {
+                    const Color Color = null;
+                    void M() { switch (new object()) { case Color $$ } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterColorColor_BeforeBreak()
-            => await VerifyKeywordAsync(@"
-class Color { }
-class C
-{
-    const Color Color = null;
-    void M() { switch (new object()) { case Color $$ break; } }
-}");
+            => await VerifyKeywordAsync("""
+                class Color { }
+                class C
+                {
+                    const Color Color = null;
+                    void M() { switch (new object()) { case Color $$ break; } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterColorColor_BeforeWhen()
-            => await VerifyKeywordAsync(@"
-class Color { }
-class C
-{
-    const Color Color = null;
-    void M() { switch (new object()) { case Color $$ when } }
-}");
+            => await VerifyKeywordAsync("""
+                class Color { }
+                class C
+                {
+                    const Color Color = null;
+                    void M() { switch (new object()) { case Color $$ when } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor()
-    => await VerifyKeywordAsync(@"
-class Color<T> { }
-class Color { }
-class C
-{
-    const Color Color = null;
-    void M() { switch (new object()) { case Color $$ } }
-}");
+    => await VerifyKeywordAsync("""
+        class Color<T> { }
+        class Color { }
+        class C
+        {
+            const Color Color = null;
+            void M() { switch (new object()) { case Color $$ } }
+        }
+        """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor_BeforeBreak()
-            => await VerifyKeywordAsync(@"
-class Color<T> { }
-class Color { }
-class C
-{
-    const Color Color = null;
-    void M() { switch (new object()) { case Color $$ break; } }
-}");
+            => await VerifyKeywordAsync("""
+                class Color<T> { }
+                class Color { }
+                class C
+                {
+                    const Color Color = null;
+                    void M() { switch (new object()) { case Color $$ break; } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor_BeforeWhen()
-            => await VerifyKeywordAsync(@"
-class Color<T> { }
-class Color { }
-class C
-{
-    const Color Color = null;
-    void M() { switch (new object()) { case Color $$ when } }
-}");
+            => await VerifyKeywordAsync("""
+                class Color<T> { }
+                class Color { }
+                class C
+                {
+                    const Color Color = null;
+                    void M() { switch (new object()) { case Color $$ when } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant()
@@ -401,62 +416,68 @@ class C
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterClassVar()
-            => await VerifyAbsenceAsync(@"
-class var { }
-class C
-{
-    void M() { switch (new object()) { case var $$ } }
-}");
+            => await VerifyAbsenceAsync("""
+                class var { }
+                class C
+                {
+                    void M() { switch (new object()) { case var $$ } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterClassVar_BeforeBreak()
-            => await VerifyAbsenceAsync(@"
-class var { }
-class C
-{
-    void M() { switch (new object()) { case var $$ break; } }
-}");
+            => await VerifyAbsenceAsync("""
+                class var { }
+                class C
+                {
+                    void M() { switch (new object()) { case var $$ break; } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterClassVar_BeforeWhen()
-            => await VerifyAbsenceAsync(@"
-class var { }
-class C
-{
-    void M() { switch (new object()) { case var $$ when } }
-}");
+            => await VerifyAbsenceAsync("""
+                class var { }
+                class C
+                {
+                    void M() { switch (new object()) { case var $$ when } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar()
         {
-            await VerifyAbsenceAsync(@"
-using var = System.String;
-class C
-{
-    void M() { switch (new object()) { case var $$ } }
-}");
+            await VerifyAbsenceAsync("""
+                using var = System.String;
+                class C
+                {
+                    void M() { switch (new object()) { case var $$ } }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeBreak()
         {
-            await VerifyAbsenceAsync(@"
-using var = System.String;
-class C
-{
-    void M() { switch (new object()) { case var $$ break; } }
-}");
+            await VerifyAbsenceAsync("""
+                using var = System.String;
+                class C
+                {
+                    void M() { switch (new object()) { case var $$ break; } }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeWhen()
         {
-            await VerifyAbsenceAsync(@"
-using var = System.String;
-class C
-{
-    void M() { switch (new object()) { case var $$ when } }
-}");
+            await VerifyAbsenceAsync("""
+                using var = System.String;
+                class C
+                {
+                    void M() { switch (new object()) { case var $$ when } }
+                }
+                """);
         }
 
         [Fact]
@@ -473,133 +494,143 @@ class C
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar()
-            => await VerifyAbsenceAsync(@"
-class var { }
-class C
-{
-    void M() { const object var = null; switch (new object()) { case var $$ } }
-}");
+            => await VerifyAbsenceAsync("""
+                class var { }
+                class C
+                {
+                    void M() { const object var = null; switch (new object()) { case var $$ } }
+                }
+                """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar_BeforeBreak()
-    => await VerifyAbsenceAsync(@"
-class var { }
-class C
-{
-    void M() { const object var = null; switch (new object()) { case var $$ break; } }
-}");
+    => await VerifyAbsenceAsync("""
+        class var { }
+        class C
+        {
+            void M() { const object var = null; switch (new object()) { case var $$ break; } }
+        }
+        """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar_BeforeWhen()
-    => await VerifyAbsenceAsync(@"
-class var { }
-class C
-{
-    void M() { const object var = null; switch (new object()) { case var $$ when } }
-}");
+    => await VerifyAbsenceAsync("""
+        class var { }
+        class C
+        {
+            void M() { const object var = null; switch (new object()) { case var $$ when } }
+        }
+        """);
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar()
         {
-            await VerifyAbsenceAsync(@"
-using var = System.String;
-class C
-{
-    const object var = null;
-    void M() { switch (new object()) { case var $$ } }
-}");
+            await VerifyAbsenceAsync("""
+                using var = System.String;
+                class C
+                {
+                    const object var = null;
+                    void M() { switch (new object()) { case var $$ } }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeBreak()
         {
-            await VerifyAbsenceAsync(@"
-using var = System.String;
-class C
-{
-    const object var = null;
-    void M() { switch (new object()) { case var $$ break; } }
-}");
+            await VerifyAbsenceAsync("""
+                using var = System.String;
+                class C
+                {
+                    const object var = null;
+                    void M() { switch (new object()) { case var $$ break; } }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeWhen()
         {
-            await VerifyAbsenceAsync(@"
-using var = System.String;
-class C
-{
-    const object var = null;
-    void M() { switch (new object()) { case var $$ when } }
-}");
+            await VerifyAbsenceAsync("""
+                using var = System.String;
+                class C
+                {
+                    const object var = null;
+                    void M() { switch (new object()) { case var $$ when } }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern1()
         {
-            await VerifyKeywordAsync(@"
-using var = System.String;
-class C
-{
-    void M(int i)
-    {
-        _ = i switch
-        {
-            < 0 $$ => 1,
-        };
-    }
-}");
+            await VerifyKeywordAsync("""
+                using var = System.String;
+                class C
+                {
+                    void M(int i)
+                    {
+                        _ = i switch
+                        {
+                            < 0 $$ => 1,
+                        };
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern2()
         {
-            await VerifyKeywordAsync(@"
-using var = System.String;
-class C
-{
-    void M(int i)
-    {
-        _ = i switch
-        {
-            4 $$ => 1,
-        };
-    }
-}");
+            await VerifyKeywordAsync("""
+                using var = System.String;
+                class C
+                {
+                    void M(int i)
+                    {
+                        _ = i switch
+                        {
+                            4 $$ => 1,
+                        };
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern3()
         {
-            await VerifyKeywordAsync(@"
-using var = System.String;
-class C
-{
-    void M(int i)
-    {
-        _ = i switch
-        {
-            int $$ => 1,
-        };
-    }
-}");
+            await VerifyKeywordAsync("""
+                using var = System.String;
+                class C
+                {
+                    void M(int i)
+                    {
+                        _ = i switch
+                        {
+                            int $$ => 1,
+                        };
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern4()
         {
-            await VerifyKeywordAsync(@"
-using var = System.String;
-class C
-{
-    void M(int i)
-    {
-        _ = i switch
-        {
-            int $$ or 1 => 1,
-        };
-    }
-}");
+            await VerifyKeywordAsync("""
+                using var = System.String;
+                class C
+                {
+                    void M(int i)
+                    {
+                        _ = i switch
+                        {
+                            int $$ or 1 => 1,
+                        };
+                    }
+                }
+                """);
         }
     }
 }

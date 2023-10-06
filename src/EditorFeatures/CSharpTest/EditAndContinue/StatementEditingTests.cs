@@ -3558,8 +3558,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(out int a)", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         // Add corresponding test to VB
@@ -6048,7 +6047,7 @@ class C
                 Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Lambdas_CapturedParameter_ChangeType()
         {
@@ -6077,6 +6076,56 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingCapturedVariableType, "x", "x", "int"));
+        }
+
+        [Fact]
+        public void Lambdas_CapturedParameter_ChangeType_Indexer1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int> this[int a] { get => () => a; }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int> this[byte a] => () => a;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "a", "a", "int"));
+        }
+
+        [Fact]
+        public void Lambdas_CapturedParameter_ChangeType_Indexer_NoBodyChange()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int> this[int a ] => () => a;
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int> this[byte a] => () => a;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "a", "a", "int"));
         }
 
         [Fact]
@@ -7428,8 +7477,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -7459,8 +7507,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
