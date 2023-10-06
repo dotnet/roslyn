@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Buffers;
 using System.Collections.Immutable;
 using System.IO;
 using System.IO.Pipelines;
@@ -155,9 +155,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 Requires.NotNull(buffer, nameof(buffer));
                 Verify.NotDisposed(this);
 
+#if NET
+                _writer.Write(buffer.AsSpan(offset, count));
+#else
                 var span = _writer.GetSpan(count);
                 buffer.AsSpan(offset, count).CopyTo(span);
                 _writer.Advance(count);
+#endif
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -175,14 +179,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 _writer.Advance(1);
             }
 
-#if !NETSTANDARD
+#if NET
 
             public override void Write(ReadOnlySpan<byte> buffer)
             {
                 Verify.NotDisposed(this);
-                var span = _writer.GetSpan(buffer.Length);
-                buffer.CopyTo(span);
-                _writer.Advance(buffer.Length);
+                _writer.Write(buffer);
             }
 
             public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken)
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
                 => throw this.ThrowDisposedOr(new NotSupportedException());
 
-#if !NETSTANDARD
+#if NET
 
             public override int Read(Span<byte> buffer)
                 => throw this.ThrowDisposedOr(new NotSupportedException());
