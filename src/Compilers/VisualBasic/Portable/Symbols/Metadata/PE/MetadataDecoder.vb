@@ -84,41 +84,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return typeParameters(position)
         End Function
 
-        Private Shared Function AdjustGenericTypeParameterPosition(ByRef type As NamedTypeSymbol, ByRef position As Integer) As Boolean
-            Dim peType = If(TryCast(type, PENamedTypeSymbol), TryCast(type.OriginalDefinition, PENamedTypeSymbol))
-            If peType IsNot Nothing Then
-                While peType IsNot Nothing AndAlso (peType.MetadataArity - peType.Arity) > position
-                    type = TryCast(type.ContainingSymbol, NamedTypeSymbol)
-                    peType = If(TryCast(type, PENamedTypeSymbol), TryCast(type?.OriginalDefinition, PENamedTypeSymbol))
-                End While
-
-                If peType Is Nothing OrElse peType.MetadataArity <= position Then
-                    Return False
-                End If
-
-                position -= (peType.MetadataArity - peType.Arity)
-                Debug.Assert(position >= 0 AndAlso position < peType.Arity)
-            End If
-
-            Return True
-        End Function
-
         Protected Overrides Function GetGenericTypeParamSymbol(position As Integer) As TypeSymbol
-            Dim type As NamedTypeSymbol = _typeContextOpt
-            If type Is Nothing OrElse Not AdjustGenericTypeParameterPosition(type, position) Then
+
+            Dim type As PENamedTypeSymbol = _typeContextOpt
+
+            While type IsNot Nothing AndAlso (type.MetadataArity - type.Arity) > position
+                type = TryCast(type.ContainingSymbol, PENamedTypeSymbol)
+            End While
+
+            If type Is Nothing OrElse type.MetadataArity <= position Then
                 Return New UnsupportedMetadataTypeSymbol()
             End If
+
+            position -= (type.MetadataArity - type.Arity)
+            Debug.Assert(position >= 0 AndAlso position < type.Arity)
 
             Return type.TypeParameters(position)
-        End Function
-
-        Protected Overrides Function GetGenericTypeArgumentSymbol(position As Integer) As TypeSymbol
-            Dim type As NamedTypeSymbol = _typeContextOpt
-            If type Is Nothing OrElse Not AdjustGenericTypeParameterPosition(type, position) Then
-                Return New UnsupportedMetadataTypeSymbol()
-            End If
-
-            Return type.TypeArgumentsNoUseSiteDiagnostics(position)
         End Function
 
         Protected Overrides Function GetTypeHandleToTypeMap() As ConcurrentDictionary(Of TypeDefinitionHandle, TypeSymbol)

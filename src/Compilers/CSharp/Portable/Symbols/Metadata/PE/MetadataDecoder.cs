@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// Type context for resolving generic type arguments.
         /// </summary>
-        private readonly NamedTypeSymbol _typeContextOpt;
+        private readonly PENamedTypeSymbol _typeContextOpt;
 
         /// <summary>
         /// Method context for resolving generic method type arguments.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public MetadataDecoder(
             PEModuleSymbol moduleSymbol,
-            NamedTypeSymbol context) :
+            PENamedTypeSymbol context) :
             this(moduleSymbol, context, null)
         {
         }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
         }
 
-        private MetadataDecoder(PEModuleSymbol moduleSymbol, NamedTypeSymbol typeContextOpt, PEMethodSymbol methodContextOpt)
+        private MetadataDecoder(PEModuleSymbol moduleSymbol, PENamedTypeSymbol typeContextOpt, PEMethodSymbol methodContextOpt)
             // TODO (tomat): if the containing assembly is a source assembly and we are about to decode assembly level attributes, we run into a cycle,
             // so for now ignore the assembly identity.
             : base(moduleSymbol.Module, (moduleSymbol.ContainingAssembly is PEAssemblySymbol) ? moduleSymbol.ContainingAssembly.Identity : null, SymbolFactory.Instance, moduleSymbol)
@@ -83,49 +83,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return typeParameters[position];
         }
 
-        private static bool AdjustGenericTypeParameterPosition(ref NamedTypeSymbol type, ref int position)
-        {
-            PENamedTypeSymbol peType = type as PENamedTypeSymbol ?? type.OriginalDefinition as PENamedTypeSymbol;
-            if (peType is not null)
-            {
-                while ((object)peType != null && (peType.MetadataArity - peType.Arity) > position)
-                {
-                    type = type.ContainingSymbol as NamedTypeSymbol;
-                    peType = type as PENamedTypeSymbol ?? type?.OriginalDefinition as PENamedTypeSymbol;
-                }
-
-                if ((object)peType == null || peType.MetadataArity <= position)
-                {
-                    return false; // position of type parameter too large
-                }
-
-                position -= peType.MetadataArity - peType.Arity;
-                Debug.Assert(position >= 0 && position < peType.Arity);
-            }
-
-            return true;
-        }
-
         protected override TypeSymbol GetGenericTypeParamSymbol(int position)
         {
-            var type = _typeContextOpt;
-            if (type is null || !AdjustGenericTypeParameterPosition(ref type, ref position))
+            PENamedTypeSymbol type = _typeContextOpt;
+
+            while ((object)type != null && (type.MetadataArity - type.Arity) > position)
             {
-                return new UnsupportedMetadataTypeSymbol();
+                type = type.ContainingSymbol as PENamedTypeSymbol;
             }
+
+            if ((object)type == null || type.MetadataArity <= position)
+            {
+                return new UnsupportedMetadataTypeSymbol(); // position of type parameter too large
+            }
+
+            position -= type.MetadataArity - type.Arity;
+            Debug.Assert(position >= 0 && position < type.Arity);
 
             return type.TypeParameters[position];
-        }
-
-        protected override TypeSymbol GetGenericTypeArgumentSymbol(int position)
-        {
-            var type = _typeContextOpt;
-            if (type is null || !AdjustGenericTypeParameterPosition(ref type, ref position))
-            {
-                return new UnsupportedMetadataTypeSymbol();
-            }
-
-            return type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[position].Type;
         }
 
         protected override ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> GetTypeHandleToTypeMap()
