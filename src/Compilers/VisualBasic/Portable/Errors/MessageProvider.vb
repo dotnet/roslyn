@@ -20,13 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub New()
         End Sub
-
-        Private ReadOnly Property IObjectWritable_ShouldReuseInSerialization As Boolean Implements IObjectWritable.ShouldReuseInSerialization
-            Get
-                Return True
-            End Get
-        End Property
-
         Private Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
             ' don't write anything since we always return the shared 'Instance' when read.
         End Sub

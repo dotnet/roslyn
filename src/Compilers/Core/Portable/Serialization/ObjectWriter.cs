@@ -96,7 +96,6 @@ namespace Roslyn.Utilities
             _writer.Dispose();
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
-            _recursionDepth = 0;
         }
 
         public void WriteBoolean(bool value) => _writer.Write(value);
