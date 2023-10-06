@@ -192,6 +192,7 @@ internal sealed class GlobalOptionService(
 
         lock (_gate)
         {
+            var currentValues = _currentValues;
             foreach (var (optionKey, value) in options)
             {
                 var existingValue = GetOption_NoLock(optionKey, persisters);
@@ -200,9 +201,11 @@ internal sealed class GlobalOptionService(
                     continue;
                 }
 
-                _currentValues = _currentValues.SetItem(optionKey, value);
+                currentValues = currentValues.SetItem(optionKey, value);
                 changedOptions.Add(new OptionChangedEventArgs(optionKey, value));
             }
+
+            _currentValues = currentValues;
         }
 
         if (changedOptions.Count == 0)
