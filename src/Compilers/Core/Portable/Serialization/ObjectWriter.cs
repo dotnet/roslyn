@@ -60,15 +60,6 @@ namespace Roslyn.Utilities
         private WriterReferenceMap _objectReferenceMap;
         private WriterReferenceMap _stringReferenceMap;
 
-        /// <summary>
-        /// Copy of the global binder data that maps from Types to the appropriate reading-function
-        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but
-        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us
-        /// local copy we can work with without needing to worry about anyone else mutating.
-        /// </summary>
-        private readonly ObjectBinderSnapshot _binderSnapshot;
-
-        private int _recursionDepth;
         internal const int MaxRecursionDepth = 50;
 
         /// <summary>
@@ -90,10 +81,6 @@ namespace Roslyn.Utilities
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
-
-            // Capture a copy of the current static binder state.  That way we don't have to
-            // access any locks while we're doing our processing.
-            _binderSnapshot = ObjectBinder.GetSnapshot();
 
             WriteVersion();
         }
@@ -268,7 +255,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                WriteObject(instance: value, instanceAsWritable: null);
+                throw new InvalidOperationException($"Unsupported object type: {value.GetType()}");
             }
         }
 
@@ -319,17 +306,6 @@ namespace Roslyn.Utilities
                 _writer.Write(buffer, 0, segmentLength);
             }
 #endif
-        }
-
-        public void WriteValue(IObjectWritable? value)
-        {
-            if (value == null)
-            {
-                _writer.Write((byte)TypeCode.Null);
-                return;
-            }
-
-            WriteObject(instance: value, instanceAsWritable: value);
         }
 
         private void WriteEncodedInt32(int v)
@@ -560,43 +536,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                // emit header up front
-                this.WriteKnownType(elementType);
-
-                // recursive: write elements now
-                var oldDepth = _recursionDepth;
-                _recursionDepth++;
-
-                if (_recursionDepth % MaxRecursionDepth == 0)
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    // If we're recursing too deep, move the work to another thread to do so we
-                    // don't blow the stack.
-                    var task = SerializationThreadPool.RunOnBackgroundThreadAsync(
-                        a =>
-                        {
-                            WriteArrayValues((Array)a!);
-                            return null;
-                        },
-                        array);
-
-                    // We must not proceed until the additional task completes. After returning from a write, the underlying
-                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
-                    // completes its write then an access violation can occur attempting to write to unmapped memory.
-                    //
-                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
-                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
-                    // so the wait can complete.
-                    task.GetAwaiter().GetResult();
-                }
-                else
-                {
-                    WriteArrayValues(array);
-                }
-
-                _recursionDepth--;
-                Debug.Assert(_recursionDepth == oldDepth);
+                throw new InvalidOperationException($"Unsupported array element type: {elementType}");
             }
         }
 
@@ -789,12 +729,6 @@ namespace Roslyn.Utilities
             this.WriteString(type.AssemblyQualifiedName);
         }
 
-        private void WriteKnownType(Type type)
-        {
-            _writer.Write((byte)TypeCode.Type);
-            this.WriteInt32(_binderSnapshot.GetTypeId(type));
-        }
-
         public void WriteEncoding(Encoding? encoding)
         {
             if (encoding == null)
@@ -815,104 +749,6 @@ namespace Roslyn.Utilities
                 WriteByte((byte)TypeCode.EncodingName);
                 WriteString(encoding.WebName);
             }
-        }
-
-        private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
-        {
-            RoslynDebug.Assert(instance != null);
-            RoslynDebug.Assert(instanceAsWritable == null || instance == instanceAsWritable);
-
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            // write object ref if we already know this instance
-            if (_objectReferenceMap.TryGetReferenceId(instance, out var id))
-            {
-                Debug.Assert(id >= 0);
-                if (id <= byte.MaxValue)
-                {
-                    _writer.Write((byte)TypeCode.ObjectRef_1Byte);
-                    _writer.Write((byte)id);
-                }
-                else if (id <= ushort.MaxValue)
-                {
-                    _writer.Write((byte)TypeCode.ObjectRef_2Bytes);
-                    _writer.Write((ushort)id);
-                }
-                else
-                {
-                    _writer.Write((byte)TypeCode.ObjectRef_4Bytes);
-                    _writer.Write(id);
-                }
-            }
-            else
-            {
-                var writable = instanceAsWritable;
-                if (writable == null)
-                {
-                    writable = instance as IObjectWritable;
-                    if (writable == null)
-                    {
-                        throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
-                    }
-                }
-
-                var oldDepth = _recursionDepth;
-                _recursionDepth++;
-
-                if (_recursionDepth % MaxRecursionDepth == 0)
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    // If we're recursing too deep, move the work to another thread to do so we
-                    // don't blow the stack.
-                    var task = SerializationThreadPool.RunOnBackgroundThreadAsync(
-                        obj =>
-                        {
-                            WriteObjectWorker((IObjectWritable)obj!);
-                            return null;
-                        },
-                        writable);
-
-                    // We must not proceed until the additional task completes. After returning from a write, the underlying
-                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
-                    // completes its write then an access violation can occur attempting to write to unmapped memory.
-                    //
-                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
-                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
-                    // so the wait can complete.
-                    task.GetAwaiter().GetResult();
-                }
-                else
-                {
-                    WriteObjectWorker(writable);
-                }
-
-                _recursionDepth--;
-                Debug.Assert(_recursionDepth == oldDepth);
-            }
-        }
-
-        private void WriteObjectWorker(IObjectWritable writable)
-        {
-            _objectReferenceMap.Add(writable, writable.ShouldReuseInSerialization);
-
-            // emit object header up front
-            _writer.Write((byte)TypeCode.Object);
-
-            // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'
-            // tag since we just wrote out the 'Object' tag
-            this.WriteInt32(_binderSnapshot.GetTypeId(writable.GetType()));
-            writable.WriteTo(this);
-        }
-
-        private static Exception NoSerializationTypeException(string typeName)
-        {
-            return new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
-        }
-
-        private static Exception NoSerializationWriterException(string typeName)
-        {
-            return new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
@@ -986,11 +822,6 @@ namespace Roslyn.Utilities
             /// A type
             /// </summary>
             Type,
-
-            /// <summary>
-            /// An object with member values encoded as variants
-            /// </summary>
-            Object,
 
             /// <summary>
             /// An object reference with the id encoded as 1 byte.
