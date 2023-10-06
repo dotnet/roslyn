@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -155,7 +156,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 Requires.NotNull(buffer, nameof(buffer));
                 Verify.NotDisposed(this);
 
+#if NET
                 _writer.Write(buffer.AsSpan(offset, count));
+#else
+                var span = _writer.GetSpan(count);
+                buffer.AsSpan(offset, count).CopyTo(span);
+                _writer.Advance(count);
+#endif
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -173,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _writer.Advance(1);
             }
 
-#if !NETSTANDARD
+#if NET
 
             public override void Write(ReadOnlySpan<byte> buffer)
             {
