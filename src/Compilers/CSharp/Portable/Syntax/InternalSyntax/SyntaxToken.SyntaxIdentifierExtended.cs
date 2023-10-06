@@ -29,13 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.valueText = valueText;
             }
 
-            internal SyntaxIdentifierExtended(ObjectReader reader)
-                : base(reader)
-            {
-                this.contextualKind = (SyntaxKind)reader.ReadInt16();
-                this.valueText = reader.ReadString();
-            }
-
             public override SyntaxKind ContextualKind
             {
                 get { return this.contextualKind; }

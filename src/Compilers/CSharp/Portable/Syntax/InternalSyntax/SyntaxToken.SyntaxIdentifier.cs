@@ -26,13 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.TextField = text;
             }
 
-            internal SyntaxIdentifier(ObjectReader reader)
-                : base(reader)
-            {
-                this.TextField = reader.ReadString();
-                this.FullWidth = this.TextField.Length;
-            }
-
             public override string Text
             {
                 get { return this.TextField; }

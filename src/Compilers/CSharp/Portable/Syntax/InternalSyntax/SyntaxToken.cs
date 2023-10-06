@@ -58,18 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
         }
 
-        internal SyntaxToken(ObjectReader reader)
-            : base(reader)
-        {
-            var text = this.Text;
-            if (text != null)
-            {
-                FullWidth = text.Length;
-            }
-
-            this.flags |= NodeFlags.IsNotMissing;  //note: cleared by subclasses representing missing tokens
-        }
-
         //====================
 
         public override bool IsToken => true;

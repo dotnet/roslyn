@@ -20,14 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New SimpleIdentifierSyntax(o)
 
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-        End Sub
-
-        Shared Sub New()
-            ObjectBinder.RegisterTypeReader(GetType(SimpleIdentifierSyntax), Function(r) New SimpleIdentifierSyntax(r))
-        End Sub
-
         ''' <summary>
         ''' Contextual Nodekind
         ''' </summary>

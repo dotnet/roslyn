@@ -29,26 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-            _possibleKeywordKind = CType(reader.ReadUInt16(), SyntaxKind)
-            _isBracketed = reader.ReadBoolean()
-            _identifierText = reader.ReadString()
-            _typeCharacter = CType(reader.ReadByte(), TypeCharacter)
-        End Sub
-
-        Shared Sub New()
-            ObjectBinder.RegisterTypeReader(GetType(ComplexIdentifierSyntax), Function(r) New ComplexIdentifierSyntax(r))
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer As ObjectWriter)
-            MyBase.WriteTo(writer)
-            writer.WriteUInt16(CType(_possibleKeywordKind, UInt16))
-            writer.WriteBoolean(_isBracketed)
-            writer.WriteString(_identifierText)
-            writer.WriteByte(CType(_typeCharacter, Byte))
-        End Sub
-
         ''' <summary>
         ''' Contextual Nodekind
         ''' </summary>

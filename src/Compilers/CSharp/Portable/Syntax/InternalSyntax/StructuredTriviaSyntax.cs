@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Initialize();
         }
 
-        internal StructuredTriviaSyntax(ObjectReader reader)
-            : base(reader)
-        {
-            this.Initialize();
-        }
-
         private void Initialize()
         {
             this.flags |= NodeFlags.ContainsStructuredTrivia;
