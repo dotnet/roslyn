@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
                 => throw this.ThrowDisposedOr(new NotSupportedException());
 
-#if !NETSTANDARD
+#if NET
 
             public override int Read(Span<byte> buffer)
                 => throw this.ThrowDisposedOr(new NotSupportedException());
