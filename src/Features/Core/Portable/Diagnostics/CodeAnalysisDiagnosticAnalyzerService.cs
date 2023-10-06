@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -14,24 +15,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-[ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerService), ServiceLayer.Default), Shared]
+[ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerService), ServiceLayer.Host), Shared]
 internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory : IWorkspaceServiceFactory
 {
-    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-    private readonly IDiagnosticsRefresher _diagnosticsRefresher;
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CodeAnalysisDiagnosticAnalyzerServiceFactory(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
-        IDiagnosticsRefresher diagnosticsRefresher)
+    public CodeAnalysisDiagnosticAnalyzerServiceFactory()
     {
-        _diagnosticAnalyzerService = diagnosticAnalyzerService;
-        _diagnosticsRefresher = diagnosticsRefresher;
     }
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new CodeAnalysisDiagnosticAnalyzerService(_diagnosticAnalyzerService, _diagnosticsRefresher, workspaceServices.Workspace);
+    {
+        var diagnosticAnalyzerService = workspaceServices.SolutionServices.ExportProvider.GetExports<IDiagnosticAnalyzerService>().Single().Value;
+        var diagnosticsRefresher = workspaceServices.SolutionServices.ExportProvider.GetExports<IDiagnosticsRefresher>().Single().Value;
+        return new CodeAnalysisDiagnosticAnalyzerService(diagnosticAnalyzerService, diagnosticsRefresher, workspaceServices.Workspace);
+    }
 
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
