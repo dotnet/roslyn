@@ -29,9 +29,13 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         _binaryLogPath = binaryLogPath;
     }
 
-    public async Task<IBuildHost> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
+    /// <summary>
+    /// Returns the best <see cref="IBuildHost"/> to use for this project; if it picked a fallback option because the preferred kind was unavailable, that's returned too, otherwise null.
+    /// </summary>
+    public async Task<(IBuildHost, BuildHostProcessKind? PreferredKind)> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
     {
         var neededBuildHostKind = GetKindForProject(projectFilePath);
+        BuildHostProcessKind? preferredKind = null;
 
         _logger?.LogTrace($"Choosing a build host of type {neededBuildHostKind} for {projectFilePath}.");
 
@@ -39,6 +43,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         {
             _logger?.LogWarning($"An installation of Mono could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
             neededBuildHostKind = BuildHostProcessKind.NetCore;
+            preferredKind = BuildHostProcessKind.Mono;
         }
 
         var buildHost = await GetBuildHostAsync(neededBuildHostKind, cancellationToken).ConfigureAwait(false);
@@ -52,11 +57,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             {
                 // It's not usable, so we'll fall back to the .NET Core one.
                 _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
-                return await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken);
+                return (await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken), PreferredKind: BuildHostProcessKind.NetFramework);
             }
         }
 
-        return buildHost;
+        return (buildHost, preferredKind);
     }
 
     public async Task<IBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
