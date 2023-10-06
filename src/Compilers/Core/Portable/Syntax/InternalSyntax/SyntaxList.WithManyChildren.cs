@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
@@ -59,20 +58,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 this.InitializeChildren();
             }
 
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-
-                // PERF: Write the array out manually.Profiling shows that this is cheaper than converting to 
-                // an array in order to use writer.WriteValue.
-                writer.WriteInt32(this.children.Length);
-
-                for (var i = 0; i < this.children.Length; i++)
-                {
-                    writer.WriteValue(this.children[i].Value);
-                }
-            }
-
             protected override int GetSlotCount()
             {
                 return children.Length;
@@ -122,11 +107,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal sealed class WithManyChildren : WithManyChildrenBase
         {
-            static WithManyChildren()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(WithManyChildren), r => new WithManyChildren(r));
-            }
-
             internal WithManyChildren(ArrayElement<GreenNode>[] children)
                 : base(children)
             {

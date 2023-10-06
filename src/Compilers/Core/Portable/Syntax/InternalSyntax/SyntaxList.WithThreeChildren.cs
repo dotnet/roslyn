@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
@@ -11,11 +10,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         internal class WithThreeChildren : SyntaxList
         {
-            static WithThreeChildren()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(WithThreeChildren), r => new WithThreeChildren(r));
-            }
-
             private readonly GreenNode _child0;
             private readonly GreenNode _child1;
             private readonly GreenNode _child2;
@@ -53,14 +47,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(_child1);
                 _child2 = (GreenNode)reader.ReadValue();
                 this.AdjustFlagsAndWidth(_child2);
-            }
-
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-                writer.WriteValue(_child0);
-                writer.WriteValue(_child1);
-                writer.WriteValue(_child2);
             }
 
             internal override GreenNode? GetSlot(int index)

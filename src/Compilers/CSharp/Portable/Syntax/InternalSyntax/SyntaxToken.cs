@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -70,9 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.flags |= NodeFlags.IsNotMissing;  //note: cleared by subclasses representing missing tokens
         }
-
-        internal override bool ShouldReuseInSerialization => base.ShouldReuseInSerialization &&
-                                                             FullWidth < Lexer.MaxCachedTokenSize;
 
         //====================
 
@@ -150,8 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         static SyntaxToken()
         {
-            ObjectBinder.RegisterTypeReader(typeof(SyntaxToken), r => new SyntaxToken(r));
-
             for (var kind = FirstTokenWithWellKnownText; kind <= LastTokenWithWellKnownText; kind++)
             {
                 s_tokensWithNoTrivia[(int)kind].Value = new SyntaxToken(kind);
