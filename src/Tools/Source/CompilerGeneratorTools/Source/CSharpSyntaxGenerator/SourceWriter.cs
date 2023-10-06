@@ -118,17 +118,6 @@ namespace CSharpSyntaxGenerator
                 }
                 CloseBlock();
 
-                // object reader constructor
-                WriteLine();
-                WriteLine($"protected {node.Name}(ObjectReader reader)");
-                WriteLine("  : base(reader)");
-                OpenBlock();
-                if (node.Name == "DirectiveTriviaSyntax")
-                {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
-                }
-                CloseBlock();
-
                 var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
                 var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
 

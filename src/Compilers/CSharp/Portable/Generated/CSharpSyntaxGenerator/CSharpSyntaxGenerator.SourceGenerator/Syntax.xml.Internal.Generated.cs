@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(kind)
         {
         }
-
-        protected NameSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
     }
 
     /// <summary>Provides the base class from which the classes that represent simple name syntax nodes are derived. This is an abstract class.</summary>
@@ -41,11 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal SimpleNameSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected SimpleNameSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -483,11 +473,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal TypeSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected TypeSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
     }
@@ -1787,11 +1772,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(kind)
         {
         }
-
-        protected ExpressionOrPatternSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
     }
 
     /// <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
@@ -1804,11 +1784,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal ExpressionSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected ExpressionSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
     }
@@ -3030,11 +3005,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(kind)
         {
         }
-
-        protected InstanceExpressionSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
     }
 
     /// <summary>Class which represents the syntax node for a this expression.</summary>
@@ -4116,11 +4086,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected BaseArgumentListSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         /// <summary>SeparatedSyntaxList of ArgumentSyntax nodes representing the list of arguments.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments { get; }
     }
@@ -4437,11 +4402,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal BaseExpressionColonSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected BaseExpressionColonSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -4795,11 +4755,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected AnonymousFunctionExpressionSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get; }
 
         /// <summary>
@@ -4966,11 +4921,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal LambdaExpressionSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected LambdaExpressionSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -5499,11 +5449,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal BaseObjectCreationExpressionSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected BaseObjectCreationExpressionSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -6532,11 +6477,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(kind)
         {
         }
-
-        protected CollectionElementSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
     }
 
     internal sealed partial class ExpressionElementSyntax : CollectionElementSyntax
@@ -6689,11 +6629,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(kind)
         {
         }
-
-        protected QueryClauseSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
     }
 
     internal abstract partial class SelectOrGroupClauseSyntax : CSharpSyntaxNode
@@ -6705,11 +6640,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal SelectOrGroupClauseSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected SelectOrGroupClauseSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
     }
@@ -8260,11 +8190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(kind)
         {
         }
-
-        protected PatternSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
     }
 
     internal sealed partial class DiscardPatternSyntax : PatternSyntax
@@ -9544,11 +9469,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(kind)
         {
         }
-
-        protected InterpolatedStringContentSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
     }
 
     internal sealed partial class InterpolatedStringTextSyntax : InterpolatedStringContentSyntax
@@ -10006,11 +9926,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal StatementSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected StatementSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -10765,11 +10680,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal VariableDesignationSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected VariableDesignationSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
     }
@@ -12431,11 +12341,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected CommonForEachStatementSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         public abstract SyntaxToken? AwaitKeyword { get; }
 
         public abstract SyntaxToken ForEachKeyword { get; }
@@ -13919,11 +13824,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected SwitchLabelSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         /// <summary>
         /// Gets a SyntaxToken that represents a case or default keyword that belongs to a switch label.
         /// </summary>
@@ -15352,11 +15252,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected MemberDeclarationSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         /// <summary>Gets the attribute declaration list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get; }
 
@@ -15373,11 +15268,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal BaseNamespaceDeclarationSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected BaseNamespaceDeclarationSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -16551,11 +16441,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected BaseTypeDeclarationSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         /// <summary>Gets the identifier.</summary>
         public abstract SyntaxToken Identifier { get; }
 
@@ -16582,11 +16467,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal TypeDeclarationSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected TypeDeclarationSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -18263,11 +18143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected BaseTypeSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         public abstract TypeSyntax Type { get; }
     }
 
@@ -18527,11 +18402,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal TypeParameterConstraintSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected TypeParameterConstraintSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
     }
@@ -18852,11 +18722,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal BaseFieldDeclarationSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected BaseFieldDeclarationSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -19184,11 +19049,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal BaseMethodDeclarationSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected BaseMethodDeclarationSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -20356,11 +20216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected BasePropertyDeclarationSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         /// <summary>Gets the type syntax.</summary>
         public abstract TypeSyntax Type { get; }
 
@@ -21290,11 +21145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected BaseParameterListSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         /// <summary>Gets the parameter list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters { get; }
     }
@@ -21503,11 +21353,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal BaseParameterSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected BaseParameterSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -22053,11 +21898,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(kind)
         {
         }
-
-        protected CrefSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
     }
 
     /// <summary>
@@ -22238,11 +22078,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal MemberCrefSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected MemberCrefSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
     }
@@ -22686,11 +22521,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected BaseCrefParameterListSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         /// <summary>Gets the parameter list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters { get; }
     }
@@ -23011,11 +22841,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal XmlNodeSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected XmlNodeSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
     }
@@ -23575,11 +23400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal XmlAttributeSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected XmlAttributeSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -24287,12 +24107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.flags |= NodeFlags.ContainsDirectives;
         }
 
-        protected DirectiveTriviaSyntax(ObjectReader reader)
-          : base(reader)
-        {
-            this.flags |= NodeFlags.ContainsDirectives;
-        }
-
         public abstract SyntaxToken HashToken { get; }
 
         public abstract SyntaxToken EndOfDirectiveToken { get; }
@@ -24312,11 +24126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        protected BranchingDirectiveTriviaSyntax(ObjectReader reader)
-          : base(reader)
-        {
-        }
-
         public abstract bool BranchTaken { get; }
     }
 
@@ -24329,11 +24138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal ConditionalDirectiveTriviaSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected ConditionalDirectiveTriviaSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
@@ -25402,11 +25206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal LineOrSpanDirectiveTriviaSyntax(SyntaxKind kind)
           : base(kind)
-        {
-        }
-
-        protected LineOrSpanDirectiveTriviaSyntax(ObjectReader reader)
-          : base(reader)
         {
         }
 
