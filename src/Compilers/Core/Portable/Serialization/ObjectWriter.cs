@@ -57,7 +57,6 @@ namespace Roslyn.Utilities
         /// and not the objects themselves because the ID is inferred from the order the object is
         /// written or read in.
         /// </summary>
-        private WriterReferenceMap _objectReferenceMap;
         private WriterReferenceMap _stringReferenceMap;
 
         internal const int MaxRecursionDepth = 50;
@@ -78,7 +77,6 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
-            _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
 
@@ -94,7 +92,6 @@ namespace Roslyn.Utilities
         public void Dispose()
         {
             _writer.Dispose();
-            _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
         }
 

@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Checksum Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+                => _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
         }
     }
 }

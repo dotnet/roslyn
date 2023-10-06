@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return true;
         }
 
-        private class TypeWithOneMember<T> : IObjectWritable, IEquatable<TypeWithOneMember<T>>
+        private class TypeWithOneMember<T> : IEquatable<TypeWithOneMember<T>>
         {
             private readonly T _member;
 
@@ -164,9 +164,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     : (T)reader.ReadValue();
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
+            public void WriteTo(ObjectWriter writer)
             {
                 if (typeof(T).IsEnum)
                 {
@@ -176,11 +174,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     writer.WriteValue(_member);
                 }
-            }
-
-            static TypeWithOneMember()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(TypeWithOneMember<T>), r => new TypeWithOneMember<T>(r));
             }
 
             public override Int32 GetHashCode()
@@ -206,7 +199,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private class TypeWithTwoMembers<T, S> : IObjectWritable, IEquatable<TypeWithTwoMembers<T, S>>
+        private class TypeWithTwoMembers<T, S> : IEquatable<TypeWithTwoMembers<T, S>>
         {
             private readonly T _member1;
             private readonly S _member2;
@@ -223,17 +216,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _member2 = (S)reader.ReadValue();
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
+            public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteValue(_member1);
                 writer.WriteValue(_member2);
-            }
-
-            static TypeWithTwoMembers()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(TypeWithTwoMembers<T, S>), r => new TypeWithTwoMembers<T, S>(r));
             }
 
             public override int GetHashCode()
@@ -263,7 +249,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         // this type simulates a class with many members.. 
         // it serializes each member individually, not as an array.
-        private class TypeWithManyMembers<T> : IObjectWritable, IEquatable<TypeWithManyMembers<T>>
+        private class TypeWithManyMembers<T> : IEquatable<TypeWithManyMembers<T>>
         {
             private readonly T[] _members;
 
@@ -283,9 +269,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
+            public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt32(_members.Length);
 
@@ -293,11 +277,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     writer.WriteValue(_members[i]);
                 }
-            }
-
-            static TypeWithManyMembers()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(TypeWithManyMembers<T>), r => new TypeWithManyMembers<T>(r));
             }
 
             public override int GetHashCode()
@@ -522,27 +501,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => w.WriteValue(new PrimitiveArrayMemberTest()), r => r.ReadValue());
         }
 
-        public class PrimitiveArrayMemberTest : IObjectWritable
+        public class PrimitiveArrayMemberTest
         {
             public PrimitiveArrayMemberTest()
             {
             }
 
-            private PrimitiveArrayMemberTest(ObjectReader reader)
-            {
-                TestReadingPrimitiveArrays(reader);
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
+            internal void WriteTo(ObjectWriter writer)
             {
                 TestWritingPrimitiveArrays(writer);
-            }
-
-            static PrimitiveArrayMemberTest()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(PrimitiveArrayMemberTest), r => new PrimitiveArrayMemberTest(r));
             }
         }
 
@@ -827,27 +794,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => w.WriteValue(new PrimitiveMemberTest()), r => r.ReadValue());
         }
 
-        public class PrimitiveMemberTest : IObjectWritable
+        public class PrimitiveMemberTest
         {
             public PrimitiveMemberTest()
             {
             }
 
-            private PrimitiveMemberTest(ObjectReader reader)
-            {
-                TestReadingPrimitiveAPIs(reader);
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
+            internal void WriteTo(ObjectWriter writer)
             {
                 TestWritingPrimitiveAPIs(writer);
-            }
-
-            static PrimitiveMemberTest()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(PrimitiveMemberTest), r => new PrimitiveMemberTest(r));
             }
         }
 
@@ -911,27 +866,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => w.WriteValue(new PrimitiveValueTest()), r => r.ReadValue());
         }
 
-        public class PrimitiveValueTest : IObjectWritable
+        public class PrimitiveValueTest
         {
             public PrimitiveValueTest()
             {
             }
 
-            private PrimitiveValueTest(ObjectReader reader)
-            {
-                TestReadingPrimitiveValues(reader);
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
+            internal void WriteTo(ObjectWriter writer)
             {
                 TestWritingPrimitiveValues(writer);
-            }
-
-            static PrimitiveValueTest()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(PrimitiveValueTest), r => new PrimitiveValueTest(r));
             }
         }
 
@@ -963,7 +906,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue((object)"\uD800"); // incomplete surrogate pair
 
             writer.WriteValue((object)null);
-            writer.WriteValue((IObjectWritable)null);
             unchecked
             {
                 writer.WriteInt64((long)ConsoleColor.Cyan);
@@ -1001,7 +943,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uD800\uDC00", (String)reader.ReadValue()); // valid surrogate pair
             Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
             Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
-            Assert.Null(reader.ReadValue());
             Assert.Null(reader.ReadValue());
 
             unchecked
@@ -1280,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new Node(name, children);
         }
 
-        private class Node : IObjectWritable, IEquatable<Node>
+        private class Node : IEquatable<Node>
         {
             internal readonly string Name;
             internal readonly Node[] Children;
@@ -1306,17 +1247,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             private static readonly Func<ObjectReader, object> s_createInstance = r => new Node(r);
 
-            bool IObjectWritable.ShouldReuseInSerialization => _isReusable;
-
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteString(this.Name);
                 writer.WriteValue(this.Children);
-            }
-
-            static Node()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(Node), r => new Node(r));
             }
 
             public override Int32 GetHashCode()

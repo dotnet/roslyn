@@ -152,13 +152,13 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        public static Checksum Create(IObjectWritable @object)
+        public static Checksum Create<T>(T @object, Action<T, ObjectWriter> writeObject)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {
-                @object.WriteTo(objectWriter);
+                writeObject(@object, objectWriter);
             }
 
             stream.Position = 0;

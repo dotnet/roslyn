@@ -14,24 +14,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class MessageProvider : CommonMessageProvider, IObjectWritable
+    internal sealed class MessageProvider : CommonMessageProvider
     {
         public static readonly MessageProvider Instance = new MessageProvider();
 
-        static MessageProvider()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(MessageProvider), r => Instance);
-        }
-
         private MessageProvider()
         {
-        }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            // write nothing, always read/deserialized as global Instance
         }
 
         public override DiagnosticSeverity GetSeverity(int code)
