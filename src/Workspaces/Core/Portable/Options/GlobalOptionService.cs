@@ -195,8 +195,8 @@ internal sealed class GlobalOptionService(
             var currentValues = _currentValues;
             foreach (var (optionKey, value) in options)
             {
-                var existingValue = GetOption_NoLock(optionKey, persisters);
-                if (Equals(value, existingValue))
+                if (currentValues.TryGetValue(optionKey, out var existingValue)
+                    && Equals(value, existingValue))
                 {
                     continue;
                 }
