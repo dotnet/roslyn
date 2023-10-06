@@ -120,85 +120,6 @@ internal partial class CSharpRecommendationService
             return ImmutableArray<ISymbol>.Empty;
         }
 
-        private bool IsInsideRightHandOfPatternExpressionSyntax(SyntaxNode? node)
-        {
-            if (_context.IsNameOfContext)
-                return false;
-
-            var previousNode = node;
-            node = node?.Parent;
-            while (node is not null)
-            {
-                var kind = node.Kind();
-
-                switch (node.Kind())
-                {
-                    case SyntaxKind.Subpattern:
-                        {
-                            var subpattern = (SubpatternSyntax)node;
-                            if (subpattern.Pattern != previousNode)
-                                return false;
-
-                            break;
-                        }
-
-                    case SyntaxKind.IsPatternExpression:
-                        {
-                            var isPattern = (IsPatternExpressionSyntax)node;
-                            return isPattern.Pattern == previousNode;
-                        }
-                    case SyntaxKind.IsExpression:
-                        {
-                            var expression = (BinaryExpressionSyntax)node;
-                            return expression.Right == previousNode;
-                        }
-                }
-
-                if (!IsPatternExpressionSubtreeKind(kind))
-                {
-                    return false;
-                }
-
-                previousNode = node;
-                node = node.Parent;
-            }
-
-            return false;
-        }
-
-        private static bool IsPatternExpressionSubtreeKind(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                // Pattern syntax kinds
-                case SyntaxKind.AndPattern:
-                case SyntaxKind.ConstantPattern:
-                case SyntaxKind.DeclarationPattern:
-                case SyntaxKind.ListPattern:
-                case SyntaxKind.OrPattern:
-                case SyntaxKind.NotPattern:
-                case SyntaxKind.ParenthesizedPattern:
-                case SyntaxKind.ParenthesizedExpression:
-                case SyntaxKind.PositionalPatternClause:
-                case SyntaxKind.PropertyPatternClause:
-                case SyntaxKind.RecursivePattern:
-                case SyntaxKind.RelationalPattern:
-                case SyntaxKind.SlicePattern:
-                case SyntaxKind.Subpattern:
-                case SyntaxKind.TypePattern:
-                case SyntaxKind.VarPattern:
-
-                // When we encounter the case of `X.$$.A`, we get the following
-                // - SimpleMemberAccessExpression for complex is patterns (within `IsPatternExpressionSyntax`)
-                case SyntaxKind.SimpleMemberAccessExpression:
-                // - QualifiedName for simple is patterns (within `BinaryExpressionSyntax(SyntaxKind.IsExpression)`)
-                case SyntaxKind.QualifiedName:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         private RecommendedSymbols GetSymbolsOffOfContainer()
         {
             // Ensure that we have the correct token in A.B| case
@@ -216,7 +137,7 @@ internal partial class CSharpRecommendationService
                 }
             }
 
-            if (IsInsideRightHandOfPatternExpressionSyntax(node))
+            if (_context.IsConstantPatternContext)
             {
                 // We are building a pattern expression, and thus we can only access either constants, types or namespaces
                 // For example, we are evaluating:

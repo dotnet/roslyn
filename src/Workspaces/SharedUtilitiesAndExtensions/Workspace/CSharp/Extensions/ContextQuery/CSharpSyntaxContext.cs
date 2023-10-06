@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsTypeArgumentOfConstraintContext;
         public readonly bool IsTypeOfExpressionContext;
         public readonly bool IsUsingAliasTypeContext;
+        public readonly bool IsConstantPatternContext;
 
         public readonly ISet<SyntaxKind> PrecedingModifiers;
 
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isAwaitKeywordContext,
             bool isCatchFilterContext,
             bool isConstantExpressionContext,
+            bool isConstantPatternContext,
             bool isCrefContext,
             bool isDefiniteCastTypeContext,
             bool isDelegateReturnTypeContext,
@@ -171,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
             this.IsTypeOfExpressionContext = isTypeOfExpressionContext;
             this.IsUsingAliasTypeContext = isUsingAliasTypeContext;
+            this.IsConstantPatternContext = isConstantPatternContext;
 
             this.PrecedingModifiers = precedingModifiers;
         }
@@ -222,6 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 ? syntaxTree.IsConstantExpressionContext(position, leftToken)
                 : false;
 
+            var isConstantPatternContext = !isPreProcessorDirectiveContext
+                ? syntaxTree.IsConstantPatternContext(leftToken)
+                : false;
+
             var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
             var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
 
@@ -257,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isAwaitKeywordContext: ComputeIsAwaitKeywordContext(position, leftToken, targetToken, isGlobalStatementContext, isAnyExpressionContext, isStatementContext),
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
                 isConstantExpressionContext: isConstantExpressionContext,
+                isConstantPatternContext: isConstantPatternContext,
                 isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken),
                 isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken),
