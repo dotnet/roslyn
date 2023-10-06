@@ -533,6 +533,7 @@ namespace Roslyn.Test.Utilities
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
             private readonly JsonRpc _clientRpc;
+            private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
 
             private readonly RoslynLanguageServer LanguageServer;
 
@@ -549,6 +550,7 @@ namespace Roslyn.Test.Utilities
                 TestWorkspace = testWorkspace;
                 ClientCapabilities = clientCapabilities;
                 _locations = locations;
+                _codeAnalysisService = testWorkspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
                 LanguageServer = target;
 
@@ -736,6 +738,9 @@ namespace Roslyn.Test.Utilities
             internal T GetRequiredLspService<T>() where T : class, ILspService => LanguageServer.GetTestAccessor().GetRequiredLspService<T>();
 
             internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.Select(v => v.Text).ToImmutableArray();
+
+            internal Task RunCodeAnalysisAsync(ProjectId? projectId)
+                => _codeAnalysisService.RunAnalysisAsync(GetCurrentSolution(), projectId, onAfterProjectAnalyzed: _ => { }, CancellationToken.None);
 
             public async ValueTask DisposeAsync()
             {
