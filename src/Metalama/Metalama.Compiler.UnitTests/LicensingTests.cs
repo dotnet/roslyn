@@ -4,6 +4,7 @@
 
 using System.Globalization;
 using System.IO;
+using Metalama.Backstage.Testing;
 using Metalama.Compiler.UnitTests.ThirdParty;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -23,38 +24,9 @@ namespace Metalama.Compiler.UnitTests
         private const string None
             = "";
 
-        private const string PostSharpEssentials
-            = "1-ZEQQQQQQATQEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEJFEB4V4U8DUPY3JP4Y9SXVNF9CSV3ADB53Z69RDR7PZMZGF7GRQPQQ5ZH3PQF7PHJZQTP2";
-
-        private const string PostSharpFramework
-            = "1-ZEQQQQQQVTQEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEDQ66TTJ4DS3VU8WVCU82LXX67S8SZ6X54UMRTATBV5CA7LDPHS2SQC85ZLBNMBFJKZQQDTFJJPA";
-
-        private const string PostSharpUltimate
-            = "1-ZEQQQQQQZTQEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEJZWKEM8SCXJK6KJLFD92CAJFQKCGC67A9NVYA2JGNEHLB8QQG4JAF94J58KUJQZW8ZQQDTFJJPA";
-
-        private const string MetalamaFreePersonal
-            = "2-ZTQQQQQQ6QZEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEJ2D6DXU2WGSFJYN7NBESWRPV5AX9D5WWKRKRQQK4J3YELXMLRVDXRVBTZSKQADXRJZQQDEZJGP4Q8USJG4X6P2";
-
-        private const string MetalamaStarterBusiness
-            = "3-ZUQQQQQQZUAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAED3WYKF9V8KYEUMGXKBYPRQNNUVQDV3BHMGEHNJHLBKGSD57EEJQRD4F3SWWEA42CUZQQDEZJGP4Q8USJG4X6P2";
-
-        private const string MetalamaProfessionalBusiness
-            = "4-ZQAQQQQQZTAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEGGU48KSPSAKJRSXFLZAF72CTB3QUMT9RR6WTPVYSNJT46PKU645EAPBXKGNFCJPVKZQQDEZJGP4Q8USJG4X6P2";
-
-        private const string MetalamaUltimateBusiness
-            = "1-ZEQQQQQQZEAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEASD8CXFHZY99JSJCPGSS6F3Q258BHCEBQCCLP85GRPFUZWBPAKLCV8CDZQ3JUUZFPZQQDEZJGP4Q8USJG4X6P2";
-        
-        private const string MetalamaUltimateRedistributionNamespace = "RedistributionTests.TargetNamespace";
-
-        private const string MetalamaUltimateOpenSourceRedistribution
-            = "8-ZQZQQQQQXEAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7YQ2GYCXBSF629W7YDRH29BN7JFYCJX3MFVVAHZXJ9RS29KYTHFS8KQ7TFRS6ZTBVWZLKJVF3HZZHWA4ZKSX3DXZYBKR4MWCZF4AW43L2DLEPB5T8HFVMFKBYLUG2X78SQQBTWB2P7QNG4B27RXP3";
-        
-        private const string MetalamaUltimateProjectBoundProjectName = "ProjectBoundTestsProject";
-        
-        private const string MetalamaUltimatePersonalProjectBound
-            = "19-ZUWQQQQQ6EAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7YQUQYW77DFS8UE3A9FH68EXCHR629X3EDV56MCNGGVCQCUUEKRAV2GH9DNWLV95EQWL28NHM2AKKU426FARGLBXDW92Y8TVRX3U7FJXVETL3H7QQEZBEVKPZUXVDVKBJKP";
-
         private const string InvalidLicenseOverallErrorCode = "LAMA0608";
+
+        private const string InvalidLicenseForTransformedCodeErrorCode = "LAMA0609";
 
         private const string NamespaceNotLicensedErrorCode = "LAMA0610";
         
@@ -117,15 +89,15 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
 
         [Theory]
         [InlineData(None)]
-        [InlineData(PostSharpEssentials)]
-        [InlineData(PostSharpFramework)]
-        [InlineData(PostSharpUltimate)]
-        [InlineData(MetalamaFreePersonal)]
-        [InlineData(MetalamaStarterBusiness)]
-        [InlineData(MetalamaProfessionalBusiness)]
-        [InlineData(MetalamaUltimateBusiness)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution)]
-        [InlineData(MetalamaUltimatePersonalProjectBound)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpEssentials))]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpFramework))]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpUltimate))]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaFreePersonal))]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaStarterBusiness))]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaProfessionalBusiness))]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateBusiness))]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateOpenSourceRedistribution))]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimatePersonalProjectBound))]
         public void LicenseNotRequiredWithoutTransformers(string license)
         {
             Test(license: license);
@@ -133,17 +105,17 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
 
         [Theory]
         [InlineData(None, null, InvalidLicenseOverallErrorCode)]
-        [InlineData(PostSharpEssentials, null, InvalidLicenseOverallErrorCode)]
-        [InlineData(PostSharpFramework, null, null)]
-        [InlineData(PostSharpUltimate, null, null)]
-        [InlineData(MetalamaFreePersonal, null, null)]
-        [InlineData(MetalamaStarterBusiness, null, null)]
-        [InlineData(MetalamaProfessionalBusiness, null, null)]
-        [InlineData(MetalamaUltimateBusiness, null, null)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, null, null)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, MetalamaUltimateRedistributionNamespace, null)]
-        [InlineData(MetalamaUltimatePersonalProjectBound, null, NamespaceNotLicensedErrorCode)]
-        [InlineData(MetalamaUltimatePersonalProjectBound, MetalamaUltimateProjectBoundProjectName, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpEssentials), null, InvalidLicenseOverallErrorCode)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpFramework), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpUltimate), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaFreePersonal), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaStarterBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaProfessionalBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateOpenSourceRedistribution), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateOpenSourceRedistribution), TestLicenses.MetalamaUltimateRedistributionNamespace, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimatePersonalProjectBound), null, NamespaceNotLicensedErrorCode)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimatePersonalProjectBound), TestLicenses.MetalamaUltimateProjectBoundProjectName, null)]
         public void TransformersByPostSharpRequireLicense(string license, string? projectName, string? expectedErrorCode)
         {
             Test(new DummyTransformer(), false, license, projectName, expectedErrorCode);
@@ -151,17 +123,17 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
 
         [Theory]
         [InlineData(None, null, InvalidLicenseOverallErrorCode)]
-        [InlineData(PostSharpEssentials, null, InvalidLicenseOverallErrorCode)]
-        [InlineData(PostSharpFramework, null, null)]
-        [InlineData(PostSharpUltimate, null, null)]
-        [InlineData(MetalamaFreePersonal, null, null)]
-        [InlineData(MetalamaStarterBusiness, null, null)]
-        [InlineData(MetalamaProfessionalBusiness, null, null)]
-        [InlineData(MetalamaUltimateBusiness, null, null)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, null, null)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, MetalamaUltimateRedistributionNamespace, null)]
-        [InlineData(MetalamaUltimatePersonalProjectBound, null, NamespaceNotLicensedErrorCode)]
-        [InlineData(MetalamaUltimatePersonalProjectBound, MetalamaUltimateProjectBoundProjectName, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpEssentials), null, InvalidLicenseOverallErrorCode)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpFramework), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpUltimate), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaFreePersonal), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaStarterBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaProfessionalBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateOpenSourceRedistribution), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateOpenSourceRedistribution), TestLicenses.MetalamaUltimateRedistributionNamespace, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimatePersonalProjectBound), null, NamespaceNotLicensedErrorCode)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimatePersonalProjectBound), TestLicenses.MetalamaUltimateProjectBoundProjectName, null)]
         public void ThirdPartyTransformersRequireLicense(string license, string? projectName, string? expectedErrorCode)
         {
             Test(new ThirdPartyDummyTransformer(), false, license, projectName, expectedErrorCode);
@@ -169,17 +141,17 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
 
         [Theory]
         [InlineData(None, null, InvalidLicenseOverallErrorCode)]
-        [InlineData(PostSharpEssentials, null, InvalidLicenseOverallErrorCode)]
-        [InlineData(PostSharpFramework, null, null)]
-        [InlineData(PostSharpUltimate, null, null)]
-        [InlineData(MetalamaFreePersonal, null, null)]
-        [InlineData(MetalamaStarterBusiness, null, null)]
-        [InlineData(MetalamaProfessionalBusiness, null, null)]
-        [InlineData(MetalamaUltimateBusiness, null, null)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, null, null)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, MetalamaUltimateRedistributionNamespace, null)]
-        [InlineData(MetalamaUltimatePersonalProjectBound, null, NamespaceNotLicensedErrorCode)]
-        [InlineData(MetalamaUltimatePersonalProjectBound, MetalamaUltimateProjectBoundProjectName, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpEssentials), null, InvalidLicenseOverallErrorCode)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpFramework), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.PostSharpUltimate), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaFreePersonal), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaStarterBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaProfessionalBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateBusiness), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateOpenSourceRedistribution), null, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimateOpenSourceRedistribution), TestLicenses.MetalamaUltimateRedistributionNamespace, null)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimatePersonalProjectBound), null, NamespaceNotLicensedErrorCode)]
+        [TestLicensesInlineData(nameof(TestLicenses.MetalamaUltimatePersonalProjectBound), TestLicenses.MetalamaUltimateProjectBoundProjectName, null)]
         public void DebuggingTransformedCodeRequiresLicense(string license, string? projectName, string? expectedErrorCode)
         {
             Test(new DummyTransformer(), true, license, projectName, expectedErrorCode);
