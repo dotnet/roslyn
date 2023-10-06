@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    file class MyClass { } // TODO2: just a test to exercise our determinism checks
+
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Represents a non-terminal node in the syntax tree. This is the language agnostic equivalent of <see
