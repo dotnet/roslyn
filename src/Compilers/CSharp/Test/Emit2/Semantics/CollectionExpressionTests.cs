@@ -3917,15 +3917,14 @@ static class Program
                 expectedOutput: IncludeExpectedOutput("[], [1, 2], [3, 4, 5], [null, 7], "));
             verifier.VerifyIL("Program.Create1", $$"""
                 {
-                  // Code size       20 (0x14)
-                  .maxstack  2
+                  // Code size       16 (0x10)
+                  .maxstack  1
                   .locals init (System.{{spanType}}<int> V_0) //s
                   IL_0000:  ldloca.s   V_0
-                  IL_0002:  call       "int[] System.Array.Empty<int>()"
-                  IL_0007:  call       "System.{{spanType}}<int>..ctor(int[])"
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "void CollectionExtensions.Report<int>(in System.{{spanType}}<int>)"
-                  IL_0013:  ret
+                  IL_0002:  initobj    "System.{{spanType}}<int>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  call       "void CollectionExtensions.Report<int>(in System.{{spanType}}<int>)"
+                  IL_000f:  ret
                 }
                 """);
             verifier.VerifyIL("Program.Create2", $$"""
@@ -9611,12 +9610,14 @@ partial class Program
             verifier.VerifyIL("Program.F0",
                 """
                 {
-                  // Code size       16 (0x10)
+                  // Code size       15 (0xf)
                   .maxstack  1
-                  IL_0000:  call       "string[] System.Array.Empty<string>()"
-                  IL_0005:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
-                  IL_000a:  call       "MyCollection<string> MyCollectionBuilder.Create<string>(System.ReadOnlySpan<string>)"
-                  IL_000f:  ret
+                  .locals init (System.ReadOnlySpan<string> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.ReadOnlySpan<string>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "MyCollection<string> MyCollectionBuilder.Create<string>(System.ReadOnlySpan<string>)"
+                  IL_000e:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F1",
@@ -15603,20 +15604,24 @@ partial class Program
                 expectedOutput: IncludeExpectedOutput("[], [], "));
             verifier.VerifyIL("Program.F1<T>", """
                 {
-                  // Code size       11 (0xb)
+                  // Code size       10 (0xa)
                   .maxstack  1
-                  IL_0000:  call       "T[] System.Array.Empty<T>()"
-                  IL_0005:  newobj     "System.Span<T>..ctor(T[])"
-                  IL_000a:  ret
+                  .locals init (System.Span<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.Span<T>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F2<T>", """
                 {
-                  // Code size       11 (0xb)
+                  // Code size       10 (0xa)
                   .maxstack  1
-                  IL_0000:  call       "T[] System.Array.Empty<T>()"
-                  IL_0005:  newobj     "System.ReadOnlySpan<T>..ctor(T[])"
-                  IL_000a:  ret
+                  .locals init (System.ReadOnlySpan<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  ret
                 }
                 """);
         }
@@ -15800,12 +15805,14 @@ partial class Program
                     expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
                 verifier.VerifyIL("Program.Empty<T>", """
                     {
-                      // Code size       16 (0x10)
+                      // Code size       15 (0xf)
                       .maxstack  1
-                      IL_0000:  call       "T[] System.Array.Empty<T>()"
-                      IL_0005:  newobj     "System.ReadOnlySpan<T>..ctor(T[])"
-                      IL_000a:  call       "MyCollection<T> MyCollectionBuilder.Create<T>(scoped System.ReadOnlySpan<T>)"
-                      IL_000f:  ret
+                      .locals init (System.ReadOnlySpan<T> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "System.ReadOnlySpan<T>"
+                      IL_0008:  ldloc.0
+                      IL_0009:  call       "MyCollection<T> MyCollectionBuilder.Create<T>(scoped System.ReadOnlySpan<T>)"
+                      IL_000e:  ret
                     }
                     """);
                 if (targetFramework == TargetFramework.Net80)
