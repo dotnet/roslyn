@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis
             Guid telemetryId = default,
             bool isSubmission = false,
             bool hasAllInformation = true,
-            bool runAnalyzers = true) : IChecksummedObject, IObjectWritable
+            bool runAnalyzers = true) : IChecksummedObject
         {
             /// <summary>
             /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -585,8 +585,6 @@ namespace Microsoft.CodeAnalysis
                     newHasAllInformation,
                     newRunAnalyzers);
             }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
             {

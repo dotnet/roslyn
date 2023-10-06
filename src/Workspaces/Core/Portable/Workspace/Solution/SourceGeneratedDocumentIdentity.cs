@@ -15,11 +15,8 @@ namespace Microsoft.CodeAnalysis;
 /// A small struct that holds the values that define the identity of a source generated document, and don't change
 /// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
 /// </summary>
-internal readonly record struct SourceGeneratedDocumentIdentity
-    : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
+internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<SourceGeneratedDocumentIdentity>
 {
-    public bool ShouldReuseInSerialization => true;
-
     public readonly DocumentId DocumentId;
     public readonly string HintName;
     public readonly SourceGeneratorIdentity Generator;
