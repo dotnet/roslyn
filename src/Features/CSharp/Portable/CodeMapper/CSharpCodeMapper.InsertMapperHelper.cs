@@ -20,7 +20,6 @@ internal sealed partial class CSharpCodeMapper
     /// </summary>
     private class InsertionHelper : IMappingHelper
     {
-
         public bool TryGetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes, out CSharpSourceNode[] validInsertions, out InvalidInsertion[] invalidInsertions)
         {
             var validNodes = new List<CSharpSourceNode>();
@@ -63,9 +62,9 @@ internal sealed partial class CSharpCodeMapper
         /// <returns></returns>
         /// 
 
-        public TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget? target, out string? adjustedInsertion)
+        public TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget target, out SyntaxNode? adjustedNodeToMap)
         {
-            adjustedInsertion = null;
+            adjustedNodeToMap = null;
             int insertionPoint;
             if (insertion.Scope is not Scope.None)
             {
@@ -233,21 +232,19 @@ internal sealed partial class CSharpCodeMapper
             // If there's an specific focus area, or caret provided, we should try to insert as close as possible.
             // As long as the focused area is not empty.
             insertionPoint = 0;
-            if (target is null)
+            if (target is null || target.Equals(documentSyntax.FullSpan))
             {
                 return false;
             }
 
-            if (target?.Caret is not null || (target?.FocusArea is not null && target.FocusArea.Length > 0 && target.FocusArea.Length < documentSyntax.FullSpan.Length))
-            {
-                var temptativeLine = target?.Caret?.GetContainingLine().LineNumber ?? target?.FocusArea.Start.GetContainingLine().LineNumber;
-                if (temptativeLine is not null)
+            var text = documentSyntax.SyntaxTree.GetText();
+                var temptativeLine = text.Lines.IndexOf(target.Value.Start);
+                if (temptativeLine >= 0)
                 {
-                    var adjustedLine = AdjustInsertionLineNumber(insertion, temptativeLine.Value, documentSyntax);
+                    var adjustedLine = AdjustInsertionLineNumber(insertion, temptativeLine, documentSyntax);
                     insertionPoint = documentSyntax.SyntaxTree.GetText().Lines[adjustedLine].Span.Start;
                     return true;
                 }
-            }
 
             return false;
         }

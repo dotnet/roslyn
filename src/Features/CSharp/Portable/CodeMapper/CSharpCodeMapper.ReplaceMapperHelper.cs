@@ -21,9 +21,9 @@ internal sealed partial class CSharpCodeMapper
     /// </summary>
     private class ReplaceHelper : IMappingHelper
     {
-        public TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget? target, out string? adjustedInsertion)
+        public TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget target, out SyntaxNode? adjustedNodeToMap)
         {
-            adjustedInsertion = null;
+            adjustedNodeToMap = null;
             if (!insertion.ExistsOnTarget(documentSyntax, out var matchingNode))
             {
                 return null;
@@ -93,7 +93,7 @@ internal sealed partial class CSharpCodeMapper
             // If node was adjusted, set the adjustedInsertion to the new adjusted text.
             if (adjustedNode is not null && adjustedNode != insertion.Node)
             {
-                adjustedInsertion = adjustedNode.ToFullString();
+                adjustedNodeToMap = adjustedNode;
             }
 
             return textSpan;

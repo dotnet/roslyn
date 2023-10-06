@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.CodeMapper;
 
 internal interface ICodeMapper : ILanguageService
 {
-    Task<ImmutableArray<TextChange>> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<DocumentSpan> focusLocations, CancellationToken cancellationToken);
+    Task<ImmutableArray<TextChange>> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<DocumentSpan> focusLocations, bool formatMappedCode, CancellationToken cancellationToken);
 }
 

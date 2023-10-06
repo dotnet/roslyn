@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
@@ -28,12 +27,12 @@ internal partial class CSharpSourceNode
     /// The syntax node wrapped by this class.
     /// </summary>
     public readonly SyntaxNode Node;
-    
+
     /// <summary>
     /// Gets the scope of the node.
     /// </summary>
     public Scope Scope { get; private set; }
-    
+
     /// <summary>
     /// Returns a value indicating whether this node is valid replace type of node.
     /// Replace nodes currently only support Class and Method.
@@ -49,10 +48,7 @@ internal partial class CSharpSourceNode
         Node = node;
         Scope = scope;
 
-        _identifierName = new Lazy<string>(() =>
-        {
-            return GetIdentifierName(Node);
-        });
+        _identifierName = new Lazy<string>(() => GetIdentifierName(Node));
     }
 
     /// <summary>
@@ -64,30 +60,21 @@ internal partial class CSharpSourceNode
     public bool ExistsOnTarget(SyntaxNode node, out SyntaxNode? matchingNode)
     {
         matchingNode = null;
+
         if (Scope is Scope.None)
         {
             matchingNode = node.DescendantNodesAndSelf()
                 .Where(n => IsSimpleNode(n) && GetIdentifierName(n) == IdentifierName)
                 .FirstOrDefault();
-            if (matchingNode is not null)
-            {
-                return true;
-            }
         }
         else if (IsReplaceScope)
         {
             matchingNode = node.DescendantNodesAndSelf()
-            .Where(n => IsScopedNode(n, out var scope)
-            && scope == Scope
-            && GetIdentifierName(n) == IdentifierName)
-            .FirstOrDefault();
-            if (matchingNode is not null)
-            {
-                return true;
-            }
+                                .Where(n => IsScopedNode(n, out var scope) && scope == Scope && GetIdentifierName(n) == IdentifierName)
+                                .FirstOrDefault();
         }
 
-        return false;
+        return matchingNode is not null;
     }
 
     /// <summary>
@@ -97,37 +84,6 @@ internal partial class CSharpSourceNode
     public override string ToString()
     {
         return Node.ToFullString();
-    }
-
-    private static string FindIdentifierNameInNode(SyntaxNode node)
-    {
-        if (node is LocalFunctionStatementSyntax fss)
-        {
-            var identifier = fss.Identifier.ToString();
-
-            // when identifier is empty, that means this
-            // local function declaration represents a Constructor
-            if (string.IsNullOrWhiteSpace(identifier))
-            {
-                return BuildConstructorIdentifier(fss);
-            }
-
-            return identifier;
-        }
-
-        if (node is FieldDeclarationSyntax fds)
-        {
-            var firstDeclarator = fds.Declaration.Variables.FirstOrDefault();
-            if (firstDeclarator is not null)
-            {
-                return firstDeclarator.Identifier.ToString();
-            }
-        }
-
-        // Fallback to returning the full string of the node as identifier.
-        return node.ToString();
-
-        throw new InvalidOperationException($"Could not obtain identifier from node. Kind: {node.Kind()}");
     }
 
     /// <summary>
@@ -147,8 +103,36 @@ internal partial class CSharpSourceNode
             (StructDeclarationSyntax str) => str.Identifier.ToString(),
             (RecordDeclarationSyntax rcr) => rcr.Identifier.ToString(),
             (ConstructorDeclarationSyntax constructor) => BuildConstructorIdentifier(constructor),
-            _ => FindIdentifierNameInNode(node),
+            (LocalFunctionStatementSyntax localFunction) => BuildLocalFunctionIdentifier(localFunction),
+            (FieldDeclarationSyntax fieldDeclaration) => BuildFieldDeclarationIdentifier(fieldDeclaration),
+            _ => node.ToString(),   // Fallback to returning the full string of the node as identifier.
         };
+    }
+
+    private static string BuildFieldDeclarationIdentifier(FieldDeclarationSyntax fieldDeclaration)
+    {
+        var firstDeclarator = fieldDeclaration.Declaration.Variables.FirstOrDefault();
+        if (firstDeclarator is not null)
+        {
+            return firstDeclarator.Identifier.ToString();
+        }
+        
+        // Fallback to returning the full string of the node as identifier.
+        return fieldDeclaration.ToString();
+    }
+
+    private static string BuildLocalFunctionIdentifier(LocalFunctionStatementSyntax localFunction)
+    {
+        var identifier = localFunction.Identifier.ToString();
+
+        // when identifier is empty, that means this
+        // local function declaration represents a Constructor
+        if (string.IsNullOrWhiteSpace(identifier))
+        {
+            return BuildConstructorIdentifier(localFunction);
+        }
+
+        return identifier;
     }
 
     /// <summary>

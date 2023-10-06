@@ -30,7 +30,8 @@ internal partial class CSharpSourceNode
         while (stack.Count > 0)
         {
             var currentNode = stack.Pop();
-            var sourceNode = CreateSourceNode(currentNode);
+            if (!TryCreateSourceNode(currentNode, out var sourceNode))
+                continue;
 
             if (sourceNode is not null)
             {
@@ -52,77 +53,62 @@ internal partial class CSharpSourceNode
 
         return sourceNodes.ToImmutable();
 
-        static CSharpSourceNode? CreateSourceNode(SyntaxNode syntaxNode)
+        static bool TryCreateSourceNode(SyntaxNode syntaxNode, out CSharpSourceNode? sourceNode)
         {
-            if (IsScopedNode(syntaxNode, out var scope) || IsSimpleNode(syntaxNode))
+            sourceNode = null;
+            if (!IsScopedNode(syntaxNode, out var scope) && !IsSimpleNode(syntaxNode))
             {
-                if (scope is not Scope.None)
-                {
-                    var bodySyntax = GetBodySyntax(syntaxNode);
-                    if (bodySyntax is BlockSyntax blockSyntax)
-                    {
-                        // Mark as invalid when any of the brackets is missing.
-                        if (blockSyntax.CloseBraceToken.IsMissing || blockSyntax.OpenBraceToken.IsMissing)
-                        {
-                            return null;
-                        }
-                    }
-                    else if (bodySyntax is StructDeclarationSyntax str)
-                    {
-                        if (str.CloseBraceToken.IsMissing || str.OpenBraceToken.IsMissing)
-                        {
-                            return null;
-                        }
-                    }
-                    else if (bodySyntax is RecordDeclarationSyntax rec)
-                    {
-                        // Record may or may not have the brace tokens depending on how they are
-                        // initialized.
-                        // So we will only return false when we detect that they did have an open brace token
-                        // but then they didn't have a close brace token;
-                        if (!rec.OpenBraceToken.IsMissing && rec.CloseBraceToken.IsMissing)
-                        {
-                            return null;
-                        }
-
-                        // If record doesn't have neither close brace token or semi column
-                        if (rec.CloseBraceToken.IsMissing && rec.SemicolonToken.IsMissing)
-                        {
-                            return null;
-                        }
-                    }
-                    else if (bodySyntax is BaseTypeDeclarationSyntax typeSyntax)
-                    {
-                        if (typeSyntax.CloseBraceToken.IsMissing || typeSyntax.OpenBraceToken.IsMissing)
-                        {
-                            return null;
-                        }
-                    }
-                }
-
-                return new(syntaxNode, scope);
+                return true;
             }
 
-            return null;
+            if (scope is not Scope.None)
+            {
+                var bodySyntax = GetBodySyntax(syntaxNode);
+                if (bodySyntax is BlockSyntax blockSyntax)
+                {
+                    // Mark as invalid when any of the brackets is missing.
+                    if (blockSyntax.CloseBraceToken.IsMissing || blockSyntax.OpenBraceToken.IsMissing)
+                    {
+                        return false;
+                    }
+                }
+                else if (bodySyntax is StructDeclarationSyntax str)
+                {
+                    if (str.CloseBraceToken.IsMissing || str.OpenBraceToken.IsMissing)
+                    {
+                        return false;
+                    }
+                }
+                else if (bodySyntax is RecordDeclarationSyntax rec)
+                {
+                    // Record may or may not have the brace tokens depending on how they are
+                    // initialized.
+                    // So we will only return false when we detect that they did have an open brace token
+                    // but then they didn't have a close brace token;
+                    if (!rec.OpenBraceToken.IsMissing && rec.CloseBraceToken.IsMissing)
+                    {
+                        return false;
+                    }
+
+                    // If record doesn't have neither close brace token or semi column
+                    if (rec.CloseBraceToken.IsMissing && rec.SemicolonToken.IsMissing)
+                    {
+                        return false;
+                    }
+                }
+                else if (bodySyntax is BaseTypeDeclarationSyntax typeSyntax)
+                {
+                    if (typeSyntax.CloseBraceToken.IsMissing || typeSyntax.OpenBraceToken.IsMissing)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            sourceNode = new(syntaxNode, scope);
+            return true;
         }
     }
-
-    /// <summary>
-    /// Determines whether the node is a scoped node.
-    /// </summary>
-    /// <param name="node">The syntax node.</param>
-    /// <param name="scope">The scope.</param>
-    /// <returns>True if node is a scoped node, false otherwise.</returns>
-    public static bool IsScopedNode(SyntaxNode node, out Scope scope)
-        => IsScoped(node.Kind(), out scope);
-
-    /// <summary>
-    /// Determines whether the node is a simple node.
-    /// </summary>
-    /// <param name="node">The syntax node.</param>
-    /// <returns>True if node is a simple node, false otherwise.</returns>
-    public static bool IsSimpleNode(SyntaxNode node)
-        => IsSimple(node.Kind());
 
     /// <summary>
     /// Gets the body syntax of the specified node.

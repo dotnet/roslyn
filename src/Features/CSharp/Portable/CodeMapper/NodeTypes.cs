@@ -69,4 +69,22 @@ internal partial class CSharpSourceNode
             _ => false
         };
     }
+    
+
+    /// <summary>
+    /// Determines whether the node is a scoped node.
+    /// </summary>
+    /// <param name="node">The syntax node.</param>
+    /// <param name="scope">The scope.</param>
+    /// <returns>True if node is a scoped node, false otherwise.</returns>
+    public static bool IsScopedNode(SyntaxNode node, out Scope scope)
+        => IsScoped(node.Kind(), out scope);
+
+    /// <summary>
+    /// Determines whether the node is a simple node.
+    /// </summary>
+    /// <param name="node">The syntax node.</param>
+    /// <returns>True if node is a simple node, false otherwise.</returns>
+    public static bool IsSimpleNode(SyntaxNode node)
+        => IsSimple(node.Kind());
 }

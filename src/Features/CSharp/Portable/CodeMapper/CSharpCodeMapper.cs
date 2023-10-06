@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -11,10 +10,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeMapper;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -30,34 +32,41 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
 
     private readonly InsertionHelper _insertHelper;
     private readonly ReplaceHelper _replaceHelper;
+    private readonly IGlobalOptionService _globalOptions;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpCodeMapper()
+    public CSharpCodeMapper(IGlobalOptionService globalOptions)
     {
+
         _insertHelper = new InsertionHelper();
         _replaceHelper = new ReplaceHelper();
+        _globalOptions = globalOptions;
     }
 
-    private static MappingTarget? GetMappingTarget(Document document, ImmutableArray<DocumentSpan> focusLocations)
+    private static async Task<MappingTarget> GetMappingTargetAsync(Document document, ImmutableArray<DocumentSpan> focusLocations, CancellationToken cancellationToken)
     {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
         foreach (var focusLocation in focusLocations)
         {
-            if (document.Id == focusLocation.Document.Id)
+            if (document.Id != focusLocation.Document.Id)
+                continue;
+
+            if (root.FullSpan.Contains(focusLocation.SourceSpan))
                 return new MappingTarget(focusLocation);
         }
 
-        return null;
+        return new MappingTarget(new(document: document, sourceSpan: root.FullSpan));
     }
 
-    public async Task<ImmutableArray<TextChange>> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<DocumentSpan> focusLocations, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<TextChange>> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<DocumentSpan> focusLocations, bool formatMappedCode, CancellationToken cancellationToken)
     {
-        var target = GetMappingTarget(document, focusLocations);
+        var target = await GetMappingTargetAsync(document, focusLocations, cancellationToken).ConfigureAwait(false);
         if (target is null)
             return ImmutableArray<TextChange>.Empty;
 
-        var options = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))?.Options as CSharpParseOptions;
-        if (options is null)
+        if ((await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))?.Options is not CSharpParseOptions options)
             return ImmutableArray<TextChange>.Empty;
 
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
@@ -70,16 +79,55 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
             if (!sourceNodes.IsEmpty)
             {
 
-                Debug.Assert(sourceNodes.Any(sn => sn.Scope is Scope.None) && sourceNodes.Any(sn => sn.Scope is not Scope.None));
+                Debug.Assert(sourceNodes.Any(sn => sn.Scope is Scope.None) != sourceNodes.Any(sn => sn.Scope is not Scope.None));
 
                 var edits = await MapInternalAsync(target, sourceNodes, cancellationToken).ConfigureAwait(false);
                 result.AddRange(edits);
             }
         }
 
-        return result.ToImmutable();
+        var changes = result.ToImmutable();
+        if (formatMappedCode)
+            changes = await GetFormattedChangesAsync(document, changes, cancellationToken).ConfigureAwait(false);
+
+        return changes;
     }
 
+    private static ImmutableArray<TextSpan> GetChangedSpansInNewText(ImmutableArray<TextChange> textChanges)
+    {
+        var currentAdjustment = 0;
+        using var _ = ArrayBuilder<TextSpan>.GetInstance(textChanges.Length, out var builder);
+        var sortedChanges = textChanges.Sort((x, y) => x.Span.CompareTo(y.Span));
+
+        foreach (var change in sortedChanges)
+        {
+            builder.Add(new TextSpan(start:change.Span.Start + currentAdjustment, length: change.NewText!.Length));            
+            var additionalAdjustment = change.NewText!.Length - change.Span.Length;
+            currentAdjustment += additionalAdjustment;
+        }
+
+        return builder.ToImmutable();
+    }
+
+    private async Task<ImmutableArray<TextChange>> GetFormattedChangesAsync(Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
+    {
+        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(
+            _globalOptions.GetCodeCleanupOptions(document.Project.Services, allowImportsInHiddenRegions: null, fallbackOptions: null),
+            cancellationToken).ConfigureAwait(false);
+        var formattingOptions = cleanupOptions.FormattingOptions;
+
+        var adjustedChanges = await AdjustTextChangesAsync(document, textChanges, formattingOptions.NewLine, cancellationToken).ConfigureAwait(false);
+        var spansToFormat = GetChangedSpansInNewText(adjustedChanges);
+
+        var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var newText = oldText.WithChanges(adjustedChanges);
+        var newDocument = document.WithText(newText);
+
+        var formattedDocument = await Formatter.FormatAsync(newDocument, spansToFormat, formattingOptions, rules: null, cancellationToken).ConfigureAwait(false);
+        var changesWithFormatting = await formattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+
+        return changesWithFormatting.ToImmutableArray();
+    }
 
     private IMappingHelper? GetMapperHelper(ImmutableArray<CSharpSourceNode> sourceNodes, SyntaxNode documentRoot)
     {
@@ -87,7 +135,7 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
         IMappingHelper mapperHelper = sourceNodes.Any(static (sourceNode, syntaxRoot) => sourceNode.ExistsOnTarget(syntaxRoot, out _), arg: documentRoot)
             ? _replaceHelper
             : _insertHelper;
-        
+
         // Replace does not support more than one node.
         if (mapperHelper is ReplaceHelper && sourceNodes.Length > 1)
             return null;
@@ -112,61 +160,78 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
         var mapperHelper = GetMapperHelper(sourceNodes, documentRoot);
 
         // If no insertion found is valid, return empty list.
-        if (mapperHelper?.TryGetValidInsertions(documentRoot, sourceNodes, out var validInsertionNodes, out var invalidInsertions) is not true)
+        if (mapperHelper?.TryGetValidInsertions(documentRoot, sourceNodes, out var _, out var _) is not true)
             return ImmutableArray<TextChange>.Empty;
 
 
-        using var  _ = ArrayBuilder<TextChange>.GetInstance(out var mappedEdits);
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var mappedEdits);
         foreach (var sourceNode in sourceNodes)
         {
-            // by default we assume the insertion will be the full syntax node.
-            var insertion = sourceNode.ToFullString();
-
             // When calculating the insert span, the insert text might suffer adjustments.
             // These adjustments will be visible in the adjustedInsertion, if it's not null that means
             // there were adjustments to the text when calculating the insert spans.
 
-            var insertionSpan = mapperHelper.GetInsertSpan(documentRoot, sourceNode, target, out var adjustedInsertion);
-            if (adjustedInsertion is not null)
-            {
-                insertion = adjustedInsertion;
-            }
+            var insertionSpan = mapperHelper.GetInsertSpan(documentRoot, sourceNode, target, out var adjustedNodeToMap);
 
-            if (insertionSpan is not null)
+            if (insertionSpan.HasValue)
             {
-                var snapshotSpan = GetSnapshotSpan(snapshot, insertionSpan.Value);
-                var edit = new TextEdit(insertion, snapshotSpan);
-                var mappedEdit = new MappedEdit(edit, uri);
-                mappedEdits.Add(mappedEdit);
+                var nodeToMap = adjustedNodeToMap ?? sourceNode.Node;
+                var insertion = nodeToMap.ToFullString();
+                mappedEdits.Add(new(insertionSpan.Value, insertion));
             }
         }
 
-        // Merge edits when mapping has determined an insert.
-        // This is a hotfix for now, because we don't have a way to handle multiple insertion nodes yet.
-        // So this should help mitigate the issue we were seeing when we tried to insert more than one source node.
-        if (mapperHelper is InsertionHelper && mappedEdits.Count > 1)
+        return mappedEdits.ToImmutable();
+    }
+
+    private static async Task<ImmutableArray<TextChange>> AdjustTextChangesAsync(Document document, ImmutableArray<TextChange> changes, string newlineString, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<TextChange>.GetInstance(changes.Length, out var builder);
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var change in changes)
         {
-            mappedEdits = new List<MappedEdit> { MappedEdit.MergeEdits(mappedEdits.ToArray()) };
+            var adjustedInsertion = TryAdjustNewlines(change.Span, change.NewText!);
+            builder.Add(new TextChange(change.Span, adjustedInsertion));
         }
 
-        return mappedEdits.ToArray();
-    }
+        return builder.ToImmutable();
 
-    private static SnapshotSpan GetSnapshotSpan(ITextSnapshot snapshot, FileLinePositionSpan position)
-    {
-        // find the position where the method is located in the document now that we have the node.
-        var start = snapshot.GetLineFromLineNumber(position.StartLinePosition.Line).Start;
-        var end = snapshot.GetLineFromLineNumber(position.EndLinePosition.Line).Start.Add(position.EndLinePosition.Character);
-        // Return the snapshot span for the syntax node
-        var span = new SnapshotSpan(start, end - start);
-        return span;
-    }
+        string TryAdjustNewlines(TextSpan mapSpan, string mappedText)
+        {
+            var adjustedText = " " + mappedText.Trim();
 
-    private interface IMappingHelper
-    {
-        bool TryGetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes, out CSharpSourceNode[] validInsertions, out InvalidInsertion[] invalidInsertions);
+            var startLine = text.Lines.GetLineFromPosition(mapSpan.Start);
+            var offset = mapSpan.Start - startLine.Start;
+            if (startLine.GetFirstNonWhitespaceOffset() is { } firstNonWhitespace && firstNonWhitespace < offset)
+            {
+                adjustedText = newlineString + adjustedText;
+            }
 
-        TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget? target, out string? adjustedInsertion);
+            var endLine = text.Lines.GetLineFromPosition(mapSpan.End);
+            offset = mapSpan.End - endLine.Start;
+            if (GetFirstNonWhitespacePositionStartFromOffSet(endLine, offset) is { } lastNonWhitespace && lastNonWhitespace >= offset)
+            {
+                adjustedText = adjustedText + newlineString;
+            }
+
+            return adjustedText;
+        }
+
+        static int? GetFirstNonWhitespacePositionStartFromOffSet(TextLine line, int offset)
+        {
+            var text = line.Text;
+            if (text != null)
+            {
+                for (var i = line.Start + offset; i < line.End; i++)
+                {
+                    if (!char.IsWhiteSpace(text[i]))
+                        return i - line.Start;
+                }
+            }
+
+            return null;
+        }
     }
 
     private record MappingTarget(DocumentSpan FocusArea)
