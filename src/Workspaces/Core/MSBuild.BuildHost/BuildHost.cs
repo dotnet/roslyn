@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -32,7 +33,7 @@ internal sealed class BuildHost : IBuildHost
         _binaryLogPath = binaryLogPath;
     }
 
-    private bool TryEnsureMSBuildLoaded(string projectFilePath)
+    private bool TryEnsureMSBuildLoaded(string projectOrSolutionFilePath)
     {
         lock (_gate)
         {
@@ -56,7 +57,7 @@ internal sealed class BuildHost : IBuildHost
 
             // Locate the right SDK for this particular project; MSBuildLocator ensures in this case the first one is the preferred one.
             // TODO: we should pick the appropriate instance back in the main process and just use the one chosen here.
-            var options = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(projectFilePath) };
+            var options = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(projectOrSolutionFilePath) };
             instance = MSBuildLocator.QueryVisualStudioInstances(options).FirstOrDefault();
 
 #endif
@@ -97,11 +98,33 @@ internal sealed class BuildHost : IBuildHost
         }
     }
 
+    public Task<bool> HasUsableMSBuildAsync(string projectOrSolutionFilePath, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(TryEnsureMSBuildLoaded(projectOrSolutionFilePath));
+    }
+
+    private void EnsureMSBuildLoaded(string projectFilePath)
+    {
+        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuildAsync)} should have been called first to check.");
+    }
+
+    public Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>> GetProjectsInSolutionAsync(string solutionFilePath, CancellationToken cancellationToken)
+    {
+        EnsureMSBuildLoaded(solutionFilePath);
+        return Task.FromResult(GetProjectsInSolution(solutionFilePath));
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Do not inline this, since this uses MSBuild types which are being loaded by the caller
+    private static ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolution(string solutionFilePath)
+    {
+        return SolutionFile.Parse(solutionFilePath).ProjectsInOrder
+            .Where(static p => p.ProjectType != SolutionProjectType.SolutionFolder)
+            .SelectAsArray(static p => (p.AbsolutePath, p.ProjectGuid));
+    }
+
     public Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken)
     {
-        if (!TryEnsureMSBuildLoaded(projectFilePath))
-            return Task.FromResult(false);
-
+        EnsureMSBuildLoaded(projectFilePath);
         CreateBuildManager();
 
         return Task.FromResult(TryGetLoaderForPath(projectFilePath) is not null);
@@ -109,7 +132,7 @@ internal sealed class BuildHost : IBuildHost
 
     public async Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(IsProjectFileSupportedAsync)} should have been called first.");
+        EnsureMSBuildLoaded(projectFilePath);
         CreateBuildManager();
 
         var projectLoader = TryGetLoaderForPath(projectFilePath);
