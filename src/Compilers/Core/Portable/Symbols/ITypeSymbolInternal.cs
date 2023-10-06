@@ -38,5 +38,11 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// This API and <see cref="ISymbolInternal.GetISymbol"/> should return the same object.
         /// </summary>
         ITypeSymbol GetITypeSymbol();
+
+        /// <summary>
+        /// For SZArrays, returns the type of elements stored in the array.
+        /// Returns null on all other kinds of types.
+        /// </summary>
+        ITypeSymbolInternal GetElementTypeIfSZArray();
     }
 }

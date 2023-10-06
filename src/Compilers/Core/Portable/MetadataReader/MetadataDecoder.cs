@@ -1478,6 +1478,36 @@ tryAgain:
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded attribute argument is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private TypedConstant DecodeCustomAttributeFixedArgumentOrThrow(ITypeSymbolInternal type, ref BlobReader argReader)
+        {
+            // arrays are allowed only on top-level:
+            if (type.GetElementTypeIfSZArray() is { } elementType)
+            {
+                return DecodeCustomAttributeElementArrayOrThrow(ref argReader, getTypeCode(elementType), (TypeSymbol)elementType, (TypeSymbol)type);
+            }
+
+            return DecodeCustomAttributeElementOrThrow(ref argReader, getTypeCode(type), (TypeSymbol)type);
+
+            static SerializationTypeCode getTypeCode(ITypeSymbolInternal type)
+            {
+                if (type is INamedTypeSymbolInternal { EnumUnderlyingType: { } underlyingType })
+                {
+                    type = underlyingType;
+                }
+
+                try
+                {
+                    return type.SpecialType.ToSerializationType();
+                }
+                catch (InvalidOperationException)
+                {
+                    throw new UnsupportedSignatureContent();
+                }
+            }
+        }
+
+        /// <exception cref="UnsupportedSignatureContent">If the encoded attribute argument is invalid.</exception>
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private TypedConstant DecodeCustomAttributeFixedArgumentOrThrow(ref BlobReader sigReader, ref BlobReader argReader)
         {
             SerializationTypeCode typeCode, elementTypeCode;
@@ -1675,6 +1705,61 @@ tryAgain:
             {
                 return -1;
             }
+        }
+
+        internal bool GetCustomAttribute(
+            CustomAttributeHandle handle,
+            IMethodSymbolInternal attributeConstructor,
+            out TypedConstant[] positionalArgs,
+            out KeyValuePair<string, TypedConstant>[] namedArgs)
+        {
+            try
+            {
+                positionalArgs = Array.Empty<TypedConstant>();
+                namedArgs = Array.Empty<KeyValuePair<string, TypedConstant>>();
+
+                BlobReader argsReader = Module.GetMemoryReaderOrThrow(Module.GetCustomAttributeValueOrThrow(handle));
+
+                uint prolog = argsReader.ReadUInt16();
+                if (prolog != 1)
+                {
+                    return false;
+                }
+
+                int paramCount = attributeConstructor.ParameterCount;
+
+                if (paramCount > 0)
+                {
+                    positionalArgs = new TypedConstant[paramCount];
+
+                    for (int i = 0; i < positionalArgs.Length; i++)
+                    {
+                        var parameterType = attributeConstructor.GetParameterType(i);
+                        positionalArgs[i] = DecodeCustomAttributeFixedArgumentOrThrow(parameterType, ref argsReader);
+                    }
+                }
+
+                short namedParamCount = argsReader.ReadInt16();
+
+                if (namedParamCount > 0)
+                {
+                    namedArgs = new KeyValuePair<string, TypedConstant>[namedParamCount];
+
+                    for (int i = 0; i < namedArgs.Length; i++)
+                    {
+                        (namedArgs[i], _, _, _) = DecodeCustomAttributeNamedArgumentOrThrow(ref argsReader);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
+            {
+                positionalArgs = Array.Empty<TypedConstant>();
+                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
+            }
+
+            return false;
         }
 
         internal bool GetCustomAttribute(

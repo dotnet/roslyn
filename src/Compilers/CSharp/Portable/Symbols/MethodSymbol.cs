@@ -311,6 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        int IMethodSymbolInternal.ParameterCount => ParameterCount;
+
         /// <summary>
         /// Gets the parameters of this method. If this method has no parameters, returns
         /// an empty list.
@@ -894,6 +896,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
         internal TypeSymbol GetParameterType(int index) => ParameterTypesWithAnnotations[index].Type;
+
+        ITypeSymbolInternal IMethodSymbolInternal.GetParameterType(int index) => GetParameterType(index);
 
         /// <summary>
         /// Null if no parameter is ref/out. Otherwise the RefKind for each parameter.

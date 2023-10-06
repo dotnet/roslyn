@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks>
         ''' The default implementation is always correct, but may be unnecessarily slow.
         ''' </remarks>
-        Friend Overridable ReadOnly Property ParameterCount As Integer
+        Friend Overridable ReadOnly Property ParameterCount As Integer Implements IMethodSymbolInternal.ParameterCount
             Get
                 Return Me.Parameters.Length
             End Get
@@ -197,6 +197,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Should return syntax node that originated the method. 
         ''' </summary>
         Friend MustOverride ReadOnly Property Syntax As SyntaxNode
+
+        Private Function GetParameterType(index As Integer) As ITypeSymbolInternal Implements IMethodSymbolInternal.GetParameterType
+            Return Parameters(index).Type
+        End Function
 
         ''' <summary>
         ''' Returns true if calls to this method are omitted in the given syntax tree at the given syntax node location.

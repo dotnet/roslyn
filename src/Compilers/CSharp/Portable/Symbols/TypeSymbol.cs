@@ -2481,6 +2481,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetITypeSymbol(DefaultNullableAnnotation);
         }
 
+        ITypeSymbolInternal ITypeSymbolInternal.GetElementTypeIfSZArray()
+        {
+            if (this is ArrayTypeSymbol { IsSZArray: true } array)
+            {
+                return array.ElementType;
+            }
+
+            return null;
+        }
+
         internal abstract bool IsRecord { get; }
 
         internal abstract bool IsRecordStruct { get; }

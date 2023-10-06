@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         bool IsAsync { get; }
 
+        int ParameterCount { get; }
+
         int CalculateLocalSyntaxOffset(int declaratorPosition, SyntaxTree declaratorTree);
 
         /// <summary>
@@ -24,5 +26,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the method.</param>
         IMethodSymbolInternal Construct(params ITypeSymbolInternal[] typeArguments);
+
+        ITypeSymbolInternal GetParameterType(int index);
     }
 }
