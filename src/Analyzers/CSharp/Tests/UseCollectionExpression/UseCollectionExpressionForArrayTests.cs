@@ -2826,6 +2826,29 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
+    [Fact]
+    public async Task TestForSpanField2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                ref struct C
+                {
+                    private static readonly int i = 0;
+                    private ReadOnlySpan<int> span = new int[] { i };
+
+                    public C() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
     public async Task TestForSpanProperty1(string expression, string expected)
     {
@@ -2916,6 +2939,27 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
+    [Fact]
+    public async Task TestForSpanProperty4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private static readonly int i = 1;
+                    private ReadOnlySpan<int> Span => new int[] { i };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
     public async Task TestForMethodReturn(string expression, string expected)
     {
@@ -2939,6 +2983,27 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     private ReadOnlySpan<int> Span() => {{expected}};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestForSpanMethodReturn2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private static readonly int i = 1;
+                    private ReadOnlySpan<int> Span() => new int[] { i };
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
