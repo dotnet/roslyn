@@ -306,12 +306,6 @@ internal static class UseCollectionExpressionHelpers
                     AddExpressionToProcess(invocationExpression);
                     AddRefLikeOutParameters(invocationExpression.ArgumentList, argumentToSkip: null);
                 }
-                else if (memberAccess.Parent is ElementAccessExpressionSyntax elementAccess)
-                {
-                    // Something like s[...].  We're safe if the result of the element access it safe.
-                    AddExpressionToProcess(elementAccess);
-                    AddRefLikeOutParameters(elementAccess.ArgumentList, argumentToSkip: null);
-                }
                 else
                 {
                     // just a property access.  Like 's.Length'.  This is safe to convert keep going.
@@ -321,6 +315,13 @@ internal static class UseCollectionExpressionHelpers
                 }
 
                 continue;
+            }
+
+            if (topMostExpression.Parent is ElementAccessExpressionSyntax elementAccess)
+            {
+                // Something like s[...].  We're safe if the result of the element access it safe.
+                AddExpressionToProcess(elementAccess);
+                AddRefLikeOutParameters(elementAccess.ArgumentList, argumentToSkip: null);
             }
 
             if (topMostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax declarator })

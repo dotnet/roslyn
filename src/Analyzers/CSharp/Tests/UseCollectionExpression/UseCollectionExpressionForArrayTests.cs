@@ -3232,8 +3232,6 @@ public class UseCollectionExpressionForArrayTests
                 
                 class C
                 {
-                    int[] globalArray;
-
                     ReadOnlySpan<int> M(int i)
                     {
                         ReadOnlySpan<int> s = [|[|new|][]|] { i };
