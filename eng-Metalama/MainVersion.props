@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-        <MainVersion>2023.2.5</MainVersion>
+        <MainVersion>2023.2.6</MainVersion>
         <PackageVersionSuffix></PackageVersionSuffix>
         <RoslynVersion>4.6.0</RoslynVersion>
     </PropertyGroup>
