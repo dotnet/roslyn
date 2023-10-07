@@ -231,14 +231,21 @@ internal static class UseCollectionExpressionHelpers
             _ => null,
         };
 
-        if (initializer is null)
-            return false;
-
         // First, if the current expression only contains primitive constants, then that's guaranteed to be
         // something the compiler can compile directly into the RVA section of the dll, and as such will
         // stay local scoped when converting to a collection expression.
-        if (initializer.Expressions.All(IsPrimitiveConstant))
+        //
+        // Otherwise, if this is an Array.Empty<T>() invocation, then this is always safe to convert from
+        // an array to a span.
+        if (initializer != null)
+        {
+            if (initializer.Expressions.All(IsPrimitiveConstant))
+                return true;
+        }
+        else if (IsCollectionEmptyAccess(semanticModel, expression, cancellationToken))
+        {
             return true;
+        }
 
         // Ok, we have non primitive/constant values.  Moving to a collection expression will make this span have
         // local scope.  Have to make sure that's ok.  We take a conservative position.  We will not allow the
@@ -392,10 +399,7 @@ internal static class UseCollectionExpressionHelpers
                     return false;
 
                 if (method.ReturnType.IsRefLikeType)
-                {
-                    if (seenExpressions.Add(parentInvocation))
-                        expressionsToProcess.Add(parentInvocation);
-                }
+                    AddExpressionToProcess(parentInvocation);
 
                 // Now check the rest of the arguments.  If there are any out-parameters that are ref-structs,
                 // then make sure those are safe as well.
