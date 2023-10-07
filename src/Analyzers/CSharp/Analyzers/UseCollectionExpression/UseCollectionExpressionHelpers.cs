@@ -251,6 +251,9 @@ internal static class UseCollectionExpressionHelpers
             {
                 return true;
             }
+
+            // Don't support anything else without an initializer (for now).
+            return false;
         }
 
         // Ok, we have non primitive/constant values.  Moving to a collection expression will make this span have
@@ -345,7 +348,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         // Everything we processed was good.  Can safely convert this global-scoped array to a local scoped span.
-        return false;
+        return true;
 
         void AddExpressionToProcess(ExpressionSyntax expression)
         {
