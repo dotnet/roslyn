@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -61,15 +62,11 @@ internal static class UseCollectionExpressionHelpers
         // but it's possible we'll end up with different types at runtime that may cause problems.
         //
         // Note: we can relax this on a case by case basis if we feel like it's acceptable.
-        if (originalTypeInfo.Type != null && !originalTypeInfo.Type.Equals(originalTypeInfo.ConvertedType))
+        if (originalTypeInfo.Type != null &&
+            !originalTypeInfo.Type.Equals(originalTypeInfo.ConvertedType) &&
+            !IsSafeConversionWhenTypesDoNotMatch())
         {
-            var isOk =
-                originalTypeInfo.Type.Name == nameof(Span<int>) &&
-                originalTypeInfo.ConvertedType.Name == nameof(ReadOnlySpan<int>) &&
-                originalTypeInfo.Type.OriginalDefinition.Equals(compilation.SpanOfTType()) &&
-                originalTypeInfo.ConvertedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType());
-            if (!isOk)
-                return false;
+            return false;
         }
 
         // HACK: Workaround lack of compiler information for collection expression conversions with casts.
@@ -174,6 +171,141 @@ internal static class UseCollectionExpressionHelpers
         {
             var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
             return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
+        }
+
+        bool IsSafeConversionWhenTypesDoNotMatch()
+        {
+            var type = originalTypeInfo.Type;
+            var convertedType = originalTypeInfo.ConvertedType;
+
+            var convertedToReadOnlySpan =
+                convertedType.Name == nameof(ReadOnlySpan<int>) &&
+                convertedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType());
+
+            var convertedToSpan =
+                convertedType.Name == nameof(Span<int>) &&
+                convertedType.OriginalDefinition.Equals(compilation.SpanOfTType());
+
+            // ReadOnlySpan<X> x = stackalloc[] ...
+            //
+            // This will be a Span<X> converted to a ReadOnlySpan<X>.  This is always safe as ReadOnlySpan is more
+            // restrictive than Span<X>
+            var isSpanToReadOnlySpan =
+                convertedToReadOnlySpan &&
+                type.Name == nameof(Span<int>) &&
+                type.OriginalDefinition.Equals(compilation.SpanOfTType()) &&
+                convertedType.GetTypeArguments()[0].Equals(type.GetTypeArguments()[0]);
+            if (isSpanToReadOnlySpan)
+                return true;
+
+            // ReadOnlySpan<X> x = new X[] ...  or
+            // Span<X> x = new X[] ...
+            //
+            // This may or may not be safe.  If the original 'x' was a local, then it would previously have had global
+            // scope (due to the array).  In that case, we have to make sure converting to a collection expression
+            // (which would had local scope) will not cause problems.
+
+            if (type is IArrayTypeSymbol arrayType &&
+                (convertedToSpan || convertedToReadOnlySpan) &&
+                arrayType.ElementType.Equals(convertedType.GetTypeArguments()[0]))
+            {
+                return IsSafeConversionOfArrayToSpanType();
+            }
+
+            // ReadOnlySpan<X> x = new X[] ...
+            //
+            // This will be an X[] converted to a ReadOnlySpan<X>.  This is always safe as ReadOnlySpan is more
+            // restrictive than Span<X>.  However, in the case of a local, we have to make 
+
+            return false;
+        }
+
+        bool IsSafeConversionOfArrayToSpanType()
+        {
+            var initializer = expression switch
+            {
+                ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+                ImplicitArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+                _ => null,
+            };
+
+            if (initializer is null)
+                return false;
+
+            // First, if the current expression only contains primitive constants, then that's guaranteed to be
+            // something the compiler can compile directly into the RVA section of the dll, and as such will
+            // stay local scoped when converting to a collection expression.
+            if (initializer.Expressions.All(IsPrimitiveConstant))
+                return true;
+
+            // Ok, we have non primitive/constant values.  Moving to a collection expression will make this span have
+            // local scope.  Have to make sure that's ok.  We take a conservative position.  We will not allow the
+            // value to be returned.  And, if it is passed as an argument to anything:
+            //
+            //  1. the argument must either be 'scoped', or
+            //  2. the thing being called must not have a ref-struct return value, or non-scoped ref-struct out parameter.
+
+            // We're going to potentially be seeing how a local symbol was used.  Ensure we don't get into any cycles
+            // with locals.
+            using var _1 = PooledHashSet<ILocalSymbol>.GetInstance(out var seenSymbols);
+            using var _2 = ArrayBuilder<ILocalSymbol>.GetInstance(out var localsToProcess);
+
+            if (expression.Parent is ArgumentSyntax argument)
+                return IsSafeUsageOfSpanAsArgument(argument);
+
+            // 
+            if (topMostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax declarator })
+            {
+                if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is not ILocalSymbol local)
+                    return false;
+
+                var containingBlock = declarator.FirstAncestorOrSelf<BlockSyntax>();
+                if (containingBlock == null)
+                    return false;
+
+                foreach (var identifier in containingBlock.DescendantNodes().OfType<IdentifierNameSyntax>())
+                {
+                    if (identifier.Identifier.ValueText != local.Name)
+                        continue;
+
+                    var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
+                    if (!local.Equals(symbol))
+                        continue;
+
+                    // Ok, found a reference to the local 
+                }
+            }
+
+            // Something unsupported.  Can always add new cases here in the future if it can be determined.
+            return false;
+        }
+
+        bool IsPrimitiveConstant(ExpressionSyntax expression)
+            => semanticModel.GetConstantValue(expression, cancellationToken).HasValue &&
+               semanticModel.GetTypeInfo(expression, cancellationToken).Type?.IsValueType == true;
+
+        bool IsSafeUsageOfSpanAsArgument(ArgumentSyntax argument)
+        {
+            var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+            if (parameter is null)
+                return false;
+
+            // Goo([i]) is always safe if the argument is 'scoped' as this can't escape.
+            if (parameter.ScopedKind != ScopedKind.ScopedValue)
+            {
+                // Ok.  Was passed to something non-scoped.  Check the rest of the signature.
+                if (parameter.ContainingSymbol is not IMethodSymbol method)
+                    return false;
+
+                if (method.ReturnType.IsRefLikeType)
+                    return false;
+
+                if (method.Parameters.Any(p => p.Type.IsRefLikeType && p.RefKind == RefKind.Out))
+                    return false;
+            }
+
+            // This should be safe to convert.
+            return true;
         }
     }
 
