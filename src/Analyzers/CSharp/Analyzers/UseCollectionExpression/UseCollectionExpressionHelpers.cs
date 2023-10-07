@@ -251,16 +251,13 @@ internal static class UseCollectionExpressionHelpers
             return false;
         }
 
-        // Ok, we have non primitive/constant values.  Moving to a collection expression will make this span have
-        // local scope.  Have to make sure that's ok.  We take a conservative position.  We will not allow the
-        // value to be returned.  And, if it is passed as an argument to anything:
+        // Ok, we have non primitive/constant values.  Moving to a collection expression will make this span have local
+        // scope.  Have to make sure that's ok.  We do our analysis in an iterative fashion.  Starting with the original
+        // expression and seeing how its scope flows outward (including to other locals).  We will then require that any
+        // ref-type values we encounter (including the initial one) cannot flow out of the method we're in.
         //
-        //  1. the argument must either be 'scoped', or
-        //  2. the thing being called must not have a ref-struct return value, or non-scoped ref-struct out parameter.
-
-        // We do our analysis in an iterative fashion.  Starting with the original expression and seeing how its scope
-        // flows outward (including to other locals).  Because we're analyzing the code in multiple passes (until we
-        // reach a fixed point), we have to ensure we only examine locals and expressions once.
+        // Because we're analyzing the code in multiple passes (until we reach a fixed point), we have to ensure we only
+        // examine locals and expressions once.
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var expressionsToProcess);
         using var _2 = PooledHashSet<ExpressionSyntax>.GetInstance(out var seenExpressions);
         using var _3 = PooledHashSet<ILocalSymbol>.GetInstance(out var seenLocals);
