@@ -274,20 +274,19 @@ internal static class UseCollectionExpressionHelpers
         while (expressionsToProcess.Count > 0)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var currentExpression = expressionsToProcess.Pop();
 
-            var topMostExpression = currentExpression.WalkUpParentheses();
+            var locallyScopedExpression = expressionsToProcess.Pop().WalkUpParentheses();
 
             // Expression used on its own, without its result being used.  Safe to convert.
-            if (topMostExpression.Parent is ExpressionStatementSyntax)
+            if (locallyScopedExpression.Parent is ExpressionStatementSyntax)
                 continue;
 
             // If the expression is returned out, then it definitely has non-local scope and we definitely cannot
             // convert it.
-            if (topMostExpression.Parent is ReturnStatementSyntax or ArrowExpressionClauseSyntax)
+            if (locallyScopedExpression.Parent is ReturnStatementSyntax or ArrowExpressionClauseSyntax)
                 return false;
 
-            if (topMostExpression.Parent is ArgumentSyntax argument)
+            if (locallyScopedExpression.Parent is ArgumentSyntax argument)
             {
                 // if it's passed into something, ensure that that is safe.  Note: this may discover more
                 // expressions and variables to test out.
@@ -297,8 +296,8 @@ internal static class UseCollectionExpressionHelpers
                 continue;
             }
 
-            if (topMostExpression.Parent is MemberAccessExpressionSyntax memberAccess &&
-                memberAccess.Expression == topMostExpression)
+            if (locallyScopedExpression.Parent is MemberAccessExpressionSyntax memberAccess &&
+                memberAccess.Expression == locallyScopedExpression)
             {
                 if (memberAccess.Parent is InvocationExpressionSyntax invocationExpression)
                 {
@@ -322,7 +321,7 @@ internal static class UseCollectionExpressionHelpers
                 continue;
             }
 
-            if (topMostExpression.Parent is ElementAccessExpressionSyntax elementAccess)
+            if (locallyScopedExpression.Parent is ElementAccessExpressionSyntax elementAccess)
             {
                 // Something like s[...].  We're safe if the result of the element access it safe.
                 var methodOrProperty = semanticModel.GetSymbolInfo(elementAccess, cancellationToken).Symbol;
@@ -336,7 +335,7 @@ internal static class UseCollectionExpressionHelpers
                 continue;
             }
 
-            if (topMostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax declarator })
+            if (locallyScopedExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax declarator })
             {
                 // if it's assigned to a new variable, check that variables for how it is used.
                 if (!AddLocalToProcess(declarator))
@@ -345,8 +344,8 @@ internal static class UseCollectionExpressionHelpers
                 continue;
             }
 
-            if (topMostExpression.Parent is AssignmentExpressionSyntax assignment &&
-                assignment.Right == topMostExpression)
+            if (locallyScopedExpression.Parent is AssignmentExpressionSyntax assignment &&
+                assignment.Right == locallyScopedExpression)
             {
                 // If it's assigned to something on the left, that's only safe if it's another locally scoped symbol.
                 var leftSymbol = semanticModel.GetSymbolInfo(assignment.Left, cancellationToken).Symbol;
@@ -376,6 +375,11 @@ internal static class UseCollectionExpressionHelpers
 
             // Only process a local once.
             if (!seenLocals.Add(local))
+                return true;
+
+            // If the local we're assigning to isn't a ref-type, then scoping isn't relevant, and we don't have to
+            // examine it.
+            if (!local.Type.IsRefLikeType)
                 return true;
 
             // If the local is already scoped locally, then we don't need to do any additional checks on how it is
