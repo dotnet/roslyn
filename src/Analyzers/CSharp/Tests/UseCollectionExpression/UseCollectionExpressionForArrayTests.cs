@@ -3893,7 +3893,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     ReadOnlySpan<int> M(int i)
                     {
-                        ReadOnlySpan<int> span = new[] { i };
+                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
                         X(span, out var v);
                         return v;
                     }
@@ -3935,9 +3935,9 @@ public class UseCollectionExpressionForArrayTests
                 
                 class C
                 {
-                    ReadOnlySpan<int> M(int i)
+                    void M(int i)
                     {
-                        ReadOnlySpan<int> span = new[] { i };
+                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
                         X(span, out var v);
                     }
 
@@ -3951,7 +3951,7 @@ public class UseCollectionExpressionForArrayTests
                 
                 class C
                 {
-                    ReadOnlySpan<int> M(int i)
+                    void M(int i)
                     {
                         ReadOnlySpan<int> span = [i];
                         X(span, out var v);
@@ -3979,9 +3979,9 @@ public class UseCollectionExpressionForArrayTests
                 {
                     ReadOnlySpan<int> M(int i)
                     {
-                        ReadOnlySpan<int> span = new[] { i };
+                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
                         X(span, out var v);
-                        return v;
+                        return v.Slice(0, 1);
                     }
 
                     void X(scoped ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
@@ -4007,12 +4007,5 @@ public class UseCollectionExpressionForArrayTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
-
-    private void M()
-    {
-        ReadOnlySpan<int> r = default;
-        r.ToString();
-        var v = r[0..1];
     }
 }
