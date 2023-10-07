@@ -209,7 +209,7 @@ internal static class UseCollectionExpressionHelpers
                 (convertedToSpan || convertedToReadOnlySpan) &&
                 arrayType.ElementType.Equals(convertedType.GetTypeArguments()[0]))
             {
-                return IsSafeConversionOfArrayToSpanType();
+                return IsSafeConversionOfArrayToSpanType(semanticModel, expression, cancellationToken);
             }
 
             // ReadOnlySpan<X> x = new X[] ...
@@ -219,168 +219,175 @@ internal static class UseCollectionExpressionHelpers
 
             return false;
         }
+    }
 
-        bool IsSafeConversionOfArrayToSpanType()
+    private static bool IsSafeConversionOfArrayToSpanType(
+        SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+    {
+        var initializer = expression switch
         {
-            var initializer = expression switch
+            ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+            ImplicitArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
+            _ => null,
+        };
+
+        if (initializer is null)
+            return false;
+
+        // First, if the current expression only contains primitive constants, then that's guaranteed to be
+        // something the compiler can compile directly into the RVA section of the dll, and as such will
+        // stay local scoped when converting to a collection expression.
+        if (initializer.Expressions.All(IsPrimitiveConstant))
+            return true;
+
+        // Ok, we have non primitive/constant values.  Moving to a collection expression will make this span have
+        // local scope.  Have to make sure that's ok.  We take a conservative position.  We will not allow the
+        // value to be returned.  And, if it is passed as an argument to anything:
+        //
+        //  1. the argument must either be 'scoped', or
+        //  2. the thing being called must not have a ref-struct return value, or non-scoped ref-struct out parameter.
+
+        // We're going to potentially be seeing how a local symbol was used.  Ensure we don't get into any cycles
+        // with locals.
+        using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var expressionsToProcess);
+        using var _2 = ArrayBuilder<(ILocalSymbol local, SyntaxNode declarator)>.GetInstance(out var localsToProcess);
+        using var _3 = PooledHashSet<ExpressionSyntax>.GetInstance(out var seenExpressions);
+        using var _4 = PooledHashSet<ILocalSymbol>.GetInstance(out var seenLocals);
+
+        expressionsToProcess.Push(expression);
+
+        while (expressionsToProcess.Count > 0 || localsToProcess.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (expressionsToProcess.Count > 0)
             {
-                ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
-                ImplicitArrayCreationExpressionSyntax arrayCreation => arrayCreation.Initializer,
-                _ => null,
-            };
+                var currentExpression = expressionsToProcess.Pop();
 
-            if (initializer is null)
-                return false;
+                var topMostExpression = currentExpression.WalkUpParentheses();
 
-            // First, if the current expression only contains primitive constants, then that's guaranteed to be
-            // something the compiler can compile directly into the RVA section of the dll, and as such will
-            // stay local scoped when converting to a collection expression.
-            if (initializer.Expressions.All(IsPrimitiveConstant))
-                return true;
-
-            // Ok, we have non primitive/constant values.  Moving to a collection expression will make this span have
-            // local scope.  Have to make sure that's ok.  We take a conservative position.  We will not allow the
-            // value to be returned.  And, if it is passed as an argument to anything:
-            //
-            //  1. the argument must either be 'scoped', or
-            //  2. the thing being called must not have a ref-struct return value, or non-scoped ref-struct out parameter.
-
-            // We're going to potentially be seeing how a local symbol was used.  Ensure we don't get into any cycles
-            // with locals.
-            using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var expressionsToProcess);
-            using var _2 = ArrayBuilder<(ILocalSymbol local, SyntaxNode declarator)>.GetInstance(out var localsToProcess);
-            using var _3 = PooledHashSet<ExpressionSyntax>.GetInstance(out var seenExpressions);
-            using var _4 = PooledHashSet<ILocalSymbol>.GetInstance(out var seenLocals);
-
-            expressionsToProcess.Push(expression);
-
-            while (expressionsToProcess.Count > 0 || localsToProcess.Count > 0)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (expressionsToProcess.Count > 0)
+                // If the expression is returned out, then it definitely has non-local scope and we definitely cannot
+                // return it.
+                if (topMostExpression.Parent is ReturnStatementSyntax)
                 {
-                    var currentExpression = expressionsToProcess.Pop();
-
-                    var topMostExpression = currentExpression.WalkUpParentheses();
-
-                    // If the expression is returned out, then it definitely has non-local scope and we definitely cannot
-                    // return it.
-                    if (topMostExpression.Parent is ReturnStatementSyntax)
-                    {
+                    return false;
+                }
+                else if (topMostExpression.Parent is ArgumentSyntax argument)
+                {
+                    // if it's passed into something, ensure that that is safe.  Note: this may discover more
+                    // expressions and variables to test out.
+                    if (!IsSafeUsageOfSpanAsArgument(argument))
                         return false;
-                    }
-                    else if (topMostExpression.Parent is ArgumentSyntax argument)
-                    {
-                        // if it's passed into something, ensure that that is safe.  Note: this may discover more
-                        // expressions and variables to test out.
-                        if (!IsSafeUsageOfSpanAsArgument(argument))
-                            return false;
 
-                        continue;
-                    }
-                    else if (topMostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax declarator })
-                    {
-                        // if it's assigned to a new variable, check that variables for how it is used.
-                        if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is not ILocalSymbol local)
-                            return false;
-
-                        if (seenLocals.Add(local))
-                            localsToProcess.Add((local, declarator));
-
-                        continue;
-                    }
-                    else if (topMostExpression.Parent is AssignmentExpressionSyntax assignment &&
-                        assignment.Right == topMostExpression.Parent)
-                    {
-                        // If it's assigned to something, check that thing as well.
-                        if (seenExpressions.Add(assignment.Left))
-                            expressionsToProcess.Add(assignment.Left);
-
-                        continue;
-                    }
-                    else
-                    {
-                        // Anything else is an expression we don't support (yet);
+                    continue;
+                }
+                else if (topMostExpression.Parent is MemberAccessExpressionSyntax memberAccess &&
+                    memberAccess.Expression == topMostExpression)
+                else if (topMostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax declarator })
+                {
+                    // if it's assigned to a new variable, check that variables for how it is used.
+                    if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is not ILocalSymbol local)
                         return false;
-                    }
+
+                    if (seenLocals.Add(local))
+                        localsToProcess.Add((local, declarator));
+
+                    continue;
+                }
+                else if (topMostExpression.Parent is AssignmentExpressionSyntax assignment &&
+                    assignment.Right == topMostExpression)
+                {
+                    // If it's assigned to something, check that thing as well.
+                    if (seenExpressions.Add(assignment.Left))
+                        expressionsToProcess.Add(assignment.Left);
+
+                    continue;
                 }
                 else
                 {
-                    var (currentLocal, declarator) = localsToProcess.Pop();
-                    var containingBlock = declarator.FirstAncestorOrSelf<BlockSyntax>();
-                    if (containingBlock == null)
-                        return false;
-
-                    foreach (var identifier in containingBlock.DescendantNodes().OfType<IdentifierNameSyntax>())
-                    {
-                        if (identifier.Identifier.ValueText != local.Name)
-                            continue;
-
-                        var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
-                        if (!local.Equals(symbol))
-                            continue;
-
-                        // Ok, found a reference to the local 
-                    }
+                    // Anything else is an expression we don't support (yet);
+                    return false;
                 }
+            }
+            else
+            {
+                var (currentLocal, declarator) = localsToProcess.Pop();
 
-                bool IsSafeUsageOfSpanAsArgument(ArgumentSyntax argument)
+                // if the local already has local-scope, then we know it's safe.
+                if (currentLocal.ScopedKind == ScopedKind.ScopedValue)
+                    continue;
+
+                var containingBlock = declarator.FirstAncestorOrSelf<BlockSyntax>();
+                if (containingBlock == null)
+                    return false;
+
+                foreach (var identifier in containingBlock.DescendantNodes().OfType<IdentifierNameSyntax>())
                 {
-                    var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                    if (parameter is null)
-                        return false;
+                    if (identifier.Identifier.ValueText != local.Name)
+                        continue;
 
-                    // Goo([i]) is always safe if the argument is 'scoped' as this can't escape.
-                    if (parameter.ScopedKind != ScopedKind.ScopedValue)
-                    {
-                        // Ok.  Was passed to something non-scoped.  Check the rest of the signature.
-                        if (parameter.ContainingSymbol is not IMethodSymbol method)
-                            return false;
+                    var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
+                    if (!local.Equals(symbol))
+                        continue;
 
-                        // method returns something by-ref.  Have to make sure the entire method call is safe.
-                        if (argument.Parent is not BaseArgumentListSyntax { Parent: ExpressionSyntax parentInvocation } argumentList)
-                            return false;
-
-                        if (method.ReturnType.IsRefLikeType)
-                        {
-                            if (seenExpressions.Add(parentInvocation))
-                                expressionsToProcess.Add(parentInvocation);
-                        }
-
-                        // Now check the rest of the arguments.  If there are any out-parameters that are ref-structs,
-                        // then make sure those are safe as well.
-                        foreach (var siblingArgument in argumentList.Arguments)
-                        {
-                            if (siblingArgument != argument)
-                            {
-                                var siblingParameter = siblingArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                                if (siblingParameter is null)
-                                    return false;
-
-                                if (siblingParameter.Type.IsRefLikeType &&
-                                    siblingArgument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword &&
-                                    siblingArgument.Expression is DeclarationExpressionSyntax { Designation: SingleVariableDesignationSyntax designation })
-                                {
-                                    // if it's assigned to a new variable, check that variables for how it is used.
-                                    if (semanticModel.GetDeclaredSymbol(designation, cancellationToken) is not ILocalSymbol local)
-                                        return false;
-
-                                    if (seenLocals.Add(local))
-                                        localsToProcess.Add((local, designation));
-
-                                }
-                            }
-                        }
-                    }
-
-                    // This should be safe to convert.
-                    return true;
+                    // Ok, found a reference to the local 
                 }
             }
 
-            // Something unsupported.  Can always add new cases here in the future if it can be determined.
-            return false;
+            bool IsSafeUsageOfSpanAsArgument(ArgumentSyntax argument)
+            {
+                var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                if (parameter is null)
+                    return false;
+
+                // Goo([i]) is always safe if the argument is 'scoped' as this can't escape.
+                if (parameter.ScopedKind != ScopedKind.ScopedValue)
+                {
+                    // Ok.  Was passed to something non-scoped.  Check the rest of the signature.
+                    if (parameter.ContainingSymbol is not IMethodSymbol method)
+                        return false;
+
+                    // method returns something by-ref.  Have to make sure the entire method call is safe.
+                    if (argument.Parent is not BaseArgumentListSyntax { Parent: ExpressionSyntax parentInvocation } argumentList)
+                        return false;
+
+                    if (method.ReturnType.IsRefLikeType)
+                    {
+                        if (seenExpressions.Add(parentInvocation))
+                            expressionsToProcess.Add(parentInvocation);
+                    }
+
+                    // Now check the rest of the arguments.  If there are any out-parameters that are ref-structs,
+                    // then make sure those are safe as well.
+                    foreach (var siblingArgument in argumentList.Arguments)
+                    {
+                        if (siblingArgument != argument)
+                        {
+                            var siblingParameter = siblingArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                            if (siblingParameter is null)
+                                return false;
+
+                            if (siblingParameter.Type.IsRefLikeType &&
+                                siblingArgument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword &&
+                                siblingArgument.Expression is DeclarationExpressionSyntax { Designation: SingleVariableDesignationSyntax designation })
+                            {
+                                // if it's assigned to a new variable, check that variables for how it is used.
+                                if (semanticModel.GetDeclaredSymbol(designation, cancellationToken) is not ILocalSymbol local)
+                                    return false;
+
+                                if (seenLocals.Add(local))
+                                    localsToProcess.Add((local, designation));
+                            }
+                        }
+                    }
+                }
+
+                // This should be safe to convert.
+                return true;
+            }
         }
+
+        // Something unsupported.  Can always add new cases here in the future if it can be determined.
+        return false;
 
         bool IsPrimitiveConstant(ExpressionSyntax expression)
             => semanticModel.GetConstantValue(expression, cancellationToken).HasValue &&
