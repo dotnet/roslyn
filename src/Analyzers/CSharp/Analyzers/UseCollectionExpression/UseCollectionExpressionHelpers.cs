@@ -211,11 +211,7 @@ internal static class UseCollectionExpressionHelpers
                 return IsSafeConversionOfArrayToSpanType(semanticModel, expression, cancellationToken);
             }
 
-            // ReadOnlySpan<X> x = new X[] ...
-            //
-            // This will be an X[] converted to a ReadOnlySpan<X>.  This is always safe as ReadOnlySpan is more
-            // restrictive than Span<X>.  However, in the case of a local, we have to make 
-
+            // Add more cases to support here.
             return false;
         }
     }
