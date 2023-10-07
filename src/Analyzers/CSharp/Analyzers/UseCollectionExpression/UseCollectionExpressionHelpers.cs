@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -303,7 +304,12 @@ internal static class UseCollectionExpressionHelpers
                 if (memberAccess.Parent is InvocationExpressionSyntax invocationExpression)
                 {
                     // something like s.Slice(...).  We're safe if the result of this invocation is safe.
-                    AddExpressionToProcess(invocationExpression);
+                    if (semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is not IMethodSymbol method)
+                        return false;
+
+                    if (method.ReturnType.IsRefLikeType)
+                        AddExpressionToProcess(invocationExpression);
+
                     AddRefLikeOutParameters(invocationExpression.ArgumentList, argumentToSkip: null);
                 }
                 else
@@ -320,7 +326,12 @@ internal static class UseCollectionExpressionHelpers
             if (topMostExpression.Parent is ElementAccessExpressionSyntax elementAccess)
             {
                 // Something like s[...].  We're safe if the result of the element access it safe.
-                AddExpressionToProcess(elementAccess);
+                if (semanticModel.GetSymbolInfo(elementAccess, cancellationToken).Symbol is not IMethodSymbol method)
+                    return false;
+
+                if (method.ReturnType.IsRefLikeType)
+                    AddExpressionToProcess(elementAccess);
+
                 AddRefLikeOutParameters(elementAccess.ArgumentList, argumentToSkip: null);
             }
 
