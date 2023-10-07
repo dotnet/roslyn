@@ -167,6 +167,11 @@
         <target state="translated">Remover operador (preserva a semântica)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_else_statement">
+        <source>Remove redundant 'else' statement</source>
+        <target state="new">Remove redundant 'else' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
         <target state="translated">Remover diretiva que permite valor nulo redundante</target>

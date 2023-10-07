@@ -175,5 +175,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string UseTupleSwap = nameof(UseTupleSwap);
         public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
+        public const string RemoveRedundantElseStatement = nameof(RemoveRedundantElseStatement);
     }
 }

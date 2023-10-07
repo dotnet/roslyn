@@ -167,6 +167,11 @@
         <target state="translated">移除運算子 (保留語義)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_else_statement">
+        <source>Remove redundant 'else' statement</source>
+        <target state="new">Remove redundant 'else' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
         <target state="translated">移除多餘而可為 Null 的指示詞</target>

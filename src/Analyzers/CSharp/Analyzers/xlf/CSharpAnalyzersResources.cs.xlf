@@ -167,6 +167,11 @@
         <target state="translated">Odebrat operátor (zachová sémantiku)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_else_statement">
+        <source>Remove redundant 'else' statement</source>
+        <target state="new">Remove redundant 'else' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
         <target state="translated">Odebrat redundantní direktivu s možnou hodnotou null</target>

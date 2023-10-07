@@ -257,6 +257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_primary_constructors",
             CSharpIdeCodeStyleOptions.Default.PreferPrimaryConstructors);
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferRemoveRedundantElseStatement = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences,
+            "csharp_style_prefer_remove_redundant_else_statement",
+            CSharpIdeCodeStyleOptions.Default.PreferRemoveRedundantElseStatement);
+
         internal static readonly ImmutableArray<IOption2> AllOptions = s_allOptionsBuilder.ToImmutable();
     }
 

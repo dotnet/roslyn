@@ -47,5 +47,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SyntaxNodeOrToken WithAppendedTrailingTrivia(this SyntaxNodeOrToken nodeOrToken, IEnumerable<SyntaxTrivia> trivia)
             => nodeOrToken.IsNode ? nodeOrToken.AsNode()!.WithAppendedTrailingTrivia(trivia) : nodeOrToken.AsToken().WithAppendedTrailingTrivia(trivia);
+
+        public static SyntaxNodeOrToken WithPrependedLeadingTrivia(this SyntaxNodeOrToken nodeOrToken, params SyntaxTrivia[] trivia)
+            => WithPrependedLeadingTrivia(nodeOrToken, (IEnumerable<SyntaxTrivia>)trivia);
+
+        public static SyntaxNodeOrToken WithPrependedLeadingTrivia(this SyntaxNodeOrToken nodeOrToken, IEnumerable<SyntaxTrivia> trivia)
+            => nodeOrToken.IsNode ? nodeOrToken.AsNode()!.WithPrependedLeadingTrivia(trivia) : nodeOrToken.AsToken().WithPrependedLeadingTrivia(trivia);
     }
 }
