@@ -262,12 +262,12 @@ internal static class UseCollectionExpressionHelpers
 
             var topMostExpression = currentExpression.WalkUpParentheses();
 
-            // Expression used on its own, without its result being used.  Safe to convet.
+            // Expression used on its own, without its result being used.  Safe to convert.
             if (topMostExpression.Parent is ExpressionStatementSyntax)
                 continue;
 
             // If the expression is returned out, then it definitely has non-local scope and we definitely cannot
-            // return it.
+            // convert it.
             if (topMostExpression.Parent is ReturnStatementSyntax or ArrowExpressionClauseSyntax)
                 return false;
 
@@ -284,19 +284,26 @@ internal static class UseCollectionExpressionHelpers
             if (topMostExpression.Parent is MemberAccessExpressionSyntax memberAccess &&
                 memberAccess.Expression == topMostExpression)
             {
-                // something like s.Slice(...).  We're safe if the result of this invocation is safe.
                 if (memberAccess.Parent is InvocationExpressionSyntax invocationExpression)
                 {
+                    // something like s.Slice(...).  We're safe if the result of this invocation is safe.
                     AddExpressionToProcess(invocationExpression);
+                    AddRefLikeOutParameters(invocationExpression.ArgumentList, argumentToSkip: null);
                 }
-
-                // Something like s[...].  We're safe if the result of the element access it safe.
-                if (memberAccess.Parent is ElementAccessExpressionSyntax elementAccess)
+                else if (memberAccess.Parent is ElementAccessExpressionSyntax elementAccess)
                 {
+                    // Something like s[...].  We're safe if the result of the element access it safe.
                     AddExpressionToProcess(elementAccess);
+                    AddRefLikeOutParameters(elementAccess.ArgumentList, argumentToSkip: null);
+                }
+                else
+                {
+                    // just a property access.  Like 's.Length'.  This is safe to convert keep going.
+                    var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
+                    if (symbol is not IPropertySymbol and not IFieldSymbol)
+                        return false;
                 }
 
-                // just a property access.  Like 's.Length'.  This is safe to convert keep going.
                 continue;
             }
 
@@ -312,16 +319,16 @@ internal static class UseCollectionExpressionHelpers
             if (topMostExpression.Parent is AssignmentExpressionSyntax assignment &&
                 assignment.Right == topMostExpression)
             {
-                // If it's assigned to something, check that thing as well.
-                AddExpressionToProcess(assignment.Left);
+                // If it's assigned to something on the left, check that thing as well.
+                var leftSymbol = semanticModel.GetSymbolInfo(assignment.Left, cancellationToken).Symbol;
                 continue;
             }
 
-            // Anything else is an expression we don't support (yet);
+            // Something unsupported.  Can always add new cases here in the future if it can be determined.
             return false;
         }
 
-        // Something unsupported.  Can always add new cases here in the future if it can be determined.
+        // Everything we processed was good.  Can safely convert this global-scoped array to a local scoped span.
         return false;
 
         void AddExpressionToProcess(ExpressionSyntax expression)
@@ -331,12 +338,20 @@ internal static class UseCollectionExpressionHelpers
         }
 
         bool AddLocalToProcess(SyntaxNode declarator)
+            => AddLocalWithDeclaratorToProcess(semanticModel.GetDeclaredSymbol(declarator, cancellationToken) as ILocalSymbol, declarator);
+
+        bool AddLocalWithDeclaratorToProcess(ILocalSymbol? local, SyntaxNode declarator)
         {
-            if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is not ILocalSymbol local)
+            if (local is null)
                 return false;
 
             // Only process a local once.
             if (!seenLocals.Add(local))
+                return true;
+
+            // If the local is already scoped locally, then we don't need to do any additional checks on how it is
+            // used.  It's always safe to convert to a locally scoped span.
+            if (local.ScopedKind == ScopedKind.ScopedValue)
                 return true;
 
             var containingBlock = declarator.FirstAncestorOrSelf<BlockSyntax>();
@@ -384,27 +399,34 @@ internal static class UseCollectionExpressionHelpers
 
                 // Now check the rest of the arguments.  If there are any out-parameters that are ref-structs,
                 // then make sure those are safe as well.
-                foreach (var siblingArgument in argumentList.Arguments)
-                {
-                    if (siblingArgument != argument)
-                    {
-                        var siblingParameter = siblingArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (siblingParameter is null)
-                            return false;
+                AddRefLikeOutParameters(argumentList, argument);
+            }
 
-                        if (siblingParameter.Type.IsRefLikeType &&
-                            siblingArgument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword &&
-                            siblingArgument.Expression is DeclarationExpressionSyntax { Designation: SingleVariableDesignationSyntax designation })
-                        {
-                            // if it's assigned to a new variable, check that variables for how it is used.
-                            if (!AddLocalToProcess(designation))
-                                return false;
-                        }
+            // This should be safe to convert.
+            return true;
+        }
+
+        bool AddRefLikeOutParameters(BaseArgumentListSyntax argumentList, ArgumentSyntax? argumentToSkip)
+        {
+            foreach (var siblingArgument in argumentList.Arguments)
+            {
+                if (siblingArgument != argumentToSkip)
+                {
+                    var siblingParameter = siblingArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                    if (siblingParameter is null)
+                        return false;
+
+                    if (siblingParameter.Type.IsRefLikeType &&
+                        siblingArgument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword &&
+                        siblingArgument.Expression is DeclarationExpressionSyntax { Designation: SingleVariableDesignationSyntax designation })
+                    {
+                        // if it's assigned to a new variable, check that variables for how it is used.
+                        if (!AddLocalToProcess(designation))
+                            return false;
                     }
                 }
             }
 
-            // This should be safe to convert.
             return true;
         }
 
