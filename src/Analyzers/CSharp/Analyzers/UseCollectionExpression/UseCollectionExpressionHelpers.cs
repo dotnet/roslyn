@@ -458,6 +458,7 @@ internal static class UseCollectionExpressionHelpers
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
             ArgumentSyntax or AttributeArgumentSyntax => true,
             ReturnStatementSyntax => true,
+            ArrowExpressionClauseSyntax => true,
             _ => false,
         };
 
