@@ -326,10 +326,11 @@ internal static class UseCollectionExpressionHelpers
             if (topMostExpression.Parent is ElementAccessExpressionSyntax elementAccess)
             {
                 // Something like s[...].  We're safe if the result of the element access it safe.
-                if (semanticModel.GetSymbolInfo(elementAccess, cancellationToken).Symbol is not IMethodSymbol method)
+                var methodOrProperty = semanticModel.GetSymbolInfo(elementAccess, cancellationToken).Symbol;
+                if (methodOrProperty is not IMethodSymbol and not IPropertySymbol)
                     return false;
 
-                if (method.ReturnType.IsRefLikeType)
+                if (methodOrProperty.GetMemberType()!.IsRefLikeType)
                     AddExpressionToProcess(elementAccess);
 
                 AddRefLikeOutParameters(elementAccess.ArgumentList, argumentToSkip: null);
@@ -405,6 +406,9 @@ internal static class UseCollectionExpressionHelpers
 
         bool IsSafeUsageOfSpanAsArgument(ArgumentSyntax argument)
         {
+            if (argument.Expression.IsNameOfArgumentExpression())
+                return true;
+
             var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
             if (parameter is null)
                 return false;
