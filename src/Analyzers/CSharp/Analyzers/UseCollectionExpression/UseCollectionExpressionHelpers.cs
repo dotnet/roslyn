@@ -73,47 +73,44 @@ internal static class UseCollectionExpressionHelpers
         // Specifically, hardcode in knowledge that a cast to a constructible collection type of the empty collection
         // expression will always succeed, and there's no need to actually validate semantics there.
         // Tracked by https://github.com/dotnet/roslyn/issues/68826
-        if (!IsAlwaysSafeCastReplacement())
-        {
-            // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
-            // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
-            // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
-            // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
-            // types that could accept the collection expression).
-            var speculationAnalyzer = new SpeculationAnalyzer(
-                topMostExpression,
-                s_emptyCollectionExpression,
-                semanticModel,
-                cancellationToken,
-                skipVerificationForReplacedNode,
-                failOnOverloadResolutionFailuresInOriginalCode: true);
+        if (parent is CastExpressionSyntax)
+            return IsConstructibleCollectionType(semanticModel.GetTypeInfo(parent, cancellationToken).Type);
 
-            if (speculationAnalyzer.ReplacementChangesSemantics())
-                return false;
+        // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
+        // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
+        // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
+        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
+        // types that could accept the collection expression).
+        var speculationAnalyzer = new SpeculationAnalyzer(
+            topMostExpression,
+            s_emptyCollectionExpression,
+            semanticModel,
+            cancellationToken,
+            skipVerificationForReplacedNode,
+            failOnOverloadResolutionFailuresInOriginalCode: true);
 
-            // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
-            // (for example, we're trying to replace an expression that is converted to something that isn't even a
-            // collection type).
-            //
-            // Note: an identity conversion is always legal without needing any more checks.
-            var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
-            if (conversion.IsIdentity)
-                return true;
+        if (speculationAnalyzer.ReplacementChangesSemantics())
+            return false;
 
-            if (!conversion.IsCollectionExpression)
-                return false;
+        // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
+        // (for example, we're trying to replace an expression that is converted to something that isn't even a
+        // collection type).
+        //
+        // Note: an identity conversion is always legal without needing any more checks.
+        var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
+        if (conversion.IsIdentity)
+            return true;
 
-            // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
-            // converting this to some different collection type unintentionally.
-            var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
-            if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
-                return false;
-        }
+        if (!conversion.IsCollectionExpression)
+            return false;
+
+        // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
+        // converting this to some different collection type unintentionally.
+        var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
+        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
+            return false;
 
         return true;
-
-        bool IsAlwaysSafeCastReplacement()
-            => parent is CastExpressionSyntax && IsConstructibleCollectionType(semanticModel.GetTypeInfo(parent, cancellationToken).Type);
 
         bool IsConstructibleCollectionType(ITypeSymbol? type)
         {
@@ -125,8 +122,11 @@ internal static class UseCollectionExpressionHelpers
             if (type is INamedTypeSymbol namedType)
             {
                 // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
-                if (namedType.Equals(compilation.SpanOfTType()) || namedType.Equals(compilation.ReadOnlySpanOfTType()))
+                if (namedType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
+                    namedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
+                {
                     return true;
+                }
 
                 // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
                 if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
@@ -234,17 +234,23 @@ internal static class UseCollectionExpressionHelpers
         // First, if the current expression only contains primitive constants, then that's guaranteed to be
         // something the compiler can compile directly into the RVA section of the dll, and as such will
         // stay local scoped when converting to a collection expression.
-        //
-        // Otherwise, if this is an Array.Empty<T>() invocation, then this is always safe to convert from
-        // an array to a span.
         if (initializer != null)
         {
             if (initializer.Expressions.All(IsPrimitiveConstant))
                 return true;
         }
-        else if (IsCollectionEmptyAccess(semanticModel, expression, cancellationToken))
+        else
         {
-            return true;
+            // Otherwise, if this is an Array.Empty<T>() invocation or `new X[0]` instantiation, then this is always
+            // safe to convert from an array to a span.
+            if (IsCollectionEmptyAccess(semanticModel, expression, cancellationToken))
+                return true;
+
+            if (expression is ArrayCreationExpressionSyntax { Type: ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] } } &&
+                semanticModel.GetConstantValue(size, cancellationToken).Value is 0)
+            {
+                return true;
+            }
         }
 
         // Ok, we have non primitive/constant values.  Moving to a collection expression will make this span have
@@ -687,57 +693,59 @@ internal static class UseCollectionExpressionHelpers
             else
             {
                 // if there is no initializer, we have to be followed by direct statements that initialize the right
-                // number of elements.
-
-                // This needs to be local variable like `ReadOnlySpan<T> x = stackalloc ...
-                if (expression.WalkUpParentheses().Parent is not EqualsValueClauseSyntax
-                    {
-                        Parent: VariableDeclaratorSyntax
-                        {
-                            Identifier.ValueText: var variableName,
-                            Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
-                        },
-                    })
+                // number of elements.  But if you just have `new int[0]` that can always be replaced.
+                if (sizeValue > 0)
                 {
-                    return default;
-                }
-
-                var currentStatement = localDeclarationStatement.GetNextStatement();
-                for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
-                {
-                    // Each following statement needs to of the form:
-                    //
-                    //   x[...] =
-                    if (currentStatement is not ExpressionStatementSyntax
+                    // This needs to be local variable like `ReadOnlySpan<T> x = stackalloc ...
+                    if (expression.WalkUpParentheses().Parent is not EqualsValueClauseSyntax
                         {
-                            Expression: AssignmentExpressionSyntax
+                            Parent: VariableDeclaratorSyntax
                             {
-                                Left: ElementAccessExpressionSyntax
+                                Identifier.ValueText: var variableName,
+                                Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
+                            },
+                        })
+                    {
+                        return default;
+                    }
+
+                    var currentStatement = localDeclarationStatement.GetNextStatement();
+                    for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
+                    {
+                        // Each following statement needs to of the form:
+                        //
+                        //   x[...] =
+                        if (currentStatement is not ExpressionStatementSyntax
+                            {
+                                Expression: AssignmentExpressionSyntax
                                 {
-                                    Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
-                                    ArgumentList.Arguments: [var elementArgument],
-                                } elementAccess,
-                            }
-                        } expressionStatement)
-                    {
-                        return default;
+                                    Left: ElementAccessExpressionSyntax
+                                    {
+                                        Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
+                                        ArgumentList.Arguments: [var elementArgument],
+                                    } elementAccess,
+                                }
+                            } expressionStatement)
+                        {
+                            return default;
+                        }
+
+                        // Ensure we're indexing into the variable created.
+                        if (variableName != elementName)
+                            return default;
+
+                        // The indexing value has to equal the corresponding location in the result.
+                        if (semanticModel.GetConstantValue(elementArgument.Expression, cancellationToken).Value is not int indexValue ||
+                            indexValue != currentIndex)
+                        {
+                            return default;
+                        }
+
+                        // this looks like a good statement, add to the right size of the assignment to track as that's what
+                        // we'll want to put in the final collection expression.
+                        matches.Add(new(expressionStatement, UseSpread: false));
+                        currentStatement = currentStatement.GetNextStatement();
                     }
-
-                    // Ensure we're indexing into the variable created.
-                    if (variableName != elementName)
-                        return default;
-
-                    // The indexing value has to equal the corresponding location in the result.
-                    if (semanticModel.GetConstantValue(elementArgument.Expression, cancellationToken).Value is not int indexValue ||
-                        indexValue != currentIndex)
-                    {
-                        return default;
-                    }
-
-                    // this looks like a good statement, add to the right size of the assignment to track as that's what
-                    // we'll want to put in the final collection expression.
-                    matches.Add(new(expressionStatement, UseSpread: false));
-                    currentStatement = currentStatement.GetNextStatement();
                 }
             }
         }
