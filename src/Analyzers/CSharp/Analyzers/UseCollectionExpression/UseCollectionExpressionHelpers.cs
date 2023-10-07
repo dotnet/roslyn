@@ -333,6 +333,7 @@ internal static class UseCollectionExpressionHelpers
                     AddExpressionToProcess(elementAccess);
 
                 AddRefLikeOutParameters(elementAccess.ArgumentList, argumentToSkip: null);
+                continue;
             }
 
             if (topMostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax declarator })
