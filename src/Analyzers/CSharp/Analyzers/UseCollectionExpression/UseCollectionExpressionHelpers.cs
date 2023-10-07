@@ -319,8 +319,11 @@ internal static class UseCollectionExpressionHelpers
             if (topMostExpression.Parent is AssignmentExpressionSyntax assignment &&
                 assignment.Right == topMostExpression)
             {
-                // If it's assigned to something on the left, check that thing as well.
+                // If it's assigned to something on the left, that's only safe if it's another locally scoped symbol.
                 var leftSymbol = semanticModel.GetSymbolInfo(assignment.Left, cancellationToken).Symbol;
+                if (leftSymbol is not ILocalSymbol { ScopedKind: ScopedKind.ScopedValue })
+                    return false;
+
                 continue;
             }
 
@@ -338,11 +341,8 @@ internal static class UseCollectionExpressionHelpers
         }
 
         bool AddLocalToProcess(SyntaxNode declarator)
-            => AddLocalWithDeclaratorToProcess(semanticModel.GetDeclaredSymbol(declarator, cancellationToken) as ILocalSymbol, declarator);
-
-        bool AddLocalWithDeclaratorToProcess(ILocalSymbol? local, SyntaxNode declarator)
         {
-            if (local is null)
+            if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is not ILocalSymbol local)
                 return false;
 
             // Only process a local once.
