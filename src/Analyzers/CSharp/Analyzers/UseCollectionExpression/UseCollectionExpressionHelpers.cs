@@ -248,10 +248,24 @@ internal static class UseCollectionExpressionHelpers
             // We're going to potentially be seeing how a local symbol was used.  Ensure we don't get into any cycles
             // with locals.
             using var _1 = PooledHashSet<ILocalSymbol>.GetInstance(out var seenSymbols);
-            using var _2 = ArrayBuilder<ILocalSymbol>.GetInstance(out var localsToProcess);
+            using var _2 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var expressionsToProcess);
 
-            if (expression.Parent is ArgumentSyntax argument)
-                return IsSafeUsageOfSpanAsArgument(argument);
+            expressionsToProcess.Push(expression);
+
+            while (expressionsToProcess.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var currentExpression = expressionsToProcess.Pop();
+
+                var topMostExpression = currentExpression.WalkUpParentheses();
+                if (expression.Parent is ArgumentSyntax argument &&
+                    !IsSafeUsageOfSpanAsArgument(argument))
+                {
+                    return false;
+                }
+            }
+
+            if (
 
             // 
             if (topMostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax declarator })
