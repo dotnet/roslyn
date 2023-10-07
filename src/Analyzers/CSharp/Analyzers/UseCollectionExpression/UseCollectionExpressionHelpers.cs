@@ -262,8 +262,9 @@ internal static class UseCollectionExpressionHelpers
         //  1. the argument must either be 'scoped', or
         //  2. the thing being called must not have a ref-struct return value, or non-scoped ref-struct out parameter.
 
-        // We're going to potentially be seeing how a local symbol was used.  Ensure we don't get into any cycles
-        // with locals.
+        // We do our analysis in an iterative fashion.  Starting with the original expression and seeing how its scope
+        // flows outward (including to other locals).  Because we're analyzing the code in multiple passes (until we
+        // reach a fixed point), we have to ensure we only examine locals and expressions once.
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var expressionsToProcess);
         using var _2 = PooledHashSet<ExpressionSyntax>.GetInstance(out var seenExpressions);
         using var _3 = PooledHashSet<ILocalSymbol>.GetInstance(out var seenLocals);
