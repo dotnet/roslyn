@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class ScopedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal sealed class ScopedKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ScopedKeyword)
     {
-        public ScopedKeywordRecommender()
-            : base(SyntaxKind.ScopedKeyword)
-        {
-        }
-
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxTree = context.SyntaxTree;
