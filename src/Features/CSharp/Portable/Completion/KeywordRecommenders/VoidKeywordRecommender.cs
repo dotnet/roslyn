@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsUnsafeParameterTypeContext(context) ||
                 IsUnsafeCastTypeContext(context) ||
                 IsUnsafeDefaultExpressionContext(context) ||
+                IsUnsafeUsingDirectiveContext(context) ||
                 context.IsFixedVariableDeclarationContext ||
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.SyntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
@@ -103,6 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return false;
+        }
+
+        private static bool IsUnsafeUsingDirectiveContext(CSharpSyntaxContext context)
+        {
+            return
+                context.IsUsingAliasTypeContext &&
+                context.TargetToken.IsUnsafeContext();
         }
 
         private static bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
