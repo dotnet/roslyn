@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class VoidKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal sealed class VoidKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.VoidKeyword)
     {
         private static readonly ISet<SyntaxKind> s_validClassInterfaceRecordModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -33,11 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             SyntaxKind.ReadOnlyKeyword,
         };
-
-        public VoidKeywordRecommender()
-            : base(SyntaxKind.VoidKeyword)
-        {
-        }
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
