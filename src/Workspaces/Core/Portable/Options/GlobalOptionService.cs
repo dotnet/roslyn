@@ -118,7 +118,7 @@ internal sealed class GlobalOptionService(
 
         lock (_gate)
         {
-            return (T)GetOption_NoLock(optionKey, persisters)!;
+            return (T)GetOption_NoLock(ref _currentValues, optionKey, persisters)!;
         }
     }
 
@@ -148,7 +148,7 @@ internal sealed class GlobalOptionService(
             {
                 foreach (var optionKey in optionKeys)
                 {
-                    values.Add(GetOption_NoLock(optionKey, persisters));
+                    values.Add(GetOption_NoLock(ref _currentValues, optionKey, persisters));
                 }
             }
         }
@@ -156,19 +156,19 @@ internal sealed class GlobalOptionService(
         return values.ToImmutableAndClear();
     }
 
-    private object? GetOption_NoLock(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
+    private static object? GetOption_NoLock(ref ImmutableDictionary<OptionKey2, object?> currentValues, OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
     {
         // The option must be internally defined and it can't be a legacy option whose value is mapped to another option:
         Debug.Assert(optionKey.Option is IOption2 { Definition.StorageMapping: null });
 
-        if (_currentValues.TryGetValue(optionKey, out var value))
+        if (currentValues.TryGetValue(optionKey, out var value))
         {
             return value;
         }
 
         value = LoadOptionFromPersisterOrGetDefault(optionKey, persisters);
 
-        _currentValues = _currentValues.Add(optionKey, value);
+        currentValues = currentValues.Add(optionKey, value);
 
         return value;
     }
@@ -195,8 +195,8 @@ internal sealed class GlobalOptionService(
             var currentValues = _currentValues;
             foreach (var (optionKey, value) in options)
             {
-                if (currentValues.TryGetValue(optionKey, out var existingValue)
-                    && Equals(value, existingValue))
+                var existingValue = GetOption_NoLock(ref currentValues, optionKey, persisters);
+                if (Equals(value, existingValue))
                 {
                     continue;
                 }
