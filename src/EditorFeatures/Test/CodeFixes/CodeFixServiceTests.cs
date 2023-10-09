@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify code fix application
             var codeAction = txtDocumentCodeFixes.Single(s => s.Fixes.Single().Action.Title == fixer1.Title).Fixes.Single().Action;
-            var solution = await codeAction.GetChangedSolutionInternalAsync(txtDocument.Project.Solution);
+            var solution = await codeAction.GetChangedSolutionInternalAsync(txtDocument.Project.Solution, CodeAnalysisProgress.None);
             var changedtxtDocument = solution!.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtDocument.Id);
             Assert.Equal("Additional Document", txtDocument.GetTextSynchronously(CancellationToken.None).ToString());
             Assert.Equal($"Additional Document{fixer1.Title}", changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
@@ -1171,7 +1171,7 @@ class C
             static async Task VerifyCachedDiagnosticsAsync(Document sourceDocument, bool expectedCachedDiagnostic, TextSpan testSpan, DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
             {
                 var cachedDiagnostics = await diagnosticIncrementalAnalyzer.GetCachedDiagnosticsAsync(sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id,
-                    includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+                    includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
                 if (!expectedCachedDiagnostic)
                 {
                     Assert.Empty(cachedDiagnostics);

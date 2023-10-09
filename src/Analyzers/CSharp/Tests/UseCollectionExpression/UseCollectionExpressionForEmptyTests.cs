@@ -1222,4 +1222,31 @@ public class UseCollectionExpressionForEmptyTests
             },
         }.RunAsync();
     }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                int[] v = Array.[|Empty|]<int>();
+
+                """.ReplaceLineEndings(endOfLine),
+            FixedCode = """
+                using System;
+
+                int[] v = [];
+
+                """.ReplaceLineEndings(endOfLine),
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
 }

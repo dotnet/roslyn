@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public IContentType ContentType { get; }
 
         public InteractiveEvaluatorResetOptions ResetOptions { get; set; }
-            = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
+            = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Core);
 
         internal CSharpInteractiveEvaluator(
             IThreadingContext threadingContext,

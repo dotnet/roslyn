@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 PullDiagnosticCategories.DocumentCompilerSyntax => DiagnosticKind.CompilerSyntax,
                 PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
-                PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSemantic,
+                PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSyntax,
                 PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
                 // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
                 null => DiagnosticKind.All,

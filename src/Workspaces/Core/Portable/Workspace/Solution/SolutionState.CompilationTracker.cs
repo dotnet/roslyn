@@ -782,11 +782,12 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We will finalize the compilation by adding full contents here.
+                    var telemetryCollector = solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
                     var (compilationWithGeneratedFiles, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
-                        solution,
                         compilationWithoutGeneratedFiles,
                         generatorInfo,
                         compilationWithStaleGeneratedTrees,
+                        telemetryCollector,
                         cancellationToken).ConfigureAwait(false);
 
                     var finalState = FinalState.Create(
@@ -821,10 +822,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
-                SolutionState solution,
                 Compilation compilationWithoutGeneratedFiles,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? compilationWithStaleGeneratedTrees,
+                ISourceGeneratorTelemetryCollectorWorkspaceService? telemetryCollector,
                 CancellationToken cancellationToken)
             {
                 if (generatorInfo.DocumentsAreFinal)
@@ -835,8 +836,7 @@ namespace Microsoft.CodeAnalysis
                     // consumer of this Solution snapshot has already seen the trees and thus needs to ensure identity
                     // of them.
                     var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
-                        await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
-                            static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false));
+                        await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
 
                     // Will reuse the generator info since we're reusing all the trees from within it.
                     return (compilationWithGeneratedFiles, generatorInfo);
@@ -851,18 +851,18 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return await ComputeNewGeneratorInfoAsync(
-                    solution,
                     compilationWithoutGeneratedFiles,
                     generatorInfo,
                     compilationWithStaleGeneratedTrees,
+                    telemetryCollector,
                     cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoInCurrentProcessAsync(
-                SolutionState solution,
+            private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoAsync(
                 Compilation compilationWithoutGeneratedFiles,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? compilationWithStaleGeneratedTrees,
+                ISourceGeneratorTelemetryCollectorWorkspaceService? telemetryCollector,
                 CancellationToken cancellationToken)
             {
                 // We have at least one source generator. If we don't already have a generator driver, we'll have to
@@ -881,6 +881,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
 #if DEBUG
+
                     // Assert that the generator driver is in sync with our additional document states; there's not a public
                     // API to get this, but we'll reflect in DEBUG-only.
                     var driverType = generatorInfo.Driver.GetType();
@@ -892,6 +893,7 @@ namespace Microsoft.CodeAnalysis
                     var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
 
                     Contract.ThrowIfFalse(additionalTexts.Length == this.ProjectState.AdditionalDocumentStates.Count);
+
 #endif
                 }
 
@@ -920,8 +922,6 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfNull(generatorInfo.Driver);
 
                 var runResult = generatorInfo.Driver.GetRunResult();
-
-                var telemetryCollector = solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
                 telemetryCollector?.CollectRunResult(runResult, generatorInfo.Driver.GetTimingInfo(), ProjectState);
 
                 // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis
                         compilationWithStaleGeneratedTrees = null;
                 }
 
-                using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
+                using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
                 foreach (var generatorResult in runResult.Results)
                 {
                     if (IsGeneratorRunResultToIgnore(generatorResult))
@@ -998,8 +998,7 @@ namespace Microsoft.CodeAnalysis
                 // We produced new documents, so time to create new state for it
                 var generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
                 var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
-                    await generatedDocuments.States.Values.SelectAsArrayAsync(
-                        static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false));
+                    await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
                 return (compilationWithGeneratedFiles, new CompilationTrackerGeneratorInfo(generatedDocuments, generatorInfo.Driver, documentsAreFinal: true));
 
                 static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
@@ -1008,7 +1007,7 @@ namespace Microsoft.CodeAnalysis
                     AnalyzerReference analyzerReference,
                     string hintName)
                 {
-                    var generatorIdentity = SourceGeneratorIdentity.Create(generator, analyzerReference);
+                    var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
 
                     foreach (var (_, state) in states.States)
                     {
@@ -1298,7 +1297,7 @@ namespace Microsoft.CodeAnalysis
 
             private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
             {
-                using var tempChecksumArray = TemporaryArray<Checksum>.Empty;
+                using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
 
                 // Get the checksum for the project itself.
                 var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
@@ -1326,7 +1325,7 @@ namespace Microsoft.CodeAnalysis
                     tempChecksumArray.Add(referencedProjectChecksum);
                 }
 
-                return Checksum.Create(tempChecksumArray.ToImmutableAndClear());
+                return Checksum.Create(tempChecksumArray);
             }
 
             #endregion

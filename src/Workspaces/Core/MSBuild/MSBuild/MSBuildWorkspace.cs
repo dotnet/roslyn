@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -297,10 +298,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public override bool TryApplyChanges(Solution newSolution)
         {
-            return TryApplyChanges(newSolution, new ProgressTracker());
+            return TryApplyChanges(newSolution, CodeAnalysisProgress.None);
         }
 
-        internal override bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
+        internal override bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progressTracker)
         {
             using (_serializationLock.DisposableWait())
             {

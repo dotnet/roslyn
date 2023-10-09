@@ -132,8 +132,7 @@ internal static class UseCollectionExpressionHelpers
                     return true;
 
                 // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
-                var collectionBuilderType = compilation.CollectionBuilderAttribute();
-                if (namedType.GetAttributes().Any(a => a.AttributeClass?.Equals(collectionBuilderType) is true))
+                if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
                     return true;
 
                 // At this point, all that is left are collection-initializer types.  These need to derive from
@@ -513,12 +512,10 @@ internal static class UseCollectionExpressionHelpers
         }
 
         memberAccess = memberAccessExpression;
-        var createMethod = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol as IMethodSymbol;
-        if (createMethod is not { IsStatic: true })
+        if (semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is not IMethodSymbol { IsStatic: true } createMethod)
             return false;
 
-        var factoryType = semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol as INamedTypeSymbol;
-        if (factoryType is null)
+        if (semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol is not INamedTypeSymbol factoryType)
             return false;
 
         var compilation = semanticModel.Compilation;
@@ -526,10 +523,9 @@ internal static class UseCollectionExpressionHelpers
         // The pattern is a type like `ImmutableArray` (non-generic), returning an instance of `ImmutableArray<T>`.  The
         // actual collection type (`ImmutableArray<T>`) has to have a `[CollectionBuilder(...)]` attribute on it that
         // then points at the factory type.
-        var collectionBuilderAttribute = compilation.CollectionBuilderAttribute()!;
         var collectionBuilderAttributeData = createMethod.ReturnType.OriginalDefinition
             .GetAttributes()
-            .FirstOrDefault(a => collectionBuilderAttribute.Equals(a.AttributeClass));
+            .FirstOrDefault(a => a.AttributeClass.IsCollectionBuilderAttribute());
         if (collectionBuilderAttributeData?.ConstructorArguments is not [{ Value: ITypeSymbol collectionBuilderType }, { Value: CreateName }])
             return false;
 

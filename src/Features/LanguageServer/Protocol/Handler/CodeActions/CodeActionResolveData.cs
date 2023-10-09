@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Newtonsoft.Json;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
@@ -30,12 +31,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         public LSP.TextDocumentIdentifier TextDocument { get; }
 
-        public CodeActionResolveData(string uniqueIdentifier, ImmutableArray<string> customTags, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string[]? FixAllFlavors { get; }
+
+        public CodeActionResolveData(string uniqueIdentifier, ImmutableArray<string> customTags, LSP.Range range, LSP.TextDocumentIdentifier textDocument, string[]? fixAllFlavors)
         {
             UniqueIdentifier = uniqueIdentifier;
             CustomTags = customTags;
             Range = range;
             TextDocument = textDocument;
+            FixAllFlavors = fixAllFlavors;
         }
     }
 }

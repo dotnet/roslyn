@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 
         private static void AssertCommentResult(ITextBuffer textBuffer, IWpfTextView textView, string expectedText)
         {
-            MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out var expectedSpans);
 
             Assert.Equal(actualExpectedText, textBuffer.CurrentSnapshot.GetText());
 

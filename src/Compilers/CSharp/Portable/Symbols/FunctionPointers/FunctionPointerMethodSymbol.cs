@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0)
             {
                 if (CallingConvention.IsCallingConvention(CallingConvention.Unmanaged)
-                    && !GetCallingConventionModifiers().SetEquals(other.GetCallingConventionModifiers()))
+                    && !GetCallingConventionModifiers().SetEqualsWithoutIntermediateHashSet(other.GetCallingConventionModifiers()))
                 {
                     return false;
                 }

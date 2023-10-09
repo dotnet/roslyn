@@ -22,5 +22,8 @@
     <!-- Roslyn's source-build CI builds both NetPrevious and NetCurrent. This 7.0 ref pack shows up as
          prebuilt only for the repo CI build but not full source-build. -->
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0*" />
+
+     <!-- This is upgraded to latest version in full source-build and can be baselined for repo build -->
+    <UsagePattern IdentityGlob="System.Composition*/7.0*" />
   </IgnorePatterns>
 </UsageData>
