@@ -125,8 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim constructorArgs As TypedConstant() = Nothing
                 Dim namedArgs As KeyValuePair(Of String, TypedConstant)() = Nothing
 
-                If AttributeConstructor Is Nothing OrElse
-                    Not _decoder.GetCustomAttribute(_handle, AttributeConstructor, constructorArgs, namedArgs) Then
+                If Not _decoder.GetCustomAttribute(_handle, AttributeConstructor, constructorArgs, namedArgs) Then
                     _lazyHasErrors = ThreeState.True
                 End If
 

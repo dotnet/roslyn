@@ -1718,6 +1718,11 @@ tryAgain:
                 positionalArgs = Array.Empty<TypedConstant>();
                 namedArgs = Array.Empty<KeyValuePair<string, TypedConstant>>();
 
+                if (attributeConstructor is null)
+                {
+                    return false;
+                }
+
                 BlobReader argsReader = Module.GetMemoryReaderOrThrow(Module.GetCustomAttributeValueOrThrow(handle));
 
                 uint prolog = argsReader.ReadUInt16();
