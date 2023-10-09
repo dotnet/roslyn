@@ -21,12 +21,14 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly InlineRenameSession _session;
+        private readonly ISmartRenameSession? _copilotRenameSession;
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
         private OleComponent? _oleComponent;
@@ -34,7 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _isReplacementTextValid = true;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public RenameFlyoutViewModel(InlineRenameSession session, TextSpan selectionSpan, bool registerOleComponent, IGlobalOptionService globalOptionService)
+        public RenameFlyoutViewModel(
+            InlineRenameSession session,
+            TextSpan selectionSpan,
+            bool registerOleComponent,
+            IGlobalOptionService globalOptionService,
+            ISmartRenameSession? copilotRenameSession)
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
@@ -44,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+            _copilotRenameSession = copilotRenameSession;
 
             RegisterOleComponent();
         }

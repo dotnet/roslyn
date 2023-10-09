@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.SmartRename;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -31,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly Lazy<ISmartRenameSessionFactory> _smartRenameSessionFactory;
+
         public const string AdornmentLayerName = "RoslynRenameDashboard";
 
         [Export]
@@ -53,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             [Import(AllowDefault = true)] IWpfThemeService? themeingService,
             IGlobalOptionService globalOptionService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
@@ -62,12 +66,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _globalOptionService = globalOptionService;
             _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _listenerProvider = listenerProvider;
+            _smartRenameSessionFactory = smartRenameSessionFactory;
         }
 
         public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             // Create it for the view if we don't already have one
-            textView.GetOrCreateAutoClosingProperty(v => new InlineRenameAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v, _globalOptionService, _themeingService, _asyncQuickInfoBroker, _listenerProvider));
+            textView.GetOrCreateAutoClosingProperty(v => new InlineRenameAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v, _globalOptionService, _themeingService, _asyncQuickInfoBroker, _listenerProvider, _smartRenameSessionFactory));
         }
 
         public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)

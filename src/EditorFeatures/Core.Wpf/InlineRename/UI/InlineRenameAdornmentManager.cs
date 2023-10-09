@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
+        private readonly Lazy<ISmartRenameSessionFactory> _smartRenameSessionFactory;
 
         private readonly IAdornmentLayer _adornmentLayer;
 
@@ -41,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IGlobalOptionService globalOptionService,
             IWpfThemeService? themeService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
@@ -52,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _listenerProvider = listenerProvider;
             _adornmentLayer = textView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
+            _smartRenameSessionFactory = smartRenameSessionFactory;
 
             _renameService.ActiveSessionChanged += OnActiveSessionChanged;
             _textView.Closed += OnTextViewClosed;
@@ -129,8 +133,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 var identifierSelection = new TextSpan(start, length);
 
+                var copilotRenameSession = _smartRenameSessionFactory.Value.CreateSmartRenameSession(originalSpan);
                 var adornment = new RenameFlyout(
-                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService)),
+                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService, copilotRenameSession)),
                     _textView,
                     _themeService,
                     _asyncQuickInfoBroker,
