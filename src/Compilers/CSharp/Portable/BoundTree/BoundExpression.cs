@@ -172,6 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool IsEquivalentToThisReference => false;
     }
 
+    internal partial class BoundCollectionExpressionSpreadExpressionPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
     internal partial class BoundDeconstructValuePlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => false; // Preserving old behavior
