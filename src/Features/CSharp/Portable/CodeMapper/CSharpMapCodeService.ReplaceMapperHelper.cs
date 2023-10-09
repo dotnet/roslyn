@@ -11,19 +11,19 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
+namespace Microsoft.CodeAnalysis.CSharp.CodeMapping;
 
-internal sealed partial class CSharpCodeMapper
+internal sealed partial class CSharpMapCodeService
 {
     /// <summary>
     /// This C# mapper helper focuses on Code Replacements. Specifically replacing code that
     /// currently exists in the target document.
     /// </summary>
-    private class ReplaceHelper(DocumentSpan target, ImmutableArray<CSharpSourceNode> sourceNodes) : AbstractMappingHelper(target, sourceNodes)
+    private class ReplaceHelper(DocumentSpan target, ImmutableArray<NodeToMap> sourceNodes) : AbstractMappingHelper(target, sourceNodes)
     {
-        protected override ImmutableArray<CSharpSourceNode> GetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes)
+        protected override ImmutableArray<NodeToMap> GetValidInsertions(SyntaxNode target, ImmutableArray<NodeToMap> sourceNodes)
         {
-            using var _ = ArrayBuilder<CSharpSourceNode>.GetInstance(out var validNodes);
+            using var _ = ArrayBuilder<NodeToMap>.GetInstance(out var validNodes);
             foreach (var sn in sourceNodes)
             {
                 // For Replace we will validate those nodes that already exists
@@ -36,7 +36,7 @@ internal sealed partial class CSharpCodeMapper
             return validNodes.ToImmutable();
         }
 
-        protected override TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, DocumentSpan target, out SyntaxNode? adjustedNodeToMap)
+        protected override TextSpan? GetInsertSpan(SyntaxNode documentSyntax, NodeToMap insertion, DocumentSpan target, out SyntaxNode? adjustedNodeToMap)
         {
             adjustedNodeToMap = null;
             if (!insertion.ExistsOnTarget(documentSyntax, out var matchingNode))

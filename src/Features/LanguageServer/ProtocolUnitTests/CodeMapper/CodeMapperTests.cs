@@ -14,13 +14,13 @@ using Xunit;
 using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeMapper;
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeMapping;
 
-public class CodeMapperTests : AbstractLanguageServerProtocolTests
+public class MapCodeTests : AbstractLanguageServerProtocolTests
 {
     protected override TestComposition Composition => FeaturesLspComposition;
 
-    public CodeMapperTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    public MapCodeTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeMapper;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeMapping;
 
-public partial class CSharpCodeMapperTests
+public partial class CSharpMapCodeTests
 {
     [Fact]
     public Task SimpleReplaceMethodBySignature()

@@ -9,7 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeMapper;
+using Microsoft.CodeAnalysis.CodeMapping;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(LSP.MapperMethods.TextDocumentMapCodeName)]
 internal sealed partial class MapCodeHandler : ILspServiceDocumentRequestHandler<MapCodeParams, LSP.WorkspaceEdit?>
 {
+    
+    public const string TextDocumentMapCodeName = "textDocument/mapCode";
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public MapCodeHandler()
@@ -41,7 +44,7 @@ internal sealed partial class MapCodeHandler : ILspServiceDocumentRequestHandler
         var document = context.Document;
         Contract.ThrowIfNull(document);
 
-        var codeMapper = document.GetLanguageService<ICodeMapper>();
+        var codeMapper = document.GetLanguageService<IMapCodeService>();
         if (codeMapper == null)
             return null;
 

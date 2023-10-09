@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
+namespace Microsoft.CodeAnalysis.CSharp.CodeMapping;
 
-internal sealed partial class CSharpCodeMapper
+internal sealed partial class CSharpMapCodeService
 {
-    private abstract class AbstractMappingHelper(DocumentSpan target, ImmutableArray<CSharpSourceNode> sourceNodes)
+    private abstract class AbstractMappingHelper(DocumentSpan target, ImmutableArray<NodeToMap> sourceNodes)
     {
         protected DocumentSpan Target { get; } = target;
-        protected ImmutableArray<CSharpSourceNode> SourceNodes { get; } = sourceNodes;
+        protected ImmutableArray<NodeToMap> SourceNodes { get; } = sourceNodes;
 
         protected Document Document => Target.Document;
         protected TextSpan TargetSpan => Target.SourceSpan;
@@ -45,8 +45,8 @@ internal sealed partial class CSharpCodeMapper
             return mappedEdits.ToImmutable();
         }
 
-        protected abstract ImmutableArray<CSharpSourceNode> GetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes);
+        protected abstract ImmutableArray<NodeToMap> GetValidInsertions(SyntaxNode target, ImmutableArray<NodeToMap> sourceNodes);
 
-        protected abstract TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, DocumentSpan target, out SyntaxNode? adjustedNodeToMap);
+        protected abstract TextSpan? GetInsertSpan(SyntaxNode documentSyntax, NodeToMap insertion, DocumentSpan target, out SyntaxNode? adjustedNodeToMap);
     }
 }

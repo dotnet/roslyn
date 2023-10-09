@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.CodeMapper;
+namespace Microsoft.CodeAnalysis.CodeMapping;
 
-internal interface ICodeMapper : ILanguageService
+internal interface IMapCodeService : ILanguageService
 {
     Task<Document> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<DocumentSpan> focusLocations, bool formatMappedCode, CancellationToken cancellationToken);
 }

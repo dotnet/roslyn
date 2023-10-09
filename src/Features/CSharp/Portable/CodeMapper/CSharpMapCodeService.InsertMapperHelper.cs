@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
+namespace Microsoft.CodeAnalysis.CSharp.CodeMapping;
 
-internal sealed partial class CSharpCodeMapper
+internal sealed partial class CSharpMapCodeService
 {
     /// <summary>
     /// This C# mapper helper focuses on Code Insertions. Specifically inserting code that
@@ -20,13 +20,13 @@ internal sealed partial class CSharpCodeMapper
     /// </summary>
     private class InsertionHelper : AbstractMappingHelper
     {
-        public InsertionHelper(DocumentSpan target, ImmutableArray<CSharpSourceNode> sourceNodes) : base(target, sourceNodes)
+        public InsertionHelper(DocumentSpan target, ImmutableArray<NodeToMap> sourceNodes) : base(target, sourceNodes)
         {
         }
 
-        protected override ImmutableArray<CSharpSourceNode> GetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes)
+        protected override ImmutableArray<NodeToMap> GetValidInsertions(SyntaxNode target, ImmutableArray<NodeToMap> sourceNodes)
         {
-            using var _ = ArrayBuilder<CSharpSourceNode>.GetInstance(out var validNodes);
+            using var _ = ArrayBuilder<NodeToMap>.GetInstance(out var validNodes);
             foreach (var sn in sourceNodes)
             {
                 // For insertions we want the nodes that don't already exist on the target.
@@ -49,7 +49,7 @@ internal sealed partial class CSharpCodeMapper
         /// <param name="target"></param>
         /// <param name="adjustedNodeToMap"></param>
         /// <returns></returns>
-        protected override TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, DocumentSpan target, out SyntaxNode? adjustedNodeToMap)
+        protected override TextSpan? GetInsertSpan(SyntaxNode documentSyntax, NodeToMap insertion, DocumentSpan target, out SyntaxNode? adjustedNodeToMap)
         {
             adjustedNodeToMap = null;
             int insertionPoint;
@@ -104,7 +104,7 @@ internal sealed partial class CSharpCodeMapper
             // If last property is not null, get the span end as insertion point.
             var lastProperty = firstClass.DescendantNodes()
                 .OfType<MemberDeclarationSyntax>()
-                .Where(CSharpSourceNode.IsSimpleNode)
+                .Where(NodeToMap.IsSimpleNode)
                 .LastOrDefault();
             if (lastProperty is not null)
             {
@@ -214,7 +214,7 @@ internal sealed partial class CSharpCodeMapper
             return false;
         }
 
-        private static bool TryGetFocusedInsertionPoint(TextSpan? target, SyntaxNode documentSyntax, CSharpSourceNode insertion, out int insertionPoint)
+        private static bool TryGetFocusedInsertionPoint(TextSpan? target, SyntaxNode documentSyntax, NodeToMap insertion, out int insertionPoint)
         {
             // If there's an specific focus area, or caret provided, we should try to insert as close as possible.
             // As long as the focused area is not empty.
@@ -246,7 +246,7 @@ internal sealed partial class CSharpCodeMapper
         /// <param name="lineNumber">The line number to adjust.</param>
         /// <param name="target">The target syntax node.</param>
         /// <returns>The adjusted line number.</returns>
-        private static int AdjustInsertionLineNumber(CSharpSourceNode sourceNode, int lineNumber, SyntaxNode target)
+        private static int AdjustInsertionLineNumber(NodeToMap sourceNode, int lineNumber, SyntaxNode target)
         {
             var adjustedLineNumber = lineNumber;
             if (sourceNode.Scope == Scope.Method || sourceNode.Scope == Scope.Class)
@@ -268,7 +268,7 @@ internal sealed partial class CSharpCodeMapper
                             var lineSpan = node.GetLocation().GetLineSpan();
                             return lineSpan.StartLinePosition.Line <= lineNumber && lineSpan.EndLinePosition.Line >= lineNumber;
                         })
-                        .Select<SyntaxNode, (SyntaxNode node, Scope scope)?>(node => CSharpSourceNode.IsScopedNode(node, out var scopeType) ? (node, scopeType) : null)
+                        .Select<SyntaxNode, (SyntaxNode node, Scope scope)?>(node => NodeToMap.IsScopedNode(node, out var scopeType) ? (node, scopeType) : null)
                         .Where(pair => pair is not null).Select(pair => pair!.Value)
                         .OrderBy(pair => pair.scope);
 
@@ -282,7 +282,7 @@ internal sealed partial class CSharpCodeMapper
                         var validLineStart = validLineSpan.StartLinePosition.Line;
 
                         // Get the brace tokens from the current scope.
-                        var braceTokens = CSharpSourceNode.GetOpenCloseBraceTokens(containingScope);
+                        var braceTokens = NodeToMap.GetOpenCloseBraceTokens(containingScope);
 
                         // If brace tokens are found, use then to get the minimum value you need to be able to
                         // insert something inside the brace tokens.
@@ -330,7 +330,7 @@ internal sealed partial class CSharpCodeMapper
             var closestLine = int.MaxValue;
             var temptativeLines = target.DescendantNodesAndSelf()
                 .OfType<MemberDeclarationSyntax>()
-                .Where(member => CSharpSourceNode.IsScopedNode(member, out var scope) && scope == scopeType)
+                .Where(member => NodeToMap.IsScopedNode(member, out var scope) && scope == scopeType)
                 .Select(member => member.GetLocation().GetLineSpan())
                 .SelectMany(span => new[] { span.StartLinePosition.Line, span.EndLinePosition.Line + 1 });
 

@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeMapper;
+using Microsoft.CodeAnalysis.CodeMapping;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,10 +16,10 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeMapper;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeMapping;
 
 [UseExportProvider]
-public partial class CSharpCodeMapperTests : TestBase
+public partial class CSharpMapCodeTests : TestBase
 {
     private readonly TestFixtureHelper<CSharpTestWorkspaceFixture> _fixtureHelper = new();
 
@@ -32,7 +32,7 @@ public partial class CSharpCodeMapperTests : TestBase
 
         MarkupTestFile.GetSpans(text.NormalizeLineEndings(), out text, out ImmutableArray<TextSpan> textSpans);
         var document = workspaceFixture.Target.UpdateDocument(text, SourceCodeKind.Regular);
-        var codeMapper = document.GetRequiredLanguageService<ICodeMapper>();
+        var codeMapper = document.GetRequiredLanguageService<IMapCodeService>();
 
         var focusLocation = textSpans.Length == 0 || !useSelection ? ImmutableArray<DocumentSpan>.Empty : ImmutableArray.Create(new DocumentSpan(document, textSpans.Single()));
         var newDocument = await codeMapper.MapCodeAsync(document, contents, focusLocation, formatMappedCode:true, CancellationToken.None).ConfigureAwait(false);

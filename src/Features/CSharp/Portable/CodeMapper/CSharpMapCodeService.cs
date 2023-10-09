@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeMapper;
+using Microsoft.CodeAnalysis.CodeMapping;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -19,20 +19,20 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
+namespace Microsoft.CodeAnalysis.CSharp.CodeMapping;
 
 /// <summary>
 /// A mapper used for Mapping C# Code from a suggestion onto existing code in the codebase.
 /// This is the backbone of previews, as this allows us to know where we should place the preview.
 /// </summary>
-[ExportLanguageService(typeof(ICodeMapper), language: LanguageNames.CSharp), Shared]
-internal sealed partial class CSharpCodeMapper : ICodeMapper
+[ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp), Shared]
+internal sealed partial class CSharpMapCodeService : IMapCodeService
 {
     private readonly IGlobalOptionService _globalOptions;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpCodeMapper(IGlobalOptionService globalOptions)
+    public CSharpMapCodeService(IGlobalOptionService globalOptions)
     {
         _globalOptions = globalOptions;
     }
@@ -101,7 +101,7 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
 
     private static async Task<AbstractMappingHelper?> GetMapperHelperAsync(DocumentSpan target, string code, CSharpParseOptions options, CancellationToken cancellationToken)
     {
-        var sourceNodes = await CSharpSourceNode.ExtractSourceNodesAsync(code, options, cancellationToken).ConfigureAwait(false);
+        var sourceNodes = await NodeToMap.ExtractSourceNodesAsync(code, options, cancellationToken).ConfigureAwait(false);
         if (sourceNodes.IsEmpty)
             return null;
 
