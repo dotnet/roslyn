@@ -12,7 +12,7 @@
     "xcopy-msbuild": "17.6.0-2"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.23506.2",
-    "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.23506.2"
+    "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.23508.1",
+    "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.23508.1"
   }
 }
