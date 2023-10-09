@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
@@ -19,9 +19,24 @@ internal sealed partial class CSharpCodeMapper
     /// This C# mapper helper focuses on Code Replacements. Specifically replacing code that
     /// currently exists in the target document.
     /// </summary>
-    private class ReplaceHelper : IMappingHelper
+    private class ReplaceHelper(DocumentSpan target, ImmutableArray<CSharpSourceNode> sourceNodes) : AbstractMappingHelper(target, sourceNodes)
     {
-        public TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget target, out SyntaxNode? adjustedNodeToMap)
+        protected override ImmutableArray<CSharpSourceNode> GetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes)
+        {
+            using var _ = ArrayBuilder<CSharpSourceNode>.GetInstance(out var validNodes);
+            foreach (var sn in sourceNodes)
+            {
+                // For Replace we will validate those nodes that already exists
+                // in the given target.
+                if (sn.ExistsOnTarget(target, out var _))
+                {
+                    validNodes.Add(sn);
+                }
+            }
+            return validNodes.ToImmutable();
+        }
+
+        protected override TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, DocumentSpan target, out SyntaxNode? adjustedNodeToMap)
         {
             adjustedNodeToMap = null;
             if (!insertion.ExistsOnTarget(documentSyntax, out var matchingNode))
@@ -179,30 +194,6 @@ internal sealed partial class CSharpCodeMapper
                     || t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
                     || t.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
                     || t.IsKind(SyntaxKind.SingleLineCommentTrivia);
-        }
-        
-
-        public bool TryGetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes, out CSharpSourceNode[] validInsertions, out InvalidInsertion[] invalidInsertions)
-        {
-            var validNodes = new List<CSharpSourceNode>();
-            var invalidNodes = new List<InvalidInsertion>();
-            foreach (var sn in sourceNodes)
-            {
-                // For Replace we will validate those nodes that already exists
-                // in the given target.
-                if (sn.ExistsOnTarget(target, out var matchingNode))
-                {
-                    validNodes.Add(sn);
-                }
-                else
-                {
-                    invalidNodes.Add(new InvalidInsertion(sn, InvalidInsertionReason.ReplaceIdentifierMissingOnTarget));
-                }
-            }
-
-            validInsertions = validNodes.ToArray();
-            invalidInsertions = invalidNodes.ToArray();
-            return validNodes.Any();
         }
 
         private static bool ShouldSkipAttributes(AttributeSyntax[] insertionAttributes, AttributeSyntax[] targetAttributes)

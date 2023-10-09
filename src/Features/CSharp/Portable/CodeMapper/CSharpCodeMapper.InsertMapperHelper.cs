@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
@@ -18,36 +18,25 @@ internal sealed partial class CSharpCodeMapper
     /// This C# mapper helper focuses on Code Insertions. Specifically inserting code that
     /// doesn't currently exists in the target document.
     /// </summary>
-    private class InsertionHelper : IMappingHelper
+    private class InsertionHelper : AbstractMappingHelper
     {
-        public bool TryGetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes, out CSharpSourceNode[] validInsertions, out InvalidInsertion[] invalidInsertions)
+        public InsertionHelper(DocumentSpan target, ImmutableArray<CSharpSourceNode> sourceNodes) : base(target, sourceNodes)
         {
-            var validNodes = new List<CSharpSourceNode>();
-            var invalidNodes = new List<InvalidInsertion>();
-            validInsertions = Array.Empty<CSharpSourceNode>();
-            invalidInsertions = Array.Empty<InvalidInsertion>();
+        }
+
+        protected override ImmutableArray<CSharpSourceNode> GetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes)
+        {
+            using var _ = ArrayBuilder<CSharpSourceNode>.GetInstance(out var validNodes);
             foreach (var sn in sourceNodes)
             {
                 // For insertions we want the nodes that don't already exist on the target.
-                if (!sn.ExistsOnTarget(target, out _))
+                if (!sn.ExistsOnTarget(target, out var _))
                 {
                     validNodes.Add(sn);
                 }
-                else
-                {
-                    invalidNodes.Add(new InvalidInsertion(sn, InvalidInsertionReason.InsertIdentifierAlreadyExistsOnTarget));
-                }
             }
 
-            // As long as we can find a Valid node to insert, we will return true.
-            if (validNodes.Any())
-            {
-                validInsertions = validNodes.ToArray();
-                return true;
-            }
-
-            invalidInsertions = invalidNodes.ToArray();
-            return false;
+            return validNodes.ToImmutable();
         }
 
         /// <summary>
@@ -58,11 +47,9 @@ internal sealed partial class CSharpCodeMapper
         /// <param name="documentSyntax">The target document syntax where the snippet will be inserted.</param>
         /// <param name="insertion">The snippet to insert.</param>
         /// <param name="target"></param>
-        /// <param name="adjustedInsertion"></param>
+        /// <param name="adjustedNodeToMap"></param>
         /// <returns></returns>
-        /// 
-
-        public TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget target, out SyntaxNode? adjustedNodeToMap)
+        protected override TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, DocumentSpan target, out SyntaxNode? adjustedNodeToMap)
         {
             adjustedNodeToMap = null;
             int insertionPoint;
@@ -76,7 +63,7 @@ internal sealed partial class CSharpCodeMapper
 
             // If there's an specific focus area, or caret provided, we should try to insert as close as possible.
             // As long as the focused area is not empty.
-            if (TryGetFocusedInsertionPoint(target.FocusArea.SourceSpan, documentSyntax, insertion, out insertionPoint))
+            if (TryGetFocusedInsertionPoint(target.SourceSpan, documentSyntax, insertion, out insertionPoint))
             {
                 return new TextSpan(insertionPoint, 0);
             }
@@ -238,13 +225,13 @@ internal sealed partial class CSharpCodeMapper
             }
 
             var text = documentSyntax.SyntaxTree.GetText();
-                var temptativeLine = text.Lines.IndexOf(target.Value.Start);
-                if (temptativeLine >= 0)
-                {
-                    var adjustedLine = AdjustInsertionLineNumber(insertion, temptativeLine, documentSyntax);
-                    insertionPoint = documentSyntax.SyntaxTree.GetText().Lines[adjustedLine].Span.Start;
-                    return true;
-                }
+            var temptativeLine = text.Lines.IndexOf(target.Value.Start);
+            if (temptativeLine >= 0)
+            {
+                var adjustedLine = AdjustInsertionLineNumber(insertion, temptativeLine, documentSyntax);
+                insertionPoint = documentSyntax.SyntaxTree.GetText().Lines[adjustedLine].Span.Start;
+                return true;
+            }
 
             return false;
         }
@@ -282,8 +269,7 @@ internal sealed partial class CSharpCodeMapper
                             return lineSpan.StartLinePosition.Line <= lineNumber && lineSpan.EndLinePosition.Line >= lineNumber;
                         })
                         .Select<SyntaxNode, (SyntaxNode node, Scope scope)?>(node => CSharpSourceNode.IsScopedNode(node, out var scopeType) ? (node, scopeType) : null)
-                        .Where(pair => pair is not null)
-                        .OfType<(SyntaxNode node, Scope scope)>()
+                        .Where(pair => pair is not null).Select(pair => pair!.Value)
                         .OrderBy(pair => pair.scope);
 
                     if (containingScopes.Any())
