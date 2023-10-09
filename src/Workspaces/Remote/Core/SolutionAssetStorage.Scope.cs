@@ -82,6 +82,7 @@ internal partial class SolutionAssetStorage
             using var resultPool = Creator.CreateResultSet();
 
             await FindAssetsAsync(remainingChecksumsToFind, resultPool.Object, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfTrue(remainingChecksumsToFind.Count > 0);
 
             foreach (var (checksum, value) in resultPool.Object)
             {

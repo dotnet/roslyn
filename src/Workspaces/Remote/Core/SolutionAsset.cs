@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Represents a part of solution snapshot along with its checksum.
     /// </summary>
-    internal readonly struct SolutionAsset
+    internal sealed class SolutionAsset
     {
         public static readonly SolutionAsset Null = new(value: null, Checksum.Null, WellKnownSynchronizationKind.Null);
 
