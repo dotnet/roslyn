@@ -83,14 +83,14 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
             var checksum = scope.SolutionChecksum;
-            var solutionSyncObject = await scope.GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionSyncObject = await scope.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject).ConfigureAwait(false);
 
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
 
-            var projectsSyncObject = await scope.GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
+            var projectsSyncObject = await scope.GetTestAccessor().GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
             await validator.VerifySynchronizationObjectInServiceAsync(projectsSyncObject).ConfigureAwait(false);
 
             Assert.Equal(0, solutionObject.Projects.Count);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
             var checksum = scope.SolutionChecksum;
-            var solutionSyncObject = await scope.GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionSyncObject = await scope.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject).ConfigureAwait(false);
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
 
-            var projectSyncObject = await scope.GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
+            var projectSyncObject = await scope.GetTestAccessor().GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
             await validator.VerifySynchronizationObjectInServiceAsync(projectSyncObject).ConfigureAwait(false);
 
             Assert.Equal(1, solutionObject.Projects.Count);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var validator = new SerializationValidator(workspace.Services);
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = await scope.GetAssetAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = await scope.GetTestAccessor().GetAssetAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var validator = new SerializationValidator(workspace.Services);
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = await scope.GetAssetAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = await scope.GetTestAccessor().GetAssetAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);

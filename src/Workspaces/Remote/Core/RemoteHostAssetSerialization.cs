@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static async ValueTask WriteDataAsync(
             Stream stream,
-            SolutionAsset? singleAsset,
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
+            IReadOnlyDictionary<Checksum, SolutionAsset> assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
@@ -40,24 +39,21 @@ namespace Microsoft.CodeAnalysis.Remote
             if (checksums.Length == 0)
                 return;
 
-            if (singleAsset != null)
-            {
-                WriteAsset(writer, serializer, context, singleAsset, cancellationToken);
-                return;
-            }
-
             Debug.Assert(assetMap != null);
 
+            var count = 0;
             foreach (var checksum in checksums)
             {
                 var asset = assetMap[checksum];
 
-                // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the
-                // pipe for the reader on the other side to read.  This allows the item-writing to remain entirely
-                // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
-                // entire stream of data into the pipe before it gets sent to the other side.
                 WriteAsset(writer, serializer, context, asset, cancellationToken);
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+                // Attempt to buffer and allow large chunks of data to be sent over the pipe, while also ensuring we're
+                // not buffering everything and are breaking things up so that the values can stream over.  We
+                // arbitrarily pick flushing around 1% of the time to get a balance of writing data with high throughput,
+                // while also ensuring it is sent to the other side with a reasonable cadence.
+                if (++count % 100 == 0)
+                    await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return;

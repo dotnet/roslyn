@@ -119,11 +119,9 @@ internal partial class SolutionAssetStorage
         {
             foreach (var (_, scope) in _solutionAssetStorage._checksumToScope)
             {
-                var data = await scope.GetAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+                var data = await scope.GetTestAccessor().GetAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
                 if (data != null)
-                {
                     return data;
-                }
             }
 
             return null;

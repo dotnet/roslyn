@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -49,45 +48,28 @@ internal partial class SolutionAssetStorage
             => _storage.DecreaseScopeRefCount(this);
 
         /// <summary>
-        /// Retrieve asset of a specified <paramref name="checksum"/> available within <see langword="this"/> from
-        /// the storage.
-        /// </summary>
-        public async ValueTask<SolutionAsset> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            if (checksum == Checksum.Null)
-            {
-                // check nil case
-                return SolutionAsset.Null;
-            }
-
-            return await FindAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Retrieve assets of specified <paramref name="checksums"/> available within <see langword="this"/> from
         /// the storage.
         /// </summary>
-        public async ValueTask<PooledDictionary<Checksum, SolutionAsset>> GetAssetsAsync(
-            ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        public async Task AddAssetsAsync(
+            ImmutableArray<Checksum> checksums,
+            Dictionary<Checksum, SolutionAsset> assetMap,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 
             var numberOfChecksumsToSearch = checksumsToFind.Object.Count;
-            var result = PooledDictionary<Checksum, SolutionAsset>.GetInstance();
 
             if (checksumsToFind.Object.Remove(Checksum.Null))
-            {
-                result[Checksum.Null] = SolutionAsset.Null;
-            }
+                assetMap[Checksum.Null] = SolutionAsset.Null;
 
-            await FindAssetsAsync(checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfTrue(result.Count != numberOfChecksumsToSearch);
+            await FindAssetsAsync(checksumsToFind.Object, assetMap, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
 
             // no checksum left to find
             Debug.Assert(checksumsToFind.Object.Count == 0);
-            return result;
         }
 
         /// <summary>
@@ -139,6 +121,27 @@ internal partial class SolutionAssetStorage
 
                 if (solutionState.TryGetStateChecksums(projectId, out var checksums))
                     await checksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor(Scope scope)
+        {
+            /// <summary>
+            /// Retrieve asset of a specified <paramref name="checksum"/> available within <see langword="this"/> from
+            /// the storage.
+            /// </summary>
+            public async ValueTask<SolutionAsset> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+            {
+                if (checksum == Checksum.Null)
+                {
+                    // check nil case
+                    return SolutionAsset.Null;
+                }
+
+                return await scope.FindAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
             }
         }
     }
