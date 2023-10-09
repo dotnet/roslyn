@@ -24,6 +24,8 @@ internal sealed partial class WorkspaceDiagnosticsRefreshQueue : AbstractDiagnos
         refresher.WorkspaceRefreshRequested += DiagnosticsRefreshRequested;
     }
 
+    protected override bool RefreshOnSolutionChanged => true;
+
     protected override string GetWorkspaceRefreshName()
         => Methods.WorkspaceDiagnosticRefreshName;
 

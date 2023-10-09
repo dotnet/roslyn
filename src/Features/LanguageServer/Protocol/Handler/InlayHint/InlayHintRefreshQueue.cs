@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             }
         }
 
+        protected override bool RefreshOnSolutionChanged => true;
+
         protected override string GetFeatureAttribute()
             => FeatureAttribute.InlineHints;
 

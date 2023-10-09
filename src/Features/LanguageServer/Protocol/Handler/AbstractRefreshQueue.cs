@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         protected bool _isQueueCreated;
 
+        protected abstract bool RefreshOnSolutionChanged { get; }
         protected abstract string GetFeatureAttribute();
         protected abstract bool? GetRefreshSupport(ClientCapabilities clientCapabilities);
         protected abstract string GetWorkspaceRefreshName();
@@ -72,6 +73,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
         {
+            if (!RefreshOnSolutionChanged)
+                return;
+
             if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
             {
                 var document = e.NewSolution.GetRequiredDocument(e.DocumentId);

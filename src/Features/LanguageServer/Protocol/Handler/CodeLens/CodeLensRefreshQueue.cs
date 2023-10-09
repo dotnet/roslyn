@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
             _globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);
         }
 
+        protected override bool RefreshOnSolutionChanged => true;
+
         protected override string GetFeatureAttribute()
             => FeatureAttribute.CodeLens;
 

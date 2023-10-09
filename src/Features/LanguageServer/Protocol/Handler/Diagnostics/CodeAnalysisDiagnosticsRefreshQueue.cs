@@ -27,6 +27,9 @@ internal sealed partial class CodeAnalysisDiagnosticsRefreshQueue : AbstractDiag
         refresher.CodeAnalysisRefreshRequested += DiagnosticsRefreshRequested;
     }
 
+    // Do not request code analysis diagnostics refresh on solution changes.
+    protected override bool RefreshOnSolutionChanged => false;
+
     protected override string GetWorkspaceRefreshName()
         => CodeAnalysisDiagnosticRefreshName;
 
