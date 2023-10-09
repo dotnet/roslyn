@@ -123,7 +123,7 @@ internal sealed class SolutionStateChecksums(
     }
 }
 
-internal class ProjectStateChecksums(
+internal sealed class ProjectStateChecksums(
     Checksum infoChecksum,
     Checksum compilationOptionsChecksum,
     Checksum parseOptionsChecksum,
@@ -132,7 +132,7 @@ internal class ProjectStateChecksums(
     ChecksumCollection metadataReferenceChecksums,
     ChecksumCollection analyzerReferenceChecksums,
     ChecksumCollection additionalDocumentChecksums,
-    ChecksumCollection analyzerConfigDocumentChecksums) : IChecksummedObject
+    ChecksumCollection analyzerConfigDocumentChecksums) : IChecksummedObject, IEquatable<ProjectStateChecksums>
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
@@ -159,6 +159,15 @@ internal class ProjectStateChecksums(
 
     public ChecksumCollection AdditionalDocuments => additionalDocumentChecksums;
     public ChecksumCollection AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
+
+    public override bool Equals(object? obj)
+        => Equals(obj as ProjectStateChecksums);
+
+    public bool Equals(ProjectStateChecksums? obj)
+        => this.Checksum == obj?.Checksum;
+
+    public override int GetHashCode()
+        => this.Checksum.GetHashCode();
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
