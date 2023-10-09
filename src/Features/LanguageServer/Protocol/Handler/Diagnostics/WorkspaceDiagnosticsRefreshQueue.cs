@@ -7,23 +7,29 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract partial class AbstractDiagnosticsRefreshQueue : AbstractRefreshQueue
+internal sealed partial class WorkspaceDiagnosticsRefreshQueue : AbstractDiagnosticsRefreshQueue
 {
-    protected AbstractDiagnosticsRefreshQueue(
+    private readonly Refresher _refresher;
+
+    private WorkspaceDiagnosticsRefreshQueue(
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager)
+        IClientLanguageServerManager notificationManager,
+        Refresher refresher)
         : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
     {
+        _refresher = refresher;
+
+        refresher.WorkspaceRefreshRequested += DiagnosticsRefreshRequested;
     }
 
-    protected void DiagnosticsRefreshRequested()
-        => EnqueueRefreshNotification(documentUri: null);
+    protected override string GetWorkspaceRefreshName()
+        => Methods.WorkspaceDiagnosticRefreshName;
 
-    protected override string GetFeatureAttribute()
-        => FeatureAttribute.DiagnosticService;
-
-    protected override bool? GetRefreshSupport(ClientCapabilities clientCapabilities)
-        => clientCapabilities.Workspace?.Diagnostics?.RefreshSupport;
+    public override void Dispose()
+    {
+        base.Dispose();
+        _refresher.WorkspaceRefreshRequested -= DiagnosticsRefreshRequested;
+    }
 }
