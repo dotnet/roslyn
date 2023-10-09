@@ -7,11 +7,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed partial class DiagnosticsRefreshQueue : AbstractRefreshQueue
+internal abstract partial class AbstractDiagnosticsRefreshQueue : AbstractRefreshQueue
 {
     private readonly Refresher _refresher;
 
-    private DiagnosticsRefreshQueue(
+    protected AbstractDiagnosticsRefreshQueue(
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,

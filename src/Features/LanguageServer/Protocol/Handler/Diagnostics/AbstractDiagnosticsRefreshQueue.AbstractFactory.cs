@@ -2,25 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed partial class DiagnosticsRefreshQueue : AbstractRefreshQueue
+internal abstract partial class AbstractDiagnosticsRefreshQueue
 {
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(DiagnosticsRefreshQueue)), Shared]
-    internal sealed class Factory : ILspServiceFactory
+    protected abstract class AbstractFactory : ILspServiceFactory
     {
         private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private readonly Refresher _refresher;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public Factory(
+        protected AbstractFactory(
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Refresher refresher)
@@ -30,12 +24,19 @@ internal sealed partial class DiagnosticsRefreshQueue : AbstractRefreshQueue
             _refresher = refresher;
         }
 
+        protected abstract AbstractDiagnosticsRefreshQueue CreateDiagnosticsRefreshQueue(
+            IAsynchronousOperationListenerProvider asyncListenerProvider,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceManager lspWorkspaceManager,
+            IClientLanguageServerManager notificationManager,
+            Refresher refresher);
+
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
             var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
             var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
 
-            return new DiagnosticsRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _refresher);
+            return CreateDiagnosticsRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _refresher);
         }
     }
 }

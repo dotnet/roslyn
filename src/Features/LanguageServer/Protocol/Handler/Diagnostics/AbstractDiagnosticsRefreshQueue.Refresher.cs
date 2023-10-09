@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed partial class DiagnosticsRefreshQueue : AbstractRefreshQueue
+internal abstract partial class AbstractDiagnosticsRefreshQueue
 {
     [Shared]
     [Export(typeof(Refresher))]
