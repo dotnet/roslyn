@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static async ValueTask WriteDataAsync(
             Stream stream,
-            IReadOnlyDictionary<Checksum, SolutionAsset> assetMap,
+            Dictionary<Checksum, SolutionAsset> assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
