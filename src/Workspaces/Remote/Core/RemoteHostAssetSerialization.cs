@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Debug.Assert(assetMap != null);
 
+            var index = 0;
             foreach (var checksum in checksums)
             {
                 var asset = assetMap[checksum];
@@ -57,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
                 // entire stream of data into the pipe before it gets sent to the other side.
                 WriteAsset(writer, serializer, context, asset, cancellationToken);
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                if (++index % 512 == 0)
+                    await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return;
@@ -83,17 +85,30 @@ namespace Microsoft.CodeAnalysis.Remote
             // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
             // same thread where SuppressFlow was originally run.
             using var _ = FlowControlHelper.TrySuppressFlow();
-            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
-
-            static async ValueTask<ImmutableArray<object>> ReadDataSuppressedFlowAsync(
-                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
-            {
-                using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-                return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
-            }
+            return objectCount < 64
+                ? ReadDataSmallAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken)
+                : ReadDataLargeAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
         }
 
-        public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+        private static async ValueTask<ImmutableArray<object>> ReadDataSmallAsync(
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+        {
+            using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
+            return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+        }
+
+        private static async ValueTask<ImmutableArray<object>> ReadDataLargeAsync(
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+        {
+            var task = new Task<ImmutableArray<object>>(() =>
+            {
+                using var stream = pipeReader.AsStream();
+                return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+            }, cancellationToken, TaskCreationOptions.LongRunning);
+            return await task.ConfigureAwait(false);
+        }
+
+        private static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<object>.GetInstance(objectCount, out var results);
 
