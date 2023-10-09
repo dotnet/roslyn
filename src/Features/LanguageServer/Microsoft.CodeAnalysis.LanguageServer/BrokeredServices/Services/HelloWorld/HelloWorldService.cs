@@ -9,14 +9,15 @@ using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
 
-#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [ExportBrokeredService(MonikerName, MonikerVersion, Audience = ServiceAudience.AllClientsIncludingGuests | ServiceAudience.Local)]
 internal class HelloWorldService : IHelloWorld, IExportedBrokeredService
 {
     internal const string MonikerName = "Microsoft.CodeAnalysis.LanguageServer.IHelloWorld";
     internal const string MonikerVersion = "0.1";
 
+#pragma warning disable RS0030 // Do not use banned APIs (Required to match 'ExportBrokeredService')
     [ImportingConstructor]
+#pragma warning restore RS0030 // Do not use banned APIs
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HelloWorldService()
     {
@@ -39,4 +40,3 @@ internal class HelloWorldService : IHelloWorld, IExportedBrokeredService
         throw new NotImplementedException();
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

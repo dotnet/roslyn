@@ -2,14 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
+using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
-using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
-using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -28,8 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 /// based on their own service queries.
 /// MEF will dispose of each instance as its lifetime comes to an end.
 /// </remarks>
-#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [Export]
+[Shared]
 internal class ServiceBrokerFactory
 {
     private BrokeredServiceContainer? _container;
@@ -91,4 +86,3 @@ internal class ServiceBrokerFactory
         return _bridgeCompletionTask;
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs
