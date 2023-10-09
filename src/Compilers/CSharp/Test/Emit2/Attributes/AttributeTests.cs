@@ -4784,9 +4784,7 @@ class Program
                 }
 
                 [A<int>(33)]
-                class C
-                {
-                }
+                class C { }
                 """;
 
             var verifier = CompileAndVerify(source, symbolValidator: static module =>
