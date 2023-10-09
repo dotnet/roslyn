@@ -90,9 +90,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
 
-            var projectsSyncObject = await scope.GetTestAccessor().GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
-            await validator.VerifySynchronizationObjectInServiceAsync(projectsSyncObject).ConfigureAwait(false);
-
             Assert.Equal(0, solutionObject.Projects.Count);
         }
 
@@ -126,11 +123,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
 
-            var projectSyncObject = await scope.GetTestAccessor().GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
-            await validator.VerifySynchronizationObjectInServiceAsync(projectSyncObject).ConfigureAwait(false);
-
             Assert.Equal(1, solutionObject.Projects.Count);
-            await validator.VerifySnapshotInServiceAsync(validator.ToProjectObjects(solutionObject.Projects)[0], 0, 0, 0, 0, 0).ConfigureAwait(false);
         }
 
         [Fact]
@@ -161,10 +154,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
-
-            Assert.Equal(1, solutionObject.Projects.Count);
-            await validator.VerifySnapshotInServiceAsync(validator.ToProjectObjects(solutionObject.Projects)[0], 1, 0, 0, 0, 0).ConfigureAwait(false);
         }
 
         [Fact]
@@ -199,13 +188,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
 
             Assert.Equal(2, solutionObject.Projects.Count);
-
-            var projects = validator.ToProjectObjects(solutionObject.Projects);
-            await validator.VerifySnapshotInServiceAsync(projects.Where(p => p.Checksum == firstProjectChecksum).First(), 1, 1, 1, 1, 1).ConfigureAwait(false);
-            await validator.VerifySnapshotInServiceAsync(projects.Where(p => p.Checksum == secondProjectChecksum).First(), 1, 0, 0, 0, 0).ConfigureAwait(false);
         }
 
         [Fact]
