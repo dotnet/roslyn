@@ -73,25 +73,6 @@ internal partial class SolutionAssetStorage
         }
 
         /// <summary>
-        /// Find an asset of the specified <paramref name="checksum"/> within <see langword="this"/>.
-        /// </summary>
-        private async ValueTask<SolutionAsset> FindAssetAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var checksumPool = Creator.CreateChecksumSet(checksum);
-            using var resultPool = Creator.CreateResultSet();
-
-            await FindAssetsAsync(checksumPool.Object, resultPool.Object, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfTrue(resultPool.Object.Count != 1);
-
-            var (resultingChecksum, value) = resultPool.Object.First();
-            Contract.ThrowIfFalse(checksum == resultingChecksum);
-
-            return new SolutionAsset(checksum, value);
-        }
-
-        /// <summary>
         /// Find an assets of the specified <paramref name="remainingChecksumsToFind"/> within <see
         /// langword="this"/>. Once an asset of given checksum is found the corresponding asset is placed to
         /// <paramref name="result"/> and the checksum is removed from <paramref name="remainingChecksumsToFind"/>.
@@ -141,7 +122,16 @@ internal partial class SolutionAssetStorage
                     return SolutionAsset.Null;
                 }
 
-                return await scope.FindAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+                using var checksumPool = Creator.CreateChecksumSet(checksum);
+                using var resultPool = Creator.CreateResultSet();
+
+                await scope.FindAssetsAsync(checksumPool.Object, resultPool.Object, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(resultPool.Object.Count != 1);
+
+                var (resultingChecksum, value) = resultPool.Object.First();
+                Contract.ThrowIfFalse(checksum == resultingChecksum);
+
+                return new SolutionAsset(checksum, value);
             }
         }
     }
