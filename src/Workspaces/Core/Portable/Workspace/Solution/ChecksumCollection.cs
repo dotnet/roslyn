@@ -39,7 +39,6 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
-        checksums.AddIfNotNullChecksum(this.Checksum);
         foreach (var checksum in this)
             checksums.AddIfNotNullChecksum(checksum);
     }
