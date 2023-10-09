@@ -17,6 +17,13 @@ internal interface IDiagnosticsRefresher
     void RequestWorkspaceRefresh();
 
     /// <summary>
+    /// Requests workspace diagnostics refresh from Code analysis execution.
+    /// This method leads to a special workspace diagnostics refresh that skips document diagnostics refresh
+    /// and also skips any delay before refreshing the workspace diagnostics.
+    /// </summary>
+    void RequestCodeAnalysisRefresh();
+
+    /// <summary>
     /// Current version of global state that may affect diagnostics. Incremented on every refresh.
     /// Used to determine whether any global state that might affect workspace diagnostics has changed.
     /// </summary>

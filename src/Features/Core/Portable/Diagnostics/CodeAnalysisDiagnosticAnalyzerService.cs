@@ -100,9 +100,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory : IWorkspaceS
             onAfterProjectAnalyzed(project);
 
             // Finally, invoke a workspace refresh request for LSP client to pull onto these diagnostics.
-            // TODO: Below call will eventually be replaced with a special workspace refresh request that skips
-            //       pulling document diagnostics and also does not add any delay for pulling workspace diagnostics.
-            _diagnosticsRefresher.RequestWorkspaceRefresh();
+            _diagnosticsRefresher.RequestCodeAnalysisRefresh();
         }
 
         /// <summary>

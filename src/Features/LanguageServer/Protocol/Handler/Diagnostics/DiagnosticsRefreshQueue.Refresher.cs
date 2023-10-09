@@ -23,6 +23,7 @@ internal sealed partial class DiagnosticsRefreshQueue : AbstractRefreshQueue
         private int _globalStateVersion;
 
         public event Action? WorkspaceRefreshRequested;
+        public event Action? CodeAnalysisRefreshRequested;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,6 +37,14 @@ internal sealed partial class DiagnosticsRefreshQueue : AbstractRefreshQueue
             Interlocked.Increment(ref _globalStateVersion);
 
             WorkspaceRefreshRequested?.Invoke();
+        }
+
+        public void RequestCodeAnalysisRefresh()
+        {
+            // bump version before sending the request to the client:
+            Interlocked.Increment(ref _globalStateVersion);
+
+            CodeAnalysisRefreshRequested?.Invoke();
         }
 
         public int GlobalStateVersion
