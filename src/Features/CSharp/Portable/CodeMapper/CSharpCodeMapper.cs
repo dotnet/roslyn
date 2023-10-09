@@ -37,6 +37,52 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
         _globalOptions = globalOptions;
     }
 
+    public async Task<Document> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<DocumentSpan> focusLocations, bool formatMappedCode, CancellationToken cancellationToken)
+    {
+        var target = await GetMappingTargetAsync(document, focusLocations, cancellationToken).ConfigureAwait(false);
+
+        if ((await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))?.Options is not CSharpParseOptions options)
+            return document;
+
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var changes);
+        foreach (var code in contents)
+        {
+            var mapHelper = await GetMapperHelperAsync(target, code, options, cancellationToken).ConfigureAwait(false);
+            if (mapHelper is not null)
+            {
+                var edits = await mapHelper.MapCodeAsync(cancellationToken).ConfigureAwait(false);
+                changes.AddRange(edits);
+            }
+        }
+
+        return await GetDocumentWithChangeAsync(document, changes.ToImmutable(), formatMappedCode, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<Document> GetDocumentWithChangeAsync(Document document, ImmutableArray<TextChange> textChanges, bool formatMappedCode, CancellationToken cancellationToken)
+    {
+        var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        if (formatMappedCode)
+        {
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(
+                _globalOptions.GetCodeCleanupOptions(document.Project.Services, allowImportsInHiddenRegions: null, fallbackOptions: null),
+                cancellationToken).ConfigureAwait(false);
+            var formattingOptions = cleanupOptions.FormattingOptions;
+
+            var adjustedChanges = await AdjustTextChangesAsync(document, textChanges, formattingOptions.NewLine, cancellationToken).ConfigureAwait(false);
+            var spansToFormat = GetChangedSpansInNewText(adjustedChanges);
+
+            var newText = oldText.WithChanges(adjustedChanges);
+            var newDocument = document.WithText(newText);
+
+            return await Formatter.FormatAsync(newDocument, spansToFormat, formattingOptions, rules: null, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            var newText = oldText.WithChanges(textChanges);
+            return document.WithText(newText);
+        }
+    }
+
     private static async Task<DocumentSpan> GetMappingTargetAsync(Document document, ImmutableArray<DocumentSpan> focusLocations, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -51,31 +97,6 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
         }
 
         return new DocumentSpan(document, sourceSpan: root.FullSpan);
-    }
-
-    public async Task<ImmutableArray<TextChange>> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<DocumentSpan> focusLocations, bool formatMappedCode, CancellationToken cancellationToken)
-    {
-        var target = await GetMappingTargetAsync(document, focusLocations, cancellationToken).ConfigureAwait(false);
-
-        if ((await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))?.Options is not CSharpParseOptions options)
-            return ImmutableArray<TextChange>.Empty;
-
-        using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
-        foreach (var code in contents)
-        {
-            var mapHelper = await GetMapperHelperAsync(target, code, options, cancellationToken).ConfigureAwait(false);
-            if (mapHelper is not null)
-            {
-                var edits = await mapHelper.MapCodeAsync(cancellationToken).ConfigureAwait(false);
-                result.AddRange(edits);
-            }
-        }
-
-        var changes = result.ToImmutable();
-        if (formatMappedCode)
-            changes = await GetFormattedChangesAsync(document, changes, cancellationToken).ConfigureAwait(false);
-
-        return changes;
     }
 
     private static async Task<AbstractMappingHelper?> GetMapperHelperAsync(DocumentSpan target, string code, CSharpParseOptions options, CancellationToken cancellationToken)
@@ -97,26 +118,6 @@ internal sealed partial class CSharpCodeMapper : ICodeMapper
         }
 
         return new InsertionHelper(target, sourceNodes);
-    }
-
-    private async Task<ImmutableArray<TextChange>> GetFormattedChangesAsync(Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
-    {
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(
-            _globalOptions.GetCodeCleanupOptions(document.Project.Services, allowImportsInHiddenRegions: null, fallbackOptions: null),
-            cancellationToken).ConfigureAwait(false);
-        var formattingOptions = cleanupOptions.FormattingOptions;
-
-        var adjustedChanges = await AdjustTextChangesAsync(document, textChanges, formattingOptions.NewLine, cancellationToken).ConfigureAwait(false);
-        var spansToFormat = GetChangedSpansInNewText(adjustedChanges);
-
-        var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var newText = oldText.WithChanges(adjustedChanges);
-        var newDocument = document.WithText(newText);
-
-        var formattedDocument = await Formatter.FormatAsync(newDocument, spansToFormat, formattingOptions, rules: null, cancellationToken).ConfigureAwait(false);
-        var changesWithFormatting = await formattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-
-        return changesWithFormatting.ToImmutableArray();
     }
 
     private static ImmutableArray<TextSpan> GetChangedSpansInNewText(ImmutableArray<TextChange> textChanges)

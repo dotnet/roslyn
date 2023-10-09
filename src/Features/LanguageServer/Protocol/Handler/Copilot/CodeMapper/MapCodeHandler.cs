@@ -3,10 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeMapper;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -30,11 +36,58 @@ internal sealed partial class MapCodeHandler : ILspServiceDocumentRequestHandler
     public TextDocumentIdentifier GetTextDocumentIdentifier(MapCodeParams request)
         => request.TextDocument;
 
-    public Task<WorkspaceEdit?> HandleRequestAsync(MapCodeParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> HandleRequestAsync(MapCodeParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Document);
-        Contract.ThrowIfNull(context.Solution);
+        var document = context.Document;
+        Contract.ThrowIfNull(document);
 
-        return Task.FromResult<WorkspaceEdit?>(null);
+        var codeMapper = document.GetLanguageService<ICodeMapper>();
+        if (codeMapper == null)
+            return null;
+
+        //TODO: handle request.Updates if not empty
+
+        using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var focusLocations);
+        foreach (var location in request.FocusLocations.ToImmutableArrayOrEmpty())
+        {
+            if (document.Project.Solution.GetDocument(request.TextDocument) is Document focusDocument)
+            {
+                var focusText = await focusDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                focusLocations.Add(new(document: focusDocument, sourceSpan: ProtocolConversions.RangeToTextSpan(location.Range, focusText)));
+            }
+        }
+
+        var newDocument = await codeMapper.MapCodeAsync(document, request.Contents.ToImmutableArrayOrEmpty(), focusLocations.ToImmutable(), true, cancellationToken).ConfigureAwait(false);
+        var textChanges = (await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+        if (textChanges.IsEmpty)
+            return null;
+
+        var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var textEdits = textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, oldText)).ToArray();
+
+        if (context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.DocumentChanges is true)
+        {
+            return new WorkspaceEdit
+            {
+                DocumentChanges = new[]
+                {
+                    new TextDocumentEdit
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = document.GetURI() },
+                        Edits = textEdits,
+                    }
+                }
+            };
+        }
+        else
+        {
+            return new WorkspaceEdit
+            {
+                Changes = new Dictionary<string, TextEdit[]>
+                {
+                    { document.GetURI().AbsolutePath, textEdits }
+                }
+            };
+        }
     }
 }

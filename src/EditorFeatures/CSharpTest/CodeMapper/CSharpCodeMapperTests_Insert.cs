@@ -35,9 +35,8 @@ public partial class CSharpCodeMapperTests : TestBase
         var codeMapper = document.GetRequiredLanguageService<ICodeMapper>();
 
         var focusLocation = textSpans.Length == 0 || !useSelection ? ImmutableArray<DocumentSpan>.Empty : ImmutableArray.Create(new DocumentSpan(document, textSpans.Single()));
-        var textChanges = await codeMapper.MapCodeAsync(document, contents, focusLocation, formatMappedCode:true, CancellationToken.None).ConfigureAwait(false);
-        var oldText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
-        var newText = oldText.WithChanges(textChanges);
+        var newDocument = await codeMapper.MapCodeAsync(document, contents, focusLocation, formatMappedCode:true, CancellationToken.None).ConfigureAwait(false);
+        var newText = await newDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
 
         Assert.Equal(expected, newText.ToString());
     }
