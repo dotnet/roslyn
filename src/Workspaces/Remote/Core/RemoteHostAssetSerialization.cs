@@ -41,23 +41,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Debug.Assert(assetMap != null);
 
-            var count = 0;
             foreach (var checksum in checksums)
             {
                 var asset = assetMap[checksum];
 
+                // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the
+                // pipe for the reader on the other side to read.  This allows the item-writing to remain entirely
+                // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
+                // entire stream of data into the pipe before it gets sent to the other side.
                 WriteAsset(writer, serializer, context, asset, cancellationToken);
-
-                // Attempt to buffer and allow large chunks of data to be sent over the pipe, while also ensuring we're
-                // not buffering everything and are breaking things up so that the values can stream over.  We
-                // arbitrarily pick flushing around 1% of the time to get a balance of writing data with high throughput,
-                // while also ensuring it is sent to the other side with a reasonable cadence.
-                if (++count % 100 == 0)
-                    await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            // Ensure any last data written into the stream makes it into the pipe.
-            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             return;
 
             static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, SolutionAsset asset, CancellationToken cancellationToken)
