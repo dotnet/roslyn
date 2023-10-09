@@ -53,23 +53,19 @@ internal partial class SolutionAssetStorage
         /// </summary>
         public async Task AddAssetsAsync(
             ImmutableArray<Checksum> checksums,
-            Dictionary<Checksum, SolutionAsset> assetMap,
+            Dictionary<Checksum, object?> assetMap,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
-            using var resultMap = Creator.CreateResultMap();
 
             var numberOfChecksumsToSearch = checksumsToFind.Object.Count;
 
             if (checksumsToFind.Object.Remove(Checksum.Null))
-                assetMap[Checksum.Null] = SolutionAsset.Null;
+                assetMap[Checksum.Null] = null;
 
-            await FindAssetsAsync(checksumsToFind.Object, resultMap.Object, cancellationToken).ConfigureAwait(false);
-
-            foreach (var (checksum, value) in resultMap.Object)
-                assetMap[checksum] = new SolutionAsset(checksum, value);
+            await FindAssetsAsync(checksumsToFind.Object, assetMap, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(checksumsToFind.Object.Count > 0);
             Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
@@ -100,13 +96,9 @@ internal partial class SolutionAssetStorage
             /// Retrieve asset of a specified <paramref name="checksum"/> available within <see langword="this"/> from
             /// the storage.
             /// </summary>
-            public async ValueTask<SolutionAsset> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+            public async ValueTask<object> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
             {
-                if (checksum == Checksum.Null)
-                {
-                    // check nil case
-                    return SolutionAsset.Null;
-                }
+                Contract.ThrowIfTrue(checksum == Checksum.Null);
 
                 using var checksumPool = Creator.CreateChecksumSet(checksum);
                 using var resultPool = Creator.CreateResultMap();
@@ -117,7 +109,7 @@ internal partial class SolutionAssetStorage
                 var (resultingChecksum, value) = resultPool.Object.First();
                 Contract.ThrowIfFalse(checksum == resultingChecksum);
 
-                return new SolutionAsset(checksum, value);
+                return value;
             }
         }
     }

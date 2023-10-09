@@ -78,9 +78,16 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Services = services;
         }
 
-        public async Task<T> GetValueAsync<T>(Checksum checksum)
+        private async Task<SolutionAsset> GetRequiredAssetAsync(Checksum checksum)
         {
             var data = await AssetStorage.GetTestAccessor().GetRequiredAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            Contract.ThrowIfNull(data);
+            return new(checksum, data);
+        }
+
+        public async Task<T> GetValueAsync<T>(Checksum checksum)
+        {
+            var data = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
             Contract.ThrowIfNull(data.Value);
 
             using var context = new SolutionReplicationContext();
@@ -197,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Func<T, WellKnownSynchronizationKind, ISerializerService, SolutionAsset> assetGetter)
         {
             // re-create asset from object
-            var syncObject = await AssetStorage.GetTestAccessor().GetRequiredAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
 
             var recoveredValue = await GetValueAsync<T>(checksum).ConfigureAwait(false);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, Serializer);
@@ -339,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task VerifyChecksumInServiceAsync(Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Assert.NotNull(checksum);
-            var otherObject = await AssetStorage.GetTestAccessor().GetRequiredAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var otherObject = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }

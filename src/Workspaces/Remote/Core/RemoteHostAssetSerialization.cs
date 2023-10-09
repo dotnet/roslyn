@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static async ValueTask WriteDataAsync(
             Stream stream,
-            Dictionary<Checksum, SolutionAsset> assetMap,
+            Dictionary<Checksum, object> assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
@@ -55,14 +55,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return;
 
-            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, SolutionAsset asset, CancellationToken cancellationToken)
+            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, object asset, CancellationToken cancellationToken)
             {
-                Debug.Assert(asset.Kind != WellKnownSynchronizationKind.Null, "We should not be sending null assets");
-                writer.WriteInt32((int)asset.Kind);
+                var kind = asset.GetWellKnownSynchronizationKind();
+                Contract.ThrowIfTrue(kind == WellKnownSynchronizationKind.Null);
+                writer.WriteInt32((int)kind);
 
                 // null is already indicated by checksum and kind above:
-                if (asset.Value is not null)
-                    serializer.Serialize(asset.Value, writer, context, cancellationToken);
+                if (asset is not null)
+                    serializer.Serialize(asset, writer, context, cancellationToken);
             }
         }
 

@@ -73,6 +73,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                         loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))));
         }
 
+        private static async Task<SolutionAsset> GetRequiredAssetAsync(SolutionAssetStorage.Scope scope, Checksum checksum)
+        {
+            var data = await scope.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            Contract.ThrowIfNull(data);
+            return new(checksum, data);
+        }
+
         [Fact]
         public async Task CreateSolutionSnapshotId_Empty()
         {
@@ -83,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
             var checksum = scope.SolutionChecksum;
-            var solutionSyncObject = await scope.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionSyncObject = await GetRequiredAssetAsync(scope, checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject).ConfigureAwait(false);
 
@@ -115,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
             var checksum = scope.SolutionChecksum;
-            var solutionSyncObject = await scope.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionSyncObject = await GetRequiredAssetAsync(scope, checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject).ConfigureAwait(false);
 
@@ -149,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var validator = new SerializationValidator(workspace.Services);
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = await scope.GetTestAccessor().GetAssetAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = await GetRequiredAssetAsync(scope, scope.SolutionChecksum).ConfigureAwait(false);
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
@@ -183,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var validator = new SerializationValidator(workspace.Services);
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = await scope.GetTestAccessor().GetAssetAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = await GetRequiredAssetAsync(scope, scope.SolutionChecksum).ConfigureAwait(false);
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
