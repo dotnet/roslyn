@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 InlineDescription: inlineDescription,
                 IsComplexTextEdit: isComplexTextEdit);
 
-            var expectedResultArray = ImmutableArray.Create(expectedResult);
+            var expectedResultArray = new[] { expectedResult };
             await CheckResultsAsync(document, position, usePreviousCharAsTrigger,
                 hasSuggestionModeItem, expectedResultArray, matchingFilters, flags, options);
         }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private protected async Task CheckResultsAsync(
             Document document, int position, bool usePreviousCharAsTrigger,
             bool? hasSuggestionModeItem,
-            ImmutableArray<CompletionTestExpectedResult> expectedResults,
+            CompletionTestExpectedResult[] expectedResults,
             List<CompletionFilter> matchingFilters,
             CompletionItemFlags? flags,
             CompletionOptions options)
@@ -269,12 +269,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             bool? IsComplexTextEdit = null,
             SourceCodeKind? SourceCodeKind = null)
         {
-            public static ImmutableArray<CompletionTestExpectedResult> None = CreateGeneralMatchingArray(true);
-            public static ImmutableArray<CompletionTestExpectedResult> Any = CreateGeneralMatchingArray(false);
+            public static CompletionTestExpectedResult[] None = CreateGeneralMatchingArray(true);
+            public static CompletionTestExpectedResult[] Any = CreateGeneralMatchingArray(false);
 
-            private static ImmutableArray<CompletionTestExpectedResult> CreateGeneralMatchingArray(bool absent)
+            private static CompletionTestExpectedResult[] CreateGeneralMatchingArray(bool absent)
             {
-                return ImmutableArray.Create(new CompletionTestExpectedResult(Name: null, IsAbsent: absent));
+                return new[] { new CompletionTestExpectedResult(Name: null, IsAbsent: absent) };
             }
 
             public static CompletionTestExpectedResult Exists(string name)
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private async Task VerifyAsync(
             string markup, SourceCodeKind? sourceCodeKind, bool usePreviousCharAsTrigger,
-            ImmutableArray<CompletionTestExpectedResult> results, bool? hasSuggestionModeItem,
+            CompletionTestExpectedResult[] results, bool? hasSuggestionModeItem,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
             foreach (var sourceKind in sourceCodeKind.HasValue ? new[] { sourceCodeKind.Value } : new[] { SourceCodeKind.Regular, SourceCodeKind.Script })
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         private protected async Task VerifyExpectedItemsAsync(
-            string markup, ImmutableArray<CompletionTestExpectedResult> results,
+            string markup, CompletionTestExpectedResult[] results,
             SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
             bool? hasSuggestionModeItem = null, CompletionOptions options = null)
         {
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 InlineDescription: inlineDescription,
                 IsComplexTextEdit: isComplexTextEdit);
 
-            var expectedResultArray = ImmutableArray.Create(expectedResult);
+            var expectedResultArray = new[] { expectedResult };
 
             await VerifyWorkerAsync(
                 code, position, usePreviousCharAsTrigger,
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private protected virtual async Task VerifyWorkerAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             bool? hasSuggestionModeItem, SourceCodeKind sourceCodeKind,
-            ImmutableArray<CompletionTestExpectedResult> expectedResults,
+            CompletionTestExpectedResult[] expectedResults,
             List<CompletionFilter> matchingFilters,
             CompletionItemFlags? flags,
             CompletionOptions options,

@@ -256,77 +256,76 @@ class C {
         public async Task OpenStringLiteral()
         {
             var code = AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$"));
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(code, [
                 CompletionTestExpectedResult.Absent("String"),
                 CompletionTestExpectedResult.Absent("System")
-            );
-            await VerifyExpectedItemsAsync(code, result);
+            ]);
         }
 
         [Fact]
         public async Task OpenStringLiteralInDirective()
         {
             var code = "#r \"$$";
-            var result = ImmutableArray.Create(
-                CompletionTestExpectedResult.Absent("String"),
-                CompletionTestExpectedResult.Absent("System")
-            );
-            await VerifyExpectedItemsAsync(code, result, sourceCodeKind: SourceCodeKind.Script);
+            await VerifyExpectedItemsAsync(
+                code, [
+                    CompletionTestExpectedResult.Absent("String"),
+                    CompletionTestExpectedResult.Absent("System")
+                ],
+                sourceCodeKind: SourceCodeKind.Script);
         }
 
         [Fact]
         public async Task StringLiteral()
         {
             var code = AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$\";"));
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(code, [
                 CompletionTestExpectedResult.Absent("String"),
                 CompletionTestExpectedResult.Absent("System")
-            );
-            await VerifyExpectedItemsAsync(code, result);
+            ]);
         }
 
         [Fact]
         public async Task StringLiteralInDirective()
         {
             var code = "#r \"$$\"";
-            var result = ImmutableArray.Create(
-                CompletionTestExpectedResult.Absent("String"),
-                CompletionTestExpectedResult.Absent("System")
-            );
-            await VerifyExpectedItemsAsync(code, result, sourceCodeKind: SourceCodeKind.Script);
+            await VerifyExpectedItemsAsync(
+                code, [
+                    CompletionTestExpectedResult.Absent("String"),
+                    CompletionTestExpectedResult.Absent("System")
+                ],
+                sourceCodeKind: SourceCodeKind.Script);
         }
 
         [Fact]
         public async Task OpenCharLiteral()
         {
             var code = AddUsingDirectives("using System;", AddInsideMethod("char c = '$$"));
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(code, [
                 CompletionTestExpectedResult.Absent("String"),
                 CompletionTestExpectedResult.Absent("System")
-            );
-            await VerifyExpectedItemsAsync(code, result);
+            ]);
         }
 
         [Fact]
         public async Task AssemblyAttribute1()
         {
             var code = @"[assembly: $$]";
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(code, [
                 CompletionTestExpectedResult.Absent("String"),
                 CompletionTestExpectedResult.Exists("System")
-            );
-            await VerifyExpectedItemsAsync(code, result);
+            ]);
+
         }
 
         [Fact]
         public async Task AssemblyAttribute2()
         {
             var code = AddUsingDirectives("using System;", @"[assembly: $$]");
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(code, [
                 CompletionTestExpectedResult.Exists("System"),
                 CompletionTestExpectedResult.Exists("AttributeUsage")
-            );
-            await VerifyExpectedItemsAsync(code, result);
+            ]);
+
         }
 
         [Fact]
@@ -536,25 +535,26 @@ namespace A
                 namespace A.B.C3 { }
                 """;
 
-            var result = ImmutableArray.Create(
-                // Ideally, all the C* namespaces would be recommended but, because of how the parser
-                // recovers from the missing braces, they end up with the following qualified names...
-                //
-                //     C1 => A.B.?.C1
-                //     C2 => A.B.B.C2
-                //     C3 => A.A.B.C3
-                //
-                // ...none of which are found by the current algorithm.
-                CompletionTestExpectedResult.Absent("C1"),
-                CompletionTestExpectedResult.Absent("C2"),
-                CompletionTestExpectedResult.Absent("C3"),
-                CompletionTestExpectedResult.Absent("A"),
+            await VerifyExpectedItemsAsync(
+                source, [
+                    // Ideally, all the C* namespaces would be recommended but, because of how the parser
+                    // recovers from the missing braces, they end up with the following qualified names...
+                    //
+                    //     C1 => A.B.?.C1
+                    //     C2 => A.B.B.C2
+                    //     C3 => A.A.B.C3
+                    //
+                    // ...none of which are found by the current algorithm.
+                    CompletionTestExpectedResult.Absent("C1"),
+                    CompletionTestExpectedResult.Absent("C2"),
+                    CompletionTestExpectedResult.Absent("C3"),
+                    CompletionTestExpectedResult.Absent("A"),
 
-                // Because of the above, B does end up in the completion list
-                // since A.B.B appears to be a peer of the new declaration
-                CompletionTestExpectedResult.Exists("B")
-            );
-            await VerifyExpectedItemsAsync(source, result, SourceCodeKind.Regular);
+                    // Because of the above, B does end up in the completion list
+                    // since A.B.B appears to be a peer of the new declaration
+                    CompletionTestExpectedResult.Exists("B")
+                ],
+                SourceCodeKind.Regular);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -681,25 +681,25 @@ namespace A
 
 namespace A.B.C.D3 { }";
 
-            var result = ImmutableArray.Create(
-                CompletionTestExpectedResult.Absent("A"),
-                CompletionTestExpectedResult.Absent("B"),
-                CompletionTestExpectedResult.Absent("C"),
+            await VerifyExpectedItemsAsync(
+                source, [
+                    CompletionTestExpectedResult.Absent("A"),
+                    CompletionTestExpectedResult.Absent("B"),
+                    CompletionTestExpectedResult.Absent("C"),
 
-                // Ideally, all the D* namespaces would be recommended but, because of how the parser
-                // recovers from the missing braces, they end up with the following qualified names...
-                //
-                //     D1 => A.B.C.C.?.D1
-                //     D2 => A.B.B.C.D2
-                //     D3 => A.A.B.C.D3
-                //
-                // ...none of which are found by the current algorithm.
-                CompletionTestExpectedResult.Absent("D1"),
-                CompletionTestExpectedResult.Absent("D2"),
-                CompletionTestExpectedResult.Absent("D3")
-
-            );
-            await VerifyExpectedItemsAsync(source, result, SourceCodeKind.Regular);
+                    // Ideally, all the D* namespaces would be recommended but, because of how the parser
+                    // recovers from the missing braces, they end up with the following qualified names...
+                    //
+                    //     D1 => A.B.C.C.?.D1
+                    //     D2 => A.B.B.C.D2
+                    //     D3 => A.A.B.C.D3
+                    //
+                    // ...none of which are found by the current algorithm.
+                    CompletionTestExpectedResult.Absent("D1"),
+                    CompletionTestExpectedResult.Absent("D2"),
+                    CompletionTestExpectedResult.Absent("D3")
+                ],
+                SourceCodeKind.Regular);
         }
 
         [Fact]
@@ -2376,10 +2376,13 @@ class C
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "ToString");
-            await VerifyItemIsAbsentAsync(markup, "GetType");
-            await VerifyItemIsAbsentAsync(markup, "Equals");
-            await VerifyItemIsAbsentAsync(markup, "GetHashCode");
+
+            await VerifyExpectedItemsAsync(markup, [
+                CompletionTestExpectedResult.Exists("ToString"),
+                CompletionTestExpectedResult.Absent("GetType"),
+                CompletionTestExpectedResult.Absent("Equals"),
+                CompletionTestExpectedResult.Absent("GetHashCode")
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35178")]
@@ -2397,13 +2400,12 @@ class C
                 }
                 """;
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("ToString"),
                 CompletionTestExpectedResult.Exists("GetType"),
                 CompletionTestExpectedResult.Exists("Equals"),
                 CompletionTestExpectedResult.Exists("GetHashCode")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
@@ -2420,11 +2422,10 @@ class C
                 }
                 """;
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("String"),
                 CompletionTestExpectedResult.Absent("parameter")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Theory]
@@ -2450,11 +2451,10 @@ class C
 }
 """;
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("String"),
                 CompletionTestExpectedResult.Absent("parameter")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Theory]
@@ -2478,11 +2478,10 @@ class C
 }}
 ";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Absent("String"),
                 CompletionTestExpectedResult.Absent("parameter")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
@@ -2498,8 +2497,11 @@ class C
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(markup, "String");
-            await VerifyItemIsAbsentAsync(markup, "parameter");
+
+            await VerifyExpectedItemsAsync(markup, [
+                CompletionTestExpectedResult.Absent("String"),
+                CompletionTestExpectedResult.Absent("parameter")
+            ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
@@ -2523,11 +2525,10 @@ class C
 }}
 ";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Absent("String"),
                 CompletionTestExpectedResult.Absent("parameter")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
@@ -3081,12 +3082,11 @@ namespace Test
     class Program { }
 }";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("namespaceAttribute"),
                 CompletionTestExpectedResult.Absent("namespace"),
                 CompletionTestExpectedResult.Absent("@namespace")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
@@ -3100,12 +3100,11 @@ namespace Test
     class Program { }
 }";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("namespaceAttribute"),
                 CompletionTestExpectedResult.Absent("namespace"),
                 CompletionTestExpectedResult.Absent("@namespace")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
@@ -3123,7 +3122,7 @@ class C
     }
 }";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 // preprocessor keyword
                 CompletionTestExpectedResult.Exists("error"),
                 CompletionTestExpectedResult.Absent("@error"),
@@ -3135,8 +3134,7 @@ class C
                 // full keyword
                 CompletionTestExpectedResult.Exists("@int"),
                 CompletionTestExpectedResult.Absent("int")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
@@ -3152,11 +3150,10 @@ class C
     }
 }";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("@from"),
                 CompletionTestExpectedResult.Absent("from")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
@@ -3174,13 +3171,12 @@ class C
     }
 }";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("@from"),
                 CompletionTestExpectedResult.Absent("from"),
                 CompletionTestExpectedResult.Exists("@where"),
                 CompletionTestExpectedResult.Absent("where")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
@@ -3198,13 +3194,12 @@ class C
     }
 }";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("@from"),
                 CompletionTestExpectedResult.Absent("from"),
                 CompletionTestExpectedResult.Exists("@where"),
                 CompletionTestExpectedResult.Absent("where")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
@@ -3215,11 +3210,12 @@ class MyAttribute : System.Attribute { }
 [global::$$
 class Program { }";
 
-            var result = ImmutableArray.Create(
-                CompletionTestExpectedResult.Exists("My"),
-                CompletionTestExpectedResult.Absent("MyAttribute")
-            );
-            await VerifyExpectedItemsAsync(markup, result, SourceCodeKind.Regular);
+            await VerifyExpectedItemsAsync(
+                markup, [
+                    CompletionTestExpectedResult.Exists("My"),
+                    CompletionTestExpectedResult.Absent("MyAttribute")
+                ],
+                SourceCodeKind.Regular);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
@@ -3230,12 +3226,13 @@ class namespaceAttribute : System.Attribute { }
 [global::$$
 class Program { }";
 
-            var result = ImmutableArray.Create(
-                CompletionTestExpectedResult.Exists("namespaceAttribute"),
-                CompletionTestExpectedResult.Absent("namespace"),
-                CompletionTestExpectedResult.Absent("@namespace")
-            );
-            await VerifyExpectedItemsAsync(markup, result, SourceCodeKind.Regular);
+            await VerifyExpectedItemsAsync(
+                markup, [
+                    CompletionTestExpectedResult.Exists("namespaceAttribute"),
+                    CompletionTestExpectedResult.Absent("namespace"),
+                    CompletionTestExpectedResult.Absent("@namespace")
+                ],
+                SourceCodeKind.Regular);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25589")]
@@ -3312,13 +3309,12 @@ namespace Namespace1
 
 [$$]";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("Namespace1Alias"),
                 CompletionTestExpectedResult.Absent("Namespace2Alias"),
                 CompletionTestExpectedResult.Exists("Namespace3Alias"),
                 CompletionTestExpectedResult.Exists("Namespace4Alias")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact]
@@ -9926,7 +9922,7 @@ class C
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("Alice"),
                 CompletionTestExpectedResult.Exists("Bob"),
                 CompletionTestExpectedResult.Exists("CompareTo"),
@@ -9946,8 +9942,7 @@ class C
                 CompletionTestExpectedResult.Absent("Item9"),
                 CompletionTestExpectedResult.Absent("Rest"),
                 CompletionTestExpectedResult.Absent("Item3")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14546")]
@@ -10826,14 +10821,13 @@ class Builder
     public int Something { get; set; }
 }";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 CompletionTestExpectedResult.Exists("Something"),
                 CompletionTestExpectedResult.Absent("BeginInvoke"),
                 CompletionTestExpectedResult.Absent("Clone"),
                 CompletionTestExpectedResult.Absent("Method"),
                 CompletionTestExpectedResult.Absent("Target")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact]
@@ -10856,7 +10850,7 @@ class Program
     }
 }";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 // Guid
                 CompletionTestExpectedResult.Exists("ToByteArray"),
 
@@ -10870,8 +10864,7 @@ class Program
                 CompletionTestExpectedResult.Absent("Clone"),
                 CompletionTestExpectedResult.Absent("Method"),
                 CompletionTestExpectedResult.Absent("Target")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact]
@@ -10893,7 +10886,7 @@ class Program
         M(d => d.$$)
     }
 }";
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(markup, [
                 // Guid
                 CompletionTestExpectedResult.Exists("ToByteArray"),
 
@@ -10907,8 +10900,7 @@ class Program
                 CompletionTestExpectedResult.Absent("Clone"),
                 CompletionTestExpectedResult.Absent("Method"),
                 CompletionTestExpectedResult.Absent("Target")
-            );
-            await VerifyExpectedItemsAsync(markup, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36029")]
@@ -11657,7 +11649,7 @@ class Test
 }
 ";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Absent("M0"),
 
                 CompletionTestExpectedResult.Exists("M1"),
@@ -11665,8 +11657,7 @@ class Test
                 CompletionTestExpectedResult.Exists("M3"),
                 CompletionTestExpectedResult.Exists("P1"),
                 CompletionTestExpectedResult.Exists("E1")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11689,13 +11680,12 @@ unsafe class Test
 }
 ";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Exists("X"),
                 CompletionTestExpectedResult.Exists("Y"),
                 CompletionTestExpectedResult.Exists("Method"),
                 CompletionTestExpectedResult.Exists("ToString")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11718,13 +11708,12 @@ unsafe class Test
 }
 ";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Exists("X"),
                 CompletionTestExpectedResult.Exists("Y"),
                 CompletionTestExpectedResult.Exists("Method"),
                 CompletionTestExpectedResult.Exists("ToString")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11749,19 +11738,17 @@ unsafe class Test
 }
 ";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Exists("X"),
                 CompletionTestExpectedResult.Exists("Y"),
                 CompletionTestExpectedResult.Exists("Method"),
                 CompletionTestExpectedResult.Exists("ToString")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
         public async Task CompletionOnOverloadedLambdaPointerParameter()
         {
-
             var source = @"
 struct TestStruct1
 {
@@ -11791,17 +11778,15 @@ unsafe class Test
 }
 ";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Exists("X"),
                 CompletionTestExpectedResult.Exists("Y")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
         public async Task CompletionOnOverloadedLambdaPointerParameterWithExplicitType()
         {
-
             var source = @"
 struct TestStruct1
 {
@@ -11831,11 +11816,10 @@ unsafe class Test
 }
 ";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Exists("X"),
                 CompletionTestExpectedResult.Absent("Y")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -12277,7 +12261,7 @@ public static class Extension
                 enum E : $$
                 """;
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Exists("System"),
 
                 CompletionTestExpectedResult.Exists(underlyingType),
@@ -12286,8 +12270,7 @@ public static class Extension
                 CompletionTestExpectedResult.Absent("Console"),
                 CompletionTestExpectedResult.Absent("Action"),
                 CompletionTestExpectedResult.Absent("DateTime")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
@@ -12301,7 +12284,7 @@ public static class Extension
                 enum E : global::$$
                 """;
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Absent("E"),
 
                 CompletionTestExpectedResult.Exists("System"),
@@ -12309,8 +12292,7 @@ public static class Extension
 
                 // Not accessible in the given context
                 CompletionTestExpectedResult.Absent(underlyingType)
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
@@ -12318,7 +12300,7 @@ public static class Extension
         {
             var source = "enum E : System.$$";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Absent("System"),
 
                 CompletionTestExpectedResult.Exists(underlyingType),
@@ -12327,8 +12309,7 @@ public static class Extension
                 CompletionTestExpectedResult.Absent("Console"),
                 CompletionTestExpectedResult.Absent("Action"),
                 CompletionTestExpectedResult.Absent("DateTime")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
@@ -12336,7 +12317,7 @@ public static class Extension
         {
             var source = "enum E : global::System.$$";
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Absent("System"),
 
                 CompletionTestExpectedResult.Exists(underlyingType),
@@ -12345,8 +12326,7 @@ public static class Extension
                 CompletionTestExpectedResult.Absent("Console"),
                 CompletionTestExpectedResult.Absent("Action"),
                 CompletionTestExpectedResult.Absent("DateTime")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Fact]
@@ -12413,7 +12393,7 @@ public static class Extension
                 enum E : MySystem.$$
                 """;
 
-            var result = ImmutableArray.Create(
+            await VerifyExpectedItemsAsync(source, [
                 CompletionTestExpectedResult.Absent("System"),
                 CompletionTestExpectedResult.Absent("MySystem"),
 
@@ -12423,8 +12403,7 @@ public static class Extension
                 CompletionTestExpectedResult.Absent("Console"),
                 CompletionTestExpectedResult.Absent("Action"),
                 CompletionTestExpectedResult.Absent("DateTime")
-            );
-            await VerifyExpectedItemsAsync(source, result);
+            ]);
         }
 
         [Fact]
