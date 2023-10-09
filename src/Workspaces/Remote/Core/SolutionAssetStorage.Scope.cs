@@ -97,7 +97,7 @@ internal partial class SolutionAssetStorage
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var checksumPool = Creator.CreateChecksumSet(SpecializedCollections.SingletonEnumerable(checksum));
+            using var checksumPool = Creator.CreateChecksumSet(checksum);
             using var resultPool = Creator.CreateResultSet();
 
             await FindAssetsAsync(checksumPool.Object, resultPool.Object, cancellationToken).ConfigureAwait(false);
