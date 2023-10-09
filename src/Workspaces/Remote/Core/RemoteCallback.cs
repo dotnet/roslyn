@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var pipe = new Pipe();
+                var pipe = new Pipe(new PipeOptions(minimumSegmentSize: 81_920));
 
                 // Kick off the work to do the writing to the pipe asynchronously.  It will start hot and will be able
                 // to do work as the reading side attempts to pull in the data it is writing.
