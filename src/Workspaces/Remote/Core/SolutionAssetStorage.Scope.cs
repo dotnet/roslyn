@@ -67,9 +67,7 @@ internal partial class SolutionAssetStorage
 
             await FindAssetsAsync(checksumsToFind.Object, assetMap, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
-
-            // no checksum left to find
-            Debug.Assert(checksumsToFind.Object.Count == 0);
+            Contract.ThrowIfTrue(checksumsToFind.Object.Count > 0);
         }
 
         /// <summary>
