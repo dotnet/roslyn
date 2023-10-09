@@ -68,9 +68,6 @@ namespace Microsoft.CodeAnalysis.Remote
             await RemoteHostAssetSerialization.WriteDataAsync(
                 stream, assetMap, serializer, scope.ReplicationContext,
                 solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
-
-            // Ensure any last data written into the stream makes it into the pipe.
-            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
+            // Ensure any last data written into the stream makes it into the pipe.
+            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             return;
 
             static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, SolutionAsset asset, CancellationToken cancellationToken)
