@@ -18,32 +18,27 @@ namespace Microsoft.CodeAnalysis.Remote.Testing;
 internal sealed class SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map) : IAssetSource
 {
     public ValueTask<ImmutableArray<object>> GetAssetsAsync(
-        Checksum solutionChecksum, ImmutableArray<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
+        Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
     {
         var results = new List<object>();
 
         foreach (var checksum in checksums)
         {
-            if (map.TryGetValue(checksum, out var data))
-            {
-                using var stream = new MemoryStream();
-                using var context = new SolutionReplicationContext();
+            Contract.ThrowIfFalse(map.TryGetValue(checksum, out var data));
 
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
-                {
-                    serializerService.Serialize(data, writer, context, cancellationToken);
-                }
+            using var stream = new MemoryStream();
+            using var context = new SolutionReplicationContext();
 
-                stream.Position = 0;
-                using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
-                var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
-                Contract.ThrowIfTrue(asset is null);
-                results.Add(asset);
-            }
-            else
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
-                throw ExceptionUtilities.UnexpectedValue(checksum);
+                serializerService.Serialize(data, writer, context, cancellationToken);
             }
+
+            stream.Position = 0;
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
+            var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
+            Contract.ThrowIfTrue(asset is null);
+            results.Add(asset);
         }
 
         return ValueTaskFactory.FromResult(results.ToImmutableArray());
