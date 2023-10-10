@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Host
                 var staleSolution = _lastCompileTimeSolution;
                 var compileTimeSolution = designTimeSolution;
 
-                using var _1 = PooledHashSet<ProjectId>.GetInstance(out var projectsWithDesignTimeDocuments);
+                using var _1 = ArrayBuilder<ProjectId>.GetInstance(out var projectsWithDesignTimeDocuments);
                 foreach (var (_, projectState) in compileTimeSolution.State.ProjectStates)
                 {
                     using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
@@ -118,12 +118,17 @@ namespace Microsoft.CodeAnalysis.Host
                     // only remove design-time only documents when source-generated ones replace them
                     if (configIdsToRemove.Count > 0)
                     {
+                        var addedProject = false;
                         foreach (var (_, documentState) in projectState.DocumentStates.States)
                         {
                             if (documentState.Attributes.DesignTimeOnly || IsRazorDesignTimeDocument(documentState))
                             {
                                 documentIdsToRemove.Add(documentState.Id);
-                                projectsWithDesignTimeDocuments.Add(documentState.Id.ProjectId);
+                                if (!addedProject)
+                                {
+                                    addedProject = true;
+                                    projectsWithDesignTimeDocuments.Add(documentState.Id.ProjectId);
+                                }
                             }
                         }
 
@@ -147,14 +152,14 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     // HACK: Pre-request all razor source generated documents to warm up the caches
                     var asyncToken = _asyncListener.BeginAsyncOperation(nameof(CompileTimeSolutionProvider));
-                    _ = LoadSourceGeneratedDocumentsAsync(compileTimeSolution, projectsWithDesignTimeDocuments.ToImmutableArray(), CancellationToken.None).CompletesAsyncOperation(asyncToken);
+                    _ = LoadSourceGeneratedDocumentsAsync(compileTimeSolution, projectsWithDesignTimeDocuments, CancellationToken.None).CompletesAsyncOperation(asyncToken);
                 }
 
                 return compileTimeSolution;
             }
         }
 
-        private static async Task LoadSourceGeneratedDocumentsAsync(Solution solution, ImmutableArray<ProjectId> projectsWithDesignTimeDocuments, CancellationToken cancellationToken)
+        private static async Task LoadSourceGeneratedDocumentsAsync(Solution solution, ArrayBuilder<ProjectId> projectsWithDesignTimeDocuments, CancellationToken cancellationToken)
         {
             foreach (var projectId in projectsWithDesignTimeDocuments)
             {
