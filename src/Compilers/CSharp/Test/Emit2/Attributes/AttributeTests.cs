@@ -11170,7 +11170,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verify, expectedOutput: "a");
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder
@@ -11193,21 +11193,11 @@ class Program
 } // end of class Holder
 ");
 
-            void verify(ModuleSymbol module)
+            static void verify(ModuleSymbol module)
             {
                 var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
                 var attrs = holder.GetAttributes();
                 Assert.Equal(new[] { "Attr<System.String>(\"a\")" }, GetAttributeStrings(attrs));
-            }
-
-            void verifyMetadata(ModuleSymbol module)
-            {
-                // https://github.com/dotnet/roslyn/issues/55190
-                // The compiler should be able to read this attribute argument from metadata.
-                // Once this is fixed, we should be able to use exactly the same 'verify' method for both source and metadata.
-                var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
-                var attrs = holder.GetAttributes();
-                Assert.Equal(new[] { "Attr<System.String>" }, GetAttributeStrings(attrs));
             }
         }
 
