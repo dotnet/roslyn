@@ -371,9 +371,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 news.Object.ExceptWith(oldChecksums);
 
                 using var _1 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldMap);
+                using var _2 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newMap);
 
                 await PopulateOldDocumentMapAsync().ConfigureAwait(false);
-                var newMap = await GetDocumentMapAsync(_assetProvider, news.Object, cancellationToken).ConfigureAwait(false);
+                await PopulateNewDocumentMapAsync(this).ConfigureAwait(false);
 
                 // If more than two documents changed during a single update, perform a bulk synchronization on the
                 // project to avoid large numbers of small synchronization calls during document updates.
@@ -446,6 +447,25 @@ namespace Microsoft.CodeAnalysis.Remote
                             oldMap.Add(state.Id, documentChecksums);
                     }
                 }
+
+                async Task PopulateNewDocumentMapAsync(SolutionCreator @this)
+                {
+                    var documentChecksums = await @this._assetProvider.GetAssetsAsync<DocumentStateChecksums>(news.Object, cancellationToken).ConfigureAwait(false);
+
+                    using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+                    var infoChecksums = pooledObject.Object;
+
+                    foreach (var documentChecksum in documentChecksums)
+                        infoChecksums.Add(documentChecksum.Item2.Info);
+
+                    var infos = await @this._assetProvider.GetAssetsAsync<DocumentInfo.DocumentAttributes>(infoChecksums, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var (_, documentStateChecksums) in documentChecksums)
+                    {
+                        var info = @this._assetProvider.GetRequiredAsset<DocumentInfo.DocumentAttributes>(documentStateChecksums.Info);
+                        newMap.Add(info.Id, documentStateChecksums);
+                    }
+                }
             }
 
             private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums, CancellationToken cancellationToken)
@@ -500,31 +520,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return document;
-            }
-
-            private static async ValueTask<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(AssetProvider assetProvider, HashSet<Checksum> documents, CancellationToken cancellationToken)
-            {
-                var map = new Dictionary<DocumentId, DocumentStateChecksums>();
-
-                var documentChecksums = await assetProvider.GetAssetsAsync<DocumentStateChecksums>(documents, cancellationToken).ConfigureAwait(false);
-
-                using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-                var infoChecksums = pooledObject.Object;
-
-                foreach (var documentChecksum in documentChecksums)
-                    infoChecksums.Add(documentChecksum.Item2.Info);
-
-                var infos = await assetProvider.GetAssetsAsync<DocumentInfo.DocumentAttributes>(infoChecksums, cancellationToken).ConfigureAwait(false);
-
-                foreach (var kv in documentChecksums)
-                {
-                    Debug.Assert(assetProvider.EnsureCacheEntryIfExists(kv.Item2.Info), "Expected the prior call to GetAssetsAsync to obtain all items for this loop.");
-
-                    var info = await assetProvider.GetAssetAsync<DocumentInfo.DocumentAttributes>(kv.Item2.Info, cancellationToken).ConfigureAwait(false);
-                    map.Add(info.Id, kv.Item2);
-                }
-
-                return map;
             }
 
             private static async ValueTask<Dictionary<ProjectId, ProjectStateChecksums>> GetProjectMapAsync(AssetProvider assetProvider, HashSet<Checksum> projects, CancellationToken cancellationToken)
