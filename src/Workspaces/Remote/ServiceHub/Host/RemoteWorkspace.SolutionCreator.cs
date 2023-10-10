@@ -26,21 +26,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Create solution for given checksum from base solution
         /// </summary>
-        private readonly struct SolutionCreator
+        private readonly struct SolutionCreator(HostServices hostServices, AssetProvider assetService, Solution baseSolution)
         {
 #pragma warning disable IDE0052 // used only in DEBUG builds
-            private readonly HostServices _hostServices;
+            private readonly HostServices _hostServices = hostServices;
 #pragma warning restore
 
-            private readonly AssetProvider _assetProvider;
-            private readonly Solution _baseSolution;
-
-            public SolutionCreator(HostServices hostServices, AssetProvider assetService, Solution baseSolution)
-            {
-                _hostServices = hostServices;
-                _assetProvider = assetService;
-                _baseSolution = baseSolution;
-            }
+            private readonly AssetProvider _assetProvider = assetService;
+            private readonly Solution _baseSolution = baseSolution;
 
             public async Task<bool> IsIncrementalUpdateAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)
             {
