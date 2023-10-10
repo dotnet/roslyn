@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// <summary>
     /// Used when the client cannot connect to the server.
     /// </summary>
-    file class CannotConnectResponse : BuildResponse
+    internal sealed class CannotConnectResponse : BuildResponse
     {
         public override ResponseType Type => ResponseType.CannotConnect;
 

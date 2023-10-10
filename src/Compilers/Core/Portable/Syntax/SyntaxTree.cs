@@ -293,9 +293,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the path used for emit purposes.
+        /// Returns the path used for emit purposes. This takes into account /pathmap arguments passed into
+        /// the compiler.
         /// </summary>
-        internal string GetDisplayPath(SourceReferenceResolver? resolver)
+        internal string GetNormalizedPath(SourceReferenceResolver? resolver)
         {
             if (resolver is null)
             {
