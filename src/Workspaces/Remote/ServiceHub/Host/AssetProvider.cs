@@ -129,9 +129,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _1 = ArrayBuilder<Checksum>.GetInstance(checksums.Count, out var missingChecksums);
                 foreach (var checksum in checksums)
                 {
-                    if (checksum == Checksum.Null)
-                        continue;
-
                     if (!_assetCache.TryGetAsset<object>(checksum, out _))
                         missingChecksums.Add(checksum);
                 }
