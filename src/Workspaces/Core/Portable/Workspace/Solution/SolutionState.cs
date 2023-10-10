@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis
             if (_projectIdToTrackerMap.Count == 0)
                 return _projectIdToTrackerMap;
 
-            var newTrackerInfo = new List<KeyValuePair<ProjectId, ICompilationTracker>>();
+            var newTrackerInfo = ArrayBuilder<KeyValuePair<ProjectId, ICompilationTracker>>.GetInstance();
             var allReused = true;
             foreach (var (id, tracker) in _projectIdToTrackerMap)
             {
