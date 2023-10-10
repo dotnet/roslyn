@@ -43,8 +43,11 @@ namespace Microsoft.CodeAnalysis.Remote
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
             var checksums = pooledObject.Object;
             checksums.Add(checksum);
-            var assets = await GetAssetsAsync<T>(checksums, cancellationToken).ConfigureAwait(false);
-            return assets.Single().Item2;
+
+            var syncer = new ChecksumSynchronizer(this);
+            await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+
+            return GetRequiredAsset<T>(checksum);
         }
 
         public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(HashSet<Checksum> checksums, CancellationToken cancellationToken)
