@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     Title = currentTitle.Replace("|", " -> "),
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
-                    Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null)
+                    Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedActionsIdentifiers: null)
                 });
 
                 if (suggestedAction is UnifiedCodeFixSuggestedAction unifiedCodeFixSuggestedAction && unifiedCodeFixSuggestedAction.FixAllFlavors is not null)
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     {
                         CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
                         Title = title,
-                        Arguments = new object[] { new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray()) }
+                        Arguments = new object[] { new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedActionsIdentifiers: null) }
                     };
 
                     builder.Add(new LSP.CodeAction
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         Command = command,
                         Kind = codeActionKind,
                         Diagnostics = diagnosticsForFix,
-                        Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray())
+                        Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedActionsIdentifiers: null)
                     });
                 }
             }
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
-                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null)
+                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedActionsIdentifiers: null)
             };
 
             static VSInternalCodeAction[] GenerateNestedVSCodeActions(

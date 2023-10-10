@@ -10,8 +10,8 @@ using Newtonsoft.Json;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 
 [DataContract]
-internal sealed class RoslynNestedCodeAction(ImmutableArray<CodeAction> nestedActions) : CodeAction
+internal sealed class RoslynNestedCodeAction(ImmutableArray<string> nestedActionsIdentifiers) : CodeAction
 {
-    [JsonProperty(PropertyName = "nestedActions")]
-    public ImmutableArray<CodeAction> NestedActions { get; } = nestedActions;
+    [JsonProperty(PropertyName = "nestedActionsIdentifiers")]
+    public ImmutableArray<string> NestedActionsIdentifiers { get; } = nestedActionsIdentifiers;
 }
