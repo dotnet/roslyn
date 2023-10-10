@@ -69,15 +69,15 @@ namespace Microsoft.CodeAnalysis.Remote
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
             var checksums = pooledObject.Object;
 
-            AddIfNeeded(checksums, projectChecksum.Info);
-            AddIfNeeded(checksums, projectChecksum.CompilationOptions);
-            AddIfNeeded(checksums, projectChecksum.ParseOptions);
-            AddIfNeeded(checksums, projectChecksum.Documents);
-            AddIfNeeded(checksums, projectChecksum.ProjectReferences);
-            AddIfNeeded(checksums, projectChecksum.MetadataReferences);
-            AddIfNeeded(checksums, projectChecksum.AnalyzerReferences);
-            AddIfNeeded(checksums, projectChecksum.AdditionalDocuments);
-            AddIfNeeded(checksums, projectChecksum.AnalyzerConfigDocuments);
+            checksums.Add(projectChecksum.Info);
+            checksums.Add(projectChecksum.CompilationOptions);
+            checksums.Add(projectChecksum.ParseOptions);
+            AddAll(checksums, projectChecksum.Documents);
+            AddAll(checksums, projectChecksum.ProjectReferences);
+            AddAll(checksums, projectChecksum.MetadataReferences);
+            AddAll(checksums, projectChecksum.AnalyzerReferences);
+            AddAll(checksums, projectChecksum.AdditionalDocuments);
+            AddAll(checksums, projectChecksum.AnalyzerConfigDocuments);
 
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
@@ -95,21 +95,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // These DocumentStateChecksums must be here due to the synchronizing step that just happened above. 
                     var checksumObject = @this._assetProvider.GetRequiredAsset<DocumentStateChecksums>(checksum);
-                    @this.AddIfNeeded(checksums, checksumObject.Info);
-                    @this.AddIfNeeded(checksums, checksumObject.Text);
+                    checksums.Add(checksumObject.Info);
+                    checksums.Add(checksumObject.Text);
                 }
             }
         }
 
-        private void AddIfNeeded(HashSet<Checksum> checksums, ChecksumCollection checksumCollection)
+        private static void AddAll(HashSet<Checksum> checksums, ChecksumCollection checksumCollection)
         {
             foreach (var checksum in checksumCollection)
-                AddIfNeeded(checksums, checksum);
-        }
-
-        private void AddIfNeeded(HashSet<Checksum> checksums, Checksum checksum)
-        {
-            if (checksum != Checksum.Null && !_assetProvider.EnsureCacheEntryIfExists(checksum))
                 checksums.Add(checksum);
         }
     }

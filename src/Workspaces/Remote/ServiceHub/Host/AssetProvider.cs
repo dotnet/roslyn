@@ -29,15 +29,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public T GetRequiredAsset<T>(Checksum checksum)
         {
-            Debug.Assert(checksum != Checksum.Null);
+            Contract.ThrowIfTrue(checksum == Checksum.Null);
             Contract.ThrowIfFalse(_assetCache.TryGetAsset<T>(checksum, out var asset));
             return asset;
         }
 
         public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            Debug.Assert(checksum != Checksum.Null);
-
+            Contract.ThrowIfTrue(checksum == Checksum.Null);
             if (_assetCache.TryGetAsset<T>(checksum, out var asset))
                 return asset;
 
@@ -107,16 +106,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public bool EnsureCacheEntryIfExists(Checksum checksum)
-        {
-            // this will check whether checksum exists in the cache and if it does,
-            // it will touch the entry so that it doesn't expire right after we checked it.
-            //
-            // even if it got expired after this for whatever reason, functionality wise everything will still work, 
-            // just perf will be impacted since we will fetch it from data source (VS)
-            return _assetCache.TryGetAsset<object>(checksum, out _);
-        }
-
         public async ValueTask SynchronizeAssetsAsync(HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
@@ -125,15 +114,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
-                // Go and figure out which of these items we don't already have locally.
-                using var _1 = ArrayBuilder<Checksum>.GetInstance(checksums.Count, out var assetsToRequest);
+                using var _1 = ArrayBuilder<Checksum>.GetInstance(checksums.Count, out var missingChecksums);
                 foreach (var checksum in checksums)
                 {
                     if (!_assetCache.TryGetAsset<object>(checksum, out _))
-                        assetsToRequest.Add(checksum);
+                        missingChecksums.Add(checksum);
                 }
 
-                var checksumsArray = assetsToRequest.ToImmutableAndClear();
+                var checksumsArray = missingChecksums.ToImmutableAndClear();
                 var assets = await RequestAssetsAsync(checksumsArray, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfTrue(checksumsArray.Length != assets.Length);
@@ -145,8 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<object>> RequestAssetsAsync(ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
-
+            Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
             if (checksums.Length == 0)
                 return ImmutableArray<object>.Empty;
 
