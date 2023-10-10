@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -369,7 +370,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 olds.Object.ExceptWith(newChecksums);
                 news.Object.ExceptWith(oldChecksums);
 
-                var oldMap = await GetDocumentMapAsync(existingTextDocumentStates, olds.Object, cancellationToken).ConfigureAwait(false);
+                using var _1 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldMap);
+
+                await PopulateOldDocumentMapAsync().ConfigureAwait(false);
                 var newMap = await GetDocumentMapAsync(_assetProvider, news.Object, cancellationToken).ConfigureAwait(false);
 
                 // If more than two documents changed during a single update, perform a bulk synchronization on the
@@ -433,6 +436,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return project;
+
+                async Task PopulateOldDocumentMapAsync()
+                {
+                    foreach (var state in existingTextDocumentStates)
+                    {
+                        var documentChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                        if (olds.Object.Contains(documentChecksums.Checksum))
+                            oldMap.Add(state.Id, documentChecksums);
+                    }
+                }
             }
 
             private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums, CancellationToken cancellationToken)
@@ -509,22 +522,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var info = await assetProvider.GetAssetAsync<DocumentInfo.DocumentAttributes>(kv.Item2.Info, cancellationToken).ConfigureAwait(false);
                     map.Add(info.Id, kv.Item2);
-                }
-
-                return map;
-            }
-
-            private static async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(IEnumerable<TextDocumentState> states, HashSet<Checksum> documents, CancellationToken cancellationToken)
-            {
-                var map = new Dictionary<DocumentId, DocumentStateChecksums>();
-
-                foreach (var state in states)
-                {
-                    var documentChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                    if (documents.Contains(documentChecksums.Checksum))
-                    {
-                        map.Add(state.Id, documentChecksums);
-                    }
                 }
 
                 return map;
