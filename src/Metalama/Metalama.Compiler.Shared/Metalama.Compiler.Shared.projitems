@@ -20,7 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RefAssemblyResourceMarker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\IExceptionReporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ILogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\ServicesHolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\IDisposableServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxTreeTransformation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedFileMapping.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedFilesMap.cs" />

@@ -1,4 +1,4 @@
-﻿using Metalama.Compiler.Services;
+﻿using System;
 
 namespace Metalama.Compiler;
 
@@ -15,5 +15,5 @@ public interface ISourceTransformer
 
 public interface ISourceTransformerWithServices : ISourceTransformer
 {
-    ServicesHolder? InitializeServices(InitializeServicesContext context);
+    IServiceProvider? InitializeServices(InitializeServicesContext context);
 }

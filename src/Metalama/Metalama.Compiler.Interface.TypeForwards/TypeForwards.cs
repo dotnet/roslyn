@@ -7,7 +7,7 @@ using Metalama.Compiler.Services;
 [assembly: TypeForwardedTo(typeof(ISourceTransformerWithServices))]
 [assembly: TypeForwardedTo(typeof(InitializeServicesContext))]
 [assembly: TypeForwardedTo(typeof(InitializeServicesOptions))]
-[assembly: TypeForwardedTo(typeof(ServicesHolder))]
+[assembly: TypeForwardedTo(typeof(IDisposableServiceProvider))]
 [assembly: TypeForwardedTo(typeof(IExceptionReporter))]
 [assembly: TypeForwardedTo(typeof(ILogger))]
 [assembly: TypeForwardedTo(typeof(ILogWriter))]

@@ -71,27 +71,10 @@ public sealed class InitializeServicesContext
 /// </summary>
 public sealed class InitializeServicesOptions
 {
-    public bool RequiresMetalamaLicenseEnforcement { get; }
-
-    public bool RequiresMetalamaLicenseAudit { get; }
-
-    public bool RequiresMetalamaSupportServices { get; }
-
     public bool IsLongRunningProcess { get; }
 
-    public string? MsBuildProjectFullPath { get; }
-
-    internal InitializeServicesOptions(
-        bool requiresMetalamaLicenseEnforcement,
-        bool requiresMetalamaLicenseAudit,
-        bool requiresMetalamaSupportServices,
-        bool isLongRunningProcess,
-        string? msBuildProjectFullPath)
+    internal InitializeServicesOptions(bool isLongRunningProcess)
     {
-        RequiresMetalamaLicenseEnforcement = requiresMetalamaLicenseEnforcement;
-        RequiresMetalamaLicenseAudit = requiresMetalamaLicenseAudit;
-        RequiresMetalamaSupportServices = requiresMetalamaSupportServices;
         IsLongRunningProcess = isLongRunningProcess;
-        MsBuildProjectFullPath = msBuildProjectFullPath;
     }
 }

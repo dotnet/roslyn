@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal class MockCSharpCompiler : CSharpCompiler
     {
-        private readonly bool _bypassLicensing;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly ImmutableArray<ISourceGenerator> _generators;
         // <Metalama>
@@ -27,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         internal AnalyzerOptions AnalyzerOptions;
 
         // <Metalama>
-        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ImmutableArray<MetadataReference> additionalReferences = default, bool bypassLicensing = true)
-            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, null, additionalReferences, bypassLicensing)
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ImmutableArray<MetadataReference> additionalReferences = default)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, null, additionalReferences)
         // </Metalama>
         {
         }
 
         // <Metalama>
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, ImmutableArray<MetadataReference> additionalReferences = default, bool bypassLicensing = true)
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, ImmutableArray<MetadataReference> additionalReferences = default)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader(), driverCache)
         // </Metalama>
         {
@@ -44,9 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _transformers = transformers.NullToEmpty();
             // </Metalama>
             _additionalReferences = additionalReferences.NullToEmpty();
-            // <Metalama>
-            _bypassLicensing = bypassLicensing;
-            // </Metalama>
         }
 
         private static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null) => RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory);
@@ -140,15 +136,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             AnalyzerOptions = base.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
             return AnalyzerOptions;
         }
-
-        // <Metalama>
-
-        protected override bool RequiresMetalamaSupportServices => false;
-        protected override bool RequiresMetalamaLicenseEnforcement => !this._bypassLicensing;
-
-        protected override bool RequiresMetalamaLicenseAudit => false;
-
-        protected override bool IsLongRunningProcess => false;
-        // </Metalama>
     }
 }

@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // <Metalama>
 
         private protected override TransformersResult RunTransformers(
-            Compilation inputCompilation, ServicesHolder? servicesHolder, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
+            Compilation inputCompilation, IServiceProvider? serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotate.
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
             var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions,
-                analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, servicesHolder, cancellationToken);
+                analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);
 
             Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
 
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ImmutableArray<ResourceDescription> manifestResources,
             IAnalyzerAssemblyLoader assemblyLoader,
-            ServicesHolder? services,
+            IServiceProvider? services,
             CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotating
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sourceOnlyAnalyzersOptions with { AnalyzerOptions = mappedOptions},
                     annotatedInputCompilation,
                     diagnostics,
-                    services?.Logger ?? NullLogger.Instance,
+                    services?.GetService<ILogger>() ?? NullLogger.Instance,
                     cancellationToken);
             }
 

@@ -1,6 +1,5 @@
 *REMOVED*static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
-abstract Metalama.Compiler.Services.ServicesHolder.DisposeServices(System.Action<Microsoft.CodeAnalysis.Diagnostic!>! reportDiagnostic) -> void
 abstract Microsoft.CodeAnalysis.CommandLineArguments.CompilationOptionsCore.get -> Microsoft.CodeAnalysis.CompilationOptions!
 abstract Microsoft.CodeAnalysis.CommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions!
 const Metalama.Compiler.MetalamaCompilerAnnotations.GeneratedCodeAnnotationKind = "Metalama.Compiler.GeneratedCode" -> string!
@@ -24,7 +23,7 @@ Metalama.Compiler.InitializeServicesOptions.RequiresMetalamaLicenseEnforcement.g
 Metalama.Compiler.InitializeServicesOptions.RequiresMetalamaSupportServices.get -> bool
 Metalama.Compiler.Intrinsics
 Metalama.Compiler.ISourceTransformerWithServices
-Metalama.Compiler.ISourceTransformerWithServices.InitializeServices(Metalama.Compiler.InitializeServicesContext! context) -> Metalama.Compiler.Services.ServicesHolder?
+Metalama.Compiler.ISourceTransformerWithServices.InitializeServices(Metalama.Compiler.InitializeServicesContext! context) -> System.IServiceProvider?
 Metalama.Compiler.ManagedResource
 Metalama.Compiler.ManagedResource.DataProvider.get -> System.Func<System.IO.Stream!>?
 Metalama.Compiler.ManagedResource.IncludeInRefAssembly.get -> bool
@@ -35,6 +34,8 @@ Metalama.Compiler.ManagedResource.Name.get -> string!
 Metalama.Compiler.ManagedResource.Resource.get -> Microsoft.CodeAnalysis.ResourceDescription!
 Metalama.Compiler.MetalamaCompilerAnnotations
 Metalama.Compiler.MetalamaCompilerInfo
+Metalama.Compiler.Services.IDisposableServiceProvider
+Metalama.Compiler.Services.IDisposableServiceProvider.DisposeServices(System.Action<Microsoft.CodeAnalysis.Diagnostic!>! reportDiagnostic) -> void
 Metalama.Compiler.Services.IExceptionReporter
 Metalama.Compiler.Services.IExceptionReporter.ReportException(System.Exception! reportedException) -> void
 Metalama.Compiler.Services.ILogger
@@ -44,10 +45,6 @@ Metalama.Compiler.Services.ILogger.Trace.get -> Metalama.Compiler.Services.ILogW
 Metalama.Compiler.Services.ILogger.Warning.get -> Metalama.Compiler.Services.ILogWriter?
 Metalama.Compiler.Services.ILogWriter
 Metalama.Compiler.Services.ILogWriter.Log(string! message) -> void
-Metalama.Compiler.Services.ServicesHolder
-Metalama.Compiler.Services.ServicesHolder.ExceptionReporter.get -> Metalama.Compiler.Services.IExceptionReporter?
-Metalama.Compiler.Services.ServicesHolder.Logger.get -> Metalama.Compiler.Services.ILogger?
-Metalama.Compiler.Services.ServicesHolder.ServicesHolder(Metalama.Compiler.Services.ILogger? logger, Metalama.Compiler.Services.IExceptionReporter? exceptionReporter) -> void
 Metalama.Compiler.SyntaxTreeTransformation
 Metalama.Compiler.SyntaxTreeTransformation.FilePath.get -> string!
 Metalama.Compiler.SyntaxTreeTransformation.Kind.get -> Metalama.Compiler.SyntaxTreeTransformationKind

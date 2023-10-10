@@ -883,17 +883,13 @@ namespace Microsoft.CodeAnalysis
 
         // <Metalama>
 
-        protected virtual bool RequiresMetalamaSupportServices => true;
-        protected virtual bool RequiresMetalamaLicenseEnforcement => true;
-        protected virtual bool RequiresMetalamaLicenseAudit => true;
-
         protected virtual bool IsLongRunningProcess => false;
 
-        protected static void ReportException(Exception e, ServicesHolder servicesHolder, bool throwReporterExceptions)
+        protected static void ReportException(Exception e, IServiceProvider servicesHolder, bool throwReporterExceptions)
         {
             try
             {
-                servicesHolder.ExceptionReporter?.ReportException(e);
+                servicesHolder.GetService<IExceptionReporter>()?.ReportException(e);
             }
             catch (Exception reporterException)
             {
@@ -921,7 +917,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private protected virtual TransformersResult RunTransformers(
-            Compilation inputCompilation, ServicesHolder? servicesHolder, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
+            Compilation inputCompilation, IServiceProvider? serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
@@ -1306,7 +1302,7 @@ namespace Microsoft.CodeAnalysis
             out AnalyzerDriver? analyzerDriver,
             out GeneratorDriverTimingInfo? generatorTimingInfo)
         {
-            ServicesHolder? servicesHolder = null;
+            IServiceProvider? serviceProvider = null;
 
             try
             {
@@ -1314,16 +1310,16 @@ namespace Microsoft.CodeAnalysis
                 this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers,
                     additionalTextFiles,
                     analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnostics, errorLogger,
-                    cancellationToken, out analyzerCts, out analyzerDriver, out generatorTimingInfo, out servicesHolder);
+                    cancellationToken, out analyzerCts, out analyzerDriver, out generatorTimingInfo, out serviceProvider);
             }
-            catch (Exception e) when (servicesHolder != null)
+            catch (Exception e) when (serviceProvider != null)
             {
-                ReportException(e, servicesHolder, true);
+                ReportException(e, serviceProvider, true);
                 throw;
             }
             finally
             {
-                servicesHolder?.DisposeServices(diagnostics.Add);
+                (serviceProvider as IDisposableServiceProvider)?.DisposeServices(diagnostics.Add);
             }
         }
         // </Metalama>
@@ -1352,7 +1348,7 @@ namespace Microsoft.CodeAnalysis
             out AnalyzerDriver? analyzerDriver,
             out GeneratorDriverTimingInfo? generatorTimingInfo,
             // <Metalama>
-            out ServicesHolder? servicesHolder)
+            out IServiceProvider? serviceProvider)
             // </Metalama> 
         {
             analyzerCts = null;
@@ -1360,7 +1356,7 @@ namespace Microsoft.CodeAnalysis
             generatorTimingInfo = null;
 
             // <Metalama>
-            servicesHolder = null;
+            serviceProvider = null;
             ILogger? logger = null;
             // </Metalama>
 
@@ -1483,16 +1479,13 @@ namespace Microsoft.CodeAnalysis
 
                 var getServicesContext = new InitializeServicesContext(
                     compilation, analyzerConfigProvider,
-                    new(
-                        this.RequiresMetalamaLicenseEnforcement, this.RequiresMetalamaLicenseAudit,
-                        this.RequiresMetalamaSupportServices, this.IsLongRunningProcess,
-                        this.GetMsBuildProjectFullPath(analyzerConfigProvider)),
+                    new(this.IsLongRunningProcess),
                     diagnostics);
                 foreach (var transformer in transformers)
                 {
-                    servicesHolder = (transformer as ISourceTransformerWithServices)?.InitializeServices(getServicesContext);
+                    serviceProvider = (transformer as ISourceTransformerWithServices)?.InitializeServices(getServicesContext);
 
-                    if (servicesHolder != null)
+                    if (serviceProvider != null)
                         break;
                 }
 
@@ -1501,7 +1494,7 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                logger = servicesHolder?.Logger ?? NullLogger.Instance;
+                logger = serviceProvider?.GetService<ILogger>() ?? NullLogger.Instance;
 
                 logger.Trace?.Log($"Compiling {compilation.AssemblyName}. {transformers.Length} transformer(s) found.");
 
@@ -1530,7 +1523,7 @@ namespace Microsoft.CodeAnalysis
                         this.Arguments.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage));
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
-                    var transformersResult = RunTransformers(compilationBeforeTransformation, servicesHolder,
+                    var transformersResult = RunTransformers(compilationBeforeTransformation, serviceProvider,
                         transformers, sourceOnlyAnalyzerOptions, analyzerConfigProvider, transformerOptions,
                         transformersDiagnostics, cancellationToken);
 
@@ -1581,7 +1574,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         var projectFullPath = GetMsBuildProjectFullPath(analyzerConfigProvider);
-                        var projectDirectory = projectFullPath == null ? null : Path.GetDirectoryName(projectFullPath);
+                        var projectDirectory = Path.GetDirectoryName(projectFullPath);
 
                         var pathGenerator = new TransformedPathGenerator(projectDirectory, transformedOutputPath, _workingDirectory);
 
