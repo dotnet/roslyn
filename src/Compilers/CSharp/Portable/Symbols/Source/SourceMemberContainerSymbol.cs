@@ -861,7 +861,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return FileIdentifier.Create(syntaxTree);
+                // This is a path that is emitted and hence needs to go through mapping functions
+                var filePath = syntaxTree.GetDisplayPath(DeclaringCompilation?.Options?.SourceReferenceResolver);
+                return FileIdentifier.Create(filePath);
             }
         }
 

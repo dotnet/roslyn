@@ -89,9 +89,6 @@ internal sealed class FileIdentifier
         }
     }
 
-    public static FileIdentifier Create(SyntaxTree tree)
-        => Create(tree.FilePath);
-
     public static FileIdentifier Create(string filePath)
         => new FileIdentifier(filePath);
 

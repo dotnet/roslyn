@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
     }
 
-    internal sealed class MismatchedVersionBuildResponse : BuildResponse
+    file sealed class MismatchedVersionBuildResponse : BuildResponse
     {
         public override ResponseType Type => ResponseType.MismatchedVersion;
 
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// <summary>
     /// Used when the client cannot connect to the server.
     /// </summary>
-    internal sealed class CannotConnectResponse : BuildResponse
+    file class CannotConnectResponse : BuildResponse
     {
         public override ResponseType Type => ResponseType.CannotConnect;
 

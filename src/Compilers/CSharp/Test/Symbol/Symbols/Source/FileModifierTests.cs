@@ -6,12 +6,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -811,6 +815,79 @@ public partial class C
             AssertEx.Equal("<MyGeneratedFile_g>F18307E6C553D2E6465CEA162655C06E2BB2896889519559EB1EE5FA53513F0E8__C", expectedSymbol.MetadataName);
             Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
         }
+    }
+
+    [Fact]
+    public void Determinism_01()
+    {
+        var source = """
+            file class Outer { }
+            """;
+
+        var (root1, root2) = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? (@"q:\", @"j:\") : ("/q", "/j");
+        var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
+        var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
+        var options = TestOptions.DebugDll.WithDeterministic(true);
+        var comp1 = CreateCompilation(testSource1, options: options);
+        var comp2 = CreateCompilation(testSource2, options: options);
+
+        var resolver = new SourceFileResolver(
+            ImmutableArray<string>.Empty,
+            baseDirectory: null,
+            ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
+        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver));
+
+        var outer1 = comp1.GetMember<NamedTypeSymbol>("Outer").AssociatedFileIdentifier;
+        var outer2 = comp2.GetMember<NamedTypeSymbol>("Outer").AssociatedFileIdentifier;
+        var outer3 = comp3.GetMember<NamedTypeSymbol>("Outer").AssociatedFileIdentifier;
+        Assert.False(outer1.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer2.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer3.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer1.FilePathChecksumOpt.SequenceEqual(outer2.FilePathChecksumOpt));
+        Assert.True(outer1.FilePathChecksumOpt.SequenceEqual(outer3.FilePathChecksumOpt));
+
+        var bytes1 = comp1.EmitToArray();
+        var bytes2 = comp2.EmitToArray();
+        var bytes3 = comp3.EmitToArray();
+        Assert.False(bytes1.SequenceEqual(bytes2));
+        Assert.True(bytes1.SequenceEqual(bytes3));
+    }
+
+    [Fact]
+    public void Determinism_02()
+    {
+        var source = """
+            file class Outer1 { }
+            file class Outer2 { }
+            """;
+
+        var (root1, root2) = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? (@"q:\", @"j:\") : ("/q", "/j");
+        var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
+        var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
+        var options = TestOptions.DebugDll.WithDeterministic(true);
+        var comp1 = CreateCompilation(testSource1, options: options);
+        var comp2 = CreateCompilation(testSource2, options: options);
+
+        var resolver = new SourceFileResolver(
+            ImmutableArray<string>.Empty,
+            baseDirectory: null,
+            ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
+        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver));
+
+        var outer1 = comp1.GetMember<NamedTypeSymbol>("Outer2").AssociatedFileIdentifier;
+        var outer2 = comp2.GetMember<NamedTypeSymbol>("Outer2").AssociatedFileIdentifier;
+        var outer3 = comp3.GetMember<NamedTypeSymbol>("Outer2").AssociatedFileIdentifier;
+        Assert.False(outer1.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer2.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer3.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer1.FilePathChecksumOpt.SequenceEqual(outer2.FilePathChecksumOpt));
+        Assert.True(outer1.FilePathChecksumOpt.SequenceEqual(outer3.FilePathChecksumOpt));
+
+        var bytes1 = comp1.EmitToArray();
+        var bytes2 = comp2.EmitToArray();
+        var bytes3 = comp3.EmitToArray();
+        Assert.False(bytes1.SequenceEqual(bytes2));
+        Assert.True(bytes1.SequenceEqual(bytes3));
     }
 
     [Fact]
