@@ -1549,12 +1549,27 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
-            var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
+            if (_projectIdToTrackerMap.Count == 0)
+                return _projectIdToTrackerMap;
 
+            var newTrackerInfo = new List<KeyValuePair<ProjectId, ICompilationTracker>>();
+            var allReused = true;
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState, translate: null));
+            {
+                var localTracker = tracker;
+                if (!CanReuse(id))
+                {
+                    localTracker = tracker.Fork(tracker.ProjectState, translate: null);
+                    allReused = false;
+                }
 
-            return builder.ToImmutable();
+                newTrackerInfo.Add(new KeyValuePair<ProjectId, ICompilationTracker>(id, localTracker));
+            }
+
+            if (allReused)
+                return _projectIdToTrackerMap;
+
+            return ImmutableDictionary.CreateRange(newTrackerInfo);
 
             // Returns true if 'tracker' can be reused for project 'id'
             bool CanReuse(ProjectId id)
