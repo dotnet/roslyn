@@ -7,20 +7,22 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+/// <summary>
+/// Brokered service.
+/// </summary>
+internal interface ISolutionAssetProvider
 {
     /// <summary>
-    /// Brokered service.
+    /// Streams serialized assets into the given stream.  Assets will be serialized in the exact same order
+    /// corresponding to the checksum index in <paramref name="checksums"/>.
     /// </summary>
-    internal interface ISolutionAssetProvider
-    {
-        /// <summary>
-        /// Streams serialized assets into the given stream.  Assets will be serialized in the exact same order
-        /// corresponding to the checksum index in <paramref name="checksums"/>.
-        /// </summary>
-        /// <param name="pipeWriter">The writer to write the assets into.  Implementations of this method must call<see
-        /// cref="PipeWriter.Complete"/> on it (in the event of failure or success).  Failing to do so will lead to
-        /// hangs on the code that reads from the corresponding <see cref="PipeReader"/> side of this.</param>
-        ValueTask WriteAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken);
-    }
+    /// <param name="pipeWriter">The writer to write the assets into.  Implementations of this method must call<see
+    /// cref="PipeWriter.Complete"/> on it (in the event of failure or success).  Failing to do so will lead to
+    /// hangs on the code that reads from the corresponding <see cref="PipeReader"/> side of this.</param>
+    /// <param name="hintProject">Optional project id to scope the search for checksums down to.  This can save
+    /// substantially on performance by avoiding having to search the full solution tree to find matching items for
+    /// a particular checksum.</param>
+    ValueTask WriteAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken);
 }

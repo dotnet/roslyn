@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     solutionChecksumObject.AddAllTo(checksums);
                     checksums.Remove(solutionChecksumObject.Checksum);
-                    await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.SynchronizeAssetsAsync(hintProject: null, checksums, cancellationToken).ConfigureAwait(false);
                 }
             }
 

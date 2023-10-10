@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask SynchronizeAssetsAsync(HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeAssetsAsync(
+            ProjectId? hintProject, HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
             if (checksums.Count == 0)
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var checksumsArray = missingChecksums.ToImmutableAndClear();
-                var assets = await RequestAssetsAsync(checksumsArray, cancellationToken).ConfigureAwait(false);
+                var assets = await RequestAssetsAsync(hintProject, checksumsArray, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfTrue(checksumsArray.Length != assets.Length);
 
@@ -134,13 +135,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<ImmutableArray<object>> RequestAssetsAsync(ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<object>> RequestAssetsAsync(
+            ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
             if (checksums.Length == 0)
                 return ImmutableArray<object>.Empty;
 
-            return await _assetSource.GetAssetsAsync(_solutionChecksum, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await _assetSource.GetAssetsAsync(_solutionChecksum, hintProject, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }
