@@ -168,6 +168,9 @@ namespace Microsoft.CodeAnalysis.Remote
             var map = new Dictionary<Checksum, object?>();
 
             await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+            var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            map.Remove(projectStateChecksums.Checksum);
+
             return map;
         }
 
