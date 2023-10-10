@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var documentChecksum in projectChecksums.Documents.Concat(projectChecksums.AdditionalDocuments).Concat(projectChecksums.AnalyzerConfigDocuments))
                     {
                         var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, CancellationToken.None).ConfigureAwait(false);
-                        documentChecksums.AddAllTo(set);
+                        AddAllTo(documentChecksums, set);
                     }
                 }
 
@@ -135,6 +135,13 @@ namespace Microsoft.CodeAnalysis.Remote
             // have this to avoid error on async
             await Task.CompletedTask.ConfigureAwait(false);
 #endif
+        }
+
+        private static void AddAllTo(DocumentStateChecksums documentStateChecksums, HashSet<Checksum> checksums)
+        {
+            checksums.AddIfNotNullChecksum(documentStateChecksums.Checksum);
+            checksums.AddIfNotNullChecksum(documentStateChecksums.Info);
+            checksums.AddIfNotNullChecksum(documentStateChecksums.Text);
         }
 
         /// <summary>
@@ -220,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static HashSet<Checksum> Flatten(DocumentStateChecksums checksums)
         {
             var set = new HashSet<Checksum>();
-            checksums.AddAllTo(set);
+            AddAllTo(checksums, set);
             return set;
         }
 

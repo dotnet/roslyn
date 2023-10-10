@@ -309,13 +309,6 @@ internal sealed class DocumentStateChecksums(
     public Checksum Info => infoChecksum;
     public Checksum Text => textChecksum;
 
-    public void AddAllTo(HashSet<Checksum> checksums)
-    {
-        checksums.AddIfNotNullChecksum(this.Checksum);
-        checksums.AddIfNotNullChecksum(this.Info);
-        checksums.AddIfNotNullChecksum(this.Text);
-    }
-
     public void Serialize(ObjectWriter writer)
     {
         // We don't write out the checksum itself as it would bloat the size of this message. If there is corruption
