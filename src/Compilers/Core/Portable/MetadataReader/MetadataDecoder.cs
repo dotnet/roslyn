@@ -1481,7 +1481,7 @@ tryAgain:
         private TypedConstant DecodeCustomAttributeFixedArgumentOrThrow(ITypeSymbolInternal type, ref BlobReader argReader)
         {
             // arrays are allowed only on top-level:
-            if (type.GetElementTypeIfSZArray() is { } elementType)
+            if (type is IArrayTypeSymbolInternal { IsSZArray: true, ElementType: { } elementType })
             {
                 return DecodeCustomAttributeElementArrayOrThrow(ref argReader, getTypeCode(elementType), (TypeSymbol)elementType, (TypeSymbol)type);
             }

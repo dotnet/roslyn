@@ -773,14 +773,5 @@ Done:
             Return Me
         End Function
 
-        Private Function ITypeSymbolInternal_GetElementTypeIfSZArray() As ITypeSymbolInternal Implements ITypeSymbolInternal.GetElementTypeIfSZArray
-            Dim array = TryCast(Me, ArrayTypeSymbol)
-            If array IsNot Nothing AndAlso array.IsSZArray Then
-                Return array.ElementType
-            End If
-
-            Return Nothing
-        End Function
-
     End Class
 End Namespace
