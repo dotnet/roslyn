@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -446,20 +445,21 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
                 if (patternChunk.PatternHumps.Count > 0)
                 {
-                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
-                    if (camelCaseKind.HasValue)
+                    // No need to do the case sensitive check unless the case insensitive check is successful
+                    var camelCaseKindIgnoreCase = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out var matchedSpansIgnoreCase);
+                    if (camelCaseKindIgnoreCase.HasValue)
                     {
-                        return new PatternMatch(
-                            camelCaseKind.Value, punctuationStripped, isCaseSensitive: true,
-                            matchedSpans: matchedSpans);
-                    }
+                        var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
+                        if (camelCaseKind.HasValue)
+                        {
+                            return new PatternMatch(
+                                camelCaseKind.Value, punctuationStripped, isCaseSensitive: true,
+                                matchedSpans: matchedSpans);
+                        }
 
-                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
-                    if (camelCaseKind.HasValue)
-                    {
                         return new PatternMatch(
-                            camelCaseKind.Value, punctuationStripped, isCaseSensitive: false,
-                            matchedSpans: matchedSpans);
+                            camelCaseKindIgnoreCase.Value, punctuationStripped, isCaseSensitive: false,
+                            matchedSpans: matchedSpansIgnoreCase);
                     }
                 }
             }
