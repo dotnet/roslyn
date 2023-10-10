@@ -17,5 +17,10 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// Returns true if this field was declared as "volatile". 
         /// </summary>
         bool IsVolatile { get; }
+
+        /// <summary>
+        /// Field type.
+        /// </summary>
+        ITypeSymbolInternal Type { get; }
     }
 }

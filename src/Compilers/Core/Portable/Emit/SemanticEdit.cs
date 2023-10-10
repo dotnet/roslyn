@@ -47,6 +47,12 @@ namespace Microsoft.CodeAnalysis.Emit
         public Func<SyntaxNode, SyntaxNode?>? SyntaxMap { get; }
 
         /// <summary>
+        /// Associates a syntax node in the later compilation to an error information that should be
+        /// reported at runtime by the IL generated for the node, if any.
+        /// </summary>
+        public Func<SyntaxNode, RuntimeRudeEdit?>? RuntimeRudeEdit { get; }
+
+        /// <summary>
         /// Instrumentation update to be applied to a method.
         /// If not empty, <see cref="OldSymbol"/> and <see cref="NewSymbol"/> must be non-null <see cref="IMethodSymbol"/>s, and
         /// <see cref="Kind"/> must be <see cref="SemanticEditKind.Update"/>.
@@ -66,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Emit
         [Obsolete("Use other overload")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap, bool preserveLocalVariables, MethodInstrumentation instrumentation)
-            : this(kind, oldSymbol, newSymbol, syntaxMap, MethodInstrumentation.Empty)
+            : this(kind, oldSymbol, newSymbol, syntaxMap, runtimeRudeEdit: null, MethodInstrumentation.Empty)
         {
         }
 #pragma warning restore
@@ -95,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="kind"/> is not a valid kind.
         /// </exception>
-        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, MethodInstrumentation instrumentation = default)
+        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdit = null, MethodInstrumentation instrumentation = default)
         {
             if (kind <= SemanticEditKind.None || kind > SemanticEditKind.Replace)
             {
@@ -110,6 +116,12 @@ namespace Microsoft.CodeAnalysis.Emit
             if (newSymbol == null)
             {
                 throw new ArgumentNullException(nameof(newSymbol));
+            }
+
+            // runtime rude edits should only be specified for methods with a syntax map:
+            if (runtimeRudeEdit != null && syntaxMap == null)
+            {
+                throw new ArgumentNullException(nameof(syntaxMap));
             }
 
             if (syntaxMap != null)
@@ -181,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Emit
             NewSymbol = newSymbol;
             SyntaxMap = syntaxMap;
             Instrumentation = instrumentation;
+            RuntimeRudeEdit = runtimeRudeEdit;
         }
 
         /// <summary>

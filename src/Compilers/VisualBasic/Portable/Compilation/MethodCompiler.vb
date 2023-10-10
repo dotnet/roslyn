@@ -311,8 +311,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              synthesizedEntryPoint,
                                              methodOrdinal:=DebugId.UndefinedOrdinal,
                                              block:=body,
-                                             lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
-                                             closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
+                                             lambdaDebugInfo:=ImmutableArray(Of EncLambdaInfo).Empty,
+                                             orderedLambdaRuntimeRudeEdits:=ImmutableArray(Of LambdaRuntimeRudeEditInfo).Empty,
+                                             closureDebugInfo:=ImmutableArray(Of EncClosureInfo).Empty,
                                              stateMachineStateDebugInfos:=ImmutableArray(Of StateMachineStateDebugInfo).Empty,
                                              stateMachineTypeOpt:=Nothing,
                                              variableSlotAllocatorOpt:=Nothing,
@@ -881,8 +882,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          method,
                                                          methodOrdinal:=DebugId.UndefinedOrdinal,
                                                          block:=boundBody,
-                                                         lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
-                                                         closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
+                                                         lambdaDebugInfo:=ImmutableArray(Of EncLambdaInfo).Empty,
+                                                         orderedLambdaRuntimeRudeEdits:=ImmutableArray(Of LambdaRuntimeRudeEditInfo).Empty,
+                                                         closureDebugInfo:=ImmutableArray(Of EncClosureInfo).Empty,
                                                          stateMachineStateDebugInfos:=ImmutableArray(Of StateMachineStateDebugInfo).Empty,
                                                          stateMachineTypeOpt:=Nothing,
                                                          variableSlotAllocatorOpt:=Nothing,
@@ -912,8 +914,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub CompileSynthesizedMethods(additionalTypes As ImmutableArray(Of NamedTypeSymbol))
             Debug.Assert(_moduleBeingBuiltOpt IsNot Nothing)
 
-            Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
-            Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
+            Dim lambdaDebugInfoBuilder = ArrayBuilder(Of EncLambdaInfo).GetInstance()
+            Dim lambdaRuntimeRudeEditsBuilder = ArrayBuilder(Of LambdaRuntimeRudeEditInfo).GetInstance()
+            Dim lambdaRuntimeRudeEdits = ArrayBuilder(Of LambdaRuntimeRudeEditInfo).GetInstance()
+            Dim closureDebugInfoBuilder = ArrayBuilder(Of EncClosureInfo).GetInstance()
             Dim stateMachineStateDebugInfoBuilder = ArrayBuilder(Of StateMachineStateDebugInfo).GetInstance()
             Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)
 
@@ -947,6 +951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             diagnostics:=diagnosticsThisMethod,
                             lazyVariableSlotAllocator:=lazyVariableSlotAllocator,
                             lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
+                            lambdaRuntimeRudeEditsBuilder:=lambdaRuntimeRudeEditsBuilder,
                             closureDebugInfoBuilder:=closureDebugInfoBuilder,
                             stateMachineStateDebugInfoBuilder:=stateMachineStateDebugInfoBuilder,
                             delegateRelaxationIdDispenser:=delegateRelaxationIdDispenser,
@@ -957,11 +962,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If DoEmitPhase AndAlso Not diagnosticsThisMethod.HasAnyErrors Then
                             ' Synthesized methods have no ordinal stored in custom debug information
                             ' (only user-defined methods have ordinals).
+
+                            lambdaRuntimeRudeEdits.Sort(Function(x, y) x.LambdaId.CompareTo(y.LambdaId))
+
                             emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                              method,
                                                              DebugId.UndefinedOrdinal,
                                                              rewrittenBody,
                                                              lambdaDebugInfoBuilder.ToImmutable(),
+                                                             orderedLambdaRuntimeRudeEdits:=lambdaRuntimeRudeEdits.ToImmutable(),
                                                              closureDebugInfoBuilder.ToImmutable(),
                                                              stateMachineStateDebugInfoBuilder.ToImmutable(),
                                                              statemachineTypeOpt,
@@ -1019,8 +1028,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          method,
                                                          methodOrdinal:=DebugId.UndefinedOrdinal,
                                                          block:=methodWithBody.Body,
-                                                         lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
-                                                         closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
+                                                         lambdaDebugInfo:=ImmutableArray(Of EncLambdaInfo).Empty,
+                                                         orderedLambdaRuntimeRudeEdits:=ImmutableArray(Of LambdaRuntimeRudeEditInfo).Empty,
+                                                         closureDebugInfo:=ImmutableArray(Of EncClosureInfo).Empty,
                                                          stateMachineStateDebugInfos:=methodWithBody.StateMachineStatesDebugInfo,
                                                          stateMachineTypeOpt:=methodWithBody.StateMachineType,
                                                          variableSlotAllocatorOpt:=Nothing,
@@ -1362,8 +1372,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' setter needs to rewritten as it may require lambda conversions
                 Dim setterBody = setter.GetBoundMethodBody(compilationState, diagnostics, containingTypeBinder)
 
-                Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
-                Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
+                Dim lambdaDebugInfoBuilder = ArrayBuilder(Of EncLambdaInfo).GetInstance()
+                Dim lambdaRuntimeRudeEditsBuilder = ArrayBuilder(Of LambdaRuntimeRudeEditInfo).GetInstance()
+                Dim closureDebugInfoBuilder = ArrayBuilder(Of EncClosureInfo).GetInstance()
                 Dim stateMachineStateDebugInfoBuilder = ArrayBuilder(Of StateMachineStateDebugInfo).GetInstance()
                 Dim methodInstrumentations = _moduleBeingBuiltOpt.GetMethodBodyInstrumentations(setter)
 
@@ -1378,6 +1389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              diagnostics:=diagnostics,
                                                              lazyVariableSlotAllocator:=Nothing,
                                                              lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
+                                                             lambdaRuntimeRudeEditsBuilder:=lambdaRuntimeRudeEditsBuilder,
                                                              closureDebugInfoBuilder:=closureDebugInfoBuilder,
                                                              stateMachineStateDebugInfoBuilder:=stateMachineStateDebugInfoBuilder,
                                                              delegateRelaxationIdDispenser:=delegateRelaxationIdDispenser,
@@ -1387,6 +1399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' There shall be no lambdas and no awaits/yields in the synthesized accessor but delegate relaxation conversions:
                 Debug.Assert(lambdaDebugInfoBuilder.IsEmpty())
+                Debug.Assert(lambdaRuntimeRudeEditsBuilder.IsEmpty())
                 Debug.Assert(closureDebugInfoBuilder.IsEmpty())
                 Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty())
 
@@ -1475,8 +1488,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lazyVariableSlotAllocator As VariableSlotAllocator = Nothing
             Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
             Dim allowOmissionOfConditionalCalls = _moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls
-            Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
-            Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
+            Dim lambdaDebugInfoBuilder = ArrayBuilder(Of EncLambdaInfo).GetInstance()
+            Dim lambdaRuntimeRudeEditsBuilder = ArrayBuilder(Of LambdaRuntimeRudeEditInfo).GetInstance()
+            Dim lambdaRuntimeRudeEdits = ArrayBuilder(Of LambdaRuntimeRudeEditInfo).GetInstance()
+            Dim closureDebugInfoBuilder = ArrayBuilder(Of EncClosureInfo).GetInstance()
             Dim stateMachineStateDebugInfoBuilder = ArrayBuilder(Of StateMachineStateDebugInfo).GetInstance()
             Dim codeCoverageSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
             Dim instrumentation = If(_moduleBeingBuiltOpt IsNot Nothing, _moduleBeingBuiltOpt.GetMethodBodyInstrumentations(method), Nothing)
@@ -1492,6 +1507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    diagnostics,
                                                    lazyVariableSlotAllocator,
                                                    lambdaDebugInfoBuilder,
+                                                   lambdaRuntimeRudeEditsBuilder,
                                                    closureDebugInfoBuilder,
                                                    stateMachineStateDebugInfoBuilder,
                                                    delegateRelaxationIdDispenser,
@@ -1529,11 +1545,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If DoEmitPhase Then
                 ' NOTE: additional check for statement.HasErrors is needed to identify parse errors which didn't get into diagsForCurrentMethod
+
+                lambdaRuntimeRudeEdits.Sort(Function(x, y) x.LambdaId.CompareTo(y.LambdaId))
+
                 Dim methodBody As MethodBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                               method,
                                                               methodOrdinal,
                                                               body,
                                                               lambdaDebugInfoBuilder.ToImmutable(),
+                                                              orderedLambdaRuntimeRudeEdits:=lambdaRuntimeRudeEdits.ToImmutable(),
                                                               closureDebugInfoBuilder.ToImmutable(),
                                                               stateMachineStateDebugInfoBuilder.ToImmutable(),
                                                               stateMachineTypeOpt,
@@ -1560,8 +1580,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   method As MethodSymbol,
                                                   methodOrdinal As Integer,
                                                   block As BoundStatement,
-                                                  lambdaDebugInfo As ImmutableArray(Of LambdaDebugInfo),
-                                                  closureDebugInfo As ImmutableArray(Of ClosureDebugInfo),
+                                                  lambdaDebugInfo As ImmutableArray(Of EncLambdaInfo),
+                                                  orderedLambdaRuntimeRudeEdits As ImmutableArray(Of LambdaRuntimeRudeEditInfo),
+                                                  closureDebugInfo As ImmutableArray(Of EncClosureInfo),
                                                   stateMachineStateDebugInfos As ImmutableArray(Of StateMachineStateDebugInfo),
                                                   stateMachineTypeOpt As StateMachineTypeSymbol,
                                                   variableSlotAllocatorOpt As VariableSlotAllocator,
@@ -1680,6 +1701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       hasDynamicLocalVariables:=False,
                                       importScopeOpt:=importScopeOpt,
                                       lambdaDebugInfo:=lambdaDebugInfo,
+                                      orderedLambdaRuntimeRudeEdits:=orderedLambdaRuntimeRudeEdits,
                                       closureDebugInfo:=closureDebugInfo,
                                       stateMachineTypeNameOpt:=stateMachineTypeOpt?.Name, ' TODO: remove or update AddedOrChangedMethodInfo
                                       stateMachineHoistedLocalScopes:=stateMachineHoistedLocalScopes,

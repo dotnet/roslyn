@@ -20,20 +20,36 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class DefinitionMap
     {
-        protected readonly struct MappedMethod
+        private readonly struct MetadataLambdasAndClosures(
+            ImmutableArray<(DebugId id, IMethodSymbolInternal symbol)> lambdaSymbols,
+            IReadOnlyDictionary<DebugId, (DebugId? parentId, ImmutableArray<string> structCapures)> closureTree)
         {
-            public readonly IMethodSymbolInternal PreviousMethod;
-            public readonly Func<SyntaxNode, SyntaxNode?>? SyntaxMap;
+            /// <summary>
+            /// Ordered by id.
+            /// </summary>
+            public ImmutableArray<(DebugId id, IMethodSymbolInternal symbol)> LambdaSymbols { get; } = lambdaSymbols;
 
-            public MappedMethod(IMethodSymbolInternal previousMethod, Func<SyntaxNode, SyntaxNode?>? syntaxMap)
-            {
-                PreviousMethod = previousMethod;
-                SyntaxMap = syntaxMap;
-            }
+            /// <summary>
+            /// Ordered by id.
+            /// </summary>
+            public IReadOnlyDictionary<DebugId, (DebugId? parentId, ImmutableArray<string> structCapures)> ClosureTree { get; } = closureTree;
+
+            public IMethodSymbolInternal? GetLambdaSymbol(DebugId lambdaId)
+                => LambdaSymbols.BinarySearch(lambdaId, static (info, id) => info.id.CompareTo(id)) is int i and >= 0 ? LambdaSymbols[i].symbol : null;
+
+            public (DebugId? parentId, ImmutableArray<string>) TryGetClosureInfo(DebugId closureId)
+                => ClosureTree.TryGetValue(closureId, out var node) ? (node.parentId, node.structCapures) : default;
         }
 
         private readonly ImmutableDictionary<IMethodSymbolInternal, MethodInstrumentation> _methodInstrumentations;
-        protected readonly IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> mappedMethods;
+        protected readonly IReadOnlyDictionary<IMethodSymbolInternal, EncMappedMethod> mappedMethods;
+
+        /// <summary>
+        /// Caches <see cref="MetadataLambdasAndClosures"/> for named PE types.
+        /// </summary>
+        private ImmutableDictionary<INamedTypeSymbolInternal, MetadataLambdasAndClosures> _metadataLambdasAndClosures
+            = ImmutableDictionary<INamedTypeSymbolInternal, MetadataLambdasAndClosures>.Empty;
+
         public readonly EmitBaseline Baseline;
 
         protected DefinitionMap(IEnumerable<SemanticEdit> edits, EmitBaseline baseline)
@@ -49,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Emit
             Baseline = baseline;
         }
 
-        private IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
+        private IReadOnlyDictionary<IMethodSymbolInternal, EncMappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
         {
-            var mappedMethods = new Dictionary<IMethodSymbolInternal, MappedMethod>();
+            var mappedMethods = new Dictionary<IMethodSymbolInternal, EncMappedMethod>();
             foreach (var edit in edits)
             {
                 // We should always "preserve locals" of iterator and async methods since the state machine 
@@ -73,14 +89,16 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (edit.Kind == SemanticEditKind.Update && edit.SyntaxMap != null)
                 {
-                    RoslynDebug.AssertNotNull(edit.NewSymbol);
-                    RoslynDebug.AssertNotNull(edit.OldSymbol);
+                    Debug.Assert(edit.NewSymbol != null);
+                    Debug.Assert(edit.OldSymbol != null);
 
-                    if (GetISymbolInternalOrNull(edit.NewSymbol) is IMethodSymbolInternal newMethod &&
-                        GetISymbolInternalOrNull(edit.OldSymbol) is IMethodSymbolInternal oldMethod)
-                    {
-                        mappedMethods.Add(newMethod, new MappedMethod(oldMethod, edit.SyntaxMap));
-                    }
+                    var oldMethod = (IMethodSymbolInternal?)GetISymbolInternalOrNull(edit.OldSymbol);
+                    var newMethod = (IMethodSymbolInternal?)GetISymbolInternalOrNull(edit.NewSymbol);
+
+                    Debug.Assert(oldMethod != null);
+                    Debug.Assert(newMethod != null);
+
+                    mappedMethods.Add(newMethod, new EncMappedMethod(oldMethod, edit.SyntaxMap, edit.RuntimeRudeEdit));
                 }
             }
 
@@ -212,8 +230,8 @@ namespace Microsoft.CodeAnalysis.Emit
             ImmutableArray<EncLocalInfo> previousLocals;
             IReadOnlyDictionary<EncHoistedLocalInfo, int>? hoistedLocalMap = null;
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap = null;
-            IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? lambdaMap = null;
-            IReadOnlyDictionary<int, DebugId>? closureMap = null;
+            IReadOnlyDictionary<int, EncLambdaMapValue>? lambdaMap = null;
+            IReadOnlyDictionary<int, EncClosureMapValue>? closureMap = null;
             IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId debugId), StateMachineState>? stateMachineStateMap = null;
             StateMachineState? firstUnusedIncreasingStateMachineState = null;
             StateMachineState? firstUnusedDecreasingStateMachineState = null;
@@ -224,15 +242,16 @@ namespace Microsoft.CodeAnalysis.Emit
             SymbolMatcher symbolMap;
 
             int methodIndex = MetadataTokens.GetRowNumber(methodHandle);
-            DebugId methodId;
+            DebugId? methodId;
 
             // Check if method has changed previously. If so, we already have a map.
             if (Baseline.AddedOrChangedMethods.TryGetValue(methodIndex, out var addedOrChangedMethod))
             {
                 methodId = addedOrChangedMethod.MethodId;
 
-                MakeLambdaAndClosureMaps(addedOrChangedMethod.LambdaDebugInfo, addedOrChangedMethod.ClosureDebugInfo, out lambdaMap, out closureMap);
-                MakeStateMachineStateMap(addedOrChangedMethod.StateMachineStates.States, out stateMachineStateMap);
+                lambdaMap = MakeLambdaMap(addedOrChangedMethod.LambdaDebugInfo);
+                closureMap = MakeClosureMap(addedOrChangedMethod.ClosureDebugInfo);
+                stateMachineStateMap = MakeStateMachineStateMap(addedOrChangedMethod.StateMachineStates.States);
 
                 firstUnusedIncreasingStateMachineState = addedOrChangedMethod.StateMachineStates.FirstUnusedIncreasingStateMachineState;
                 firstUnusedDecreasingStateMachineState = addedOrChangedMethod.StateMachineStates.FirstUnusedDecreasingStateMachineState;
@@ -288,14 +307,20 @@ namespace Microsoft.CodeAnalysis.Emit
                     return null;
                 }
 
-                methodId = new DebugId(debugInfo.MethodOrdinal, 0);
-
-                if (!debugInfo.Lambdas.IsDefaultOrEmpty)
+                if (debugInfo.Lambdas.IsDefaultOrEmpty)
                 {
-                    MakeLambdaAndClosureMaps(debugInfo.Lambdas, debugInfo.Closures, out lambdaMap, out closureMap);
+                    // We do not have method ids for methods without lambdas.
+                    methodId = null;
+                }
+                else
+                {
+                    methodId = new DebugId(debugInfo.MethodOrdinal, 0);
+
+                    var peMethod = GetMethodSymbol(methodHandle);
+                    MakeLambdaAndClosureMapFromMetadata(debugInfo, peMethod, methodId.Value, out lambdaMap, out closureMap);
                 }
 
-                MakeStateMachineStateMap(debugInfo.StateMachineStates, out stateMachineStateMap);
+                stateMachineStateMap = MakeStateMachineStateMap(debugInfo.StateMachineStates);
 
                 if (!debugInfo.StateMachineStates.IsDefaultOrEmpty)
                 {
@@ -372,8 +397,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return new EncVariableSlotAllocator(
                 symbolMap,
-                mappedMethod.SyntaxMap,
-                mappedMethod.PreviousMethod,
+                mappedMethod,
                 methodId,
                 previousLocals,
                 lambdaMap,
@@ -403,39 +427,69 @@ namespace Microsoft.CodeAnalysis.Emit
                 stateMachineAttributeFullName));
         }
 
-        private static void MakeLambdaAndClosureMaps(
-            ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
-            ImmutableArray<ClosureDebugInfo> closureDebugInfo,
-            out IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMap,
-            out IReadOnlyDictionary<int, DebugId> closureMap)
+        private static IReadOnlyDictionary<int, EncLambdaMapValue> MakeLambdaMap(ImmutableArray<EncLambdaInfo> lambdaDebugInfo)
+            => lambdaDebugInfo.ToImmutableSegmentedDictionary(
+                keySelector: static info => info.DebugInfo.SyntaxOffset,
+                elementSelector: static info => new EncLambdaMapValue(info.DebugInfo.LambdaId, info.DebugInfo.ClosureOrdinal, info.StructClosureIds));
+
+        private static IReadOnlyDictionary<int, EncClosureMapValue> MakeClosureMap(ImmutableArray<EncClosureInfo> closureDebugInfo)
+            => closureDebugInfo.ToImmutableSegmentedDictionary(
+                keySelector: static info => info.DebugInfo.SyntaxOffset,
+                elementSelector: static info => new EncClosureMapValue(info.DebugInfo.ClosureId, info.ParentDebugId, info.StructCaptures));
+
+        private void MakeLambdaAndClosureMapFromMetadata(
+            EditAndContinueMethodDebugInformation debugInfo,
+            IMethodSymbolInternal method,
+            DebugId methodId,
+            out IReadOnlyDictionary<int, EncLambdaMapValue> lambdaMap,
+            out IReadOnlyDictionary<int, EncClosureMapValue> closureMap)
         {
-            var lambdas = new Dictionary<int, KeyValuePair<DebugId, int>>(lambdaDebugInfo.Length);
-            var closures = new Dictionary<int, DebugId>(closureDebugInfo.Length);
+            var map = GetMetadataLambdaAndClosureMap(method.ContainingType, methodId);
 
-            for (int i = 0; i < lambdaDebugInfo.Length; i++)
+            lambdaMap = debugInfo.Lambdas.ToImmutableSegmentedDictionary(
+                keySelector: static info => info.SyntaxOffset,
+                elementSelector: info => new EncLambdaMapValue(info.LambdaId, info.ClosureOrdinal, getLambdaStructClosureIdsFromMetadata(map.GetLambdaSymbol(info.LambdaId), methodId)));
+
+            closureMap = debugInfo.Closures.ToImmutableSegmentedDictionary(
+                keySelector: static info => info.SyntaxOffset,
+                elementSelector: info =>
+                {
+                    var (parentId, structCaptures) = map.TryGetClosureInfo(info.ClosureId);
+                    return new EncClosureMapValue(info.ClosureId, parentId, structCaptures);
+                });
+
+            ImmutableArray<DebugId> getLambdaStructClosureIdsFromMetadata(IMethodSymbolInternal? lambda, DebugId methodId)
             {
-                var lambdaInfo = lambdaDebugInfo[i];
-                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePairUtil.Create(lambdaInfo.LambdaId, lambdaInfo.ClosureOrdinal);
-            }
+                if (lambda == null || lambda.Parameters is [])
+                {
+                    return ImmutableArray<DebugId>.Empty;
+                }
 
-            for (int i = 0; i < closureDebugInfo.Length; i++)
-            {
-                var closureInfo = closureDebugInfo[i];
-                closures[closureInfo.SyntaxOffset] = closureInfo.ClosureId;
-            }
+                var builder = ArrayBuilder<DebugId>.GetInstance(lambda.Parameters.Length);
+                foreach (var p in lambda.Parameters)
+                {
+                    var displayClassName = p.Type.Name;
+                    if (p.RefKind == RefKind.Ref &&
+                        TryParseDisplayClassOrLambdaName(displayClassName, out int suffixIndex, out char idSeparator, out bool isDisplayClass, out bool _, out bool hasDebugIds) &&
+                        isDisplayClass &&
+                        hasDebugIds &&
+                        CommonGeneratedNames.TryParseDebugIds(displayClassName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: false, out var parsedMethodId, out var parsedEntityId) &&
+                        parsedMethodId == methodId)
+                    {
+                        builder.Add(parsedEntityId);
+                    }
+                }
 
-            lambdaMap = lambdas;
-            closureMap = closures;
+                return builder.ToImmutableAndFree();
+            }
         }
 
-        private static void MakeStateMachineStateMap(
-            ImmutableArray<StateMachineStateDebugInfo> debugInfos,
-            out IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId debugId), StateMachineState>? map)
-        {
-            map = debugInfos.IsDefault ?
-                null :
-                debugInfos.ToDictionary(entry => (entry.SyntaxOffset, entry.AwaitId), entry => entry.StateNumber);
-        }
+        private static IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId debugId), StateMachineState>? MakeStateMachineStateMap(ImmutableArray<StateMachineStateDebugInfo> debugInfos)
+            => debugInfos.IsDefault
+                ? null
+                : debugInfos.ToImmutableSegmentedDictionary(
+                    keySelector: static entry => (entry.SyntaxOffset, entry.AwaitId),
+                    elementSelector: static entry => entry.StateNumber);
 
         private static void GetStateMachineFieldMapFromPreviousCompilation(
             ImmutableArray<EncHoistedLocalInfo> hoistedLocalSlots,
@@ -479,40 +533,52 @@ namespace Microsoft.CodeAnalysis.Emit
             out int suffixIndex,
             out char idSeparator,
             out bool isDisplayClass,
+            out bool isDisplayClassParentField,
             out bool hasDebugIds);
 
-        private IEnumerable<IMethodSymbolInternal> GetSynthesizedClosureMethods(
-            ImmutableArray<ISymbolInternal> synthesizedMembers,
+        private MetadataLambdasAndClosures GetMetadataLambdaAndClosureMap(INamedTypeSymbolInternal peType, DebugId methodId)
+            => ImmutableInterlocked.GetOrAdd(
+                ref _metadataLambdasAndClosures,
+                peType,
+                static (type, arg) => arg.self.CreateLambdaAndClosureMap(type.GetMembers(), synthesizedMemberMap: null, arg.methodId),
+                (self: this, methodId));
+
+        private MetadataLambdasAndClosures CreateLambdaAndClosureMap(
+            ImmutableArray<ISymbolInternal> members,
             IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? synthesizedMemberMap,
-            DebugId methodId,
-            HashSet<DebugId> lambdaIds)
+            DebugId methodId)
         {
-            return recurse(synthesizedMembers, inSpecificDisplayClass: false);
+            var lambdasBuilder = ArrayBuilder<(DebugId id, IMethodSymbolInternal symbol)>.GetInstance();
+            var closureTreeBuilder = ImmutableSegmentedDictionary.CreateBuilder<DebugId, (DebugId? parentId, ImmutableArray<string> structCaptures)>();
 
-            IEnumerable<IMethodSymbolInternal> recurse(ImmutableArray<ISymbolInternal> synthesizedMembers, bool inSpecificDisplayClass)
+            recurse(members, containingDisplayClassId: null);
+
+            lambdasBuilder.Sort(static (x, y) => x.id.CompareTo(y.id));
+
+            return new MetadataLambdasAndClosures(lambdasBuilder.ToImmutableAndFree(), closureTreeBuilder.ToImmutable());
+
+            void recurse(ImmutableArray<ISymbolInternal> members, DebugId? containingDisplayClassId)
             {
-                foreach (var synthesizedMember in synthesizedMembers)
+                foreach (var member in members)
                 {
-                    var memberName = synthesizedMember.Name;
+                    var memberName = member.Name;
 
-                    if (TryParseDisplayClassOrLambdaName(memberName, out int suffixIndex, out char idSeparator, out bool isDisplayClass, out bool hasDebugIds))
+                    if (TryParseDisplayClassOrLambdaName(memberName, out int suffixIndex, out char idSeparator, out bool isDisplayClass, out bool isDisplayClassParentField, out bool hasDebugIds))
                     {
                         // If we are in a display class that is specific to a method the original method id is already incorporated to the name of the display class,
                         // so members do not have it in their name and only have the entity id.
-
-                        var suffixSpan = memberName.AsSpan(suffixIndex);
 
                         DebugId parsedMethodId = default;
                         DebugId parsedEntityId = default;
                         if (hasDebugIds)
                         {
-                            if (!CommonGeneratedNames.TryParseDebugIds(suffixSpan, idSeparator, isMethodIdOptional: inSpecificDisplayClass, out parsedMethodId, out parsedEntityId))
+                            if (!CommonGeneratedNames.TryParseDebugIds(memberName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: containingDisplayClassId.HasValue, out parsedMethodId, out parsedEntityId))
                             {
                                 // name is not well-formed
                                 continue;
                             }
 
-                            if (!inSpecificDisplayClass && parsedMethodId != methodId)
+                            if (!containingDisplayClassId.HasValue && parsedMethodId != methodId)
                             {
                                 // synthesized member belongs to a different method
                                 continue;
@@ -522,27 +588,69 @@ namespace Microsoft.CodeAnalysis.Emit
                         if (isDisplayClass)
                         {
                             // display classes are not nested:
-                            Debug.Assert(!inSpecificDisplayClass);
+                            Debug.Assert(!containingDisplayClassId.HasValue);
 
-                            var displayClass = (INamedTypeSymbolInternal)synthesizedMember;
+                            var displayClass = (INamedTypeSymbolInternal)member;
                             var displayClassMembers = (synthesizedMemberMap != null) ? synthesizedMemberMap[displayClass] : displayClass.GetMembers();
 
-                            foreach (var displayClassMember in recurse(displayClassMembers, inSpecificDisplayClass: hasDebugIds))
+                            if (displayClass.TypeKind == TypeKind.Struct)
                             {
-                                yield return displayClassMember;
+                                Debug.Assert(hasDebugIds);
+
+                                closureTreeBuilder[parsedEntityId] =
+                                    closureTreeBuilder.GetValueOrDefault(parsedEntityId) with { structCaptures = getHoistedVariableNames(displayClassMembers) };
+                            }
+
+                            recurse(displayClassMembers, hasDebugIds ? parsedEntityId : null);
+                        }
+                        else if (isDisplayClassParentField)
+                        {
+                            Debug.Assert(containingDisplayClassId.HasValue);
+
+                            if (member is IFieldSymbolInternal field && tryParseDisplayClassDebugId(field.Type.Name, out var parentClosureDebugId))
+                            {
+                                closureTreeBuilder[containingDisplayClassId.Value] =
+                                    closureTreeBuilder.GetValueOrDefault(containingDisplayClassId.Value) with { parentId = parentClosureDebugId };
                             }
                         }
                         else
                         {
                             Debug.Assert(hasDebugIds);
-
-                            if (lambdaIds.Contains(parsedEntityId))
-                            {
-                                yield return (IMethodSymbolInternal)synthesizedMember;
-                            }
+                            lambdasBuilder.Add((parsedEntityId, (IMethodSymbolInternal)member));
                         }
                     }
                 }
+            }
+
+            bool tryParseDisplayClassDebugId(string displayClassName, out DebugId id)
+            {
+                if (TryParseDisplayClassOrLambdaName(displayClassName, out int suffixIndex, out char idSeparator, out bool isDisplayClass, out _, out bool hasDebugIds) &&
+                    isDisplayClass &&
+                    hasDebugIds &&
+                    CommonGeneratedNames.TryParseDebugIds(displayClassName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: false, out var parsedMethodId, out var parsedEntityId) &&
+                    parsedMethodId == methodId)
+                {
+                    id = parsedEntityId;
+                    return true;
+                }
+
+                // invalid metadata
+                id = default;
+                return false;
+            }
+
+            ImmutableArray<string> getHoistedVariableNames(ImmutableArray<ISymbolInternal> members)
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                foreach (var member in members)
+                {
+                    if (member is { Kind: SymbolKind.Field, IsStatic: false })
+                    {
+                        builder.Add(member.Name);
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
             }
         }
 
@@ -551,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         /// <param name="oldMethod">Method from the previous generation.</param>
         /// <param name="currentLambdas">Lambdas generated to the current version of the method. This includes both lambdas mapped to previous ones and newly introduced lambdas.</param>
-        public IEnumerable<IMethodSymbolInternal> GetDeletedSynthesizedMethods(IMethodSymbolInternal oldMethod, ImmutableArray<LambdaDebugInfo> currentLambdas)
+        public IEnumerable<(DebugId id, IMethodSymbolInternal symbol)> GetDeletedSynthesizedMethods(IMethodSymbolInternal oldMethod, ImmutableArray<EncLambdaInfo> currentLambdas)
         {
             var methodHandle = GetPreviousMethodHandle(oldMethod, out var peMethod);
             var methodRowId = MetadataTokens.GetRowNumber(methodHandle);
@@ -563,10 +671,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (!addedOrChangedMethod.LambdaDebugInfo.IsDefaultOrEmpty &&
                     Baseline.SynthesizedMembers.TryGetValue(oldMethod.ContainingType, out var synthesizedSiblingSymbols))
                 {
-                    return getDeletedSynthesizedClosureMethods(synthesizedSiblingSymbols, Baseline.SynthesizedMembers, addedOrChangedMethod.MethodId, addedOrChangedMethod.LambdaDebugInfo);
+                    return getDeletedLambdas(
+                        CreateLambdaAndClosureMap(synthesizedSiblingSymbols, Baseline.SynthesizedMembers, addedOrChangedMethod.MethodId),
+                        lambdasToInclude: addedOrChangedMethod.LambdaDebugInfo);
                 }
 
-                return SpecializedCollections.EmptyEnumerable<IMethodSymbolInternal>();
+                return [];
             }
 
             Debug.Assert(peMethod != null);
@@ -578,38 +688,46 @@ namespace Microsoft.CodeAnalysis.Emit
             }
             catch (Exception e) when (e is InvalidDataException or IOException)
             {
-                return SpecializedCollections.EmptyEnumerable<IMethodSymbolInternal>();
+                return [];
             }
 
             if (provider.Lambdas.IsDefaultOrEmpty)
             {
-                return SpecializedCollections.EmptyEnumerable<IMethodSymbolInternal>();
+                return [];
             }
 
-            var debugId = new DebugId(provider.MethodOrdinal, generation: 0);
-            return getDeletedSynthesizedClosureMethods(peMethod.ContainingType.GetMembers(), synthesizedMemberMap: null, debugId, provider.Lambdas);
+            return getDeletedLambdas(
+                GetMetadataLambdaAndClosureMap(peMethod.ContainingType, methodId: new DebugId(provider.MethodOrdinal, generation: 0)),
+                metadataLambdasToInclude: provider.Lambdas);
 
-            IEnumerable<IMethodSymbolInternal> getDeletedSynthesizedClosureMethods(
-                ImmutableArray<ISymbolInternal> synthesizedSiblings,
-                IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? synthesizedMemberMap,
-                DebugId methodId,
-                ImmutableArray<LambdaDebugInfo> previousLambdas)
+            IEnumerable<(DebugId id, IMethodSymbolInternal symbol)> getDeletedLambdas(
+                MetadataLambdasAndClosures map,
+                ImmutableArray<EncLambdaInfo> lambdasToInclude = default,
+                ImmutableArray<LambdaDebugInfo> metadataLambdasToInclude = default)
             {
                 var lambdaIdSet = PooledHashSet<DebugId>.GetInstance();
 
-                foreach (var info in previousLambdas)
+                foreach (var info in lambdasToInclude.NullToEmpty())
+                {
+                    lambdaIdSet.Add(info.DebugInfo.LambdaId);
+                }
+
+                foreach (var info in metadataLambdasToInclude.NullToEmpty())
                 {
                     lambdaIdSet.Add(info.LambdaId);
                 }
 
                 foreach (var info in currentLambdas)
                 {
-                    lambdaIdSet.Remove(info.LambdaId);
+                    lambdaIdSet.Remove(info.DebugInfo.LambdaId);
                 }
 
-                foreach (var method in GetSynthesizedClosureMethods(synthesizedSiblings, synthesizedMemberMap, methodId, lambdaIdSet))
+                foreach (var entry in map.LambdaSymbols)
                 {
-                    yield return method;
+                    if (lambdaIdSet.Contains(entry.id))
+                    {
+                        yield return entry;
+                    }
                 }
 
                 lambdaIdSet.Free();

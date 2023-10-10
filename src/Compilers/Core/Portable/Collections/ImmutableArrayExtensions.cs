@@ -1098,5 +1098,42 @@ namespace Microsoft.CodeAnalysis
 
             return ~low;
         }
+
+        public static bool IsSubsetOf<TElement>(this ImmutableArray<TElement> array, ImmutableArray<TElement> other)
+        {
+            if (other.Length == 0)
+            {
+                return array.Length == 0;
+            }
+
+            switch (array.Length)
+            {
+                case 0:
+                    return true;
+                case 1:
+                    return other.Contains(array[0]);
+                case 2:
+                    return other.Contains(array[0]) && other.Contains(array[1]);
+                case 3:
+                    return other.Contains(array[0]) && other.Contains(array[1]) && other.Contains(array[2]);
+            }
+
+            var set = PooledHashSet<TElement>.GetInstance();
+            foreach (var item in other)
+            {
+                set.Add(item);
+            }
+
+            foreach (var item in array)
+            {
+                if (!set.Contains(item))
+                {
+                    return false;
+                }
+            }
+
+            set.Free();
+            return true;
+        }
     }
 }
