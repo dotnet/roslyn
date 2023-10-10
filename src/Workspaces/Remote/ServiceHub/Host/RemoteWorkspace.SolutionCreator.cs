@@ -247,11 +247,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     project = await UpdateDocumentsAsync(
                         project,
                         newProjectChecksums,
-                        project.State.DocumentStates.States.Values,
+                        project.State.DocumentStates,
                         oldProjectChecksums.Documents,
                         newProjectChecksums.Documents,
-                        (solution, documents) => solution.AddDocuments(documents),
-                        (solution, documentIds) => solution.RemoveDocuments(documentIds),
+                        static (solution, documents) => solution.AddDocuments(documents),
+                        static (solution, documentIds) => solution.RemoveDocuments(documentIds),
                         cancellationToken).ConfigureAwait(false);
                 }
 
@@ -261,11 +261,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     project = await UpdateDocumentsAsync(
                         project,
                         newProjectChecksums,
-                        project.State.AdditionalDocumentStates.States.Values,
+                        project.State.AdditionalDocumentStates,
                         oldProjectChecksums.AdditionalDocuments,
                         newProjectChecksums.AdditionalDocuments,
-                        (solution, documents) => solution.AddAdditionalDocuments(documents),
-                        (solution, documentIds) => solution.RemoveAdditionalDocuments(documentIds),
+                        static (solution, documents) => solution.AddAdditionalDocuments(documents),
+                        static (solution, documentIds) => solution.RemoveAdditionalDocuments(documentIds),
                         cancellationToken).ConfigureAwait(false);
                 }
 
@@ -275,11 +275,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     project = await UpdateDocumentsAsync(
                         project,
                         newProjectChecksums,
-                        project.State.AnalyzerConfigDocumentStates.States.Values,
+                        project.State.AnalyzerConfigDocumentStates,
                         oldProjectChecksums.AnalyzerConfigDocuments,
                         newProjectChecksums.AnalyzerConfigDocuments,
-                        (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
-                        (solution, documentIds) => solution.RemoveAnalyzerConfigDocuments(documentIds),
+                        static (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
+                        static (solution, documentIds) => solution.RemoveAnalyzerConfigDocuments(documentIds),
                         cancellationToken).ConfigureAwait(false);
                 }
 
@@ -350,15 +350,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 return project;
             }
 
-            private async Task<Project> UpdateDocumentsAsync(
+            private async Task<Project> UpdateDocumentsAsync<TDocumentState>(
                 Project project,
                 ProjectStateChecksums projectChecksums,
-                IEnumerable<TextDocumentState> existingTextDocumentStates,
+                TextDocumentStates<TDocumentState> existingTextDocumentStates,
                 ChecksumCollection oldChecksums,
                 ChecksumCollection newChecksums,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
-                CancellationToken cancellationToken)
+                CancellationToken cancellationToken) where TDocumentState : TextDocumentState
             {
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 async Task PopulateOldDocumentMapAsync()
                 {
-                    foreach (var state in existingTextDocumentStates)
+                    foreach (var (_, state) in existingTextDocumentStates.States)
                     {
                         var documentChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                         if (olds.Object.Contains(documentChecksums.Checksum))
