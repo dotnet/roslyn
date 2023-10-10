@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis
         public static Func<IEnumerable<Checksum>, string> GetChecksumsLogInfo { get; }
             = checksums => string.Join("|", checksums.Select(c => c.ToString()));
 
-        public static Func<IEnumerable<ProjectStateChecksums>, string> GetProjectChecksumsLogInfo { get; }
-            = checksums => string.Join("|", checksums.Select(c => c.Checksum.ToString()));
+        public static Func<ProjectStateChecksums, string> GetProjectChecksumsLogInfo { get; }
+            = checksums => checksums.Checksum.ToString();
 
         // Explicitly implement this method as default jit for records on netfx doesn't properly devirtualize the
         // standard calls to EqualityComparer<HashData>.Default.Equals

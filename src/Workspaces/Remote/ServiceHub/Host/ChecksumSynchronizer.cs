@@ -47,46 +47,53 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // third and last get direct children for all projects and documents in the solution 
-            var projectStateChecksums = _assetProvider.GetAssetsAsync<ProjectStateChecksums>()
-
-            await SynchronizeProjectAssets_NoLockAsync(solutionChecksumObject.Projects, cancellationToken).ConfigureAwait(false);
-
-        }
-
-        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<ProjectStateChecksums> projectChecksums, CancellationToken cancellationToken)
-        {
-            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            foreach (var project in solutionChecksumObject.Projects)
             {
-                await SynchronizeProjectAssets_NoLockAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+                var projectStateChecksums = _assetProvider.GetRequiredAsset<ProjectStateChecksums>(project);
+                await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async ValueTask SynchronizeProjectAssets_NoLockAsync(IReadOnlyCollection<ProjectStateChecksums> projectChecksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeProjectAssetsAsync(ProjectStateChecksums projectChecksum, CancellationToken cancellationToken)
+        {
+            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await SynchronizeProjectAssets_NoLockAsync(projectChecksum, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async ValueTask SynchronizeProjectAssets_NoLockAsync(ProjectStateChecksums projectChecksum, CancellationToken cancellationToken)
         {
             // get children of project checksum objects at once
-            await SynchronizeProjectsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+            await SynchronizeProjectAsync(projectChecksum, cancellationToken).ConfigureAwait(false);
 
             // get children of document checksum objects at once
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
             var checksums = pooledObject.Object;
 
-            foreach (var projectChecksum in projectChecksums)
-            {
-                await CollectChecksumChildrenAsync(checksums, projectChecksum.Documents, cancellationToken).ConfigureAwait(false);
-                await CollectChecksumChildrenAsync(checksums, projectChecksum.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
-                await CollectChecksumChildrenAsync(checksums, projectChecksum.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
-            }
+            await CollectChecksumChildrenAsync(checksums, projectChecksum.Documents, cancellationToken).ConfigureAwait(false);
+            await CollectChecksumChildrenAsync(checksums, projectChecksum.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
+            await CollectChecksumChildrenAsync(checksums, projectChecksum.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
 
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask SynchronizeProjectsAsync(IReadOnlyCollection<ProjectStateChecksums> projectChecksums, CancellationToken cancellationToken)
+        private async ValueTask SynchronizeProjectAsync(ProjectStateChecksums projectChecksum, CancellationToken cancellationToken)
         {
             // get children of project checksum objects at once
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
             var checksums = pooledObject.Object;
 
-            CollectProjectStateChecksums(checksums, projectChecksums);
+            AddIfNeeded(checksums, projectChecksum.Info);
+            AddIfNeeded(checksums, projectChecksum.CompilationOptions);
+            AddIfNeeded(checksums, projectChecksum.ParseOptions);
+            AddIfNeeded(checksums, projectChecksum.Documents);
+            AddIfNeeded(checksums, projectChecksum.ProjectReferences);
+            AddIfNeeded(checksums, projectChecksum.MetadataReferences);
+            AddIfNeeded(checksums, projectChecksum.AnalyzerReferences);
+            AddIfNeeded(checksums, projectChecksum.AdditionalDocuments);
+            AddIfNeeded(checksums, projectChecksum.AnalyzerConfigDocuments);
+
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
@@ -103,23 +110,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 var checksumObject = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(checksum, cancellationToken).ConfigureAwait(false);
                 AddIfNeeded(set, checksumObject.Info);
                 AddIfNeeded(set, checksumObject.Text);
-            }
-        }
-
-        private void CollectProjectStateChecksums(HashSet<Checksum> set, IReadOnlyCollection<ProjectStateChecksums> checksums)
-        {
-            foreach (var checksum in checksums)
-            {
-                var checksumObject = checksum;
-                AddIfNeeded(set, checksumObject.Info);
-                AddIfNeeded(set, checksumObject.CompilationOptions);
-                AddIfNeeded(set, checksumObject.ParseOptions);
-                AddIfNeeded(set, checksumObject.Documents);
-                AddIfNeeded(set, checksumObject.ProjectReferences);
-                AddIfNeeded(set, checksumObject.MetadataReferences);
-                AddIfNeeded(set, checksumObject.AnalyzerReferences);
-                AddIfNeeded(set, checksumObject.AdditionalDocuments);
-                AddIfNeeded(set, checksumObject.AnalyzerConfigDocuments);
             }
         }
 

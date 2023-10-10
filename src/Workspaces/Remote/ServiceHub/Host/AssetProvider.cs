@@ -27,6 +27,13 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly SolutionAssetCache _assetCache = assetCache;
         private readonly IAssetSource _assetSource = assetSource;
 
+        public T GetRequiredAsset<T>(Checksum checksum)
+        {
+            Debug.Assert(checksum != Checksum.Null);
+            Contract.ThrowIfFalse(_assetCache.TryGetAsset<T>(checksum, out var asset));
+            return asset;
+        }
+
         public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
             Debug.Assert(checksum != Checksum.Null);
@@ -50,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // this will be fast since we actually synchronized the checksums above.
             using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
             foreach (var checksum in checksums)
-                list.Add(ValueTuple.Create(checksum, await GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false)));
+                list.Add(ValueTuple.Create(checksum, GetRequiredAsset<T>(checksum)));
 
             return list.ToImmutableAndClear();
         }
@@ -83,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<ProjectStateChecksums> projectChecksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeProjectAssetsAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
         {
             // this will pull in assets that belong to the given project checksum to this remote host.
             // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.

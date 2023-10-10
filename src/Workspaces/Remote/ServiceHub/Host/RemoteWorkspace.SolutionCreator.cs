@@ -186,18 +186,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private async ValueTask SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap, CancellationToken cancellationToken)
             {
-                using var pooledObject = SharedPools.Default<HashSet<ProjectStateChecksums>>().GetPooledObject();
-
                 // added project
-                foreach (var kv in newMap)
+                foreach (var (projectId, projectStateChecksums) in newMap)
                 {
-                    if (oldMap.ContainsKey(kv.Key))
+                    if (oldMap.ContainsKey(projectId))
                         continue;
 
-                    pooledObject.Object.Add(kv.Value);
+                    await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
                 }
-
-                await _assetProvider.SynchronizeProjectAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<Solution> UpdateProjectAsync(Project project, ProjectStateChecksums oldProjectChecksums, ProjectStateChecksums newProjectChecksums, CancellationToken cancellationToken)
@@ -381,9 +377,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
                 if (newMap.Count > 2)
                 {
-                    using var pooledObject = SharedPools.Default<HashSet<ProjectStateChecksums>>().GetPooledObject();
-                    pooledObject.Object.Add(projectChecksums);
-                    await _assetProvider.SynchronizeProjectAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
                 // added document
