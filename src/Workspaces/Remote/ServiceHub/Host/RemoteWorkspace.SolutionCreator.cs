@@ -116,13 +116,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 olds.Object.ExceptWith(newChecksums);
                 news.Object.ExceptWith(oldChecksums);
 
-                return await UpdateProjectsAsync(solution, olds.Object, news.Object, cancellationToken).ConfigureAwait(false);
-            }
+                using var _1 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldMap);
+                using var _2 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newMap);
 
-            private async Task<Solution> UpdateProjectsAsync(Solution solution, HashSet<Checksum> oldChecksums, HashSet<Checksum> newChecksums, CancellationToken cancellationToken)
-            {
-                var oldMap = await GetProjectMapAsync(solution, oldChecksums, cancellationToken).ConfigureAwait(false);
-                var newMap = await GetProjectMapAsync(_assetProvider, newChecksums, cancellationToken).ConfigureAwait(false);
+                await PopulateOldProjectMapAsync().ConfigureAwait(false);
+                await PopulateNewProjectMapAsync(this).ConfigureAwait(false);
 
                 // bulk sync assets
                 await SynchronizeAssetsAsync(oldMap, newMap, cancellationToken).ConfigureAwait(false);
@@ -183,6 +181,36 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return solution;
+
+                async Task PopulateOldProjectMapAsync()
+                {
+                    foreach (var (projectId, projectState) in solution.State.ProjectStates)
+                    {
+                        var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                        if (olds.Object.Contains(projectChecksums.Checksum))
+                            oldMap.Add(projectId, projectChecksums);
+                    }
+                }
+
+                async Task PopulateNewProjectMapAsync(SolutionCreator @this)
+                {
+                    var map = new Dictionary<ProjectId, ProjectStateChecksums>();
+
+                    var projectChecksums = await @this._assetProvider.GetAssetsAsync<ProjectStateChecksums>(news.Object, cancellationToken).ConfigureAwait(false);
+
+                    using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+                    var infoChecksums = pooledObject.Object;
+
+                    foreach (var projectChecksum in projectChecksums)
+                        infoChecksums.Add(projectChecksum.Item2.Info);
+
+                    var infos = await @this._assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes>(infoChecksums, cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, projectStateChecksum) in projectChecksums)
+                    {
+                        var info = @this._assetProvider.GetRequiredAsset<ProjectInfo.ProjectAttributes>(projectStateChecksum.Info);
+                        map.Add(info.Id, projectStateChecksum);
+                    }
+                }
             }
 
             private async ValueTask SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap, CancellationToken cancellationToken)
@@ -520,45 +548,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return document;
-            }
-
-            private static async ValueTask<Dictionary<ProjectId, ProjectStateChecksums>> GetProjectMapAsync(AssetProvider assetProvider, HashSet<Checksum> projects, CancellationToken cancellationToken)
-            {
-                var map = new Dictionary<ProjectId, ProjectStateChecksums>();
-
-                var projectChecksums = await assetProvider.GetAssetsAsync<ProjectStateChecksums>(projects, cancellationToken).ConfigureAwait(false);
-
-                using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-                var infoChecksums = pooledObject.Object;
-
-                foreach (var projectChecksum in projectChecksums)
-                    infoChecksums.Add(projectChecksum.Item2.Info);
-
-                var infos = await assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes>(infoChecksums, cancellationToken).ConfigureAwait(false);
-
-                foreach (var kv in projectChecksums)
-                {
-                    var info = await assetProvider.GetAssetAsync<ProjectInfo.ProjectAttributes>(kv.Item2.Info, cancellationToken).ConfigureAwait(false);
-                    map.Add(info.Id, kv.Item2);
-                }
-
-                return map;
-            }
-
-            private static async Task<Dictionary<ProjectId, ProjectStateChecksums>> GetProjectMapAsync(Solution solution, HashSet<Checksum> projects, CancellationToken cancellationToken)
-            {
-                var map = new Dictionary<ProjectId, ProjectStateChecksums>();
-
-                foreach (var (projectId, projectState) in solution.State.ProjectStates)
-                {
-                    var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                    if (projects.Contains(projectChecksums.Checksum))
-                    {
-                        map.Add(projectId, projectChecksums);
-                    }
-                }
-
-                return map;
             }
 
 #if DEBUG
