@@ -11,7 +11,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests
     {
         protected static class GroupIds
         {
-            public const string Server = "Microsoft.Web.Blazor.Server";
+            public const string Server = "Microsoft.Web.Blazor";
             public const string Wasm = "Microsoft.Web.Blazor.Wasm";
         }
 
