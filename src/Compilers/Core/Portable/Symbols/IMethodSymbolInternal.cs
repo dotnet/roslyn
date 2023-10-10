@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         bool IsAsync { get; }
 
+        /// <summary>
+        /// Returns true if this method has no return type; i.e., returns "void".
+        /// </summary>
+        bool ReturnsVoid { get; }
+
         int ParameterCount { get; }
 
         int CalculateLocalSyntaxOffset(int declaratorPosition, SyntaxTree declaratorTree);
