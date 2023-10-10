@@ -187,8 +187,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 async Task PopulateNewProjectMapAsync(SolutionCreator @this)
                 {
-                    var map = new Dictionary<ProjectId, ProjectStateChecksums>();
-
                     var projectChecksums = await @this._assetProvider.GetAssetsAsync<ProjectStateChecksums>(news.Object, cancellationToken).ConfigureAwait(false);
 
                     using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
@@ -201,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var (_, projectStateChecksum) in projectChecksums)
                     {
                         var info = @this._assetProvider.GetRequiredAsset<ProjectInfo.ProjectAttributes>(projectStateChecksum.Info);
-                        map.Add(info.Id, projectStateChecksum);
+                        newMap.Add(info.Id, projectStateChecksum);
                     }
                 }
             }
