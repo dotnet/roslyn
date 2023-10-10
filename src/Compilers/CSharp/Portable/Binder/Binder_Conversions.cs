@@ -568,7 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
             {
-                return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+                Debug.Assert(conversion.Kind is ConversionKind.NoConversion);
+                return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: false, diagnostics);
             }
 
             var syntax = (ExpressionSyntax)node.Syntax;
@@ -613,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (collectionBuilderMethod is null)
                         {
                             diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
-                            return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+                            return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
                         Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
@@ -641,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (targetType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything))
                     {
                         diagnostics.Add(ErrorCode.ERR_CollectionExpressionImmutableArray, syntax, targetType.OriginalDefinition);
-                        return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+                        return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                     }
                     break;
             }
@@ -737,6 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderMethod,
                 collectionBuilderInvocationPlaceholder,
                 collectionBuilderInvocationConversion,
+                wasTargetTyped: true,
                 builder.ToImmutableAndFree(),
                 targetType);
 
@@ -794,6 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
+            bool inConversion,
             BindingDiagnosticBag diagnostics)
         {
             var syntax = node.Syntax;
@@ -813,6 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderMethod: null,
                 collectionBuilderInvocationPlaceholder: null,
                 collectionBuilderInvocationConversion: null,
+                wasTargetTyped: inConversion,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors: true);
