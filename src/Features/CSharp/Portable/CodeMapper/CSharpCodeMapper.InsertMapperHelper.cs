@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,13 +18,10 @@ internal sealed partial class CSharpCodeMapper
     /// This C# mapper helper focuses on Code Insertions. Specifically inserting code that
     /// doesn't currently exists in the target document.
     /// </summary>
-    private class InsertMapperHelper : ICodeMapperHelper
+    private class InsertionHelper : IMappingHelper
     {
-        public bool TryGetValidInsertions(
-            SyntaxNode target,
-            CSharpSourceNode[] sourceNodes,
-            out CSharpSourceNode[] validInsertions,
-            out InvalidInsertion[] invalidInsertions)
+
+        public bool TryGetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes, out CSharpSourceNode[] validInsertions, out InvalidInsertion[] invalidInsertions)
         {
             var validNodes = new List<CSharpSourceNode>();
             var invalidNodes = new List<InvalidInsertion>();
@@ -64,27 +61,25 @@ internal sealed partial class CSharpCodeMapper
         /// <param name="target"></param>
         /// <param name="adjustedInsertion"></param>
         /// <returns></returns>
-        public FileLinePositionSpan? GetInsertSpan(
-            SyntaxNode documentSyntax,
-            CSharpSourceNode insertion,
-            MappingTarget? target,
-            out string? adjustedInsertion)
+        /// 
+
+        public TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget? target, out string? adjustedInsertion)
         {
             adjustedInsertion = null;
             int insertionPoint;
-            if (insertion is CSharpScopedNode scoped)
+            if (insertion.Scope is not Scope.None)
             {
-                if (TryGetScopedInsertionPoint(documentSyntax, scoped.Scope, out insertionPoint))
+                if (TryGetScopedInsertionPoint(documentSyntax, insertion.Scope, out insertionPoint))
                 {
-                    return documentSyntax.SyntaxTree.GetLineSpan(new TextSpan(insertionPoint, 0));
+                    return new TextSpan(insertionPoint, 0);
                 }
             }
 
             // If there's an specific focus area, or caret provided, we should try to insert as close as possible.
             // As long as the focused area is not empty.
-            if (TryGetFocusedInsertionPoint(target, documentSyntax, insertion, out insertionPoint))
+            if (TryGetFocusedInsertionPoint(target.FocusArea.SourceSpan, documentSyntax, insertion, out insertionPoint))
             {
-                return documentSyntax.SyntaxTree.GetLineSpan(new TextSpan(insertionPoint, 0));
+                return new TextSpan(insertionPoint, 0);
             }
 
             // Fallback: Attempt to infer the insertion point without a caret or line.
@@ -92,7 +87,7 @@ internal sealed partial class CSharpCodeMapper
             // current document.
             if (TryGetDefaultInsertionPoint(documentSyntax, out insertionPoint))
             {
-                return documentSyntax.SyntaxTree.GetLineSpan(new TextSpan(insertionPoint, 0));
+                return new TextSpan(insertionPoint, 0);
             }
 
             return null;
@@ -123,7 +118,7 @@ internal sealed partial class CSharpCodeMapper
             // If last property is not null, get the span end as insertion point.
             var lastProperty = firstClass.DescendantNodes()
                 .OfType<MemberDeclarationSyntax>()
-                .Where(NodeHelper.IsSimpleNode)
+                .Where(CSharpSourceNode.IsSimpleNode)
                 .LastOrDefault();
             if (lastProperty is not null)
             {
@@ -233,7 +228,7 @@ internal sealed partial class CSharpCodeMapper
             return false;
         }
 
-        private static bool TryGetFocusedInsertionPoint(MappingTarget? target, SyntaxNode documentSyntax, CSharpSourceNode insertion, out int insertionPoint)
+        private static bool TryGetFocusedInsertionPoint(TextSpan? target, SyntaxNode documentSyntax, CSharpSourceNode insertion, out int insertionPoint)
         {
             // If there's an specific focus area, or caret provided, we should try to insert as close as possible.
             // As long as the focused area is not empty.
@@ -270,10 +265,10 @@ internal sealed partial class CSharpCodeMapper
         private static int AdjustInsertionLineNumber(CSharpSourceNode sourceNode, int lineNumber, SyntaxNode target)
         {
             var adjustedLineNumber = lineNumber;
-            if (sourceNode is CSharpScopedNode scopedNode && (scopedNode.Scope == Scope.Method || scopedNode.Scope == Scope.Class))
+            if (sourceNode.Scope == Scope.Method || sourceNode.Scope == Scope.Class)
             {
                 // override line with new closest valid position.
-                adjustedLineNumber = FindClosestScopedInsertionLine(target, scopedNode.Scope, lineNumber);
+                adjustedLineNumber = FindClosestScopedInsertionLine(target, sourceNode.Scope, lineNumber);
             }
             else
             {
@@ -289,7 +284,7 @@ internal sealed partial class CSharpCodeMapper
                             var lineSpan = node.GetLocation().GetLineSpan();
                             return lineSpan.StartLinePosition.Line <= lineNumber && lineSpan.EndLinePosition.Line >= lineNumber;
                         })
-                        .Select<SyntaxNode, (SyntaxNode node, Scope scope)?>(node => NodeHelper.IsScopedNode(node, out var scopeType) ? (node, scopeType) : null)
+                        .Select<SyntaxNode, (SyntaxNode node, Scope scope)?>(node => CSharpSourceNode.IsScopedNode(node, out var scopeType) ? (node, scopeType) : null)
                         .Where(pair => pair is not null)
                         .OfType<(SyntaxNode node, Scope scope)>()
                         .OrderBy(pair => pair.scope);
@@ -304,7 +299,7 @@ internal sealed partial class CSharpCodeMapper
                         var validLineStart = validLineSpan.StartLinePosition.Line;
 
                         // Get the brace tokens from the current scope.
-                        var braceTokens = NodeHelper.GetOpenCloseBraceTokens(containingScope);
+                        var braceTokens = CSharpSourceNode.GetOpenCloseBraceTokens(containingScope);
 
                         // If brace tokens are found, use then to get the minimum value you need to be able to
                         // insert something inside the brace tokens.
@@ -352,7 +347,7 @@ internal sealed partial class CSharpCodeMapper
             var closestLine = int.MaxValue;
             var temptativeLines = target.DescendantNodesAndSelf()
                 .OfType<MemberDeclarationSyntax>()
-                .Where(member => NodeHelper.IsScopedNode(member, out var scope) && scope == scopeType)
+                .Where(member => CSharpSourceNode.IsScopedNode(member, out var scope) && scope == scopeType)
                 .Select(member => member.GetLocation().GetLineSpan())
                 .SelectMany(span => new[] { span.StartLinePosition.Line, span.EndLinePosition.Line + 1 });
 

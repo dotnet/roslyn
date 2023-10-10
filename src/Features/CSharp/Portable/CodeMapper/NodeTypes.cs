@@ -2,68 +2,71 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
 
-internal static class NodeTypes
+internal partial class CSharpSourceNode
 {
     /// <summary>
     /// A list of short circuit types.
     /// These are excluded types that we know we don't want to compare against
     /// all other scoped or simple types.
     /// </summary>
-    public static HashSet<Type> Exclude = new HashSet<Type>
-    {
-        typeof(CompilationUnitSyntax),
-    };
+    private static bool IsExcluded(SyntaxKind kind) => kind is SyntaxKind.CompilationUnit;
 
     /// <summary>
     /// The list of supported Scoped nodes.
     /// </summary>
-    public static IReadOnlyDictionary<Scope, Type[]> Scoped = new Dictionary<Scope, Type[]>
+    private static bool IsScoped(SyntaxKind kind, out Scope scopeKind)
     {
-        [Scope.Class] = new[]
+        switch (kind)
         {
-            typeof(ClassDeclarationSyntax),
-            typeof(InterfaceDeclarationSyntax),
-            typeof(EnumDeclarationSyntax),
-            typeof(StructDeclarationSyntax),
-            typeof(RecordDeclarationSyntax),
-        },
-        [Scope.Method] = new[]
-        {
-            typeof(MethodDeclarationSyntax),
-            typeof(LocalFunctionStatementSyntax),
-            typeof(ConstructorDeclarationSyntax),
-        },
-        [Scope.Statement] = new[]
-        {
-            typeof(WhileStatementSyntax),
-            typeof(IfStatementSyntax),
-            typeof(SwitchStatementSyntax),
-            typeof(DoStatementSyntax),
-            typeof(ForEachStatementSyntax),
-            typeof(ForStatementSyntax),
-        },
-    };
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.EnumDeclaration:
+            case SyntaxKind.StructDeclaration:
+            case SyntaxKind.RecordDeclaration:
+                scopeKind = Scope.Class;
+                return true;
+
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.LocalFunctionStatement:
+            case SyntaxKind.ConstructorDeclaration:
+                scopeKind = Scope.Method;
+                return true;
+
+            case SyntaxKind.WhileStatement:
+            case SyntaxKind.IfStatement:
+            case SyntaxKind.SwitchStatement:
+            case SyntaxKind.DoStatement:
+            case SyntaxKind.ForEachStatement:
+            case SyntaxKind.ForStatement:
+                scopeKind = Scope.Statement;
+                return true;
+        }
+
+        scopeKind = Scope.None;
+        return false;
+    }
 
     /// <summary>
     /// The simple node types.
     /// </summary>
-    public static Type[] Simple = new[]
+    private static bool IsSimple(SyntaxKind kind)
     {
-        typeof(FieldDeclarationSyntax),
-        typeof(EventFieldDeclarationSyntax),
-        typeof(PropertyDeclarationSyntax),
-        typeof(DelegateDeclarationSyntax),
-        typeof(LocalDeclarationStatementSyntax),
-        typeof(ExpressionStatementSyntax),
-        typeof(ReturnStatementSyntax),
-        typeof(YieldStatementSyntax),
-        typeof(ThrowExpressionSyntax),
-        typeof(AwaitExpressionSyntax),
-    };
+        return kind switch
+        {
+            SyntaxKind.FieldDeclaration => true,
+            SyntaxKind.EventFieldDeclaration => true,
+            SyntaxKind.PropertyDeclaration => true,
+            SyntaxKind.DelegateDeclaration => true,
+            SyntaxKind.LocalDeclarationStatement => true,
+            SyntaxKind.ExpressionStatement => true,
+            SyntaxKind.ReturnStatement => true,
+            SyntaxKind.YieldBreakStatement => true,
+            SyntaxKind.YieldReturnStatement => true,
+            SyntaxKind.ThrowExpression => true,
+            SyntaxKind.AwaitExpression => true,
+            _ => false
+        };
+    }
 }

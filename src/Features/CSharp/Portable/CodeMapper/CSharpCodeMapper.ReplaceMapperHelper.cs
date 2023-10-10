@@ -5,9 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,12 +19,12 @@ internal sealed partial class CSharpCodeMapper
     /// This C# mapper helper focuses on Code Replacements. Specifically replacing code that
     /// currently exists in the target document.
     /// </summary>
-    private class ReplaceMapperHelper : ICodeMapperHelper
+    private class ReplaceHelper : IMappingHelper
     {
-        public FileLinePositionSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget? target, out string? adjustedInsertion)
+        public TextSpan? GetInsertSpan(SyntaxNode documentSyntax, CSharpSourceNode insertion, MappingTarget? target, out string? adjustedInsertion)
         {
             adjustedInsertion = null;
-            if (insertion is not CSharpSourceNode csharpInsertion || !csharpInsertion.ExistsOnTarget(documentSyntax, out var matchingNode))
+            if (!insertion.ExistsOnTarget(documentSyntax, out var matchingNode))
             {
                 return null;
             }
@@ -37,9 +37,9 @@ internal sealed partial class CSharpCodeMapper
             // Get rid of all leading whitespace and line breaks that only add noise.
             var (adjustedMatchingNode, textSpan) = RemoveLeadingWhitespaceTrivia(matchingNode);
 
-            var insertionAttributes = TryGetNodeAttributes(csharpInsertion.Node);
+            var insertionAttributes = TryGetNodeAttributes(insertion.Node);
             var nodeToReplaceAttributes = TryGetNodeAttributes(matchingNode);
-            var adjustedNode = csharpInsertion.Node;
+            var adjustedNode = insertion.Node;
             if (HasAnyCommentTrivia(adjustedNode))
             {
                 // If the insertion has docs, we should insert the docs as well.
@@ -91,12 +91,12 @@ internal sealed partial class CSharpCodeMapper
             }
 
             // If node was adjusted, set the adjustedInsertion to the new adjusted text.
-            if (adjustedNode is not null && adjustedNode != csharpInsertion.Node)
+            if (adjustedNode is not null && adjustedNode != insertion.Node)
             {
                 adjustedInsertion = adjustedNode.ToFullString();
             }
 
-            return matchingNode.SyntaxTree.GetLineSpan(textSpan);
+            return textSpan;
         }
 
         private static bool HasAnyCommentTrivia(SyntaxNode node)
@@ -180,12 +180,9 @@ internal sealed partial class CSharpCodeMapper
                     || t.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
                     || t.IsKind(SyntaxKind.SingleLineCommentTrivia);
         }
+        
 
-        public bool TryGetValidInsertions(
-            SyntaxNode target,
-            CSharpSourceNode[] sourceNodes,
-            out CSharpSourceNode[] validInsertions,
-            out InvalidInsertion[] invalidInsertions)
+        public bool TryGetValidInsertions(SyntaxNode target, ImmutableArray<CSharpSourceNode> sourceNodes, out CSharpSourceNode[] validInsertions, out InvalidInsertion[] invalidInsertions)
         {
             var validNodes = new List<CSharpSourceNode>();
             var invalidNodes = new List<InvalidInsertion>();

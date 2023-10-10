@@ -13,32 +13,45 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
 /// <summary>
 /// Represents a syntax node in C# source code.
 /// </summary>
-internal abstract class CSharpSourceNode
+internal partial class CSharpSourceNode
 {
     private readonly Lazy<string> _identifierName;
 
     /// <summary>
     /// The name of the node's identifier.
     /// </summary>
-    public string IdentifierName => this._identifierName.Value;
+    public string IdentifierName => _identifierName.Value;
 
-    public string ToFullString() => this.Node.ToFullString();
+    public string ToFullString() => Node.ToFullString();
 
     /// <summary>
     /// The syntax node wrapped by this class.
     /// </summary>
     public readonly SyntaxNode Node;
+    
+    /// <summary>
+    /// Gets the scope of the node.
+    /// </summary>
+    public Scope Scope { get; private set; }
+    
+    /// <summary>
+    /// Returns a value indicating whether this node is valid replace type of node.
+    /// Replace nodes currently only support Class and Method.
+    /// </summary>
+    public bool IsReplaceScope => Scope == Scope.Method || Scope == Scope.Class;
 
     /// <summary>
     /// Creates a new instance of the SourceNode class.
     /// </summary>
     /// <param name="node">The syntax node to represent.</param>
-    public CSharpSourceNode(SyntaxNode node)
+    private CSharpSourceNode(SyntaxNode node, Scope scope)
     {
-        this.Node = node;
-        this._identifierName = new Lazy<string>(() =>
+        Node = node;
+        Scope = scope;
+
+        _identifierName = new Lazy<string>(() =>
         {
-            return GetIdentifierName(this.Node);
+            return GetIdentifierName(Node);
         });
     }
 
@@ -51,22 +64,22 @@ internal abstract class CSharpSourceNode
     public bool ExistsOnTarget(SyntaxNode node, out SyntaxNode? matchingNode)
     {
         matchingNode = null;
-        if (this is CSharpSimpleNode)
+        if (Scope is Scope.None)
         {
             matchingNode = node.DescendantNodesAndSelf()
-                .Where(n => NodeHelper.IsSimpleNode(n) && GetIdentifierName(n) == this.IdentifierName)
+                .Where(n => IsSimpleNode(n) && GetIdentifierName(n) == IdentifierName)
                 .FirstOrDefault();
             if (matchingNode is not null)
             {
                 return true;
             }
         }
-        else if (this is CSharpScopedNode scopedNode && scopedNode.IsReplaceScope)
+        else if (IsReplaceScope)
         {
             matchingNode = node.DescendantNodesAndSelf()
-            .Where(n => NodeHelper.IsScopedNode(n, out var scope)
-            && scope == scopedNode.Scope
-            && GetIdentifierName(n) == this.IdentifierName)
+            .Where(n => IsScopedNode(n, out var scope)
+            && scope == Scope
+            && GetIdentifierName(n) == IdentifierName)
             .FirstOrDefault();
             if (matchingNode is not null)
             {
@@ -83,7 +96,7 @@ internal abstract class CSharpSourceNode
     /// <returns>A string representation of the node.</returns>
     public override string ToString()
     {
-        return this.Node.ToFullString();
+        return Node.ToFullString();
     }
 
     private static string FindIdentifierNameInNode(SyntaxNode node)
@@ -136,11 +149,6 @@ internal abstract class CSharpSourceNode
             (ConstructorDeclarationSyntax constructor) => BuildConstructorIdentifier(constructor),
             _ => FindIdentifierNameInNode(node),
         };
-    }
-
-    public virtual bool IsValid()
-    {
-        return !string.IsNullOrWhiteSpace(this.IdentifierName);
     }
 
     /// <summary>

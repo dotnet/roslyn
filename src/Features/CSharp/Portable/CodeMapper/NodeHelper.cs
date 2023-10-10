@@ -3,80 +3,108 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
 
 /// <summary>
 /// Helper class for working with C# syntax nodes.
 /// </summary>
-internal static class NodeHelper
+internal partial class CSharpSourceNode
 {
     /// <summary>
     /// Extracts source nodes from a syntax node.
     /// </summary>
     /// <param name="rootNode">The root node.</param>
     /// <returns>A list of source nodes.</returns>
-    public static IList<CSharpSourceNode> ExtractSourceNodes(SyntaxNode rootNode)
+    public static ImmutableArray<CSharpSourceNode> ExtractSourceNodes(SyntaxNode rootNode)
     {
-        var sourceNodes = new List<CSharpSourceNode>();
+        using var _ = ArrayBuilder<CSharpSourceNode>.GetInstance(out var sourceNodes);
         var stack = new Stack<SyntaxNode>();
         stack.Push(rootNode);
 
         while (stack.Count > 0)
         {
             var currentNode = stack.Pop();
+            var sourceNode = CreateSourceNode(currentNode);
 
-            if (IsScopedNode(currentNode, out var scope) || IsSimpleNode(currentNode))
+            if (sourceNode is not null)
             {
-                CSharpSourceNode sourceNode;
-                if (scope != Scope.Unknown)
-                {
-                    sourceNode = new CSharpScopedNode(currentNode, scope);
-                }
-                else
-                {
-                    sourceNode = new CSharpSimpleNode(currentNode);
-                }
+                // Mixed scoped types nodes are unsupported
+                if (sourceNodes.Count > 0 && sourceNodes[0].Scope != sourceNode.Scope)
+                    return ImmutableArray<CSharpSourceNode>.Empty;
 
-                if (sourceNode.IsValid())
-                {
-                    sourceNodes.Add(sourceNode);
-                }
-
-                continue;
+                sourceNodes.Add(sourceNode);
             }
-
-            // Add child nodes to the stack in reverse order for depth-first search
-            foreach (var childNode in currentNode.ChildNodes().Reverse())
+            else
             {
-                stack.Push(childNode);
+                // Add child nodes to the stack in reverse order for depth-first search
+                foreach (var childNode in currentNode.ChildNodes().Reverse())
+                {
+                    stack.Push(childNode);
+                }
             }
         }
 
-        return sourceNodes;
-    }
+        return sourceNodes.ToImmutable();
 
-    /// <summary>
-    /// Gets the syntax node asynchronously.
-    /// </summary>
-    /// <param name="code">The code.</param>
-    /// <param name="cancellation">The cancellation token.</param>
-    /// <returns>The syntax node.</returns>
-    public static async Task<SyntaxNode?> GetSyntaxAsync(string code, CancellationToken cancellation)
-    {
-        var tree = CSharpSyntaxTree.ParseText(code);
-        if (tree is null)
+        static CSharpSourceNode? CreateSourceNode(SyntaxNode syntaxNode)
         {
+            if (IsScopedNode(syntaxNode, out var scope) || IsSimpleNode(syntaxNode))
+            {
+                if (scope is not Scope.None)
+                {
+                    var bodySyntax = GetBodySyntax(syntaxNode);
+                    if (bodySyntax is BlockSyntax blockSyntax)
+                    {
+                        // Mark as invalid when any of the brackets is missing.
+                        if (blockSyntax.CloseBraceToken.IsMissing || blockSyntax.OpenBraceToken.IsMissing)
+                        {
+                            return null;
+                        }
+                    }
+                    else if (bodySyntax is StructDeclarationSyntax str)
+                    {
+                        if (str.CloseBraceToken.IsMissing || str.OpenBraceToken.IsMissing)
+                        {
+                            return null;
+                        }
+                    }
+                    else if (bodySyntax is RecordDeclarationSyntax rec)
+                    {
+                        // Record may or may not have the brace tokens depending on how they are
+                        // initialized.
+                        // So we will only return false when we detect that they did have an open brace token
+                        // but then they didn't have a close brace token;
+                        if (!rec.OpenBraceToken.IsMissing && rec.CloseBraceToken.IsMissing)
+                        {
+                            return null;
+                        }
+
+                        // If record doesn't have neither close brace token or semi column
+                        if (rec.CloseBraceToken.IsMissing && rec.SemicolonToken.IsMissing)
+                        {
+                            return null;
+                        }
+                    }
+                    else if (bodySyntax is BaseTypeDeclarationSyntax typeSyntax)
+                    {
+                        if (typeSyntax.CloseBraceToken.IsMissing || typeSyntax.OpenBraceToken.IsMissing)
+                        {
+                            return null;
+                        }
+                    }
+                }
+
+                return new(syntaxNode, scope);
+            }
+
             return null;
         }
-
-        return await tree.GetRootAsync(cancellation);
     }
 
     /// <summary>
@@ -86,28 +114,7 @@ internal static class NodeHelper
     /// <param name="scope">The scope.</param>
     /// <returns>True if node is a scoped node, false otherwise.</returns>
     public static bool IsScopedNode(SyntaxNode node, out Scope scope)
-    {
-        scope = Scope.Unknown;
-        var nodeType = node.GetType();
-        if (NodeTypes.Exclude.Contains(nodeType))
-        {
-            return false;
-        }
-
-        foreach (var scopeTypes in NodeTypes.Scoped)
-        {
-            foreach (var type in scopeTypes.Value)
-            {
-                if (nodeType == type)
-                {
-                    scope = scopeTypes.Key;
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
+        => IsScoped(node.Kind(), out scope);
 
     /// <summary>
     /// Determines whether the node is a simple node.
@@ -115,74 +122,7 @@ internal static class NodeHelper
     /// <param name="node">The syntax node.</param>
     /// <returns>True if node is a simple node, false otherwise.</returns>
     public static bool IsSimpleNode(SyntaxNode node)
-    {
-        var nodeType = node.GetType();
-        if (NodeTypes.Exclude.Contains(nodeType))
-        {
-            return false;
-        }
-
-        foreach (var type in NodeTypes.Simple)
-        {
-            if (node.GetType() == type)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Validates if the given code contains any node that we identify as invalid.
-    /// If the code cannot be mapped into any of our supported nodes, a true will be returned as default.
-    /// We rather add the exceptions later on, rather than missing the opportunity of inserting something that looks good but we haven't added yet.
-    /// </summary>
-    /// <param name="code">The code to evaluate.</param>
-    /// <param name="cancellation">A cancellation token.</param>
-    /// <returns>Returns a value indicating whether an InsertAtLocation button can be created for the provided code.</returns>
-    public static async Task<bool> IsValidInsertionCodeAsync(string code, CancellationToken cancellation)
-    {
-        var node = CSharpSyntaxTree.ParseText(code);
-        var root = await node.GetRootAsync(cancellation);
-        var stack = new Stack<SyntaxNode>();
-        stack.Push(root);
-
-        while (stack.Count > 0)
-        {
-            var currentNode = stack.Pop();
-
-            if (IsScopedNode(currentNode, out var scope) || IsSimpleNode(currentNode))
-            {
-                CSharpSourceNode sourceNode;
-                if (scope != Scope.Unknown)
-                {
-                    sourceNode = new CSharpScopedNode(currentNode, scope);
-                }
-                else
-                {
-                    sourceNode = new CSharpSimpleNode(currentNode);
-                }
-
-                if (!sourceNode.IsValid())
-                {
-                    // will only return false when we find a node that we support
-                    // and we determine that it is currently on an invalid state.
-                    return false;
-                }
-
-                continue;
-            }
-
-            // Add child nodes to the stack in reverse order for depth-first search
-            foreach (var childNode in currentNode.ChildNodes().Reverse())
-            {
-                stack.Push(childNode);
-            }
-        }
-
-        return true;
-    }
+        => IsSimple(node.Kind());
 
     /// <summary>
     /// Gets the body syntax of the specified node.

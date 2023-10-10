@@ -4,29 +4,32 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeMapper;
 
-/// <summary>
-/// Represents an invalid insertion operation.
-/// </summary>
-internal record InvalidInsertion
+internal sealed partial class CSharpCodeMapper
 {
     /// <summary>
-    /// The invalid source node.
+    /// Represents an invalid insertion operation.
     /// </summary>
-    public readonly CSharpSourceNode InsertNode;
-
-    /// <summary>
-    /// The reason why the insertion operation is invalid.
-    /// </summary>
-    public readonly InvalidInsertionReason Reason;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="InvalidInsertion"/> class.
-    /// </summary>
-    /// <param name="insertNode">The source node to insert.</param>
-    /// <param name="reason">The reason why the insertion operation is invalid.</param>
-    public InvalidInsertion(CSharpSourceNode insertNode, InvalidInsertionReason reason)
+    public record InvalidInsertion
     {
-        this.InsertNode = insertNode;
-        this.Reason = reason;
+        /// <summary>
+        /// The invalid source node.
+        /// </summary>
+        public readonly CSharpSourceNode InsertNode;
+
+        /// <summary>
+        /// The reason why the insertion operation is invalid.
+        /// </summary>
+        public readonly InvalidInsertionReason Reason;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InvalidInsertion"/> class.
+        /// </summary>
+        /// <param name="insertNode">The source node to insert.</param>
+        /// <param name="reason">The reason why the insertion operation is invalid.</param>
+        public InvalidInsertion(CSharpSourceNode insertNode, InvalidInsertionReason reason)
+        {
+            InsertNode = insertNode;
+            Reason = reason;
+        }
     }
 }

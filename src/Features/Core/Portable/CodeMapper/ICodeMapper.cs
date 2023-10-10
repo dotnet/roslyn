@@ -6,11 +6,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeMapper;
 
 internal interface ICodeMapper : ILanguageService
 {
-    Task<Document> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<Location> focusLocations, CancellationToken cancellationToken);
+    Task<ImmutableArray<TextChange>> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<DocumentSpan> focusLocations, CancellationToken cancellationToken);
 }
 

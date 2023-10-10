@@ -35,6 +35,6 @@ internal sealed partial class MapCodeHandler : ILspServiceDocumentRequestHandler
         Contract.ThrowIfNull(context.Document);
         Contract.ThrowIfNull(context.Solution);
 
-        return null;
+        return Task.FromResult<WorkspaceEdit?>(null);
     }
 }
