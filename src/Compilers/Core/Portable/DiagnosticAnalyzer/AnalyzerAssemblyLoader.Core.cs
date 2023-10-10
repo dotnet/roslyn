@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <remarks>
         /// While Windows supports this option it comes with a significant performance penalty due
-        /// to anti virus scans. It can have a load time of 300-500ms while loading from disk 
+        /// to anti virus scans. It can have a load time of 300-500ms while loading from disk
         /// is generally 1-2ms. Use this with caution on Windows.
         /// </remarks>
         LoadFromStream
@@ -97,6 +98,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
         internal sealed class DirectoryLoadContext : AssemblyLoadContext
         {
             internal string Directory { get; }
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Next prefer registered dependencies from other directories. Ideally this would not
-                // be necessary but msbuild target defaults have caused a number of customers to 
+                // be necessary but msbuild target defaults have caused a number of customers to
                 // fall into this path. See discussion here for where it comes up
                 // https://github.com/dotnet/roslyn/issues/56442
                 if (_loader.GetBestPath(assemblyName) is string bestRealPath)

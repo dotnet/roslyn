@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
 
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
         protected abstract void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
@@ -742,6 +743,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// csc.exe and vbc.exe entry point.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default)
         {
             var saveUICulture = CultureInfo.CurrentUICulture;
@@ -855,6 +857,7 @@ namespace Microsoft.CodeAnalysis
 
         private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
 
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
@@ -1037,6 +1040,7 @@ namespace Microsoft.CodeAnalysis
         /// (parsing, binding, compile, emit), resulting in diagnostics
         /// and analyzer output.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
         private void CompileAndEmit(
             TouchedFileLogger? touchedFilesLogger,
             ref Compilation compilation,

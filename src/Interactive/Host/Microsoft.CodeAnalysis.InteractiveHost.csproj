@@ -49,6 +49,8 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="Utilities\SemaphoreSlimExtensions.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="Utilities\ExceptionUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs" Link="Utilities\FailFast.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\RequiresUnreferencedCodeAttribute.cs" Link="Utilities\RequiresUnreferencedCodeAttribute.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\TrimWarningMessages.cs" Link="Utilities\TrimWarningMessages.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="Utilities\FatalError.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="Utilities\FileNameUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" Link="Utilities\PlatformInformation.cs" />

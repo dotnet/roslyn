@@ -514,6 +514,7 @@ namespace Microsoft.Cci
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
             // Do not look for COM registered diasymreader when determinism is needed as it doesn't support it.

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -35,6 +36,7 @@ namespace Microsoft.Cci
 
     internal static class PeWriter
     {
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
         internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
@@ -206,8 +208,8 @@ namespace Microsoft.Cci
 
                     if (!portablePdbContentHash.IsDefault)
                     {
-                        // Emit PDB Checksum entry for Portable and Embedded PDBs. The checksum is not as useful when the PDB is embedded, 
-                        // however it allows the client to efficiently validate a standalone Portable PDB that 
+                        // Emit PDB Checksum entry for Portable and Embedded PDBs. The checksum is not as useful when the PDB is embedded,
+                        // however it allows the client to efficiently validate a standalone Portable PDB that
                         // has been extracted from Embedded PDB and placed next to the PE file.
                         debugDirectoryBuilder.AddPdbChecksumEntry(context.Module.PdbChecksumAlgorithm.Name, portablePdbContentHash);
                     }

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         public string? PdbPath { get; internal set; }
 
         /// <summary>
-        /// Path of the file containing information linking the compilation to source server that stores 
+        /// Path of the file containing information linking the compilation to source server that stores
         /// a snapshot of the source code included in the compilation.
         /// </summary>
         public string? SourceLink { get; internal set; }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<Diagnostic> Errors { get; internal set; }
 
         /// <summary>
-        /// References to metadata supplied on the command line. 
+        /// References to metadata supplied on the command line.
         /// Includes assemblies specified via /r and netmodules specified via /addmodule.
         /// </summary>
         public ImmutableArray<CommandLineReference> MetadataReferences { get; internal set; }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
         public bool SkipAnalyzers { get; internal set; }
 
         /// <summary>
-        /// If true, prepend the command line header logo during 
+        /// If true, prepend the command line header logo during
         /// <see cref="CommonCompiler.Run"/>.
         /// </summary>
         public bool DisplayLogo { get; internal set; }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
         /// Source file paths.
         /// </summary>
         /// <remarks>
-        /// Includes files specified directly on command line as well as files matching patterns specified 
+        /// Includes files specified directly on command line as well as files matching patterns specified
         /// on command line using '*' and '?' wildcards or /recurse option.
         /// </remarks>
         public ImmutableArray<CommandLineSourceFile> SourceFiles { get; internal set; }
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis
         /// Full path of a log of file paths accessed by the compiler, or null if file logging should be suppressed.
         /// </summary>
         /// <remarks>
-        /// Two log files will be created: 
+        /// Two log files will be created:
         /// One with path <see cref="TouchedFilesPath"/> and extension ".read" logging the files read,
         /// and second with path <see cref="TouchedFilesPath"/> and extension ".write" logging the files written to during compilation.
         /// </remarks>
@@ -319,9 +319,9 @@ namespace Microsoft.CodeAnalysis
         /// Returns a full path of the file that the compiler will generate the assembly to if compilation succeeds.
         /// </summary>
         /// <remarks>
-        /// The method takes <paramref name="outputFileName"/> rather than using the value of <see cref="OutputFileName"/> 
+        /// The method takes <paramref name="outputFileName"/> rather than using the value of <see cref="OutputFileName"/>
         /// since the latter might be unspecified, in which case actual output path can't be determined for C# command line
-        /// without creating a compilation and finding an entry point. VB does not allow <see cref="OutputFileName"/> to 
+        /// without creating a compilation and finding an entry point. VB does not allow <see cref="OutputFileName"/> to
         /// be unspecified.
         /// </remarks>
         public string GetOutputFilePath(string outputFileName)
@@ -335,13 +335,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns a full path of the PDB file that the compiler will generate the debug symbols to 
+        /// Returns a full path of the PDB file that the compiler will generate the debug symbols to
         /// if <see cref="EmitPdbFile"/> is true and the compilation succeeds.
         /// </summary>
         /// <remarks>
-        /// The method takes <paramref name="outputFileName"/> rather than using the value of <see cref="OutputFileName"/> 
+        /// The method takes <paramref name="outputFileName"/> rather than using the value of <see cref="OutputFileName"/>
         /// since the latter might be unspecified, in which case actual output path can't be determined for C# command line
-        /// without creating a compilation and finding an entry point. VB does not allow <see cref="OutputFileName"/> to 
+        /// without creating a compilation and finding an entry point. VB does not allow <see cref="OutputFileName"/> to
         /// be unspecified.
         /// </remarks>
         public string GetPdbFilePath(string outputFileName)
@@ -458,6 +458,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="analyzerLoader">Load an assembly from a file path</param>
         /// <returns>Yields resolved <see cref="AnalyzerFileReference"/> or <see cref="UnresolvedAnalyzerReference"/>.</returns>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
         public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(IAnalyzerAssemblyLoader analyzerLoader)
         {
             foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
@@ -467,6 +468,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
         internal void ResolveAnalyzersFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
@@ -562,6 +564,7 @@ namespace Microsoft.CodeAnalysis
             bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
         private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
             string? resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);

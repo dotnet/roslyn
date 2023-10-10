@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?> _analyzerAssemblyInfoMap = new();
 
         /// <summary>
-        /// Maps analyzer dependency simple names to the set of original full paths it was loaded from. This _only_ 
-        /// tracks the paths provided to the analyzer as it's a place to look for indirect loads. 
+        /// Maps analyzer dependency simple names to the set of original full paths it was loaded from. This _only_
+        /// tracks the paths provided to the analyzer as it's a place to look for indirect loads.
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis
         private partial Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath);
 
         /// <summary>
-        /// Determines if the <paramref name="candidateName"/> satisfies the request for 
-        /// <paramref name="requestedName"/>. This is partial'd out as each runtime has a different 
+        /// Determines if the <paramref name="candidateName"/> satisfies the request for
+        /// <paramref name="requestedName"/>. This is partial'd out as each runtime has a different
         /// definition of matching name.
         /// </summary>
         private partial bool IsMatch(AssemblyName requestedName, AssemblyName candidateName);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // This type assumses the file system is static for the duration of the
-                // it's instance. Repeated calls to this method, even if the underlying 
+                // it's instance. Repeated calls to this method, even if the underlying
                 // file system contents, should reuse the results of the first call.
                 _ = _analyzerAssemblyInfoMap.TryAdd(fullPath, null);
             }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get the <see cref="AssemblyName"/> and the path it should be loaded from for the given original 
+        /// Get the <see cref="AssemblyName"/> and the path it should be loaded from for the given original
         /// analyzer path
         /// </summary>
         /// <remarks>
@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis
             }
             catch
             {
-                // The above can fail when the assembly doesn't exist because it's corrupted, 
-                // doesn't exist on disk, or is a native DLL. Those failures are handled when 
+                // The above can fail when the assembly doesn't exist because it's corrupted,
+                // doesn't exist on disk, or is a native DLL. Those failures are handled when
                 // the actual load is attempted. Just record the failure now.
                 assemblyName = null;
             }

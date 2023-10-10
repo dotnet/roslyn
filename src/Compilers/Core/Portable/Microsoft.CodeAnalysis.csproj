@@ -19,6 +19,12 @@
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
   </PropertyGroup>
+
+  <!-- Enable trimming/AOT compat -->
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>

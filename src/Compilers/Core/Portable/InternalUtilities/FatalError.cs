@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// This file is in linked into multiple layers, but we want to ensure that all layers have the same copy.
         /// This lets us copy the handler in this instance into the same in another instance.
         /// </remarks>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.LoadsTypeByName)]
         public static void CopyHandlerTo(Assembly assembly)
         {
             var targetType = assembly.GetType(typeof(FatalError).FullName!, throwOnError: true)!;

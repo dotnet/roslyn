@@ -657,12 +657,6 @@ namespace Roslyn.Utilities
             return array;
         }
 
-        public Type ReadType()
-        {
-            _reader.ReadByte();
-            return Type.GetType(ReadString());
-        }
-
         private Type ReadTypeAfterTag()
             => _binderSnapshot.GetTypeFromId(this.ReadInt32());
 

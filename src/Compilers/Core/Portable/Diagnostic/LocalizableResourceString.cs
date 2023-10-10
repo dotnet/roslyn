@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis
         private readonly Type _resourceSource;
         private readonly string[] _formatArguments;
 
-        static LocalizableResourceString()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(LocalizableResourceString), reader => new LocalizableResourceString(reader));
-        }
-
         /// <summary>
         /// Creates a localizable resource string with no formatting arguments.
         /// </summary>
@@ -70,29 +65,6 @@ namespace Microsoft.CodeAnalysis
             _nameOfLocalizableResource = nameOfLocalizableResource;
             _resourceSource = resourceSource;
             _formatArguments = formatArguments;
-        }
-
-        private LocalizableResourceString(ObjectReader reader)
-        {
-            _resourceSource = reader.ReadType();
-            _nameOfLocalizableResource = reader.ReadString();
-            _resourceManager = new ResourceManager(_resourceSource);
-
-            var length = reader.ReadInt32();
-            if (length == 0)
-            {
-                _formatArguments = Array.Empty<string>();
-            }
-            else
-            {
-                var argumentsBuilder = ArrayBuilder<string>.GetInstance(length);
-                for (int i = 0; i < length; i++)
-                {
-                    argumentsBuilder.Add(reader.ReadString());
-                }
-
-                _formatArguments = argumentsBuilder.ToArrayAndFree();
-            }
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => false;

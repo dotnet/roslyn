@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal static class EmitHelpers
     {
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
         internal static EmitDifferenceResult EmitDifference(
             CSharpCompilation compilation,
             EmitBaseline baseline,

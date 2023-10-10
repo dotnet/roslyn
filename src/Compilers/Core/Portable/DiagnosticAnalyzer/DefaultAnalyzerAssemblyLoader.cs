@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
     internal sealed class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         internal DefaultAnalyzerAssemblyLoader()
