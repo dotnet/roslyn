@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -29,15 +30,18 @@ namespace Microsoft.CodeAnalysis.Host
         [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), WorkspaceKind.Host), Shared]
         private sealed class Factory : IWorkspaceServiceFactory
         {
+            private readonly IAsynchronousOperationListener _asyncListener;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
+            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
             {
+                _asyncListener = listenerProvider.GetListener(FeatureAttribute.EditAndContinue);
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
-                => new CompileTimeSolutionProvider(workspaceServices.Workspace);
+                => new CompileTimeSolutionProvider(workspaceServices.Workspace, _asyncListener);
         }
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
@@ -46,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Host
         private static readonly string s_razorSourceGeneratorFileNamePrefix = Path.Combine(RazorSourceGeneratorAssemblyName, RazorSourceGeneratorTypeName);
 
         private readonly object _gate = new();
+
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
         /// Cached compile-time solution corresponding to an existing design-time solution.
@@ -58,8 +64,10 @@ namespace Microsoft.CodeAnalysis.Host
 
         private Solution? _lastCompileTimeSolution;
 
-        public CompileTimeSolutionProvider(Workspace workspace)
+        public CompileTimeSolutionProvider(Workspace workspace, IAsynchronousOperationListener asyncListener)
         {
+            _asyncListener = asyncListener;
+
             workspace.WorkspaceChanged += (s, e) =>
             {
                 if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
@@ -138,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Host
                 if (projectsWithDesignTimeDocuments.Count > 0)
                 {
                     // HACK: Pre-request all razor source generated documents to warm up the caches
-                    _ = LoadSourceGeneratedDocumentsAsync(compileTimeSolution, projectsWithDesignTimeDocuments.ToImmutableArray(), CancellationToken.None);
+                    var asyncToken = _asyncListener.BeginAsyncOperation(nameof(CompileTimeSolutionProvider));
+                    _ = LoadSourceGeneratedDocumentsAsync(compileTimeSolution, projectsWithDesignTimeDocuments.ToImmutableArray(), CancellationToken.None).CompletesAsyncOperation(asyncToken);
                 }
 
                 return compileTimeSolution;
