@@ -885,11 +885,11 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual bool IsLongRunningProcess => false;
 
-        protected static void ReportException(Exception e, IServiceProvider servicesHolder, bool throwReporterExceptions)
+        protected static void ReportException(Exception e, IServiceProvider serviceProvider, bool throwReporterExceptions)
         {
             try
             {
-                servicesHolder.GetService<IExceptionReporter>()?.ReportException(e);
+                serviceProvider.GetService<IExceptionReporter>()?.ReportException(e);
             }
             catch (Exception reporterException)
             {
