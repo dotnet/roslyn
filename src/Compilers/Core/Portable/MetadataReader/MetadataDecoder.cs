@@ -1500,14 +1500,14 @@ tryAgain:
                     type = underlyingType;
                 }
 
-                try
-                {
-                    return type.SpecialType.ToSerializationType();
-                }
-                catch (InvalidOperationException)
+                var result = type.SpecialType.ToSerializationTypeOrInvalid();
+
+                if (result == SerializationTypeCode.Invalid)
                 {
                     throw new UnsupportedSignatureContent();
                 }
+
+                return result;
             }
         }
 
