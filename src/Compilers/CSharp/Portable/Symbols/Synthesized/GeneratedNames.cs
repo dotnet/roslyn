@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainerType, methodOrdinal, generation,
                                                    suffix: localFunctionOrdinal != -1 ? localFunctionOrdinal.ToString() : null,
-                                                   suffixTerminator: localFunctionOrdinal != -1 ? '_' : default);
+                                                   suffixTerminator: localFunctionOrdinal != -1 ? '|' : default);
         }
 
         internal static string MakeDynamicCallSiteFieldName(int uniqueId)
