@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            Debug.Assert(checksum != Checksum.Null);
-
+            Contract.ThrowIfTrue(checksum == Checksum.Null);
             if (_assetCache.TryGetAsset<T>(checksum, out var asset))
             {
                 return asset;
@@ -143,18 +142,16 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+        private async ValueTask<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            Debug.Assert(checksum != Checksum.Null);
-
+            Contract.ThrowIfTrue(checksum == Checksum.Null);
             var assets = await RequestAssetsAsync(ImmutableArray.Create(checksum), cancellationToken).ConfigureAwait(false);
             return assets.Single();
         }
 
-        private async Task<ImmutableArray<object>> RequestAssetsAsync(ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        private async ValueTask<ImmutableArray<object>> RequestAssetsAsync(ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
-
+            Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
             if (checksums.Length == 0)
                 return ImmutableArray<object>.Empty;
 
