@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         TEmbeddedParameter,
         TEmbeddedTypeParameter>
     {
-        internal abstract class CommonEmbeddedParameter : Cci.IParameterDefinition
+        internal abstract class CommonEmbeddedParameter : Cci.IEmbeddedDefinition, Cci.IParameterDefinition
         {
             public readonly CommonEmbeddedMember ContainingPropertyOrMethod;
             public readonly TParameterSymbol UnderlyingParameter;
