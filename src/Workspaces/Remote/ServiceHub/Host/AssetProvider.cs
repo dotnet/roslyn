@@ -44,8 +44,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         var checksums = pooledObject.Object;
         checksums.Add(checksum);
 
-        var syncer = new ChecksumSynchronizer(this);
-        await syncer.SynchronizeAssetsAsync(hintProject, checksums, cancellationToken).ConfigureAwait(false);
+        await this.SynchronizeAssetsAsync(hintProject, checksums, cancellationToken).ConfigureAwait(false);
 
         return GetRequiredAsset<T>(checksum);
     }
