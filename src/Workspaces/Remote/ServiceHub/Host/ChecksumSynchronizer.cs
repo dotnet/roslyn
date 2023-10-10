@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.Remote
             AddAll(checksums, projectChecksum.AdditionalDocuments);
             AddAll(checksums, projectChecksum.AnalyzerConfigDocuments);
 
-            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            await _assetProvider.SynchronizeAssetsAsync(
+                hintProject: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
 
             checksums.Clear();
 
@@ -87,7 +88,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CollectChecksumChildren(this, projectChecksum.AdditionalDocuments);
             CollectChecksumChildren(this, projectChecksum.AnalyzerConfigDocuments);
 
-            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            await _assetProvider.SynchronizeAssetsAsync(
+                hintProject: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
 
             void CollectChecksumChildren(ChecksumSynchronizer @this, ChecksumCollection collection)
             {
