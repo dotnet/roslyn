@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -124,6 +125,7 @@ internal sealed class SolutionStateChecksums(
 }
 
 internal sealed class ProjectStateChecksums(
+    ProjectId projectId,
     Checksum infoChecksum,
     Checksum compilationOptionsChecksum,
     Checksum parseOptionsChecksum,
@@ -146,6 +148,8 @@ internal sealed class ProjectStateChecksums(
         additionalDocumentChecksums.Checksum.Hash,
         analyzerConfigDocumentChecksums.Checksum.Hash,
     });
+
+    public ProjectId ProjectId => projectId;
 
     public Checksum Info => infoChecksum;
     public Checksum CompilationOptions => compilationOptionsChecksum;
@@ -187,6 +191,8 @@ internal sealed class ProjectStateChecksums(
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
+
+        this.ProjectId.WriteTo(writer);
         this.Info.WriteTo(writer);
         this.CompilationOptions.WriteTo(writer);
         this.ParseOptions.WriteTo(writer);
@@ -202,6 +208,7 @@ internal sealed class ProjectStateChecksums(
     {
         var checksum = Checksum.ReadFrom(reader);
         var result = new ProjectStateChecksums(
+            projectId: ProjectId.ReadFrom(reader),
             infoChecksum: Checksum.ReadFrom(reader),
             compilationOptionsChecksum: Checksum.ReadFrom(reader),
             parseOptionsChecksum: Checksum.ReadFrom(reader),
