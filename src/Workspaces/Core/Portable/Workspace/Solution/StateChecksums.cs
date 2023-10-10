@@ -190,7 +190,6 @@ internal sealed class ProjectStateChecksums(
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
-        checksums.AddIfNotNullChecksum(this.Checksum);
         checksums.AddIfNotNullChecksum(this.Info);
         checksums.AddIfNotNullChecksum(this.CompilationOptions);
         checksums.AddIfNotNullChecksum(this.ParseOptions);
