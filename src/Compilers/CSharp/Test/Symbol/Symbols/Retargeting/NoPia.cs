@@ -1279,7 +1279,7 @@ public class LocalTypes3
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
             var piaRef = TestReferences.SymbolsTests.NoPia.Pia1;
 
-            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilationWithMscorlib40(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
@@ -1883,7 +1883,7 @@ namespace System
         [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_2()
         {
-            var LocalTypes3 = CreateCompilation(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
+            var LocalTypes3 = CreateCompilationWithMscorlib40(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes3);
 

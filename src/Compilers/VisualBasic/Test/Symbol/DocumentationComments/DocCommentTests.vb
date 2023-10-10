@@ -12115,10 +12115,10 @@ xmlDoc)
                        DocumentationMode.Diagnose,
                        DocumentationMode.Parse))
 
-            Dim compilation = CreateCompilation(sources,
-                                                additionalRefs,
-                                                TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
-                                                parseOptions)
+            Dim compilation = CreateCompilationWithMscorlib40(sources,
+                                                              additionalRefs,
+                                                              TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
+                                                              parseOptions)
             If errors IsNot Nothing Then
                 Dim diagnostics As Diagnostic()
                 Dim saveUICulture As Globalization.CultureInfo = Nothing
