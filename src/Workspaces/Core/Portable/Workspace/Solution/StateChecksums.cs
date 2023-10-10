@@ -298,9 +298,14 @@ internal sealed class ProjectStateChecksums(
     }
 }
 
-internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum) : IChecksummedObject
+internal sealed class DocumentStateChecksums(
+    DocumentId documentId,
+    Checksum infoChecksum,
+    Checksum textChecksum) : IChecksummedObject
 {
     public Checksum Checksum { get; } = Checksum.Create(infoChecksum, textChecksum);
+
+    public DocumentId DocumentId => documentId;
     public Checksum Info => infoChecksum;
     public Checksum Text => textChecksum;
 
@@ -315,6 +320,7 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
     {
         // We don't write out the checksum itself as it would bloat the size of this message. If there is corruption
         // (which should never ever happen), it will be detected at the project level.
+        this.DocumentId.WriteTo(writer);
         this.Info.WriteTo(writer);
         this.Text.WriteTo(writer);
     }
@@ -322,6 +328,7 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
     public static DocumentStateChecksums Deserialize(ObjectReader reader)
     {
         return new DocumentStateChecksums(
+            documentId: DocumentId.ReadFrom(reader),
             infoChecksum: Checksum.ReadFrom(reader),
             textChecksum: Checksum.ReadFrom(reader));
     }

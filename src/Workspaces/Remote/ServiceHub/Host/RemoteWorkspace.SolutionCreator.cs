@@ -459,21 +459,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 async Task PopulateNewDocumentMapAsync(SolutionCreator @this)
                 {
-                    var documentChecksums = await @this._assetProvider.GetAssetsAsync<DocumentStateChecksums>(news.Object, cancellationToken).ConfigureAwait(false);
+                    var documentStateChecksums = await @this._assetProvider.GetAssetsAsync<DocumentStateChecksums>(news.Object, cancellationToken).ConfigureAwait(false);
 
-                    using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-                    var infoChecksums = pooledObject.Object;
-
-                    foreach (var documentChecksum in documentChecksums)
-                        infoChecksums.Add(documentChecksum.Item2.Info);
-
-                    var infos = await @this._assetProvider.GetAssetsAsync<DocumentInfo.DocumentAttributes>(infoChecksums, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var (_, documentStateChecksums) in documentChecksums)
-                    {
-                        var info = @this._assetProvider.GetRequiredAsset<DocumentInfo.DocumentAttributes>(documentStateChecksums.Info);
-                        newMap.Add(info.Id, documentStateChecksums);
-                    }
+                    foreach (var (_, documentStateChecksum) in documentStateChecksums)
+                        newMap.Add(documentStateChecksum.DocumentId, documentStateChecksum);
                 }
             }
 
