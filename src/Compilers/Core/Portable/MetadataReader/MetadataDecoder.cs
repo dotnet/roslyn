@@ -1744,7 +1744,7 @@ tryAgain:
 
                     for (int i = 0; i < positionalArgs.Length; i++)
                     {
-                        var parameterType = attributeConstructor.GetParameterType(i);
+                        var parameterType = attributeConstructor.Parameters[i].Type;
                         positionalArgs[i] = DecodeCustomAttributeFixedArgumentOrThrow(parameterType, ref argsReader);
                     }
                 }

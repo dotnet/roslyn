@@ -198,10 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride ReadOnly Property Syntax As SyntaxNode
 
-        Private Function GetParameterType(index As Integer) As ITypeSymbolInternal Implements IMethodSymbolInternal.GetParameterType
-            Return Parameters(index).Type
-        End Function
-
         ''' <summary>
         ''' Returns true if calls to this method are omitted in the given syntax tree at the given syntax node location.
         ''' Calls are omitted when the called method is a partial method with no implementation part, or when the
@@ -958,6 +954,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IMethodSymbol.Parameters
             Get
                 Return ImmutableArray(Of IParameterSymbol).CastUp(Me.Parameters)
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbolInternal_Parameters As ImmutableArray(Of IParameterSymbolInternal) Implements IMethodSymbolInternal.Parameters
+            Get
+                Return ImmutableArray(Of IParameterSymbolInternal).CastUp(Me.Parameters)
             End Get
         End Property
 

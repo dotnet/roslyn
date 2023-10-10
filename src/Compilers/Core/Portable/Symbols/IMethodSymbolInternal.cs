@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Symbols
 {
     internal interface IMethodSymbolInternal : ISymbolInternal
@@ -23,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Symbols
 
         int ParameterCount { get; }
 
+        ImmutableArray<IParameterSymbolInternal> Parameters { get; }
+
         int CalculateLocalSyntaxOffset(int declaratorPosition, SyntaxTree declaratorTree);
 
         /// <summary>
@@ -31,7 +35,5 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the method.</param>
         IMethodSymbolInternal Construct(params ITypeSymbolInternal[] typeArguments);
-
-        ITypeSymbolInternal GetParameterType(int index);
     }
 }
