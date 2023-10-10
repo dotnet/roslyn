@@ -1488,8 +1488,13 @@ tryAgain:
 
             return DecodeCustomAttributeElementOrThrow(ref argReader, getTypeCode(type), (TypeSymbol)type);
 
-            static SerializationTypeCode getTypeCode(ITypeSymbolInternal type)
+            SerializationTypeCode getTypeCode(ITypeSymbolInternal type)
             {
+                if (ReferenceEquals(type, SystemTypeSymbol))
+                {
+                    return SerializationTypeCode.Type;
+                }
+
                 if (type is INamedTypeSymbolInternal { EnumUnderlyingType: { } underlyingType })
                 {
                     type = underlyingType;
