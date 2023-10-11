@@ -221,8 +221,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             static Checksum GetMetadataChecksumSlow(SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
-                return ChecksumCache.GetOrCreate(reference, _ =>
+                return ChecksumCache.GetOrCreate(reference, static (reference, tuple) =>
                 {
+                    var (services, cancellationToken) = tuple;
                     var serializer = services.GetRequiredService<ISerializerService>();
                     var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
@@ -230,7 +231,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // version ever changes, all persisted data won't match the current checksum
                     // we expect, and we'll recompute things.
                     return Checksum.Create(checksum, SerializationFormatChecksum);
-                });
+                }, (services, cancellationToken));
             }
         }
 

@@ -7,15 +7,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
-internal sealed class SolutionStateChecksums : IChecksummedObject
+internal sealed class SolutionStateChecksums
 {
     public Checksum Checksum { get; }
 
@@ -177,7 +179,7 @@ internal sealed class ProjectStateChecksums(
     ChecksumCollection metadataReferenceChecksums,
     ChecksumCollection analyzerReferenceChecksums,
     ChecksumCollection additionalDocumentChecksums,
-    ChecksumCollection analyzerConfigDocumentChecksums) : IChecksummedObject, IEquatable<ProjectStateChecksums>
+    ChecksumCollection analyzerConfigDocumentChecksums) : IEquatable<ProjectStateChecksums>
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
@@ -349,7 +351,7 @@ internal sealed class ProjectStateChecksums(
 internal sealed class DocumentStateChecksums(
     DocumentId documentId,
     Checksum infoChecksum,
-    Checksum textChecksum) : IChecksummedObject
+    Checksum textChecksum)
 {
     public Checksum Checksum { get; } = Checksum.Create(infoChecksum, textChecksum);
 
@@ -406,33 +408,49 @@ internal sealed class DocumentStateChecksums(
 /// </summary>
 internal static class ChecksumCache
 {
-    private static readonly ConditionalWeakTable<object, object> s_cache = new();
-
-    public static IReadOnlyList<T> GetOrCreate<T>(IReadOnlyList<T> unorderedList, ConditionalWeakTable<object, object>.CreateValueCallback orderedListGetter)
-        => (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
+    private static readonly ConditionalWeakTable<object, Checksum> s_objectToChecksumCache = new();
+    private static readonly ConditionalWeakTable<object, ChecksumCollection> s_objectToChecksumCollectionCache = new();
 
     public static bool TryGetValue(object value, [NotNullWhen(true)] out Checksum? checksum)
-    {
-        // same key should always return same checksum
-        if (!s_cache.TryGetValue(value, out var result))
-        {
-            checksum = null;
-            return false;
-        }
+        => s_objectToChecksumCache.TryGetValue(value, out checksum);
 
-        checksum = (Checksum)result;
-        return true;
+    public static Checksum GetOrCreate<TValue, TArg>(TValue value, Func<TValue, TArg, Checksum> checksumCreator, TArg arg)
+        where TValue : class
+    {
+        if (s_objectToChecksumCache.TryGetValue(value, out var checksum))
+            return checksum;
+
+        return GetOrCreateSlow();
+
+        Checksum GetOrCreateSlow()
+            => s_objectToChecksumCache.GetValue(value, _ => checksumCreator(value, arg));
     }
 
-    public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
+    private static ChecksumCollection GetOrCreateChecksumCollection<TValue, TArg>(TValue value, Func<TValue, TArg, ChecksumCollection> checksumCreator, TArg arg)
+        where TValue : class
     {
-        // same key should always return same checksum
-        return (Checksum)s_cache.GetValue(value, checksumCreator);
+        if (s_objectToChecksumCollectionCache.TryGetValue(value, out var checksumCollection))
+            return checksumCollection;
+
+        return GetOrCreateSlow();
+
+        ChecksumCollection GetOrCreateSlow()
+            => s_objectToChecksumCollectionCache.GetValue(value, _ => checksumCreator(value, arg));
     }
 
-    public static T GetOrCreate<T>(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator) where T : IChecksummedObject
+    public static ChecksumCollection GetOrCreateChecksumCollection<TReference>(
+        IReadOnlyList<TReference> references, ISerializerService serializer, CancellationToken cancellationToken) where TReference : class
     {
-        // same key should always return same checksum
-        return (T)s_cache.GetValue(value, checksumCreator);
+        return GetOrCreateChecksumCollection(
+            references,
+            static (references, tuple) =>
+            {
+                using var _ = ArrayBuilder<Checksum>.GetInstance(references.Count, out var checksums);
+                foreach (var reference in references)
+                    checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
+
+                return new ChecksumCollection(checksums.ToImmutableAndClear());
+            },
+            (serializer, cancellationToken));
     }
 }
