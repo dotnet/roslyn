@@ -2,7 +2,6 @@
 <Project>
 
     <PropertyGroup>
-        <MetalamaBackstageVersion>2023.4.3-preview</MetalamaBackstageVersion>
     </PropertyGroup>
 
 </Project>
