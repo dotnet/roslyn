@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -14,27 +15,43 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
-internal sealed class SolutionStateChecksums(
-    Checksum attributesChecksum,
-    ChecksumCollection projectChecksums,
-    ChecksumCollection analyzerReferenceChecksums,
-    Checksum frozenSourceGeneratedDocumentIdentity,
-    Checksum frozenSourceGeneratedDocumentText) : IChecksummedObject
+internal sealed class SolutionStateChecksums : IChecksummedObject
 {
-    public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
-    {
-        attributesChecksum.Hash,
-        projectChecksums.Checksum.Hash,
-        analyzerReferenceChecksums.Checksum.Hash,
-        frozenSourceGeneratedDocumentIdentity.Hash,
-        frozenSourceGeneratedDocumentText.Hash,
-    });
+    public Checksum Checksum { get; }
 
-    public Checksum Attributes => attributesChecksum;
-    public ChecksumCollection Projects => projectChecksums;
-    public ChecksumCollection AnalyzerReferences => analyzerReferenceChecksums;
-    public Checksum FrozenSourceGeneratedDocumentIdentity => frozenSourceGeneratedDocumentIdentity;
-    public Checksum FrozenSourceGeneratedDocumentText => frozenSourceGeneratedDocumentText;
+    public Checksum Attributes { get; }
+    public ImmutableArray<ProjectId> ProjectIds { get; }
+    public ChecksumCollection Projects { get; }
+    public ChecksumCollection AnalyzerReferences { get; }
+    public Checksum FrozenSourceGeneratedDocumentIdentity { get; }
+    public Checksum FrozenSourceGeneratedDocumentText { get; }
+
+    public SolutionStateChecksums(
+        Checksum attributes,
+        ImmutableArray<ProjectId> projectIds,
+        ChecksumCollection projects,
+        ChecksumCollection analyzerReferences,
+        Checksum frozenSourceGeneratedDocumentIdentity,
+        Checksum frozenSourceGeneratedDocumentText)
+    {
+        Contract.ThrowIfFalse(projectIds.Length == projects.Children.Length);
+
+        this.Checksum = Checksum.Create(stackalloc[]
+        {
+            attributes.Hash,
+            projects.Checksum.Hash,
+            analyzerReferences.Checksum.Hash,
+            frozenSourceGeneratedDocumentIdentity.Hash,
+            frozenSourceGeneratedDocumentText.Hash,
+        });
+
+        this.Attributes = attributes;
+        this.ProjectIds = projectIds;
+        this.Projects = projects;
+        this.AnalyzerReferences = analyzerReferences;
+        this.FrozenSourceGeneratedDocumentIdentity = frozenSourceGeneratedDocumentIdentity;
+        this.FrozenSourceGeneratedDocumentText = frozenSourceGeneratedDocumentText;
+    }
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
@@ -51,6 +68,7 @@ internal sealed class SolutionStateChecksums(
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
         this.Attributes.WriteTo(writer);
+        writer.WriteArray(this.ProjectIds, static (writer, value) => value.WriteTo(writer));
         this.Projects.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
         this.FrozenSourceGeneratedDocumentIdentity.WriteTo(writer);
@@ -61,9 +79,10 @@ internal sealed class SolutionStateChecksums(
     {
         var checksum = Checksum.ReadFrom(reader);
         var result = new SolutionStateChecksums(
-            attributesChecksum: Checksum.ReadFrom(reader),
-            projectChecksums: ChecksumCollection.ReadFrom(reader),
-            analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            attributes: Checksum.ReadFrom(reader),
+            reader.ReadArray(ProjectId.ReadFrom),
+            projects: ChecksumCollection.ReadFrom(reader),
+            analyzerReferences: ChecksumCollection.ReadFrom(reader),
             frozenSourceGeneratedDocumentIdentity: Checksum.ReadFrom(reader),
             frozenSourceGeneratedDocumentText: Checksum.ReadFrom(reader));
         Contract.ThrowIfFalse(result.Checksum == checksum);

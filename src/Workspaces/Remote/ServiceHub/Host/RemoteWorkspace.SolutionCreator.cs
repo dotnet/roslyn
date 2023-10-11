@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
                     {
-                        solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects, cancellationToken).ConfigureAwait(false);
+                        solution = await UpdateProjectsAsync(
+                            solution, oldSolutionChecksums, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
                     }
 
                     if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
@@ -104,17 +105,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            private async Task<Solution> UpdateProjectsAsync(Solution solution, ChecksumCollection oldChecksums, ChecksumCollection newChecksums, CancellationToken cancellationToken)
+            private async Task<Solution> UpdateProjectsAsync(
+                Solution solution, SolutionStateChecksums oldSolutionChecksums, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
             {
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
-                olds.Object.UnionWith(oldChecksums);
-                news.Object.UnionWith(newChecksums);
+                olds.Object.UnionWith(oldSolutionChecksums.Projects);
+                news.Object.UnionWith(newSolutionChecksums.Projects);
 
                 // remove projects that exist in both side
-                olds.Object.ExceptWith(newChecksums);
-                news.Object.ExceptWith(oldChecksums);
+                olds.Object.ExceptWith(newSolutionChecksums.Projects);
+                news.Object.ExceptWith(oldSolutionChecksums.Projects);
 
                 using var _1 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldMap);
                 using var _2 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newMap);
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     if (!oldMap.ContainsKey(projectId))
                     {
-                        var projectInfo = await _assetProvider.CreateProjectInfoAsync(newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
+                        var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
                         if (projectInfo == null)
                         {
                             // this project is not supported in OOP

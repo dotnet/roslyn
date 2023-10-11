@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -128,16 +129,16 @@ namespace Microsoft.CodeAnalysis
                             // if it's a project that's specifically in the sync'ed cone, include this checksum so that
                             // this project definitely syncs over.
                             if (t.mustCompute)
-                                return await t.state.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                                return (t.state.Id, await t.state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false));
 
                             // If it's a project that is not in the cone, still try to get the latest checksum for it if
                             // we have it.  That way we don't send over a checksum *without* that project, causing the
                             // OOP side to throw that project away (along with all the compilation info stored with it).
                             if (t.state.TryGetStateChecksums(out var stateChecksums))
-                                return stateChecksums.Checksum;
+                                return (t.state.Id, stateChecksums);
 
                             // We have never computed the checksum for this project.  Don't send anything for it.
-                            return null;
+                            return default((ProjectId, ProjectStateChecksums));
                         })
                         .ToArray();
 
@@ -156,10 +157,22 @@ namespace Microsoft.CodeAnalysis
                     var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences,
                         _ => new ChecksumCollection(AnalyzerReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
 
-                    var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+                    var tuples = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+                    using var _1 = ArrayBuilder<ProjectId>.GetInstance(projectChecksumTasks.Length, out var projectIds);
+                    using var _2 = ArrayBuilder<Checksum>.GetInstance(projectChecksumTasks.Length, out var projectChecksums);
+                    foreach (var (projectId, projectStateChecksums) in tuples)
+                    {
+                        if (projectStateChecksums != null)
+                        {
+                            projectIds.Add(projectId);
+                            projectChecksums.Add(projectStateChecksums.Checksum);
+                        }
+                    }
+
                     return new SolutionStateChecksums(
                         attributesChecksum,
-                        new ChecksumCollection(projectChecksums.WhereNotNull().ToImmutableArray()),
+                        projectIds.ToImmutableAndClear(),
+                        new ChecksumCollection(projectChecksums.ToImmutableAndClear()),
                         analyzerReferenceChecksums,
                         frozenSourceGeneratedDocumentIdentityChecksum,
                         frozenSourceGeneratedDocumentTextChecksum);
