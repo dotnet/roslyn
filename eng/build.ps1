@@ -260,6 +260,8 @@ function BuildSolution() {
   
   $isNpmAvailable = IsNpmAvailable
 
+  $symbolPublishingExcludeFile = Join-Path $RepoRoot "eng\SymbolPublishingExclusionsFile.txt"
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -283,6 +285,7 @@ function BuildSolution() {
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
       /p:IsNpmPackable=$isNpmAvailable `
+      /p:SymbolPublishingExclusionsFile=$symbolPublishingExcludeFile `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
