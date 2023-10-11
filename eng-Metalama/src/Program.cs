@@ -32,7 +32,7 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg"),
     Dependencies = new[] { DevelopmentDependencies.PostSharpEngineering, MetalamaDependencies.MetalamaBackstage },
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
-    ExportedProperties = new[] { "RoslynVersion" },
+    ExportedProperties = { { @"eng\Versions.props", new[] { "RoslynVersion" } } },
     KeepEditorConfig = true,
     Configurations = Product.DefaultConfigurations.WithValue(BuildConfiguration.Release, c => c with { ExportsToTeamCityBuild = true }),
     DefaultTestsFilter = "Category!=OuterLoop"
