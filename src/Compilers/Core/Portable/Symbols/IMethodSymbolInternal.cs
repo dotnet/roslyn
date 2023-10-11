@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Symbols
         bool IsAsync { get; }
 
         /// <summary>
+        /// Returns whether this method is generic; i.e., does it have any type parameters?
+        /// </summary>
+        bool IsGenericMethod { get; }
+
+        /// <summary>
         /// Returns true if this method has no return type; i.e., returns "void".
         /// </summary>
         bool ReturnsVoid { get; }

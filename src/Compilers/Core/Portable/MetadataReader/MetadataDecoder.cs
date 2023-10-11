@@ -1723,7 +1723,9 @@ tryAgain:
                 positionalArgs = Array.Empty<TypedConstant>();
                 namedArgs = Array.Empty<KeyValuePair<string, TypedConstant>>();
 
-                if (attributeConstructor is null || !attributeConstructor.ReturnsVoid)
+                if (attributeConstructor is null ||
+                    attributeConstructor.IsGenericMethod ||
+                    !attributeConstructor.ReturnsVoid)
                 {
                     return false;
                 }

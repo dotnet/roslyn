@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns whether this method is generic; i.e., does it have any type parameters?
         ''' </summary>
-        Public Overridable ReadOnly Property IsGenericMethod As Boolean
+        Public Overridable ReadOnly Property IsGenericMethod As Boolean Implements IMethodSymbolInternal.IsGenericMethod
             Get
                 Return Arity <> 0
             End Get
