@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
 
                     var serializer = LanguageServices.SolutionServices.GetService<ISerializerService>();
 
-                    var infoChecksum = serializer.CreateChecksum(ProjectInfo.Attributes, cancellationToken);
+                    var infoChecksum = this.ProjectInfo.Attributes.Checksum;
 
                     // these compiler objects doesn't have good place to cache checksum. but rarely ever get changed.
                     var compilationOptionsChecksum = SupportsCompilation ? ChecksumCache.GetOrCreate(CompilationOptions, _ => serializer.CreateChecksum(CompilationOptions, cancellationToken)) : Checksum.Null;
