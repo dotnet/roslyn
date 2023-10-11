@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -32,17 +33,17 @@ internal sealed class BuildHost : IBuildHost
         _binaryLogPath = binaryLogPath;
     }
 
-    private void EnsureMSBuildLoaded(string projectFilePath)
+    private bool TryEnsureMSBuildLoaded(string projectOrSolutionFilePath)
     {
         lock (_gate)
         {
             // If we've already created our MSBuild types, then there's nothing further to do.
             if (MSBuildLocator.IsRegistered)
             {
-                return;
+                return true;
             }
 
-            VisualStudioInstance instance;
+            VisualStudioInstance? instance;
 
 #if NETFRAMEWORK
 
@@ -50,19 +51,28 @@ internal sealed class BuildHost : IBuildHost
             // MSBuild features. Since we don't have something like a global.json we can't really know what the minimum version is.
 
             // TODO: we should also check that the managed tools are actually installed
-            instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(vs => vs.Version).First();
+            instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(vs => vs.Version).FirstOrDefault();
 
 #else
 
             // Locate the right SDK for this particular project; MSBuildLocator ensures in this case the first one is the preferred one.
             // TODO: we should pick the appropriate instance back in the main process and just use the one chosen here.
-            var options = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(projectFilePath) };
-            instance = MSBuildLocator.QueryVisualStudioInstances(options).First();
+            var options = new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(projectOrSolutionFilePath) };
+            instance = MSBuildLocator.QueryVisualStudioInstances(options).FirstOrDefault();
 
 #endif
 
-            MSBuildLocator.RegisterInstance(instance);
-            _logger.LogInformation($"Registered MSBuild instance at {instance.MSBuildPath}");
+            if (instance != null)
+            {
+                MSBuildLocator.RegisterInstance(instance);
+                _logger.LogInformation($"Registered MSBuild instance at {instance.MSBuildPath}");
+                return true;
+            }
+            else
+            {
+                _logger.LogCritical("No compatible MSBuild instance could be found.");
+                return false;
+            }
         }
     }
 
@@ -86,6 +96,30 @@ internal sealed class BuildHost : IBuildHost
             _buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
             _buildManager.StartBatchBuild();
         }
+    }
+
+    public Task<bool> HasUsableMSBuildAsync(string projectOrSolutionFilePath, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(TryEnsureMSBuildLoaded(projectOrSolutionFilePath));
+    }
+
+    private void EnsureMSBuildLoaded(string projectFilePath)
+    {
+        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuildAsync)} should have been called first to check.");
+    }
+
+    public Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>> GetProjectsInSolutionAsync(string solutionFilePath, CancellationToken cancellationToken)
+    {
+        EnsureMSBuildLoaded(solutionFilePath);
+        return Task.FromResult(GetProjectsInSolution(solutionFilePath));
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Do not inline this, since this uses MSBuild types which are being loaded by the caller
+    private static ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolution(string solutionFilePath)
+    {
+        return SolutionFile.Parse(solutionFilePath).ProjectsInOrder
+            .Where(static p => p.ProjectType != SolutionProjectType.SolutionFolder)
+            .SelectAsArray(static p => (p.AbsolutePath, p.ProjectGuid));
     }
 
     public Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken)

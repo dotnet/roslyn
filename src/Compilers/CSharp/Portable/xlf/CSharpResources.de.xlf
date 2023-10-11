@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
-        <target state="new">Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</target>
+        <target state="translated">Das Argument {0} darf nicht mit dem Schlüsselwort (keyword) "ref" in der Sprachversion {1} übergeben werden. Um ref-Argumente an "in"-Parameter zu übergeben, führen Sie ein Upgrade auf die Sprachversion {2} oder höher durch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -404,22 +404,22 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
-        <target state="new">The CollectionBuilderAttribute method name is invalid.</target>
+        <target state="translated">Der Methodenname "CollectionBuilderAttribute" ist ungültig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidType">
         <source>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</source>
-        <target state="new">The CollectionBuilderAttribute builder type must be a non-generic class or struct.</target>
+        <target state="translated">Der CollectionBuilderAttribute-Generatortyp muss eine nicht generische Klasse oder Struktur sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="new">Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</target>
+        <target state="translated">Es wurde keine zugreifbare '{0}' Methode mit der erwarteten Signatur gefunden: eine statische Methode mit einem einzelnen Parameter vom Typ "ReadOnlySpan&lt;{1}&gt;" und rückgabetyp '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
         <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
-        <target state="new">'{0}' has a CollectionBuilderAttribute but no element type.</target>
+        <target state="translated">'{0}' hat ein CollectionBuilderAttribute, aber keinen Elementtyp.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionEscape">
@@ -579,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedInterpolatedString">
         <source>Expected interpolated string</source>
-        <target state="new">Expected interpolated string</target>
+        <target state="translated">Interpolierte Zeichenfolge erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -924,7 +924,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayForEachNotSupported">
         <source>foreach statement on an inline array of type '{0}' is not supported</source>
-        <target state="new">foreach statement on an inline array of type '{0}' is not supported</target>
+        <target state="translated">eine foreach-Anweisung für ein Inlinearray vom Typ '{0}' wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
@@ -934,7 +934,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
-        <target state="new">Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</target>
+        <target state="translated">Das Inlinearrayelementfeld kann nicht als erforderlich, schreibgeschützt, flüchtig oder als Puffer fester Größe deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -942,14 +942,19 @@
         <target state="translated">Instanzeigenschaften in Schnittstellen können keine Initialisierer aufweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="translated">"{0}" kann nicht abgefangen werden, da es sich nicht um einen Aufruf einer normalen Membermethode handelt.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
-        <target state="new">Method '{0}' must be non-generic or have arity {1} to match '{2}'.</target>
+        <target state="translated">Die methode '{0}' muss nicht generisch sein oder eine Stelligkeit aufweisen, die {1} '{2}' entspricht.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="new">Method '{0}' must be non-generic to match '{1}'.</target>
+        <target state="translated">Die '{0}' muss nicht generisch sein, damit sie mit '{1}' übereinstimmt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -979,7 +984,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorGlobalNamespace">
         <source>An interceptor cannot be declared in the global namespace.</source>
-        <target state="new">An interceptor cannot be declared in the global namespace.</target>
+        <target state="translated">Ein Interceptor kann nicht im globalen Namespace deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
@@ -1059,7 +1064,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</target>
+        <target state="translated">Das experimentelle Feature "Interceptors" ist nicht in diesem Namespace aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -1459,7 +1464,7 @@
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
         <source>A ref readonly parameter cannot have the Out attribute.</source>
-        <target state="new">A ref readonly parameter cannot have the Out attribute.</target>
+        <target state="translated">Ein ref-schreibgeschützter Parameter kann nicht das Out-Attribut aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1634,7 +1639,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadOnlyWrongOrdering">
         <source>'readonly' modifier must be specified after 'ref'.</source>
-        <target state="new">'readonly' modifier must be specified after 'ref'.</target>
+        <target state="translated">Der readonly-Modifizierer muss nach "ref" angegeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
@@ -2239,7 +2244,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
-        <target state="new">ref readonly parameters</target>
+        <target state="translated">ref-schreibgeschützte Parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2369,12 +2374,12 @@
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn">
         <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
-        <target state="new">Argument {0} should be passed with 'ref' or 'in' keyword</target>
+        <target state="translated">Das Argument {0} muss mit dem Schlüsselwort (keyword) "ref" oder "in" übergeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
-        <target state="new">Argument should be passed with 'ref' or 'in' keyword</target>
+        <target state="translated">Das Argument muss mit dem Schlüsselwort (keyword) "ref" oder "in" übergeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
@@ -2389,12 +2394,12 @@
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
         <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="new">The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</target>
+        <target state="translated">Der ref-Modifizierer für das Argument {0}, der dem Parameter "in" entspricht, ist gleichbedeutend mit "in". Erwägen Sie stattdessen die Verwendung von "in".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="new">The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</target>
+        <target state="translated">Der ref-Modifizierer für ein Argument, das dem Parameter "in" entspricht, ist gleichbedeutend mit "in". Erwägen Sie stattdessen die Verwendung von "in".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
@@ -2569,52 +2574,52 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="new">Inline array conversion operator will not be used for conversion from expression of the declaring type.</target>
+        <target state="translated">Der Inlinearraykonvertierungsoperator wird nicht für die Konvertierung aus einem Ausdruck des deklarierenden Typs verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="new">Inline array conversion operator will not be used for conversion from expression of the declaring type.</target>
+        <target state="translated">Der Inlinearraykonvertierungsoperator wird nicht für die Konvertierung aus einem Ausdruck des deklarierenden Typs verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="new">Inline array indexer will not be used for element access expression.</target>
+        <target state="translated">Der Inlinearrayindexer wird nicht für den Elementzugriffsausdruck verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="new">Inline array indexer will not be used for element access expression.</target>
+        <target state="translated">Der Inlinearrayindexer wird nicht für den Elementzugriffsausdruck verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</target>
+        <target state="translated">Das Sprachfeature "Inlinearrays" wird für Inlinearraytypen mit Einem Elementfeld, das entweder ein ref-Feld ist oder einen Typ aufweist, der als Typargument ungültig ist, nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</target>
+        <target state="translated">Das Sprachfeature "Inlinearrays" wird für Inlinearraytypen mit Einem Elementfeld, das entweder ein ref-Feld ist oder einen Typ aufweist, der als Typargument ungültig ist, nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="new">Inline array 'Slice' method will not be used for element access expression.</target>
+        <target state="translated">Die Methode "Slice" des Inlinearrays wird nicht für den Elementzugriffsausdruck verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="new">Inline array 'Slice' method will not be used for element access expression.</target>
+        <target state="translated">Die Methode "Slice" des Inlinearrays wird nicht für den Elementzugriffsausdruck verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
-        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</target>
+        <target state="translated">Der Verweistypmodifizierer des Parameters '{0}' stimmt nicht mit dem entsprechenden Parameter überein, der im ausgeblendeten Member '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
-        <target state="new">Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</target>
+        <target state="translated">Der Verweistypmodifizierer des Parameters stimmt nicht mit dem entsprechenden Parameter im ausgeblendeten Element überein.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">
@@ -2719,12 +2724,12 @@
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
-        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</target>
+        <target state="translated">Der Verweistypmodifizierer des Parameters '{0}' stimmt nicht mit dem entsprechenden Parameter überein, der im überschriebenen oder implementierten Member '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
-        <target state="new">Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</target>
+        <target state="translated">Der Verweistypmodifizierer des Parameters stimmt nicht mit dem entsprechenden Parameter im überschriebenen oder implementierten Member überein.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2759,12 +2764,12 @@
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
-        <target state="new">Primary constructor parameter '{0}' is shadowed by a member from base.</target>
+        <target state="translated">Der primäre Konstruktorparameter '{0}' wird durch einen Member aus der Basis schattiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
         <source>Primary constructor parameter is shadowed by a member from base</source>
-        <target state="new">Primary constructor parameter is shadowed by a member from base</target>
+        <target state="translated">Der primäre Konstruktorparameter wird von einem Member aus der Basis abgeschatten.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2834,22 +2839,22 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable">
         <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
-        <target state="new">Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <target state="translated">Das Argument {0} sollte eine Variable sein, da es an einen ref readonly-Parameter übergeben wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable_Title">
         <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
-        <target state="new">Argument should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <target state="translated">Das Argument muss eine Variable sein, da es an einen ref readonly-Parameter übergeben wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue">
         <source>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="new">A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</target>
+        <target state="translated">Für den Parameter "ref readonly" wurde ein Standardwert '{0}' angegeben, "ref readonly" sollte jedoch nur für Verweise verwendet werden. Deklarieren Sie den Parameter ggf. als "in".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue_Title">
         <source>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="new">A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</target>
+        <target state="translated">Für den Parameter "ref readonly" wurde ein Standardwert angegeben, "ref readonly" sollte jedoch nur für Verweise verwendet werden. Deklarieren Sie den Parameter ggf. als "in".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -4164,16 +4169,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Fehler beim Generieren der Quelle durch den Generator "{0}". Dieser wird bei der Ausgabe nicht berücksichtigt, deshalb kann es zu Kompilierungsfehlern kommen. Ausnahmetyp: {1}. Meldung: {2}</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Der Generator hat die folgende Ausnahme ausgelöst:
-{0}</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Fehler beim Generieren der Quelle durch den Generator "{0}". Dies trägt nicht zur Ausgabe bei, und es können Kompilierungsfehler auftreten. Ausnahme vom Typ "{1}" mit Meldung "{2}".
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -4181,16 +4184,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Fehler beim Initialisieren des Generators "{0}". Er wird bei der Ausgabe nicht berücksichtigt, deshalb kann es zu Kompilierungsfehlern kommen. Ausnahmetyp: {1}. Meldung: {2}</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Der Generator hat die folgende Ausnahme ausgelöst:
-{0}</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Fehler beim Initialisieren des Generators "{0}". Dies trägt nicht zur Ausgabe bei, und es können Kompilierungsfehler auftreten. Ausnahme vom Typ "{1}" mit Meldung "{2}".
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -4739,12 +4740,12 @@
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
-        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</target>
+        <target state="translated">Der Verweistypmodifizierer des Parameters '{0}' entspricht nicht dem entsprechenden Parameter '{1}' im Ziel.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</source>
-        <target state="new">Reference kind modifier of parameter doesn't match the corresponding parameter in target.</target>
+        <target state="translated">Der Verweistypmodifizierer des Parameters stimmt nicht mit dem entsprechenden Parameter im Ziel überein.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -5014,12 +5015,12 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField">
         <source>Ref field '{0}' should be ref-assigned before use.</source>
-        <target state="new">Ref field '{0}' should be ref-assigned before use.</target>
+        <target state="translated">Das Verweisfeld '{0}' muss vor der Verwendung ref-zugewiesen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField_Title">
         <source>Ref field should be ref-assigned before use.</source>
-        <target state="new">Ref field should be ref-assigned before use.</target>
+        <target state="translated">Das Verweisfeld muss vor der Verwendung ref-zugewiesen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
@@ -5049,12 +5050,12 @@
       </trans-unit>
       <trans-unit id="WRN_WindowsExperimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <target state="translated">"{0}" dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_WindowsExperimental_Title">
         <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <target state="translated">Der Typ dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -6709,7 +6710,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
         <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
-        <target state="needs-review-translation">Der Attributkonstruktor "{0}" kann nicht verwendet werden, weil er in-Parameter aufweist.</target>
+        <target state="translated">Der Attributkonstruktor "{0}" kann nicht verwendet werden, weil er "in"- oder "ref readonly"-Parameter aufweist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -12620,12 +12621,12 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="needs-review-translation">"{0}" dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden.</target>
+        <target state="translated">"{0}" dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden. Unterdrücken Sie diese Diagnose, um fortzufahren.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
         <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="needs-review-translation">Der Typ dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden.</target>
+        <target state="translated">Der Typ dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden. Unterdrücken Sie diese Diagnose, um fortzufahren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
@@ -12705,7 +12706,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
         <source>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="needs-review-translation">Der erste Parameter der in-Erweiterungsmethode "{0}" muss ein konkreter (nicht generischer) Werttyp sein.</target>
+        <target state="translated">Der erste "in" oder "ref readonly"-Parameter der Erweiterungsmethode "{0}" muss ein konkreter (nicht generischer) Werttyp sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

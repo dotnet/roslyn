@@ -1071,15 +1071,6 @@ public class UseCollectionExpressionForArrayTests
                     public XAttribute(int[] values) { }
                 }
                 """,
-            FixedState =
-                {
-                    // THis will tart working once https://github.com/dotnet/roslyn/issues/69133 is fixed.
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(1,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                        DiagnosticResult.CompilerError("CS0182").WithSpan(1, 4, 1, 13),
-                    }
-                },
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }

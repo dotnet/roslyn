@@ -739,24 +739,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Calculate merged syntax map for each partial type symbol:
 
             var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
-            var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>?>(symbolKeyComparer);
+            var mergedUpdateEditSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>?>(symbolKeyComparer);
 
-            var editsByPartialType = edits
-                .Where(edit => edit.PartialType != null)
+            var updatesByPartialType = edits
+                .Where(edit => edit is { PartialType: not null, Kind: SemanticEditKind.Update })
                 .GroupBy(edit => edit.PartialType!.Value, symbolKeyComparer);
 
-            foreach (var partialTypeEdits in editsByPartialType)
+            foreach (var partialTypeEdits in updatesByPartialType)
             {
-                // Either all edits have syntax map or none has.
-                Debug.Assert(
-                    partialTypeEdits.All(edit => edit.SyntaxMapTree != null && edit.SyntaxMap != null) ||
-                    partialTypeEdits.All(edit => edit.SyntaxMapTree == null && edit.SyntaxMap == null));
+                Debug.Assert(partialTypeEdits.All(edit => edit.SyntaxMapTree is null == edit.SyntaxMap is null));
 
                 Func<SyntaxNode, SyntaxNode?>? mergedSyntaxMap;
-                if (partialTypeEdits.First().SyntaxMap != null)
+                if (partialTypeEdits.Any(static e => e.SyntaxMap != null))
                 {
-                    var newTrees = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMapTree!);
-                    var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
+                    var newTrees = partialTypeEdits.Where(edit => edit.SyntaxMapTree != null).SelectAsArray(edit => edit.SyntaxMapTree!);
+                    var syntaxMaps = partialTypeEdits.Where(edit => edit.SyntaxMap != null).SelectAsArray(edit => edit.SyntaxMap!);
                     mergedSyntaxMap = node => syntaxMaps[newTrees.IndexOf(node.SyntaxTree)](node);
                 }
                 else
@@ -764,7 +761,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     mergedSyntaxMap = null;
                 }
 
-                mergedSyntaxMaps.Add(partialTypeEdits.Key, mergedSyntaxMap);
+                mergedUpdateEditSyntaxMaps.Add(partialTypeEdits.Key, mergedSyntaxMap);
             }
 
             // Deduplicate edits based on their target symbol and use merged syntax map calculated above for a given partial type.
@@ -780,7 +777,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var (oldSymbol, newSymbol) = resolvedSymbols[i];
                     if (visitedSymbols.Add(newSymbol ?? oldSymbol!))
                     {
-                        var syntaxMap = mergedSyntaxMaps[edit.PartialType.Value];
+                        var syntaxMap = (edit.Kind == SemanticEditKind.Update) ? mergedUpdateEditSyntaxMaps[edit.PartialType.Value] : null;
                         mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMap, preserveLocalVariables: syntaxMap != null));
                     }
                 }

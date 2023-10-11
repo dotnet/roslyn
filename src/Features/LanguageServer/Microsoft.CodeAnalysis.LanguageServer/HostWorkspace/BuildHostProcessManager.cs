@@ -33,22 +33,41 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     {
         var neededBuildHostKind = GetKindForProject(projectFilePath);
 
-        _logger?.LogTrace($"Choosing a build host of type {neededBuildHostKind} for {projectFilePath}");
+        _logger?.LogTrace($"Choosing a build host of type {neededBuildHostKind} for {projectFilePath}.");
 
+        var buildHost = await GetBuildHostAsync(neededBuildHostKind, cancellationToken).ConfigureAwait(false);
+
+        // If this is a .NET Framework build host, we may not have have build tools installed and thus can't actually use it to build.
+        // Check if this is the case.
+        if (neededBuildHostKind == BuildHostProcessKind.NetFramework)
+        {
+            if (!await buildHost.HasUsableMSBuildAsync(projectFilePath, cancellationToken))
+            {
+                // It's not usable, so we'll fall back to the .NET Core one.
+                _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
+                return await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken);
+            }
+        }
+
+        return buildHost;
+    }
+
+    public async Task<IBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
+    {
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (!_processes.TryGetValue(neededBuildHostKind, out var buildHostProcess))
+            if (!_processes.TryGetValue(buildHostKind, out var buildHostProcess))
             {
-                var process = neededBuildHostKind switch
+                var process = buildHostKind switch
                 {
                     BuildHostProcessKind.NetCore => LaunchDotNetCoreBuildHost(),
                     BuildHostProcessKind.NetFramework => LaunchDotNetFrameworkBuildHost(),
-                    _ => throw ExceptionUtilities.UnexpectedValue(neededBuildHostKind)
+                    _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
                 };
 
                 buildHostProcess = new BuildHostProcess(process, _loggerFactory);
                 buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
-                _processes.Add(neededBuildHostKind, buildHostProcess);
+                _processes.Add(buildHostKind, buildHostProcess);
             }
 
             return buildHostProcess.BuildHost;
@@ -192,7 +211,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return BuildHostProcessKind.NetFramework;
     }
 
-    private enum BuildHostProcessKind
+    public enum BuildHostProcessKind
     {
         NetCore,
         NetFramework
