@@ -513,9 +513,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 foreach (var kv in documentChecksums)
                 {
-                    Debug.Assert(assetProvider.EnsureCacheEntryIfExists(kv.Item2.Info), "Expected the prior call to GetAssetsAsync to obtain all items for this loop.");
-
-                    var info = await assetProvider.GetAssetAsync<DocumentInfo.DocumentAttributes>(kv.Item2.Info, cancellationToken).ConfigureAwait(false);
+                    var info = assetProvider.GetRequiredAsset<DocumentInfo.DocumentAttributes>(kv.Item2.Info);
                     map.Add(info.Id, kv.Item2);
                 }
 
