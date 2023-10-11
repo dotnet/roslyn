@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -817,6 +818,29 @@ public partial class C
         }
     }
 
+    private void DeterminismCore(
+        string fileTypeName,
+        CSharpCompilation comp1,
+        CSharpCompilation comp2,
+        CSharpCompilation comp3)
+    {
+        var outer1 = comp1.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        var outer2 = comp2.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        var outer3 = comp3.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        Assert.False(outer1.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer2.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer3.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer1.FilePathChecksumOpt.SequenceEqual(outer2.FilePathChecksumOpt));
+        Assert.True(outer1.FilePathChecksumOpt.SequenceEqual(outer3.FilePathChecksumOpt));
+
+        var emitOptions = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
+        var bytes1 = comp1.EmitToArray(emitOptions);
+        var bytes2 = comp2.EmitToArray(emitOptions);
+        var bytes3 = comp3.EmitToArray(emitOptions);
+        Assert.False(bytes1.SequenceEqual(bytes2));
+        Assert.True(bytes1.SequenceEqual(bytes3));
+    }
+
     [Fact]
     public void Determinism_01()
     {
@@ -828,29 +852,15 @@ public partial class C
         var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
         var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
         var options = TestOptions.DebugDll.WithDeterministic(true);
-        var comp1 = CreateCompilation(testSource1, options: options);
-        var comp2 = CreateCompilation(testSource2, options: options);
+        var comp1 = CreateCompilation(testSource1, options: options, assemblyName: "filetypes");
+        var comp2 = CreateCompilation(testSource2, options: options, assemblyName: "filetypes");
 
         var resolver = new SourceFileResolver(
             ImmutableArray<string>.Empty,
             baseDirectory: null,
             ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
-        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver));
-
-        var outer1 = comp1.GetMember<NamedTypeSymbol>("Outer").AssociatedFileIdentifier;
-        var outer2 = comp2.GetMember<NamedTypeSymbol>("Outer").AssociatedFileIdentifier;
-        var outer3 = comp3.GetMember<NamedTypeSymbol>("Outer").AssociatedFileIdentifier;
-        Assert.False(outer1.FilePathChecksumOpt.IsDefaultOrEmpty);
-        Assert.False(outer2.FilePathChecksumOpt.IsDefaultOrEmpty);
-        Assert.False(outer3.FilePathChecksumOpt.IsDefaultOrEmpty);
-        Assert.False(outer1.FilePathChecksumOpt.SequenceEqual(outer2.FilePathChecksumOpt));
-        Assert.True(outer1.FilePathChecksumOpt.SequenceEqual(outer3.FilePathChecksumOpt));
-
-        var bytes1 = comp1.EmitToArray();
-        var bytes2 = comp2.EmitToArray();
-        var bytes3 = comp3.EmitToArray();
-        Assert.False(bytes1.SequenceEqual(bytes2));
-        Assert.True(bytes1.SequenceEqual(bytes3));
+        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver), assemblyName: "filetypes");
+        DeterminismCore("Outer", comp1, comp2, comp3);
     }
 
     [Fact]
@@ -865,29 +875,15 @@ public partial class C
         var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
         var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
         var options = TestOptions.DebugDll.WithDeterministic(true);
-        var comp1 = CreateCompilation(testSource1, options: options);
-        var comp2 = CreateCompilation(testSource2, options: options);
+        var comp1 = CreateCompilation(testSource1, options: options, assemblyName: "filetypes");
+        var comp2 = CreateCompilation(testSource2, options: options, assemblyName: "filetypes");
 
         var resolver = new SourceFileResolver(
             ImmutableArray<string>.Empty,
             baseDirectory: null,
             ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
-        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver));
-
-        var outer1 = comp1.GetMember<NamedTypeSymbol>("Outer2").AssociatedFileIdentifier;
-        var outer2 = comp2.GetMember<NamedTypeSymbol>("Outer2").AssociatedFileIdentifier;
-        var outer3 = comp3.GetMember<NamedTypeSymbol>("Outer2").AssociatedFileIdentifier;
-        Assert.False(outer1.FilePathChecksumOpt.IsDefaultOrEmpty);
-        Assert.False(outer2.FilePathChecksumOpt.IsDefaultOrEmpty);
-        Assert.False(outer3.FilePathChecksumOpt.IsDefaultOrEmpty);
-        Assert.False(outer1.FilePathChecksumOpt.SequenceEqual(outer2.FilePathChecksumOpt));
-        Assert.True(outer1.FilePathChecksumOpt.SequenceEqual(outer3.FilePathChecksumOpt));
-
-        var bytes1 = comp1.EmitToArray();
-        var bytes2 = comp2.EmitToArray();
-        var bytes3 = comp3.EmitToArray();
-        Assert.False(bytes1.SequenceEqual(bytes2));
-        Assert.True(bytes1.SequenceEqual(bytes3));
+        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver), assemblyName: "filetypes");
+        DeterminismCore("Outer2", comp1, comp2, comp3);
     }
 
     [Fact]
