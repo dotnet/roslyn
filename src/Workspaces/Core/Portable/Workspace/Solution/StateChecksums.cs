@@ -411,12 +411,10 @@ internal static class ChecksumCache
     private static readonly ConditionalWeakTable<object, Checksum> s_objectToChecksumCache = new();
     private static readonly ConditionalWeakTable<object, ChecksumCollection> s_objectToChecksumCollectionCache = new();
 
-    public static bool TryGetValue(object value, [NotNullWhen(true)] out Checksum? checksum)
-        => s_objectToChecksumCache.TryGetValue(value, out checksum);
-
     public static Checksum GetOrCreate<TValue, TArg>(TValue value, Func<TValue, TArg, Checksum> checksumCreator, TArg arg)
         where TValue : class
     {
+        // Fast, no-alloc, path when the checksum has already been computed and cached.
         if (s_objectToChecksumCache.TryGetValue(value, out var checksum))
             return checksum;
 
