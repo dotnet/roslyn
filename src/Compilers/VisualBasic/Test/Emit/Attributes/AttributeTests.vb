@@ -4547,27 +4547,15 @@ struct B<T>
 [A<B<int>.E>(B<int>.C)]
 public class C { }
 ]]>
-            Dim comp1 = CreateCSharpCompilation(source1)
-
-            Dim source2 =
-<compilation>
-    <file><![CDATA[
-Class D
-    Inherits C
-End Class
-    ]]></file>
-</compilation>
-            Dim verifier = CompileAndVerify(source2, references:={comp1.EmitToImageReference()}, symbolValidator:=
-                Sub(m)
-                    Dim c = m.GlobalNamespace.GetTypeMember("D").BaseType
-                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
-                    Assert.False(attr.HasErrors)
-                    Assert.Empty(attr.NamedArguments)
-                    Dim arg = attr.ConstructorArguments.Single()
-                    Assert.Equal(33, arg.Value)
-                    Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
-                End Sub)
-            verifier.VerifyDiagnostics()
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
@@ -4587,28 +4575,16 @@ struct B<T>
 [A<B<int>.E>(Prop = B<int>.C)]
 public class C { }
 ]]>
-            Dim comp1 = CreateCSharpCompilation(source1)
-
-            Dim source2 =
-<compilation>
-    <file><![CDATA[
-Class D
-    Inherits C
-End Class
-    ]]></file>
-</compilation>
-            Dim verifier = CompileAndVerify(source2, references:={comp1.EmitToImageReference()}, symbolValidator:=
-                Sub(m)
-                    Dim c = m.GlobalNamespace.GetTypeMember("D").BaseType
-                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
-                    Assert.False(attr.HasErrors)
-                    Assert.Empty(attr.ConstructorArguments)
-                    Dim arg = attr.NamedArguments.Single()
-                    Assert.Equal("Prop", arg.Key)
-                    Assert.Equal(33, arg.Value.Value)
-                    Assert.Equal("B(Of System.Int32).E", arg.Value.Type.ToTestDisplayString())
-                End Sub)
-            verifier.VerifyDiagnostics()
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.ConstructorArguments)
+            Dim arg = attr.NamedArguments.Single()
+            Assert.Equal("Prop", arg.Key)
+            Assert.Equal(33, arg.Value.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Value.Type.ToTestDisplayString())
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
@@ -4631,27 +4607,15 @@ struct B<T>
 [A1<B<int>.E>.A2(B<int>.C)]
 public class C { }
 ]]>
-            Dim comp1 = CreateCSharpCompilation(source1)
-
-            Dim source2 =
-<compilation>
-    <file><![CDATA[
-Class D
-    Inherits C
-End Class
-    ]]></file>
-</compilation>
-            Dim verifier = CompileAndVerify(source2, references:={comp1.EmitToImageReference()}, symbolValidator:=
-                Sub(m)
-                    Dim c = m.GlobalNamespace.GetTypeMember("D").BaseType
-                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A2")
-                    Assert.False(attr.HasErrors)
-                    Assert.Empty(attr.NamedArguments)
-                    Dim arg = attr.ConstructorArguments.Single()
-                    Assert.Equal(33, arg.Value)
-                    Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
-                End Sub)
-            verifier.VerifyDiagnostics()
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A2")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
@@ -4670,27 +4634,15 @@ public class C
     public const E X = (E)33;
 }
 ]]>
-            Dim comp1 = CreateCSharpCompilation(source1)
-
-            Dim source2 =
-<compilation>
-    <file><![CDATA[
-Class D
-    Inherits C
-End Class
-    ]]></file>
-</compilation>
-            Dim verifier = CompileAndVerify(source2, references:={comp1.EmitToImageReference()}, symbolValidator:=
-                Sub(m)
-                    Dim c = m.GlobalNamespace.GetTypeMember("D").BaseType
-                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
-                    Assert.False(attr.HasErrors)
-                    Assert.Empty(attr.NamedArguments)
-                    Dim arg = attr.ConstructorArguments.Single()
-                    Assert.Equal(33, arg.Value)
-                    Assert.Equal("E", arg.Type.ToTestDisplayString())
-                End Sub)
-            verifier.VerifyDiagnostics()
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("E", arg.Type.ToTestDisplayString())
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
@@ -4704,27 +4656,15 @@ class A<T> : System.Attribute
 [A<int>(33)]
 public class C { }
 ]]>
-            Dim comp1 = CreateCSharpCompilation(source1)
-
-            Dim source2 =
-<compilation>
-    <file><![CDATA[
-Class D
-    Inherits C
-End Class
-    ]]></file>
-</compilation>
-            Dim verifier = CompileAndVerify(source2, references:={comp1.EmitToImageReference()}, symbolValidator:=
-                Sub(m)
-                    Dim c = m.GlobalNamespace.GetTypeMember("D").BaseType
-                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
-                    Assert.False(attr.HasErrors)
-                    Assert.Empty(attr.NamedArguments)
-                    Dim arg = attr.ConstructorArguments.Single()
-                    Assert.Equal(33, arg.Value)
-                    Assert.Equal("System.Int32", arg.Type.ToTestDisplayString())
-                End Sub)
-            verifier.VerifyDiagnostics()
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("System.Int32", arg.Type.ToTestDisplayString())
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
@@ -4744,27 +4684,15 @@ struct B<T>
 [A<int>(B<int>.C)]
 public class C { }
 ]]>
-            Dim comp1 = CreateCSharpCompilation(source1)
-
-            Dim source2 =
-<compilation>
-    <file><![CDATA[
-Class D
-    Inherits C
-End Class
-    ]]></file>
-</compilation>
-            Dim verifier = CompileAndVerify(source2, references:={comp1.EmitToImageReference()}, symbolValidator:=
-                Sub(m)
-                    Dim c = m.GlobalNamespace.GetTypeMember("D").BaseType
-                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
-                    Assert.False(attr.HasErrors)
-                    Assert.Empty(attr.NamedArguments)
-                    Dim arg = attr.ConstructorArguments.Single()
-                    Assert.Equal(33, arg.Value)
-                    Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
-                End Sub)
-            verifier.VerifyDiagnostics()
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
         End Sub
 
         <Fact, WorkItem(879792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879792")>
