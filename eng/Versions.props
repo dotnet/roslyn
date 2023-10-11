@@ -4,7 +4,7 @@
   <!-- <Metalama> -->
   <!-- Set the default versions of dependencies -->
   <PropertyGroup>
-    <PostSharpEngineeringVersion>2023.2.41</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion>2023.2.45</PostSharpEngineeringVersion>
   </PropertyGroup>
 
   <!-- Set the deafult versions of auto-updated dependencies -->
@@ -23,6 +23,8 @@
   Roslyn version
 --> 
   <PropertyGroup>
+    <!-- <Metalama> -->
+    <RoslynVersion>4.6.0</RoslynVersion>
   <!-- The Roslyn version must be changed in ..\eng-Metalama\MainVersion.props.
 
     <MajorVersion>4</MajorVersion>
