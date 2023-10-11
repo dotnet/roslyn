@@ -445,7 +445,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
                 if (patternChunk.PatternHumps.Count > 0)
                 {
-                    // No need to do the case sensitive check unless the case insensitive check is successful
+                    // PERF: This can be called thousands of times per completion session with only a handful of matches found.
+                    // Checking for case insensitive initially reduces the TryUpperCaseCamelCaseMatch call count to 1 for the
+                    // non-matching candidates, but increases the call count to 2 for the much less frequent matching candidates.
                     var camelCaseKindIgnoreCase = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out var matchedSpansIgnoreCase);
                     if (camelCaseKindIgnoreCase.HasValue)
                     {
