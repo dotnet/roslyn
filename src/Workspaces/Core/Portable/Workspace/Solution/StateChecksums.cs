@@ -408,56 +408,43 @@ internal sealed class DocumentStateChecksums(
 /// </summary>
 internal static class ChecksumCache
 {
-    private static readonly ConditionalWeakTable<object, Checksum> s_objectToChecksumCache = new();
-
     public static Checksum GetOrCreate<TValue, TArg>(TValue value, Func<TValue, TArg, Checksum> checksumCreator, TArg arg)
         where TValue : class
     {
-        // Fast, no-alloc, path when the checksum has already been computed and cached.
-        if (s_objectToChecksumCache.TryGetValue(value, out var checksum))
-            return checksum;
-
-        return GetOrCreateSlow();
-
-        Checksum GetOrCreateSlow()
-            => s_objectToChecksumCache.GetValue(value, _ => checksumCreator(value, arg));
+        return StronglyTypedChecksumCache<TValue, Checksum>.GetOrCreate(value, checksumCreator, arg);
     }
 
     public static ChecksumCollection GetOrCreateChecksumCollection<TReference>(
         IReadOnlyList<TReference> references, ISerializerService serializer, CancellationToken cancellationToken) where TReference : class
     {
-        return CollectionCache<TReference>.GetOrCreateChecksumCollection(references, serializer, cancellationToken);
+        return StronglyTypedChecksumCache<IReadOnlyList<TReference>, ChecksumCollection>.GetOrCreate(
+            references,
+            static (references, tuple) =>
+            {
+                using var _ = ArrayBuilder<Checksum>.GetInstance(references.Count, out var checksums);
+                foreach (var reference in references)
+                    checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
+
+                return new ChecksumCollection(checksums.ToImmutableAndClear());
+            },
+            (serializer, cancellationToken));
     }
 
-    private static class CollectionCache<TReference> where TReference : class
+    private static class StronglyTypedChecksumCache<TValue, TResult>
+        where TValue : class
+        where TResult : class
     {
-        private static readonly ConditionalWeakTable<IReadOnlyList<TReference>, ChecksumCollection> s_objectToChecksumCollectionCache = new();
+        private static readonly ConditionalWeakTable<TValue, TResult> s_objectToChecksumCollectionCache = new();
 
-        private static ChecksumCollection GetOrCreateChecksumCollection<TArg>(IReadOnlyList<TReference> value, Func<IReadOnlyList<TReference>, TArg, ChecksumCollection> checksumCreator, TArg arg)
+        public static TResult GetOrCreate<TArg>(TValue value, Func<TValue, TArg, TResult> checksumCreator, TArg arg)
         {
             if (s_objectToChecksumCollectionCache.TryGetValue(value, out var checksumCollection))
                 return checksumCollection;
 
-            return GetOrCreateSlow();
+            return GetOrCreateSlow(value, checksumCreator, arg);
 
-            ChecksumCollection GetOrCreateSlow()
+            static TResult GetOrCreateSlow(TValue value, Func<TValue, TArg, TResult> checksumCreator, TArg arg)
                 => s_objectToChecksumCollectionCache.GetValue(value, _ => checksumCreator(value, arg));
-        }
-
-        public static ChecksumCollection GetOrCreateChecksumCollection(
-            IReadOnlyList<TReference> references, ISerializerService serializer, CancellationToken cancellationToken)
-        {
-            return GetOrCreateChecksumCollection(
-                references,
-                static (references, tuple) =>
-                {
-                    using var _ = ArrayBuilder<Checksum>.GetInstance(references.Count, out var checksums);
-                    foreach (var reference in references)
-                        checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
-
-                    return new ChecksumCollection(checksums.ToImmutableAndClear());
-                },
-                (serializer, cancellationToken));
         }
     }
 }
