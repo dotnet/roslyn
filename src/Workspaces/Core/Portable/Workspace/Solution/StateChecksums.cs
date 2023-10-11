@@ -121,39 +121,48 @@ internal sealed class SolutionStateChecksums : IChecksummedObject
 
         ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
-        // Before doing a depth-first-search *into* each project, first run across all the project at their top level.
-        // This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums' instance
-        // that we don't unnecessarily walk all documents looking just for those.
+        if (searchingChecksumsLeft.Count == 0)
+            return;
 
-        foreach (var (projectId, projectState) in state.ProjectStates)
+        if (hintProject != null)
         {
-            if (searchingChecksumsLeft.Count == 0)
-                break;
-
-            if (hintProject != null && hintProject != projectId)
-                continue;
-
-            if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
-                searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+            var projectState = state.GetProjectState(hintProject);
+            if (projectState != null &&
+                projectState.TryGetStateChecksums(out var projectStateChecksums))
             {
-                result[projectStateChecksums.Checksum] = projectStateChecksums;
+                await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
-
-        // Now actually do the depth first search into each project.
-
-        foreach (var (projectId, projectState) in state.ProjectStates)
+        else
         {
-            if (searchingChecksumsLeft.Count == 0)
-                break;
+            // Before doing a depth-first-search *into* each project, first run across all the project at their top level.
+            // This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums' instance
+            // that we don't unnecessarily walk all documents looking just for those.
 
-            if (hintProject != null && hintProject != projectId)
-                continue;
+            foreach (var (_, projectState) in state.ProjectStates)
+            {
+                if (searchingChecksumsLeft.Count == 0)
+                    break;
 
-            // It's possible not all all our projects have checksums.  Specifically, we may have only been
-            // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
-            if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
+                    searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+                {
+                    result[projectStateChecksums.Checksum] = projectStateChecksums;
+                }
+            }
+
+            // Now actually do the depth first search into each project.
+
+            foreach (var (_, projectState) in state.ProjectStates)
+            {
+                if (searchingChecksumsLeft.Count == 0)
+                    break;
+
+                // It's possible not all all our projects have checksums.  Specifically, we may have only been
+                // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
+                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
+                    await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
@@ -274,6 +283,11 @@ internal sealed class ProjectStateChecksums(
         {
             result[Checksum] = this;
         }
+
+        // It's normal for callers to just want to sync a single ProjectStateChecksum.  So quickly check this, without
+        // doing all the expensive linear work below if we can bail out early here.
+        if (searchingChecksumsLeft.Count == 0)
+            return;
 
         if (searchingChecksumsLeft.Remove(Info))
         {
