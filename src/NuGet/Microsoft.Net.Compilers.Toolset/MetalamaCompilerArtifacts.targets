@@ -56,13 +56,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\Microsoft.Bcl.HashCode.dll" />
       <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\Newtonsoft.Json.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\Metalama.Backstage.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\JetBrains.Profiler.Api.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\JetBrains.Profiler.SelfApi.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\JetBrains.FormatRipper.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\JetBrains.HabitatDetector.dll" />
       <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Workspaces.dll" />
       <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\net6.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
       <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Features.dll" />
@@ -77,13 +71,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Microsoft.Bcl.HashCode.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Newtonsoft.Json.dll" />
-      <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Metalama.Backstage.dll" />
-      <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\JetBrains.Profiler.Api.dll" />
-      <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\JetBrains.Profiler.SelfApi.dll" />
-      <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\JetBrains.FormatRipper.dll" />
-      <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\JetBrains.HabitatDetector.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" />

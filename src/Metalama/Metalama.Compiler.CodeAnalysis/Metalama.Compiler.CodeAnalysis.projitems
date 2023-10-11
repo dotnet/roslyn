@@ -10,9 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerAssemblyRedirector.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerApplicationInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerExceptionHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerMessageProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NullLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxAnnotationHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedPathGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilter.cs" />

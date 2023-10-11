@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         Logger.LogException(ex, $"Exception running compilation for {request.RequestId}");
 
                         // <Metalama>
-                        MetalamaCompilerExceptionHandler.HandleException(ex);
+                        CrashReporter.WriteCrashReport(ex);
                         // </Metalama>
 
                         response = new RejectedBuildResponse($"Exception during compilation: {ex.Message}");

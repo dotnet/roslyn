@@ -1,3 +1,4 @@
+Metalama.Compiler.CSharpTransformerDriver
 Microsoft.CodeAnalysis.CSharp.Conversion.IsInlineArray.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionLiteral.get -> bool
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax
@@ -29,6 +30,7 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax.Accept(Mic
 override Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
 override Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+static Metalama.Compiler.CSharpTransformerDriver.RunTransformers(Microsoft.CodeAnalysis.Compilation! input, System.Collections.Immutable.ImmutableArray<Metalama.Compiler.ISourceTransformer!> transformers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider! analyzerConfigProvider, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ResourceDescription!> manifestResources, Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader! assemblyLoader, Metalama.Compiler.TransformerOptions? options = null) -> (Microsoft.CodeAnalysis.Compilation!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>)
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CollectionExpression(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!> elements = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CollectionExpression(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax!> elements, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax!

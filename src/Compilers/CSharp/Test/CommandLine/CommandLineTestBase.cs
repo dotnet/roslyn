@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Metalama.Compiler;
-using Metalama.Backstage.Licensing.Consumption;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -59,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         // <Metalama /> Method signature modified.
-        internal MockCSharpCompiler CreateCSharpCompiler(string? responseFile, string workingDirectory, string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, ISourceTransformer[]? transformers = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, MetadataReference[]? additionalReferences = null, bool bypassLicensing = true)
+        internal MockCSharpCompiler CreateCSharpCompiler(string? responseFile, string workingDirectory, string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, ISourceTransformer[]? transformers = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, MetadataReference[]? additionalReferences = null)
         {
             var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
             // <Metalama>
-            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers.AsImmutableOrEmpty(), generators.AsImmutableOrEmpty(), transformers.AsImmutableOrEmpty(), loader, driverCache, additionalReferences.AsImmutableOrEmpty(), bypassLicensing);
+            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers.AsImmutableOrEmpty(), generators.AsImmutableOrEmpty(), transformers.AsImmutableOrEmpty(), loader, driverCache, additionalReferences.AsImmutableOrEmpty());
             // </Metalama>
         }
     }

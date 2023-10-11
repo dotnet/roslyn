@@ -1,5 +1,7 @@
 *REMOVED*static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
+abstract Microsoft.CodeAnalysis.CommandLineArguments.CompilationOptionsCore.get -> Microsoft.CodeAnalysis.CompilationOptions!
+abstract Microsoft.CodeAnalysis.CommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions!
 const Metalama.Compiler.MetalamaCompilerAnnotations.GeneratedCodeAnnotationKind = "Metalama.Compiler.GeneratedCode" -> string!
 Metalama.Compiler.DiagnosticFilteringRequest
 Metalama.Compiler.DiagnosticFilteringRequest.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
@@ -8,7 +10,20 @@ Metalama.Compiler.DiagnosticFilteringRequest.IsSuppressed.get -> bool
 Metalama.Compiler.DiagnosticFilteringRequest.Suppress() -> void
 Metalama.Compiler.DiagnosticFilteringRequest.Symbol.get -> Microsoft.CodeAnalysis.ISymbol!
 Metalama.Compiler.DiagnosticFilteringRequest.SyntaxNode.get -> Microsoft.CodeAnalysis.SyntaxNode!
+Metalama.Compiler.InitializeServicesContext
+Metalama.Compiler.InitializeServicesContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!
+Metalama.Compiler.InitializeServicesContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
+Metalama.Compiler.InitializeServicesContext.Options.get -> Metalama.Compiler.InitializeServicesOptions!
+Metalama.Compiler.InitializeServicesContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> void
+Metalama.Compiler.InitializeServicesOptions
+Metalama.Compiler.InitializeServicesOptions.IsLongRunningProcess.get -> bool
+Metalama.Compiler.InitializeServicesOptions.MsBuildProjectFullPath.get -> string?
+Metalama.Compiler.InitializeServicesOptions.RequiresMetalamaLicenseAudit.get -> bool
+Metalama.Compiler.InitializeServicesOptions.RequiresMetalamaLicenseEnforcement.get -> bool
+Metalama.Compiler.InitializeServicesOptions.RequiresMetalamaSupportServices.get -> bool
 Metalama.Compiler.Intrinsics
+Metalama.Compiler.ISourceTransformerWithServices
+Metalama.Compiler.ISourceTransformerWithServices.InitializeServices(Metalama.Compiler.InitializeServicesContext! context) -> System.IServiceProvider?
 Metalama.Compiler.ManagedResource
 Metalama.Compiler.ManagedResource.DataProvider.get -> System.Func<System.IO.Stream!>?
 Metalama.Compiler.ManagedResource.IncludeInRefAssembly.get -> bool
@@ -19,8 +34,17 @@ Metalama.Compiler.ManagedResource.Name.get -> string!
 Metalama.Compiler.ManagedResource.Resource.get -> Microsoft.CodeAnalysis.ResourceDescription!
 Metalama.Compiler.MetalamaCompilerAnnotations
 Metalama.Compiler.MetalamaCompilerInfo
-Metalama.Compiler.MetalamaPlugInAttribute
-Metalama.Compiler.MetalamaPlugInAttribute.MetalamaPlugInAttribute() -> void
+Metalama.Compiler.Services.IDisposableServiceProvider
+Metalama.Compiler.Services.IDisposableServiceProvider.DisposeServices(System.Action<Microsoft.CodeAnalysis.Diagnostic!>! reportDiagnostic) -> void
+Metalama.Compiler.Services.IExceptionReporter
+Metalama.Compiler.Services.IExceptionReporter.ReportException(System.Exception! reportedException) -> void
+Metalama.Compiler.Services.ILogger
+Metalama.Compiler.Services.ILogger.Error.get -> Metalama.Compiler.Services.ILogWriter?
+Metalama.Compiler.Services.ILogger.Info.get -> Metalama.Compiler.Services.ILogWriter?
+Metalama.Compiler.Services.ILogger.Trace.get -> Metalama.Compiler.Services.ILogWriter?
+Metalama.Compiler.Services.ILogger.Warning.get -> Metalama.Compiler.Services.ILogWriter?
+Metalama.Compiler.Services.ILogWriter
+Metalama.Compiler.Services.ILogWriter.Log(string! message) -> void
 Metalama.Compiler.SyntaxTreeTransformation
 Metalama.Compiler.SyntaxTreeTransformation.FilePath.get -> string!
 Metalama.Compiler.SyntaxTreeTransformation.Kind.get -> Metalama.Compiler.SyntaxTreeTransformationKind
@@ -37,12 +61,12 @@ Metalama.Compiler.TransformerAttribute.TransformerAttribute() -> void
 Metalama.Compiler.TransformerContext.AddSyntaxTreeTransformations(params Metalama.Compiler.SyntaxTreeTransformation[]! transformations) -> void
 Metalama.Compiler.TransformerContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!
 Metalama.Compiler.TransformerContext.Options.get -> Metalama.Compiler.TransformerOptions!
-Metalama.Compiler.TransformerContext.Services.get -> System.IServiceProvider?
 Metalama.Compiler.TransformerOptions
 Metalama.Compiler.TransformerOptions.RequiresCodeCoverageAnnotations.get -> bool
 Metalama.Compiler.TransformerOrderAttribute
 Metalama.Compiler.TransformerOrderAttribute.TransformerNames.get -> string![]!
 Metalama.Compiler.TransformerOrderAttribute.TransformerOrderAttribute(params string![]! transformerNames) -> void
+Microsoft.CodeAnalysis.CommandLineArguments.CommandLineArguments() -> void
 Microsoft.CodeAnalysis.CommandLineArguments.ReportInternalsVisibleToAttributes.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider<TValue>
 Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider<TValue>.AdditionalTextValueProvider(System.Func<Microsoft.CodeAnalysis.AdditionalText!, TValue>! computeValue, System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.AdditionalText!>? additionalTextComparer = null) -> void
@@ -104,5 +128,6 @@ Microsoft.CodeAnalysis.RuntimeCapability.InlineArrayTypes = 7 -> Microsoft.CodeA
 *REMOVED*Microsoft.CodeAnalysis.SpecialType.Count = 45 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.Count = 46 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute = 46 -> Microsoft.CodeAnalysis.SpecialType
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetTransformers() -> System.Collections.Immutable.ImmutableArray<Metalama.Compiler.ISourceTransformer!>
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInlineArrayAccess(Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInlineArrayAccess(Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation! operation, TArgument argument) -> TResult?
