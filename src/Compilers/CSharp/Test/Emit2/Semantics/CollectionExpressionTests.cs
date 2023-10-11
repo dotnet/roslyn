@@ -1688,6 +1688,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """));
         }
 
+        [Fact]
+        public void BetterConversionFromExpression_07()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F1(ReadOnlySpan<int> value) { }
+                    static void F1(ReadOnlySpan<object> value) { }
+                    static void F2(Span<string> value) { }
+                    static void F2(Span<object> value) { }
+                    static void Main()
+                    {
+                        F1([1, 2, 3]);
+                        F2(["a", "b"]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(ReadOnlySpan<int>)' and 'Program.F1(ReadOnlySpan<object>)'
+                //         F1([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(System.ReadOnlySpan<int>)", "Program.F1(System.ReadOnlySpan<object>)").WithLocation(10, 9),
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(Span<string>)' and 'Program.F2(Span<object>)'
+                //         F2(["a", "b"]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(System.Span<string>)", "Program.F2(System.Span<object>)").WithLocation(11, 9));
+        }
+
         [Theory]
         [InlineData("System.ReadOnlySpan<char>")]
         [InlineData("System.Span<char>")]
