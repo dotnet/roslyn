@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static async ValueTask WriteDataAsync(
             Stream stream,
-            SolutionAsset? singleAsset,
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
+            Dictionary<Checksum, SolutionAsset> assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
@@ -39,12 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
             // special case
             if (checksums.Length == 0)
                 return;
-
-            if (singleAsset != null)
-            {
-                WriteAsset(writer, serializer, context, singleAsset, cancellationToken);
-                return;
-            }
 
             Debug.Assert(assetMap != null);
 
