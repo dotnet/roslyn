@@ -2709,9 +2709,9 @@ class User
 }";
 
             CompileAndVerify(
-                CreateCompilationWithMscorlib40(code,
-                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                    references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) }),
+                source: code,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
                 symbolValidator: module =>
                 {
                     var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();

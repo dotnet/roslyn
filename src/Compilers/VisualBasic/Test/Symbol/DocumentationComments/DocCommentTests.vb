@@ -11772,8 +11772,8 @@ AssemblyName
             Dim reference1 = TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(False)
             Dim reference2 = TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(True)
 
-            Dim comp1 = CompileCheckDiagnosticsAndXmlDocument(xmlSource, <errors></errors>, xmlDoc, additionalRefs:={reference1}, targetFramework:=TargetFramework.Mscorlib40)
-            Dim comp2 = CompileCheckDiagnosticsAndXmlDocument(xmlSource, <errors></errors>, xmlDoc, additionalRefs:={reference2}, targetFramework:=TargetFramework.Mscorlib40)
+            Dim comp1 = CompileCheckDiagnosticsAndXmlDocument(xmlSource, <errors></errors>, xmlDoc, additionalRefs:={reference1})
+            Dim comp2 = CompileCheckDiagnosticsAndXmlDocument(xmlSource, <errors></errors>, xmlDoc, additionalRefs:={reference2})
 
             Dim validator As Action(Of ModuleSymbol) =
                 Sub(m As ModuleSymbol)
@@ -12106,8 +12106,7 @@ xmlDoc)
             Optional withDiagnostics As Boolean = True,
             Optional stringMapper As Func(Of Object, Object) = Nothing,
             Optional additionalRefs As MetadataReference() = Nothing,
-            Optional ensureEnglishUICulture As Boolean = False,
-            Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime
+            Optional ensureEnglishUICulture As Boolean = False
         ) As VisualBasicCompilation
 
             Dim parseOptions As VisualBasicParseOptions =
@@ -12119,8 +12118,7 @@ xmlDoc)
             Dim compilation = CreateCompilation(sources,
                                                 additionalRefs,
                                                 TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
-                                                parseOptions,
-                                                targetFramework)
+                                                parseOptions)
             If errors IsNot Nothing Then
                 Dim diagnostics As Diagnostic()
                 Dim saveUICulture As Globalization.CultureInfo = Nothing

@@ -16411,7 +16411,7 @@ End Structure";
 
             var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
 
-            CreateCompilationWithMscorlib40(text, new[] { ref1 }).VerifyDiagnostics(
+            CreateCompilation(text, new[] { ref1 }).VerifyDiagnostics(
                 // (5,26): error CS1754: Type 'INestedInterface.InnerInterface' cannot be embedded because it is a nested type. Consider setting the 'Embed Interop Types' property to false.
                 //         INestedInterface.InnerInterface s1 = null;
                 Diagnostic(ErrorCode.ERR_NoPIANestedType, "InnerInterface").WithArguments("INestedInterface.InnerInterface"),
