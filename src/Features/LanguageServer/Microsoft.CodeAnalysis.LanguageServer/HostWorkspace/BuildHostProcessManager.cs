@@ -29,27 +29,39 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         _binaryLogPath = binaryLogPath;
     }
 
-    public async Task<IBuildHost> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
+    /// <summary>
+    /// Returns the best <see cref="IBuildHost"/> to use for this project; if it picked a fallback option because the preferred kind was unavailable, that's returned too, otherwise null.
+    /// </summary>
+    public async Task<(IBuildHost, BuildHostProcessKind? PreferredKind)> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
     {
         var neededBuildHostKind = GetKindForProject(projectFilePath);
+        BuildHostProcessKind? preferredKind = null;
 
         _logger?.LogTrace($"Choosing a build host of type {neededBuildHostKind} for {projectFilePath}.");
+
+        if (neededBuildHostKind == BuildHostProcessKind.Mono && MonoMSBuildDiscovery.GetMonoMSBuildDirectory() == null)
+        {
+            _logger?.LogWarning($"An installation of Mono could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
+            neededBuildHostKind = BuildHostProcessKind.NetCore;
+            preferredKind = BuildHostProcessKind.Mono;
+        }
 
         var buildHost = await GetBuildHostAsync(neededBuildHostKind, cancellationToken).ConfigureAwait(false);
 
         // If this is a .NET Framework build host, we may not have have build tools installed and thus can't actually use it to build.
-        // Check if this is the case.
+        // Check if this is the case. Unlike the mono case, we have to actually ask the other process since MSBuildLocator only allows
+        // us to discover VS instances in .NET Framework hosts right now.
         if (neededBuildHostKind == BuildHostProcessKind.NetFramework)
         {
             if (!await buildHost.HasUsableMSBuildAsync(projectFilePath, cancellationToken))
             {
                 // It's not usable, so we'll fall back to the .NET Core one.
                 _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
-                return await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken);
+                return (await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken), PreferredKind: BuildHostProcessKind.NetFramework);
             }
         }
 
-        return buildHost;
+        return (buildHost, preferredKind);
     }
 
     public async Task<IBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
@@ -58,12 +70,16 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         {
             if (!_processes.TryGetValue(buildHostKind, out var buildHostProcess))
             {
-                var process = buildHostKind switch
+                var processStartInfo = buildHostKind switch
                 {
-                    BuildHostProcessKind.NetCore => LaunchDotNetCoreBuildHost(),
-                    BuildHostProcessKind.NetFramework => LaunchDotNetFrameworkBuildHost(),
+                    BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(),
+                    BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(),
+                    BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(),
                     _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
                 };
+
+                var process = Process.Start(processStartInfo);
+                Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
 
                 buildHostProcess = new BuildHostProcess(process, _loggerFactory);
                 buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
@@ -108,7 +124,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             await process.DisposeAsync();
     }
 
-    private Process LaunchDotNetCoreBuildHost()
+    private ProcessStartInfo CreateDotNetCoreBuildHostStartInfo()
     {
         var processStartInfo = new ProcessStartInfo()
         {
@@ -125,16 +141,12 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
-        var process = Process.Start(processStartInfo);
-        Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
-        return process;
+        return processStartInfo;
     }
 
-    private Process LaunchDotNetFrameworkBuildHost()
+    private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo()
     {
-        var netFrameworkBuildHost = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
-        Contract.ThrowIfFalse(File.Exists(netFrameworkBuildHost), $"Unable to locate the .NET Framework build host at {netFrameworkBuildHost}");
-
+        var netFrameworkBuildHost = GetPathToDotNetFrameworkBuildHost();
         var processStartInfo = new ProcessStartInfo()
         {
             FileName = netFrameworkBuildHost,
@@ -142,9 +154,28 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
-        var process = Process.Start(processStartInfo);
-        Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
-        return process;
+        return processStartInfo;
+    }
+
+    private ProcessStartInfo CreateMonoBuildHostStartInfo()
+    {
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = "mono"
+        };
+
+        processStartInfo.ArgumentList.Add(GetPathToDotNetFrameworkBuildHost());
+
+        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
+
+        return processStartInfo;
+    }
+
+    private static string GetPathToDotNetFrameworkBuildHost()
+    {
+        var netFrameworkBuildHost = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
+        Contract.ThrowIfFalse(File.Exists(netFrameworkBuildHost), $"Unable to locate the .NET Framework build host at {netFrameworkBuildHost}");
+        return netFrameworkBuildHost;
     }
 
     private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo)
@@ -173,10 +204,6 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static BuildHostProcessKind GetKindForProject(string projectFilePath)
     {
-        // At the moment we don't have mono support here, so if we're not on Windows, we'll always force to .NET Core.
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return BuildHostProcessKind.NetCore;
-
         // This implements the algorithm as stated in https://github.com/dotnet/project-system/blob/9a761848e0f330a45e349685a266fea00ac3d9c5/docs/opening-with-new-project-system.md;
         // we'll load the XML of the project directly, and inspect for certain elements.
         XDocument document;
@@ -208,13 +235,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             return BuildHostProcessKind.NetCore;
 
         // Nothing that indicates it's an SDK-style project, so use our .NET framework host
-        return BuildHostProcessKind.NetFramework;
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
     }
 
     public enum BuildHostProcessKind
     {
         NetCore,
-        NetFramework
+        NetFramework,
+        Mono
     }
 
     private sealed class BuildHostProcess : IAsyncDisposable
