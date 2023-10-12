@@ -158,8 +158,8 @@ namespace Microsoft.CodeAnalysis
                         _ => new ChecksumCollection(AnalyzerReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
 
                     var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    using var _1 = ArrayBuilder<ProjectId>.GetInstance(projectChecksumTasks.Length, out var projectIds);
-                    using var _2 = ArrayBuilder<Checksum>.GetInstance(projectChecksumTasks.Length, out var projectChecksums);
+                    using var _1 = ArrayBuilder<ProjectId>.GetInstance(allResults.Length, out var projectIds);
+                    using var _2 = ArrayBuilder<Checksum>.GetInstance(allResults.Length, out var projectChecksums);
                     foreach (var projectStateChecksums in allResults)
                     {
                         if (projectStateChecksums != null)
