@@ -23,7 +23,6 @@ internal sealed partial class AssetProvider
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // get children of solution checksum object at once
                 await _assetProvider.SynchronizeAssetsAsync(hintProject, checksums, cancellationToken).ConfigureAwait(false);
             }
         }
