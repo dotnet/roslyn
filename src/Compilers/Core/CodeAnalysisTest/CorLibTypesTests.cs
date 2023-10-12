@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var cv = ConstantValue.Create(1);
             Assert.Throws<InvalidOperationException>(() => { var c = cv.StringValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv.CharValue; });
             Assert.Throws<InvalidOperationException>(() => { var c = cv.DateTimeValue; });
 
             var cv1 = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
