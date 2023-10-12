@@ -99,12 +99,12 @@ internal partial class SolutionAssetStorage
                 Contract.ThrowIfTrue(checksum == Checksum.Null);
 
                 using var checksumPool = Creator.CreateChecksumSet(checksum);
-                using var resultPool = Creator.CreateResultMap();
+                using var _ = Creator.CreateResultMap(out var resultPool);
 
-                await scope.FindAssetsAsync(checksumPool.Object, resultPool.Object, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfTrue(resultPool.Object.Count != 1);
+                await scope.FindAssetsAsync(checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(resultPool.Count != 1);
 
-                var (resultingChecksum, value) = resultPool.Object.First();
+                var (resultingChecksum, value) = resultPool.First();
                 Contract.ThrowIfFalse(checksum == resultingChecksum);
 
                 return value;
