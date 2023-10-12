@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options,
             bool skipSpeculation = false);
 
+        private protected abstract Task BaseVerifyWorkerAsync(
+            string code, int position, bool usePreviousCharAsTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false);
+
         internal Task<CompletionList> GetCompletionListAsync(
             CompletionService service,
             Document document,
@@ -508,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var expectedResultArray = new[] { expectedResult };
 
-            await VerifyWorkerAsync(
+            await VerifyWorkerCoreAsync(
                 code, position, usePreviousCharAsTrigger,
                 hasSuggestionModeItem, sourceCodeKind, expectedResultArray,
                 matchingFilters, flags, options, skipSpeculation);
@@ -520,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="code">The source code (not markup).</param>
         /// <param name="expectedResults">The expected results. If this is empty, verifies that item shows up for this CompletionProvider (or no items show up if checkForAbsence is true).</param>
         /// <param name="usePreviousCharAsTrigger">Whether or not the previous character in markup should be used to trigger IntelliSense for this provider. If false, invokes it through the invoke IntelliSense command.</param>
-        private protected virtual async Task VerifyWorkerAsync(
+        private protected async Task VerifyWorkerCoreAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             bool? hasSuggestionModeItem, SourceCodeKind sourceCodeKind,
             CompletionTestExpectedResult[] expectedResults,
@@ -547,6 +552,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     hasSuggestionModeItem, expectedResults,
                     matchingFilters, flags, options);
             }
+        }
+
+        /// <summary>
+        /// Override this to change parameters or return without verifying anything, e.g. for script sources. Or to test in other code contexts.
+        /// </summary>
+        /// <param name="code">The source code (not markup).</param>
+        /// <param name="expectedResults">The expected results. If this is empty, verifies that item shows up for this CompletionProvider (or no items show up if checkForAbsence is true).</param>
+        /// <param name="usePreviousCharAsTrigger">Whether or not the previous character in markup should be used to trigger IntelliSense for this provider. If false, invokes it through the invoke IntelliSense command.</param>
+        private protected virtual Task VerifyWorkerAsync(
+            string code, int position, bool usePreviousCharAsTrigger,
+            bool? hasSuggestionModeItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults,
+            List<CompletionFilter> matchingFilters,
+            CompletionItemFlags? flags,
+            CompletionOptions options,
+            bool skipSpeculation = false)
+        {
+            return VerifyWorkerCoreAsync(code, position, usePreviousCharAsTrigger, hasSuggestionModeItem,
+                sourceCodeKind, expectedResults, matchingFilters, flags, options, skipSpeculation);
         }
 
         /// <summary>
@@ -1031,6 +1055,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         private protected async Task VerifyAtPositionAsync(
+            string code, int position, string insertText, bool usePreviousCharAsTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+        {
+            code = code[..position] + insertText + code[position..];
+            position += insertText.Length;
+
+            await BaseVerifyWorkerAsync(code, position,
+                usePreviousCharAsTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
+                matchingFilters, flags, options, skipSpeculation: skipSpeculation);
+        }
+
+        private protected async Task VerifyAtPositionAsync(
+            string code, int position, bool usePreviousCharAsTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+        {
+            await VerifyAtPositionAsync(code, position, string.Empty,
+                usePreviousCharAsTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
+                matchingFilters, flags, options, skipSpeculation: skipSpeculation);
+        }
+
+        private protected async Task VerifyAtPosition_ItemPartiallyWrittenAsync(
+            string code, int position, bool usePreviousCharAsTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults, string partialItem,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+        {
+            await VerifyAtPositionAsync(code, position, ItemPartiallyWritten(partialItem),
+                usePreviousCharAsTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
+                matchingFilters, flags, options, skipSpeculation: skipSpeculation);
+        }
+
+        private protected async Task VerifyAtPositionAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence,
@@ -1063,6 +1120,52 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 inlineDescription, isComplexTextEdit, matchingFilters, flags, options, skipSpeculation: skipSpeculation);
         }
 
+        private protected async Task VerifyAtPosition_ItemPartiallyWrittenAsync(
+            string code, int position, bool usePreviousCharAsTrigger,
+            string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
+            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
+            CompletionOptions options = null, bool skipSpeculation = false)
+        {
+            await VerifyAtPositionAsync(
+                code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
+                expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options,
+                skipSpeculation: skipSpeculation);
+        }
+
+        private protected async Task VerifyAtEndOfFileAsync(
+            string code, int position, string insertText, bool usePreviousCharAsTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+        {
+            // only do this if the placeholder was at the end of the text.
+            if (code.Length != position)
+            {
+                return;
+            }
+
+            code = code[..position] + insertText + code[position..];
+            position += insertText.Length;
+
+            await BaseVerifyWorkerAsync(code, position,
+                usePreviousCharAsTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
+                matchingFilters, flags, options, skipSpeculation: skipSpeculation);
+        }
+
+        private protected async Task VerifyAtEndOfFileAsync(
+            string code, int position, bool usePreviousCharAsTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+        {
+            await VerifyAtEndOfFileAsync(code, position, string.Empty,
+                usePreviousCharAsTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
+                matchingFilters, flags, options, skipSpeculation: skipSpeculation);
+        }
+
         private protected async Task VerifyAtEndOfFileAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
@@ -1088,23 +1191,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
         }
 
-        private protected async Task VerifyAtPosition_ItemPartiallyWrittenAsync(
-            string code, int position, bool usePreviousCharAsTrigger,
-            string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
-            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
-            CompletionOptions options = null, bool skipSpeculation = false)
-        {
-            await VerifyAtPositionAsync(
-                code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
-                expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options,
-                skipSpeculation: skipSpeculation);
-        }
-
         private protected async Task VerifyAtEndOfFileAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
@@ -1118,6 +1204,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
+        }
+
+        private protected async Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+            string code, int position, bool usePreviousCharAsTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults, string partialItem,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+        {
+            await VerifyAtEndOfFileAsync(
+                code, position, ItemPartiallyWritten(partialItem),
+                usePreviousCharAsTrigger, hasSuggestionItem, sourceCodeKind, expectedResults,
+                matchingFilters, flags, options, skipSpeculation: skipSpeculation);
         }
 
         private protected async Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(

@@ -37,6 +37,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 isComplexTextEdit, matchingFilters, flags, options, skipSpeculation)
         End Function
 
+        Private Protected Overrides Function BaseVerifyWorkerAsync(
+                code As String, position As Integer, usePreviousCharAsTrigger As Boolean, hasSuggestionItem As Boolean?, sourceCodeKind As SourceCodeKind,
+                expectedResults() As CompletionTestExpectedResult, matchingFilters As List(Of CompletionFilter),
+                flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
+            Return MyBase.VerifyWorkerAsync(
+                code, position, usePreviousCharAsTrigger, hasSuggestionItem, sourceCodeKind,
+                expectedResults, matchingFilters, flags, options, skipSpeculation)
+        End Function
+
         Private Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
@@ -72,6 +81,40 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem,
                     displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags:=Nothing, options)
+            End If
+        End Function
+
+        Private Protected Overrides Async Function VerifyWorkerAsync(
+            code As String, position As Integer, usePreviousCharAsTrigger As Boolean,
+            hasSuggestionModeItem As Boolean?, sourceCodeKind As SourceCodeKind,
+            expectedResults() As CompletionTestExpectedResult, matchingFilters As List(Of CompletionFilter),
+            flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
+
+            ' Script/interactive support removed for now.
+            ' TODO: Re-enable these when interactive is back in the product.
+            If sourceCodeKind <> SourceCodeKind.Regular Then
+                Return
+            End If
+
+            Await VerifyAtPositionAsync(
+                code, position, usePreviousCharAsTrigger, hasSuggestionModeItem, sourceCodeKind,
+                expectedResults, matchingFilters, flags, options, skipSpeculation)
+
+            Await VerifyAtEndOfFileAsync(
+                code, position, usePreviousCharAsTrigger, hasSuggestionModeItem, sourceCodeKind,
+                expectedResults, matchingFilters, flags, options)
+
+            ' Items cannot be partially written if we're checking for their absence,
+            ' or if we're verifying that the list will show up (without specifying an actual item)
+            Dim firstItemName = expectedResults(0).Name
+            If Not expectedResults(0).IsAbsent AndAlso firstItemName IsNot Nothing Then
+                Await VerifyAtPosition_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, hasSuggestionModeItem, sourceCodeKind,
+                    expectedResults, firstItemName, matchingFilters, flags:=Nothing, options, skipSpeculation)
+
+                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, hasSuggestionModeItem, sourceCodeKind,
+                    expectedResults, firstItemName, matchingFilters, flags:=Nothing, options)
             End If
         End Function
 
