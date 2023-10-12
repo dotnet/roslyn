@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
         /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
         /// </summary>
-        private static async Task AddNamedReferencesAsync(
+        private static async ValueTask AddNamedReferencesAsync(
             INamespaceSymbol symbol,
             string name,
             FindReferencesDocumentState state,
