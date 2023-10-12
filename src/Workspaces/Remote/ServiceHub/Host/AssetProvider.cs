@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<ImmutableArray<object>> RequestAssetsAsync(ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        private async ValueTask<ImmutableArray<object>> RequestAssetsAsync(ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
             if (checksums.Length == 0)
