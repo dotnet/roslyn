@@ -12,42 +12,63 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class SymbolDisplayVisitor
         Inherits AbstractSymbolDisplayVisitor
 
-        Private ReadOnly _escapeKeywordIdentifiers As Boolean
+        Private Shared ReadOnly s_visitorPool As New ObjectPool(Of SymbolDisplayVisitor)(Function(pool) New SymbolDisplayVisitor(pool), 128)
+
+        Private ReadOnly _pool As ObjectPool(Of SymbolDisplayVisitor)
+        Private _escapeKeywordIdentifiers As Boolean
 
         ' A Symbol in VB might be a PENamedSymbolWithEmittedNamespaceName and in that case the 
         ' casing of the contained types and namespaces might differ because of merged classes/namespaces.
         ' To maintain the original spelling an emittedNamespaceName with the correct spelling is passed to 
         ' this visitor. 
 
-        Friend Sub New(
+        Private Sub New(pool As ObjectPool(Of SymbolDisplayVisitor))
+            _pool = pool
+        End Sub
+
+        Friend Shared Function GetInstance(
             builder As ArrayBuilder(Of SymbolDisplayPart),
             format As SymbolDisplayFormat,
             semanticModelOpt As SemanticModel,
-            positionOpt As Integer)
+            positionOpt As Integer) As SymbolDisplayVisitor
 
-            MyBase.New(builder, format, True, semanticModelOpt, positionOpt)
-            Debug.Assert(format IsNot Nothing, "Format must not be null")
+            Dim instance = s_visitorPool.Allocate()
+            instance.Initialize(builder, format, isFirstSymbolVisited:=True, semanticModelOpt, positionOpt, inNamespaceOrType:=False)
+            Return instance
+        End Function
 
-            Me._escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
-        End Sub
-
-        Private Sub New(
+        Private Shared Function GetInstance(
             builder As ArrayBuilder(Of SymbolDisplayPart),
             format As SymbolDisplayFormat,
             semanticModelOpt As SemanticModel,
             positionOpt As Integer,
             escapeKeywordIdentifiers As Boolean,
             isFirstSymbolVisited As Boolean,
-            Optional inNamespaceOrType As Boolean = False)
+            inNamespaceOrType As Boolean) As SymbolDisplayVisitor
 
-            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
+            Dim instance = s_visitorPool.Allocate()
+            instance.Initialize(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
+            instance._escapeKeywordIdentifiers = escapeKeywordIdentifiers
+            Return instance
+        End Function
 
-            Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
+        Protected Shadows Sub Initialize(builder As ArrayBuilder(Of SymbolDisplayPart), format As SymbolDisplayFormat, isFirstSymbolVisited As Boolean, semanticModelOpt As SemanticModel, positionOpt As Integer, inNamespaceOrType As Boolean)
+            Debug.Assert(format IsNot Nothing, "Format must not be null")
+            MyBase.Initialize(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
+            Me._escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
+        End Sub
+
+        Public Overrides Sub Free()
+            MyBase.Free()
+
+            _escapeKeywordIdentifiers = False
+
+            _pool.Free(Me)
         End Sub
 
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
         Protected Overrides Function MakeNotFirstVisitor(Optional inNamespaceOrType As Boolean = False) As AbstractSymbolDisplayVisitor
-            Return New SymbolDisplayVisitor(
+            Return GetInstance(
                     Me.builder,
                     Me.format,
                     Me.semanticModelOpt,
@@ -56,6 +77,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     isFirstSymbolVisited:=False,
                     inNamespaceOrType:=inNamespaceOrType)
         End Function
+
+        Protected Overrides Sub FreeNotFirstVisitor(visitor As AbstractSymbolDisplayVisitor)
+            Debug.Assert(visitor IsNot Me)
+            visitor.Free()
+        End Sub
 
         Friend Function CreatePart(kind As SymbolDisplayPartKind,
                                    symbol As ISymbol,

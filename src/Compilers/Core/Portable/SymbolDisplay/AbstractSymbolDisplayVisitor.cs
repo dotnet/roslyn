@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -11,41 +12,33 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 {
     internal abstract partial class AbstractSymbolDisplayVisitor : SymbolVisitor
     {
-        protected readonly ArrayBuilder<SymbolDisplayPart> builder;
-        protected readonly SymbolDisplayFormat format;
-        protected readonly bool isFirstSymbolVisited;
-        protected readonly bool inNamespaceOrType;
+        // These values will be set to non-null by 'Allocate' when an instance is obtained from the pool
+        private ArrayBuilder<SymbolDisplayPart> _builder = null!;
+        private SymbolDisplayFormat _format = null!;
+        private bool _isFirstSymbolVisited;
+        private bool _inNamespaceOrType;
 
-        protected readonly SemanticModel? semanticModelOpt;
-        protected readonly int positionOpt;
+        private SemanticModel? _semanticModelOpt;
+        private int _positionOpt;
 
         private AbstractSymbolDisplayVisitor? _lazyNotFirstVisitor;
         private AbstractSymbolDisplayVisitor? _lazyNotFirstVisitorNamespaceOrType;
 
-        protected AbstractSymbolDisplayVisitor(
-            ArrayBuilder<SymbolDisplayPart> builder,
-            SymbolDisplayFormat format,
-            bool isFirstSymbolVisited,
-            SemanticModel? semanticModelOpt,
-            int positionOpt,
-            bool inNamespaceOrType = false)
+        protected AbstractSymbolDisplayVisitor()
         {
-            Debug.Assert(format != null);
-
-            this.builder = builder;
-            this.format = format;
-            this.isFirstSymbolVisited = isFirstSymbolVisited;
-
-            this.semanticModelOpt = semanticModelOpt;
-            this.positionOpt = positionOpt;
-            this.inNamespaceOrType = inNamespaceOrType;
-
-            // If we're not the first symbol visitor, then we will just recurse into ourselves.
-            if (!isFirstSymbolVisited)
-            {
-                _lazyNotFirstVisitor = this;
-            }
         }
+
+        protected ArrayBuilder<SymbolDisplayPart> builder => _builder;
+
+        protected SymbolDisplayFormat format => _format;
+
+        protected bool isFirstSymbolVisited => _isFirstSymbolVisited;
+
+        protected bool inNamespaceOrType => _inNamespaceOrType;
+
+        protected SemanticModel? semanticModelOpt => _semanticModelOpt;
+
+        protected int positionOpt => _positionOpt;
 
         protected AbstractSymbolDisplayVisitor NotFirstVisitor
         {
@@ -73,7 +66,60 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
+        protected void Initialize(
+            ArrayBuilder<SymbolDisplayPart> builder,
+            SymbolDisplayFormat format,
+            bool isFirstSymbolVisited,
+            SemanticModel? semanticModelOpt,
+            int positionOpt,
+            bool inNamespaceOrType)
+        {
+            Debug.Assert(format != null);
+
+            if (_format is not null)
+            {
+                // Should not be re-initializing a visitor which is already in use.
+                throw new InvalidOperationException();
+            }
+
+            _builder = builder;
+            _format = format;
+            _isFirstSymbolVisited = isFirstSymbolVisited;
+
+            _semanticModelOpt = semanticModelOpt;
+            _positionOpt = positionOpt;
+            _inNamespaceOrType = inNamespaceOrType;
+
+            // If we're not the first symbol visitor, then we will just recurse into ourselves.
+            if (!isFirstSymbolVisited)
+            {
+                _lazyNotFirstVisitor = this;
+            }
+        }
+
+        public virtual void Free()
+        {
+            if (_lazyNotFirstVisitor != this && _lazyNotFirstVisitor is not null)
+                FreeNotFirstVisitor(_lazyNotFirstVisitor);
+
+            if (_lazyNotFirstVisitorNamespaceOrType != this && _lazyNotFirstVisitorNamespaceOrType is not null)
+                FreeNotFirstVisitor(_lazyNotFirstVisitorNamespaceOrType);
+
+            _builder = null!;
+            _isFirstSymbolVisited = false;
+            _inNamespaceOrType = false;
+
+            _semanticModelOpt = null;
+            _positionOpt = 0;
+            _lazyNotFirstVisitor = null;
+            _lazyNotFirstVisitorNamespaceOrType = null;
+
+            _format = null!;
+        }
+
         protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false);
+
+        protected abstract void FreeNotFirstVisitor(AbstractSymbolDisplayVisitor visitor);
 
         protected abstract void AddLiteralValue(SpecialType type, object value);
         protected abstract void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value);

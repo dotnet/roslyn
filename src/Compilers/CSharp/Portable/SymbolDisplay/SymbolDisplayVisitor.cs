@@ -15,20 +15,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor
     {
-        private readonly bool _escapeKeywordIdentifiers;
+        private static readonly ObjectPool<SymbolDisplayVisitor> s_visitorPool = new ObjectPool<SymbolDisplayVisitor>(pool => new SymbolDisplayVisitor(pool), 128);
+
+        private readonly ObjectPool<SymbolDisplayVisitor> _pool;
+
+        private bool _escapeKeywordIdentifiers;
         private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol>? _lazyAliasMap;
 
-        internal SymbolDisplayVisitor(
+        private SymbolDisplayVisitor(ObjectPool<SymbolDisplayVisitor> pool)
+        {
+            _pool = pool;
+        }
+
+        public static SymbolDisplayVisitor GetInstance(
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
             SemanticModel? semanticModelOpt,
             int positionOpt)
-            : base(builder, format, true, semanticModelOpt, positionOpt)
         {
-            _escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+            var instance = s_visitorPool.Allocate();
+            instance.Initialize(builder, format, isFirstSymbolVisited: true, semanticModelOpt, positionOpt, inNamespaceOrType: false);
+            return instance;
         }
 
-        private SymbolDisplayVisitor(
+        private static SymbolDisplayVisitor GetInstance(
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
             SemanticModel? semanticModelOpt,
@@ -37,15 +47,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             IDictionary<INamespaceOrTypeSymbol, IAliasSymbol>? aliasMap,
             bool isFirstSymbolVisited,
             bool inNamespaceOrType = false)
-            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
         {
-            _escapeKeywordIdentifiers = escapeKeywordIdentifiers;
-            _lazyAliasMap = aliasMap;
+            var instance = s_visitorPool.Allocate();
+            instance.Initialize(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType);
+            instance._escapeKeywordIdentifiers = escapeKeywordIdentifiers;
+            instance._lazyAliasMap = aliasMap;
+            return instance;
+        }
+
+        protected new void Initialize(ArrayBuilder<SymbolDisplayPart> builder, SymbolDisplayFormat format, bool isFirstSymbolVisited, SemanticModel? semanticModelOpt, int positionOpt, bool inNamespaceOrType)
+        {
+            base.Initialize(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType);
+
+            _escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+        }
+
+        public override void Free()
+        {
+            base.Free();
+
+            _escapeKeywordIdentifiers = false;
+            _lazyAliasMap = null;
+
+            _pool.Free(this);
         }
 
         protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false)
         {
-            return new SymbolDisplayVisitor(
+            return GetInstance(
                 this.builder,
                 this.format,
                 this.semanticModelOpt,
@@ -54,6 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _lazyAliasMap,
                 isFirstSymbolVisited: false,
                 inNamespaceOrType: inNamespaceOrType);
+        }
+
+        protected override void FreeNotFirstVisitor(AbstractSymbolDisplayVisitor visitor)
+        {
+            Debug.Assert(visitor != this);
+            visitor.Free();
         }
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol? symbol, string text)
