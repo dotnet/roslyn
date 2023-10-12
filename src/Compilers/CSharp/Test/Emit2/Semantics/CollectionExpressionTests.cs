@@ -1241,6 +1241,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
+        private const string example_GenericClassesWithConversion = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                public sealed class MyCollectionA<T> : IEnumerable<T>
+                {
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                public sealed class MyCollectionB<T> : IEnumerable<T>
+                {
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public static implicit operator MyCollectionA<T>(MyCollectionB<T> b) => default;
+                }
+                """;
+
         [Theory]
         [InlineData("System.Span<T>", "T[]", "System.Span<System.Int32>")]
         [InlineData("System.Span<T>", "System.Collections.Generic.IEnumerable<T>", "System.Span<System.Int32>")]
@@ -1282,6 +1301,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("System.Span<T>", "System.Span<object>", null)]
         [InlineData("System.Span<T>", "System.Span<short>", null)]
         [InlineData("System.Span<T>", "System.Span<string>", "System.Span<System.Int32>")]
+        [InlineData("T[]", "int[]", "System.Int32[]")]
+        [InlineData("T[]", "object[]", null)]
+        [InlineData("T[]", "int?[]", null)]
+        [InlineData("System.Collections.Generic.ICollection<T>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")]
+        [InlineData("System.Collections.Generic.ICollection<T>", "System.Collections.Generic.ICollection<object>", null)]
+        [InlineData("System.Collections.Generic.ICollection<T>", "System.Collections.Generic.ICollection<short>", null)]
+        [InlineData("System.Collections.Generic.ICollection<T>", "System.Collections.Generic.IReadOnlyCollection<T>", null)]
+        [InlineData("MyCollectionA<T>", "MyCollectionB<T>", "MyCollectionB<System.Int32>", new[] { example_GenericClassesWithConversion })]
+        [InlineData("MyCollectionA<int>", "MyCollectionB<T>", "MyCollectionB<System.Int32>", new[] { example_GenericClassesWithConversion })]
+        [InlineData("MyCollectionA<T>", "MyCollectionB<long>", null, new[] { example_GenericClassesWithConversion })]
+        [InlineData("MyCollectionA<T>", "MyCollectionB<object>", null, new[] { example_GenericClassesWithConversion })]
+        [InlineData("MyCollectionB<T>", "MyCollectionB<long>", null, new[] { example_GenericClassesWithConversion })]
         public void BetterConversionFromExpression_01A(string type1, string type2, string expectedType, string[] additionalSources = null)
         {
             string source = $$"""
@@ -1715,8 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(
                 source,
-                targetFramework: TargetFramework.Net80,
-                options: TestOptions.ReleaseExe);
+                targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(ReadOnlySpan<int>)' and 'Program.F1(ReadOnlySpan<object>)'
                 //         F1([1, 2, 3]);
@@ -1724,6 +1754,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(Span<string>)' and 'Program.F2(Span<object>)'
                 //         F2(["a", "b"]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(System.Span<string>)", "Program.F2(System.Span<object>)").WithLocation(11, 9));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_08A()
+        {
+            string source = """
+                class Program
+                {
+                    static void F1(int[] value) { }
+                    static void F1(object[] value) { }
+                    static void Main()
+                    {
+                        F1([1, 2, 3]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(int[])' and 'Program.F1(object[])'
+                //         F1([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(int[])", "Program.F1(object[])").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_08B()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F2(string[] value) { Console.WriteLine("string[]"); }
+                    static void F2(object[] value) { Console.WriteLine("object[]"); }
+                    static void Main()
+                    {
+                        F2(["a", "b"]);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "string[]");
         }
 
         [Theory]
