@@ -8,20 +8,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed partial class AssetProvider
 {
-    internal readonly struct ChecksumSynchronizer(AssetProvider assetProvider)
+    private readonly struct ChecksumSynchronizer(AssetProvider assetProvider)
     {
         // make sure there is always only 1 bulk synchronization
-        private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
+        private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
         private readonly AssetProvider _assetProvider = assetProvider;
 
-        public async ValueTask SynchronizeAssetsAsync(HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeAssetsAsync(ProjectId? hintProject, HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                await _assetProvider.SynchronizeAssetsAsync(hintProject, checksums, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -33,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
 
                 // first, get solution checksum object for the given solution checksum
-                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                    hintProject: null, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 // second, get direct children of the solution
                 {
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     solutionChecksumObject.AddAllTo(checksums);
                     checksums.Remove(solutionChecksumObject.Checksum);
-                    await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.SynchronizeAssetsAsync(hintProject: null, checksums, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -78,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Remote
             AddAll(checksums, projectChecksum.AdditionalDocuments);
             AddAll(checksums, projectChecksum.AnalyzerConfigDocuments);
 
-            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            await _assetProvider.SynchronizeAssetsAsync(
+                hintProject: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
 
             checksums.Clear();
 
@@ -86,7 +90,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CollectChecksumChildren(this, projectChecksum.AdditionalDocuments);
             CollectChecksumChildren(this, projectChecksum.AnalyzerConfigDocuments);
 
-            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            await _assetProvider.SynchronizeAssetsAsync(
+                hintProject: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
 
             void CollectChecksumChildren(ChecksumSynchronizer @this, ChecksumCollection collection)
             {

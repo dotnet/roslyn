@@ -72,6 +72,7 @@ internal sealed class SolutionStateChecksums(
 
     public async Task FindAsync(
         SolutionState state,
+        ProjectId? hintProject,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -99,18 +100,42 @@ internal sealed class SolutionStateChecksums(
             result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
         }
 
-        foreach (var (_, projectState) in state.ProjectStates)
+        ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+
+        // Before doing a depth-first-search *into* each project, first run across all the project at their top level.
+        // This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums' instance
+        // that we don't unnecessarily walk all documents looking just for those.
+
+        foreach (var (projectId, projectState) in state.ProjectStates)
         {
             if (searchingChecksumsLeft.Count == 0)
                 break;
+
+            if (hintProject != null && hintProject != projectId)
+                continue;
+
+            if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
+                searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+            {
+                result[projectStateChecksums.Checksum] = projectStateChecksums;
+            }
+        }
+
+        // Now actually do the depth first search into each project.
+
+        foreach (var (projectId, projectState) in state.ProjectStates)
+        {
+            if (searchingChecksumsLeft.Count == 0)
+                break;
+
+            if (hintProject != null && hintProject != projectId)
+                continue;
 
             // It's possible not all all our projects have checksums.  Specifically, we may have only been
             // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
             if (projectState.TryGetStateChecksums(out var projectStateChecksums))
                 await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
-
-        ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
     }
 }
 

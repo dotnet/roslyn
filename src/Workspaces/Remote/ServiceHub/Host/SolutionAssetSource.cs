@@ -9,30 +9,25 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSource
 {
-    internal sealed class SolutionAssetSource : IAssetSource
+    private readonly ServiceBrokerClient _client = client;
+
+    public async ValueTask<ImmutableArray<object>> GetAssetsAsync(
+        Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
     {
-        private readonly ServiceBrokerClient _client;
+        // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
+        await TaskScheduler.Default;
 
-        public SolutionAssetSource(ServiceBrokerClient client)
-        {
-            _client = client;
-        }
-
-        public async ValueTask<ImmutableArray<object>> GetAssetsAsync(Checksum solutionChecksum, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
-        {
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
-
-            return await RemoteCallback<ISolutionAssetProvider>.InvokeServiceAsync(
-                _client,
-                SolutionAssetProvider.ServiceDescriptor,
-                (callback, cancellationToken) => callback.InvokeAsync(
-                    (proxy, pipeWriter, cancellationToken) => proxy.WriteAssetsAsync(pipeWriter, solutionChecksum, checksums, cancellationToken),
-                    (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums.Length, serializerService, cancellationToken),
-                    cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
+        return await RemoteCallback<ISolutionAssetProvider>.InvokeServiceAsync(
+            _client,
+            SolutionAssetProvider.ServiceDescriptor,
+            (callback, cancellationToken) => callback.InvokeAsync(
+                (proxy, pipeWriter, cancellationToken) => proxy.WriteAssetsAsync(pipeWriter, solutionChecksum, hintProject, checksums, cancellationToken),
+                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums.Length, serializerService, cancellationToken),
+                cancellationToken),
+            cancellationToken).ConfigureAwait(false);
     }
 }

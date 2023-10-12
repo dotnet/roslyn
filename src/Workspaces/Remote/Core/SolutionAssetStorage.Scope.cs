@@ -15,12 +15,15 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal partial class SolutionAssetStorage
 {
-    internal sealed partial class Scope : IDisposable
+    internal sealed partial class Scope(
+        SolutionAssetStorage storage,
+        Checksum solutionChecksum,
+        SolutionState solution) : IDisposable
     {
-        private readonly SolutionAssetStorage _storage;
+        private readonly SolutionAssetStorage _storage = storage;
 
-        public readonly Checksum SolutionChecksum;
-        public readonly SolutionState Solution;
+        public readonly Checksum SolutionChecksum = solutionChecksum;
+        public readonly SolutionState Solution = solution;
 
         /// <summary>
         ///  Will be disposed from <see cref="DecreaseScopeRefCount(Scope)"/> when the last ref-count to this scope goes
@@ -33,16 +36,6 @@ internal partial class SolutionAssetStorage
         /// </summary>
         public int RefCount = 1;
 
-        public Scope(
-            SolutionAssetStorage storage,
-            Checksum solutionChecksum,
-            SolutionState solution)
-        {
-            _storage = storage;
-            SolutionChecksum = solutionChecksum;
-            Solution = solution;
-        }
-
         public void Dispose()
             => _storage.DecreaseScopeRefCount(this);
 
@@ -51,6 +44,7 @@ internal partial class SolutionAssetStorage
         /// the storage.
         /// </summary>
         public async Task AddAssetsAsync(
+            ProjectId? hintProject,
             ImmutableArray<Checksum> checksums,
             Dictionary<Checksum, object> assetMap,
             CancellationToken cancellationToken)
@@ -63,17 +57,18 @@ internal partial class SolutionAssetStorage
             var numberOfChecksumsToSearch = checksumsToFind.Count;
             Contract.ThrowIfTrue(checksumsToFind.Contains(Checksum.Null));
 
-            await FindAssetsAsync(checksumsToFind, assetMap, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(hintProject, checksumsToFind, assetMap, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(checksumsToFind.Count > 0);
             Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
         }
 
-        private async Task FindAssetsAsync(HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
+        private async Task FindAssetsAsync(
+            ProjectId? hintProject, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
             var solutionState = this.Solution;
             if (solutionState.TryGetStateChecksums(out var stateChecksums))
-                await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(solutionState, hintProject, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
 
             foreach (var projectId in solutionState.ProjectIds)
             {
@@ -81,7 +76,7 @@ internal partial class SolutionAssetStorage
                     break;
 
                 if (solutionState.TryGetStateChecksums(projectId, out var checksums))
-                    await checksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                    await checksums.FindAsync(solutionState, hintProject, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -101,7 +96,7 @@ internal partial class SolutionAssetStorage
                 using var checksumPool = Creator.CreateChecksumSet(checksum);
                 using var _ = Creator.CreateResultMap(out var resultPool);
 
-                await scope.FindAssetsAsync(checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
+                await scope.FindAssetsAsync(hintProject: null, checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfTrue(resultPool.Count != 1);
 
                 var (resultingChecksum, value) = resultPool.First();
