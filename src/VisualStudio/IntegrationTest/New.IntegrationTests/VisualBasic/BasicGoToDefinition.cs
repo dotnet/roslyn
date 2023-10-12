@@ -47,8 +47,9 @@ End Class", HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact]
-        public async Task ObjectBrowserNavigation()
+        [IdeTheory]
+        [CombinatorialData]
+        public async Task ObjectBrowserNavigation(bool navigationToObjectBrowserEnabled)
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
 
@@ -56,18 +57,26 @@ End Class", HangMitigatingCancellationToken);
 @"Class C
     Dim i As Integer$$
 End Class", HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, LanguageNames.VisualBasic, true);
 
-            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Object Browser", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            globalOptions.SetGlobalOption(VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, LanguageNames.VisualBasic, navigationToObjectBrowserEnabled);
 
-            globalOptions.SetGlobalOption(VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, LanguageNames.VisualBasic, false);
+            // We want to make sure that if navigationToObjectBrowserEnabled = false we are navigating to a source representation; we will disable
+            // decompiled sources and embedded sources so that way the type of source (and contents within) are stable.
             globalOptions.SetGlobalOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, false);
+            globalOptions.SetGlobalOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, false);
 
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb", HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Int32 [from metadata] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync("Public Structure Int32", cancellationToken: HangMitigatingCancellationToken);
+
+            if (navigationToObjectBrowserEnabled)
+            {
+                Assert.Equal("Object Browser", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            }
+            else
+            {
+                await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+                Assert.Contains("Int32", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+                await TestServices.EditorVerifier.TextContainsAsync("Public Structure Int32", cancellationToken: HangMitigatingCancellationToken);
+            }
         }
 
         [IdeFact]
