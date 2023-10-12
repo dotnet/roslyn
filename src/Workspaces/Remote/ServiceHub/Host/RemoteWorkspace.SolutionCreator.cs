@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         // we have new document added
                         var documentInfo = await _assetProvider.CreateDocumentInfoAsync(
-                            project.Id, newDocumentChecksums.Checksum, cancellationToken).ConfigureAwait(false);
+                            documentId, newDocumentChecksums.Checksum, cancellationToken).ConfigureAwait(false);
                         lazyDocumentsToAdd.Add(documentInfo);
                     }
                 }

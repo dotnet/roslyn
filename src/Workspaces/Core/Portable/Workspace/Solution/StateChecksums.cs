@@ -36,49 +36,78 @@ internal readonly struct AssetHint
     public static implicit operator AssetHint(DocumentId documentId) => new(documentId.ProjectId, documentId);
 }
 
-internal sealed class SolutionStateChecksums
+internal readonly struct ChecksumsAndIds<TId> where TId : IObjectWritable
 {
-    public Checksum Checksum { get; }
+    public readonly ChecksumCollection Checksums;
+    public readonly ImmutableArray<TId> Ids;
 
-    public Checksum Attributes { get; }
-    public ImmutableArray<ProjectId> ProjectIds { get; }
-    public ChecksumCollection Projects { get; }
-    public ChecksumCollection AnalyzerReferences { get; }
-    public Checksum FrozenSourceGeneratedDocumentIdentity { get; }
-    public Checksum FrozenSourceGeneratedDocumentText { get; }
+    private static readonly Func<ObjectReader, TId> s_readId;
 
-    public SolutionStateChecksums(
-        Checksum attributes,
-        ImmutableArray<ProjectId> projectIds,
-        ChecksumCollection projects,
-        ChecksumCollection analyzerReferences,
-        Checksum frozenSourceGeneratedDocumentIdentity,
-        Checksum frozenSourceGeneratedDocumentText)
+    static ChecksumsAndIds()
     {
-        Contract.ThrowIfFalse(projectIds.Length == projects.Children.Length);
-
-        this.Checksum = Checksum.Create(stackalloc[]
+        if (typeof(TId) == typeof(ProjectId))
         {
-            attributes.Hash,
-            projects.Checksum.Hash,
-            analyzerReferences.Checksum.Hash,
-            frozenSourceGeneratedDocumentIdentity.Hash,
-            frozenSourceGeneratedDocumentText.Hash,
-        });
-
-        this.Attributes = attributes;
-        this.ProjectIds = projectIds;
-        this.Projects = projects;
-        this.AnalyzerReferences = analyzerReferences;
-        this.FrozenSourceGeneratedDocumentIdentity = frozenSourceGeneratedDocumentIdentity;
-        this.FrozenSourceGeneratedDocumentText = frozenSourceGeneratedDocumentText;
+            s_readId = reader => (TId)(object)ProjectId.ReadFrom(reader);
+        }
+        else if (typeof(TId) == typeof(DocumentId))
+        {
+            s_readId = reader => (TId)(object)DocumentId.ReadFrom(reader);
+        }
+        else
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
+
+    public ChecksumsAndIds(ChecksumCollection checksums, ImmutableArray<TId> ids)
+    {
+        Contract.ThrowIfTrue(ids.Length != checksums.Children.Length);
+
+        Checksums = checksums;
+        Ids = ids;
+    }
+
+    public void WriteTo(ObjectWriter writer)
+    {
+        this.Checksums.WriteTo(writer);
+        writer.WriteArray(this.Ids, static (writer, value) => value.WriteTo(writer));
+    }
+
+    public static ChecksumsAndIds<TId> ReadFrom(ObjectReader reader)
+    {
+        return new(
+            ChecksumCollection.ReadFrom(reader),
+            reader.ReadArray(s_readId));
+    }
+}
+
+internal sealed class SolutionStateChecksums(
+    Checksum attributes,
+    ChecksumsAndIds<ProjectId> projects,
+    ChecksumCollection analyzerReferences,
+    Checksum frozenSourceGeneratedDocumentIdentity,
+    Checksum frozenSourceGeneratedDocumentText)
+{
+    public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
+    {
+        attributes.Hash,
+        projects.Checksums.Checksum.Hash,
+        analyzerReferences.Checksum.Hash,
+        frozenSourceGeneratedDocumentIdentity.Hash,
+        frozenSourceGeneratedDocumentText.Hash,
+    });
+
+    public Checksum Attributes { get; } = attributes;
+    public ChecksumsAndIds<ProjectId> Projects { get; } = projects;
+    public ChecksumCollection AnalyzerReferences { get; } = analyzerReferences;
+    public Checksum FrozenSourceGeneratedDocumentIdentity { get; } = frozenSourceGeneratedDocumentIdentity;
+    public Checksum FrozenSourceGeneratedDocumentText { get; } = frozenSourceGeneratedDocumentText;
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
         checksums.AddIfNotNullChecksum(this.Checksum);
         checksums.AddIfNotNullChecksum(this.Attributes);
-        this.Projects.AddAllTo(checksums);
+        this.Projects.Checksums.AddAllTo(checksums);
         this.AnalyzerReferences.AddAllTo(checksums);
         checksums.AddIfNotNullChecksum(this.FrozenSourceGeneratedDocumentIdentity);
         checksums.AddIfNotNullChecksum(this.FrozenSourceGeneratedDocumentText);
@@ -89,7 +118,6 @@ internal sealed class SolutionStateChecksums
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
         this.Attributes.WriteTo(writer);
-        writer.WriteArray(this.ProjectIds, static (writer, value) => value.WriteTo(writer));
         this.Projects.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
         this.FrozenSourceGeneratedDocumentIdentity.WriteTo(writer);
@@ -101,8 +129,7 @@ internal sealed class SolutionStateChecksums
         var checksum = Checksum.ReadFrom(reader);
         var result = new SolutionStateChecksums(
             attributes: Checksum.ReadFrom(reader),
-            reader.ReadArray(ProjectId.ReadFrom),
-            projects: ChecksumCollection.ReadFrom(reader),
+            projects: ChecksumsAndIds<ProjectId>.ReadFrom(reader),
             analyzerReferences: ChecksumCollection.ReadFrom(reader),
             frozenSourceGeneratedDocumentIdentity: Checksum.ReadFrom(reader),
             frozenSourceGeneratedDocumentText: Checksum.ReadFrom(reader));
@@ -195,24 +222,24 @@ internal sealed class ProjectStateChecksums(
     Checksum infoChecksum,
     Checksum compilationOptionsChecksum,
     Checksum parseOptionsChecksum,
-    ChecksumCollection documentChecksums,
     ChecksumCollection projectReferenceChecksums,
     ChecksumCollection metadataReferenceChecksums,
     ChecksumCollection analyzerReferenceChecksums,
-    ChecksumCollection additionalDocumentChecksums,
-    ChecksumCollection analyzerConfigDocumentChecksums) : IEquatable<ProjectStateChecksums>
+    ChecksumsAndIds<DocumentId> documentChecksums,
+    ChecksumsAndIds<DocumentId> additionalDocumentChecksums,
+    ChecksumsAndIds<DocumentId> analyzerConfigDocumentChecksums) : IEquatable<ProjectStateChecksums>
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
         infoChecksum.Hash,
         compilationOptionsChecksum.Hash,
         parseOptionsChecksum.Hash,
-        documentChecksums.Checksum.Hash,
         projectReferenceChecksums.Checksum.Hash,
         metadataReferenceChecksums.Checksum.Hash,
         analyzerReferenceChecksums.Checksum.Hash,
-        additionalDocumentChecksums.Checksum.Hash,
-        analyzerConfigDocumentChecksums.Checksum.Hash,
+        documentChecksums.Checksums.Checksum.Hash,
+        additionalDocumentChecksums.Checksums.Checksum.Hash,
+        analyzerConfigDocumentChecksums.Checksums.Checksum.Hash,
     });
 
     public ProjectId ProjectId => projectId;
@@ -221,14 +248,13 @@ internal sealed class ProjectStateChecksums(
     public Checksum CompilationOptions => compilationOptionsChecksum;
     public Checksum ParseOptions => parseOptionsChecksum;
 
-    public ChecksumCollection Documents => documentChecksums;
-
     public ChecksumCollection ProjectReferences => projectReferenceChecksums;
     public ChecksumCollection MetadataReferences => metadataReferenceChecksums;
     public ChecksumCollection AnalyzerReferences => analyzerReferenceChecksums;
 
-    public ChecksumCollection AdditionalDocuments => additionalDocumentChecksums;
-    public ChecksumCollection AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
+    public ChecksumsAndIds<DocumentId> Documents => documentChecksums;
+    public ChecksumsAndIds<DocumentId> AdditionalDocuments => additionalDocumentChecksums;
+    public ChecksumsAndIds<DocumentId> AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
 
     public override bool Equals(object? obj)
         => Equals(obj as ProjectStateChecksums);
@@ -245,12 +271,12 @@ internal sealed class ProjectStateChecksums(
         checksums.AddIfNotNullChecksum(this.Info);
         checksums.AddIfNotNullChecksum(this.CompilationOptions);
         checksums.AddIfNotNullChecksum(this.ParseOptions);
-        this.Documents.AddAllTo(checksums);
         this.ProjectReferences.AddAllTo(checksums);
         this.MetadataReferences.AddAllTo(checksums);
         this.AnalyzerReferences.AddAllTo(checksums);
-        this.AdditionalDocuments.AddAllTo(checksums);
-        this.AnalyzerConfigDocuments.AddAllTo(checksums);
+        this.Documents.Checksums.AddAllTo(checksums);
+        this.AdditionalDocuments.Checksums.AddAllTo(checksums);
+        this.AnalyzerConfigDocuments.Checksums.AddAllTo(checksums);
     }
 
     public void Serialize(ObjectWriter writer)
@@ -262,10 +288,10 @@ internal sealed class ProjectStateChecksums(
         this.Info.WriteTo(writer);
         this.CompilationOptions.WriteTo(writer);
         this.ParseOptions.WriteTo(writer);
-        this.Documents.WriteTo(writer);
         this.ProjectReferences.WriteTo(writer);
         this.MetadataReferences.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
+        this.Documents.WriteTo(writer);
         this.AdditionalDocuments.WriteTo(writer);
         this.AnalyzerConfigDocuments.WriteTo(writer);
     }
@@ -278,12 +304,12 @@ internal sealed class ProjectStateChecksums(
             infoChecksum: Checksum.ReadFrom(reader),
             compilationOptionsChecksum: Checksum.ReadFrom(reader),
             parseOptionsChecksum: Checksum.ReadFrom(reader),
-            documentChecksums: ChecksumCollection.ReadFrom(reader),
             projectReferenceChecksums: ChecksumCollection.ReadFrom(reader),
             metadataReferenceChecksums: ChecksumCollection.ReadFrom(reader),
             analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
-            additionalDocumentChecksums: ChecksumCollection.ReadFrom(reader),
-            analyzerConfigDocumentChecksums: ChecksumCollection.ReadFrom(reader));
+            documentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
+            additionalDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
+            analyzerConfigDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }

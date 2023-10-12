@@ -89,11 +89,13 @@ internal abstract class AbstractAssetProvider
     }
 
     public async Task<DocumentInfo> CreateDocumentInfoAsync(
-        ProjectId projectId, Checksum documentChecksum, CancellationToken cancellationToken)
+        DocumentId documentId, Checksum documentChecksum, CancellationToken cancellationToken)
     {
-        var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(assetHint: projectId, documentChecksum, cancellationToken).ConfigureAwait(false);
-        var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(assetHint: projectId, documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-        var serializableSourceText = await GetAssetAsync<SerializableSourceText>(assetHint: projectId, documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
+        var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(assetHint: documentId, documentChecksum, cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfTrue(documentId != documentSnapshot.DocumentId);
+
+        var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(assetHint: documentId, documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+        var serializableSourceText = await GetAssetAsync<SerializableSourceText>(assetHint: documentId, documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
         var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), attributes.FilePath));
