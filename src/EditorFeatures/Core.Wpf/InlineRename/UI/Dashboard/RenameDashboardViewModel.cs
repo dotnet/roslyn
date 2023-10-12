@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -40,6 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>() { "Hello", "World", "Bar", "Goo", "XYZ" };
+
+        public bool HasSuggestions => true;
 
         private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {

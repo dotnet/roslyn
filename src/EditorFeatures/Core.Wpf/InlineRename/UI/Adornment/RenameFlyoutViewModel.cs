@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -59,6 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             RegisterOleComponent();
         }
+
+        public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>() { "Hello", "World", "Bar", "Goo", "XYZ" };
+
+        public bool HasSuggestions => true;
 
         public SuggestedNamesControlViewModel? SuggestedNamesViewModel { get; }
 

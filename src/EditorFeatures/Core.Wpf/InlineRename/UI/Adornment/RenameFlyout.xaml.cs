@@ -63,12 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
             }
 
-            if (_viewModel.SuggestedNamesViewModel is not null)
-            {
-                var idx = MainPanel.Children.IndexOf(IdentifierAndExpandButtonGrid);
-                MainPanel.Children.Insert(idx + 1, new SuggestedNamesControl(new TestViewModel()));
-            }
-
             // Dismiss any current tooltips. Note that this does not disable tooltips
             // from showing up again, so if a user has the mouse unmoved another
             // tooltip will pop up. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398

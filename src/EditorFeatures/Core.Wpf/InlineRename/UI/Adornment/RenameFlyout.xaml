@@ -9,6 +9,7 @@
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:imageutils="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:utils="clr-namespace:Microsoft.CodeAnalysis.Utilities"
+             xmlns:smartRename="Microsoft.CodeAnalysis.InlineRename.UI.SmartRename"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              MinWidth="200"
@@ -25,6 +26,9 @@
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <utils:BrushToColorConverter x:Key="BrushToColorConverter"/>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../SmartRename/SuggtestedNameListViewStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -84,6 +88,8 @@
                     </imaging:CrispImage>
                 </Button>
             </Grid>
+
+            <ListView Style="{StaticResource CopilotListViewStyle}" />
 
             <Grid Visibility="{Binding ShowStatusText, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,5">
                 <Grid.ColumnDefinitions>

@@ -25,6 +25,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../InlineRenameColors.xaml"/>
+                <ResourceDictionary Source="../SmartRename/SuggtestedNameListViewStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -122,6 +123,8 @@
                     ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"
                     AutomationProperties.Name="{Binding ElementName=dashboard, Path=CancelRename}"/>
                 </Grid>
+
+                <ListView Style="{StaticResource CopilotListViewStyle}" />
 
                 <!-- Display the new name if it has been adjusted, or instructional text if it has not. -->
 
