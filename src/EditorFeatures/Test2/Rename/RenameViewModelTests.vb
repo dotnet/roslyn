@@ -621,7 +621,7 @@ class D : B
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
 
                 Using flyout = New RenameFlyout(
-                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, Nothing), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView(),
                     themeService:=Nothing,
                     TestQuickInfoBroker,
@@ -706,12 +706,12 @@ class D : B
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
 
-                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.False(vm.IsCollapsed)
                 Assert.True(vm.IsExpanded)
                 vm.IsCollapsed = True
 
-                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.True(vm.IsCollapsed)
                 Assert.False(vm.IsExpanded)
 

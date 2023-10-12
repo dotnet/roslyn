@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
         public SuggestedNamesControlViewModel(ISmartRenameSession smartRenameSession)
         {
             _smartRenameSession = smartRenameSession;
-            _smartRenameSession.PropertyChanged += SuggestedNamePropertyChanged;
+            _smartRenameSession.PropertyChanged += SessionPropertyChanged;
         }
 
-        private void SuggestedNamePropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
             {
@@ -28,17 +28,25 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                 {
                     SuggestedNames.Add(name);
                 }
+
+                return;
             }
+
+            PropertyChanged?.Invoke(this, e);
         }
 
         public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public bool IsAvailable => _smartRenameSession.IsAvailable;
+
+        public bool InProgress => _smartRenameSession.IsInProgress;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public void Dispose()
         {
             _smartRenameSession.Dispose();
-            _smartRenameSession.PropertyChanged -= SuggestedNamePropertyChanged;
+            _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
         }
     }
 }

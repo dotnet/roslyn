@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
@@ -29,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly InlineRenameSession _session;
-        private readonly ISmartRenameSession? _copilotRenameSession;
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
         private OleComponent? _oleComponent;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             TextSpan selectionSpan,
             bool registerOleComponent,
             IGlobalOptionService globalOptionService,
-            ISmartRenameSession? copilotRenameSession = null)
+            ISmartRenameSession? copilotRenameSession)
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
@@ -52,10 +52,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-            _copilotRenameSession = copilotRenameSession;
+            if (copilotRenameSession is not null)
+            {
+                SuggestedNamesViewModel = new SuggestedNamesControlViewModel(copilotRenameSession);
+            }
 
             RegisterOleComponent();
         }
+
+        public SuggestedNamesControlViewModel? SuggestedNamesViewModel { get; }
 
         public string IdentifierText
         {
@@ -198,8 +203,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public bool IsRenameOverloadsVisible
             => _session.HasRenameOverloads;
 
-        public ISmartRenameSession? CopilotRenameSession => _copilotRenameSession;
-
         public TextSpan StartingSelection { get; }
 
         public bool Submit()
@@ -300,6 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     _session.ReplacementTextChanged -= OnReplacementTextChanged;
                     _session.ReplacementsComputed -= OnReplacementsComputed;
+                    SuggestedNamesViewModel?.Dispose();
 
                     UnregisterOleComponent();
                 }

@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
             }
 
-            if (_viewModel.CopilotRenameSession is not null)
+            if (_viewModel.SuggestedNamesViewModel is not null)
             {
                 var idx = MainPanel.Children.IndexOf(IdentifierTextBox);
-                MainPanel.Children.Insert(idx + 1, new SuggestedNamesControl(new SuggestedNamesControlViewModel(_viewModel.CopilotRenameSession)));
+                MainPanel.Children.Insert(idx + 1, new SuggestedNamesControl(_viewModel.SuggestedNamesViewModel));
             }
 
             // Dismiss any current tooltips. Note that this does not disable tooltips
