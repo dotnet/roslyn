@@ -72,7 +72,7 @@ internal sealed class SolutionStateChecksums(
     public async Task FindAsync(
         SolutionState state,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
+        Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -199,7 +199,7 @@ internal class ProjectStateChecksums(
     public async Task FindAsync(
         ProjectState state,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
+        Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -273,7 +273,7 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
     public async Task FindAsync(
         TextDocumentState state,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
+        Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
     {
         Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
