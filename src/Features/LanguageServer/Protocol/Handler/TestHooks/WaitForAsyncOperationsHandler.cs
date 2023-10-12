@@ -43,7 +43,7 @@ internal class WaitForAsyncOperationsHandler : ILspServiceRequestHandler<WaitFor
     {
         context.TraceInformation($"Waiting for {string.Join(", ", request.Operations)} to complete");
         await _provider.WaitAllAsync(context.Solution!.Workspace, request.Operations).ConfigureAwait(false);
-        return new WaitForAsyncOperationsResponse(true);
+        return new WaitForAsyncOperationsResponse();
     }
 }
 
@@ -51,4 +51,4 @@ internal class WaitForAsyncOperationsHandler : ILspServiceRequestHandler<WaitFor
 internal record WaitForAsyncOperationsParams([property: DataMember(Name = "operations")] string[] Operations);
 
 [DataContract]
-internal record WaitForAsyncOperationsResponse([property: DataMember(Name = "result")] bool Result);
+internal record WaitForAsyncOperationsResponse();
