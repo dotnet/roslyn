@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (oldDocumentChecksums.Text != newDocumentChecksums.Text)
                 {
                     var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
-                        assetHint: document.Project.Id, newDocumentChecksums.Text, cancellationToken).ConfigureAwait(false);
+                        assetHint: document.Id, newDocumentChecksums.Text, cancellationToken).ConfigureAwait(false);
                     var sourceText = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     document = document.Kind switch
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Remote
             private async Task<TextDocument> UpdateDocumentInfoAsync(TextDocument document, Checksum infoChecksum, CancellationToken cancellationToken)
             {
                 var newDocumentInfo = await _assetProvider.GetAssetAsync<DocumentInfo.DocumentAttributes>(
-                    assetHint: document.Id.ProjectId, infoChecksum, cancellationToken).ConfigureAwait(false);
+                    assetHint: document.Id, infoChecksum, cancellationToken).ConfigureAwait(false);
 
                 // there is no api to change these once document is created
                 Contract.ThrowIfFalse(document.State.Attributes.Id == newDocumentInfo.Id);
