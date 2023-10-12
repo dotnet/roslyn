@@ -1260,6 +1260,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
+        // Ref struct collection, with an implicit conversion from array.
+        private const string example_RefStructConvertibleFromArray = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(RefStructConvertibleFromArrayBuilder), nameof(RefStructConvertibleFromArrayBuilder.Create))]
+                public ref struct RefStructConvertibleFromArray<T>
+                {
+                    private readonly T[] _array;
+                    public RefStructConvertibleFromArray(T[] array) { _array = array; }
+                    public IEnumerator<T> GetEnumerator() => new List<T>(_array).GetEnumerator();
+                    public static implicit operator RefStructConvertibleFromArray<T>(T[] array) => new(array);
+                }
+                public static class RefStructConvertibleFromArrayBuilder
+                {
+                    public static RefStructConvertibleFromArray<T> Create<T>(scoped ReadOnlySpan<T> items)
+                    {
+                        return new RefStructConvertibleFromArray<T>(items.ToArray());
+                    }
+                }
+                """;
+
         [Theory]
         [InlineData("System.Span<T>", "T[]", "System.Span<System.Int32>")]
         [InlineData("System.Span<T>", "System.Collections.Generic.IEnumerable<T>", "System.Span<System.Int32>")]
@@ -1313,6 +1335,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("MyCollectionA<T>", "MyCollectionB<long>", null, new[] { example_GenericClassesWithConversion })]
         [InlineData("MyCollectionA<T>", "MyCollectionB<object>", null, new[] { example_GenericClassesWithConversion })]
         [InlineData("MyCollectionB<T>", "MyCollectionB<long>", null, new[] { example_GenericClassesWithConversion })]
+        [InlineData("RefStructConvertibleFromArray<T>", "T[]", "System.Int32[]", new[] { example_RefStructConvertibleFromArray })]
+        [InlineData("RefStructConvertibleFromArray<T>", "int[]", "System.Int32[]", new[] { example_RefStructConvertibleFromArray })]
+        [InlineData("RefStructConvertibleFromArray<object>", "T[]", null, new[] { example_RefStructConvertibleFromArray })]
+        [InlineData("RefStructConvertibleFromArray<T>", "object[]", null, new[] { example_RefStructConvertibleFromArray })]
         public void BetterConversionFromExpression_01A(string type1, string type2, string expectedType, string[] additionalSources = null)
         {
             string source = $$"""
@@ -1714,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(
-                new[] { source, CollectionBuilderAttributeDefinition },
+                source,
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("""
