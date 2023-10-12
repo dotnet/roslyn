@@ -350,6 +350,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                     enabledDiagnosticSets.ToImmutableArray(),
                     new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
             }
+            else
+            {
+                var enabledDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
+
+                foreach (var diagnostic in enabledDiagnostics.Diagnostics)
+                {
+                    var isAnyDiagnosticIdExplicitlyEnabled = false;
+                    foreach (var diagnosticId in diagnostic.DiagnosticIds)
+                    {
+                        if (enabledFixIds.IsFixIdEnabled(diagnosticId))
+                        {
+                            isAnyDiagnosticIdExplicitlyEnabled = true;
+                            break;
+                        }
+                    }
+
+                    enabledDiagnosticSets.Add(diagnostic.With(isAnyDiagnosticIdExplicitlyEnabled));
+                }
+
+                enabledDiagnostics = new EnabledDiagnosticOptions(
+                    enabledDiagnostics.FormatDocument,
+                    enabledDiagnostics.RunThirdPartyFixers,
+                    enabledDiagnosticSets.ToImmutableArray(),
+                    enabledDiagnostics.OrganizeUsings);
+            }
 
             return await codeCleanupService.CleanupAsync(
                 document, enabledDiagnostics, progressTracker, ideOptions.CreateProvider(), cancellationToken).ConfigureAwait(false);
