@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -57,13 +56,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, object asset, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(asset);
                 var kind = asset.GetWellKnownSynchronizationKind();
-                Contract.ThrowIfTrue(kind == WellKnownSynchronizationKind.Null);
                 writer.WriteInt32((int)kind);
 
-                // null is already indicated by checksum and kind above:
-                if (asset is not null)
-                    serializer.Serialize(asset, writer, context, cancellationToken);
+                serializer.Serialize(asset, writer, context, cancellationToken);
             }
         }
 
@@ -91,9 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
-
-                Debug.Assert(result != null, "We should not be requesting null assets");
-
+                Contract.ThrowIfNull(result);
                 results.Add(result);
             }
 
