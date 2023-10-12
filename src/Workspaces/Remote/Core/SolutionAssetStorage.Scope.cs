@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,25 +52,24 @@ internal partial class SolutionAssetStorage
         /// </summary>
         public async Task AddAssetsAsync(
             ImmutableArray<Checksum> checksums,
-            Dictionary<Checksum, object?> assetMap,
+            Dictionary<Checksum, object> assetMap,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var checksumsToFind = Creator.CreateChecksumSet(checksums);
+            using var obj = Creator.CreateChecksumSet(checksums);
+            var checksumsToFind = obj.Object;
 
-            var numberOfChecksumsToSearch = checksumsToFind.Object.Count;
+            var numberOfChecksumsToSearch = checksumsToFind.Count;
+            Contract.ThrowIfTrue(checksumsToFind.Contains(Checksum.Null));
 
-            if (checksumsToFind.Object.Remove(Checksum.Null))
-                assetMap[Checksum.Null] = null;
+            await FindAssetsAsync(checksumsToFind, assetMap, cancellationToken).ConfigureAwait(false);
 
-            await FindAssetsAsync(checksumsToFind.Object, assetMap, cancellationToken).ConfigureAwait(false);
-
-            Contract.ThrowIfTrue(checksumsToFind.Object.Count > 0);
+            Contract.ThrowIfTrue(checksumsToFind.Count > 0);
             Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
         }
 
-        private async Task FindAssetsAsync(HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object?> result, CancellationToken cancellationToken)
+        private async Task FindAssetsAsync(HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
             var solutionState = this.Solution;
             if (solutionState.TryGetStateChecksums(out var stateChecksums))
@@ -101,12 +99,12 @@ internal partial class SolutionAssetStorage
                 Contract.ThrowIfTrue(checksum == Checksum.Null);
 
                 using var checksumPool = Creator.CreateChecksumSet(checksum);
-                using var resultPool = Creator.CreateResultMap();
+                using var _ = Creator.CreateResultMap(out var resultPool);
 
-                await scope.FindAssetsAsync(checksumPool.Object, resultPool.Object, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfTrue(resultPool.Object.Count != 1);
+                await scope.FindAssetsAsync(checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(resultPool.Count != 1);
 
-                var (resultingChecksum, value) = resultPool.Object.First();
+                var (resultingChecksum, value) = resultPool.First();
                 Contract.ThrowIfFalse(checksum == resultingChecksum);
 
                 return value;
