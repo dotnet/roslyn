@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return;
 
-            static void AppendMismatch(List<KeyValuePair<Checksum, object?>> items, string title, StringBuilder stringBuilder)
+            static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
             {
                 if (items.Count == 0)
                 {
@@ -97,13 +97,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 stringBuilder.AppendLine();
             }
 
-            async Task<List<KeyValuePair<Checksum, object?>>> GetAssetFromAssetServiceAsync(IEnumerable<Checksum> checksums)
+            async Task<List<KeyValuePair<Checksum, object>>> GetAssetFromAssetServiceAsync(IEnumerable<Checksum> checksums)
             {
-                var items = new List<KeyValuePair<Checksum, object?>>();
+                var items = new List<KeyValuePair<Checksum, object>>();
 
                 foreach (var checksum in checksums)
                 {
-                    items.Add(new KeyValuePair<Checksum, object?>(checksum, await assetService.GetAssetAsync<object>(checksum, CancellationToken.None).ConfigureAwait(false)));
+                    items.Add(new KeyValuePair<Checksum, object>(checksum, await assetService.GetAssetAsync<object>(checksum, CancellationToken.None).ConfigureAwait(false)));
                 }
 
                 return items;
@@ -141,9 +141,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// create checksum to correspoing object map from solution
         /// this map should contain every parts of solution that can be used to re-create the solution back
         /// </summary>
-        public static async Task<Dictionary<Checksum, object?>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
+        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
         {
-            var map = new Dictionary<Checksum, object?>();
+            var map = new Dictionary<Checksum, object>();
             await solution.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             return map;
         }
@@ -152,19 +152,19 @@ namespace Microsoft.CodeAnalysis.Remote
         /// create checksum to correspoing object map from project
         /// this map should contain every parts of project that can be used to re-create the project back
         /// </summary>
-        public static async Task<Dictionary<Checksum, object?>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
+        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
         {
-            var map = new Dictionary<Checksum, object?>();
+            var map = new Dictionary<Checksum, object>();
 
             await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             return map;
         }
 
-        public static Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object?> map, CancellationToken cancellationToken)
+        public static Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
             => AppendAssetMapAsync(solution, map, projectId: null, cancellationToken);
 
         public static async Task AppendAssetMapAsync(
-            this Solution solution, Dictionary<Checksum, object?> map, ProjectId? projectId, CancellationToken cancellationToken)
+            this Solution solution, Dictionary<Checksum, object> map, ProjectId? projectId, CancellationToken cancellationToken)
         {
             if (projectId == null)
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static async Task AppendAssetMapAsync(this Project project, Dictionary<Checksum, object?> map, CancellationToken cancellationToken)
+        private static async Task AppendAssetMapAsync(this Project project, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
         {
             if (!RemoteSupportedLanguages.IsSupported(project.Language))
             {
