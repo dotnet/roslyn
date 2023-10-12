@@ -3907,5 +3907,27 @@ class X
             var typeInfo = model.GetTypeInfo(lambda.Body);
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70007")]
+        public void CycleThroughAttribute()
+        {
+            var compilation = CreateCompilation(@"
+using System.Reflection;
+
+[assembly: AssemblyVersion(MainVersion.CurrentVersion)]
+
+public class MainVersion
+{
+    public const string Hauptversion = ""8"";
+    public const string Nebenversion = ""2"";
+    public const string Build = ""0"";
+    public const string Revision = ""1"";
+
+    public const string CurrentVersion = Hauptversion + ""."" + Nebenversion + ""."" + Build + ""."" + Revision;
+}
+");
+            CompileAndVerify(compilation).VerifyDiagnostics();
+        }
     }
 }
