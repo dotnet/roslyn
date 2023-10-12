@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // get children of solution checksum object at once
                 await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
             }
         }
