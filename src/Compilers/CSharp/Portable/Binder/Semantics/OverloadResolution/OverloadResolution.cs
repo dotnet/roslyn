@@ -2531,7 +2531,7 @@ outerDefault:
             if (!conv2.IsConditionalExpression && conv1.IsConditionalExpression)
                 return BetterResult.Right;
 
-            // - E is a collection expression and one of the following holds:
+            // - E is a collection expression and one of the following holds: ...
             if (conv1.Kind == ConversionKind.CollectionExpression &&
                 conv2.Kind == ConversionKind.CollectionExpression)
             {
