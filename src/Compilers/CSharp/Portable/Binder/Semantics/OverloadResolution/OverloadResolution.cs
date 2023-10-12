@@ -2560,18 +2560,18 @@ outerDefault:
             TypeSymbol elementType2;
             var kind2 = conv2.GetCollectionExpressionTypeKind(out elementType2);
 
-            // - T1 is ReadOnlySpan<E1>, and T2 is ReadOnlySpan<E2>, and an implicit conversion exists from E1 to E2
+            // - T1 is System.ReadOnlySpan<E1>, and T2 is System.Span<E2>, and an implicit conversion exists from E1 to E2
             if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan &&
-                kind2 is CollectionExpressionTypeKind.ReadOnlySpan &&
+                kind2 is CollectionExpressionTypeKind.Span &&
                 hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
             {
                 return true;
             }
 
-            // - T1 is ReadOnlySpan<E1> or Span<E1>, and T2 is Span<E2> or an array_or_array_interface_or_string_type
+            // - T1 is System.ReadOnlySpan<E1> or System.Span<E1>, and T2 is an array_or_array_interface_or_string_type
             //    with iteration type E2, and an implicit conversion exists from E1 to E2
             if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span &&
-                (kind2 is CollectionExpressionTypeKind.Span || IsSZArrayOrArrayInterfaceOrString(t2, out elementType2)) &&
+                IsSZArrayOrArrayInterfaceOrString(t2, out elementType2) &&
                 hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
             {
                 return true;

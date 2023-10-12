@@ -1273,8 +1273,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<string>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "System.Span<T>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "System.Span<int>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<long>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.Span<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.Span<short>", null)]
+        [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<int>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<object>", null)]
+        [InlineData("System.ReadOnlySpan<T>", "System.ReadOnlySpan<long>", null)]
+        [InlineData("System.Span<T>", "System.Span<int>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<T>", "System.Span<object>", null)]
+        [InlineData("System.Span<T>", "System.Span<short>", null)]
+        [InlineData("System.Span<T>", "System.Span<string>", "System.Span<System.Int32>")]
         public void BetterConversionFromExpression_01A(string type1, string type2, string expectedType, string[] additionalSources = null)
         {
             string source = $$"""
@@ -1341,13 +1348,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<object>", "System.Span<int>", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<int?>", "System.Span<int>", null)] // cannot convert int? to int
-        [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<int?>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<int?>", "System.ReadOnlySpan<System.Nullable<System.Int32>>")]
-        [InlineData("System.Span<int>", "System.Span<object>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Span<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<object>", "System.Span<int?>", "System.Span<System.Nullable<System.Int32>>")]
-        [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", "System.ReadOnlySpan<System.Int64>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<int?>", null)]
+        [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<int?>", null)]
+        [InlineData("System.Span<int>", "System.Span<object>", null)]
+        [InlineData("System.Span<int>", "System.Span<int?>", null)]
+        [InlineData("System.Span<object>", "System.Span<int?>", null)]
+        [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", null)]
         [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
         [InlineData("System.Span<int>", "System.Collections.Generic.IEnumerable<int?>", "System.Span<System.Int32>")]
         [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyCollection<int?>", "System.Span<System.Int32>")]
