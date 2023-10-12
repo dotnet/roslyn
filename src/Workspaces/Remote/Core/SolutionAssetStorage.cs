@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -115,18 +116,9 @@ internal partial class SolutionAssetStorage
             _solutionAssetStorage = solutionAssetStorage;
         }
 
-        public async ValueTask<SolutionAsset?> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<SolutionAsset> GetRequiredAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            foreach (var (_, scope) in _solutionAssetStorage._checksumToScope)
-            {
-                var data = await scope.GetAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
-                if (data != null)
-                {
-                    return data;
-                }
-            }
-
-            return null;
+            return await _solutionAssetStorage._checksumToScope.Single().Value.GetTestAccessor().GetAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
         }
 
         public bool IsPinned(Checksum checksum)

@@ -89,7 +89,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             : initializer;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, arrayCreationExpression, skipVerificationForReplacedNode: false, cancellationToken))
+                semanticModel, arrayCreationExpression, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return;
         }
