@@ -98,16 +98,6 @@ internal sealed class SolutionStateChecksums(
             result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
         }
 
-        //if (searchingChecksumsLeft.Remove(Projects.Checksum))
-        //{
-        //    result[Projects.Checksum] = Projects;
-        //}
-
-        //if (searchingChecksumsLeft.Remove(AnalyzerReferences.Checksum))
-        //{
-        //    result[AnalyzerReferences.Checksum] = AnalyzerReferences;
-        //}
-
         foreach (var (_, projectState) in state.ProjectStates)
         {
             if (searchingChecksumsLeft.Count == 0)
@@ -241,36 +231,6 @@ internal class ProjectStateChecksums(
             Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
             result[ParseOptions] = state.ParseOptions;
         }
-
-        //if (searchingChecksumsLeft.Remove(Documents.Checksum))
-        //{
-        //    result[Documents.Checksum] = Documents;
-        //}
-
-        //if (searchingChecksumsLeft.Remove(ProjectReferences.Checksum))
-        //{
-        //    result[ProjectReferences.Checksum] = ProjectReferences;
-        //}
-
-        //if (searchingChecksumsLeft.Remove(MetadataReferences.Checksum))
-        //{
-        //    result[MetadataReferences.Checksum] = MetadataReferences;
-        //}
-
-        //if (searchingChecksumsLeft.Remove(AnalyzerReferences.Checksum))
-        //{
-        //    result[AnalyzerReferences.Checksum] = AnalyzerReferences;
-        //}
-
-        //if (searchingChecksumsLeft.Remove(AdditionalDocuments.Checksum))
-        //{
-        //    result[AdditionalDocuments.Checksum] = AdditionalDocuments;
-        //}
-
-        //if (searchingChecksumsLeft.Remove(AnalyzerConfigDocuments.Checksum))
-        //{
-        //    result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
-        //}
 
         ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
         ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
