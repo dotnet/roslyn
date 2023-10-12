@@ -29,6 +29,7 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     private ProjectFileInfo? _mostRecentFileInfo;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = ImmutableArray<CommandLineReference>.Empty;
+    private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = ImmutableArray<CommandLineAnalyzerReference>.Empty;
 
     public LoadedProject(ProjectSystemProject projectSystemProject, SolutionServices solutionServices, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
@@ -120,6 +121,17 @@ internal sealed class LoadedProject : IDisposable
 
         // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
         _mostRecentMetadataReferences = metadataReferences;
+
+        var analyzerReferences = _optionsProcessor.GetParsedCommandLineArguments().AnalyzerReferences.Distinct();
+
+        UpdateProjectSystemProjectCollection(
+            analyzerReferences,
+            _mostRecentAnalyzerReferences,
+            EqualityComparer<CommandLineAnalyzerReference>.Default, // CommandLineAnalyzerReference already implements equality
+            reference => _projectSystemProject.AddAnalyzerReference(reference.FilePath),
+            reference => _projectSystemProject.RemoveAnalyzerReference(reference.FilePath));
+
+        _mostRecentAnalyzerReferences = analyzerReferences;
 
         UpdateProjectSystemProjectCollection(
             newProjectInfo.AdditionalDocuments.Distinct(DocumentFileInfoComparer.Instance), // TODO: figure out why we have duplicates
