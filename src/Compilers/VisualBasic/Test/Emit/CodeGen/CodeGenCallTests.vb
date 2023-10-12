@@ -99,6 +99,148 @@ End Class
 ]]>)
         End Sub
 
+        <Theory>
+        <CombinatorialData>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Call_Class_InWith(asRValue As Boolean)
+
+            Dim leftParen As String = ""
+            Dim rightParen As String = ""
+
+            If asRValue Then
+                leftParen = "("
+                rightParen = ")"
+            End If
+
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Sub GetName(x As Integer)
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Sub GetName(x As Integer) Implements IMoveable.GetName
+        Console.WriteLine("Position GetName for item '{0}'", Me.Name)
+    End Sub
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+
+        Dim item3 = New Item With {.Name = "3"}
+        Call3(item3)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(item As T)
+        With <%= leftParen %>item<%= rightParen %>
+            call .GetName(GetOffset(item))
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T)
+        With <%= leftParen %>item<%= rightParen %>
+            call .GetName(GetOffset(item))
+        End With
+    End Sub
+
+    Private Shared Sub Call3(item As Item)
+        With <%= leftParen %>item<%= rightParen %>
+            call .GetName(GetOffset(item))
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position GetName for item '1'
+Position GetName for item '2'
+Position GetName for item '3'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+                              If(asRValue,
+            <![CDATA[
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        "T"
+  IL_0006:  ldarga.s   V_0
+  IL_0008:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_000d:  callvirt   "Sub IMoveable.GetName(Integer)"
+  IL_0012:  ret
+}
+]]>,
+            <![CDATA[
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0009:  constrained. "T"
+  IL_000f:  callvirt   "Sub IMoveable.GetName(Integer)"
+  IL_0014:  ret
+}
+]]>))
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+                              If(asRValue,
+            <![CDATA[
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (T V_0) //$W0
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldarga.s   V_0
+  IL_0006:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_000b:  constrained. "T"
+  IL_0011:  callvirt   "Sub IMoveable.GetName(Integer)"
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  initobj    "T"
+  IL_001e:  ret
+}
+]]>,
+            <![CDATA[
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0009:  constrained. "T"
+  IL_000f:  callvirt   "Sub IMoveable.GetName(Integer)"
+  IL_0014:  ret
+}
+]]>))
+        End Sub
+
         <Fact>
         <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
         Public Sub GenericTypeParameterAsReceiver_Call_Struct()
@@ -1228,6 +1370,1318 @@ Position GetName for item '-2'
   IL_012c:  ret
 }
 ]]>)
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Call_Class_Async_01_ThroughArray(asRValue As Boolean)
+
+            Dim leftParen As String = ""
+            Dim rightParen As String = ""
+
+            If asRValue Then
+                leftParen = "("
+                rightParen = ")"
+            End If
+
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Sub GetName(x As Integer)
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Sub GetName(x As Integer) Implements IMoveable.GetName
+        Console.WriteLine("Position GetName for item '{0}'", Me.Name)
+    End Sub
+End Class
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = {New Item2 With {.Name = "1"}}
+        Call1(DirectCast(item1, Item())).Wait()
+
+        Dim item2 = {New Item2 With {.Name = "2"}}
+        Call2(DirectCast(item2, Item())).Wait()
+
+        Dim item3 = {New Item2 With {.Name = "3"}}
+        Call3(DirectCast(item3, Item())).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Class, IMoveable})(item As T()) As Task
+        call <%= leftParen %>item(GetArrayIndex())<%= rightParen %>.GetName(await GetOffsetAsync(GetOffset(item)))
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        call <%= leftParen %>item(GetArrayIndex())<%= rightParen %>.GetName(await GetOffsetAsync(GetOffset(item)))
+    End Function
+
+    Private Shared Async Function Call3(item As Item()) As Task
+        call <%= leftParen %>item(GetArrayIndex())<%= rightParen %>.GetName(await GetOffsetAsync(GetOffset(item)))
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position GetName for item '-1'
+Position GetName for item '-2'
+Position GetName for item '3'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      257 (0x101)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0077
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0011:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0016:  ldarg.0
+    IL_0017:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_001c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0021:  ldarg.0
+    IL_0022:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0027:  ldarg.0
+    IL_0028:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_002d:  readonly.
+    IL_002f:  ldelema    "SM$T"
+    IL_0034:  pop
+    IL_0035:  ldarg.0
+    IL_0036:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_003b:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0040:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0045:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004a:  stloc.1
+    IL_004b:  ldloca.s   V_1
+    IL_004d:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0052:  brtrue.s   IL_0093
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.0
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_005d:  ldarg.0
+    IL_005e:  ldloc.1
+    IL_005f:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0064:  ldarg.0
+    IL_0065:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_006a:  ldloca.s   V_1
+    IL_006c:  ldarg.0
+    IL_006d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0072:  leave      IL_0100
+    IL_0077:  ldarg.0
+    IL_0078:  ldc.i4.m1
+    IL_0079:  dup
+    IL_007a:  stloc.0
+    IL_007b:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0080:  ldarg.0
+    IL_0081:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0086:  stloc.1
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_008d:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0093:  ldarg.0
+    IL_0094:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0099:  ldarg.0
+    IL_009a:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_009f:  readonly.
+    IL_00a1:  ldelema    "SM$T"
+    IL_00a6:  ldloca.s   V_1
+    IL_00a8:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00ad:  ldloca.s   V_1
+    IL_00af:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b5:  constrained. "SM$T"
+    IL_00bb:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldnull
+    IL_00c2:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_00c7:  leave.s    IL_00eb
+  }
+  catch System.Exception
+  {
+    IL_00c9:  dup
+    IL_00ca:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00cf:  stloc.2
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldc.i4.s   -2
+    IL_00d3:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00de:  ldloc.2
+    IL_00df:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00e4:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00e9:  leave.s    IL_0100
+  }
+  IL_00eb:  ldarg.0
+  IL_00ec:  ldc.i4.s   -2
+  IL_00ee:  dup
+  IL_00ef:  stloc.0
+  IL_00f0:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00f5:  ldarg.0
+  IL_00f6:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00fb:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0100:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Program.VB$StateMachine_3_Call2(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      257 (0x101)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0077
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0011:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_0016:  ldarg.0
+    IL_0017:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_001c:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_0021:  ldarg.0
+    IL_0022:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_0027:  ldarg.0
+    IL_0028:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_002d:  readonly.
+    IL_002f:  ldelema    "SM$T"
+    IL_0034:  pop
+    IL_0035:  ldarg.0
+    IL_0036:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_003b:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0040:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0045:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004a:  stloc.1
+    IL_004b:  ldloca.s   V_1
+    IL_004d:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0052:  brtrue.s   IL_0093
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.0
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_005d:  ldarg.0
+    IL_005e:  ldloc.1
+    IL_005f:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0064:  ldarg.0
+    IL_0065:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_006a:  ldloca.s   V_1
+    IL_006c:  ldarg.0
+    IL_006d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_0072:  leave      IL_0100
+    IL_0077:  ldarg.0
+    IL_0078:  ldc.i4.m1
+    IL_0079:  dup
+    IL_007a:  stloc.0
+    IL_007b:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0080:  ldarg.0
+    IL_0081:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0086:  stloc.1
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_008d:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0093:  ldarg.0
+    IL_0094:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_0099:  ldarg.0
+    IL_009a:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_009f:  readonly.
+    IL_00a1:  ldelema    "SM$T"
+    IL_00a6:  ldloca.s   V_1
+    IL_00a8:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00ad:  ldloca.s   V_1
+    IL_00af:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b5:  constrained. "SM$T"
+    IL_00bb:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldnull
+    IL_00c2:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_00c7:  leave.s    IL_00eb
+  }
+  catch System.Exception
+  {
+    IL_00c9:  dup
+    IL_00ca:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00cf:  stloc.2
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldc.i4.s   -2
+    IL_00d3:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00de:  ldloc.2
+    IL_00df:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00e4:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00e9:  leave.s    IL_0100
+  }
+  IL_00eb:  ldarg.0
+  IL_00ec:  ldc.i4.s   -2
+  IL_00ee:  dup
+  IL_00ef:  stloc.0
+  IL_00f0:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_00f5:  ldarg.0
+  IL_00f6:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00fb:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0100:  ret
+}
+]]>)
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Call_Struct_Async_01_ThroughArray(asRValue As Boolean)
+
+            Dim leftParen As String = ""
+            Dim rightParen As String = ""
+
+            If asRValue Then
+                leftParen = "("
+                rightParen = ")"
+            End If
+
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Sub GetName(x As Integer)
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Sub GetName(x As Integer) Implements IMoveable.GetName
+        Console.WriteLine("Position GetName for item '{0}'", Me.Name)
+    End Sub
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = {New Item With {.Name = "1"}}
+        Call1(item1).Wait()
+
+        Dim item2 = {New Item With {.Name = "2"}}
+        Call2(item2).Wait()
+
+        Dim item3 = {New Item With {.Name = "3"}}
+        Call3(item3).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Structure, IMoveable})(item As T()) As Task
+        call <%= leftParen %>item(GetArrayIndex())<%= rightParen %>.GetName(await GetOffsetAsync(GetOffset(item)))
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        call <%= leftParen %>item(GetArrayIndex())<%= rightParen %>.GetName(await GetOffsetAsync(GetOffset(item)))
+    End Function
+
+    Private Shared Async Function Call3(item As Item()) As Task
+        call <%= leftParen %>item(GetArrayIndex())<%= rightParen %>.GetName(await GetOffsetAsync(GetOffset(item)))
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position GetName for item '-1'
+Position GetName for item '-2'
+Position GetName for item '-3'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      257 (0x101)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0077
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0011:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0016:  ldarg.0
+    IL_0017:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_001c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0021:  ldarg.0
+    IL_0022:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0027:  ldarg.0
+    IL_0028:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_002d:  readonly.
+    IL_002f:  ldelema    "SM$T"
+    IL_0034:  pop
+    IL_0035:  ldarg.0
+    IL_0036:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_003b:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0040:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0045:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004a:  stloc.1
+    IL_004b:  ldloca.s   V_1
+    IL_004d:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0052:  brtrue.s   IL_0093
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.0
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_005d:  ldarg.0
+    IL_005e:  ldloc.1
+    IL_005f:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0064:  ldarg.0
+    IL_0065:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_006a:  ldloca.s   V_1
+    IL_006c:  ldarg.0
+    IL_006d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0072:  leave      IL_0100
+    IL_0077:  ldarg.0
+    IL_0078:  ldc.i4.m1
+    IL_0079:  dup
+    IL_007a:  stloc.0
+    IL_007b:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0080:  ldarg.0
+    IL_0081:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0086:  stloc.1
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_008d:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0093:  ldarg.0
+    IL_0094:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0099:  ldarg.0
+    IL_009a:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_009f:  readonly.
+    IL_00a1:  ldelema    "SM$T"
+    IL_00a6:  ldloca.s   V_1
+    IL_00a8:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00ad:  ldloca.s   V_1
+    IL_00af:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b5:  constrained. "SM$T"
+    IL_00bb:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldnull
+    IL_00c2:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_00c7:  leave.s    IL_00eb
+  }
+  catch System.Exception
+  {
+    IL_00c9:  dup
+    IL_00ca:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00cf:  stloc.2
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldc.i4.s   -2
+    IL_00d3:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00de:  ldloc.2
+    IL_00df:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00e4:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00e9:  leave.s    IL_0100
+  }
+  IL_00eb:  ldarg.0
+  IL_00ec:  ldc.i4.s   -2
+  IL_00ee:  dup
+  IL_00ef:  stloc.0
+  IL_00f0:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00f5:  ldarg.0
+  IL_00f6:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00fb:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0100:  ret
+}
+]]>)
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Call_Class_Async_01_ThroughArray_InWith(asRValue As Boolean)
+
+            Dim leftParen As String = ""
+            Dim rightParen As String = ""
+
+            If asRValue Then
+                leftParen = "("
+                rightParen = ")"
+            End If
+
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Sub GetName(x As Integer)
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Sub GetName(x As Integer) Implements IMoveable.GetName
+        Console.WriteLine("Position GetName for item '{0}'", Me.Name)
+    End Sub
+End Class
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = {New Item2 With {.Name = "1"}}
+        Call1(DirectCast(item1, Item())).Wait()
+
+        Dim item2 = {New Item2 With {.Name = "2"}}
+        Call2(DirectCast(item2, Item())).Wait()
+
+        Dim item3 = {New Item2 With {.Name = "3"}}
+        Call3(DirectCast(item3, Item())).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Class, IMoveable})(item As T()) As Task
+        With <%= leftParen %>item(GetArrayIndex())<%= rightParen %>
+            call .GetName(await GetOffsetAsync(GetOffset(item)))
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        With <%= leftParen %>item(GetArrayIndex())<%= rightParen %>
+            call .GetName(await GetOffsetAsync(GetOffset(item)))
+        End With
+    End Function
+
+    Private Shared Async Function Call3(item As Item()) As Task
+        With <%= leftParen %>item(GetArrayIndex())<%= rightParen %>
+            call .GetName(await GetOffsetAsync(GetOffset(item)))
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output for asRValue = False case
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+If(asRValue,
+"
+Position GetName for item '1'
+Position GetName for item '2'
+Position GetName for item '3'
+",
+"
+Position GetName for item '-1'
+Position GetName for item '-2'
+Position GetName for item '3'
+")).VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+If(asRValue,
+            <![CDATA[
+{
+  // Code size      212 (0xd4)
+  .maxstack  3
+  .locals init (Integer V_0,
+                SM$T V_1, //$W0
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_005a
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0010:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0015:  ldelem     "SM$T"
+    IL_001a:  stloc.1
+    IL_001b:  ldarg.0
+    IL_001c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0021:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0026:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_002b:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0030:  stloc.2
+    IL_0031:  ldloca.s   V_2
+    IL_0033:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0038:  brtrue.s   IL_0076
+    IL_003a:  ldarg.0
+    IL_003b:  ldc.i4.0
+    IL_003c:  dup
+    IL_003d:  stloc.0
+    IL_003e:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0043:  ldarg.0
+    IL_0044:  ldloc.2
+    IL_0045:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004a:  ldarg.0
+    IL_004b:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0050:  ldloca.s   V_2
+    IL_0052:  ldarg.0
+    IL_0053:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0058:  leave.s    IL_00d3
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.0
+    IL_005e:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0063:  ldarg.0
+    IL_0064:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0069:  stloc.2
+    IL_006a:  ldarg.0
+    IL_006b:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0070:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0076:  ldloca.s   V_1
+    IL_0078:  ldloca.s   V_2
+    IL_007a:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_007f:  ldloca.s   V_2
+    IL_0081:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0087:  constrained. "SM$T"
+    IL_008d:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_0092:  ldloca.s   V_1
+    IL_0094:  initobj    "SM$T"
+    IL_009a:  leave.s    IL_00be
+  }
+  catch System.Exception
+  {
+    IL_009c:  dup
+    IL_009d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a2:  stloc.3
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -2
+    IL_00a6:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00b1:  ldloc.3
+    IL_00b2:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00b7:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00bc:  leave.s    IL_00d3
+  }
+  IL_00be:  ldarg.0
+  IL_00bf:  ldc.i4.s   -2
+  IL_00c1:  dup
+  IL_00c2:  stloc.0
+  IL_00c3:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00c8:  ldarg.0
+  IL_00c9:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00ce:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00d3:  ret
+}
+]]>,
+            <![CDATA[
+{
+  // Code size      265 (0x109)
+  .maxstack  3
+  .locals init (Integer V_0,
+                SM$T() V_1, //$W0
+                Integer V_2, //$W1
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_007b
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0010:  stloc.1
+    IL_0011:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0016:  stloc.2
+    IL_0017:  ldarg.0
+    IL_0018:  ldloc.1
+    IL_0019:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_001e:  ldarg.0
+    IL_001f:  ldloc.2
+    IL_0020:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0025:  ldarg.0
+    IL_0026:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_002b:  ldarg.0
+    IL_002c:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0031:  readonly.
+    IL_0033:  ldelema    "SM$T"
+    IL_0038:  pop
+    IL_0039:  ldarg.0
+    IL_003a:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_003f:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0044:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0049:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004e:  stloc.3
+    IL_004f:  ldloca.s   V_3
+    IL_0051:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0056:  brtrue.s   IL_0097
+    IL_0058:  ldarg.0
+    IL_0059:  ldc.i4.0
+    IL_005a:  dup
+    IL_005b:  stloc.0
+    IL_005c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0061:  ldarg.0
+    IL_0062:  ldloc.3
+    IL_0063:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_006e:  ldloca.s   V_3
+    IL_0070:  ldarg.0
+    IL_0071:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0076:  leave      IL_0108
+    IL_007b:  ldarg.0
+    IL_007c:  ldc.i4.m1
+    IL_007d:  dup
+    IL_007e:  stloc.0
+    IL_007f:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0084:  ldarg.0
+    IL_0085:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_008a:  stloc.3
+    IL_008b:  ldarg.0
+    IL_008c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0091:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0097:  ldarg.0
+    IL_0098:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_009d:  ldarg.0
+    IL_009e:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_00a3:  readonly.
+    IL_00a5:  ldelema    "SM$T"
+    IL_00aa:  ldloca.s   V_3
+    IL_00ac:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00b1:  ldloca.s   V_3
+    IL_00b3:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b9:  constrained. "SM$T"
+    IL_00bf:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_00c4:  ldarg.0
+    IL_00c5:  ldnull
+    IL_00c6:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_00cb:  ldnull
+    IL_00cc:  stloc.1
+    IL_00cd:  leave.s    IL_00f3
+  }
+  catch System.Exception
+  {
+    IL_00cf:  dup
+    IL_00d0:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00d5:  stloc.s    V_4
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldc.i4.s   -2
+    IL_00da:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00df:  ldarg.0
+    IL_00e0:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00e5:  ldloc.s    V_4
+    IL_00e7:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00ec:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00f1:  leave.s    IL_0108
+  }
+  IL_00f3:  ldarg.0
+  IL_00f4:  ldc.i4.s   -2
+  IL_00f6:  dup
+  IL_00f7:  stloc.0
+  IL_00f8:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00fd:  ldarg.0
+  IL_00fe:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0103:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0108:  ret
+}
+]]>))
+
+            verifier.VerifyIL("Program.VB$StateMachine_3_Call2(Of SM$T).MoveNext()",
+If(asRValue,
+            <![CDATA[
+{
+  // Code size      212 (0xd4)
+  .maxstack  3
+  .locals init (Integer V_0,
+                SM$T V_1, //$W0
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_005a
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0010:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0015:  ldelem     "SM$T"
+    IL_001a:  stloc.1
+    IL_001b:  ldarg.0
+    IL_001c:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0021:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0026:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_002b:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0030:  stloc.2
+    IL_0031:  ldloca.s   V_2
+    IL_0033:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0038:  brtrue.s   IL_0076
+    IL_003a:  ldarg.0
+    IL_003b:  ldc.i4.0
+    IL_003c:  dup
+    IL_003d:  stloc.0
+    IL_003e:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0043:  ldarg.0
+    IL_0044:  ldloc.2
+    IL_0045:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004a:  ldarg.0
+    IL_004b:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0050:  ldloca.s   V_2
+    IL_0052:  ldarg.0
+    IL_0053:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_0058:  leave.s    IL_00d3
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.0
+    IL_005e:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0063:  ldarg.0
+    IL_0064:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0069:  stloc.2
+    IL_006a:  ldarg.0
+    IL_006b:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0070:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0076:  ldloca.s   V_1
+    IL_0078:  ldloca.s   V_2
+    IL_007a:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_007f:  ldloca.s   V_2
+    IL_0081:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0087:  constrained. "SM$T"
+    IL_008d:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_0092:  ldloca.s   V_1
+    IL_0094:  initobj    "SM$T"
+    IL_009a:  leave.s    IL_00be
+  }
+  catch System.Exception
+  {
+    IL_009c:  dup
+    IL_009d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a2:  stloc.3
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -2
+    IL_00a6:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00b1:  ldloc.3
+    IL_00b2:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00b7:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00bc:  leave.s    IL_00d3
+  }
+  IL_00be:  ldarg.0
+  IL_00bf:  ldc.i4.s   -2
+  IL_00c1:  dup
+  IL_00c2:  stloc.0
+  IL_00c3:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_00c8:  ldarg.0
+  IL_00c9:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00ce:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00d3:  ret
+}
+]]>,
+            <![CDATA[
+{
+  // Code size      265 (0x109)
+  .maxstack  3
+  .locals init (Integer V_0,
+                SM$T() V_1, //$W0
+                Integer V_2, //$W1
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_007b
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0010:  stloc.1
+    IL_0011:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0016:  stloc.2
+    IL_0017:  ldarg.0
+    IL_0018:  ldloc.1
+    IL_0019:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_001e:  ldarg.0
+    IL_001f:  ldloc.2
+    IL_0020:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_0025:  ldarg.0
+    IL_0026:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_002b:  ldarg.0
+    IL_002c:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_0031:  readonly.
+    IL_0033:  ldelema    "SM$T"
+    IL_0038:  pop
+    IL_0039:  ldarg.0
+    IL_003a:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_003f:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0044:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0049:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004e:  stloc.3
+    IL_004f:  ldloca.s   V_3
+    IL_0051:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0056:  brtrue.s   IL_0097
+    IL_0058:  ldarg.0
+    IL_0059:  ldc.i4.0
+    IL_005a:  dup
+    IL_005b:  stloc.0
+    IL_005c:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0061:  ldarg.0
+    IL_0062:  ldloc.3
+    IL_0063:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_006e:  ldloca.s   V_3
+    IL_0070:  ldarg.0
+    IL_0071:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_0076:  leave      IL_0108
+    IL_007b:  ldarg.0
+    IL_007c:  ldc.i4.m1
+    IL_007d:  dup
+    IL_007e:  stloc.0
+    IL_007f:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0084:  ldarg.0
+    IL_0085:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_008a:  stloc.3
+    IL_008b:  ldarg.0
+    IL_008c:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0091:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0097:  ldarg.0
+    IL_0098:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_009d:  ldarg.0
+    IL_009e:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_00a3:  readonly.
+    IL_00a5:  ldelema    "SM$T"
+    IL_00aa:  ldloca.s   V_3
+    IL_00ac:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00b1:  ldloca.s   V_3
+    IL_00b3:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b9:  constrained. "SM$T"
+    IL_00bf:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_00c4:  ldarg.0
+    IL_00c5:  ldnull
+    IL_00c6:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_00cb:  ldnull
+    IL_00cc:  stloc.1
+    IL_00cd:  leave.s    IL_00f3
+  }
+  catch System.Exception
+  {
+    IL_00cf:  dup
+    IL_00d0:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00d5:  stloc.s    V_4
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldc.i4.s   -2
+    IL_00da:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_00df:  ldarg.0
+    IL_00e0:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00e5:  ldloc.s    V_4
+    IL_00e7:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00ec:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00f1:  leave.s    IL_0108
+  }
+  IL_00f3:  ldarg.0
+  IL_00f4:  ldc.i4.s   -2
+  IL_00f6:  dup
+  IL_00f7:  stloc.0
+  IL_00f8:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_00fd:  ldarg.0
+  IL_00fe:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0103:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0108:  ret
+}
+]]>))
+        End Sub
+
+        <Theory>
+        <CombinatorialData>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Call_Struct_Async_01_ThroughArray_InWith(asRValue As Boolean)
+
+            Dim leftParen As String = ""
+            Dim rightParen As String = ""
+
+            If asRValue Then
+                leftParen = "("
+                rightParen = ")"
+            End If
+
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Sub GetName(x As Integer)
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Sub GetName(x As Integer) Implements IMoveable.GetName
+        Console.WriteLine("Position GetName for item '{0}'", Me.Name)
+    End Sub
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = {New Item With {.Name = "1"}}
+        Call1(item1).Wait()
+
+        Dim item2 = {New Item With {.Name = "2"}}
+        Call2(item2).Wait()
+
+        Dim item3 = {New Item With {.Name = "3"}}
+        Call3(item3).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Structure, IMoveable})(item As T()) As Task
+        With <%= leftParen %>item(GetArrayIndex())<%= rightParen %>
+            call .GetName(await GetOffsetAsync(GetOffset(item)))
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        With <%= leftParen %>item(GetArrayIndex())<%= rightParen %>
+            call .GetName(await GetOffsetAsync(GetOffset(item)))
+        End With
+    End Function
+
+    Private Shared Async Function Call3(item As Item()) As Task
+        With <%= leftParen %>item(GetArrayIndex())<%= rightParen %>
+            call .GetName(await GetOffsetAsync(GetOffset(item)))
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+If(asRValue,
+"
+Position GetName for item '1'
+Position GetName for item '2'
+Position GetName for item '3'
+",
+"
+Position GetName for item '-1'
+Position GetName for item '-2'
+Position GetName for item '-3'
+")).VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+If(asRValue,
+            <![CDATA[
+{
+  // Code size      212 (0xd4)
+  .maxstack  3
+  .locals init (Integer V_0,
+                SM$T V_1, //$W0
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_005a
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0010:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0015:  ldelem     "SM$T"
+    IL_001a:  stloc.1
+    IL_001b:  ldarg.0
+    IL_001c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0021:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0026:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_002b:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0030:  stloc.2
+    IL_0031:  ldloca.s   V_2
+    IL_0033:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0038:  brtrue.s   IL_0076
+    IL_003a:  ldarg.0
+    IL_003b:  ldc.i4.0
+    IL_003c:  dup
+    IL_003d:  stloc.0
+    IL_003e:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0043:  ldarg.0
+    IL_0044:  ldloc.2
+    IL_0045:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004a:  ldarg.0
+    IL_004b:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0050:  ldloca.s   V_2
+    IL_0052:  ldarg.0
+    IL_0053:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0058:  leave.s    IL_00d3
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.0
+    IL_005e:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0063:  ldarg.0
+    IL_0064:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0069:  stloc.2
+    IL_006a:  ldarg.0
+    IL_006b:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0070:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0076:  ldloca.s   V_1
+    IL_0078:  ldloca.s   V_2
+    IL_007a:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_007f:  ldloca.s   V_2
+    IL_0081:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0087:  constrained. "SM$T"
+    IL_008d:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_0092:  ldloca.s   V_1
+    IL_0094:  initobj    "SM$T"
+    IL_009a:  leave.s    IL_00be
+  }
+  catch System.Exception
+  {
+    IL_009c:  dup
+    IL_009d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a2:  stloc.3
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -2
+    IL_00a6:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00b1:  ldloc.3
+    IL_00b2:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00b7:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00bc:  leave.s    IL_00d3
+  }
+  IL_00be:  ldarg.0
+  IL_00bf:  ldc.i4.s   -2
+  IL_00c1:  dup
+  IL_00c2:  stloc.0
+  IL_00c3:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00c8:  ldarg.0
+  IL_00c9:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00ce:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00d3:  ret
+}
+]]>,
+            <![CDATA[
+{
+  // Code size      265 (0x109)
+  .maxstack  3
+  .locals init (Integer V_0,
+                SM$T() V_1, //$W0
+                Integer V_2, //$W1
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_007b
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0010:  stloc.1
+    IL_0011:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0016:  stloc.2
+    IL_0017:  ldarg.0
+    IL_0018:  ldloc.1
+    IL_0019:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_001e:  ldarg.0
+    IL_001f:  ldloc.2
+    IL_0020:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0025:  ldarg.0
+    IL_0026:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_002b:  ldarg.0
+    IL_002c:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0031:  readonly.
+    IL_0033:  ldelema    "SM$T"
+    IL_0038:  pop
+    IL_0039:  ldarg.0
+    IL_003a:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_003f:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0044:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0049:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004e:  stloc.3
+    IL_004f:  ldloca.s   V_3
+    IL_0051:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0056:  brtrue.s   IL_0097
+    IL_0058:  ldarg.0
+    IL_0059:  ldc.i4.0
+    IL_005a:  dup
+    IL_005b:  stloc.0
+    IL_005c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0061:  ldarg.0
+    IL_0062:  ldloc.3
+    IL_0063:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_006e:  ldloca.s   V_3
+    IL_0070:  ldarg.0
+    IL_0071:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0076:  leave      IL_0108
+    IL_007b:  ldarg.0
+    IL_007c:  ldc.i4.m1
+    IL_007d:  dup
+    IL_007e:  stloc.0
+    IL_007f:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0084:  ldarg.0
+    IL_0085:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_008a:  stloc.3
+    IL_008b:  ldarg.0
+    IL_008c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0091:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0097:  ldarg.0
+    IL_0098:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_009d:  ldarg.0
+    IL_009e:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_00a3:  readonly.
+    IL_00a5:  ldelema    "SM$T"
+    IL_00aa:  ldloca.s   V_3
+    IL_00ac:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00b1:  ldloca.s   V_3
+    IL_00b3:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b9:  constrained. "SM$T"
+    IL_00bf:  callvirt   "Sub IMoveable.GetName(Integer)"
+    IL_00c4:  ldarg.0
+    IL_00c5:  ldnull
+    IL_00c6:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_00cb:  ldnull
+    IL_00cc:  stloc.1
+    IL_00cd:  leave.s    IL_00f3
+  }
+  catch System.Exception
+  {
+    IL_00cf:  dup
+    IL_00d0:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00d5:  stloc.s    V_4
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldc.i4.s   -2
+    IL_00da:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00df:  ldarg.0
+    IL_00e0:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00e5:  ldloc.s    V_4
+    IL_00e7:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00ec:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00f1:  leave.s    IL_0108
+  }
+  IL_00f3:  ldarg.0
+  IL_00f4:  ldc.i4.s   -2
+  IL_00f6:  dup
+  IL_00f7:  stloc.0
+  IL_00f8:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00fd:  ldarg.0
+  IL_00fe:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0103:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0108:  ret
+}
+]]>))
         End Sub
 
         <Fact>
@@ -7723,6 +9177,4936 @@ Position set for item '-4'
   IL_0166:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
   IL_016b:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
   IL_0170:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(item As T)
+        With item
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T)
+        With item
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (Integer V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0009:  dup
+  IL_000a:  stloc.0
+  IL_000b:  ldarga.s   V_0
+  IL_000d:  ldloc.0
+  IL_000e:  constrained. "T"
+  IL_0014:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0019:  ldc.i4.1
+  IL_001a:  add.ovf
+  IL_001b:  constrained. "T"
+  IL_0021:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0026:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (Integer V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0009:  dup
+  IL_000a:  stloc.0
+  IL_000b:  ldarga.s   V_0
+  IL_000d:  ldloc.0
+  IL_000e:  constrained. "T"
+  IL_0014:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0019:  ldc.i4.1
+  IL_001a:  add.ovf
+  IL_001b:  constrained. "T"
+  IL_0021:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0026:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Structure, IMoveable})(item As T)
+        With item
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T)
+        With item
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (Integer V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0009:  dup
+  IL_000a:  stloc.0
+  IL_000b:  ldarga.s   V_0
+  IL_000d:  ldloc.0
+  IL_000e:  constrained. "T"
+  IL_0014:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0019:  ldc.i4.1
+  IL_001a:  add.ovf
+  IL_001b:  constrained. "T"
+  IL_0021:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0026:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Ref_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(ByRef item As T)
+        With item
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(ByRef item As T)
+        With item
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       36 (0x24)
+  .maxstack  4
+  .locals init (Integer V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldloc.0
+  IL_000b:  constrained. "T"
+  IL_0011:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0016:  ldc.i4.1
+  IL_0017:  add.ovf
+  IL_0018:  constrained. "T"
+  IL_001e:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0023:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+            <![CDATA[
+{
+  // Code size       36 (0x24)
+  .maxstack  4
+  .locals init (Integer V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldloc.0
+  IL_000b:  constrained. "T"
+  IL_0011:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0016:  ldc.i4.1
+  IL_0017:  add.ovf
+  IL_0018:  constrained. "T"
+  IL_001e:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0023:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Ref_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Structure, IMoveable})(ByRef item As T)
+        With item
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(ByRef item As T)
+        With item
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       36 (0x24)
+  .maxstack  4
+  .locals init (Integer V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldloc.0
+  IL_000b:  constrained. "T"
+  IL_0011:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0016:  ldc.i4.1
+  IL_0017:  add.ovf
+  IL_0018:  constrained. "T"
+  IL_001e:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0023:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Async_01_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1).Wait()
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Class, IMoveable})(item As T) As Task
+        With item
+            .Position(await GetOffsetAsync(GetOffset(item))) += 1
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T) As Task
+        With item
+            .Position(await GetOffsetAsync(GetOffset(item))) += 1
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      216 (0xd8)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004c
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0010:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T) As Integer"
+    IL_0015:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_001a:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_001f:  stloc.2
+    IL_0020:  ldloca.s   V_2
+    IL_0022:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0027:  brtrue.s   IL_0068
+    IL_0029:  ldarg.0
+    IL_002a:  ldc.i4.0
+    IL_002b:  dup
+    IL_002c:  stloc.0
+    IL_002d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0032:  ldarg.0
+    IL_0033:  ldloc.2
+    IL_0034:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0039:  ldarg.0
+    IL_003a:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_003f:  ldloca.s   V_2
+    IL_0041:  ldarg.0
+    IL_0042:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0047:  leave      IL_00d7
+    IL_004c:  ldarg.0
+    IL_004d:  ldc.i4.m1
+    IL_004e:  dup
+    IL_004f:  stloc.0
+    IL_0050:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0055:  ldarg.0
+    IL_0056:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_005b:  stloc.2
+    IL_005c:  ldarg.0
+    IL_005d:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0062:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_006e:  ldloca.s   V_2
+    IL_0070:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_0075:  ldloca.s   V_2
+    IL_0077:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007d:  dup
+    IL_007e:  stloc.1
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0085:  ldloc.1
+    IL_0086:  constrained. "SM$T"
+    IL_008c:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_0091:  ldc.i4.1
+    IL_0092:  add.ovf
+    IL_0093:  constrained. "SM$T"
+    IL_0099:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_009e:  leave.s    IL_00c2
+  }
+  catch System.Exception
+  {
+    IL_00a0:  dup
+    IL_00a1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a6:  stloc.3
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldc.i4.s   -2
+    IL_00aa:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00af:  ldarg.0
+    IL_00b0:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00b5:  ldloc.3
+    IL_00b6:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00bb:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00c0:  leave.s    IL_00d7
+  }
+  IL_00c2:  ldarg.0
+  IL_00c3:  ldc.i4.s   -2
+  IL_00c5:  dup
+  IL_00c6:  stloc.0
+  IL_00c7:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00cc:  ldarg.0
+  IL_00cd:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00d2:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00d7:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_3_Call2(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      216 (0xd8)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004c
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T"
+    IL_0010:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T) As Integer"
+    IL_0015:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_001a:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_001f:  stloc.2
+    IL_0020:  ldloca.s   V_2
+    IL_0022:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0027:  brtrue.s   IL_0068
+    IL_0029:  ldarg.0
+    IL_002a:  ldc.i4.0
+    IL_002b:  dup
+    IL_002c:  stloc.0
+    IL_002d:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0032:  ldarg.0
+    IL_0033:  ldloc.2
+    IL_0034:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0039:  ldarg.0
+    IL_003a:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_003f:  ldloca.s   V_2
+    IL_0041:  ldarg.0
+    IL_0042:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_0047:  leave      IL_00d7
+    IL_004c:  ldarg.0
+    IL_004d:  ldc.i4.m1
+    IL_004e:  dup
+    IL_004f:  stloc.0
+    IL_0050:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0055:  ldarg.0
+    IL_0056:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_005b:  stloc.2
+    IL_005c:  ldarg.0
+    IL_005d:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0062:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T"
+    IL_006e:  ldloca.s   V_2
+    IL_0070:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_0075:  ldloca.s   V_2
+    IL_0077:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007d:  dup
+    IL_007e:  stloc.1
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T"
+    IL_0085:  ldloc.1
+    IL_0086:  constrained. "SM$T"
+    IL_008c:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_0091:  ldc.i4.1
+    IL_0092:  add.ovf
+    IL_0093:  constrained. "SM$T"
+    IL_0099:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_009e:  leave.s    IL_00c2
+  }
+  catch System.Exception
+  {
+    IL_00a0:  dup
+    IL_00a1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a6:  stloc.3
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldc.i4.s   -2
+    IL_00aa:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_00af:  ldarg.0
+    IL_00b0:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00b5:  ldloc.3
+    IL_00b6:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00bb:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00c0:  leave.s    IL_00d7
+  }
+  IL_00c2:  ldarg.0
+  IL_00c3:  ldc.i4.s   -2
+  IL_00c5:  dup
+  IL_00c6:  stloc.0
+  IL_00c7:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_00cc:  ldarg.0
+  IL_00cd:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00d2:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00d7:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Async_01_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1).Wait()
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Structure, IMoveable})(item As T) As Task
+        With item
+            .Position(await GetOffsetAsync(GetOffset(item))) += 1
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T) As Task
+        With item
+            .Position(await GetOffsetAsync(GetOffset(item))) += 1
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      216 (0xd8)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004c
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0010:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T) As Integer"
+    IL_0015:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_001a:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_001f:  stloc.2
+    IL_0020:  ldloca.s   V_2
+    IL_0022:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0027:  brtrue.s   IL_0068
+    IL_0029:  ldarg.0
+    IL_002a:  ldc.i4.0
+    IL_002b:  dup
+    IL_002c:  stloc.0
+    IL_002d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0032:  ldarg.0
+    IL_0033:  ldloc.2
+    IL_0034:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0039:  ldarg.0
+    IL_003a:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_003f:  ldloca.s   V_2
+    IL_0041:  ldarg.0
+    IL_0042:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0047:  leave      IL_00d7
+    IL_004c:  ldarg.0
+    IL_004d:  ldc.i4.m1
+    IL_004e:  dup
+    IL_004f:  stloc.0
+    IL_0050:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0055:  ldarg.0
+    IL_0056:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_005b:  stloc.2
+    IL_005c:  ldarg.0
+    IL_005d:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0062:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_006e:  ldloca.s   V_2
+    IL_0070:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_0075:  ldloca.s   V_2
+    IL_0077:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007d:  dup
+    IL_007e:  stloc.1
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0085:  ldloc.1
+    IL_0086:  constrained. "SM$T"
+    IL_008c:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_0091:  ldc.i4.1
+    IL_0092:  add.ovf
+    IL_0093:  constrained. "SM$T"
+    IL_0099:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_009e:  leave.s    IL_00c2
+  }
+  catch System.Exception
+  {
+    IL_00a0:  dup
+    IL_00a1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a6:  stloc.3
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldc.i4.s   -2
+    IL_00aa:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00af:  ldarg.0
+    IL_00b0:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00b5:  ldloc.3
+    IL_00b6:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00bb:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00c0:  leave.s    IL_00d7
+  }
+  IL_00c2:  ldarg.0
+  IL_00c3:  ldc.i4.s   -2
+  IL_00c5:  dup
+  IL_00c6:  stloc.0
+  IL_00c7:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00cc:  ldarg.0
+  IL_00cd:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00d2:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00d7:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(item As T)
+        With item
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T)
+        With item
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output on some frameworks
+            '            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+            '"
+            'Position get for item '1'
+            'Position set for item '1'
+            'Position get for item '2'
+            'Position set for item '2'
+            '").VerifyDiagnostics()
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe).VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldarga.s   V_0
+  IL_0005:  ldc.i4.1
+  IL_0006:  constrained. "T"
+  IL_000c:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0011:  ldarga.s   V_0
+  IL_0013:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0018:  add.ovf
+  IL_0019:  constrained. "T"
+  IL_001f:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0024:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldarga.s   V_0
+  IL_0005:  ldc.i4.1
+  IL_0006:  constrained. "T"
+  IL_000c:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0011:  ldarga.s   V_0
+  IL_0013:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0018:  add.ovf
+  IL_0019:  constrained. "T"
+  IL_001f:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0024:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Structure, IMoveable})(item As T)
+        With item
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T)
+        With item
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldarga.s   V_0
+  IL_0005:  ldc.i4.1
+  IL_0006:  constrained. "T"
+  IL_000c:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0011:  ldarga.s   V_0
+  IL_0013:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0018:  add.ovf
+  IL_0019:  constrained. "T"
+  IL_001f:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0024:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_Ref_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(ByRef item As T)
+        With item
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(ByRef item As T)
+        With item
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            'Wrong output on some frameworks
+            '            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+            '"
+            'Position get for item '1'
+            'Position set for item '1'
+            'Position get for item '2'
+            'Position set for item '2'
+            '").VerifyDiagnostics()
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe).VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldarg.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  constrained. "T"
+  IL_000a:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_000f:  ldarg.0
+  IL_0010:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0015:  add.ovf
+  IL_0016:  constrained. "T"
+  IL_001c:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0021:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldarg.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  constrained. "T"
+  IL_000a:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_000f:  ldarg.0
+  IL_0010:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0015:  add.ovf
+  IL_0016:  constrained. "T"
+  IL_001c:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0021:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_Ref_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1)
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Structure, IMoveable})(ByRef item As T)
+        With item
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(ByRef item As T)
+        With item
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldarg.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  constrained. "T"
+  IL_000a:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_000f:  ldarg.0
+  IL_0010:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0015:  add.ovf
+  IL_0016:  constrained. "T"
+  IL_001c:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_0021:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_Async_01_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1).Wait()
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Class, IMoveable})(item As T) As Task
+        With item
+            .Position(1) += await GetOffsetAsync(GetOffset(item))
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T) As Task
+        With item
+            .Position(1) += await GetOffsetAsync(GetOffset(item))
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      223 (0xdf)
+  .maxstack  5
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0061
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0011:  ldc.i4.1
+    IL_0012:  constrained. "SM$T"
+    IL_0018:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_001d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_0022:  ldarg.0
+    IL_0023:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0028:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T) As Integer"
+    IL_002d:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0032:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0037:  stloc.1
+    IL_0038:  ldloca.s   V_1
+    IL_003a:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_003f:  brtrue.s   IL_007d
+    IL_0041:  ldarg.0
+    IL_0042:  ldc.i4.0
+    IL_0043:  dup
+    IL_0044:  stloc.0
+    IL_0045:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_004a:  ldarg.0
+    IL_004b:  ldloc.1
+    IL_004c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0051:  ldarg.0
+    IL_0052:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0057:  ldloca.s   V_1
+    IL_0059:  ldarg.0
+    IL_005a:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_005f:  leave.s    IL_00de
+    IL_0061:  ldarg.0
+    IL_0062:  ldc.i4.m1
+    IL_0063:  dup
+    IL_0064:  stloc.0
+    IL_0065:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_006a:  ldarg.0
+    IL_006b:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0070:  stloc.1
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0077:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007d:  ldarg.0
+    IL_007e:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0083:  ldc.i4.1
+    IL_0084:  ldarg.0
+    IL_0085:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_008a:  ldloca.s   V_1
+    IL_008c:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_0091:  ldloca.s   V_1
+    IL_0093:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0099:  add.ovf
+    IL_009a:  constrained. "SM$T"
+    IL_00a0:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00a5:  leave.s    IL_00c9
+  }
+  catch System.Exception
+  {
+    IL_00a7:  dup
+    IL_00a8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00ad:  stloc.2
+    IL_00ae:  ldarg.0
+    IL_00af:  ldc.i4.s   -2
+    IL_00b1:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00bc:  ldloc.2
+    IL_00bd:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00c2:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00c7:  leave.s    IL_00de
+  }
+  IL_00c9:  ldarg.0
+  IL_00ca:  ldc.i4.s   -2
+  IL_00cc:  dup
+  IL_00cd:  stloc.0
+  IL_00ce:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00d3:  ldarg.0
+  IL_00d4:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00d9:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00de:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_3_Call2(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      223 (0xdf)
+  .maxstack  5
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0061
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T"
+    IL_0011:  ldc.i4.1
+    IL_0012:  constrained. "SM$T"
+    IL_0018:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_001d:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As Integer"
+    IL_0022:  ldarg.0
+    IL_0023:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T"
+    IL_0028:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T) As Integer"
+    IL_002d:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0032:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0037:  stloc.1
+    IL_0038:  ldloca.s   V_1
+    IL_003a:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_003f:  brtrue.s   IL_007d
+    IL_0041:  ldarg.0
+    IL_0042:  ldc.i4.0
+    IL_0043:  dup
+    IL_0044:  stloc.0
+    IL_0045:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_004a:  ldarg.0
+    IL_004b:  ldloc.1
+    IL_004c:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0051:  ldarg.0
+    IL_0052:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0057:  ldloca.s   V_1
+    IL_0059:  ldarg.0
+    IL_005a:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_005f:  leave.s    IL_00de
+    IL_0061:  ldarg.0
+    IL_0062:  ldc.i4.m1
+    IL_0063:  dup
+    IL_0064:  stloc.0
+    IL_0065:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_006a:  ldarg.0
+    IL_006b:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0070:  stloc.1
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0077:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007d:  ldarg.0
+    IL_007e:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T"
+    IL_0083:  ldc.i4.1
+    IL_0084:  ldarg.0
+    IL_0085:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As Integer"
+    IL_008a:  ldloca.s   V_1
+    IL_008c:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_0091:  ldloca.s   V_1
+    IL_0093:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0099:  add.ovf
+    IL_009a:  constrained. "SM$T"
+    IL_00a0:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00a5:  leave.s    IL_00c9
+  }
+  catch System.Exception
+  {
+    IL_00a7:  dup
+    IL_00a8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00ad:  stloc.2
+    IL_00ae:  ldarg.0
+    IL_00af:  ldc.i4.s   -2
+    IL_00b1:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00bc:  ldloc.2
+    IL_00bd:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00c2:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00c7:  leave.s    IL_00de
+  }
+  IL_00c9:  ldarg.0
+  IL_00ca:  ldc.i4.s   -2
+  IL_00cc:  dup
+  IL_00cd:  stloc.0
+  IL_00ce:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_00d3:  ldarg.0
+  IL_00d4:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00d9:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00de:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_Async_01_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = New Item With {.Name = "1"}
+        Call1(item1).Wait()
+
+        Dim item2 = New Item With {.Name = "2"}
+        Call2(item2).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Structure, IMoveable})(item As T) As Task
+        With item
+            .Position(1) += await GetOffsetAsync(GetOffset(item))
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T) As Task
+        With item
+            .Position(1) += await GetOffsetAsync(GetOffset(item))
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        value -= 1
+        item = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      223 (0xdf)
+  .maxstack  5
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0061
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0011:  ldc.i4.1
+    IL_0012:  constrained. "SM$T"
+    IL_0018:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_001d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_0022:  ldarg.0
+    IL_0023:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0028:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T) As Integer"
+    IL_002d:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0032:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0037:  stloc.1
+    IL_0038:  ldloca.s   V_1
+    IL_003a:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_003f:  brtrue.s   IL_007d
+    IL_0041:  ldarg.0
+    IL_0042:  ldc.i4.0
+    IL_0043:  dup
+    IL_0044:  stloc.0
+    IL_0045:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_004a:  ldarg.0
+    IL_004b:  ldloc.1
+    IL_004c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0051:  ldarg.0
+    IL_0052:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0057:  ldloca.s   V_1
+    IL_0059:  ldarg.0
+    IL_005a:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_005f:  leave.s    IL_00de
+    IL_0061:  ldarg.0
+    IL_0062:  ldc.i4.m1
+    IL_0063:  dup
+    IL_0064:  stloc.0
+    IL_0065:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_006a:  ldarg.0
+    IL_006b:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0070:  stloc.1
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0077:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007d:  ldarg.0
+    IL_007e:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T"
+    IL_0083:  ldc.i4.1
+    IL_0084:  ldarg.0
+    IL_0085:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_008a:  ldloca.s   V_1
+    IL_008c:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_0091:  ldloca.s   V_1
+    IL_0093:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0099:  add.ovf
+    IL_009a:  constrained. "SM$T"
+    IL_00a0:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00a5:  leave.s    IL_00c9
+  }
+  catch System.Exception
+  {
+    IL_00a7:  dup
+    IL_00a8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00ad:  stloc.2
+    IL_00ae:  ldarg.0
+    IL_00af:  ldc.i4.s   -2
+    IL_00b1:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00bc:  ldloc.2
+    IL_00bd:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00c2:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00c7:  leave.s    IL_00de
+  }
+  IL_00c9:  ldarg.0
+  IL_00ca:  ldc.i4.s   -2
+  IL_00cc:  dup
+  IL_00cd:  stloc.0
+  IL_00ce:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_00d3:  ldarg.0
+  IL_00d4:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_00d9:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00de:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_ThroughArray()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item2 With {.Name = "1"} }
+        Call1(DirectCast(item1, Item()))
+
+        Dim item2 = { New Item2 With {.Name = "2"} }
+        Call2(DirectCast(item2, Item()))
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(item As T())
+        item(GetArrayIndex()).Position(GetOffset(item)) += 1
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T())
+        item(GetArrayIndex()).Position(GetOffset(item)) += 1
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       60 (0x3c)
+  .maxstack  4
+  .locals init (T() V_0,
+                Integer V_1,
+                Integer V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldarg.0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(T()) As Integer"
+  IL_0017:  dup
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  readonly.
+  IL_001d:  ldelema    "T"
+  IL_0022:  ldloc.2
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003b:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+            <![CDATA[
+{
+  // Code size       60 (0x3c)
+  .maxstack  4
+  .locals init (T() V_0,
+                Integer V_1,
+                Integer V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldarg.0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(T()) As Integer"
+  IL_0017:  dup
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  readonly.
+  IL_001d:  ldelema    "T"
+  IL_0022:  ldloc.2
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_ThroughArray()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item With {.Name = "1"} }
+        Call1(item1)
+
+        Dim item2 = { New Item With {.Name = "2"} }
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Structure, IMoveable})(item As T())
+        item(GetArrayIndex()).Position(GetOffset(item)) += 1
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T())
+        item(GetArrayIndex()).Position(GetOffset(item)) += 1
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       60 (0x3c)
+  .maxstack  4
+  .locals init (T() V_0,
+                Integer V_1,
+                Integer V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldarg.0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(T()) As Integer"
+  IL_0017:  dup
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  readonly.
+  IL_001d:  ldelema    "T"
+  IL_0022:  ldloc.2
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Async_01_ThroughArray()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item2 With {.Name = "1"} }
+        Call1(DirectCast(item1, Item())).Wait()
+
+        Dim item2 = { New Item2 With {.Name = "2"} }
+        Call2(DirectCast(item2, Item())).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Class, IMoveable})(item As T()) As Task
+        item(GetArrayIndex()).Position(await GetOffsetAsync(GetOffset(item))) += 1
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        item(GetArrayIndex()).Position(await GetOffsetAsync(GetOffset(item))) += 1
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      317 (0x13d)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                SM$T() V_3,
+                Integer V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_008e
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0015:  dup
+    IL_0016:  stloc.3
+    IL_0017:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S0 As SM$T()"
+    IL_001c:  ldloc.3
+    IL_001d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0022:  ldarg.0
+    IL_0023:  ldarg.0
+    IL_0024:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0029:  dup
+    IL_002a:  stloc.s    V_4
+    IL_002c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S1 As Integer"
+    IL_0031:  ldloc.s    V_4
+    IL_0033:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0038:  ldarg.0
+    IL_0039:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_003e:  ldarg.0
+    IL_003f:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0044:  readonly.
+    IL_0046:  ldelema    "SM$T"
+    IL_004b:  pop
+    IL_004c:  ldarg.0
+    IL_004d:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0052:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0057:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_005c:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0061:  stloc.2
+    IL_0062:  ldloca.s   V_2
+    IL_0064:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0069:  brtrue.s   IL_00aa
+    IL_006b:  ldarg.0
+    IL_006c:  ldc.i4.0
+    IL_006d:  dup
+    IL_006e:  stloc.0
+    IL_006f:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0074:  ldarg.0
+    IL_0075:  ldloc.2
+    IL_0076:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0081:  ldloca.s   V_2
+    IL_0083:  ldarg.0
+    IL_0084:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0089:  leave      IL_013c
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.m1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0097:  ldarg.0
+    IL_0098:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_009d:  stloc.2
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a4:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00aa:  ldarg.0
+    IL_00ab:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_00b0:  ldarg.0
+    IL_00b1:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_00b6:  readonly.
+    IL_00b8:  ldelema    "SM$T"
+    IL_00bd:  ldloca.s   V_2
+    IL_00bf:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00c4:  ldloca.s   V_2
+    IL_00c6:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00cc:  dup
+    IL_00cd:  stloc.1
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S0 As SM$T()"
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S1 As Integer"
+    IL_00da:  readonly.
+    IL_00dc:  ldelema    "SM$T"
+    IL_00e1:  ldloc.1
+    IL_00e2:  constrained. "SM$T"
+    IL_00e8:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_00ed:  ldc.i4.1
+    IL_00ee:  add.ovf
+    IL_00ef:  constrained. "SM$T"
+    IL_00f5:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldnull
+    IL_00fc:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0101:  leave.s    IL_0127
+  }
+  catch System.Exception
+  {
+    IL_0103:  dup
+    IL_0104:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0109:  stloc.s    V_5
+    IL_010b:  ldarg.0
+    IL_010c:  ldc.i4.s   -2
+    IL_010e:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0113:  ldarg.0
+    IL_0114:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0119:  ldloc.s    V_5
+    IL_011b:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0120:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0125:  leave.s    IL_013c
+  }
+  IL_0127:  ldarg.0
+  IL_0128:  ldc.i4.s   -2
+  IL_012a:  dup
+  IL_012b:  stloc.0
+  IL_012c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0131:  ldarg.0
+  IL_0132:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0137:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_013c:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_3_Call2(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      317 (0x13d)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                SM$T() V_3,
+                Integer V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_008e
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0015:  dup
+    IL_0016:  stloc.3
+    IL_0017:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$S0 As SM$T()"
+    IL_001c:  ldloc.3
+    IL_001d:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_0022:  ldarg.0
+    IL_0023:  ldarg.0
+    IL_0024:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0029:  dup
+    IL_002a:  stloc.s    V_4
+    IL_002c:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$S1 As Integer"
+    IL_0031:  ldloc.s    V_4
+    IL_0033:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_0038:  ldarg.0
+    IL_0039:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_003e:  ldarg.0
+    IL_003f:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_0044:  readonly.
+    IL_0046:  ldelema    "SM$T"
+    IL_004b:  pop
+    IL_004c:  ldarg.0
+    IL_004d:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0052:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0057:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_005c:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0061:  stloc.2
+    IL_0062:  ldloca.s   V_2
+    IL_0064:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0069:  brtrue.s   IL_00aa
+    IL_006b:  ldarg.0
+    IL_006c:  ldc.i4.0
+    IL_006d:  dup
+    IL_006e:  stloc.0
+    IL_006f:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0074:  ldarg.0
+    IL_0075:  ldloc.2
+    IL_0076:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0081:  ldloca.s   V_2
+    IL_0083:  ldarg.0
+    IL_0084:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_0089:  leave      IL_013c
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.m1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0097:  ldarg.0
+    IL_0098:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_009d:  stloc.2
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a4:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00aa:  ldarg.0
+    IL_00ab:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_00b0:  ldarg.0
+    IL_00b1:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_00b6:  readonly.
+    IL_00b8:  ldelema    "SM$T"
+    IL_00bd:  ldloca.s   V_2
+    IL_00bf:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00c4:  ldloca.s   V_2
+    IL_00c6:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00cc:  dup
+    IL_00cd:  stloc.1
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$S0 As SM$T()"
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$S1 As Integer"
+    IL_00da:  readonly.
+    IL_00dc:  ldelema    "SM$T"
+    IL_00e1:  ldloc.1
+    IL_00e2:  constrained. "SM$T"
+    IL_00e8:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_00ed:  ldc.i4.1
+    IL_00ee:  add.ovf
+    IL_00ef:  constrained. "SM$T"
+    IL_00f5:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldnull
+    IL_00fc:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_0101:  leave.s    IL_0127
+  }
+  catch System.Exception
+  {
+    IL_0103:  dup
+    IL_0104:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0109:  stloc.s    V_5
+    IL_010b:  ldarg.0
+    IL_010c:  ldc.i4.s   -2
+    IL_010e:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0113:  ldarg.0
+    IL_0114:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0119:  ldloc.s    V_5
+    IL_011b:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0120:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0125:  leave.s    IL_013c
+  }
+  IL_0127:  ldarg.0
+  IL_0128:  ldc.i4.s   -2
+  IL_012a:  dup
+  IL_012b:  stloc.0
+  IL_012c:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0131:  ldarg.0
+  IL_0132:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0137:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_013c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Async_01_ThroughArray()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item With {.Name = "1"} }
+        Call1(item1).Wait()
+
+        Dim item2 = { New Item With {.Name = "2"} }
+        Call2(item2).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Structure, IMoveable})(item As T()) As Task
+        item(GetArrayIndex()).Position(await GetOffsetAsync(GetOffset(item))) += 1
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        item(GetArrayIndex()).Position(await GetOffsetAsync(GetOffset(item))) += 1
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      317 (0x13d)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                SM$T() V_3,
+                Integer V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_008e
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0015:  dup
+    IL_0016:  stloc.3
+    IL_0017:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S0 As SM$T()"
+    IL_001c:  ldloc.3
+    IL_001d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0022:  ldarg.0
+    IL_0023:  ldarg.0
+    IL_0024:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0029:  dup
+    IL_002a:  stloc.s    V_4
+    IL_002c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S1 As Integer"
+    IL_0031:  ldloc.s    V_4
+    IL_0033:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0038:  ldarg.0
+    IL_0039:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_003e:  ldarg.0
+    IL_003f:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0044:  readonly.
+    IL_0046:  ldelema    "SM$T"
+    IL_004b:  pop
+    IL_004c:  ldarg.0
+    IL_004d:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0052:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0057:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_005c:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0061:  stloc.2
+    IL_0062:  ldloca.s   V_2
+    IL_0064:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0069:  brtrue.s   IL_00aa
+    IL_006b:  ldarg.0
+    IL_006c:  ldc.i4.0
+    IL_006d:  dup
+    IL_006e:  stloc.0
+    IL_006f:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0074:  ldarg.0
+    IL_0075:  ldloc.2
+    IL_0076:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0081:  ldloca.s   V_2
+    IL_0083:  ldarg.0
+    IL_0084:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0089:  leave      IL_013c
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.m1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0097:  ldarg.0
+    IL_0098:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_009d:  stloc.2
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a4:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00aa:  ldarg.0
+    IL_00ab:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_00b0:  ldarg.0
+    IL_00b1:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_00b6:  readonly.
+    IL_00b8:  ldelema    "SM$T"
+    IL_00bd:  ldloca.s   V_2
+    IL_00bf:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00c4:  ldloca.s   V_2
+    IL_00c6:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00cc:  dup
+    IL_00cd:  stloc.1
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S0 As SM$T()"
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S1 As Integer"
+    IL_00da:  readonly.
+    IL_00dc:  ldelema    "SM$T"
+    IL_00e1:  ldloc.1
+    IL_00e2:  constrained. "SM$T"
+    IL_00e8:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_00ed:  ldc.i4.1
+    IL_00ee:  add.ovf
+    IL_00ef:  constrained. "SM$T"
+    IL_00f5:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldnull
+    IL_00fc:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0101:  leave.s    IL_0127
+  }
+  catch System.Exception
+  {
+    IL_0103:  dup
+    IL_0104:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0109:  stloc.s    V_5
+    IL_010b:  ldarg.0
+    IL_010c:  ldc.i4.s   -2
+    IL_010e:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0113:  ldarg.0
+    IL_0114:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0119:  ldloc.s    V_5
+    IL_011b:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0120:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0125:  leave.s    IL_013c
+  }
+  IL_0127:  ldarg.0
+  IL_0128:  ldc.i4.s   -2
+  IL_012a:  dup
+  IL_012b:  stloc.0
+  IL_012c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0131:  ldarg.0
+  IL_0132:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0137:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_013c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_ThroughArray()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item2 With {.Name = "1"} }
+        Call1(DirectCast(item1, Item()))
+
+        Dim item2 = { New Item2 With {.Name = "2"} }
+        Call2(DirectCast(item2, Item()))
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(item As T())
+        item(GetArrayIndex()).Position(1) += GetOffset(item)
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T())
+        item(GetArrayIndex()).Position(1) += GetOffset(item)
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '1'
+Position get for item '2'
+Position set for item '2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       59 (0x3b)
+  .maxstack  4
+  .locals init (T() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldc.i4.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  readonly.
+  IL_0016:  ldelema    "T"
+  IL_001b:  ldc.i4.1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0027:  ldarga.s   V_0
+  IL_0029:  call       "Function Program.GetOffset(Of T)(ByRef T()) As Integer"
+  IL_002e:  add.ovf
+  IL_002f:  constrained. "T"
+  IL_0035:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003a:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+            <![CDATA[
+{
+  // Code size       59 (0x3b)
+  .maxstack  4
+  .locals init (T() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldc.i4.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  readonly.
+  IL_0016:  ldelema    "T"
+  IL_001b:  ldc.i4.1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0027:  ldarga.s   V_0
+  IL_0029:  call       "Function Program.GetOffset(Of T)(ByRef T()) As Integer"
+  IL_002e:  add.ovf
+  IL_002f:  constrained. "T"
+  IL_0035:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003a:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_ThroughArray()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item With {.Name = "1"} }
+        Call1(item1)
+
+        Dim item2 = { New Item With {.Name = "2"} }
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Structure, IMoveable})(item As T())
+        item(GetArrayIndex()).Position(1) += GetOffset(item)
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T())
+        item(GetArrayIndex()).Position(1) += GetOffset(item)
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       59 (0x3b)
+  .maxstack  4
+  .locals init (T() V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldc.i4.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  readonly.
+  IL_0016:  ldelema    "T"
+  IL_001b:  ldc.i4.1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0027:  ldarga.s   V_0
+  IL_0029:  call       "Function Program.GetOffset(Of T)(ByRef T()) As Integer"
+  IL_002e:  add.ovf
+  IL_002f:  constrained. "T"
+  IL_0035:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003a:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_Async_01_ThroughArray()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item2 With {.Name = "1"} }
+        Call1(DirectCast(item1, Item())).Wait()
+
+        Dim item2 = { New Item2 With {.Name = "2"} }
+        Call2(DirectCast(item2, Item())).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Class, IMoveable})(item As T()) As Task
+        item(GetArrayIndex()).Position(1) += await GetOffsetAsync(GetOffset(item))
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        item(GetArrayIndex()).Position(1) += await GetOffsetAsync(GetOffset(item))
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      325 (0x145)
+  .maxstack  5
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                SM$T() V_2,
+                Integer V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_00b1
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0015:  dup
+    IL_0016:  stloc.2
+    IL_0017:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S0 As SM$T()"
+    IL_001c:  ldloc.2
+    IL_001d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_0022:  ldarg.0
+    IL_0023:  ldarg.0
+    IL_0024:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0029:  dup
+    IL_002a:  stloc.3
+    IL_002b:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S1 As Integer"
+    IL_0030:  ldloc.3
+    IL_0031:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_0036:  ldarg.0
+    IL_0037:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_003c:  ldarg.0
+    IL_003d:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_0042:  readonly.
+    IL_0044:  ldelema    "SM$T"
+    IL_0049:  pop
+    IL_004a:  ldarg.0
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S0 As SM$T()"
+    IL_0051:  ldarg.0
+    IL_0052:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S1 As Integer"
+    IL_0057:  readonly.
+    IL_0059:  ldelema    "SM$T"
+    IL_005e:  ldc.i4.1
+    IL_005f:  constrained. "SM$T"
+    IL_0065:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_006a:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_006f:  ldarg.0
+    IL_0070:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0075:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_007a:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_007f:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0084:  stloc.1
+    IL_0085:  ldloca.s   V_1
+    IL_0087:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_008c:  brtrue.s   IL_00cd
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.0
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0097:  ldarg.0
+    IL_0098:  ldloc.1
+    IL_0099:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00a4:  ldloca.s   V_1
+    IL_00a6:  ldarg.0
+    IL_00a7:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_00ac:  leave      IL_0144
+    IL_00b1:  ldarg.0
+    IL_00b2:  ldc.i4.m1
+    IL_00b3:  dup
+    IL_00b4:  stloc.0
+    IL_00b5:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00c0:  stloc.1
+    IL_00c1:  ldarg.0
+    IL_00c2:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00c7:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00cd:  ldarg.0
+    IL_00ce:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_00d3:  ldarg.0
+    IL_00d4:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_00d9:  readonly.
+    IL_00db:  ldelema    "SM$T"
+    IL_00e0:  ldc.i4.1
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_00e7:  ldloca.s   V_1
+    IL_00e9:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00ee:  ldloca.s   V_1
+    IL_00f0:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00f6:  add.ovf
+    IL_00f7:  constrained. "SM$T"
+    IL_00fd:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_0102:  ldarg.0
+    IL_0103:  ldnull
+    IL_0104:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_0109:  leave.s    IL_012f
+  }
+  catch System.Exception
+  {
+    IL_010b:  dup
+    IL_010c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0111:  stloc.s    V_4
+    IL_0113:  ldarg.0
+    IL_0114:  ldc.i4.s   -2
+    IL_0116:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_011b:  ldarg.0
+    IL_011c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0121:  ldloc.s    V_4
+    IL_0123:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0128:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_012d:  leave.s    IL_0144
+  }
+  IL_012f:  ldarg.0
+  IL_0130:  ldc.i4.s   -2
+  IL_0132:  dup
+  IL_0133:  stloc.0
+  IL_0134:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0139:  ldarg.0
+  IL_013a:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_013f:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0144:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_3_Call2(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      325 (0x145)
+  .maxstack  5
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                SM$T() V_2,
+                Integer V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_00b1
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0015:  dup
+    IL_0016:  stloc.2
+    IL_0017:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$S0 As SM$T()"
+    IL_001c:  ldloc.2
+    IL_001d:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As SM$T()"
+    IL_0022:  ldarg.0
+    IL_0023:  ldarg.0
+    IL_0024:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0029:  dup
+    IL_002a:  stloc.3
+    IL_002b:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$S1 As Integer"
+    IL_0030:  ldloc.3
+    IL_0031:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U3 As Integer"
+    IL_0036:  ldarg.0
+    IL_0037:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As SM$T()"
+    IL_003c:  ldarg.0
+    IL_003d:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U3 As Integer"
+    IL_0042:  readonly.
+    IL_0044:  ldelema    "SM$T"
+    IL_0049:  pop
+    IL_004a:  ldarg.0
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$S0 As SM$T()"
+    IL_0051:  ldarg.0
+    IL_0052:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$S1 As Integer"
+    IL_0057:  readonly.
+    IL_0059:  ldelema    "SM$T"
+    IL_005e:  ldc.i4.1
+    IL_005f:  constrained. "SM$T"
+    IL_0065:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_006a:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As Integer"
+    IL_006f:  ldarg.0
+    IL_0070:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0075:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_007a:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_007f:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0084:  stloc.1
+    IL_0085:  ldloca.s   V_1
+    IL_0087:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_008c:  brtrue.s   IL_00cd
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.0
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0097:  ldarg.0
+    IL_0098:  ldloc.1
+    IL_0099:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00a4:  ldloca.s   V_1
+    IL_00a6:  ldarg.0
+    IL_00a7:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_00ac:  leave      IL_0144
+    IL_00b1:  ldarg.0
+    IL_00b2:  ldc.i4.m1
+    IL_00b3:  dup
+    IL_00b4:  stloc.0
+    IL_00b5:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00c0:  stloc.1
+    IL_00c1:  ldarg.0
+    IL_00c2:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00c7:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00cd:  ldarg.0
+    IL_00ce:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As SM$T()"
+    IL_00d3:  ldarg.0
+    IL_00d4:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U3 As Integer"
+    IL_00d9:  readonly.
+    IL_00db:  ldelema    "SM$T"
+    IL_00e0:  ldc.i4.1
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As Integer"
+    IL_00e7:  ldloca.s   V_1
+    IL_00e9:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00ee:  ldloca.s   V_1
+    IL_00f0:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00f6:  add.ovf
+    IL_00f7:  constrained. "SM$T"
+    IL_00fd:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_0102:  ldarg.0
+    IL_0103:  ldnull
+    IL_0104:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As SM$T()"
+    IL_0109:  leave.s    IL_012f
+  }
+  catch System.Exception
+  {
+    IL_010b:  dup
+    IL_010c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0111:  stloc.s    V_4
+    IL_0113:  ldarg.0
+    IL_0114:  ldc.i4.s   -2
+    IL_0116:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_011b:  ldarg.0
+    IL_011c:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0121:  ldloc.s    V_4
+    IL_0123:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0128:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_012d:  leave.s    IL_0144
+  }
+  IL_012f:  ldarg.0
+  IL_0130:  ldc.i4.s   -2
+  IL_0132:  dup
+  IL_0133:  stloc.0
+  IL_0134:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0139:  ldarg.0
+  IL_013a:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_013f:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0144:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_Async_01_ThroughArray()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item With {.Name = "1"} }
+        Call1(item1).Wait()
+
+        Dim item2 = { New Item With {.Name = "2"} }
+        Call2(item2).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Structure, IMoveable})(item As T()) As Task
+        item(GetArrayIndex()).Position(1) += await GetOffsetAsync(GetOffset(item))
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        item(GetArrayIndex()).Position(1) += await GetOffsetAsync(GetOffset(item))
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      325 (0x145)
+  .maxstack  5
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                SM$T() V_2,
+                Integer V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_00b1
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0015:  dup
+    IL_0016:  stloc.2
+    IL_0017:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S0 As SM$T()"
+    IL_001c:  ldloc.2
+    IL_001d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_0022:  ldarg.0
+    IL_0023:  ldarg.0
+    IL_0024:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0029:  dup
+    IL_002a:  stloc.3
+    IL_002b:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S1 As Integer"
+    IL_0030:  ldloc.3
+    IL_0031:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_0036:  ldarg.0
+    IL_0037:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_003c:  ldarg.0
+    IL_003d:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_0042:  readonly.
+    IL_0044:  ldelema    "SM$T"
+    IL_0049:  pop
+    IL_004a:  ldarg.0
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S0 As SM$T()"
+    IL_0051:  ldarg.0
+    IL_0052:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$S1 As Integer"
+    IL_0057:  readonly.
+    IL_0059:  ldelema    "SM$T"
+    IL_005e:  ldc.i4.1
+    IL_005f:  constrained. "SM$T"
+    IL_0065:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_006a:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_006f:  ldarg.0
+    IL_0070:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0075:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_007a:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_007f:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0084:  stloc.1
+    IL_0085:  ldloca.s   V_1
+    IL_0087:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_008c:  brtrue.s   IL_00cd
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.0
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0097:  ldarg.0
+    IL_0098:  ldloc.1
+    IL_0099:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00a4:  ldloca.s   V_1
+    IL_00a6:  ldarg.0
+    IL_00a7:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_00ac:  leave      IL_0144
+    IL_00b1:  ldarg.0
+    IL_00b2:  ldc.i4.m1
+    IL_00b3:  dup
+    IL_00b4:  stloc.0
+    IL_00b5:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00c0:  stloc.1
+    IL_00c1:  ldarg.0
+    IL_00c2:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00c7:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00cd:  ldarg.0
+    IL_00ce:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_00d3:  ldarg.0
+    IL_00d4:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_00d9:  readonly.
+    IL_00db:  ldelema    "SM$T"
+    IL_00e0:  ldc.i4.1
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_00e7:  ldloca.s   V_1
+    IL_00e9:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00ee:  ldloca.s   V_1
+    IL_00f0:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00f6:  add.ovf
+    IL_00f7:  constrained. "SM$T"
+    IL_00fd:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_0102:  ldarg.0
+    IL_0103:  ldnull
+    IL_0104:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_0109:  leave.s    IL_012f
+  }
+  catch System.Exception
+  {
+    IL_010b:  dup
+    IL_010c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0111:  stloc.s    V_4
+    IL_0113:  ldarg.0
+    IL_0114:  ldc.i4.s   -2
+    IL_0116:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_011b:  ldarg.0
+    IL_011c:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0121:  ldloc.s    V_4
+    IL_0123:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0128:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_012d:  leave.s    IL_0144
+  }
+  IL_012f:  ldarg.0
+  IL_0130:  ldc.i4.s   -2
+  IL_0132:  dup
+  IL_0133:  stloc.0
+  IL_0134:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0139:  ldarg.0
+  IL_013a:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_013f:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0144:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_ThroughArray_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item2 With {.Name = "1"} }
+        Call1(DirectCast(item1, Item()))
+
+        Dim item2 = { New Item2 With {.Name = "2"} }
+        Call2(DirectCast(item2, Item()))
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(item As T())
+        With item(GetArrayIndex())
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T())
+        With item(GetArrayIndex())
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       62 (0x3e)
+  .maxstack  4
+  .locals init (T() V_0, //$W0
+                Integer V_1, //$W1
+                Integer V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldarg.0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(T()) As Integer"
+  IL_0017:  dup
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  readonly.
+  IL_001d:  ldelema    "T"
+  IL_0022:  ldloc.2
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003b:  ldnull
+  IL_003c:  stloc.0
+  IL_003d:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+            <![CDATA[
+{
+  // Code size       62 (0x3e)
+  .maxstack  4
+  .locals init (T() V_0, //$W0
+                Integer V_1, //$W1
+                Integer V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldarg.0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(T()) As Integer"
+  IL_0017:  dup
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  readonly.
+  IL_001d:  ldelema    "T"
+  IL_0022:  ldloc.2
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003b:  ldnull
+  IL_003c:  stloc.0
+  IL_003d:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_ThroughArray_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item With {.Name = "1"} }
+        Call1(item1)
+
+        Dim item2 = { New Item With {.Name = "2"} }
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Structure, IMoveable})(item As T())
+        With item(GetArrayIndex())
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T())
+        With item(GetArrayIndex())
+            .Position(GetOffset(item)) += 1
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       62 (0x3e)
+  .maxstack  4
+  .locals init (T() V_0, //$W0
+                Integer V_1, //$W1
+                Integer V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldarg.0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(T()) As Integer"
+  IL_0017:  dup
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  readonly.
+  IL_001d:  ldelema    "T"
+  IL_0022:  ldloc.2
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003b:  ldnull
+  IL_003c:  stloc.0
+  IL_003d:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Index_Async_01_ThroughArray_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item2 With {.Name = "1"} }
+        Call1(DirectCast(item1, Item())).Wait()
+
+        Dim item2 = { New Item2 With {.Name = "2"} }
+        Call2(DirectCast(item2, Item())).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Class, IMoveable})(item As T()) As Task
+        With item(GetArrayIndex())
+            .Position(await GetOffsetAsync(GetOffset(item))) += 1
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        With item(GetArrayIndex())
+            .Position(await GetOffsetAsync(GetOffset(item))) += 1
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      326 (0x146)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_0092
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0014:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W0 As SM$T()"
+    IL_0019:  ldarg.0
+    IL_001a:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_001f:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W1 As Integer"
+    IL_0024:  ldarg.0
+    IL_0025:  ldarg.0
+    IL_0026:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W0 As SM$T()"
+    IL_002b:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0030:  ldarg.0
+    IL_0031:  ldarg.0
+    IL_0032:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W1 As Integer"
+    IL_0037:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_003c:  ldarg.0
+    IL_003d:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0042:  ldarg.0
+    IL_0043:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0048:  readonly.
+    IL_004a:  ldelema    "SM$T"
+    IL_004f:  pop
+    IL_0050:  ldarg.0
+    IL_0051:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0056:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_005b:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0060:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0065:  stloc.2
+    IL_0066:  ldloca.s   V_2
+    IL_0068:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_006d:  brtrue.s   IL_00ae
+    IL_006f:  ldarg.0
+    IL_0070:  ldc.i4.0
+    IL_0071:  dup
+    IL_0072:  stloc.0
+    IL_0073:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0078:  ldarg.0
+    IL_0079:  ldloc.2
+    IL_007a:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0085:  ldloca.s   V_2
+    IL_0087:  ldarg.0
+    IL_0088:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_008d:  leave      IL_0145
+    IL_0092:  ldarg.0
+    IL_0093:  ldc.i4.m1
+    IL_0094:  dup
+    IL_0095:  stloc.0
+    IL_0096:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_009b:  ldarg.0
+    IL_009c:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a1:  stloc.2
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00ae:  ldarg.0
+    IL_00af:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_00b4:  ldarg.0
+    IL_00b5:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_00ba:  readonly.
+    IL_00bc:  ldelema    "SM$T"
+    IL_00c1:  ldloca.s   V_2
+    IL_00c3:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00c8:  ldloca.s   V_2
+    IL_00ca:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00d0:  dup
+    IL_00d1:  stloc.1
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W0 As SM$T()"
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W1 As Integer"
+    IL_00de:  readonly.
+    IL_00e0:  ldelema    "SM$T"
+    IL_00e5:  ldloc.1
+    IL_00e6:  constrained. "SM$T"
+    IL_00ec:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_00f1:  ldc.i4.1
+    IL_00f2:  add.ovf
+    IL_00f3:  constrained. "SM$T"
+    IL_00f9:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldnull
+    IL_0100:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0105:  ldarg.0
+    IL_0106:  ldnull
+    IL_0107:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W0 As SM$T()"
+    IL_010c:  leave.s    IL_0130
+  }
+  catch System.Exception
+  {
+    IL_010e:  dup
+    IL_010f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0114:  stloc.3
+    IL_0115:  ldarg.0
+    IL_0116:  ldc.i4.s   -2
+    IL_0118:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_011d:  ldarg.0
+    IL_011e:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0123:  ldloc.3
+    IL_0124:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0129:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_012e:  leave.s    IL_0145
+  }
+  IL_0130:  ldarg.0
+  IL_0131:  ldc.i4.s   -2
+  IL_0133:  dup
+  IL_0134:  stloc.0
+  IL_0135:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_013a:  ldarg.0
+  IL_013b:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0140:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0145:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_3_Call2(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      326 (0x146)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_0092
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0014:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$W0 As SM$T()"
+    IL_0019:  ldarg.0
+    IL_001a:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_001f:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$W1 As Integer"
+    IL_0024:  ldarg.0
+    IL_0025:  ldarg.0
+    IL_0026:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$W0 As SM$T()"
+    IL_002b:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_0030:  ldarg.0
+    IL_0031:  ldarg.0
+    IL_0032:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$W1 As Integer"
+    IL_0037:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_003c:  ldarg.0
+    IL_003d:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_0042:  ldarg.0
+    IL_0043:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_0048:  readonly.
+    IL_004a:  ldelema    "SM$T"
+    IL_004f:  pop
+    IL_0050:  ldarg.0
+    IL_0051:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0056:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_005b:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0060:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0065:  stloc.2
+    IL_0066:  ldloca.s   V_2
+    IL_0068:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_006d:  brtrue.s   IL_00ae
+    IL_006f:  ldarg.0
+    IL_0070:  ldc.i4.0
+    IL_0071:  dup
+    IL_0072:  stloc.0
+    IL_0073:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0078:  ldarg.0
+    IL_0079:  ldloc.2
+    IL_007a:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0085:  ldloca.s   V_2
+    IL_0087:  ldarg.0
+    IL_0088:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_008d:  leave      IL_0145
+    IL_0092:  ldarg.0
+    IL_0093:  ldc.i4.m1
+    IL_0094:  dup
+    IL_0095:  stloc.0
+    IL_0096:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_009b:  ldarg.0
+    IL_009c:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a1:  stloc.2
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00ae:  ldarg.0
+    IL_00af:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_00b4:  ldarg.0
+    IL_00b5:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As Integer"
+    IL_00ba:  readonly.
+    IL_00bc:  ldelema    "SM$T"
+    IL_00c1:  ldloca.s   V_2
+    IL_00c3:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00c8:  ldloca.s   V_2
+    IL_00ca:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00d0:  dup
+    IL_00d1:  stloc.1
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$W0 As SM$T()"
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$W1 As Integer"
+    IL_00de:  readonly.
+    IL_00e0:  ldelema    "SM$T"
+    IL_00e5:  ldloc.1
+    IL_00e6:  constrained. "SM$T"
+    IL_00ec:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_00f1:  ldc.i4.1
+    IL_00f2:  add.ovf
+    IL_00f3:  constrained. "SM$T"
+    IL_00f9:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldnull
+    IL_0100:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As SM$T()"
+    IL_0105:  ldarg.0
+    IL_0106:  ldnull
+    IL_0107:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$W0 As SM$T()"
+    IL_010c:  leave.s    IL_0130
+  }
+  catch System.Exception
+  {
+    IL_010e:  dup
+    IL_010f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0114:  stloc.3
+    IL_0115:  ldarg.0
+    IL_0116:  ldc.i4.s   -2
+    IL_0118:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_011d:  ldarg.0
+    IL_011e:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0123:  ldloc.3
+    IL_0124:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0129:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_012e:  leave.s    IL_0145
+  }
+  IL_0130:  ldarg.0
+  IL_0131:  ldc.i4.s   -2
+  IL_0133:  dup
+  IL_0134:  stloc.0
+  IL_0135:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_013a:  ldarg.0
+  IL_013b:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0140:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0145:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Index_Async_01_ThroughArray_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item With {.Name = "1"} }
+        Call1(item1).Wait()
+
+        Dim item2 = { New Item With {.Name = "2"} }
+        Call2(item2).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Structure, IMoveable})(item As T()) As Task
+        With item(GetArrayIndex())
+            .Position(await GetOffsetAsync(GetOffset(item))) += 1
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        With item(GetArrayIndex())
+            .Position(await GetOffsetAsync(GetOffset(item))) += 1
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      326 (0x146)
+  .maxstack  4
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_0092
+    IL_000d:  ldarg.0
+    IL_000e:  ldarg.0
+    IL_000f:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0014:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W0 As SM$T()"
+    IL_0019:  ldarg.0
+    IL_001a:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_001f:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W1 As Integer"
+    IL_0024:  ldarg.0
+    IL_0025:  ldarg.0
+    IL_0026:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W0 As SM$T()"
+    IL_002b:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0030:  ldarg.0
+    IL_0031:  ldarg.0
+    IL_0032:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W1 As Integer"
+    IL_0037:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_003c:  ldarg.0
+    IL_003d:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0042:  ldarg.0
+    IL_0043:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_0048:  readonly.
+    IL_004a:  ldelema    "SM$T"
+    IL_004f:  pop
+    IL_0050:  ldarg.0
+    IL_0051:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0056:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_005b:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0060:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0065:  stloc.2
+    IL_0066:  ldloca.s   V_2
+    IL_0068:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_006d:  brtrue.s   IL_00ae
+    IL_006f:  ldarg.0
+    IL_0070:  ldc.i4.0
+    IL_0071:  dup
+    IL_0072:  stloc.0
+    IL_0073:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0078:  ldarg.0
+    IL_0079:  ldloc.2
+    IL_007a:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0085:  ldloca.s   V_2
+    IL_0087:  ldarg.0
+    IL_0088:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_008d:  leave      IL_0145
+    IL_0092:  ldarg.0
+    IL_0093:  ldc.i4.m1
+    IL_0094:  dup
+    IL_0095:  stloc.0
+    IL_0096:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_009b:  ldarg.0
+    IL_009c:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a1:  stloc.2
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00ae:  ldarg.0
+    IL_00af:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_00b4:  ldarg.0
+    IL_00b5:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As Integer"
+    IL_00ba:  readonly.
+    IL_00bc:  ldelema    "SM$T"
+    IL_00c1:  ldloca.s   V_2
+    IL_00c3:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00c8:  ldloca.s   V_2
+    IL_00ca:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00d0:  dup
+    IL_00d1:  stloc.1
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W0 As SM$T()"
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W1 As Integer"
+    IL_00de:  readonly.
+    IL_00e0:  ldelema    "SM$T"
+    IL_00e5:  ldloc.1
+    IL_00e6:  constrained. "SM$T"
+    IL_00ec:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_00f1:  ldc.i4.1
+    IL_00f2:  add.ovf
+    IL_00f3:  constrained. "SM$T"
+    IL_00f9:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldnull
+    IL_0100:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As SM$T()"
+    IL_0105:  ldarg.0
+    IL_0106:  ldnull
+    IL_0107:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$W0 As SM$T()"
+    IL_010c:  leave.s    IL_0130
+  }
+  catch System.Exception
+  {
+    IL_010e:  dup
+    IL_010f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0114:  stloc.3
+    IL_0115:  ldarg.0
+    IL_0116:  ldc.i4.s   -2
+    IL_0118:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_011d:  ldarg.0
+    IL_011e:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0123:  ldloc.3
+    IL_0124:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0129:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_012e:  leave.s    IL_0145
+  }
+  IL_0130:  ldarg.0
+  IL_0131:  ldc.i4.s   -2
+  IL_0133:  dup
+  IL_0134:  stloc.0
+  IL_0135:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_013a:  ldarg.0
+  IL_013b:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0140:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0145:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_ThroughArray_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item2 With {.Name = "1"} }
+        Call1(DirectCast(item1, Item()))
+
+        Dim item2 = { New Item2 With {.Name = "2"} }
+        Call2(DirectCast(item2, Item()))
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Class, IMoveable})(item As T())
+        With item(GetArrayIndex())
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T())
+        With item(GetArrayIndex())
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '1'
+Position get for item '2'
+Position set for item '2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  .locals init (T() V_0, //$W0
+                Integer V_1) //$W1
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldc.i4.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  readonly.
+  IL_0016:  ldelema    "T"
+  IL_001b:  ldc.i4.1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0027:  ldarga.s   V_0
+  IL_0029:  call       "Function Program.GetOffset(Of T)(ByRef T()) As Integer"
+  IL_002e:  add.ovf
+  IL_002f:  constrained. "T"
+  IL_0035:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003a:  ldnull
+  IL_003b:  stloc.0
+  IL_003c:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.Call2(Of T)",
+            <![CDATA[
+{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  .locals init (T() V_0, //$W0
+                Integer V_1) //$W1
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldc.i4.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  readonly.
+  IL_0016:  ldelema    "T"
+  IL_001b:  ldc.i4.1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0027:  ldarga.s   V_0
+  IL_0029:  call       "Function Program.GetOffset(Of T)(ByRef T()) As Integer"
+  IL_002e:  add.ovf
+  IL_002f:  constrained. "T"
+  IL_0035:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003a:  ldnull
+  IL_003b:  stloc.0
+  IL_003c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_ThroughArray_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item With {.Name = "1"} }
+        Call1(item1)
+
+        Dim item2 = { New Item With {.Name = "2"} }
+        Call2(item2)
+    End Sub
+
+    Private Shared Sub Call1(Of T As {Structure, IMoveable})(item As T())
+        With item(GetArrayIndex())
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Private Shared Sub Call2(Of T As {IMoveable})(item As T())
+        With item(GetArrayIndex())
+            .Position(1) += GetOffset(item)
+        End With
+    End Sub
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.Call1(Of T)",
+            <![CDATA[
+{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  .locals init (T() V_0, //$W0
+                Integer V_1) //$W1
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       "Function Program.GetArrayIndex() As Integer"
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  readonly.
+  IL_000c:  ldelema    "T"
+  IL_0011:  ldc.i4.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  readonly.
+  IL_0016:  ldelema    "T"
+  IL_001b:  ldc.i4.1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+  IL_0027:  ldarga.s   V_0
+  IL_0029:  call       "Function Program.GetOffset(Of T)(ByRef T()) As Integer"
+  IL_002e:  add.ovf
+  IL_002f:  constrained. "T"
+  IL_0035:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+  IL_003a:  ldnull
+  IL_003b:  stloc.0
+  IL_003c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Class_Value_Async_01_ThroughArray_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Class Item2
+    Inherits Item
+End Class
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item2 With {.Name = "1"} }
+        Call1(DirectCast(item1, Item())).Wait()
+
+        Dim item2 = { New Item2 With {.Name = "2"} }
+        Call2(DirectCast(item2, Item())).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Class, IMoveable})(item As T()) As Task
+        With item(GetArrayIndex())
+            .Position(1) += await GetOffsetAsync(GetOffset(item))
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        With item(GetArrayIndex())
+            .Position(1) += await GetOffsetAsync(GetOffset(item))
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item2 With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' Wrong output
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      303 (0x12f)
+  .maxstack  5
+  .locals init (Integer V_0,
+                SM$T() V_1, //$W0
+                Integer V_2, //$W1
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_0099
+    IL_000d:  ldarg.0
+    IL_000e:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0013:  stloc.1
+    IL_0014:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0019:  stloc.2
+    IL_001a:  ldarg.0
+    IL_001b:  ldloc.1
+    IL_001c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_0021:  ldarg.0
+    IL_0022:  ldloc.2
+    IL_0023:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_0028:  ldarg.0
+    IL_0029:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_002e:  ldarg.0
+    IL_002f:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_0034:  readonly.
+    IL_0036:  ldelema    "SM$T"
+    IL_003b:  pop
+    IL_003c:  ldarg.0
+    IL_003d:  ldloc.1
+    IL_003e:  ldloc.2
+    IL_003f:  readonly.
+    IL_0041:  ldelema    "SM$T"
+    IL_0046:  ldc.i4.1
+    IL_0047:  constrained. "SM$T"
+    IL_004d:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_0052:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_0057:  ldarg.0
+    IL_0058:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_005d:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0062:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0067:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_006c:  stloc.3
+    IL_006d:  ldloca.s   V_3
+    IL_006f:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0074:  brtrue.s   IL_00b5
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.0
+    IL_0078:  dup
+    IL_0079:  stloc.0
+    IL_007a:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_007f:  ldarg.0
+    IL_0080:  ldloc.3
+    IL_0081:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0086:  ldarg.0
+    IL_0087:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_008c:  ldloca.s   V_3
+    IL_008e:  ldarg.0
+    IL_008f:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0094:  leave      IL_012e
+    IL_0099:  ldarg.0
+    IL_009a:  ldc.i4.m1
+    IL_009b:  dup
+    IL_009c:  stloc.0
+    IL_009d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a8:  stloc.3
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00af:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_00c1:  readonly.
+    IL_00c3:  ldelema    "SM$T"
+    IL_00c8:  ldc.i4.1
+    IL_00c9:  ldarg.0
+    IL_00ca:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_00cf:  ldloca.s   V_3
+    IL_00d1:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00d6:  ldloca.s   V_3
+    IL_00d8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00de:  add.ovf
+    IL_00df:  constrained. "SM$T"
+    IL_00e5:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00ea:  ldarg.0
+    IL_00eb:  ldnull
+    IL_00ec:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_00f1:  ldnull
+    IL_00f2:  stloc.1
+    IL_00f3:  leave.s    IL_0119
+  }
+  catch System.Exception
+  {
+    IL_00f5:  dup
+    IL_00f6:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00fb:  stloc.s    V_4
+    IL_00fd:  ldarg.0
+    IL_00fe:  ldc.i4.s   -2
+    IL_0100:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0105:  ldarg.0
+    IL_0106:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_010b:  ldloc.s    V_4
+    IL_010d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0112:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0117:  leave.s    IL_012e
+  }
+  IL_0119:  ldarg.0
+  IL_011a:  ldc.i4.s   -2
+  IL_011c:  dup
+  IL_011d:  stloc.0
+  IL_011e:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0123:  ldarg.0
+  IL_0124:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0129:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_012e:  ret
+}
+]]>)
+
+            'Wrong IL
+            verifier.VerifyIL("Program.VB$StateMachine_3_Call2(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      303 (0x12f)
+  .maxstack  5
+  .locals init (Integer V_0,
+                SM$T() V_1, //$W0
+                Integer V_2, //$W1
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_0099
+    IL_000d:  ldarg.0
+    IL_000e:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0013:  stloc.1
+    IL_0014:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0019:  stloc.2
+    IL_001a:  ldarg.0
+    IL_001b:  ldloc.1
+    IL_001c:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As SM$T()"
+    IL_0021:  ldarg.0
+    IL_0022:  ldloc.2
+    IL_0023:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U3 As Integer"
+    IL_0028:  ldarg.0
+    IL_0029:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As SM$T()"
+    IL_002e:  ldarg.0
+    IL_002f:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U3 As Integer"
+    IL_0034:  readonly.
+    IL_0036:  ldelema    "SM$T"
+    IL_003b:  pop
+    IL_003c:  ldarg.0
+    IL_003d:  ldloc.1
+    IL_003e:  ldloc.2
+    IL_003f:  readonly.
+    IL_0041:  ldelema    "SM$T"
+    IL_0046:  ldc.i4.1
+    IL_0047:  constrained. "SM$T"
+    IL_004d:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_0052:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As Integer"
+    IL_0057:  ldarg.0
+    IL_0058:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$VB$Local_item As SM$T()"
+    IL_005d:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0062:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0067:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_006c:  stloc.3
+    IL_006d:  ldloca.s   V_3
+    IL_006f:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0074:  brtrue.s   IL_00b5
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.0
+    IL_0078:  dup
+    IL_0079:  stloc.0
+    IL_007a:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_007f:  ldarg.0
+    IL_0080:  ldloc.3
+    IL_0081:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0086:  ldarg.0
+    IL_0087:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_008c:  ldloca.s   V_3
+    IL_008e:  ldarg.0
+    IL_008f:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_3_Call2(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_3_Call2(Of SM$T))"
+    IL_0094:  leave      IL_012e
+    IL_0099:  ldarg.0
+    IL_009a:  ldc.i4.m1
+    IL_009b:  dup
+    IL_009c:  stloc.0
+    IL_009d:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a8:  stloc.3
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00af:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As SM$T()"
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U3 As Integer"
+    IL_00c1:  readonly.
+    IL_00c3:  ldelema    "SM$T"
+    IL_00c8:  ldc.i4.1
+    IL_00c9:  ldarg.0
+    IL_00ca:  ldfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U1 As Integer"
+    IL_00cf:  ldloca.s   V_3
+    IL_00d1:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00d6:  ldloca.s   V_3
+    IL_00d8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00de:  add.ovf
+    IL_00df:  constrained. "SM$T"
+    IL_00e5:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00ea:  ldarg.0
+    IL_00eb:  ldnull
+    IL_00ec:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$U2 As SM$T()"
+    IL_00f1:  ldnull
+    IL_00f2:  stloc.1
+    IL_00f3:  leave.s    IL_0119
+  }
+  catch System.Exception
+  {
+    IL_00f5:  dup
+    IL_00f6:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00fb:  stloc.s    V_4
+    IL_00fd:  ldarg.0
+    IL_00fe:  ldc.i4.s   -2
+    IL_0100:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+    IL_0105:  ldarg.0
+    IL_0106:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_010b:  ldloc.s    V_4
+    IL_010d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0112:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0117:  leave.s    IL_012e
+  }
+  IL_0119:  ldarg.0
+  IL_011a:  ldc.i4.s   -2
+  IL_011c:  dup
+  IL_011d:  stloc.0
+  IL_011e:  stfld      "Program.VB$StateMachine_3_Call2(Of SM$T).$State As Integer"
+  IL_0123:  ldarg.0
+  IL_0124:  ldflda     "Program.VB$StateMachine_3_Call2(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0129:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_012e:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")>
+        Public Sub GenericTypeParameterAsReceiver_Assignment_Compound_Indexer_Struct_Value_Async_01_ThroughArray_InWith()
+            Dim comp =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item1 = { New Item With {.Name = "1"} }
+        Call1(item1).Wait()
+
+        Dim item2 = { New Item With {.Name = "2"} }
+        Call2(item2).Wait()
+    End Sub
+
+    Private Shared Async Function Call1(Of T As {Structure, IMoveable})(item As T()) As Task
+        With item(GetArrayIndex())
+            .Position(1) += await GetOffsetAsync(GetOffset(item))
+        End With
+    End Function
+
+    Private Shared Async Function Call2(Of T As {IMoveable})(item As T()) As Task
+        With item(GetArrayIndex())
+            .Position(1) += await GetOffsetAsync(GetOffset(item))
+        End With
+    End Function
+
+    Shared value as Integer
+
+    Shared Function GetOffset(Of T)(ByRef item As T()) As Integer
+        value -= 1
+        item(0) = DirectCast(DirectCast(New Item With {.Name = value.ToString()}, IMoveable), T)
+        Return 0
+    End Function
+
+    Shared Function GetOffsetAsync(i As Integer) As Task(Of Integer)
+        Return Task.FromResult(i)
+    End Function
+
+    Shared Function GetArrayIndex() As Integer
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim verifier = CompileAndVerifyEx(comp, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe, expectedOutput:=
+"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Call1(Of SM$T).MoveNext()",
+            <![CDATA[
+{
+  // Code size      303 (0x12f)
+  .maxstack  5
+  .locals init (Integer V_0,
+                SM$T() V_1, //$W0
+                Integer V_2, //$W1
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_0099
+    IL_000d:  ldarg.0
+    IL_000e:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_0013:  stloc.1
+    IL_0014:  call       "Function Program.GetArrayIndex() As Integer"
+    IL_0019:  stloc.2
+    IL_001a:  ldarg.0
+    IL_001b:  ldloc.1
+    IL_001c:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_0021:  ldarg.0
+    IL_0022:  ldloc.2
+    IL_0023:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_0028:  ldarg.0
+    IL_0029:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_002e:  ldarg.0
+    IL_002f:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_0034:  readonly.
+    IL_0036:  ldelema    "SM$T"
+    IL_003b:  pop
+    IL_003c:  ldarg.0
+    IL_003d:  ldloc.1
+    IL_003e:  ldloc.2
+    IL_003f:  readonly.
+    IL_0041:  ldelema    "SM$T"
+    IL_0046:  ldc.i4.1
+    IL_0047:  constrained. "SM$T"
+    IL_004d:  callvirt   "Function IMoveable.get_Position(Integer) As Integer"
+    IL_0052:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_0057:  ldarg.0
+    IL_0058:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$VB$Local_item As SM$T()"
+    IL_005d:  call       "Function Program.GetOffset(Of SM$T)(ByRef SM$T()) As Integer"
+    IL_0062:  call       "Function Program.GetOffsetAsync(Integer) As System.Threading.Tasks.Task(Of Integer)"
+    IL_0067:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_006c:  stloc.3
+    IL_006d:  ldloca.s   V_3
+    IL_006f:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0074:  brtrue.s   IL_00b5
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.0
+    IL_0078:  dup
+    IL_0079:  stloc.0
+    IL_007a:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_007f:  ldarg.0
+    IL_0080:  ldloc.3
+    IL_0081:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0086:  ldarg.0
+    IL_0087:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_008c:  ldloca.s   V_3
+    IL_008e:  ldarg.0
+    IL_008f:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Call1(Of SM$T))(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Call1(Of SM$T))"
+    IL_0094:  leave      IL_012e
+    IL_0099:  ldarg.0
+    IL_009a:  ldc.i4.m1
+    IL_009b:  dup
+    IL_009c:  stloc.0
+    IL_009d:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a8:  stloc.3
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00af:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U3 As Integer"
+    IL_00c1:  readonly.
+    IL_00c3:  ldelema    "SM$T"
+    IL_00c8:  ldc.i4.1
+    IL_00c9:  ldarg.0
+    IL_00ca:  ldfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U1 As Integer"
+    IL_00cf:  ldloca.s   V_3
+    IL_00d1:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00d6:  ldloca.s   V_3
+    IL_00d8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00de:  add.ovf
+    IL_00df:  constrained. "SM$T"
+    IL_00e5:  callvirt   "Sub IMoveable.set_Position(Integer, Integer)"
+    IL_00ea:  ldarg.0
+    IL_00eb:  ldnull
+    IL_00ec:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$U2 As SM$T()"
+    IL_00f1:  ldnull
+    IL_00f2:  stloc.1
+    IL_00f3:  leave.s    IL_0119
+  }
+  catch System.Exception
+  {
+    IL_00f5:  dup
+    IL_00f6:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00fb:  stloc.s    V_4
+    IL_00fd:  ldarg.0
+    IL_00fe:  ldc.i4.s   -2
+    IL_0100:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+    IL_0105:  ldarg.0
+    IL_0106:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_010b:  ldloc.s    V_4
+    IL_010d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0112:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0117:  leave.s    IL_012e
+  }
+  IL_0119:  ldarg.0
+  IL_011a:  ldc.i4.s   -2
+  IL_011c:  dup
+  IL_011d:  stloc.0
+  IL_011e:  stfld      "Program.VB$StateMachine_2_Call1(Of SM$T).$State As Integer"
+  IL_0123:  ldarg.0
+  IL_0124:  ldflda     "Program.VB$StateMachine_2_Call1(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0129:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_012e:  ret
 }
 ]]>)
         End Sub
