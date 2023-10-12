@@ -78,12 +78,8 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
                 return;
 
             var checksum = checksums.Children[i];
-            var value = values[i];
-
             if (searchingChecksumsLeft.Remove(checksum))
-            {
-                result[checksum] = value;
-            }
+                result[checksum] = values[i];
         }
     }
 
