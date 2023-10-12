@@ -52,7 +52,7 @@ internal sealed partial class AssetProvider
             // third and last get direct children for all projects and documents in the solution 
             foreach (var project in solutionChecksumObject.Projects)
             {
-                var projectStateChecksums = _assetProvider.GetRequiredAsset<ProjectStateChecksums>(project);
+                var projectStateChecksums = _assetProvider.GetRequiredAsset<ProjectStateChecksums>(project.checksum);
                 await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -74,21 +74,21 @@ internal sealed partial class AssetProvider
             checksums.Add(projectChecksum.Info);
             checksums.Add(projectChecksum.CompilationOptions);
             checksums.Add(projectChecksum.ParseOptions);
-            AddAll(checksums, projectChecksum.Documents);
             AddAll(checksums, projectChecksum.ProjectReferences);
             AddAll(checksums, projectChecksum.MetadataReferences);
             AddAll(checksums, projectChecksum.AnalyzerReferences);
-            AddAll(checksums, projectChecksum.AdditionalDocuments);
-            AddAll(checksums, projectChecksum.AnalyzerConfigDocuments);
+            AddAll(checksums, projectChecksum.Documents.Checksums);
+            AddAll(checksums, projectChecksum.AdditionalDocuments.Checksums);
+            AddAll(checksums, projectChecksum.AnalyzerConfigDocuments.Checksums);
 
             await _assetProvider.SynchronizeAssetsAsync(
                 assetHint: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
 
             checksums.Clear();
 
-            CollectChecksumChildren(this, projectChecksum.Documents);
-            CollectChecksumChildren(this, projectChecksum.AdditionalDocuments);
-            CollectChecksumChildren(this, projectChecksum.AnalyzerConfigDocuments);
+            CollectChecksumChildren(this, projectChecksum.Documents.Checksums);
+            CollectChecksumChildren(this, projectChecksum.AdditionalDocuments.Checksums);
+            CollectChecksumChildren(this, projectChecksum.AnalyzerConfigDocuments.Checksums);
 
             await _assetProvider.SynchronizeAssetsAsync(
                 assetHint: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);

@@ -27,9 +27,9 @@ internal abstract class AbstractAssetProvider
         var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetHint.None, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionChecksums.Projects.Count, out var projects);
-        for (int i = 0, n = solutionChecksums.ProjectIds.Length; i < n; i++)
-            projects.AddIfNotNull(await CreateProjectInfoAsync(solutionChecksums.ProjectIds[i], solutionChecksums.Projects[i], cancellationToken).ConfigureAwait(false));
+        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionChecksums.Projects.Length, out var projects);
+        foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
+            projects.AddIfNotNull(await CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken).ConfigureAwait(false));
 
         var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(AssetHint.None, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
@@ -74,14 +74,14 @@ internal abstract class AbstractAssetProvider
             analyzerConfigDocumentInfos,
             hostObjectType: null); // TODO: https://github.com/dotnet/roslyn/issues/62804
 
-        async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(ChecksumCollection documentChecksums)
+        async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(ChecksumsAndIds<DocumentId> checksumsAndIds)
         {
-            using var _ = ArrayBuilder<DocumentInfo>.GetInstance(documentChecksums.Count, out var documentInfos);
+            using var _ = ArrayBuilder<DocumentInfo>.GetInstance(checksumsAndIds.Length, out var documentInfos);
 
-            foreach (var documentChecksum in documentChecksums)
+            foreach (var (documentChecksum, documentId) in checksumsAndIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                documentInfos.Add(await CreateDocumentInfoAsync(projectId, documentChecksum, cancellationToken).ConfigureAwait(false));
+                documentInfos.Add(await CreateDocumentInfoAsync(documentId, documentChecksum, cancellationToken).ConfigureAwait(false));
             }
 
             return documentInfos.ToImmutableAndClear();

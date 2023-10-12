@@ -118,22 +118,30 @@ namespace Microsoft.CodeAnalysis.Remote
                     assetHint: AssetHint.None, solutionChecksum, CancellationToken.None).ConfigureAwait(false);
                 solutionChecksums.AddAllTo(set);
 
-                foreach (var projectChecksum in solutionChecksums.Projects)
+                foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
                 {
                     var projectChecksums = await assetService.GetAssetAsync<ProjectStateChecksums>(
-                        assetHint: AssetHint.None, projectChecksum, CancellationToken.None).ConfigureAwait(false);
+                        assetHint: projectId, projectChecksum, CancellationToken.None).ConfigureAwait(false);
                     projectChecksums.AddAllTo(set);
 
-                    foreach (var documentChecksum in projectChecksums.Documents.Concat(projectChecksums.AdditionalDocuments).Concat(projectChecksums.AnalyzerConfigDocuments))
-                    {
-                        var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(
-                            assetHint: projectChecksums.ProjectId, documentChecksum, CancellationToken.None).ConfigureAwait(false);
-                        AddAllTo(documentChecksums, set);
-                    }
+                    await AddDocumentsAsync(projectId, projectChecksums.Documents, set).ConfigureAwait(false);
+                    await AddDocumentsAsync(projectId, projectChecksums.AdditionalDocuments, set).ConfigureAwait(false);
+                    await AddDocumentsAsync(projectId, projectChecksums.AnalyzerConfigDocuments, set).ConfigureAwait(false);
                 }
 
                 return set;
             }
+
+            async Task AddDocumentsAsync(ProjectId projectId, ChecksumsAndIds<DocumentId> documents, HashSet<Checksum> checksums)
+            {
+                foreach (var (documentChecksum, documentId) in documents)
+                {
+                    var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(
+                        assetHint: documentId, documentChecksum, CancellationToken.None).ConfigureAwait(false);
+                    AddAllTo(documentChecksums, checksums);
+                }
+            }
+
 #else
 
             // have this to avoid error on async

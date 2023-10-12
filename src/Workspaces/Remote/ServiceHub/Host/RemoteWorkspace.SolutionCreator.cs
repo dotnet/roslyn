@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
-                olds.Object.UnionWith(oldSolutionChecksums.Projects);
-                news.Object.UnionWith(newSolutionChecksums.Projects);
+                olds.Object.UnionWith(oldSolutionChecksums.Projects.Checksums);
+                news.Object.UnionWith(newSolutionChecksums.Projects.Checksums);
 
                 // remove projects that exist in both side
-                olds.Object.ExceptWith(newSolutionChecksums.Projects);
-                news.Object.ExceptWith(oldSolutionChecksums.Projects);
+                olds.Object.ExceptWith(newSolutionChecksums.Projects.Checksums);
+                news.Object.ExceptWith(oldSolutionChecksums.Projects.Checksums);
 
                 using var _1 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldMap);
                 using var _2 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newMap);
@@ -375,8 +375,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Project project,
                 ProjectStateChecksums projectChecksums,
                 TextDocumentStates<TDocumentState> existingTextDocumentStates,
-                ChecksumCollection oldChecksums,
-                ChecksumCollection newChecksums,
+                ChecksumsAndIds<DocumentId> oldChecksums,
+                ChecksumsAndIds<DocumentId> newChecksums,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
                 CancellationToken cancellationToken) where TDocumentState : TextDocumentState
@@ -384,12 +384,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
-                olds.Object.UnionWith(oldChecksums);
-                news.Object.UnionWith(newChecksums);
+                olds.Object.UnionWith(oldChecksums.Checksums);
+                news.Object.UnionWith(newChecksums.Checksums);
 
                 // remove documents that exist in both side
-                olds.Object.ExceptWith(newChecksums);
-                news.Object.ExceptWith(oldChecksums);
+                olds.Object.ExceptWith(newChecksums.Checksums);
+                news.Object.ExceptWith(oldChecksums.Checksums);
 
                 using var _1 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldMap);
                 using var _2 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newMap);

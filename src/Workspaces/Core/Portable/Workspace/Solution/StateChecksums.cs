@@ -67,6 +67,9 @@ internal readonly struct ChecksumsAndIds<TId> where TId : IObjectWritable
         Ids = ids;
     }
 
+    public int Length => Ids.Length;
+    public Checksum Checksum => Checksums.Checksum;
+
     public void WriteTo(ObjectWriter writer)
     {
         this.Checksums.WriteTo(writer);
@@ -78,6 +81,21 @@ internal readonly struct ChecksumsAndIds<TId> where TId : IObjectWritable
         return new(
             ChecksumCollection.ReadFrom(reader),
             reader.ReadArray(s_readId));
+    }
+
+    public Enumerator GetEnumerator()
+        => new(this);
+
+    public struct Enumerator(ChecksumsAndIds<TId> checksumsAndIds)
+    {
+        private readonly ChecksumsAndIds<TId> _checksumsAndIds = checksumsAndIds;
+        private int _index = -1;
+
+        public bool MoveNext()
+            => ++_index < _checksumsAndIds.Length;
+
+        public (Checksum checksum, TId id) Current
+            => (_checksumsAndIds.Checksums.Children[_index], _checksumsAndIds.Ids[_index]);
     }
 }
 
@@ -237,9 +255,9 @@ internal sealed class ProjectStateChecksums(
         projectReferenceChecksums.Checksum.Hash,
         metadataReferenceChecksums.Checksum.Hash,
         analyzerReferenceChecksums.Checksum.Hash,
-        documentChecksums.Checksums.Checksum.Hash,
-        additionalDocumentChecksums.Checksums.Checksum.Hash,
-        analyzerConfigDocumentChecksums.Checksums.Checksum.Hash,
+        documentChecksums.Checksum.Hash,
+        additionalDocumentChecksums.Checksum.Hash,
+        analyzerConfigDocumentChecksums.Checksum.Hash,
     });
 
     public ProjectId ProjectId => projectId;
