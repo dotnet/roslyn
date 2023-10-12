@@ -36,7 +36,11 @@ namespace Microsoft.CodeAnalysis.Serialization
         public static PooledObject<List<T>> CreateList<T>()
             => SharedPools.Default<List<T>>().GetPooledObject();
 
-        public static PooledObject<Dictionary<Checksum, object>> CreateResultSet()
-            => SharedPools.Default<Dictionary<Checksum, object>>().GetPooledObject();
+        public static PooledObject<Dictionary<Checksum, object>> CreateResultMap(out Dictionary<Checksum, object> result)
+        {
+            var pooled = SharedPools.Default<Dictionary<Checksum, object>>().GetPooledObject();
+            result = pooled.Object;
+            return pooled;
+        }
     }
 }

@@ -72,7 +72,7 @@ internal sealed class SolutionStateChecksums(
     public async Task FindAsync(
         SolutionState state,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
+        Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -96,16 +96,6 @@ internal sealed class SolutionStateChecksums(
         {
             Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
             result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
-        }
-
-        if (searchingChecksumsLeft.Remove(Projects.Checksum))
-        {
-            result[Projects.Checksum] = Projects;
-        }
-
-        if (searchingChecksumsLeft.Remove(AnalyzerReferences.Checksum))
-        {
-            result[AnalyzerReferences.Checksum] = AnalyzerReferences;
         }
 
         foreach (var (_, projectState) in state.ProjectStates)
@@ -209,7 +199,7 @@ internal class ProjectStateChecksums(
     public async Task FindAsync(
         ProjectState state,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
+        Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -240,36 +230,6 @@ internal class ProjectStateChecksums(
         {
             Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
             result[ParseOptions] = state.ParseOptions;
-        }
-
-        if (searchingChecksumsLeft.Remove(Documents.Checksum))
-        {
-            result[Documents.Checksum] = Documents;
-        }
-
-        if (searchingChecksumsLeft.Remove(ProjectReferences.Checksum))
-        {
-            result[ProjectReferences.Checksum] = ProjectReferences;
-        }
-
-        if (searchingChecksumsLeft.Remove(MetadataReferences.Checksum))
-        {
-            result[MetadataReferences.Checksum] = MetadataReferences;
-        }
-
-        if (searchingChecksumsLeft.Remove(AnalyzerReferences.Checksum))
-        {
-            result[AnalyzerReferences.Checksum] = AnalyzerReferences;
-        }
-
-        if (searchingChecksumsLeft.Remove(AdditionalDocuments.Checksum))
-        {
-            result[AdditionalDocuments.Checksum] = AdditionalDocuments;
-        }
-
-        if (searchingChecksumsLeft.Remove(AnalyzerConfigDocuments.Checksum))
-        {
-            result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
         }
 
         ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
@@ -313,7 +273,7 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
     public async Task FindAsync(
         TextDocumentState state,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
+        Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
     {
         Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);

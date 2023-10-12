@@ -58,15 +58,15 @@ namespace Microsoft.CodeAnalysis.Remote
             var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 
-            using var _ = PooledDictionary<Checksum, SolutionAsset>.GetInstance(out var assetMap);
+            using var _ = Creator.CreateResultMap(out var resultMap);
 
-            await scope.AddAssetsAsync(checksums, assetMap, cancellationToken).ConfigureAwait(false);
+            await scope.AddAssetsAsync(checksums, resultMap, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             using var stream = new PipeWriterStream(pipeWriter);
             await RemoteHostAssetSerialization.WriteDataAsync(
-                stream, assetMap, serializer, scope.ReplicationContext,
+                stream, resultMap, serializer, scope.ReplicationContext,
                 solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
         }
 
