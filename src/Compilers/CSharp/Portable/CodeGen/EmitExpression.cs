@@ -3682,8 +3682,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Generate branchless IL for (b ? 1 : 0).
             if (used && _ilEmitStyle != ILEmitStyle.Debug &&
                 (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Boolean) &&
-                isIntegralValueZeroOrOne(expr.Consequence) is bool isConsequenceOne &&
-                isIntegralValueZeroOrOne(expr.Alternative) is bool isAlternativeOne &&
+                hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
+                hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
                 isConsequenceOne != isAlternativeOne &&
                 TryEmitComparison(expr.Condition, sense: isConsequenceOne))
             {
@@ -3760,7 +3760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.MarkLabel(doneLabel);
 
-            static bool? isIntegralValueZeroOrOne(BoundExpression expr)
+            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
             {
                 var constantValue = expr.ConstantValueOpt;
                 if (constantValue is not null &&
@@ -3770,16 +3770,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     if (constantValue.IsDefaultValue)
                     {
-                        return false;
+                        isOne = false;
+                        return true;
                     }
 
                     if (constantValue.IsOne)
                     {
+                        isOne = true;
                         return true;
                     }
                 }
 
-                return null;
+                isOne = default;
+                return false;
             }
         }
 
