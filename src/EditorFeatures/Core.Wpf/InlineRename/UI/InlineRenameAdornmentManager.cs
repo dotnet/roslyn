@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 var identifierSelection = new TextSpan(start, length);
 
-                var copilotRenameSession = _smartRenameSessionFactory.Value.CreateSmartRenameSession(originalSpan);
+                var smartRenameSession = _smartRenameSessionFactory.Value.CreateSmartRenameSession(originalSpan);
                 var adornment = new RenameFlyout(
-                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService, copilotRenameSession)),
+                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService, smartRenameSession)),
                     _textView,
                     _themeService,
                     _asyncQuickInfoBroker,

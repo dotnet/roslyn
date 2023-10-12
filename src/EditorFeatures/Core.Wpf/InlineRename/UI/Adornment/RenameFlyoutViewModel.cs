@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             TextSpan selectionSpan,
             bool registerOleComponent,
             IGlobalOptionService globalOptionService,
-            ISmartRenameSession? copilotRenameSession)
+            ISmartRenameSession? smartRenameSession)
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-            if (copilotRenameSession is not null)
+            if (smartRenameSession is not null)
             {
-                SuggestedNamesViewModel = new SuggestedNamesControlViewModel(copilotRenameSession);
+                SuggestedNamesViewModel = new SuggestedNamesControlViewModel(smartRenameSession);
             }
 
             RegisterOleComponent();
