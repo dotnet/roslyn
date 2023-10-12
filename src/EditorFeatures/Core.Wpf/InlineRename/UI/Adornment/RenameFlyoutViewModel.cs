@@ -212,12 +212,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
+            SuggestedNamesViewModel?.Commit(IdentifierText);
             _session.Commit();
             return true;
         }
 
         public void Cancel()
-            => _session.Cancel();
+        {
+            SuggestedNamesViewModel?.Cancel();
+            _session.Cancel();
+        }
 
         public void Dispose()
         {
