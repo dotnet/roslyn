@@ -24,5 +24,9 @@ internal interface ISolutionAssetProvider
     /// <param name="hintProject">Optional project id to scope the search for checksums down to.  This can save
     /// substantially on performance by avoiding having to search the full solution tree to find matching items for
     /// a particular checksum.</param>
-    ValueTask WriteAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken);
+    /// <param name="hintDocument">Optional document id to scope the search for checksums down to.  This can save
+    /// substantially on performance by avoiding having to search the full solution tree to find matching items for
+    /// a particular checksum.</param>
+    ValueTask WriteAssetsAsync(
+        PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, DocumentId? hintDocument, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken);
 }

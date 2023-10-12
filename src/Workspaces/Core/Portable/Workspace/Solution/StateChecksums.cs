@@ -94,10 +94,13 @@ internal sealed class SolutionStateChecksums
     public async Task FindAsync(
         SolutionState state,
         ProjectId? hintProject,
+        DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
     {
+        Contract.ThrowIfTrue(hintDocument != null && hintDocument.ProjectId != hintProject);
+
         cancellationToken.ThrowIfCancellationRequested();
         if (searchingChecksumsLeft.Count == 0)
             return;
@@ -132,7 +135,7 @@ internal sealed class SolutionStateChecksums
             if (projectState != null &&
                 projectState.TryGetStateChecksums(out var projectStateChecksums))
             {
-                await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await projectStateChecksums.FindAsync(projectState, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
         else
@@ -163,7 +166,7 @@ internal sealed class SolutionStateChecksums
                 // It's possible not all all our projects have checksums.  Specifically, we may have only been
                 // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                    await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                    await projectStateChecksums.FindAsync(projectState, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -269,6 +272,7 @@ internal sealed class ProjectStateChecksums(
 
     public async Task FindAsync(
         ProjectState state,
+        DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -312,9 +316,9 @@ internal sealed class ProjectStateChecksums(
         ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
         ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
-        await ChecksumCollection.FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-        await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-        await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        await ChecksumCollection.FindAsync(state.DocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
     }
 }
 

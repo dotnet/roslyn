@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (projectId == null)
             {
                 var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.State, hintProject: null, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, hintProject: null, hintDocument: null, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 foreach (var project in solution.Projects)
                     await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Remote
             else
             {
                 var solutionChecksums = await solution.State.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.State, hintProject: projectId, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, hintProject: projectId, hintDocument: null, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 var project = solution.GetRequiredProject(projectId);
                 await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
