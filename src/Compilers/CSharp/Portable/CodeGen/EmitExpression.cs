@@ -3682,8 +3682,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Generate branchless IL for (b ? 1 : 0).
             if (used && _ilEmitStyle != ILEmitStyle.Debug &&
                 (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Boolean) &&
-                hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
-                hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
+                isIntegralValueZeroOrOne(expr.Consequence) is bool isConsequenceOne &&
+                isIntegralValueZeroOrOne(expr.Alternative) is bool isAlternativeOne &&
                 isConsequenceOne != isAlternativeOne &&
                 TryEmitComparison(expr.Condition, sense: isConsequenceOne))
             {
@@ -3760,31 +3760,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.MarkLabel(doneLabel);
 
-            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
+            static bool? isIntegralValueZeroOrOne(BoundExpression expr)
             {
-                if (expr.ConstantValueOpt is { } constantValue)
+                var constantValue = expr.ConstantValueOpt;
+                if (constantValue is not null &&
+                    (constantValue.IsIntegral ||
+                     constantValue.IsBoolean ||
+                     constantValue.IsChar))
                 {
-                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var i })
+                    if (constantValue.IsDefaultValue)
                     {
-                        isOne = i == 1;
-                        return true;
+                        return false;
                     }
 
-                    if (constantValue is { IsBoolean: true, BooleanValue: var b })
+                    if (constantValue.IsOne)
                     {
-                        isOne = b;
-                        return true;
-                    }
-
-                    if (constantValue is { IsChar: true, CharValue: ((char)1 or (char)0) and var c })
-                    {
-                        isOne = c == 1;
                         return true;
                     }
                 }
 
-                isOne = false;
-                return false;
+                return null;
             }
         }
 

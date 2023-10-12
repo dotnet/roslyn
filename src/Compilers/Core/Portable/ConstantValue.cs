@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis
 
         // returns true if value is in its default (zero-inited) form.
         public virtual bool IsDefaultValue { get { return false; } }
+        public virtual bool IsOne { get { return false; } }
 
         // NOTE: We do not have IsNumericZero. 
         //       The reason is that integral zeroes are same as default values
@@ -117,6 +118,10 @@ namespace Microsoft.CodeAnalysis
             if (value == default(char))
             {
                 return ConstantValueDefault.Char;
+            }
+            else if (value == (char)1)
+            {
+                return ConstantValueOne.Char;
             }
 
             return new ConstantValueI16(value);
