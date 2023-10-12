@@ -156,14 +156,19 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// create checksum to correspoing object map from project
-        /// this map should contain every parts of project that can be used to re-create the project back
+        /// create checksum to corresponding object map from project this map should contain every parts of project that
+        /// can be used to re-create the project back
         /// </summary>
         public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
         {
             var map = new Dictionary<Checksum, object>();
 
             await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+
+            // don't include the root checksum itself.  it's not one of the assets of the actual project.
+            var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            map.Remove(projectStateChecksums.Checksum);
+
             return map;
         }
 
