@@ -32,7 +32,7 @@
         BorderThickness="1"
         x:Name="Outline">
         <StackPanel x:Name="MainPanel" Orientation="Vertical" Margin="5" >
-            <Grid Margin="0 0 0 10">
+            <Grid x:Name="IdentifierAndExpandButtonGrid" Margin="0 0 0 10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="22" />

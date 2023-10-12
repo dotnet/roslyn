@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 {
@@ -15,6 +16,22 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
         {
             InitializeComponent();
             DataContext = viewModel;
+        }
+
+        internal SuggestedNamesControl(TestViewModel viewModel)
+        {
+            InitializeComponent();
+            DataContext = viewModel;
+        }
+
+        private void Border_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        private void Border_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+
         }
     }
 }

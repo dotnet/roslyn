@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
@@ -16,12 +17,13 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
         private readonly ISmartRenameSession _smartRenameSession;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
-        public SuggestedNamesControlViewModel(ISmartRenameSession smartRenameSession)
+        public SuggestedNamesControlViewModel(
+            ISmartRenameSession smartRenameSession)
         {
             _smartRenameSession = smartRenameSession;
             _smartRenameSession.PropertyChanged += SessionPropertyChanged;
             _cancellationTokenSource = new();
-            _ = Task.Run(() => smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
+            smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
         }
 
         private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)

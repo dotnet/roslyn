@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (_viewModel.SuggestedNamesViewModel is not null)
             {
-                var idx = MainPanel.Children.IndexOf(IdentifierTextBox);
-                MainPanel.Children.Insert(idx + 1, new SuggestedNamesControl(_viewModel.SuggestedNamesViewModel));
+                var idx = MainPanel.Children.IndexOf(IdentifierAndExpandButtonGrid);
+                MainPanel.Children.Insert(idx + 1, new SuggestedNamesControl(new TestViewModel()));
             }
 
             // Dismiss any current tooltips. Note that this does not disable tooltips
