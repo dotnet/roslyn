@@ -57,13 +57,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, object asset, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(asset);
                 var kind = asset.GetWellKnownSynchronizationKind();
-                Contract.ThrowIfTrue(kind == WellKnownSynchronizationKind.Null);
                 writer.WriteInt32((int)kind);
 
-                // null is already indicated by checksum and kind above:
-                if (asset is not null)
-                    serializer.Serialize(asset, writer, context, cancellationToken);
+                serializer.Serialize(asset, writer, context, cancellationToken);
             }
         }
 

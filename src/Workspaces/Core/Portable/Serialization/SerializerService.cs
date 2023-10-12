@@ -71,9 +71,6 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    return Checksum.Null;
-
                 case WellKnownSynchronizationKind.CompilationOptions:
                 case WellKnownSynchronizationKind.ParseOptions:
                 case WellKnownSynchronizationKind.ProjectReference:
@@ -110,10 +107,6 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    // do nothing
-                    return;
-
                 case WellKnownSynchronizationKind.SolutionAttributes:
                 case WellKnownSynchronizationKind.ProjectAttributes:
                 case WellKnownSynchronizationKind.DocumentAttributes:
@@ -182,9 +175,6 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    return default;
-
                 case WellKnownSynchronizationKind.SolutionState:
                     return (T)(object)SolutionStateChecksums.Deserialize(reader);
 
