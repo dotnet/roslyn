@@ -2552,7 +2552,7 @@ outerDefault:
         }
 
         // Implements the rules for
-        // - E is a collection expression and one of the following holds:
+        // - E is a collection expression and one of the following holds: ...
         private bool IsBetterCollectionExpressionConversion(TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             TypeSymbol elementType1;
