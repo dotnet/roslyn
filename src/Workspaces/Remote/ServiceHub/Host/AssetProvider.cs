@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var checksums = pooledObject.Object;
             checksums.Add(checksum);
 
-            var syncer = new ChecksumSynchronizer(this);
-            await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            await this.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
             return GetRequiredAsset<T>(checksum);
         }
