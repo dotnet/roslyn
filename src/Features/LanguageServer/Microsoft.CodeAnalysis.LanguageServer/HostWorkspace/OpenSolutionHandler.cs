@@ -6,6 +6,7 @@ using System.Composition;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -15,12 +16,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolutionHandler.NotificationParams>
 {
     private readonly LanguageServerProjectSystem _projectSystem;
+    private readonly IAsynchronousOperationListener _listener;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public OpenSolutionHandler(LanguageServerProjectSystem projectSystem)
+    public OpenSolutionHandler(LanguageServerProjectSystem projectSystem, IAsynchronousOperationListenerProvider listenerProvider)
     {
         _projectSystem = projectSystem;
+        _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
     }
 
     public bool MutatesSolutionState => false;
@@ -28,6 +31,7 @@ internal class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolution
 
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
+        using var token = _listener.BeginAsyncOperation(nameof(OpenSolutionHandler));
         return _projectSystem.OpenSolutionAsync(request.Solution.LocalPath);
     }
 

@@ -6,6 +6,7 @@ using System.Composition;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
@@ -17,11 +18,14 @@ internal class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHa
 {
     private readonly LanguageServerProjectSystem _projectSystem;
 
+    private readonly IAsynchronousOperationListener _listener;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public OpenProjectHandler(LanguageServerProjectSystem projectSystem)
+    public OpenProjectHandler(LanguageServerProjectSystem projectSystem, IAsynchronousOperationListenerProvider listenerProvider)
     {
         _projectSystem = projectSystem;
+        _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
     }
 
     public bool MutatesSolutionState => false;
@@ -29,6 +33,7 @@ internal class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHa
 
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
+        using var token = _listener.BeginAsyncOperation(nameof(OpenProjectHandler));
         return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => p.LocalPath));
     }
 
