@@ -19,23 +19,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// This service provide a way to get roslyn objects from checksum
     /// </summary>
-    internal sealed class AssetProvider : AbstractAssetProvider
+    internal sealed class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
+        : AbstractAssetProvider
     {
-        private readonly Checksum _solutionChecksum;
-        private readonly ISerializerService _serializerService;
-        private readonly SolutionAssetCache _assetCache;
-        private readonly IAssetSource _assetSource;
-
-        public AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
-        {
-            _solutionChecksum = solutionChecksum;
-            _assetCache = assetCache;
-            _assetSource = assetSource;
-            _serializerService = serializerService;
-        }
+        private readonly Checksum _solutionChecksum = solutionChecksum;
+        private readonly ISerializerService _serializerService = serializerService;
+        private readonly SolutionAssetCache _assetCache = assetCache;
+        private readonly IAssetSource _assetSource = assetSource;
 
         public T GetRequiredAsset<T>(Checksum checksum)
         {
+            Contract.ThrowIfTrue(checksum == Checksum.Null);
             Contract.ThrowIfFalse(_assetCache.TryGetAsset<T>(checksum, out var asset));
             return asset;
         }
@@ -44,30 +38,27 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfTrue(checksum == Checksum.Null);
             if (_assetCache.TryGetAsset<T>(checksum, out var asset))
-            {
                 return asset;
-            }
 
-            using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
-            {
-                var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            var checksums = pooledObject.Object;
+            checksums.Add(checksum);
 
-                // Attempt to add the value to the cache.  If someone else beat us, we'll return their value.
-                return (T)_assetCache.GetOrAdd(checksum, value);
-            }
+            await this.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+
+            return GetRequiredAsset<T>(checksum);
         }
 
         public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
-            // this only works when caller wants to get same kind of assets at once
-
             // bulk synchronize checksums first
             var syncer = new ChecksumSynchronizer(this);
             await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
+            // this will be fast since we actually synchronized the checksums above.
             using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
             foreach (var checksum in checksums)
-                list.Add(ValueTuple.Create(checksum, await GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false)));
+                list.Add(ValueTuple.Create(checksum, GetRequiredAsset<T>(checksum)));
 
             return list.ToImmutableAndClear();
         }
@@ -100,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<Checksum> projectChecksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeProjectAssetsAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
         {
             // this will pull in assets that belong to the given project checksum to this remote host.
             // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
@@ -110,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // one can call this method to make cache hot for all assets that belong to the project checksum so that GetAssetAsync call will most likely cache hit.
             // it is most likely since we might change cache hueristic in future which make data to live a lot shorter in the cache, and the data might get expired
             // before one actually consume the data. 
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, Checksum.GetChecksumsLogInfo, projectChecksums, cancellationToken))
+            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, Checksum.GetProjectChecksumsLogInfo, projectChecksums, cancellationToken))
             {
                 var syncer = new ChecksumSynchronizer(this);
                 await syncer.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
@@ -140,13 +131,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 for (int i = 0, n = assets.Length; i < n; i++)
                     _assetCache.GetOrAdd(checksumsArray[i], assets[i]);
             }
-        }
-
-        private async ValueTask<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfTrue(checksum == Checksum.Null);
-            var assets = await RequestAssetsAsync(ImmutableArray.Create(checksum), cancellationToken).ConfigureAwait(false);
-            return assets.Single();
         }
 
         private async ValueTask<ImmutableArray<object>> RequestAssetsAsync(ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)

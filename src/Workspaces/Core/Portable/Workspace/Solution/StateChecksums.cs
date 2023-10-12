@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -113,7 +114,8 @@ internal sealed class SolutionStateChecksums(
     }
 }
 
-internal class ProjectStateChecksums(
+internal sealed class ProjectStateChecksums(
+    ProjectId projectId,
     Checksum infoChecksum,
     Checksum compilationOptionsChecksum,
     Checksum parseOptionsChecksum,
@@ -122,7 +124,7 @@ internal class ProjectStateChecksums(
     ChecksumCollection metadataReferenceChecksums,
     ChecksumCollection analyzerReferenceChecksums,
     ChecksumCollection additionalDocumentChecksums,
-    ChecksumCollection analyzerConfigDocumentChecksums) : IChecksummedObject
+    ChecksumCollection analyzerConfigDocumentChecksums) : IChecksummedObject, IEquatable<ProjectStateChecksums>
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
@@ -137,6 +139,8 @@ internal class ProjectStateChecksums(
         analyzerConfigDocumentChecksums.Checksum.Hash,
     });
 
+    public ProjectId ProjectId => projectId;
+
     public Checksum Info => infoChecksum;
     public Checksum CompilationOptions => compilationOptionsChecksum;
     public Checksum ParseOptions => parseOptionsChecksum;
@@ -149,6 +153,15 @@ internal class ProjectStateChecksums(
 
     public ChecksumCollection AdditionalDocuments => additionalDocumentChecksums;
     public ChecksumCollection AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
+
+    public override bool Equals(object? obj)
+        => Equals(obj as ProjectStateChecksums);
+
+    public bool Equals(ProjectStateChecksums? obj)
+        => this.Checksum == obj?.Checksum;
+
+    public override int GetHashCode()
+        => this.Checksum.GetHashCode();
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
@@ -168,6 +181,8 @@ internal class ProjectStateChecksums(
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
+
+        this.ProjectId.WriteTo(writer);
         this.Info.WriteTo(writer);
         this.CompilationOptions.WriteTo(writer);
         this.ParseOptions.WriteTo(writer);
@@ -183,6 +198,7 @@ internal class ProjectStateChecksums(
     {
         var checksum = Checksum.ReadFrom(reader);
         var result = new ProjectStateChecksums(
+            projectId: ProjectId.ReadFrom(reader),
             infoChecksum: Checksum.ReadFrom(reader),
             compilationOptionsChecksum: Checksum.ReadFrom(reader),
             parseOptionsChecksum: Checksum.ReadFrom(reader),
@@ -242,23 +258,22 @@ internal class ProjectStateChecksums(
     }
 }
 
-internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum) : IChecksummedObject
+internal sealed class DocumentStateChecksums(
+    DocumentId documentId,
+    Checksum infoChecksum,
+    Checksum textChecksum) : IChecksummedObject
 {
     public Checksum Checksum { get; } = Checksum.Create(infoChecksum, textChecksum);
+
+    public DocumentId DocumentId => documentId;
     public Checksum Info => infoChecksum;
     public Checksum Text => textChecksum;
-
-    public void AddAllTo(HashSet<Checksum> checksums)
-    {
-        checksums.AddIfNotNullChecksum(this.Checksum);
-        checksums.AddIfNotNullChecksum(this.Info);
-        checksums.AddIfNotNullChecksum(this.Text);
-    }
 
     public void Serialize(ObjectWriter writer)
     {
         // We don't write out the checksum itself as it would bloat the size of this message. If there is corruption
         // (which should never ever happen), it will be detected at the project level.
+        this.DocumentId.WriteTo(writer);
         this.Info.WriteTo(writer);
         this.Text.WriteTo(writer);
     }
@@ -266,6 +281,7 @@ internal sealed class DocumentStateChecksums(Checksum infoChecksum, Checksum tex
     public static DocumentStateChecksums Deserialize(ObjectReader reader)
     {
         return new DocumentStateChecksums(
+            documentId: DocumentId.ReadFrom(reader),
             infoChecksum: Checksum.ReadFrom(reader),
             textChecksum: Checksum.ReadFrom(reader));
     }
