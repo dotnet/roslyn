@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var checksum in checksums)
                 {
                     items.Add(new KeyValuePair<Checksum, object>(checksum, await assetService.GetAssetAsync<object>(
-                        hintProject: null, checksum, CancellationToken.None).ConfigureAwait(false)));
+                        assetHint: AssetHint.None, checksum, CancellationToken.None).ConfigureAwait(false)));
                 }
 
                 return items;
@@ -115,19 +115,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 var set = new HashSet<Checksum>();
 
                 var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(
-                    hintProject: null, solutionChecksum, CancellationToken.None).ConfigureAwait(false);
+                    assetHint: AssetHint.None, solutionChecksum, CancellationToken.None).ConfigureAwait(false);
                 solutionChecksums.AddAllTo(set);
 
                 foreach (var projectChecksum in solutionChecksums.Projects)
                 {
                     var projectChecksums = await assetService.GetAssetAsync<ProjectStateChecksums>(
-                        hintProject: null, projectChecksum, CancellationToken.None).ConfigureAwait(false);
+                        assetHint: AssetHint.None, projectChecksum, CancellationToken.None).ConfigureAwait(false);
                     projectChecksums.AddAllTo(set);
 
                     foreach (var documentChecksum in projectChecksums.Documents.Concat(projectChecksums.AdditionalDocuments).Concat(projectChecksums.AnalyzerConfigDocuments))
                     {
                         var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(
-                            hintProject: projectChecksums.ProjectId, documentChecksum, CancellationToken.None).ConfigureAwait(false);
+                            assetHint: projectChecksums.ProjectId, documentChecksum, CancellationToken.None).ConfigureAwait(false);
                         AddAllTo(documentChecksums, set);
                     }
                 }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (projectId == null)
             {
                 var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.State, hintProject: null, hintDocument: null, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, assetHint: AssetHint.None, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 foreach (var project in solution.Projects)
                     await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Remote
             else
             {
                 var solutionChecksums = await solution.State.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.State, hintProject: projectId, hintDocument: null, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, assetHint: projectId, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 var project = solution.GetRequiredProject(projectId);
                 await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             var projectChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            await projectChecksums.FindAsync(project.State, Flatten(projectChecksums), map, cancellationToken).ConfigureAwait(false);
+            await projectChecksums.FindAsync(project.State, hintDocument: null, Flatten(projectChecksums), map, cancellationToken).ConfigureAwait(false);
 
             foreach (var document in project.Documents.Concat(project.AdditionalDocuments).Concat(project.AnalyzerConfigDocuments))
             {

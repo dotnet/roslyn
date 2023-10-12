@@ -6,9 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,6 +15,26 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
+
+[DataContract]
+internal readonly struct AssetHint
+{
+    public static readonly AssetHint None = default;
+
+    [DataMember(Order = 0)]
+    public readonly ProjectId? ProjectId;
+    [DataMember(Order = 1)]
+    public readonly DocumentId? DocumentId;
+
+    private AssetHint(ProjectId? projectId, DocumentId? documentId)
+    {
+        ProjectId = projectId;
+        DocumentId = documentId;
+    }
+
+    public static implicit operator AssetHint(ProjectId projectId) => new(projectId, documentId: null);
+    public static implicit operator AssetHint(DocumentId documentId) => new(documentId.ProjectId, documentId);
+}
 
 internal sealed class SolutionStateChecksums
 {
@@ -93,14 +112,11 @@ internal sealed class SolutionStateChecksums
 
     public async Task FindAsync(
         SolutionState state,
-        ProjectId? hintProject,
-        DocumentId? hintDocument,
+        AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue(hintDocument != null && hintDocument.ProjectId != hintProject);
-
         cancellationToken.ThrowIfCancellationRequested();
         if (searchingChecksumsLeft.Count == 0)
             return;
@@ -129,17 +145,19 @@ internal sealed class SolutionStateChecksums
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        if (hintProject != null)
+        if (assetHint.ProjectId != null)
         {
-            var projectState = state.GetProjectState(hintProject);
+            var projectState = state.GetProjectState(assetHint.ProjectId);
             if (projectState != null &&
                 projectState.TryGetStateChecksums(out var projectStateChecksums))
             {
-                await projectStateChecksums.FindAsync(projectState, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await projectStateChecksums.FindAsync(projectState, assetHint.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
         else
         {
+            Contract.ThrowIfTrue(assetHint.DocumentId != null);
+
             // Before doing a depth-first-search *into* each project, first run across all the project at their top level.
             // This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums' instance
             // that we don't unnecessarily walk all documents looking just for those.
@@ -166,7 +184,7 @@ internal sealed class SolutionStateChecksums
                 // It's possible not all all our projects have checksums.  Specifically, we may have only been
                 // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                    await projectStateChecksums.FindAsync(projectState, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                    await projectStateChecksums.FindAsync(projectState, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
     }

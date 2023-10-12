@@ -19,11 +19,11 @@ internal sealed partial class AssetProvider
 
         private readonly AssetProvider _assetProvider = assetProvider;
 
-        public async ValueTask SynchronizeAssetsAsync(ProjectId? hintProject, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeAssetsAsync(AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                await _assetProvider.SynchronizeAssetsAsync(hintProject, checksums, cancellationToken).ConfigureAwait(false);
+                await _assetProvider.SynchronizeAssetsAsync(assetHint, checksums, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -36,7 +36,7 @@ internal sealed partial class AssetProvider
 
                 // first, get solution checksum object for the given solution checksum
                 solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                    hintProject: null, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                    assetHint: AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 // second, get direct children of the solution
                 {
@@ -45,7 +45,7 @@ internal sealed partial class AssetProvider
 
                     solutionChecksumObject.AddAllTo(checksums);
                     checksums.Remove(solutionChecksumObject.Checksum);
-                    await _assetProvider.SynchronizeAssetsAsync(hintProject: null, checksums, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.SynchronizeAssetsAsync(assetHint: AssetHint.None, checksums, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -82,7 +82,7 @@ internal sealed partial class AssetProvider
             AddAll(checksums, projectChecksum.AnalyzerConfigDocuments);
 
             await _assetProvider.SynchronizeAssetsAsync(
-                hintProject: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
+                assetHint: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
 
             checksums.Clear();
 
@@ -91,7 +91,7 @@ internal sealed partial class AssetProvider
             CollectChecksumChildren(this, projectChecksum.AnalyzerConfigDocuments);
 
             await _assetProvider.SynchronizeAssetsAsync(
-                hintProject: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
+                assetHint: projectChecksum.ProjectId, checksums, cancellationToken).ConfigureAwait(false);
 
             void CollectChecksumChildren(ChecksumSynchronizer @this, ChecksumCollection collection)
             {
