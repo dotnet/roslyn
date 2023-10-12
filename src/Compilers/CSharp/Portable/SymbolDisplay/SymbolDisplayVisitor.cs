@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
@@ -17,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor
     {
         private readonly bool _escapeKeywordIdentifiers;
-        private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> _lazyAliasMap;
+        private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol>? _lazyAliasMap;
 
         internal SymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
-            SemanticModel semanticModelOpt,
+            SemanticModel? semanticModelOpt,
             int positionOpt)
             : base(builder, format, true, semanticModelOpt, positionOpt)
         {
@@ -32,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
-            SemanticModel semanticModelOpt,
+            SemanticModel? semanticModelOpt,
             int positionOpt,
             bool escapeKeywordIdentifiers,
-            IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> aliasMap,
+            IDictionary<INamespaceOrTypeSymbol, IAliasSymbol>? aliasMap,
             bool isFirstSymbolVisited,
             bool inNamespaceOrType = false)
             : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inNamespaceOrType: inNamespaceOrType);
         }
 
-        internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+        internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol? symbol, string text)
         {
             text = (text == null) ? "?" :
                    (_escapeKeywordIdentifiers && IsEscapable(kind)) ? EscapeIdentifier(text) : text;
@@ -256,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                ITypeSymbol type = GetRangeVariableType(symbol);
+                ITypeSymbol? type = GetRangeVariableType(symbol);
 
                 if (type != null && type.TypeKind != TypeKind.Error)
                 {
@@ -381,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included;
         }
 
-        private bool IncludeNamedType(INamedTypeSymbol namedType)
+        private bool IncludeNamedType([NotNullWhen(true)] INamedTypeSymbol? namedType)
         {
             if (namedType is null)
             {

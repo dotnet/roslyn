@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,17 +16,17 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected readonly bool isFirstSymbolVisited;
         protected readonly bool inNamespaceOrType;
 
-        protected readonly SemanticModel semanticModelOpt;
+        protected readonly SemanticModel? semanticModelOpt;
         protected readonly int positionOpt;
 
-        private AbstractSymbolDisplayVisitor _lazyNotFirstVisitor;
-        private AbstractSymbolDisplayVisitor _lazyNotFirstVisitorNamespaceOrType;
+        private AbstractSymbolDisplayVisitor? _lazyNotFirstVisitor;
+        private AbstractSymbolDisplayVisitor? _lazyNotFirstVisitorNamespaceOrType;
 
         protected AbstractSymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
             bool isFirstSymbolVisited,
-            SemanticModel semanticModelOpt,
+            SemanticModel? semanticModelOpt,
             int positionOpt,
             bool inNamespaceOrType = false)
         {
@@ -107,6 +105,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
         private void AddEnumConstantValue(INamedTypeSymbol enumType, object constantValue, bool preferNumericValueOrExpandedFlags)
         {
+            Debug.Assert(enumType.EnumUnderlyingType is not null);
+
             // Code copied from System.Enum            
             var isFlagsEnum = IsFlagsEnum(enumType);
             if (isFlagsEnum)
@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             ArrayBuilder<EnumField> usedFieldsAndValues,
             bool preferNumericValueOrExpandedFlags)
         {
+            Debug.Assert(enumType.EnumUnderlyingType is not null);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                         AddSpace();
                     }
 
-                    ((IFieldSymbol)usedFieldsAndValues[i].IdentityOpt).Accept(this.NotFirstVisitor);
+                    ((IFieldSymbol)usedFieldsAndValues[i].IdentityOpt!).Accept(this.NotFirstVisitor);
                 }
             }
             else
@@ -250,6 +251,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                     : default(EnumField);
                 if (!zeroField.IsDefault)
                 {
+                    Debug.Assert(zeroField.IdentityOpt is not null);
                     ((IFieldSymbol)zeroField.IdentityOpt).Accept(this.NotFirstVisitor);
                 }
                 else
@@ -264,6 +266,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             INamedTypeSymbol enumType,
             ArrayBuilder<EnumField> enumFields)
         {
+            Debug.Assert(enumType.EnumUnderlyingType is not null);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             foreach (var member in enumType.GetMembers())
             {
@@ -283,6 +286,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
         private void AddNonFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
+            Debug.Assert(enumType.EnumUnderlyingType is not null);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
@@ -293,6 +297,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             var match = EnumField.FindValue(enumFields, constantValueULong);
             if (!match.IsDefault)
             {
+                Debug.Assert(match.IdentityOpt is not null);
                 ((IFieldSymbol)match.IdentityOpt).Accept(this.NotFirstVisitor);
             }
             else

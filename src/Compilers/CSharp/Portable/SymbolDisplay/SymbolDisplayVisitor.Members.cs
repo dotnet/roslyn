@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return getMethod is object || setMethod is object;
         }
 
-        private static bool ShouldMethodDisplayReadOnly(IMethodSymbol method, IPropertySymbol propertyOpt = null)
+        private static bool ShouldMethodDisplayReadOnly(IMethodSymbol method, IPropertySymbol? propertyOpt = null)
         {
             if (method.ContainingType?.IsReadOnly == true)
             {
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsInitOnly(IMethodSymbol symbol)
+        private static bool IsInitOnly([NotNullWhen(true)] IMethodSymbol? symbol)
         {
             return symbol?.IsInitOnly == true;
         }
@@ -287,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbol.MethodKind == MethodKind.ReducedExtension && format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.StaticMethod)
                 {
-                    symbol = symbol.GetConstructedReducedFrom();
+                    symbol = symbol.GetConstructedReducedFrom()!;
                 }
                 else if (symbol.MethodKind != MethodKind.ReducedExtension && format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.InstanceMethod)
                 {
@@ -301,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // symbol then we do not know its accessibility, modifiers, etc, all of which require knowing
             // the containing type, so we'll skip them.
 
-            if ((object)symbol.ContainingType != null || (symbol.ContainingSymbol is ITypeSymbol))
+            if ((object?)symbol.ContainingType != null || (symbol.ContainingSymbol is ITypeSymbol))
             {
                 AddAccessibilityIfNeeded(symbol);
                 AddMemberModifiersIfNeeded(symbol);
@@ -373,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeContainingType))
                 {
-                    ITypeSymbol containingType;
+                    ITypeSymbol? containingType;
                     bool includeType;
 
                     if (symbol.MethodKind == MethodKind.LocalFunction)
@@ -391,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         containingType = symbol.ContainingType;
 
-                        if ((object)containingType != null)
+                        if ((object?)containingType != null)
                         {
                             includeType = IncludeNamedType(symbol.ContainingType);
                         }
@@ -404,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (includeType)
                     {
-                        containingType.Accept(this.NotFirstVisitor);
+                        containingType!.Accept(this.NotFirstVisitor);
                         AddPunctuation(SyntaxKind.DotToken);
                     }
                 }
@@ -432,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.PropertySet:
                     {
                         isAccessor = true;
-                        var associatedProperty = (IPropertySymbol)symbol.AssociatedSymbol;
+                        var associatedProperty = (IPropertySymbol?)symbol.AssociatedSymbol;
                         if (associatedProperty == null)
                         {
                             goto case MethodKind.Ordinary;
@@ -447,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.EventRemove:
                     {
                         isAccessor = true;
-                        var associatedEvent = (IEventSymbol)symbol.AssociatedSymbol;
+                        var associatedEvent = (IEventSymbol?)symbol.AssociatedSymbol;
                         if (associatedEvent == null)
                         {
                             goto case MethodKind.Ordinary;
@@ -867,9 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
-
-        private static bool CanAddConstant(ITypeSymbol type, object value)
+        private static bool CanAddConstant(ITypeSymbol type, object? value)
         {
             if (type.TypeKind == TypeKind.Enum)
             {
@@ -1016,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddAccessor(IPropertySymbol property, IMethodSymbol method, SyntaxKind keyword)
+        private void AddAccessor(IPropertySymbol property, IMethodSymbol? method, SyntaxKind keyword)
         {
             if (method != null)
             {

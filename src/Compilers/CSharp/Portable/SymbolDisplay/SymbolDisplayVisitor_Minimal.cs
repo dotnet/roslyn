@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -25,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var alias = GetAliasSymbol(symbol);
             if (alias != null)
             {
+                Debug.Assert(IsMinimizing);
+
                 // We must verify that the alias actually binds back to the thing it's aliasing.
                 // It's possible there's another symbol with the same name as the alias that binds
                 // first
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (boundSymbols.Length == 1)
                 {
                     var boundAlias = boundSymbols[0] as IAliasSymbol;
-                    if ((object)boundAlias != null && alias.Target.Equals(symbol))
+                    if ((object?)boundAlias != null && alias.Target.Equals(symbol))
                     {
                         builder.Add(CreatePart(SymbolDisplayPartKind.AliasName, alias, aliasName));
                         return true;
@@ -48,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
         {
+            Debug.Assert(IsMinimizing);
+
             var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
             var startNode = token.Parent;
 
@@ -56,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MinimallyQualify(INamespaceSymbol symbol)
         {
+            Debug.Assert(IsMinimizing);
+
             // only the global namespace does not have a containing namespace
             Debug.Assert(symbol.ContainingNamespace != null || symbol.IsGlobalNamespace);
 
@@ -124,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!(symbol.IsAnonymousType || symbol.IsTupleType))
             {
+                Debug.Assert(IsMinimizing);
+
                 if (!NameBoundSuccessfullyToSameSymbol(symbol))
                 {
                     // Just the name alone didn't bind properly.  Add our minimally qualified parent (if
@@ -186,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var token = semanticModel.SyntaxTree.GetRoot().FindToken(position);
-            var startNode = token.Parent;
+            var startNode = token.Parent!;
 
             // NOTE(cyrusn): If we're currently in a block of usings, then we want to collect the
             // aliases that are higher up than this block.  Using aliases declared in a block of
@@ -194,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var usingDirective = GetAncestorOrThis<UsingDirectiveSyntax>(startNode);
             if (usingDirective != null)
             {
-                startNode = usingDirective.Parent.Parent;
+                startNode = usingDirective.Parent!.Parent!;
             }
 
             var usingAliases = GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>(startNode)
@@ -202,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
                 .Where(u => u.Alias != null)
                 .Select(u => semanticModel.GetDeclaredSymbol(u) as IAliasSymbol)
-                .Where(u => u != null);
+                .WhereNotNull();
 
             var builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();
             foreach (var alias in usingAliases)
@@ -216,9 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutable();
         }
 
-        private ITypeSymbol GetRangeVariableType(IRangeVariableSymbol symbol)
+        private ITypeSymbol? GetRangeVariableType(IRangeVariableSymbol symbol)
         {
-            ITypeSymbol type = null;
+            ITypeSymbol? type = null;
 
             if (this.IsMinimizing && !symbol.Locations.IsEmpty)
             {
@@ -248,11 +253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 
-        private static QueryBodySyntax GetQueryBody(SyntaxToken token) =>
+        private static QueryBodySyntax? GetQueryBody(SyntaxToken token) =>
             token.Parent switch
             {
                 FromClauseSyntax fromClause when fromClause.Identifier == token =>
-                    fromClause.Parent as QueryBodySyntax ?? ((QueryExpressionSyntax)fromClause.Parent).Body,
+                    fromClause.Parent as QueryBodySyntax ?? ((QueryExpressionSyntax)fromClause.Parent!).Body,
                 LetClauseSyntax letClause when letClause.Identifier == token =>
                     letClause.Parent as QueryBodySyntax,
                 JoinClauseSyntax joinClause when joinClause.Identifier == token =>
@@ -268,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) &&
                 semanticModelOpt.Compilation.IsAttributeType(symbol))
             {
-                string nameWithoutAttributeSuffix;
+                string? nameWithoutAttributeSuffix;
                 if (symbolName.TryGetWithoutAttributeSuffix(out nameWithoutAttributeSuffix))
                 {
                     var token = SyntaxFactory.ParseToken(nameWithoutAttributeSuffix);
@@ -282,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbolName;
         }
 
-        private static T GetAncestorOrThis<T>(SyntaxNode node) where T : SyntaxNode
+        private static T? GetAncestorOrThis<T>(SyntaxNode node) where T : SyntaxNode
         {
             return GetAncestorsOrThis<T>(node).FirstOrDefault();
         }
@@ -309,9 +314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private IAliasSymbol GetAliasSymbol(INamespaceOrTypeSymbol symbol)
+        private IAliasSymbol? GetAliasSymbol(INamespaceOrTypeSymbol symbol)
         {
-            IAliasSymbol result;
+            IAliasSymbol? result;
             return AliasMap.TryGetValue(symbol, out result) ? result : null;
         }
     }

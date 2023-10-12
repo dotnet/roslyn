@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
 
@@ -248,6 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (CanShowDelegateSignature(symbol))
             {
+                Debug.Assert(symbol.DelegateInvokeMethod is not null);
+
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
                     var invokeMethod = symbol.DelegateInvokeMethod;
@@ -334,11 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            string symbolName = null;
+            string? symbolName = null;
 
             // It would be nice to handle VB NoPia symbols too, but it's not worth the effort.
 
-            NamedTypeSymbol underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
+            NamedTypeSymbol? underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
             var illegalGenericInstantiationSymbol = underlyingTypeSymbol as NoPiaIllegalGenericInstantiationSymbol;
 
             if (illegalGenericInstantiationSymbol is not null)
@@ -432,11 +430,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<ImmutableArray<CustomModifier>> GetTypeArgumentsModifiers(NamedTypeSymbol underlyingTypeSymbol)
+        private ImmutableArray<ImmutableArray<CustomModifier>> GetTypeArgumentsModifiers(NamedTypeSymbol? underlyingTypeSymbol)
         {
             if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
             {
-                if ((object)underlyingTypeSymbol != null)
+                if ((object?)underlyingTypeSymbol != null)
                 {
                     return underlyingTypeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers);
                 }
@@ -449,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (CanShowDelegateSignature(symbol))
             {
+                Debug.Assert(symbol.DelegateInvokeMethod is not null);
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndParameters ||
                     format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
@@ -514,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool containsModopt(INamedTypeSymbol symbol)
             {
-                NamedTypeSymbol underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
+                NamedTypeSymbol? underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
                 ImmutableArray<ImmutableArray<CustomModifier>> modifiers = GetTypeArgumentsModifiers(underlyingTypeSymbol);
                 if (modifiers.IsDefault)
                 {
@@ -633,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static string GetSpecialTypeName(INamedTypeSymbol symbol)
+        private static string? GetSpecialTypeName(INamedTypeSymbol symbol)
         {
             switch (symbol.SpecialType)
             {
