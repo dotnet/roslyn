@@ -16,6 +16,14 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 {
+    protected abstract Solution? GetChangedSolution(
+        Workspace workspace,
+        Solution currentSolution,
+        Solution newSolution,
+        string fixAllPreviewChangesTitle,
+        string fixAllTopLevelHeader,
+        Glyph glyph);
+
     public async Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
     {
         var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
@@ -96,7 +104,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
     public Solution? PreviewChanges(
         Workspace workspace,
         Solution currentSolution,
-        Solution? newSolution,
+        Solution newSolution,
         FixAllKind fixAllKind,
         string previewChangesTitle,
         string topLevelHeader,
@@ -145,17 +153,6 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             FixAllLogger.LogPreviewChangesResult(fixAllKind, correlationId, applied: true, allChangesApplied: changedSolution == newSolution);
             return changedSolution;
         }
-    }
-
-    protected virtual Solution? GetChangedSolution(
-        Workspace workspace,
-        Solution currentSolution,
-        Solution? newSolution,
-        string fixAllPreviewChangesTitle,
-        string fixAllTopLevelHeader,
-        Glyph glyph)
-    {
-        return currentSolution;
     }
 
     private static async Task<CodeAction?> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
