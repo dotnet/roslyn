@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             TextSpan selectionSpan,
             bool registerOleComponent,
             IGlobalOptionService globalOptionService,
-            ISmartRenameSession? copilotRenameSession)
+            ISmartRenameSession? copilotRenameSession = null)
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
@@ -196,6 +197,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool IsRenameOverloadsVisible
             => _session.HasRenameOverloads;
+
+        public ISmartRenameSession? CopilotRenameSession => _copilotRenameSession;
 
         public TextSpan StartingSelection { get; }
 

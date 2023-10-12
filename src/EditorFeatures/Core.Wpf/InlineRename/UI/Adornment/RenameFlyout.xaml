@@ -31,14 +31,13 @@
     <Border 
         BorderThickness="1"
         x:Name="Outline">
-        <StackPanel Orientation="Vertical" Margin="5" >
+        <StackPanel x:Name="MainPanel" Orientation="Vertical" Margin="5" >
             <Grid Margin="0 0 0 10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="22" />
                 </Grid.ColumnDefinitions>
 
-                
                 <TextBox 
                     Grid.Column="0"
                     x:Name="IdentifierTextBox" 

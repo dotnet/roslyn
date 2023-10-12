@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
@@ -60,6 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
                 Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+            }
+
+            if (_viewModel.CopilotRenameSession is not null)
+            {
+                var idx = MainPanel.Children.IndexOf(IdentifierTextBox);
+                MainPanel.Children.Insert(idx + 1, new SuggestedNamesControl(new SuggestedNamesControlViewModel(_viewModel.CopilotRenameSession)));
             }
 
             // Dismiss any current tooltips. Note that this does not disable tooltips
