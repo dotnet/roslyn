@@ -58,35 +58,16 @@ namespace Microsoft.CodeAnalysis.Remote
             var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 
-            SolutionAsset? singleAsset = null;
-            PooledDictionary<Checksum, SolutionAsset>? assetMap = null;
+            using var _ = PooledDictionary<Checksum, SolutionAsset>.GetInstance(out var assetMap);
 
-            try
-            {
+            await scope.AddAssetsAsync(checksums, assetMap, cancellationToken).ConfigureAwait(false);
 
-                if (checksums.Length == 1)
-                {
-                    singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    assetMap = await scope.GetAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-                }
+            cancellationToken.ThrowIfCancellationRequested();
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                using var stream = new PipeWriterStream(pipeWriter);
-                await RemoteHostAssetSerialization.WriteDataAsync(
-                    stream, singleAsset, assetMap, serializer, scope.ReplicationContext,
-                    solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
-
-                // Ensure any last data written into the stream makes it into the pipe.
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                assetMap?.Free();
-            }
+            using var stream = new PipeWriterStream(pipeWriter);
+            await RemoteHostAssetSerialization.WriteDataAsync(
+                stream, assetMap, serializer, scope.ReplicationContext,
+                solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
