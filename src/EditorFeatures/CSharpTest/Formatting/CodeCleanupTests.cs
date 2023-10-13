@@ -574,15 +574,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70187")]
-        [InlineData(true, true, DiagnosticSeverity.Warning)]
-        [InlineData(true, false, DiagnosticSeverity.Warning)]
-        [InlineData(false, true, DiagnosticSeverity.Warning)]
-        [InlineData(false, false, DiagnosticSeverity.Warning)]
-        [InlineData(true, true, DiagnosticSeverity.Info)]
-        [InlineData(true, false, DiagnosticSeverity.Info)]
-        [InlineData(false, true, DiagnosticSeverity.Info)]
-        [InlineData(false, false, DiagnosticSeverity.Info)]
-        public Task FixAllWarningsAndErrorsWithCustomFixIdsExplicitlyEnabled(bool applyAllAnalyzerFixersId, bool explicitlyIncludeCompilerId, DiagnosticSeverity severity)
+        [CombinatorialData]
+        public Task FixAllWarningsAndErrorsWithCustomFixIdsExplicitlyEnabled(
+            bool applyAllAnalyzerFixersId,
+            bool explicitlyIncludeCompilerId,
+            [CombinatorialValues(DiagnosticSeverity.Warning, DiagnosticSeverity.Info)] DiagnosticSeverity severity)
         {
             var code = """
                 namespace A
