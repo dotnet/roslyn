@@ -2234,8 +2234,9 @@ class C
                             } 
                         }
                         """,
-                    validator: _ =>
+                    validator: g =>
                     {
+                        g.VerifyTableSize(TableIndex.MethodDef, 6);
                     })
                 .AddGeneration(
                     source: """
