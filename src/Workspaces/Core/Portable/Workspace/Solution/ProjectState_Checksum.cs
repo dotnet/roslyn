@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis
                     var analyzerConfigDocumentChecksums = new ChecksumCollection(await analyzerConfigDocumentChecksumTasks.WhenAll().ConfigureAwait(false));
 
                     return new ProjectStateChecksums(
+                        this.Id,
                         infoChecksum,
                         compilationOptionsChecksum,
                         parseOptionsChecksum,

@@ -384,6 +384,9 @@
   <data name="Changing_attribute_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing attribute '{0}' requires restarting the application.</value>
   </data>
+  <data name="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing attribute '{0}' requires restarting the application.</value>
+  </data>
   <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
     <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
   </data>
@@ -399,8 +402,8 @@
   <data name="Changing_the_return_type_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the return type of {0} requires restarting the application.</value>
   </data>
-  <data name="Changing_the_type_of_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Changing the type of {0} requires restarting the application.</value>
+  <data name="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</value>
@@ -2986,6 +2989,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Wrap_long_initializer" xml:space="preserve">
     <value>Wrap long initializer</value>
   </data>
+  <data name="Unwrap_collection" xml:space="preserve">
+    <value>Unwrap collection</value>
+  </data>
+  <data name="Wrap_collection" xml:space="preserve">
+    <value>Wrap collection</value>
+  </data>
+  <data name="Wrap_long_collection" xml:space="preserve">
+    <value>Wrap long collection</value>
+  </data>
   <data name="Indent_all_elements" xml:space="preserve">
     <value>Indent all elements</value>
   </data>
@@ -3233,5 +3245,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="_0_items_in_cache" xml:space="preserve">
     <value>'{0}' items in cache</value>
+  </data>
+  <data name="Convert_number" xml:space="preserve">
+    <value>Convert number</value>
+  </data>
+  <data name="Fix_All_0" xml:space="preserve">
+    <value>Fix All: '{0}'</value>
   </data>
 </root>

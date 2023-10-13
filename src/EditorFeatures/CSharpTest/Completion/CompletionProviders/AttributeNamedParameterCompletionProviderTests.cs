@@ -24,20 +24,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact]
         public async Task SendEnterThroughToEditorTest()
         {
-            const string markup = @"
-using System;
-class class1
-{
-    [Test($$
-    public void Goo()
-    {
-    }
-}
- 
-public class TestAttribute : Attribute
-{
-    public ConsoleColor Color { get; set; }
-}";
+            const string markup = """
+                using System;
+                class class1
+                {
+                    [Test($$
+                    public void Goo()
+                    {
+                    }
+                }
+
+                public class TestAttribute : Attribute
+                {
+                    public ConsoleColor Color { get; set; }
+                }
+                """;
 
             await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
             await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: true);
@@ -47,20 +48,21 @@ public class TestAttribute : Attribute
         [Fact]
         public async Task CommitCharacterTest()
         {
-            const string markup = @"
-using System;
-class class1
-{
-    [Test($$
-    public void Goo()
-    {
-    }
-}
- 
-public class TestAttribute : Attribute
-{
-    public ConsoleColor Color { get; set; }
-}";
+            const string markup = """
+                using System;
+                class class1
+                {
+                    [Test($$
+                    public void Goo()
+                    {
+                    }
+                }
+
+                public class TestAttribute : Attribute
+                {
+                    public ConsoleColor Color { get; set; }
+                }
+                """;
 
             await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
         }
@@ -68,20 +70,21 @@ public class TestAttribute : Attribute
         [Fact]
         public async Task SimpleAttributeUsage()
         {
-            var markup = @"
-using System;
-class class1
-{
-    [Test($$
-    public void Goo()
-    {
-    }
-}
- 
-public class TestAttribute : Attribute
-{
-    public ConsoleColor Color { get; set; }
-}";
+            var markup = """
+                using System;
+                class class1
+                {
+                    [Test($$
+                    public void Goo()
+                    {
+                    }
+                }
+
+                public class TestAttribute : Attribute
+                {
+                    public ConsoleColor Color { get; set; }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "Color", displayTextSuffix: " =");
         }
@@ -89,21 +92,22 @@ public class TestAttribute : Attribute
         [Fact]
         public async Task AfterComma()
         {
-            var markup = @"
-using System;
-class class1
-{
-    [Test(Color = ConsoleColor.Black, $$
-    public void Goo()
-    {
-    }
-}
+            var markup = """
+                using System;
+                class class1
+                {
+                    [Test(Color = ConsoleColor.Black, $$
+                    public void Goo()
+                    {
+                    }
+                }
 
-public class TestAttribute : Attribute
-{
-    public ConsoleColor Color { get; set; }
-    public string Text { get; set; }
-}";
+                public class TestAttribute : Attribute
+                {
+                    public ConsoleColor Color { get; set; }
+                    public string Text { get; set; }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
         }
@@ -111,21 +115,22 @@ public class TestAttribute : Attribute
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
         public async Task ExistingItemsAreFiltered()
         {
-            var markup = @"
-using System;
-class class1
-{
-    [Test(Color = ConsoleColor.Black, $$
-    public void Goo()
-    {
-    }
-}
+            var markup = """
+                using System;
+                class class1
+                {
+                    [Test(Color = ConsoleColor.Black, $$
+                    public void Goo()
+                    {
+                    }
+                }
 
-public class TestAttribute : Attribute
-{
-    public ConsoleColor Color { get; set; }
-    public string Text { get; set; }
-}";
+                public class TestAttribute : Attribute
+                {
+                    public ConsoleColor Color { get; set; }
+                    public string Text { get; set; }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
             await VerifyItemIsAbsentAsync(markup, "Color", displayTextSuffix: " =");
@@ -134,18 +139,18 @@ public class TestAttribute : Attribute
         [Fact]
         public async Task AttributeConstructor()
         {
-            var markup = @"
-using System;
-class TestAttribute : Attribute
-{
-    public TestAttribute(int a = 42)
-    { }
-}
- 
-[Test($$
-class Goo
-{ }
-";
+            var markup = """
+                using System;
+                class TestAttribute : Attribute
+                {
+                    public TestAttribute(int a = 42)
+                    { }
+                }
+
+                [Test($$
+                class Goo
+                { }
+                """;
 
             await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
@@ -153,18 +158,18 @@ class Goo
         [Fact]
         public async Task AttributeConstructorAfterComma()
         {
-            var markup = @"
-using System;
-class TestAttribute : Attribute
-{
-    public TestAttribute(int a = 42, string s = """")
-    { }
-}
+            var markup = """
+                using System;
+                class TestAttribute : Attribute
+                {
+                    public TestAttribute(int a = 42, string s = "")
+                    { }
+                }
 
-[Test(s:"""", $$
-class Goo
-{ }
-";
+                [Test(s:"", $$
+                class Goo
+                { }
+                """;
 
             await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
@@ -172,21 +177,22 @@ class Goo
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
         public async Task TestPropertiesInScript()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-class TestAttribute : Attribute
-{
-    public string Text { get; set; }
-    public TestAttribute(int number = 42)
-    {
-    }
-}
- 
-[Test($$
-class Goo
-{
-}";
+                class TestAttribute : Attribute
+                {
+                    public string Text { get; set; }
+                    public TestAttribute(int number = 42)
+                    {
+                    }
+                }
+
+                [Test($$
+                class Goo
+                {
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
         }
@@ -194,20 +200,21 @@ class Goo
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
         public async Task NotInComment()
         {
-            var markup = @"
-using System;
-class class1
-{
-    [Test( //$$
-    public void Goo()
-    {
-    }
-}
- 
-public class TestAttribute : Attribute
-{
-    public ConsoleColor Color { get; set; }
-}";
+            var markup = """
+                using System;
+                class class1
+                {
+                    [Test( //$$
+                    public void Goo()
+                    {
+                    }
+                }
+
+                public class TestAttribute : Attribute
+                {
+                    public ConsoleColor Color { get; set; }
+                }
+                """;
 
             await VerifyNoItemsExistAsync(markup);
         }

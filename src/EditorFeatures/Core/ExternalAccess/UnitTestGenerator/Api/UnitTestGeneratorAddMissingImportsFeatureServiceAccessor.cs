@@ -29,7 +29,9 @@ internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor(IGlobalO
     {
         var options = await GetOptionsAsync(document, cancellationToken).ConfigureAwait(false);
         var service = document.Project.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-        return await service.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+
+        // Unfortunately, the unit testing system doesn't have a way to report progress.
+        return await service.AddMissingImportsAsync(document, textSpan, options, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
     }
 
     internal async Task<WrappedMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -45,7 +47,9 @@ internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor(IGlobalO
         var options = await GetOptionsAsync(document, cancellationToken).ConfigureAwait(false);
         var service = document.Project.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
         var unwrappedResult = new AddMissingImportsAnalysisResult(analysisResult.AddImportFixDatas.SelectAsArray(result => result.Underlying));
-        return await service.AddMissingImportsAsync(document, unwrappedResult, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+
+        // Unfortunately, the unit testing system doesn't have a way to report progress.
+        return await service.AddMissingImportsAsync(document, unwrappedResult, options.CleanupOptions.FormattingOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<AddMissingImportsOptions> GetOptionsAsync(Document document, CancellationToken cancellationToken)

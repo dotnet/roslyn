@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // table based jump table or a non hash jump table, i.e. linear string comparisons
                 // with each case label. We use the Dev10 Heuristic to determine this
                 // (see SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch() for details).
-                if (!CodeAnalysis.CodeGen.SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(module, labelsCount))
+                if (!CodeAnalysis.CodeGen.SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(labelsCount))
                 {
                     return;
                 }

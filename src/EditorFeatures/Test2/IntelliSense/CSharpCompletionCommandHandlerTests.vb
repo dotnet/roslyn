@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.CSharp.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -11579,6 +11580,435 @@ public class C1
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("Property1", "Field1", "Event1")
                 Await state.AssertCompletionItemsDoNotContainAny("Property0", "Field0", "Event0")
+            End Using
+        End Function
+
+        <InlineData("""text""u8")>
+        <InlineData("""""""text""""""u8")>
+        <InlineData("""""""
+        text
+        """"""u8")>
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68704")>
+        Public Async Function TriggerCompletionAtEndOfUtf8StringLiteral(stringText As String) As Task
+            Dim workspaceDefinition =
+            <Workspace>
+                <Project Language="C#" AssemblyName="TestAssembly" CommonReferencesPortable="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        var channel = <%= stringText %>$$
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+                Dim cursorDocument = workspace.Documents.First(Function(d As TestHostDocument)
+                                                                   Return d.CursorPosition.HasValue
+                                                               End Function)
+                Dim cursorPosition = cursorDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                Dim completionService = document.GetRequiredLanguageService(Of CompletionService)()
+
+                ' This should not throw
+                Dim list = Await completionService.GetCompletionsAsync(
+                    document, caretPosition:=cursorPosition, CompletionOptions.Default, OptionSet.Empty, CompletionTrigger.Invoke)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = $$;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "_x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("_x", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public partial class C(int x)
+{
+    private int _x = x;
+}
+
+public partial class C
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("_x", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = x + 1;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "_x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters1_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = $$;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters2_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters3_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("X", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters4_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public partial class C(int x)
+{
+    private int X { get; } = x;
+}
+
+public partial class C
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("X", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters5_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = x + 1;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+}
+
+public class C(int x) : Base
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+
+    public Base(int x)
+    {
+        X = x;
+    }
+}
+
+public class C(int x) : Base(x + 1)
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+
+    public Base(int x)
+    {
+        X = x;
+    }
+}
+
+public class C(int x) : Base(x)
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+                Await state.AssertCompletionItemsContainAll("X")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestItemsSorted() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Program
+{
+    public static void Main()
+    {
+        $$
+    }
+}
+             ]]></Document>)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+
+                ' trigger completion with import completion enabled
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+
+                Dim completionItems = state.GetCompletionItems()
+                Dim manuallySortedItems = completionItems.ToList()
+                manuallySortedItems.Sort()
+
+                Assert.True(manuallySortedItems.SequenceEqual(completionItems))
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base(int x)
+{
+}
+
+public class C() : Base($$)
+{
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", ":")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public abstract class Base(int x)
+{
+}
+
+public class C() : Base($$)
+{
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", ":")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66305")>
+        Public Async Function TestScopedKeywordRecommender() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp11)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("scoped", "")
             End Using
         End Function
     End Class

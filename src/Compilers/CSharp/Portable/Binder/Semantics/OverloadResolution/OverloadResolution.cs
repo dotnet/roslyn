@@ -2531,9 +2531,58 @@ outerDefault:
             if (!conv2.IsConditionalExpression && conv1.IsConditionalExpression)
                 return BetterResult.Right;
 
+            // C1 and C2 are collection expression conversions and
+            // T1 is a span_type with iteration type E1, and
+            // T2 is an array_or_array_interface_or_string_type with iteration type E2, and
+            // - E1 is implicitly convertible to E2
+            if (conv1.Kind == ConversionKind.CollectionExpression &&
+                conv2.Kind == ConversionKind.CollectionExpression)
+            {
+                TypeSymbol elementType;
+                TypeWithAnnotations typeArg;
+                if ((conv1.GetCollectionExpressionTypeKind(out elementType) is CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan) &&
+                    IsSZArrayOrArrayInterfaceOrString(t2, out typeArg))
+                {
+                    return Conversions.ClassifyImplicitConversionFromType(elementType, typeArg.Type, ref useSiteInfo).IsImplicit ?
+                        BetterResult.Left :
+                        BetterResult.Neither;
+                }
+                if ((conv2.GetCollectionExpressionTypeKind(out elementType) is CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan) &&
+                    IsSZArrayOrArrayInterfaceOrString(t1, out typeArg))
+                {
+                    return Conversions.ClassifyImplicitConversionFromType(elementType, typeArg.Type, ref useSiteInfo).IsImplicit ?
+                        BetterResult.Right :
+                        BetterResult.Neither;
+                }
+            }
+
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
             //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
+        }
+
+        private bool IsSZArrayOrArrayInterfaceOrString(TypeSymbol type, out TypeWithAnnotations elementType)
+        {
+            if (type.SpecialType == SpecialType.System_String)
+            {
+                elementType = TypeWithAnnotations.Create(Compilation.GetSpecialType(SpecialType.System_Char));
+                return true;
+            }
+
+            if (type is ArrayTypeSymbol { IsSZArray: true } arrayType)
+            {
+                elementType = arrayType.ElementTypeWithAnnotations;
+                return true;
+            }
+
+            if (type.IsArrayInterface(out TypeWithAnnotations typeArg))
+            {
+                elementType = typeArg;
+                return true;
+            }
+
+            elementType = default;
+            return false;
         }
 
         private bool ExpressionMatchExactly(BoundExpression node, TypeSymbol t, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -3708,7 +3757,7 @@ outerDefault:
             // * for a ref or out parameter, the type of the argument is identical to the type of the corresponding 
             //   parameter. After all, a ref or out parameter is an alias for the argument passed.
             ArrayBuilder<Conversion> conversions = null;
-            ArrayBuilder<int> badArguments = null;
+            BitVector badArguments = default;
             for (int argumentPosition = 0; argumentPosition < paramCount; argumentPosition++)
             {
                 BoundExpression argument = arguments.Argument(argumentPosition);
@@ -3723,8 +3772,12 @@ outerDefault:
                     }
                     else
                     {
-                        badArguments = badArguments ?? ArrayBuilder<int>.GetInstance();
-                        badArguments.Add(argumentPosition);
+                        if (badArguments.IsNull)
+                        {
+                            badArguments = BitVector.Create(argumentPosition + 1);
+                        }
+
+                        badArguments[argumentPosition] = true;
                         conversion = Conversion.NoConversion;
                     }
                 }
@@ -3777,15 +3830,19 @@ outerDefault:
                         // lambda binding in particular, for instance, with LINQ expressions.
                         // Note that BuildArgumentsForErrorRecovery will still bind some number
                         // of overloads for the semantic model.
-                        Debug.Assert(badArguments == null);
+                        Debug.Assert(badArguments.IsNull);
                         Debug.Assert(conversions == null);
-                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, ImmutableArray.Create(argumentPosition), ImmutableArray.Create(conversion));
+                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, MemberAnalysisResult.CreateBadArgumentsWithPosition(argumentPosition), ImmutableArray.Create(conversion));
                     }
 
                     if (!conversion.Exists)
                     {
-                        badArguments ??= ArrayBuilder<int>.GetInstance();
-                        badArguments.Add(argumentPosition);
+                        if (badArguments.IsNull)
+                        {
+                            badArguments = BitVector.Create(argumentPosition + 1);
+                        }
+
+                        badArguments[argumentPosition] = true;
                     }
                 }
 
@@ -3800,7 +3857,7 @@ outerDefault:
                     conversions.Add(conversion);
                 }
 
-                if (badArguments != null && !completeResults)
+                if (!badArguments.IsNull && !completeResults)
                 {
                     break;
                 }
@@ -3808,9 +3865,9 @@ outerDefault:
 
             MemberAnalysisResult result;
             var conversionsArray = conversions != null ? conversions.ToImmutableAndFree() : default(ImmutableArray<Conversion>);
-            if (badArguments != null)
+            if (!badArguments.IsNull)
             {
-                result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments.ToImmutableAndFree(), conversionsArray);
+                result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments, conversionsArray);
             }
             else
             {

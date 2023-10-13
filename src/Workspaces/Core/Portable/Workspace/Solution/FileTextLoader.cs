@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
-            ValidateFileLength(Path);
+            FileUtilities.GetFileLengthAndTimeStamp(Path, out var fileLength, out var prevLastWriteTime);
 
-            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
+            ValidateFileLength(Path, fileLength);
 
             TextAndVersion textAndVersion;
 
@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"></exception>
         internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
         {
-            ValidateFileLength(Path);
+            FileUtilities.GetFileLengthAndTimeStamp(Path, out var fileLength, out var prevLastWriteTime);
 
-            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
+            ValidateFileLength(Path, fileLength);
 
             TextAndVersion textAndVersion;
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
         private string GetDebuggerDisplay()
             => nameof(Path) + " = " + Path;
 
-        private void ValidateFileLength(string path)
+        private void ValidateFileLength(string path, long fileLength)
         {
             // Validate file length is under our threshold. 
             // Otherwise, rather than reading the content into the memory, we will throw
@@ -243,7 +243,6 @@ namespace Microsoft.CodeAnalysis
             // 
             // check this (http://source.roslyn.io/#Microsoft.CodeAnalysis.Workspaces/Workspace/Solution/TextDocumentState.cs,132)
             // to see how workspace deal with exception from FileTextLoader. other consumer can handle the exception differently
-            var fileLength = FileUtilities.GetFileLength(path);
             if (fileLength > MaxFileLength)
             {
                 // log max file length which will log to VS telemetry in VS host

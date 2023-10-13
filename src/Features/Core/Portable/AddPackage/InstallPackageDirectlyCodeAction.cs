@@ -4,16 +4,16 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
-    internal class InstallPackageDirectlyCodeAction(
+    internal sealed class InstallPackageDirectlyCodeAction(
         IPackageInstallerService installerService,
         Document document,
         string source,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                     ? string.Format(FeaturesResources.Use_local_version_0, versionOpt)
                     : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-            => Task.FromResult(SpecializedCollections.SingletonEnumerable(_installPackageOperation));
+        protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            => Task.FromResult(ImmutableArray.Create(_installPackageOperation));
     }
 }

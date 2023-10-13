@@ -46,7 +46,7 @@ namespace ConsoleApplication1[|
         }|]
     }|]
 }|]";
-            MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(input, out var text, out var spans);
             VisualStudio.Editor.SetText(text);
             Assert.Equal(spans.OrderBy(s => s.Start), VisualStudio.Editor.GetOutliningSpans());
         }

@@ -5203,7 +5203,7 @@ public class Goo
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522440")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")]
-        [WpfFact(Skip = "674611")]
+        [WpfFact]
         public async Task EditorBrowsable_Property_BrowsableStateNever()
         {
             var markup = @"
@@ -10091,7 +10091,7 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21766"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=420697&_a=edit")]
         public async Task DoNotCrashInExtensionMethoWithExpressionBodiedMember()
         {
@@ -10330,7 +10330,7 @@ namespace ThenIncludeIntellisenseBug
             await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35100")]
+        [Fact]
         public async Task ThenIncludeGenericAndNoGenericOverloads()
         {
             var markup = CreateThenIncludeTestCode("c => c.$$",
@@ -11531,7 +11531,8 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/53930")]
-        public async Task TestTypeParameterConstraintedToInterfaceWithStatics()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64733")]
+        public async Task TestTypeParameterConstrainedToInterfaceWithStatics()
         {
             var source = @"
 interface I1
@@ -11556,7 +11557,7 @@ class Test
     }
 }
 ";
-            await VerifyItemExistsAsync(source, "M0");
+            await VerifyItemIsAbsentAsync(source, "M0");
             await VerifyItemExistsAsync(source, "M1");
             await VerifyItemExistsAsync(source, "M2");
             await VerifyItemExistsAsync(source, "M3");
@@ -12388,6 +12389,55 @@ public static class Extension
             await VerifyItemExistsAsync(source, "endIndex");
             await VerifyItemExistsAsync(source, "Test");
             await VerifyItemExistsAsync(source, "C");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
+        public async Task PropertyAndGenericExtensionMethodCandidates()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class C
+                {
+                    void M()
+                    {
+                        int foo;
+                        List<int> list;
+                        if (list.Count < $$)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "foo");
+            await VerifyItemExistsAsync(source, "M");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "Int32");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
+        public async Task GenericWithNonGenericOverload()
+        {
+            var source = """
+                class C
+                {
+                    void M(C other)
+                    {
+                        if (other.A < $$)
+                        {
+                        }
+                    }
+
+                    void A() { }
+                    void A<T>() { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "other");
         }
 
         private static string MakeMarkup(string source, string languageVersion = "Preview")

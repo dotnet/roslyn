@@ -13,6 +13,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
+        public SimpleNameSyntax? InterceptableNameSyntax
+        {
+            get
+            {
+                // When this assertion fails, it means a new syntax is being used which corresponds to a BoundCall.
+                // The developer needs to determine how this new syntax should interact with interceptors (produce an error, permit intercepting the call, etc...)
+                Debug.Assert(this.WasCompilerGenerated || this.Syntax is InvocationExpressionSyntax or ConstructorInitializerSyntax or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } },
+                    $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
+
+                if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
+                {
+                    return null;
+                }
+
+                // If a qualified name is used as a valid receiver of an invocation syntax at some point,
+                // we probably want to treat it similarly to a MemberAccessExpression.
+                // However, we don't expect to encounter it.
+                Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
+
+                return syntax.Expression switch
+                {
+                    MemberAccessExpressionSyntax memberAccess => memberAccess.Name,
+                    SimpleNameSyntax name => name,
+                    _ => null
+                };
+            }
+        }
+
         internal BoundExpression WithSuppression(bool suppress = true)
         {
             if (this.IsSuppressed == suppress)
@@ -144,6 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool IsEquivalentToThisReference => false;
     }
 
+    internal partial class BoundCollectionExpressionSpreadExpressionPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
     internal partial class BoundDeconstructValuePlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => false; // Preserving old behavior
@@ -238,34 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.Method;
-            }
-        }
-
-        public Location? InterceptableLocation
-        {
-            get
-            {
-                // When this assertion fails, it means a new syntax is being used which corresponds to a BoundCall.
-                // The developer needs to determine how this new syntax should interact with interceptors (produce an error, permit intercepting the call, etc...)
-                Debug.Assert(this.WasCompilerGenerated || this.Syntax is InvocationExpressionSyntax or ConstructorInitializerSyntax or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } },
-                    $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
-
-                if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
-                {
-                    return null;
-                }
-
-                // If a qualified name is used as a valid receiver of an invocation syntax at some point,
-                // we probably want to treat it similarly to a MemberAccessExpression.
-                // However, we don't expect to encounter it.
-                Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
-
-                return syntax.Expression switch
-                {
-                    MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Location,
-                    SimpleNameSyntax name => name.Location,
-                    _ => null
-                };
             }
         }
     }

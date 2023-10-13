@@ -576,252 +576,264 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, LookupResultKind.NotAValue);
             }
 
-            Debug.Assert(node != null);
-            switch (node.Kind())
+            BoundExpression result = bindExpressionInternal(node, diagnostics, invoked, indexed);
+
+            if (IsEarlyAttributeBinder && result.Kind == BoundKind.MethodGroup && (!IsInsideNameof || EnclosingNameofArgument != node))
             {
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                    return BindAnonymousFunction((AnonymousFunctionExpressionSyntax)node, diagnostics);
-                case SyntaxKind.ThisExpression:
-                    return BindThis((ThisExpressionSyntax)node, diagnostics);
-                case SyntaxKind.BaseExpression:
-                    return BindBase((BaseExpressionSyntax)node, diagnostics);
-                case SyntaxKind.InvocationExpression:
-                    return BindInvocationExpression((InvocationExpressionSyntax)node, diagnostics);
-                case SyntaxKind.ArrayInitializerExpression:
-                    return BindUnexpectedArrayInitializer((InitializerExpressionSyntax)node, diagnostics, ErrorCode.ERR_ArrayInitInBadPlace);
-                case SyntaxKind.ArrayCreationExpression:
-                    return BindArrayCreationExpression((ArrayCreationExpressionSyntax)node, diagnostics);
-                case SyntaxKind.ImplicitArrayCreationExpression:
-                    return BindImplicitArrayCreationExpression((ImplicitArrayCreationExpressionSyntax)node, diagnostics);
-                case SyntaxKind.StackAllocArrayCreationExpression:
-                    return BindStackAllocArrayCreationExpression((StackAllocArrayCreationExpressionSyntax)node, diagnostics);
-                case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
-                    return BindImplicitStackAllocArrayCreationExpression((ImplicitStackAllocArrayCreationExpressionSyntax)node, diagnostics);
-                case SyntaxKind.ObjectCreationExpression:
-                    return BindObjectCreationExpression((ObjectCreationExpressionSyntax)node, diagnostics);
-                case SyntaxKind.ImplicitObjectCreationExpression:
-                    return BindImplicitObjectCreationExpression((ImplicitObjectCreationExpressionSyntax)node, diagnostics);
-                case SyntaxKind.IdentifierName:
-                case SyntaxKind.GenericName:
-                    return BindIdentifier((SimpleNameSyntax)node, invoked, indexed, diagnostics);
-                case SyntaxKind.SimpleMemberAccessExpression:
-                case SyntaxKind.PointerMemberAccessExpression:
-                    return BindMemberAccess((MemberAccessExpressionSyntax)node, invoked, indexed, diagnostics: diagnostics);
-                case SyntaxKind.SimpleAssignmentExpression:
-                    return BindAssignment((AssignmentExpressionSyntax)node, diagnostics);
-                case SyntaxKind.CastExpression:
-                    return BindCast((CastExpressionSyntax)node, diagnostics);
-                case SyntaxKind.ElementAccessExpression:
-                    return BindElementAccess((ElementAccessExpressionSyntax)node, diagnostics);
-                case SyntaxKind.AddExpression:
-                case SyntaxKind.MultiplyExpression:
-                case SyntaxKind.SubtractExpression:
-                case SyntaxKind.DivideExpression:
-                case SyntaxKind.ModuloExpression:
-                case SyntaxKind.EqualsExpression:
-                case SyntaxKind.NotEqualsExpression:
-                case SyntaxKind.GreaterThanExpression:
-                case SyntaxKind.LessThanExpression:
-                case SyntaxKind.GreaterThanOrEqualExpression:
-                case SyntaxKind.LessThanOrEqualExpression:
-                case SyntaxKind.BitwiseAndExpression:
-                case SyntaxKind.BitwiseOrExpression:
-                case SyntaxKind.ExclusiveOrExpression:
-                case SyntaxKind.LeftShiftExpression:
-                case SyntaxKind.RightShiftExpression:
-                case SyntaxKind.UnsignedRightShiftExpression:
-                    return BindSimpleBinaryOperator((BinaryExpressionSyntax)node, diagnostics);
+                return BadExpression(node, LookupResultKind.NotAValue);
+            }
 
-                case SyntaxKind.LogicalAndExpression:
-                case SyntaxKind.LogicalOrExpression:
-                    return BindConditionalLogicalOperator((BinaryExpressionSyntax)node, diagnostics);
-                case SyntaxKind.CoalesceExpression:
-                    return BindNullCoalescingOperator((BinaryExpressionSyntax)node, diagnostics);
-                case SyntaxKind.ConditionalAccessExpression:
-                    return BindConditionalAccessExpression((ConditionalAccessExpressionSyntax)node, diagnostics);
+            return result;
 
-                case SyntaxKind.MemberBindingExpression:
-                    return BindMemberBindingExpression((MemberBindingExpressionSyntax)node, invoked, indexed, diagnostics);
+            BoundExpression bindExpressionInternal(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool invoked, bool indexed)
+            {
+                Debug.Assert(node != null);
+                switch (node.Kind())
+                {
+                    case SyntaxKind.AnonymousMethodExpression:
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                    case SyntaxKind.SimpleLambdaExpression:
+                        return BindAnonymousFunction((AnonymousFunctionExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ThisExpression:
+                        return BindThis((ThisExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.BaseExpression:
+                        return BindBase((BaseExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.InvocationExpression:
+                        return BindInvocationExpression((InvocationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ArrayInitializerExpression:
+                        return BindUnexpectedArrayInitializer((InitializerExpressionSyntax)node, diagnostics, ErrorCode.ERR_ArrayInitInBadPlace);
+                    case SyntaxKind.ArrayCreationExpression:
+                        return BindArrayCreationExpression((ArrayCreationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ImplicitArrayCreationExpression:
+                        return BindImplicitArrayCreationExpression((ImplicitArrayCreationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.StackAllocArrayCreationExpression:
+                        return BindStackAllocArrayCreationExpression((StackAllocArrayCreationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
+                        return BindImplicitStackAllocArrayCreationExpression((ImplicitStackAllocArrayCreationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ObjectCreationExpression:
+                        return BindObjectCreationExpression((ObjectCreationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ImplicitObjectCreationExpression:
+                        return BindImplicitObjectCreationExpression((ImplicitObjectCreationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.IdentifierName:
+                    case SyntaxKind.GenericName:
+                        return BindIdentifier((SimpleNameSyntax)node, invoked, indexed, diagnostics);
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                    case SyntaxKind.PointerMemberAccessExpression:
+                        return BindMemberAccess((MemberAccessExpressionSyntax)node, invoked, indexed, diagnostics: diagnostics);
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        return BindAssignment((AssignmentExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.CastExpression:
+                        return BindCast((CastExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ElementAccessExpression:
+                        return BindElementAccess((ElementAccessExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.AddExpression:
+                    case SyntaxKind.MultiplyExpression:
+                    case SyntaxKind.SubtractExpression:
+                    case SyntaxKind.DivideExpression:
+                    case SyntaxKind.ModuloExpression:
+                    case SyntaxKind.EqualsExpression:
+                    case SyntaxKind.NotEqualsExpression:
+                    case SyntaxKind.GreaterThanExpression:
+                    case SyntaxKind.LessThanExpression:
+                    case SyntaxKind.GreaterThanOrEqualExpression:
+                    case SyntaxKind.LessThanOrEqualExpression:
+                    case SyntaxKind.BitwiseAndExpression:
+                    case SyntaxKind.BitwiseOrExpression:
+                    case SyntaxKind.ExclusiveOrExpression:
+                    case SyntaxKind.LeftShiftExpression:
+                    case SyntaxKind.RightShiftExpression:
+                    case SyntaxKind.UnsignedRightShiftExpression:
+                        return BindSimpleBinaryOperator((BinaryExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.ElementBindingExpression:
-                    return BindElementBindingExpression((ElementBindingExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.LogicalAndExpression:
+                    case SyntaxKind.LogicalOrExpression:
+                        return BindConditionalLogicalOperator((BinaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.CoalesceExpression:
+                        return BindNullCoalescingOperator((BinaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ConditionalAccessExpression:
+                        return BindConditionalAccessExpression((ConditionalAccessExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.IsExpression:
-                    return BindIsOperator((BinaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.MemberBindingExpression:
+                        return BindMemberBindingExpression((MemberBindingExpressionSyntax)node, invoked, indexed, diagnostics);
 
-                case SyntaxKind.AsExpression:
-                    return BindAsOperator((BinaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ElementBindingExpression:
+                        return BindElementBindingExpression((ElementBindingExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.UnaryPlusExpression:
-                case SyntaxKind.UnaryMinusExpression:
-                case SyntaxKind.LogicalNotExpression:
-                case SyntaxKind.BitwiseNotExpression:
-                    return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.IsExpression:
+                        return BindIsOperator((BinaryExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.IndexExpression:
-                    return BindFromEndIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.AsExpression:
+                        return BindAsOperator((BinaryExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.RangeExpression:
-                    return BindRangeExpression((RangeExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.UnaryPlusExpression:
+                    case SyntaxKind.UnaryMinusExpression:
+                    case SyntaxKind.LogicalNotExpression:
+                    case SyntaxKind.BitwiseNotExpression:
+                        return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.AddressOfExpression:
-                    return BindAddressOfExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.IndexExpression:
+                        return BindFromEndIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.PointerIndirectionExpression:
-                    return BindPointerIndirectionExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.RangeExpression:
+                        return BindRangeExpression((RangeExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.PostIncrementExpression:
-                case SyntaxKind.PostDecrementExpression:
-                    return BindIncrementOperator(node, ((PostfixUnaryExpressionSyntax)node).Operand, ((PostfixUnaryExpressionSyntax)node).OperatorToken, diagnostics);
+                    case SyntaxKind.AddressOfExpression:
+                        return BindAddressOfExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.PreIncrementExpression:
-                case SyntaxKind.PreDecrementExpression:
-                    return BindIncrementOperator(node, ((PrefixUnaryExpressionSyntax)node).Operand, ((PrefixUnaryExpressionSyntax)node).OperatorToken, diagnostics);
+                    case SyntaxKind.PointerIndirectionExpression:
+                        return BindPointerIndirectionExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.ConditionalExpression:
-                    return BindConditionalOperator((ConditionalExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.PostIncrementExpression:
+                    case SyntaxKind.PostDecrementExpression:
+                        return BindIncrementOperator(node, ((PostfixUnaryExpressionSyntax)node).Operand, ((PostfixUnaryExpressionSyntax)node).OperatorToken, diagnostics);
 
-                case SyntaxKind.SwitchExpression:
-                    return BindSwitchExpression((SwitchExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.PreIncrementExpression:
+                    case SyntaxKind.PreDecrementExpression:
+                        return BindIncrementOperator(node, ((PrefixUnaryExpressionSyntax)node).Operand, ((PrefixUnaryExpressionSyntax)node).OperatorToken, diagnostics);
 
-                case SyntaxKind.NumericLiteralExpression:
-                case SyntaxKind.StringLiteralExpression:
-                case SyntaxKind.CharacterLiteralExpression:
-                case SyntaxKind.TrueLiteralExpression:
-                case SyntaxKind.FalseLiteralExpression:
-                case SyntaxKind.NullLiteralExpression:
-                    return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ConditionalExpression:
+                        return BindConditionalOperator((ConditionalExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.Utf8StringLiteralExpression:
-                    return BindUtf8StringLiteral((LiteralExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.SwitchExpression:
+                        return BindSwitchExpression((SwitchExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.DefaultLiteralExpression:
-                    MessageID.IDS_FeatureDefaultLiteral.CheckFeatureAvailability(diagnostics, node);
-                    return new BoundDefaultLiteral(node);
+                    case SyntaxKind.NumericLiteralExpression:
+                    case SyntaxKind.StringLiteralExpression:
+                    case SyntaxKind.CharacterLiteralExpression:
+                    case SyntaxKind.TrueLiteralExpression:
+                    case SyntaxKind.FalseLiteralExpression:
+                    case SyntaxKind.NullLiteralExpression:
+                        return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.ParenthesizedExpression:
-                    // Parenthesis tokens are ignored, and operand is bound in the context of parent
-                    // expression.
-                    return BindParenthesizedExpression(((ParenthesizedExpressionSyntax)node).Expression, diagnostics);
+                    case SyntaxKind.Utf8StringLiteralExpression:
+                        return BindUtf8StringLiteral((LiteralExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.UncheckedExpression:
-                case SyntaxKind.CheckedExpression:
-                    return BindCheckedExpression((CheckedExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.DefaultLiteralExpression:
+                        MessageID.IDS_FeatureDefaultLiteral.CheckFeatureAvailability(diagnostics, node);
+                        return new BoundDefaultLiteral(node);
 
-                case SyntaxKind.DefaultExpression:
-                    return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ParenthesizedExpression:
+                        // Parenthesis tokens are ignored, and operand is bound in the context of parent
+                        // expression.
+                        return BindParenthesizedExpression(((ParenthesizedExpressionSyntax)node).Expression, diagnostics);
 
-                case SyntaxKind.TypeOfExpression:
-                    return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.UncheckedExpression:
+                    case SyntaxKind.CheckedExpression:
+                        return BindCheckedExpression((CheckedExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.SizeOfExpression:
-                    return BindSizeOf((SizeOfExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.DefaultExpression:
+                        return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.RightShiftAssignmentExpression:
-                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
-                case SyntaxKind.SubtractAssignmentExpression:
-                    return BindCompoundAssignment((AssignmentExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.TypeOfExpression:
+                        return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.CoalesceAssignmentExpression:
-                    return BindNullCoalescingAssignmentOperator((AssignmentExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.SizeOfExpression:
+                        return BindSizeOf((SizeOfExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.AliasQualifiedName:
-                case SyntaxKind.PredefinedType:
-                    return this.BindNamespaceOrType(node, diagnostics);
+                    case SyntaxKind.AddAssignmentExpression:
+                    case SyntaxKind.AndAssignmentExpression:
+                    case SyntaxKind.DivideAssignmentExpression:
+                    case SyntaxKind.ExclusiveOrAssignmentExpression:
+                    case SyntaxKind.LeftShiftAssignmentExpression:
+                    case SyntaxKind.ModuloAssignmentExpression:
+                    case SyntaxKind.MultiplyAssignmentExpression:
+                    case SyntaxKind.OrAssignmentExpression:
+                    case SyntaxKind.RightShiftAssignmentExpression:
+                    case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                    case SyntaxKind.SubtractAssignmentExpression:
+                        return BindCompoundAssignment((AssignmentExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.QueryExpression:
-                    return this.BindQuery((QueryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.CoalesceAssignmentExpression:
+                        return BindNullCoalescingAssignmentOperator((AssignmentExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.AnonymousObjectCreationExpression:
-                    return BindAnonymousObjectCreation((AnonymousObjectCreationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.AliasQualifiedName:
+                    case SyntaxKind.PredefinedType:
+                        return this.BindNamespaceOrType(node, diagnostics);
 
-                case SyntaxKind.QualifiedName:
-                    return BindQualifiedName((QualifiedNameSyntax)node, diagnostics);
+                    case SyntaxKind.QueryExpression:
+                        return this.BindQuery((QueryExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.ComplexElementInitializerExpression:
-                    return BindUnexpectedComplexElementInitializer((InitializerExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.AnonymousObjectCreationExpression:
+                        return BindAnonymousObjectCreation((AnonymousObjectCreationExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.ArgListExpression:
-                    return BindArgList(node, diagnostics);
+                    case SyntaxKind.QualifiedName:
+                        return BindQualifiedName((QualifiedNameSyntax)node, diagnostics);
 
-                case SyntaxKind.RefTypeExpression:
-                    return BindRefType((RefTypeExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ComplexElementInitializerExpression:
+                        return BindUnexpectedComplexElementInitializer((InitializerExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.MakeRefExpression:
-                    return BindMakeRef((MakeRefExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ArgListExpression:
+                        return BindArgList(node, diagnostics);
 
-                case SyntaxKind.RefValueExpression:
-                    return BindRefValue((RefValueExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.RefTypeExpression:
+                        return BindRefType((RefTypeExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.AwaitExpression:
-                    return BindAwait((AwaitExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.MakeRefExpression:
+                        return BindMakeRef((MakeRefExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.OmittedArraySizeExpression:
-                case SyntaxKind.OmittedTypeArgument:
-                case SyntaxKind.ObjectInitializerExpression:
-                    // Not reachable during method body binding, but
-                    // may be used by SemanticModel for error cases.
-                    return BadExpression(node);
+                    case SyntaxKind.RefValueExpression:
+                        return BindRefValue((RefValueExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.CollectionExpression:
-                    return BindCollectionExpression((CollectionExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.AwaitExpression:
+                        return BindAwait((AwaitExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.NullableType:
-                    // Not reachable during method body binding, but
-                    // may be used by SemanticModel for error cases.
-                    // NOTE: This happens when there's a problem with the Nullable<T> type (e.g. it's missing).
-                    // There is no corresponding problem for array or pointer types (which seem analogous), since
-                    // they are not constructed types; the element type can be an error type, but the array/pointer 
-                    // type cannot.
-                    return BadExpression(node);
+                    case SyntaxKind.OmittedArraySizeExpression:
+                    case SyntaxKind.OmittedTypeArgument:
+                    case SyntaxKind.ObjectInitializerExpression:
+                        // Not reachable during method body binding, but
+                        // may be used by SemanticModel for error cases.
+                        return BadExpression(node);
 
-                case SyntaxKind.InterpolatedStringExpression:
-                    return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.CollectionExpression:
+                        return BindCollectionExpression((CollectionExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.IsPatternExpression:
-                    return BindIsPatternExpression((IsPatternExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.NullableType:
+                        // Not reachable during method body binding, but
+                        // may be used by SemanticModel for error cases.
+                        // NOTE: This happens when there's a problem with the Nullable<T> type (e.g. it's missing).
+                        // There is no corresponding problem for array or pointer types (which seem analogous), since
+                        // they are not constructed types; the element type can be an error type, but the array/pointer 
+                        // type cannot.
+                        return BadExpression(node);
 
-                case SyntaxKind.TupleExpression:
-                    return BindTupleExpression((TupleExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.InterpolatedStringExpression:
+                        return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.ThrowExpression:
-                    return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.IsPatternExpression:
+                        return BindIsPatternExpression((IsPatternExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.RefType:
-                    return BindRefType(node, diagnostics);
+                    case SyntaxKind.TupleExpression:
+                        return BindTupleExpression((TupleExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.ScopedType:
-                    return BindScopedType(node, diagnostics);
+                    case SyntaxKind.ThrowExpression:
+                        return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.RefExpression:
-                    return BindRefExpression((RefExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.RefType:
+                        return BindRefType(node, diagnostics);
 
-                case SyntaxKind.DeclarationExpression:
-                    return BindDeclarationExpressionAsError((DeclarationExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.ScopedType:
+                        return BindScopedType(node, diagnostics);
 
-                case SyntaxKind.SuppressNullableWarningExpression:
-                    return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.RefExpression:
+                        return BindRefExpression((RefExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.WithExpression:
-                    return BindWithExpression((WithExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.DeclarationExpression:
+                        return BindDeclarationExpressionAsError((DeclarationExpressionSyntax)node, diagnostics);
 
-                default:
-                    // NOTE: We could probably throw an exception here, but it's conceivable
-                    // that a non-parser syntax tree could reach this point with an unexpected
-                    // SyntaxKind and we don't want to throw if that occurs.
-                    Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
-                    diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
-                    return BadExpression(node);
+                    case SyntaxKind.SuppressNullableWarningExpression:
+                        return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
+
+                    case SyntaxKind.WithExpression:
+                        return BindWithExpression((WithExpressionSyntax)node, diagnostics);
+
+                    default:
+                        // NOTE: We could probably throw an exception here, but it's conceivable
+                        // that a non-parser syntax tree could reach this point with an unexpected
+                        // SyntaxKind and we don't want to throw if that occurs.
+                        Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
+                        diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
+                        return BadExpression(node);
+                }
             }
         }
 
@@ -4753,30 +4765,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundCollectionExpressionSpreadElement(
                         syntax,
                         expression,
+                        expressionPlaceholder: null,
+                        conversion: null,
                         enumeratorInfoOpt: null,
+                        lengthOrCount: null,
                         elementPlaceholder: null,
-                        addElementPlaceholder: null,
-                        addMethodInvocation: null,
-                        type: CreateErrorType(),
+                        iteratorBody: null,
                         hasErrors);
                 }
 
+                Debug.Assert(expression.Type is { });
+
+                var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
                 var enumeratorInfo = builder.Build(location: default);
                 var collectionType = enumeratorInfo.CollectionType;
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 Debug.Assert(conversion.IsValid);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
-                expression = ConvertForEachCollection(expression, conversion, collectionType, diagnostics);
-                var elementPlaceholder = new BoundValuePlaceholder(syntax.Expression, enumeratorInfo.ElementType);
+                var convertedExpression = ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+                BoundExpression? lengthOrCount;
+                if (!TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+                {
+                    lengthOrCount = null;
+                }
                 return new BoundCollectionExpressionSpreadElement(
                     syntax,
                     expression,
+                    expressionPlaceholder: expressionPlaceholder,
+                    conversion: convertedExpression,
                     enumeratorInfo,
-                    elementPlaceholder: elementPlaceholder,
-                    addElementPlaceholder: null,
-                    addMethodInvocation: null,
-                    type: enumeratorInfo.CollectionType,
+                    lengthOrCount: lengthOrCount,
+                    elementPlaceholder: null,
+                    iteratorBody: null,
                     hasErrors: false)
                 { WasCompilerGenerated = true };
             }
@@ -5901,7 +5922,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundCollectionExpressionSpreadElement BindCollectionInitializerSpreadElementAddMethod(
+        internal BoundExpression BindCollectionExpressionElementAddMethod(
+            BoundExpression element,
+            Binder collectionInitializerAddMethodBinder,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics,
+            out bool hasErrors)
+        {
+            var result = element is BoundCollectionExpressionSpreadElement spreadElement ?
+                BindCollectionExpressionSpreadElementAddMethod(
+                    (SpreadElementSyntax)spreadElement.Syntax,
+                    spreadElement,
+                    collectionInitializerAddMethodBinder,
+                    implicitReceiver,
+                    diagnostics) :
+                BindCollectionInitializerElementAddMethod(
+                    (ExpressionSyntax)element.Syntax,
+                    ImmutableArray.Create(element),
+                    hasEnumerableInitializerType: true,
+                    collectionInitializerAddMethodBinder,
+                    diagnostics,
+                    implicitReceiver);
+            hasErrors = result.HasErrors;
+            return result;
+        }
+
+        private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
             Binder collectionInitializerAddMethodBinder,
@@ -5913,11 +5959,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return element.Update(
                     BindToNaturalType(element.Expression, BindingDiagnosticBag.Discarded, reportNoTargetType: false),
-                    element.EnumeratorInfoOpt,
-                    element.ElementPlaceholder,
-                    element.AddElementPlaceholder,
-                    element.AddMethodInvocation,
-                    element.Type);
+                    expressionPlaceholder: element.ExpressionPlaceholder,
+                    conversion: null,
+                    enumeratorInfo,
+                    lengthOrCount: null,
+                    elementPlaceholder: null,
+                    iteratorBody: null);
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
@@ -5930,11 +5977,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
             return element.Update(
                 element.Expression,
+                expressionPlaceholder: element.ExpressionPlaceholder,
+                conversion: element.Conversion,
                 enumeratorInfo,
-                element.ElementPlaceholder,
-                addElementPlaceholder,
-                new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true },
-                element.Type);
+                lengthOrCount: element.LengthOrCount,
+                elementPlaceholder: addElementPlaceholder,
+                iteratorBody: new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true });
         }
 #nullable disable
 
