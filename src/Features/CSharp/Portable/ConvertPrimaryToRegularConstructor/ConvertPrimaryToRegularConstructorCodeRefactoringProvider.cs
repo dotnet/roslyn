@@ -72,6 +72,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         // 5. Format as appropriate
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var compilation = semanticModel.Compilation;
         var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
 
         // We may have to update multiple files (in the case of a partial type).  Use a solution-editor to make that simple.
@@ -83,6 +84,9 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         var parameters = parameterList.Parameters.SelectAsArray(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
 
         var parameterToSynthesizedFields = await GetSynthesizedFieldsAsync().ConfigureAwait(false);
+        var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
+
+        var parameterToExistingFieldOrProperty = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
 
         var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
         var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
@@ -103,6 +107,10 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         // Remove all the attributes from the type decl that were moved to the constructor.
         foreach (var attributeList in methodTargetingAttributes)
             mainDocumentEditor.RemoveNode(attributeList);
+
+        // Remove all the initializers from existing fields/props the params are assigned to.
+        foreach (var (parameter, (fieldOrProperty, initializer)) in parameterToExistingFieldOrProperty)
+            mainDocumentEditor.RemoveNode(initializer);
 
         // Now add all the fields.
         mainDocumentEditor.ReplaceNode(
@@ -149,10 +157,9 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         return solutionEditor.GetChangedSolution();
 
-        async Task RewriteReferencesToParametersAsync()
+        async Task<MultiDictionary<IParameterSymbol, IdentifierNameSyntax>> GetParameterReferencesAsync()
         {
-            var result = new MultiDictionary<IParameterSymbol, (IdentifierNameSyntax referencedLocation, ISymbol? assignedFieldOrProperty)>();
-
+            var result = new MultiDictionary<IParameterSymbol, IdentifierNameSyntax>();
             foreach (var parameter in parameters)
             {
                 if (!parameterToSynthesizedFields.TryGetValue(parameter, out var field))
@@ -168,53 +175,117 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     // hitting each location only once.
                     // 
                     // Note Use DistinctBy (.Net6) once available.
-                    foreach (var grouping in reference.Locations.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance).GroupBy(loc => loc.Location.SourceTree))
+                    foreach (var referenceLocation in reference.Locations.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance))
                     {
-                        var syntaxTree = grouping.Key;
-                        var editor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocumentId(syntaxTree), cancellationToken).ConfigureAwait(false);
 
-                        foreach (var referenceLocation in grouping)
-                        {
-                            if (referenceLocation.IsImplicit)
-                                continue;
+                        if (referenceLocation.IsImplicit)
+                            continue;
 
-                            if (referenceLocation.Location.FindNode(cancellationToken) is not IdentifierNameSyntax identifierName)
-                                continue;
+                        if (referenceLocation.Location.FindNode(cancellationToken) is not IdentifierNameSyntax identifierName)
+                            continue;
 
-                            // Explicitly ignore references in the base-type-list.  Tehse don't need to be rewritten as
-                            // they will still reference the parameter in the new constructor when we make the `:
-                            // base(...)` initializer.
-                            if (identifierName.GetAncestor<PrimaryConstructorBaseTypeSyntax>() != null)
-                                continue;
+                        // Explicitly ignore references in the base-type-list.  Tehse don't need to be rewritten as
+                        // they will still reference the parameter in the new constructor when we make the `:
+                        // base(...)` initializer.
+                        if (identifierName.GetAncestor<PrimaryConstructorBaseTypeSyntax>() != null)
+                            continue;
 
-                            // Don't need to update doc comment reference (e.g. `paramref=...`).  These will move to the
-                            // new constructor and will still reference the parameters there.
-                            if (identifierName.GetAncestor<DocumentationCommentTriviaSyntax>() != null)
-                                continue;
+                        // Don't need to update doc comment reference (e.g. `paramref=...`).  These will move to the
+                        // new constructor and will still reference the parameters there.
+                        if (identifierName.GetAncestor<DocumentationCommentTriviaSyntax>() != null)
+                            continue;
 
-                            editor.ReplaceNode(identifierName, fieldName.WithTriviaFrom(identifierName));
-                        }
+                        result.Add(parameter, identifierName);
                     }
+                }
+            }
+
+            return result;
+        }
+
+        async Task RewriteReferencesToParametersAsync()
+        {
+            foreach (var (parameter, references) in parameterReferences)
+            {
+                if (!parameterToSynthesizedFields.TryGetValue(parameter, out var field))
+                    continue;
+
+                var fieldName = field.Name.ToIdentifierName();
+
+                foreach (var grouping in references.GroupBy(r => r.SyntaxTree))
+                {
+                    var syntaxTree = grouping.Key;
+                    var editor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocumentId(syntaxTree), cancellationToken).ConfigureAwait(false);
+
+                    foreach (var identifierName in grouping)
+                        editor.ReplaceNode(identifierName, fieldName.WithTriviaFrom(identifierName));
                 }
             }
         }
 
+        async Task<ImmutableDictionary<IParameterSymbol, (ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>> GetExistingAssignedFieldsOrProperties()
+        {
+            using var _1 = PooledDictionary<IParameterSymbol, EqualsValueClauseSyntax>.GetInstance(out var parameterToMemberInitializer);
+
+            foreach (var (parameter, references) in parameterReferences)
+            {
+                // If this already has a synthesized parameter it is assigned to, there's definitely no field/prop it's assigned to.
+                if (parameterToSynthesizedFields.TryGetValue(parameter, out _))
+                    continue;
+
+                // only care if there is a single reference to the parameter and it's an initializer.
+                if (references.Count <= 1)
+                    continue;
+
+                var identifierName = references.First();
+                var expr = identifierName.WalkUpParentheses();
+                if (expr.Parent is not EqualsValueClauseSyntax initializer)
+                    continue;
+
+                if (initializer.Parent is not PropertyDeclarationSyntax and not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } })
+                    continue;
+
+                parameterToMemberInitializer.Add(parameter, initializer);
+            }
+
+            using var _2 = PooledDictionary<IParameterSymbol, (ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>.GetInstance(out var result);
+            foreach (var grouping in parameterToMemberInitializer.GroupBy(kvp => kvp.Value.SyntaxTree))
+            {
+                var syntaxTree = grouping.Key;
+                var semanticModel = await solution.GetRequiredDocument(syntaxTree).GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var (parameter, initializer) in grouping)
+                {
+                    var fieldOrProperty = semanticModel.GetRequiredDeclaredSymbol(initializer.GetRequiredParent(), cancellationToken);
+                    result.Add(parameter, (fieldOrProperty, initializer));
+                }
+            }
+
+            return result.ToImmutableDictionary();
+        }
+
         async Task<ImmutableDictionary<IParameterSymbol, IFieldSymbol>> GetSynthesizedFieldsAsync()
         {
-            using var _ = PooledDictionary<IParameterSymbol, IFieldSymbol>.GetInstance(out var result);
+            using var _1 = PooledDictionary<Location, IFieldSymbol>.GetInstance(out var locationToField);
+            using var _2 = PooledDictionary<IParameterSymbol, IFieldSymbol>.GetInstance(out var result);
+
+            foreach (var member in namedType.GetMembers())
+            {
+                if (member is IFieldSymbol { IsImplicitlyDeclared: false, Locations: [var location, ..] } field)
+                    locationToField[location] = field;
+            }
 
             foreach (var parameter in parameters)
             {
-                var existingField = namedType.GetMembers().OfType<IFieldSymbol>().FirstOrDefault(
-                    f => f.IsImplicitlyDeclared && parameter.Locations.Contains(f.Locations.FirstOrDefault()!));
-                if (existingField == null)
-                    continue;
+                if (parameter.Locations is [var location, ..] &&
+                    locationToField.TryGetValue(location, out var existingField))
+                {
+                    var synthesizedField = CodeGenerationSymbolFactory.CreateFieldSymbol(
+                        existingField,
+                        name: await MakeFieldNameAsync(parameter.Name).ConfigureAwait(false));
 
-                var synthesizedField = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                    existingField,
-                    name: await MakeFieldNameAsync(parameter.Name).ConfigureAwait(false));
-
-                result.Add(parameter, synthesizedField);
+                    result.Add(parameter, synthesizedField);
+                }
             }
 
             return result.ToImmutableDictionary();
@@ -239,11 +310,12 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var assignmentStatements);
             foreach (var parameter in parameters)
             {
-                if (!parameterToSynthesizedFields.TryGetValue(parameter, out var field))
+                var member = GetMemberToAssignTo(parameter);
+                if (member is null)
                     continue;
 
-                var fieldName = field.Name.ToIdentifierName();
-                var left = parameter.Name == field.Name
+                var fieldName = member.Name.ToIdentifierName();
+                var left = parameter.Name == member.Name
                     ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), fieldName)
                     : (ExpressionSyntax)fieldName;
                 var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, parameter.Name.ToIdentifierName());
@@ -257,6 +329,17 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 parameterList.WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),
                 Block(assignmentStatements));
+        }
+
+        ISymbol? GetMemberToAssignTo(IParameterSymbol parameter)
+        {
+            if (parameterToSynthesizedFields.TryGetValue(parameter, out var field))
+                return field;
+
+            if (parameterToExistingFieldOrProperty.TryGetValue(parameter, out var member))
+                return member.fieldOrProperty;
+
+            return null;
         }
     }
 }
