@@ -52,9 +52,10 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             return;
 
         context.RegisterRefactoring(CodeAction.Create(
-            CSharpFeaturesResources.Convert_to_regular_constructor,
-            cancellationToken => ConvertAsync(document, typeDeclaration, typeDeclaration.ParameterList, context.Options, cancellationToken),
-            nameof(CSharpFeaturesResources.Convert_to_regular_constructor)));
+                CSharpFeaturesResources.Convert_to_regular_constructor,
+                cancellationToken => ConvertAsync(document, typeDeclaration, typeDeclaration.ParameterList, context.Options, cancellationToken),
+                nameof(CSharpFeaturesResources.Convert_to_regular_constructor)),
+            triggerSpan);
     }
 
     private static async Task<Solution> ConvertAsync(
@@ -235,10 +236,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         ConstructorDeclarationSyntax CreateConstructorDeclaration()
         {
             var attributes = List(methodTargetingAttributes.Select(a => a.WithTarget(null)));
-            var modifiers = typeDeclaration.Modifiers
-                .Where(m => SyntaxFacts.IsAccessibilityModifier(m.Kind()))
-                .Select(m => m.WithoutTrivia().WithAppendedTrailingTrivia(Space));
-
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var assignmentStatements);
             foreach (var parameter in parameters)
             {
@@ -255,8 +252,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
             return ConstructorDeclaration(
                 attributes,
-                TokenList(modifiers),
-                typeDeclaration.Identifier.WithoutTrivia().WithAppendedTrailingTrivia(Space),
+                TokenList(Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)),
+                typeDeclaration.Identifier.WithoutTrivia(),
                 parameterList.WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),
                 Block(assignmentStatements));
