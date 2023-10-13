@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,12 +14,19 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CollectionExpressionTests : CSharpTestBase
     {
+        private static readonly IEnumerable<KeyValuePair<string, ReportDiagnostic>> WithSpanAllocWarning = new[]
+        {
+            KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate), ReportDiagnostic.Warn),
+            KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate), ReportDiagnostic.Warn)
+        };
+
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
         private const string s_collectionExtensions = """
@@ -16163,7 +16171,7 @@ partial class Program
                     }
                 }
                 """;
-            comp = CreateCompilation(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
             comp.VerifyEmitDiagnostics(
                 // 0.cs(12,60): error CS9203: A collection expression of type 'MyCollection<T>' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static MyCollection<T> ThreeItems<T>(T x, T y, T z) => [x, y, z];
@@ -18454,8 +18462,11 @@ partial class Program
                     public static ReadOnlySpan<object> F;
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
             comp.VerifyEmitDiagnostics(
+                // (3,7): warning CS9209: Collection expression of type 'ReadOnlySpan<object>' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to 'ReadOnlySpan<object>' to make the allocation explicit.
+                // S.F = [..S.GetSpan(), 3];
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate, "[..S.GetSpan(), 3]").WithArguments("System.ReadOnlySpan<object>").WithLocation(3, 7),
                 // (3,7): error CS9203: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 // S.F = [..S.GetSpan(), 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[..S.GetSpan(), 3]").WithArguments("System.ReadOnlySpan<object>").WithLocation(3, 7),
@@ -19240,8 +19251,11 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
+            comp.VerifyEmitDiagnostics(
+                // (6,31): warning CS9208: Collection expression of type 'Span<T>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'Span<T>' to make the allocation explicit.
+                //         Span<T> s = /*<bind>*/[a, b]/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[a, b]").WithArguments("System.Span<T>").WithLocation(6, 31));
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
@@ -20182,10 +20196,13 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(WithSpanAllocWarning)).VerifyEmitDiagnostics(
                 // (1,2): error CS0181: Attribute constructor parameter 's' has type 'Span<int>', which is not a valid attribute parameter type
                 // [X([1])]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("s", "System.Span<int>").WithLocation(1, 2)
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("s", "System.Span<int>").WithLocation(1, 2),
+                // (1,4): warning CS9208: Collection expression of type 'Span<int>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'Span<int>' to make the allocation explicit.
+                // [X([1])]
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[1]").WithArguments("System.Span<int>").WithLocation(1, 4)
                 );
         }
 
@@ -21983,6 +22000,82 @@ partial class Program
         }
 
         [Fact]
+        public void SpanImplicitAllocationWarning_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void M()
+                    {
+                        Span<int> s1 = [1]; // 1
+                        Span<int> s2 = (int[])[1];
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
+            verifier.VerifyDiagnostics(
+                // (7,24): warning CS9208: Collection expression of type 'Span<int>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'Span<int>' to make the allocation explicit.
+                //         Span<int> s1 = [1]; // 1
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[1]").WithArguments("System.Span<int>").WithLocation(7, 24));
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  stelem.i4
+                  IL_000a:  newobj     "System.Span<int>..ctor(int[])"
+                  IL_000f:  pop
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  newarr     "int"
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  stelem.i4
+                  IL_001a:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_001f:  pop
+                  IL_0020:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  4
+                  .locals init (<>y__InlineArray1<int> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray1<int>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  stind.i4
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  ldc.i4.1
+                  IL_0015:  call       "InlineArrayAsSpan<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_001a:  pop
+                  IL_001b:  ldc.i4.1
+                  IL_001c:  newarr     "int"
+                  IL_0021:  dup
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  stelem.i4
+                  IL_0025:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_002a:  pop
+                  IL_002b:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void ElementNullability_ArrayCollection()
         {
             string src = """
@@ -22061,8 +22154,10 @@ partial class Program
         {
             string src = $$"""
                 #nullable enable
-                {{spanType}}<string?> x1 = [null];
-                {{spanType}}<string> x2 = [null];
+                {{spanType}}<string?> x1
+                    = [null];
+                {{spanType}}<string> x2
+                    = [null];
 
                 #nullable disable
                 {{spanType}}<string>
@@ -22070,11 +22165,20 @@ partial class Program
                     x3 = [null];
                 """;
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
-               // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
-               // System.ReadOnlySpan<string> x2 = [null];
-               Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
-               );
+            CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(WithSpanAllocWarning)).VerifyEmitDiagnostics(
+                // (3,7): warning CS9208: Collection expression of type 'ReadOnlySpan<string?>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'ReadOnlySpan<string?>' to make the allocation explicit.
+                //     = [null];
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[null]").WithArguments($"{spanType}<string?>").WithLocation(3, 7),
+                // (5,7): warning CS9208: Collection expression of type 'ReadOnlySpan<string>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'ReadOnlySpan<string>' to make the allocation explicit.
+                //     = [null];
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[null]").WithArguments($"{spanType}<string>").WithLocation(5, 7),
+                // (5,8): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 8),
+                // (10,10): warning CS9208: Collection expression of type 'ReadOnlySpan<string>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'ReadOnlySpan<string>' to make the allocation explicit.
+                //     x3 = [null];
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[null]").WithArguments($"{spanType}<string>").WithLocation(10, 10)
+                );
         }
 
         [Fact]
@@ -22811,6 +22915,40 @@ partial class Program
                 // object[] y1 = [..(x is null)];
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "(x is null)").WithArguments("bool", "GetEnumerator").WithLocation(3, 18)
                 );
+        }
+
+        [Theory]
+        [InlineData("scoped ")]
+        [InlineData("")]
+        public void CollectionBuilderRefStructAllocWarning(string scopedModifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(RefStructCollectionBuilder), nameof(RefStructCollectionBuilder.Create))]
+                ref struct RefStructCollection<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => null;
+                }
+
+                static class RefStructCollectionBuilder
+                {
+                    public static RefStructCollection<T> Create<T>({{scopedModifier}}ReadOnlySpan<T> items) => default;
+                }
+
+                public class Program
+                {
+                    public void M()
+                    {
+                        RefStructCollection<int> rs = [1];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
+            comp.VerifyEmitDiagnostics();
         }
     }
 }
