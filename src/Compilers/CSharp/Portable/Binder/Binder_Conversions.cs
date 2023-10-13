@@ -558,6 +558,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = (ExpressionSyntax)node.Syntax;
+            if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
+            {
+                diagnostics.Add(node.HasSpreadElements(out _, out _)
+                    ? ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate
+                    : ErrorCode.WRN_CollectionExpressionRefStructMayAllocate,
+                    syntax, targetType);
+            }
+
             MethodSymbol? collectionBuilderMethod = null;
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
