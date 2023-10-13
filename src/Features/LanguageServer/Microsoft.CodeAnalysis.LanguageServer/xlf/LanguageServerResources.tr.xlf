@@ -77,6 +77,16 @@
         <target state="new">Passed!</target>
         <note />
       </trans-unit>
+      <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
+        <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
+        <target state="new">Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Projects_failed_to_load_because_Mono_could_not_be_found">
+        <source>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</source>
+        <target state="new">Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Running_tests">
         <source>Running tests...</source>
         <target state="new">Running tests...</target>
@@ -125,16 +135,6 @@
       <trans-unit id="There_were_problems_loading_project_0_See_log_for_details">
         <source>There were problems loading project {0}. See log for details.</source>
         <target state="translated">Proje ayarları yüklenirken sorun {0}. Ayrıntılar için günlüğe bakın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="There_were_problems_loading_solution_0_See_log_for_details">
-        <source>There were errors loading solution {0}. See log for details.</source>
-        <target state="translated">Çözüm dosyası yüklenirken hatalar {0}. Ayrıntılar için günlüğe bakın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="There_were_problems_loading_your_projects_See_log_for_details">
-        <source>There were problems loading your projects. See log for details.</source>
-        <target state="translated">Projeleriniz yüklenirken sorun oluştu. Ayrıntılar için günlüğe bakın.</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_runsettings_file_at_0">

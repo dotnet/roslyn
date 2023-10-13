@@ -5203,7 +5203,7 @@ public class Goo
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522440")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")]
-        [WpfFact(Skip = "674611")]
+        [WpfFact]
         public async Task EditorBrowsable_Property_BrowsableStateNever()
         {
             var markup = @"
@@ -10091,7 +10091,7 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21766"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=420697&_a=edit")]
         public async Task DoNotCrashInExtensionMethoWithExpressionBodiedMember()
         {
@@ -10330,7 +10330,7 @@ namespace ThenIncludeIntellisenseBug
             await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35100")]
+        [Fact]
         public async Task ThenIncludeGenericAndNoGenericOverloads()
         {
             var markup = CreateThenIncludeTestCode("c => c.$$",

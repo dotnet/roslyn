@@ -11994,5 +11994,22 @@ public class C() : Base($$)
                 Await state.AssertCompletionItemsContain("x", ":")
             End Using
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66305")>
+        Public Async Function TestScopedKeywordRecommender() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp11)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("scoped", "")
+            End Using
+        End Function
     End Class
 End Namespace
