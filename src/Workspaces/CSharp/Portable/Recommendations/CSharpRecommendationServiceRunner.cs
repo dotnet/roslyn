@@ -139,19 +139,14 @@ internal partial class CSharpRecommendationService
 
             if (IsConstantPatternContainerContext())
             {
-                // We are building a pattern expression, and thus we can only access either constants, types or namespaces
-                // For example, we are evaluating:
-                // - namespace qualification (e.g. `is System.$$`)
-                // - type qualification (e.g. `is Type.$$`, `is Type.Nested.$$`)
-                // - alias qualification (e.g. `is global::$$`)
-                // If we are after an 'is' keyword, `node.Parent` is a BinaryExpressionSyntax(SyntaxKind.IsExpression)
-                // If we are in any other scenario, `node` has an ancestor that is the IsPatternExpressionSyntax enclosing the pattern expression
+                // We are building a pattern expression, and thus we can only access either constants, types or namespaces.
                 return node switch
                 {
+                    // x is (A.
                     MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
                         => GetSymbolsOffOfExpressionInConstantPattern(memberAccess.Expression),
+                    // x is A.
                     QualifiedNameSyntax qualifiedName => GetSymbolsOffOfExpressionInConstantPattern(qualifiedName.Left),
-                    AliasQualifiedNameSyntax aliasName => GetSymbolsOffOfAlias(aliasName.Alias),
                     _ => default,
                 };
             }
@@ -189,7 +184,7 @@ internal partial class CSharpRecommendationService
                         break;
                     }
                 }
-                else if (node is QualifiedNameSyntax or AliasQualifiedNameSyntax)
+                else if (node is QualifiedNameSyntax)
                 {
                     var last = node;
                     for (var current = node; current != null; last = current, current = current.Parent)
