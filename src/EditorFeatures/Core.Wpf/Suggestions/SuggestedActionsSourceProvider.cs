@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly IUIThreadOperationExecutor UIThreadOperationExecutor;
 
         public readonly ImmutableArray<Lazy<IImageIdService, OrderableMetadata>> ImageIdServices;
+        public readonly ImmutableArray<Lazy<ISuggestedActionCallback>> ActionCallbacks;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -73,7 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService globalOptions,
-            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices)
+            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices,
+            [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
             _threadingContext = threadingContext;
             _codeRefactoringService = codeRefactoringService;
@@ -85,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
             ImageIdServices = ExtensionOrderer.Order(imageIdServices).ToImmutableArray();
+            ActionCallbacks = actionCallbacks.ToImmutableArray();
         }
 
         public ISuggestedActionsSource? CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)

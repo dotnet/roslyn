@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly Solution OriginalSolution;
         protected readonly ITextBuffer SubjectBuffer;
 
-        protected readonly object Provider;
+        internal readonly object Provider;
         internal readonly CodeAction CodeAction;
 
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
@@ -177,6 +177,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         CodeAction.Title,
                         progressTracker,
                         cancellationToken).ConfigureAwait(false);
+
+                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
+                    {
+                        actionCallback.Value.OnSuggestedActionExecuted(this);
+                    }
                 }
             }
         }
