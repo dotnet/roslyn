@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
 
             var potentialTypeNode = targetToken.Parent;
-            while (potentialTypeNode is TypeArgumentListSyntax typeArgumentList)
+            if (targetToken.IsKind(SyntaxKind.GreaterThanToken) && potentialTypeNode is TypeArgumentListSyntax typeArgumentList)
             {
                 potentialTypeNode = typeArgumentList.Parent;
             }
