@@ -222,6 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (AdaptedMethodSymbol.Name.EndsWith("Fancy"))
+                {
+                    NamedTypeSymbol task = ((NamedTypeSymbol)AdaptedMethodSymbol.ReturnType).ConstructUnboundGenericType();
+                    Debug.Assert(task.IsUnboundGenericType);
+                    Cci.ICustomModifier mod = CSharpCustomModifier.CreateOptional(task);
+                    return ImmutableArray.Create(mod);
+                }
+
                 return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedMethodSymbol.ReturnTypeWithAnnotations.CustomModifiers);
             }
         }
@@ -244,7 +252,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(AdaptedMethodSymbol.ReturnType,
+            var returnType = AdaptedMethodSymbol.ReturnType;
+
+            if (AdaptedMethodSymbol.Name.EndsWith("Fancy"))
+            {
+                returnType = ((NamedTypeSymbol)AdaptedMethodSymbol.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            }
+
+            return ((PEModuleBuilder)context.Module).Translate(returnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics);
         }

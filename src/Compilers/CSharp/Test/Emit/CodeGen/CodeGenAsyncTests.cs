@@ -6053,5 +6053,51 @@ public class C
             var comp = CSharpTestBase.CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        public void Async_TaskT()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class TT
+{
+    public static async Task<int> Fancy()
+    {
+        await Task.Yield();
+        return 42;
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        var t = TT.Fancy();
+        Console.WriteLine(t.Result);
+    }
+}";
+
+            var c = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Fails);
+
+            c.VerifyTypeIL("TT", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (System.Threading.Tasks.Task<int> V_0) //t
+  IL_0000:  nop
+  IL_0001:  call       ""System.Threading.Tasks.Task<int> Test.Fancy()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   ""int System.Threading.Tasks.Task<int>.Result.get""
+  IL_000d:  call       ""void System.Console.WriteLine(int)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+
+        }
+
     }
 }
