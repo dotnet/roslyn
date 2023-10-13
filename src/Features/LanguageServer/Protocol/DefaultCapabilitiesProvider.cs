@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
-    internal class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
+    internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
     {
         private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
 

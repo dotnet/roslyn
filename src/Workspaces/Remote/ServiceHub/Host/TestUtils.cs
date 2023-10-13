@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class TestUtils
     {
-        public static void RemoveChecksums(this Dictionary<Checksum, object> map, ChecksumWithChildren checksums)
+        public static void RemoveChecksums(this Dictionary<Checksum, object> map, ChecksumCollection checksums)
         {
             var set = new HashSet<Checksum>();
             set.AppendChecksums(checksums);
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 stringBuilder.AppendLine(title);
                 foreach (var kv in items)
                 {
-                    stringBuilder.AppendLine($"{kv.Key.ToString()}, {kv.Value.ToString()}");
+                    stringBuilder.AppendLine($"{kv.Key.ToString()}, {kv.Value?.ToString()}");
                 }
 
                 stringBuilder.AppendLine();
@@ -104,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 foreach (var checksum in checksums)
                 {
-                    items.Add(new KeyValuePair<Checksum, object>(checksum, await assetService.GetAssetAsync<object>(checksum, CancellationToken.None).ConfigureAwait(false)));
+                    items.Add(new KeyValuePair<Checksum, object>(checksum, await assetService.GetAssetAsync<object>(
+                        hintProject: null, checksum, CancellationToken.None).ConfigureAwait(false)));
                 }
 
                 return items;
@@ -114,18 +114,21 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var set = new HashSet<Checksum>();
 
-                var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, CancellationToken.None).ConfigureAwait(false);
-                set.AppendChecksums(solutionChecksums);
+                var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(
+                    hintProject: null, solutionChecksum, CancellationToken.None).ConfigureAwait(false);
+                solutionChecksums.AddAllTo(set);
 
                 foreach (var projectChecksum in solutionChecksums.Projects)
                 {
-                    var projectChecksums = await assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, CancellationToken.None).ConfigureAwait(false);
-                    set.AppendChecksums(projectChecksums);
+                    var projectChecksums = await assetService.GetAssetAsync<ProjectStateChecksums>(
+                        hintProject: null, projectChecksum, CancellationToken.None).ConfigureAwait(false);
+                    projectChecksums.AddAllTo(set);
 
                     foreach (var documentChecksum in projectChecksums.Documents.Concat(projectChecksums.AdditionalDocuments).Concat(projectChecksums.AnalyzerConfigDocuments))
                     {
-                        var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, CancellationToken.None).ConfigureAwait(false);
-                        set.AppendChecksums(documentChecksums);
+                        var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(
+                            hintProject: projectChecksums.ProjectId, documentChecksum, CancellationToken.None).ConfigureAwait(false);
+                        AddAllTo(documentChecksums, set);
                     }
                 }
 
@@ -136,6 +139,13 @@ namespace Microsoft.CodeAnalysis.Remote
             // have this to avoid error on async
             await Task.CompletedTask.ConfigureAwait(false);
 #endif
+        }
+
+        private static void AddAllTo(DocumentStateChecksums documentStateChecksums, HashSet<Checksum> checksums)
+        {
+            checksums.AddIfNotNullChecksum(documentStateChecksums.Checksum);
+            checksums.AddIfNotNullChecksum(documentStateChecksums.Info);
+            checksums.AddIfNotNullChecksum(documentStateChecksums.Text);
         }
 
         /// <summary>
@@ -150,14 +160,19 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// create checksum to correspoing object map from project
-        /// this map should contain every parts of project that can be used to re-create the project back
+        /// create checksum to corresponding object map from project this map should contain every parts of project that
+        /// can be used to re-create the project back
         /// </summary>
         public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
         {
             var map = new Dictionary<Checksum, object>();
 
             await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+
+            // don't include the root checksum itself.  it's not one of the assets of the actual project.
+            var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            map.Remove(projectStateChecksums.Checksum);
+
             return map;
         }
 
@@ -170,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (projectId == null)
             {
                 var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, hintProject: null, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 foreach (var project in solution.Projects)
                     await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
@@ -178,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Remote
             else
             {
                 var solutionChecksums = await solution.State.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, hintProject: projectId, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 var project = solution.GetRequiredProject(projectId);
                 await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
@@ -204,30 +219,35 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static HashSet<Checksum> Flatten(ChecksumWithChildren checksums)
+        private static HashSet<Checksum> Flatten(SolutionStateChecksums checksums)
         {
             var set = new HashSet<Checksum>();
-            set.AppendChecksums(checksums);
-
+            checksums.AddAllTo(set);
             return set;
         }
 
-        public static void AppendChecksums(this HashSet<Checksum> set, ChecksumWithChildren checksums)
+        private static HashSet<Checksum> Flatten(ProjectStateChecksums checksums)
+        {
+            var set = new HashSet<Checksum>();
+            checksums.AddAllTo(set);
+            return set;
+        }
+
+        private static HashSet<Checksum> Flatten(DocumentStateChecksums checksums)
+        {
+            var set = new HashSet<Checksum>();
+            AddAllTo(checksums, set);
+            return set;
+        }
+
+        public static void AppendChecksums(this HashSet<Checksum> set, ChecksumCollection checksums)
         {
             set.Add(checksums.Checksum);
 
             foreach (var child in checksums.Children)
             {
-                if (child is Checksum checksum)
-                {
-                    if (checksum != Checksum.Null)
-                        set.Add(checksum);
-                }
-
-                if (child is ChecksumCollection collection)
-                {
-                    set.AppendChecksums(collection);
-                }
+                if (child != Checksum.Null)
+                    set.Add(child);
             }
         }
     }

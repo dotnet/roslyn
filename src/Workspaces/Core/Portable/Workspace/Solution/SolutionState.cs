@@ -1549,12 +1549,27 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
-            var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
+            if (_projectIdToTrackerMap.Count == 0)
+                return _projectIdToTrackerMap;
 
+            using var _ = ArrayBuilder<KeyValuePair<ProjectId, ICompilationTracker>>.GetInstance(_projectIdToTrackerMap.Count, out var newTrackerInfo);
+            var allReused = true;
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState, translate: null));
+            {
+                var localTracker = tracker;
+                if (!CanReuse(id))
+                {
+                    localTracker = tracker.Fork(tracker.ProjectState, translate: null);
+                    allReused = false;
+                }
 
-            return builder.ToImmutable();
+                newTrackerInfo.Add(new KeyValuePair<ProjectId, ICompilationTracker>(id, localTracker));
+            }
+
+            if (allReused)
+                return _projectIdToTrackerMap;
+
+            return ImmutableDictionary.CreateRange(newTrackerInfo);
 
             // Returns true if 'tracker' can be reused for project 'id'
             bool CanReuse(ProjectId id)
@@ -1720,23 +1735,27 @@ namespace Microsoft.CodeAnalysis
             }
 
             var documentIds = GetDocumentIdsWithFilePath(filePath);
-            return FilterDocumentIdsByLanguage(this, documentIds, projectState.ProjectInfo.Language);
-        }
-
-        private static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(SolutionState solution, ImmutableArray<DocumentId> documentIds, string language)
-            => documentIds.WhereAsArray(
+            return documentIds.WhereAsArray(
                 static (documentId, args) =>
                 {
                     var projectState = args.solution.GetProjectState(documentId.ProjectId);
                     if (projectState == null)
                     {
                         // this document no longer exist
+                        // I'm adding this ReportAndCatch to see if this does happen in the wild; it's not clear to me under what scenario that could happen since all the IDs of all document types
+                        // should be removed when a project is removed.
+                        FatalError.ReportAndCatch(new Exception("GetDocumentIdsWithFilePath returned a document in a project that does not exist."));
                         return false;
                     }
 
-                    return projectState.ProjectInfo.Language == args.language;
+                    if (projectState.ProjectInfo.Language != args.Language)
+                        return false;
+
+                    // GetDocumentIdsWithFilePath may return DocumentIds for other types of documents (like additional files), so filter to normal documents
+                    return projectState.DocumentStates.Contains(documentId);
                 },
-                (solution, language));
+                (solution: this, projectState.Language));
+        }
 
         /// <summary>
         /// Creates a new solution instance with all the documents specified updated to have the same specified text.

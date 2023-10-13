@@ -741,7 +741,7 @@
       <trans-unit id="AnalyzerDriverThrows">
         <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
 {2}</source>
-        <target state="new">Analyzer driver threw an exception of type '{0}' with message '{1}'.
+        <target state="translated">분석기 드라이버에서 '{0}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.
 {2}</target>
         <note>{0}: Type name
 {1}: Localized exception message

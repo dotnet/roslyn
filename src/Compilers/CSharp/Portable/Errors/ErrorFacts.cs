@@ -613,6 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_SymbolDefinedInAssembly:
                 case ErrorCode.ERR_InterceptorArityNotCompatible:
                 case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;

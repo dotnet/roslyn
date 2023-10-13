@@ -50,6 +50,14 @@
     <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
   </PropertyGroup>
 
+  <!-- When we are packing each RID, we set PackRuntimeIdentifier; by default this will also get passed to the builds of all ResolveProjectReferences
+       which causes a lot of duplicate building. This removes it. -->
+  <ItemDefinitionGroup>
+    <ProjectReference>
+      <GlobalPropertiesToRemove>PackRuntimeIdentifier</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
@@ -58,11 +66,12 @@
 
     <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+
+    <!-- Not directly referenced but needed for Razor source generators -->
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
@@ -126,13 +135,11 @@
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
 
-    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433; we pass
-         BuildInParallel="false" to avoid multiple builds potentially building the same project at the same time, but since we
-         expect the builds to have completed by this point they should be fast.  -->
+    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433  -->
     <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
              Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
-             BuildInParallel="false"
-             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework);RuntimeIdentifier=">
+             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)"
+             RemoveProperties="PackRuntimeIdentifier">
       <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
     </MSBuild>
 

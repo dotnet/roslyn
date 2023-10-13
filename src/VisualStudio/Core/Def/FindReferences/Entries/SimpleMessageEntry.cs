@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 return keyName switch
                 {
-                    StandardTableKeyNames.ProjectName => "Not applicable",
+                    StandardTableKeyNames.ProjectName => ServicesVSResources.Not_applicable,
                     StandardTableKeyNames.Text => _message,
                     _ => null,
                 };

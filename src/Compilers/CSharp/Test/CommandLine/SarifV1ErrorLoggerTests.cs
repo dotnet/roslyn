@@ -203,6 +203,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return expectedHeader + expectedIssues;
         }
 
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(MockCSharpCompiler cmd)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation, warnAsError: true);
+            return expectedHeader + expectedIssues;
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
@@ -231,6 +238,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         public void AnalyzerDiagnosticsSuppressedWithNullJustification()
         {
             AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsWithWarnAsError()
+        {
+            AnalyzerDiagnosticsWithWarnAsErrorImpl();
         }
     }
 }

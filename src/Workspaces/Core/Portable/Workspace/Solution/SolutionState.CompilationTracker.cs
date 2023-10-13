@@ -1297,7 +1297,7 @@ namespace Microsoft.CodeAnalysis
 
             private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
             {
-                using var tempChecksumArray = TemporaryArray<Checksum>.Empty;
+                using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
 
                 // Get the checksum for the project itself.
                 var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
@@ -1325,7 +1325,7 @@ namespace Microsoft.CodeAnalysis
                     tempChecksumArray.Add(referencedProjectChecksum);
                 }
 
-                return Checksum.Create(tempChecksumArray.ToImmutableAndClear());
+                return Checksum.Create(tempChecksumArray);
             }
 
             #endregion

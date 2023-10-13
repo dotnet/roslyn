@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -44,6 +43,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
 
+            Assert.Empty(results);
+
+            // Verify document pull diagnostics are unaffected by running code analysis.
+            await testLspServer.RunCodeAnalysisAsync(document.Project.Id);
+            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Empty(results);
         }
 
@@ -971,6 +975,95 @@ class C
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Empty(results[1].Diagnostics);
             Assert.Empty(results[2].Diagnostics);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65967")]
+        public async Task TestWorkspaceDiagnosticsForClosedFilesWithRunCodeAnalysisAndFSAOff(bool useVSDiagnostics, bool mutatingLspWorkspace, bool scopeRunCodeAnalysisToProject)
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+
+            var projectId = scopeRunCodeAnalysisToProject ? testLspServer.GetCurrentSolution().Projects.Single().Id : null;
+            await testLspServer.RunCodeAnalysisAsync(projectId);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            Assert.Equal(3, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+            Assert.Empty(results[2].Diagnostics);
+
+            // Now fix the compiler error, but don't re-execute code analysis.
+            // Verify that we still get the workspace diagnostics from the prior snapshot on which code analysis was executed.
+            var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
+            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            Assert.Equal(results.Length, results2.Length);
+
+            Assert.Equal(results[0].Diagnostics, results2[0].Diagnostics);
+            Assert.Equal(results[1].Diagnostics, results2[1].Diagnostics);
+            Assert.Equal(results[2].Diagnostics, results2[2].Diagnostics);
+
+            // Re-run code analysis and verify up-to-date diagnostics are returned now, i.e. there are no compiler errors.
+            await testLspServer.RunCodeAnalysisAsync(projectId);
+
+            var results3 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results2));
+
+            Assert.Equal(results.Length, results3.Length);
+            Assert.Empty(results3[0].Diagnostics);
+            Assert.Empty(results3[1].Diagnostics);
+            Assert.Empty(results3[2].Diagnostics);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65967")]
+        public async Task TestWorkspaceDiagnosticsForClosedFilesWithWithRunCodeAnalysisFSAOn(bool useVSDiagnostics, bool mutatingLspWorkspace, bool scopeRunCodeAnalysisToProject)
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+            // Run code analysis on the initial project snapshot with compiler error.
+            var projectId = scopeRunCodeAnalysisToProject ? testLspServer.GetCurrentSolution().Projects.Single().Id : null;
+            await testLspServer.RunCodeAnalysisAsync(projectId);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            Assert.Equal(3, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+            Assert.Empty(results[2].Diagnostics);
+
+            // Now fix the compiler error, but don't rerun code analysis.
+            // Verify that we get up-to-date workspace diagnostics, i.e. no compiler errors, from the current snapshot because FSA is enabled.
+            var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
+            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            Assert.Equal(results.Length, results2.Length);
+
+            Assert.Equal(results.Length, results2.Length);
+            Assert.Empty(results2[0].Diagnostics);
+            Assert.Empty(results2[1].Diagnostics);
+            Assert.Empty(results2[2].Diagnostics);
+
+            // Now rerun code analysis and verify we still get up-to-date workspace diagnostics.
+            await testLspServer.RunCodeAnalysisAsync(projectId);
+
+            var results3 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results2));
+
+            Assert.Equal(results2.Length, results3.Length);
+
+            Assert.Equal(results2[0].Diagnostics, results3[0].Diagnostics);
+            Assert.Equal(results2[1].Diagnostics, results3[1].Diagnostics);
+            Assert.Equal(results2[2].Diagnostics, results3[2].Diagnostics);
         }
 
         [Theory, CombinatorialData]
