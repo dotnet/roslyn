@@ -28,6 +28,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 
@@ -63,7 +64,11 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
     }
 
     private static async Task<Solution> ConvertAsync(
-        Document document, TypeDeclarationSyntax typeDeclaration, ParameterListSyntax parameterList, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+        Document document,
+        TypeDeclarationSyntax typeDeclaration,
+        ParameterListSyntax parameterList,
+        CodeActionOptionsProvider optionsProvider,
+        CancellationToken cancellationToken)
     {
         // 1. Create constructor
         // 2. Remove base arguments
@@ -78,6 +83,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
 
+        var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
         var syntaxGenerator = CSharpSyntaxGenerator.Instance;
         var parameters = parameterList.Parameters.SelectAsArray(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
 
@@ -90,14 +96,61 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         // Now start editing the document
         var mainDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, optionsProvider, cancellationToken).ConfigureAwait(false);
 
+        // Now, update all locations that reference the parameters to reference the new fields.
+
+        // Remove the parameter list, and any base argument passing from the type declaration header itself.
         mainDocumentEditor.RemoveNode(parameterList);
         if (baseType != null)
-            mainDocumentEditor.ReplaceNode(baseType, SimpleBaseType(baseType.Type).WithTriviaFrom(baseType));
+            mainDocumentEditor.ReplaceNode(baseType, (current, _) => SimpleBaseType(((PrimaryConstructorBaseType)current).Type).WithTriviaFrom(baseType));
 
+        // Remove all the attributes from the type decl that were moved to the constructor.
         foreach (var attributeList in methodTargetingAttributes)
             mainDocumentEditor.RemoveNode(attributeList);
 
+        // Now add all the fields.
+        mainDocumentEditor.ReplaceNode(
+            typeDeclaration,
+            (current, _) =>
+            {
+                var currentTypeDeclaration = (TypeDeclarationSyntax)current;
+                var fieldsInOrder = parameters
+                    .Select(p => parameterToSynthesizedFields.TryGetValue(p, out var field) ? field : null)
+                    .WhereNotNull();
+                return codeGenService.AddMembers(
+                    currentTypeDeclaration, fieldsInOrder, contextInfo, cancellationToken);
+            });
+
+        // Now add the constructor
+        mainDocumentEditor.ReplaceNode(
+            typeDeclaration,
+            (current, _) =>
+            {
+                // If there is an existing non-static constructor, place it before that
+                var currentTypeDeclaration = (TypeDeclarationSyntax)current;
+                var firstConstructorIndex = currentTypeDeclaration.Members.IndexOf(m => m is ConstructorDeclarationSyntax c && !c.Modifiers.Any(SyntaxKind.StaticKeyword));
+                if (firstConstructorIndex >= 0)
+                {
+                    return currentTypeDeclaration.WithMembers(
+                        currentTypeDeclaration.Members.Insert(firstConstructorIndex, constructorDeclaration));
+                }
+
+                // No constructors.  Place after any fields if present, or any properties if there are no fields.
+                var lastFieldOrProperty = currentTypeDeclaration.Members.LastIndexOf(m => m is FieldDeclarationSyntax);
+                if (lastFieldOrProperty < 0)
+                    lastFieldOrProperty = currentTypeDeclaration.Members.LastIndexOf(m => m is PropertyDeclarationSyntax);
+
+                if (lastFieldOrProperty >= 0)
+                {
+                    return currentTypeDeclaration.WithMembers(
+                        currentTypeDeclaration.Members.Insert(lastFieldOrProperty + 1, constructorDeclaration));
+                }
+
+                // Nothing at all.  Just place the construct at the top of the type.
+                return currentTypeDeclaration.WithMembers(
+                    currentTypeDeclaration.Members.Insert(0, constructorDeclaration));
+            });
 
         return solutionEditor.GetChangedSolution();
 
@@ -115,24 +168,30 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     // hitting each location only once.
                     // 
                     // Note Use DistinctBy (.Net6) once available.
-                    foreach (var referenceLocation in reference.Locations.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance))
+                    foreach (var grouping in reference.Locations.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance).GroupBy(loc => loc.Location.SourceTree))
                     {
-                        if (referenceLocation.IsImplicit)
-                            continue;
+                        var syntaxTree = grouping.Key;
+                        var editor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocumentId(syntaxTree), cancellationToken).ConfigureAwait(false);
 
-                        if (referenceLocation.Location.FindNode(cancellationToken) is not IdentifierNameSyntax identifierName)
-                            continue;
+                        foreach (var referenceLocation in grouping)
+                        {
+                            if (referenceLocation.IsImplicit)
+                                continue;
 
-                        // Explicitly ignore references to the base-constructor.  We don't need to generate fields for these.
-                        if (identifierName.GetAncestor<PrimaryConstructorBaseTypeSyntax>() != null)
-                            continue;
+                            if (referenceLocation.Location.FindNode(cancellationToken) is not IdentifierNameSyntax identifierName)
+                                continue;
 
-                        if (!includeDocCommentLocations && identifierName.GetAncestor<DocumentationCommentTriviaSyntax>() != null)
-                            continue;
+                            // Explicitly ignore references to the base-constructor.  We don't need to generate fields for these.
+                            if (identifierName.GetAncestor<PrimaryConstructorBaseTypeSyntax>() != null)
+                                continue;
 
-                        var expr = identifierName.WalkUpParentheses();
-                        var assignedFieldOrProperty = GetAssignedFieldOrProperty(identifierName);
-                        result.Add(parameter, (identifierName, assignedFieldOrProperty));
+                            if (!includeDocCommentLocations && identifierName.GetAncestor<DocumentationCommentTriviaSyntax>() != null)
+                                continue;
+
+                            var expr = identifierName.WalkUpParentheses();
+                            var assignedFieldOrProperty = GetAssignedFieldOrProperty(identifierName);
+                            result.Add(parameter, (identifierName, assignedFieldOrProperty));
+                        }
                     }
                 }
             }
@@ -180,21 +239,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     name: await MakeFieldNameAsync(parameter.Name).ConfigureAwait(false));
 
                 result.Add(parameter, synthesizedField);
-                //var referencedLocations = parameterToNonDocCommentLocations[parameter];
-                //if (referencedLocations.Count == 0)
-                //    continue;
-
-                //// if the parameter is only referenced in a single location, and that location is initializing a
-                //// field/property already, we don't need to create a field for it.
-                //if (referencedLocations.Count == 1 && referencedLocations.Single().assignedFieldOrProperty != null)
-                //    continue;
-
-                //// it was referenced outside of a field/prop initializer.  Need to synthesize a field for it.
-                //result.Add(
-                //    parameter,
-                //    CodeGenerationSymbolFactory.CreateFieldSymbol(
-                //        )
-
             }
 
             return result.ToImmutableDictionary();
@@ -206,7 +250,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
                 DeclarationModifiers.None,
                 Accessibility.Private,
-                options,
+                optionsProvider,
                 cancellationToken).ConfigureAwait(false);
 
             var fieldName = rule.NamingStyle.MakeCompliant(parameterName).First();
@@ -215,7 +259,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         ConstructorDeclarationSyntax CreateConstructorDeclaration()
         {
-            var attributes = List(methodTargetingAttributes);
+            var attributes = List(methodTargetingAttributes.Select(a => a.WithTarget(null)));
             var modifiers = typeDeclaration.Modifiers
                 .Where(m => SyntaxFacts.IsAccessibilityModifier(m.Kind()))
                 .Select(m => m.WithoutTrivia().WithAppendedTrailingTrivia(Space));
