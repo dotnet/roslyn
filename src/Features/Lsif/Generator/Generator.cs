@@ -214,11 +214,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             // We will walk the file token-by-token, making a range for each one and then attaching information for it
             var rangeVertices = new List<Id<Graph.Range>>();
-            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, rangeVertices, cancellationToken);
+            var documentSymbols = new List<RangeBasedDocumentSymbol>();
+            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, rangeVertices, documentSymbols, cancellationToken);
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
             await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken).ConfigureAwait(false);
-
             await GenerateSemanticTokensAsync(document, lsifJsonWriter, idFactory, documentVertex);
+            GenerateDocumentSymbols(documentSymbols, lsifJsonWriter, idFactory, documentVertex);
 
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
 
@@ -250,6 +251,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory,
             List<Id<Graph.Range>> rangeVertices,
+            List<RangeBasedDocumentSymbol> documentSymbols,
             CancellationToken cancellationToken)
         {
             var languageServices = document.Project.Services;
@@ -299,6 +301,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                     lsifJsonWriter.Write(rangeVertex);
                     rangeVertices.Add(rangeVertex.GetId());
+
+                    if (tagAndFullRangeSpan is not null)
+                    {
+                        var newDocumentSymbol = new RangeBasedDocumentSymbol(rangeVertex.GetId(), tagAndFullRangeSpan.Value.fullRange);
+                        RangeBasedDocumentSymbol.AddNestedFromDocumentOrderTraversal(documentSymbols, newDocumentSymbol);
+                    }
 
                     return rangeVertex;
                 }, LazyThreadSafetyMode.None);
@@ -479,6 +487,17 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var semanticTokensEdge = Edge.Create(Methods.TextDocumentSemanticTokensFullName, documentVertex.GetId(), semanticTokensResult.GetId(), idFactory);
             lsifJsonWriter.Write(semanticTokensResult);
             lsifJsonWriter.Write(semanticTokensEdge);
+        }
+
+        private static void GenerateDocumentSymbols(
+            List<RangeBasedDocumentSymbol> documentSymbols,
+            ILsifJsonWriter lsifJsonWriter,
+            IdFactory idFactory,
+            LsifDocument documentVertex)
+        {
+            var documentSymbolResult = new DocumentSymbolResult(documentSymbols, idFactory);
+            lsifJsonWriter.Write(documentSymbolResult);
+            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentDocumentSymbolName, documentVertex.GetId(), documentSymbolResult.GetId(), idFactory));
         }
 
         private static bool IncludeSymbolInReferences(ISymbol symbol)

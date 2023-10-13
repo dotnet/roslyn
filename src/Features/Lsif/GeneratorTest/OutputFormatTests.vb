@@ -37,9 +37,11 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 {""outV"":4,""inV"":7,""id"":8,""type"":""edge"",""label"":""textDocument/foldingRange""}
 {""result"":{""data"":[]},""id"":9,""type"":""vertex"",""label"":""semanticTokensResult""}
 {""outV"":4,""inV"":9,""id"":10,""type"":""edge"",""label"":""textDocument/semanticTokens/full""}
-{""kind"":""end"",""scope"":""document"",""data"":4,""id"":11,""type"":""vertex"",""label"":""$event""}
-{""outV"":2,""inVs"":[4],""id"":12,""type"":""edge"",""label"":""contains""}
-{""kind"":""end"",""scope"":""project"",""data"":2,""id"":13,""type"":""vertex"",""label"":""$event""}
+{""result"":[],""id"":11,""type"":""vertex"",""label"":""documentSymbolResult""}
+{""outV"":4,""inV"":11,""id"":12,""type"":""edge"",""label"":""textDocument/documentSymbol""}
+{""kind"":""end"",""scope"":""document"",""data"":4,""id"":13,""type"":""vertex"",""label"":""$event""}
+{""outV"":2,""inVs"":[4],""id"":14,""type"":""edge"",""label"":""contains""}
+{""kind"":""end"",""scope"":""project"",""data"":2,""id"":15,""type"":""vertex"",""label"":""$event""}
 ", stringWriter.ToString())
         End Function
 
@@ -240,10 +242,23 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""label"": ""textDocument/semanticTokens/full""
   },
   {
+    ""result"": [],
+    ""id"": 11,
+    ""type"": ""vertex"",
+    ""label"": ""documentSymbolResult""
+  },
+  {
+    ""outV"": 4,
+    ""inV"": 11,
+    ""id"": 12,
+    ""type"": ""edge"",
+    ""label"": ""textDocument/documentSymbol""
+  },
+  {
     ""kind"": ""end"",
     ""scope"": ""document"",
     ""data"": 4,
-    ""id"": 11,
+    ""id"": 13,
     ""type"": ""vertex"",
     ""label"": ""$event""
   },
@@ -252,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""inVs"": [
       4
     ],
-    ""id"": 12,
+    ""id"": 14,
     ""type"": ""edge"",
     ""label"": ""contains""
   },
@@ -260,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""kind"": ""end"",
     ""scope"": ""project"",
     ""data"": 2,
-    ""id"": 13,
+    ""id"": 15,
     ""type"": ""vertex"",
     ""label"": ""$event""
   }

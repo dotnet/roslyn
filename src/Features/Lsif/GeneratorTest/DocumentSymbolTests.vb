@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
@@ -26,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     </Project>
                 </Workspace>)
 
+            ' Assert the specific range is what we expected
             Dim selectedRange = Await lsif.GetSelectedRangeAsync()
             Assert.NotNull(selectedRange)
             Dim definitionTag = Assert.IsType(Of DefinitionRangeTag)(selectedRange.Tag)
@@ -35,6 +37,42 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Assert.Equal(expectedFullRange, definitionTag.FullRange)
 
             Assert.Equal(expectedText, definitionTag.Text)
+
+            ' We also output the overall hierarchy of document symbols as a document request; ensure that contains all the ranges
+            Dim document = lsif.Vertices.OfType(Of LsifDocument).Single()
+            Dim documentSymbolResult = Assert.Single(lsif.GetLinkedVertices(Of DocumentSymbolResult)(document, LSP.Methods.TextDocumentDocumentSymbolName))
+            Dim allDocumentSymbolRangeVertices = GetDocumentSymbolRangeIds(documentSymbolResult.Result)
+            Dim allRangeVertices = lsif.Vertices.OfType(Of Range).Where(Function(r) TypeOf r.Tag Is DefinitionRangeTag)
+
+            AssertEx.SetEqual(allRangeVertices.Select(Function(r) r.GetId()), allDocumentSymbolRangeVertices)
+
+            For Each documentSymbol In documentSymbolResult.Result
+                AssertDocumentSymbolContainsChildren(documentSymbol)
+            Next
         End Function
+
+        Private Shared Function GetDocumentSymbolRangeIds(result As List(Of RangeBasedDocumentSymbol)) As IEnumerable(Of Id(Of Range))
+            If result Is Nothing Then
+                Return Array.Empty(Of Id(Of Range))
+            End If
+
+            Return result.SelectMany(Iterator Function(documentSymbol)
+                                         Yield documentSymbol.Id
+
+                                         For Each childId In GetDocumentSymbolRangeIds(documentSymbol.Children)
+                                             Yield childId
+                                         Next
+                                     End Function)
+        End Function
+
+        Private Shared Sub AssertDocumentSymbolContainsChildren(documentSymbol As RangeBasedDocumentSymbol)
+            If documentSymbol.Children IsNot Nothing Then
+                For Each child In documentSymbol.Children
+                    Assert.True(documentSymbol.Span.Contains(child.Span))
+
+                    AssertDocumentSymbolContainsChildren(child)
+                Next
+            End If
+        End Sub
     End Class
 End Namespace
