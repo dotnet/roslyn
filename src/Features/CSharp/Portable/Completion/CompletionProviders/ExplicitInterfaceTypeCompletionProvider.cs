@@ -75,7 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (SyntaxFacts.GetContextualKeywordKind(targetToken.ValueText) == SyntaxKind.AsyncKeyword)
                 return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
 
-            var typeNode = targetToken.Parent as TypeSyntax;
+            var potentialTypeNode = targetToken.Parent;
+            while (potentialTypeNode is TypeArgumentListSyntax typeArgumentList)
+            {
+                potentialTypeNode = typeArgumentList.Parent;
+            }
+
+            var typeNode = potentialTypeNode as TypeSyntax;
 
             while (typeNode != null)
             {
