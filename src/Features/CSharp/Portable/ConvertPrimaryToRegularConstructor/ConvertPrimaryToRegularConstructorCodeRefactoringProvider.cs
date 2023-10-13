@@ -3,32 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.FindSymbols;
-using System.Linq;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 
@@ -87,7 +81,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         var syntaxGenerator = CSharpSyntaxGenerator.Instance;
         var parameters = parameterList.Parameters.SelectAsArray(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
 
-        var parameterToNonDocCommentLocations = await GetParameterLocationsAsync(includeDocCommentLocations: false).ConfigureAwait(false);
         var parameterToSynthesizedFields = await GetSynthesizedFieldsAsync().ConfigureAwait(false);
 
         var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
@@ -99,11 +92,12 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, optionsProvider, cancellationToken).ConfigureAwait(false);
 
         // Now, update all locations that reference the parameters to reference the new fields.
+        await RewriteReferencesToParametersAsync().ConfigureAwait(false);
 
         // Remove the parameter list, and any base argument passing from the type declaration header itself.
         mainDocumentEditor.RemoveNode(parameterList);
         if (baseType != null)
-            mainDocumentEditor.ReplaceNode(baseType, (current, _) => SimpleBaseType(((PrimaryConstructorBaseType)current).Type).WithTriviaFrom(baseType));
+            mainDocumentEditor.ReplaceNode(baseType, (current, _) => SimpleBaseType(((PrimaryConstructorBaseTypeSyntax)current).Type).WithTriviaFrom(baseType));
 
         // Remove all the attributes from the type decl that were moved to the constructor.
         foreach (var attributeList in methodTargetingAttributes)
@@ -154,12 +148,17 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         return solutionEditor.GetChangedSolution();
 
-        async Task<MultiDictionary<IParameterSymbol, (IdentifierNameSyntax referencedLocation, ISymbol? assignedFieldOrProperty)>> GetParameterLocationsAsync(bool includeDocCommentLocations)
+        async Task RewriteReferencesToParametersAsync()
         {
             var result = new MultiDictionary<IParameterSymbol, (IdentifierNameSyntax referencedLocation, ISymbol? assignedFieldOrProperty)>();
 
             foreach (var parameter in parameters)
             {
+                if (!parameterToSynthesizedFields.TryGetValue(parameter, out var field))
+                    continue;
+
+                var fieldName = field.Name.ToIdentifierName();
+
                 var references = await SymbolFinder.FindReferencesAsync(parameter, solution, cancellationToken).ConfigureAwait(false);
                 foreach (var reference in references)
                 {
@@ -181,45 +180,21 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                             if (referenceLocation.Location.FindNode(cancellationToken) is not IdentifierNameSyntax identifierName)
                                 continue;
 
-                            // Explicitly ignore references to the base-constructor.  We don't need to generate fields for these.
+                            // Explicitly ignore references in the base-type-list.  Tehse don't need to be rewritten as
+                            // they will still reference the parameter in the new constructor when we make the `:
+                            // base(...)` initializer.
                             if (identifierName.GetAncestor<PrimaryConstructorBaseTypeSyntax>() != null)
                                 continue;
 
-                            if (!includeDocCommentLocations && identifierName.GetAncestor<DocumentationCommentTriviaSyntax>() != null)
+                            // Don't need to update doc comment reference (e.g. `paramref=...`).  These will move to the
+                            // new constructor and will still reference the parameters there.
+                            if (identifierName.GetAncestor<DocumentationCommentTriviaSyntax>() != null)
                                 continue;
 
-                            var expr = identifierName.WalkUpParentheses();
-                            var assignedFieldOrProperty = GetAssignedFieldOrProperty(identifierName);
-                            result.Add(parameter, (identifierName, assignedFieldOrProperty));
+                            editor.ReplaceNode(identifierName, fieldName.WithTriviaFrom(identifierName));
                         }
                     }
                 }
-            }
-
-            return result;
-        }
-
-        // See if this is a reference to the parameter that is just initializing an existing field or property.
-        ISymbol? GetAssignedFieldOrProperty(IdentifierNameSyntax identifierName)
-        {
-            var expr = identifierName.WalkUpParentheses();
-            if (expr.Parent is EqualsValueClauseSyntax equalsValue)
-            {
-                return equalsValue.Parent is PropertyDeclarationSyntax or VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } }
-                    ? semanticModel.GetRequiredDeclaredSymbol(equalsValue.Parent, cancellationToken)
-                    : null;
-            }
-            else if (expr.Parent is ArrowExpressionClauseSyntax arrowExpression)
-            {
-                return arrowExpression.Parent is PropertyDeclarationSyntax
-                    ? semanticModel.GetRequiredDeclaredSymbol(arrowExpression.Parent, cancellationToken)
-                    : arrowExpression.Parent is AccessorDeclarationSyntax { Parent: PropertyDeclarationSyntax }
-                        ? semanticModel.GetRequiredDeclaredSymbol(arrowExpression.Parent.Parent, cancellationToken)
-                        : null;
-            }
-            else
-            {
-                return null;
             }
         }
 
