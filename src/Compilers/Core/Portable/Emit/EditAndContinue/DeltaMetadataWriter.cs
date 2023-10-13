@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class DeltaMetadataWriter : MetadataWriter
     {
+        private static readonly ImmutableArray<TableIndex> s_indices = [TableIndex.Assembly];
+
         private readonly EmitBaseline _previousGeneration;
         private readonly Guid _encId;
         private readonly DefinitionMap _definitionMap;
@@ -72,6 +74,11 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
         private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
         private readonly Dictionary<IMethodDefinition, AddedOrChangedMethodInfo> _addedOrChangedMethods;
+
+        static DeltaMetadataWriter()
+        {
+            Debug.Assert(!s_indices.IsDefault);
+        }
 
         public DeltaMetadataWriter(
             EmitContext context,
