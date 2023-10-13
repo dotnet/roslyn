@@ -37,16 +37,13 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestNotWithNonPublicConstructor()
+    public async Task TestNotWithRecord()
     {
         await new VerifyCS.Test
         {
             TestCode = """
-                class C
+                record class [|C(int i)|]
                 {
-                    private C(int i)
-                    {
-                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -59,35 +56,14 @@ public class ConvertPrimaryToRegularConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
-                struct C
+                struct [|C(int i)|]
                 {
-                    public [|C|](int i)
-                    {
-                    }
                 }
                 """,
             FixedCode = """
-                struct C(int i)
-                {
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWithUnchainedConstructor()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
+                struct C
                 {
                     public C(int i)
-                    {
-                    }
-
-                    public C()
                     {
                     }
                 }
@@ -102,20 +78,20 @@ public class ConvertPrimaryToRegularConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
-                class C
+                class [|C(int i)|]
                 {
-                    public [|C|](int i)
-                    {
-                    }
-
                     public C() : this(0)
                     {
                     }
                 }
                 """,
             FixedCode = """
-                class C(int i)
+                class C
                 {
+                    public C(int i)
+                    {
+                    }
+
                     public C() : this(0)
                     {
                     }
@@ -135,12 +111,8 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C : B
+                class [|C(int i)|] : B(i)
                 {
-                    public [|C|](int i) : base(i)
-                    {
-                    }
-
                     public C() : this(0)
                     {
                     }
@@ -151,8 +123,12 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C(int i) : B(i)
+                class C : B
                 {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+
                     public C() : this(0)
                     {
                     }
@@ -172,12 +148,8 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C : B
+                class [|C(int i)|] : B(i * i)
                 {
-                    public [|C|](int i) : base(i * i)
-                    {
-                    }
-
                     public C() : this(0)
                     {
                     }
@@ -188,8 +160,12 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C(int i) : B(i * i)
+                class C : B
                 {
+                    public [|C|](int i) : base(i * i)
+                    {
+                    }
+
                     public C() : this(0)
                     {
                     }
@@ -209,13 +185,9 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C : B
+                class [|C(int i, int j)|] : B(i,
+                    j)
                 {
-                    public [|C|](int i, int j) : base(i,
-                        j)
-                    {
-                    }
-
                     public C() : this(0, 0)
                     {
                     }
@@ -226,9 +198,13 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C(int i, int j) : B(i,
-                    j)
+                class C : B
                 {
+                    public C(int i, int j) : base(i,
+                        j)
+                    {
+                    }
+
                     public C() : this(0, 0)
                     {
                     }
@@ -248,13 +224,9 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C : B
+                class [|C(int i, int j)|] : B(
+                    i, j)
                 {
-                    public [|C|](int i, int j) : base(
-                        i, j)
-                    {
-                    }
-
                     public C() : this(0, 0)
                     {
                     }
@@ -265,9 +237,13 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C(int i, int j) : B(
-                    i, j)
+                class C : B
                 {
+                    public [|C|](int i, int j) : base(
+                        i, j)
+                    {
+                    }
+
                     public C() : this(0, 0)
                     {
                     }
@@ -287,14 +263,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C : B
+                class [|C(int i, int j)|] : B(
+                    i,
+                    j)
                 {
-                    public [|C|](int i, int j) : base(
-                        i,
-                        j)
-                    {
-                    }
-
                     public C() : this(0, 0)
                     {
                     }
@@ -305,10 +277,14 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
 
-                class C(int i, int j) : B(
-                    i,
-                    j)
+                class C : B
                 {
+                    public C(int i, int j) : base(
+                        i,
+                        j)
+                    {
+                    }
+
                     public C() : this(0, 0)
                     {
                     }
@@ -319,32 +295,24 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestNotWithBadExpressionBody()
+    public async Task TestWithBlockBodyAssignmentToField1()
     {
         await new VerifyCS.Test
         {
             TestCode = """
-                class C
+                class [|C(int i)|]
                 {
-                    public C(int i)
-                        => System.Console.WriteLine(i);
+                    private int i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWithBadBlockBody()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
+            FixedCode = """
                 class C
                 {
+                    private int i;
+
                     public C(int i)
                     {
-                        System.Console.WriteLine(i);
+                        this.i = i;
                     }
                 }
                 """,
@@ -353,175 +321,50 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestWithExpressionBodyAssignmentToField1()
+    public async Task TestWithBlockBodyAssignmentToProperty1()
     {
         await new VerifyCS.Test
         {
             TestCode = """
-                class C
-                {
-                    private int i;
-
-                    public [|C|](int i)
-                        => this.i = i;
-                }
-                """,
-            FixedCode = """
-                class C(int i)
-                {
-                    private int i = i;
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestWithExpressionBodyAssignmentToProperty1()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    private int I { get; }
-
-                    public [|C|](int i)
-                        => this.I = i;
-                }
-                """,
-            FixedCode = """
-                class C(int i)
+                class [|C(int i)|]
                 {
                     private int I { get; } = i;
                 }
                 """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestWithExpressionBodyAssignmentToField2()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    private int i;
-
-                    public [|C|](int j)
-                        => this.i = j;
-                }
-                """,
             FixedCode = """
-                class C(int j)
-                {
-                    private int i = j;
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestWithExpressionBodyAssignmentToField3()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
                 class C
                 {
-                    private int i;
-
-                    public [|C|](int j)
-                        => i = j;
-                }
-                """,
-            FixedCode = """
-                class C(int j)
-                {
-                    private int i = j;
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWithAssignmentToBaseField1()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class B
-                {
-                    public int i;
-                }
-
-                class C : B
-                {
-                    public C(int i)
-                        => this.i = i;
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWithAssignmentToBaseField2()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class B
-                {
-                    public int i;
-                }
-
-                class C : B
-                {
-                    public C(int i)
-                        => base.i = i;
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWithCompoundAssignmentToField()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    public int i;
+                    private int I { get; }
 
                     public C(int i)
-                        => this.i += i;
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWithTwoWritesToTheSameMember()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    public int i;
-
-                    public C(int i, int j)
                     {
-                        this.i = i;
-                        this.i = j;
+                        this.I = i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithBlockBodyAssignmentToField2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class [|C(int j)|]
+                {
+                    private int i = j;
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    private int i;
+
+                    public C(int j)
+                    {
+                        i = j;
                     }
                 }
                 """,
@@ -535,18 +378,20 @@ public class ConvertPrimaryToRegularConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
+                class [|C(int i)|]
+                {
+                    private int i = i * 2;
+                }
+                """,
+            FixedCode = """
                 class C
                 {
                     private int i;
 
-                    public [|C|](int i)
-                        => this.i = i * 2;
-                }
-                """,
-            FixedCode = """
-                class C(int i)
-                {
-                    private int i = i * 2;
+                    public C(int i)
+                    {
+                        this.i = i * 2;
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -559,23 +404,23 @@ public class ConvertPrimaryToRegularConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
+                class [|C(int i, int j)|]
+                {
+                    public int i = i;
+                    public int j = j;
+                }
+                """,
+            FixedCode = """
                 class C
                 {
                     public int i;
                     public int j;
 
-                    public [|C|](int i, int j)
+                    public C(int i, int j)
                     {
                         this.i = i;
                         this.j = j;
                     }
-                }
-                """,
-            FixedCode = """
-                class C(int i, int j)
-                {
-                    public int i = i;
-                    public int j = j;
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -588,21 +433,21 @@ public class ConvertPrimaryToRegularConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
+                class [|C(int i, int j)|]
+                {
+                    public int i = i, j = j;
+                }
+                """,
+            FixedCode = """
                 class C
                 {
                     public int i, j;
 
-                    public [|C|](int i, int j)
+                    public C(int i, int j)
                     {
                         this.i = i;
                         this.j = j;
                     }
-                }
-                """,
-            FixedCode = """
-                class C(int i, int j)
-                {
-                    public int i = i, j = j;
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -695,34 +540,30 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestDoNotRemovePublicMembers1()
+    public async Task TestNestedTypes()
     {
         await new VerifyCS.Test
         {
             TestCode = """
-                class C
-                {
-                    public int i;
-                    public int j;
+                using System;
 
-                    public [|C|](int i, int j)
+                class [|OuterType(int i, int j)|]
+                {
+                    private int _i = i;
+
+                    public struct Enumerator
                     {
-                        this.i = i;
-                        this.j = j;
+                        private int _i;
+                
+                        public Enumerator(OuterType c)
+                        {
+                            _i = c._i;
+                            Console.WriteLine(c);
+                        }
                     }
                 }
                 """,
-            CodeActionIndex = 1,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task DoNotRemoveMembersUsedInNestedTypes()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
+            FixedCode = """
                 using System;
 
                 class OuterType
@@ -748,25 +589,6 @@ public class ConvertPrimaryToRegularConstructorTests
                     }
                 }
                 """,
-            FixedCode = """
-                using System;
-
-                class OuterType(int i, int j)
-                {
-                    private int _i = i;
-
-                    public struct Enumerator
-                    {
-                        private int _i;
-                
-                        public Enumerator(OuterType c)
-                        {
-                            _i = c._i;
-                            Console.WriteLine(c);
-                        }
-                    }
-                }
-                """,
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
@@ -779,12 +601,22 @@ public class ConvertPrimaryToRegularConstructorTests
         {
             TestCode = """
                 using System;
+                class [|C(int i, int j)|]
+                {
+                    void M()
+                    {
+                        Console.WriteLine(i + j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
                 class C
                 {
                     private int i;
                     private int j;
 
-                    public [|C|](int i, int j)
+                    public C(int i, int j)
                     {
                         this.i = i;
                         this.j = j;
@@ -793,16 +625,6 @@ public class ConvertPrimaryToRegularConstructorTests
                     void M()
                     {
                         Console.WriteLine(this.i + this.j);
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-                class C(int i, int j)
-                {
-                    void M()
-                    {
-                        Console.WriteLine(i + j);
                     }
                 }
                 """,
@@ -818,12 +640,22 @@ public class ConvertPrimaryToRegularConstructorTests
         {
             TestCode = """
                 using System;
+                class [|C(int @this, int @delegate)|]
+                {
+                    void M()
+                    {
+                        Console.WriteLine(@this + @delegate);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
                 class C
                 {
                     private int i;
                     private int j;
 
-                    public [|C|](int @this, int @delegate)
+                    public C(int @this, int @delegate)
                     {
                         this.i = @this;
                         this.j = @delegate;
@@ -832,16 +664,6 @@ public class ConvertPrimaryToRegularConstructorTests
                     void M()
                     {
                         Console.WriteLine(this.i + this.j);
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-                class C(int @this, int @delegate)
-                {
-                    void M()
-                    {
-                        Console.WriteLine(@this + @delegate);
                     }
                 }
                 """,
@@ -857,12 +679,22 @@ public class ConvertPrimaryToRegularConstructorTests
         {
             TestCode = """
                 using System;
+                class [|C(int i, int j)|]
+                {
+                    void M()
+                    {
+                        Console.WriteLine(i + j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
                 class C
                 {
                     private int _i;
                     private int _j;
 
-                    public [|C|](int i, int j)
+                    public C(int i, int j)
                     {
                         _i = i;
                         _j = j;
@@ -871,16 +703,6 @@ public class ConvertPrimaryToRegularConstructorTests
                     void M()
                     {
                         Console.WriteLine(_i + _j);
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-                class C(int i, int j)
-                {
-                    void M()
-                    {
-                        Console.WriteLine(i + j);
                     }
                 }
                 """,
@@ -896,12 +718,24 @@ public class ConvertPrimaryToRegularConstructorTests
         {
             TestCode = """
                 using System;
+                class [|C(int i, int j)|]
+                {
+                    public int _j = j;
+
+                    void M()
+                    {
+                        Console.WriteLine(i + _j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
                 class C
                 {
                     private int _i;
                     public int _j;
 
-                    public [|C|](int i, int j)
+                    public C(int i, int j)
                     {
                         _i = i;
                         _j = j;
@@ -910,18 +744,6 @@ public class ConvertPrimaryToRegularConstructorTests
                     void M()
                     {
                         Console.WriteLine(_i + _j);
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-                class C(int i, int j)
-                {
-                    public int _j = j;
-
-                    void M()
-                    {
-                        Console.WriteLine(i + _j);
                     }
                 }
                 """,
@@ -936,38 +758,38 @@ public class ConvertPrimaryToRegularConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
-            using System;
-            class C
-            {
-                private int _i;
-                [CLSCompliant(true)]
-                private int _j;
-
-                public [|C|](int i, int j)
+                using System;
+                class [|C(int i, int j)|]
                 {
-                    _i = i;
-                    _j = j;
-                }
+                    [CLSCompliant(true)]
+                    private int _j = j;
 
-                void M()
-                {
-                    Console.WriteLine(_i + _j);
+                    void M()
+                    {
+                        Console.WriteLine(i + _j);
+                    }
                 }
-            }
-            """,
+                """,
             FixedCode = """
-            using System;
-            class C(int i, int j)
-            {
-                [CLSCompliant(true)]
-                private int _j = j;
-
-                void M()
+                using System;
+                class C
                 {
-                    Console.WriteLine(i + _j);
+                    private int _i;
+                    [CLSCompliant(true)]
+                    private int _j;
+
+                    public [|C|](int i, int j)
+                    {
+                        _i = i;
+                        _j = j;
+                    }
+
+                    void M()
+                    {
+                        Console.WriteLine(_i + _j);
+                    }
                 }
-            }
-            """,
+                """,
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
@@ -980,12 +802,25 @@ public class ConvertPrimaryToRegularConstructorTests
         {
             TestCode = """
                 using System;
+                class [|C(int i, int j)|]
+                {
+                    private int _j = j;
+
+                    void M(C c)
+                    {
+                        Console.WriteLine(i);
+                        Console.WriteLine(_j == c._j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
                 class C
                 {
                     private int _i;
                     private int _j;
 
-                    public [|C|](int i, int j)
+                    public C(int i, int j)
                     {
                         _i = i;
                         _j = j;
@@ -998,64 +833,7 @@ public class ConvertPrimaryToRegularConstructorTests
                     }
                 }
                 """,
-            FixedCode = """
-                using System;
-                class C(int i, int j)
-                {
-                    private int _j = j;
-
-                    void M(C c)
-                    {
-                        Console.WriteLine(i);
-                        Console.WriteLine(_j == c._j);
-                    }
-                }
-                """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWhenRightSideReferencesThis1()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    private int x;
-
-                    public C(int i)
-                    {
-                        x = M(i);
-                    }
-
-                    int M(int y) => y;
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestNotWhenRightSideReferencesThis2()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    private int x;
-
-                    public C(int i)
-                    {
-                        x = this.M(i);
-                    }
-
-                    int M(int y) => y;
-                }
-                """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
@@ -1066,22 +844,22 @@ public class ConvertPrimaryToRegularConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
-                class C
+                class [|C(int i)|]
                 {
-                    private int x;
-
-                    public [|C|](int i)
-                    {
-                        x = M(i);
-                    }
+                    private int x = M(i);
 
                     static int M(int y) => y;
                 }
                 """,
             FixedCode = """
-                class C(int i)
+                class C
                 {
-                    private int x = M(i);
+                    private int x;
+
+                    public C(int i)
+                    {
+                        x = M(i);
+                    }
 
                     static int M(int y) => y;
                 }
@@ -1098,27 +876,27 @@ public class ConvertPrimaryToRegularConstructorTests
             TestCode = """
                 namespace N
                 {
-                    class C
+                    /// <summary>Doc comment on single line</summary>
+                    /// <param name="i">Doc about i single line</param>
+                    class [|C(int i)|]
                     {
-                        private int i;
-
-                        /// <summary>Doc comment on single line</summary>
-                        /// <param name="i">Doc about i single line</param>
-                        public [|C|](int i)
-                        {
-                            this.i = i;
-                        }
+                        private int i = i;
                     }
                 }
                 """,
             FixedCode = """
                 namespace N
                 {
-                    /// <summary>Doc comment on single line</summary>
-                    /// <param name="i">Doc about i single line</param>
-                    class C(int i)
+                    class C
                     {
-                        private int i = i;
+                        private int i;
+
+                        /// <summary>Doc comment on single line</summary>
+                        /// <param name="i">Doc about i single line</param>
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
                     }
                 }
                 """,
@@ -1135,16 +913,11 @@ public class ConvertPrimaryToRegularConstructorTests
                 namespace N
                 {
                 #if true
-                    class C
+                    /// <summary>Doc comment on single line</summary>
+                    /// <param name="i">Doc about i single line</param>
+                    class [|C(int i)|]
                     {
-                        private int i;
-
-                        /// <summary>Doc comment on single line</summary>
-                        /// <param name="i">Doc about i single line</param>
-                        public [|C|](int i)
-                        {
-                            this.i = i;
-                        }
+                        private int i = i;
                     }
                 #endif
                 }
@@ -1153,11 +926,16 @@ public class ConvertPrimaryToRegularConstructorTests
                 namespace N
                 {
                 #if true
-                    /// <summary>Doc comment on single line</summary>
-                    /// <param name="i">Doc about i single line</param>
-                    class C(int i)
+                    class C
                     {
-                        private int i = i;
+                        private int i;
+
+                        /// <summary>Doc comment on single line</summary>
+                        /// <param name="i">Doc about i single line</param>
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
                     }
                 #endif
                 }
