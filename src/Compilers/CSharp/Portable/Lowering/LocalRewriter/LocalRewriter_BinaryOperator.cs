@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1848,34 +1847,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnsafeGetSpecialTypeMethod(syntax, member, compilation, diagnostics).AsMember(nullableType2);
         }
 
-        private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result)
+        private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result, bool isOptional = false)
         {
             var nullableType2 = (NamedTypeSymbol)nullableType;
-            if (TryGetSpecialTypeMethod(syntax, member, out result))
+            if (TryGetSpecialTypeMethod(syntax, member, out result, isOptional))
             {
                 result = result.AsMember(nullableType2);
                 return true;
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// Tries to get member of a nullable value type in a soft manner (without reporting an error if member is not found).
-        /// Prefer this when doing optimizations, so if a special member is present, compiler generates more optimal code,
-        /// but if not, just gracefully fallbacks to less optimal version without reporting unnecessary errors
-        /// </summary>
-        private bool TryGetNullableMethodSoft(TypeSymbol nullableType, SpecialMember specialMember, [NotNullWhen(true)] out MethodSymbol? result)
-        {
-            Debug.Assert(nullableType.IsNullableType());
-
-            if (_compilation.GetSpecialTypeMember(specialMember) is MethodSymbol method)
-            {
-                result = method.AsMember((NamedTypeSymbol)nullableType);
-                return true;
-            }
-
-            result = null;
             return false;
         }
 
