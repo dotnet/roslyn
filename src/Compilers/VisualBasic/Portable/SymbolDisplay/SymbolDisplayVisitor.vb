@@ -69,10 +69,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
         Protected Overrides Function MakeNotFirstVisitor(Optional inNamespaceOrType As Boolean = False) As AbstractSymbolDisplayVisitor
             Return GetInstance(
-                    Me.builder,
-                    Me.format,
-                    Me.semanticModelOpt,
-                    Me.positionOpt,
+                    Me.Builder,
+                    Me.Format,
+                    Me.SemanticModelOpt,
+                    Me.PositionOpt,
                     Me._escapeKeywordIdentifiers,
                     isFirstSymbolVisited:=False,
                     inNamespaceOrType:=inNamespaceOrType)
@@ -178,29 +178,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub VisitAssembly(symbol As IAssemblySymbol)
-            Dim text = If((format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameOnly), symbol.Identity.Name, symbol.Identity.GetDisplayName())
-            builder.Add(CreatePart(SymbolDisplayPartKind.AssemblyName, symbol, text, False))
+            Dim text = If((Format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameOnly), symbol.Identity.Name, symbol.Identity.GetDisplayName())
+            Builder.Add(CreatePart(SymbolDisplayPartKind.AssemblyName, symbol, text, False))
         End Sub
 
         Public Overrides Sub VisitLabel(symbol As ILabelSymbol)
-            builder.Add(CreatePart(SymbolDisplayPartKind.LabelName, symbol, symbol.Name, False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.LabelName, symbol, symbol.Name, False))
         End Sub
 
         Public Overrides Sub VisitAlias(symbol As IAliasSymbol)
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name, False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name, False))
 
-            If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
+            If Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddPunctuation(SyntaxKind.EqualsToken)
                 symbol.Target.Accept(Me)
             End If
         End Sub
 
         Public Overrides Sub VisitModule(symbol As IModuleSymbol)
-            builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, symbol.Name, False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, symbol.Name, False))
         End Sub
 
         Public Overloads Overrides Sub VisitNamespace(symbol As INamespaceSymbol)
-            If isFirstSymbolVisited AndAlso format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeNamespaceKeyword) Then
+            If IsFirstSymbolVisited AndAlso Format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeNamespaceKeyword) Then
                 AddKeyword(SyntaxKind.NamespaceKeyword)
                 AddSpace()
             End If
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Me.IsMinimizing Then
-                If TryAddAlias(symbol, builder) Then
+                If TryAddAlias(symbol, Builder) Then
                     Return
                 End If
 
@@ -232,12 +232,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim visitedParents As Boolean = False
-            If format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces Then
+            If Format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces Then
                 Dim containingNamespace = symbol.ContainingNamespace
 
                 ' add "Namespace " if SymbolDisplayKindOptions.IncludeKind is set
                 ' this is not handled in AddTypeKind in AddTypeKind()
-                If containingNamespace Is Nothing AndAlso format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeNamespaceKeyword) Then
+                If containingNamespace Is Nothing AndAlso Format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeNamespaceKeyword) Then
                     AddKeyword(SyntaxKind.NamespaceKeyword)
                     AddSpace()
                 End If
@@ -252,20 +252,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbol.IsGlobalNamespace Then
                 AddGlobalNamespace(symbol)
             Else
-                builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, myCaseCorrectedNSName, visitedParents))
+                Builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, myCaseCorrectedNSName, visitedParents))
             End If
         End Sub
 
         Private Sub AddGlobalNamespace(symbol As INamespaceSymbol)
-            Select Case format.GlobalNamespaceStyle
+            Select Case Format.GlobalNamespaceStyle
                 Case SymbolDisplayGlobalNamespaceStyle.Omitted
                 Case SymbolDisplayGlobalNamespaceStyle.Included
-                    builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), True))
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), True))
                 Case SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining
-                    Debug.Assert(Me.isFirstSymbolVisited, "Don't call with IsFirstSymbolVisited = false if OmittedAsContaining")
-                    builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), True))
+                    Debug.Assert(Me.IsFirstSymbolVisited, "Don't call with IsFirstSymbolVisited = false if OmittedAsContaining")
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), True))
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(format.GlobalNamespaceStyle)
+                    Throw ExceptionUtilities.UnexpectedValue(Format.GlobalNamespaceStyle)
             End Select
         End Sub
 
@@ -280,19 +280,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim name = If(symbol.Name, "<anonymous local>")
 
             If symbol.IsConst Then
-                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, name, noEscaping:=False))
+                Builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, name, noEscaping:=False))
             Else
-                builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
+                Builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
             End If
 
-            If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
+            If Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddSpace()
                 AddKeyword(SyntaxKind.AsKeyword)
                 AddSpace()
                 symbol.Type.Accept(Me)
             End If
 
-            If symbol.IsConst AndAlso symbol.HasConstantValue AndAlso format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) Then
+            If symbol.IsConst AndAlso symbol.HasConstantValue AndAlso Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) Then
                 AddSpace()
                 AddPunctuation(SyntaxKind.EqualsToken)
                 AddSpace()
@@ -302,9 +302,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitRangeVariable(symbol As IRangeVariableSymbol)
-            builder.Add(CreatePart(SymbolDisplayPartKind.RangeVariableName, symbol, symbol.Name, False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.RangeVariableName, symbol, symbol.Name, False))
 
-            If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
+            If Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 Dim vbRangeVariable = TryCast(symbol, RangeVariableSymbol)
                 If vbRangeVariable IsNot Nothing Then
                     AddSpace()
@@ -316,30 +316,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub AddSpace()
-            builder.Add(CreatePart(SymbolDisplayPartKind.Space, Nothing, " ", False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Space, Nothing, " ", False))
         End Sub
 
         Private Sub AddOperator(operatorKind As SyntaxKind)
-            builder.Add(CreatePart(SymbolDisplayPartKind.Operator, Nothing, SyntaxFacts.GetText(operatorKind), False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Operator, Nothing, SyntaxFacts.GetText(operatorKind), False))
         End Sub
 
         Private Sub AddPunctuation(punctuationKind As SyntaxKind)
-            builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, SyntaxFacts.GetText(punctuationKind), False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, SyntaxFacts.GetText(punctuationKind), False))
         End Sub
 
         Private Sub AddPseudoPunctuation(text As String)
-            builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, text, False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, text, False))
         End Sub
 
         Private Sub AddKeyword(keywordKind As SyntaxKind)
-            builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, Nothing, SyntaxFacts.GetText(keywordKind), False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, Nothing, SyntaxFacts.GetText(keywordKind), False))
         End Sub
 
         Private Sub AddAccessibilityIfRequired(symbol As ISymbol)
             AssertContainingSymbol(symbol)
 
             Dim containingType = symbol.ContainingType
-            If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) AndAlso
+            If Format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) AndAlso
                 (containingType Is Nothing OrElse
                  (containingType.TypeKind <> TypeKind.Interface AndAlso Not IsEnumMember(symbol))) Then
 
@@ -372,15 +372,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _
                 containingSymbol IsNot Nothing AndAlso
                 containingSymbol.Kind = SymbolKind.Namespace AndAlso
-                format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces AndAlso
+                Format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces AndAlso
                 (Not (DirectCast(containingSymbol, INamespaceSymbol)).IsGlobalNamespace OrElse
-                 format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Included)
+                 Format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Included)
         End Function
 
         Private Function IncludeNamedType(namedType As INamedTypeSymbol) As Boolean
             Return _
                 namedType IsNot Nothing AndAlso
-                (Not namedType.IsScriptClass OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
+                (Not namedType.IsScriptClass OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
         End Function
 
         Private Shared Function IsEnumMember(symbol As ISymbol) As Boolean

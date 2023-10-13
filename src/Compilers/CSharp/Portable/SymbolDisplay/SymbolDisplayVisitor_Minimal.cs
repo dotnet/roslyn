@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // first
                 var aliasName = alias.Name;
 
-                var boundSymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: aliasName);
+                var boundSymbols = SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name: aliasName);
 
                 if (boundSymbols.Length == 1)
                 {
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(IsMinimizing);
 
-            var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
+            var token = SemanticModelOpt.SyntaxTree.GetRoot().FindToken(PositionOpt);
             var startNode = token.Parent;
 
-            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax) || token.IsKind(SyntaxKind.NewKeyword) || this.inNamespaceOrType;
+            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax) || token.IsKind(SyntaxKind.NewKeyword) || this.InNamespaceOrType;
         }
 
         private void MinimallyQualify(INamespaceSymbol symbol)
@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // then that's all we need to add.  Otherwise, we will add the minimally qualified
             // version of our parent, and then add ourselves to that.
             var symbols = ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
-                ? semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: symbol.Name)
-                : semanticModelOpt.LookupSymbols(positionOpt, name: symbol.Name);
+                ? SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name: symbol.Name)
+                : SemanticModelOpt.LookupSymbols(PositionOpt, name: symbol.Name);
             var firstSymbol = symbols.OfType<ISymbol>().FirstOrDefault();
             if (symbols.Length != 1 ||
                 firstSymbol == null ||
@@ -86,16 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we have one), a dot, and then our name.
                 var containingNamespace = symbol.ContainingNamespace == null
                     ? null
-                    : semanticModelOpt.Compilation.GetCompilationNamespace(symbol.ContainingNamespace);
+                    : SemanticModelOpt.Compilation.GetCompilationNamespace(symbol.ContainingNamespace);
                 if (containingNamespace != null)
                 {
                     if (containingNamespace.IsGlobalNamespace)
                     {
-                        Debug.Assert(format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included ||
-                                          format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Omitted ||
-                                          format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining);
+                        Debug.Assert(Format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included ||
+                                          Format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Omitted ||
+                                          Format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining);
 
-                        if (format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included)
+                        if (Format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included)
                         {
                             AddGlobalNamespace(containingNamespace);
                             AddPunctuation(SyntaxKind.ColonColonToken);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If we bound properly, then we'll just add our name.
-            builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, symbol.Name));
+            Builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, symbol.Name));
         }
 
         private void MinimallyQualify(INamedTypeSymbol symbol)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var containingNamespace = symbol.ContainingNamespace == null
                             ? null
-                            : semanticModelOpt.Compilation.GetCompilationNamespace(symbol.ContainingNamespace);
+                            : SemanticModelOpt.Compilation.GetCompilationNamespace(symbol.ContainingNamespace);
                         if (containingNamespace != null)
                         {
                             if (containingNamespace.IsGlobalNamespace)
@@ -179,15 +179,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // model, walk up the corresponding ancestors in the parent model.
             SemanticModel semanticModel;
             int position;
-            if (semanticModelOpt.IsSpeculativeSemanticModel)
+            if (SemanticModelOpt.IsSpeculativeSemanticModel)
             {
-                semanticModel = semanticModelOpt.ParentModel;
-                position = semanticModelOpt.OriginalPositionForSpeculation;
+                semanticModel = SemanticModelOpt.ParentModel;
+                position = SemanticModelOpt.OriginalPositionForSpeculation;
             }
             else
             {
-                semanticModel = semanticModelOpt;
-                position = positionOpt;
+                semanticModel = SemanticModelOpt;
+                position = PositionOpt;
             }
 
             var token = semanticModel.SyntaxTree.GetRoot().FindToken(position);
@@ -228,9 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.IsMinimizing && !symbol.Locations.IsEmpty)
             {
                 var location = symbol.Locations.First();
-                if (location.IsInSource && location.SourceTree == semanticModelOpt.SyntaxTree)
+                if (location.IsInSource && location.SourceTree == SemanticModelOpt.SyntaxTree)
                 {
-                    var token = location.SourceTree.GetRoot().FindToken(positionOpt);
+                    var token = location.SourceTree.GetRoot().FindToken(PositionOpt);
                     var queryBody = GetQueryBody(token);
                     if (queryBody != null)
                     {
@@ -238,14 +238,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // clause, we speculatively bind the name of the variable in the select
                         // or group clause of the query body.
                         var identifierName = SyntaxFactory.IdentifierName(symbol.Name);
-                        type = semanticModelOpt.GetSpeculativeTypeInfo(
+                        type = SemanticModelOpt.GetSpeculativeTypeInfo(
                             queryBody.SelectOrGroup.Span.End - 1, identifierName, SpeculativeBindingOption.BindAsExpression).Type;
                     }
 
                     var identifier = token.Parent as IdentifierNameSyntax;
                     if (identifier != null)
                     {
-                        type = semanticModelOpt.GetTypeInfo(identifier).Type;
+                        type = SemanticModelOpt.GetTypeInfo(identifier).Type;
                     }
                 }
             }
@@ -270,8 +270,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string RemoveAttributeSuffixIfNecessary(INamedTypeSymbol symbol, string symbolName)
         {
             if (this.IsMinimizing &&
-                format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) &&
-                semanticModelOpt.Compilation.IsAttributeType(symbol))
+                Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) &&
+                SemanticModelOpt.Compilation.IsAttributeType(symbol))
             {
                 string? nameWithoutAttributeSuffix;
                 if (symbolName.TryGetWithoutAttributeSuffix(out nameWithoutAttributeSuffix))

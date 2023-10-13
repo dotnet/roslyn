@@ -28,17 +28,17 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         {
         }
 
-        protected ArrayBuilder<SymbolDisplayPart> builder => _builder;
+        protected ArrayBuilder<SymbolDisplayPart> Builder => _builder;
 
-        protected SymbolDisplayFormat format => _format;
+        protected SymbolDisplayFormat Format => _format;
 
-        protected bool isFirstSymbolVisited => _isFirstSymbolVisited;
+        protected bool IsFirstSymbolVisited => _isFirstSymbolVisited;
 
-        protected bool inNamespaceOrType => _inNamespaceOrType;
+        protected bool InNamespaceOrType => _inNamespaceOrType;
 
-        protected SemanticModel? semanticModelOpt => _semanticModelOpt;
+        protected SemanticModel? SemanticModelOpt => _semanticModelOpt;
 
-        protected int positionOpt => _positionOpt;
+        protected int PositionOpt => _positionOpt;
 
         protected AbstractSymbolDisplayVisitor NotFirstVisitor
         {
