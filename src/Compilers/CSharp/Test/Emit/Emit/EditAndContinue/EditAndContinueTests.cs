@@ -459,7 +459,7 @@ class Bad : Bad
             CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
             CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
@@ -530,7 +530,7 @@ class Bad : Bad
             CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor");
             CheckNames(reader0, reader0.GetParameterDefNames(), "a");
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
@@ -756,7 +756,7 @@ class Bad : Bad
             var reader0 = md0.MetadataReader;
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
 
@@ -1097,7 +1097,7 @@ class Bad : Bad
                 new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
                 new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)));
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
@@ -1220,7 +1220,7 @@ class Bad : Bad
                 new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
                 new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)));
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
@@ -2529,7 +2529,7 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
             var method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
 
@@ -2680,7 +2680,7 @@ partial class C
 
             Assert.Equal(3, reader0.CustomAttributes.Count);
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
@@ -2774,7 +2774,7 @@ partial class C
                 new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
                 new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)));
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                md0,
                EmptyLocalsProvider);
 
@@ -5541,7 +5541,7 @@ class C
 
             Assert.Equal(3, reader0.CustomAttributes.Count);
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
 
@@ -5666,7 +5666,7 @@ class C
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "MetadataUpdateOriginalTypeAttribute");
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
 
@@ -5996,7 +5996,7 @@ class C
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c", "<<F>b__0_0>d");
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
 
@@ -6081,7 +6081,7 @@ class C
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "D", "<>c", "<<F>b__0_0>d");
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
 
@@ -7163,7 +7163,7 @@ class C
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
@@ -8354,7 +8354,7 @@ class B : A<B>
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 m => testData0.GetMethodData(methodNames0[MetadataTokens.GetRowNumber(m) - 1]).GetEncDebugInfo());
 
@@ -8700,7 +8700,7 @@ class B : A<B>
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
@@ -9634,7 +9634,7 @@ class B
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 m => md0.MetadataReader.GetString(md0.MetadataReader.GetMethodDefinition(m).Name) switch
                 {
@@ -10478,7 +10478,7 @@ class C
 
             var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadataNoCopy()).GetModules()[0];
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 moduleMetadata0,
                 m => default);
 
@@ -10553,7 +10553,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -10620,7 +10620,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
@@ -10803,7 +10803,7 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
 
             var modMeta = ModuleMetadata.CreateFromImage(bytes0);
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 modMeta,
                 methodData0.EncDebugInfoProvider());
 
@@ -11716,7 +11716,7 @@ class C
             // Use empty LocalVariableNameProvider for original locals and
             // use preserveLocalVariables: true for the edit so that existing
             // locals are retained even though all are unrecognized.
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
 
@@ -11777,7 +11777,7 @@ class C
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var method0F = compilation0.GetMember<MethodSymbol>("C.F");
-                var generation0 = CreateInitialBaseline(compilation0, 
+                var generation0 = CreateInitialBaseline(compilation0,
                     md0,
                     EmptyLocalsProvider);
                 var method1F = compilation1.GetMember<MethodSymbol>("C.F");
@@ -11862,7 +11862,7 @@ class C
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var method0F = compilation0.GetMember<MethodSymbol>("C.F");
-                var generation0 = CreateInitialBaseline(compilation0, 
+                var generation0 = CreateInitialBaseline(compilation0,
                     md0,
                     EmptyLocalsProvider);
                 var method1F = compilation1.GetMember<MethodSymbol>("C.F");
@@ -15516,7 +15516,7 @@ Console.WriteLine(""Hello World"");
             CheckNames(reader0, reader0.GetMethodDefNames(), "<Main>$", ".ctor");
             CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*Console.*/"WriteLine", /*Program.*/".ctor");
 
-            var generation0 = CreateInitialBaseline(compilation0, 
+            var generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider);
 
