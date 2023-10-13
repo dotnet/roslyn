@@ -137,7 +137,7 @@ internal partial class CSharpRecommendationService
                 }
             }
 
-            if (_context.IsConstantPatternContext)
+            if (IsConstantPatternContainerContext())
             {
                 // We are building a pattern expression, and thus we can only access either constants, types or namespaces
                 // For example, we are evaluating:
@@ -170,6 +170,48 @@ internal partial class CSharpRecommendationService
                 MemberBindingExpressionSyntax => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
                 _ => default,
             };
+
+            bool IsConstantPatternContainerContext()
+            {
+                if (node is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    for (var current = node; current != null; current = current.Parent)
+                    {
+                        if (current.Kind() == SyntaxKind.ConstantPattern)
+                            return true;
+
+                        if (current.Kind() == SyntaxKind.ParenthesizedExpression)
+                            continue;
+
+                        if (current.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                            continue;
+
+                        break;
+                    }
+                }
+                else if (node is QualifiedNameSyntax or AliasQualifiedNameSyntax)
+                {
+                    var last = node;
+                    for (var current = node; current != null; last = current, current = current.Parent)
+                    {
+                        if (current is BinaryExpressionSyntax(SyntaxKind.IsExpression) binaryExpression &&
+                            binaryExpression.Right == last)
+                        {
+                            return true;
+                        }
+
+                        if (current.Kind() == SyntaxKind.QualifiedName)
+                            continue;
+
+                        if (current.Kind() == SyntaxKind.AliasQualifiedName)
+                            continue;
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private RecommendedSymbols GetSymbolsOffOfRangeExpression(RangeExpressionSyntax rangeExpression)
