@@ -130,16 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Optimizations related to nullable value types
-            if (rewrittenLeft.Type.IsNullableType())
+            if (rewrittenLeft.Type.IsNullableType() &&
+                rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions))
             {
-                var leftUnderlyingType = rewrittenLeft.Type.GetNullableUnderlyingType();
                 var unwrappedRight = RemoveIdentityConversions(rewrittenRight);
-                var rightIsOfUnderlyingTypeOfLeft = rewrittenRight.Type.Equals(leftUnderlyingType, TypeCompareKind.AllIgnoreOptions);
 
                 // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
                 if (unwrappedRight.IsDefaultValue() &&
-                    rightIsOfUnderlyingTypeOfLeft &&
                     TryGetNullableMethodSoft(rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol? getValueOrDefault))
                 {
                     return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
@@ -147,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right value is a constant of type T
                 if (unwrappedRight.ConstantValueOpt is not null &&
-                    rightIsOfUnderlyingTypeOfLeft &&
                     TryGetNullableMethodSoft(rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, out MethodSymbol? getValueOrDefaultDefaultValue))
                 {
                     return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultDefaultValue, rewrittenRight);
