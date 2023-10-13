@@ -323,7 +323,7 @@ using System.Collections;
             await VerifyItemExistsAsync(markup, "IGoo");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70382")]
         public async Task TestAfterGenericType()
         {
             var markup = """
@@ -341,7 +341,7 @@ using System.Collections;
             await VerifyItemExistsAsync(markup, "I", displayTextSuffix: "<>");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70382")]
         public async Task TestAfterNestedGenericType()
         {
             var markup = """
