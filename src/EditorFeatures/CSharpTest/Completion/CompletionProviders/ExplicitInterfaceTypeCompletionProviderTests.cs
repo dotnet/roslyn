@@ -322,5 +322,41 @@ using System.Collections;
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IGoo");
         }
+
+        [Fact]
+        public async Task TestAfterGenericType()
+        {
+            var markup = """
+                interface I<T>
+                {
+                    I<T> M();
+                }
+
+                class C<T> : I<T>
+                {
+                     I<T> $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "I", displayTextSuffix: "<>");
+        }
+
+        [Fact]
+        public async Task TestAfterNestedGenericType()
+        {
+            var markup = """
+                interface I<T>
+                {
+                    I<T> M();
+                }
+
+                class C<T> : I<T>
+                {
+                     I<I<T>> $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "I", displayTextSuffix: "<>");
+        }
     }
 }
