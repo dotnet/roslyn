@@ -77,9 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var potentialTypeNode = targetToken.Parent;
             if (targetToken.IsKind(SyntaxKind.GreaterThanToken) && potentialTypeNode is TypeArgumentListSyntax typeArgumentList)
-            {
                 potentialTypeNode = typeArgumentList.Parent;
-            }
 
             var typeNode = potentialTypeNode as TypeSyntax;
 
