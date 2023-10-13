@@ -21,17 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             IEnumerable<string> reservedNames,
             bool isCaseSensitive = true)
         {
-            using var _ = PooledHashSet<string>.GetInstance(out var pooledNameSet);
-            HashSet<string> nameSet = pooledNameSet;
-
-            if (!isCaseSensitive)
-            {
-                // The pooled collections don't allow non-default comparers (and they can't be set on
-                //   dictionary/hashset after creation). As this scenario is infrequent, we'll just
-                //   create allocate new objects for these. The pooled object will still be freed
-                //   via the PooledDisposer.
-                nameSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            }
+            using var _ = PooledStringHashSet.GetInstance(isCaseSensitive, out var nameSet);
 
             nameSet.AddRange(reservedNames);
 
@@ -97,21 +87,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             canUse ??= Functions<string>.True;
 
-            using var _1 = PooledDictionary<string, bool>.GetInstance(out var pooledCollisionMap);
-            using var _2 = PooledHashSet<string>.GetInstance(out var pooledUsedNames);
-
-            Dictionary<string, bool> collisionMap = pooledCollisionMap;
-            HashSet<string> usedNames = pooledUsedNames;
-
-            if (!isCaseSensitive)
-            {
-                // The pooled collections don't allow non-default comparers (and they can't be set on
-                //   dictionary/hashset after creation). As this scenario is infrequent, we'll just
-                //   create allocate new objects for these. The pooled objects will still be freed
-                //   via the PooledDisposers.
-                collisionMap = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-                usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            }
+            using var _1 = PooledStringHashSet.GetInstance(isCaseSensitive, out var usedNames);
+            using var _2 = PooledStringDictionary<bool>.GetInstance(isCaseSensitive, out var collisionMap);
 
             // Initial pass through names to determine which names are in collision
             foreach (var name in names)
