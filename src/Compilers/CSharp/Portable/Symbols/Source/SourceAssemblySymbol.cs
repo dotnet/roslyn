@@ -201,6 +201,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasGuidAttribute
+        {
+            get
+            {
+                foreach (var attrData in GetAttributes())
+                {
+                    if (attrData.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
+                    {
+                        if (attrData.TryGetGuidAttributeValue(out _))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        internal override bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute
+        {
+            get
+            {
+                foreach (var attrData in GetAttributes())
+                {
+                    if (attrData.IsTargetAttribute(this, AttributeDescription.ImportedFromTypeLibAttribute))
+                    {
+                        if (attrData.CommonConstructorArguments.Length == 1)
+                        {
+                            return true;
+                        }
+                    }
+                    else if (attrData.IsTargetAttribute(this, AttributeDescription.PrimaryInteropAssemblyAttribute))
+                    {
+                        if (attrData.CommonConstructorArguments.Length == 2)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
         internal override Symbol GetSpecialTypeMember(SpecialMember member)
         {
             return _compilation.IsMemberMissing(member) ? null : base.GetSpecialTypeMember(member);

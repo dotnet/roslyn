@@ -305,6 +305,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract bool HasGuidAttribute { get; }
+
+        internal abstract bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute { get; }
+
 #nullable enable
         /// <summary>
         /// Lookup a top level type referenced from metadata, names should be

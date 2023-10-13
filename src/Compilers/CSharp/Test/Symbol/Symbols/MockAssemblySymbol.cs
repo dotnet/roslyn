@@ -70,6 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return false; }
         }
 
+        internal override bool HasGuidAttribute => false;
+
+        internal override bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute => false;
+
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
             throw new NotImplementedException();

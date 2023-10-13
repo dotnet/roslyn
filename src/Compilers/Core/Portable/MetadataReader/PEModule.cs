@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis
 #nullable enable
         private delegate bool AttributeValueExtractor<T>(out T value, ref BlobReader sigReader);
         private static readonly AttributeValueExtractor<string?> s_attributeStringValueExtractor = CrackStringInAttributeValue;
+        private static readonly AttributeValueExtractor<(int, int)> s_attributeIntAndIntValueExtractor = CrackIntAndIntInAttributeValue;
         private static readonly AttributeValueExtractor<StringAndInt> s_attributeStringAndIntValueExtractor = CrackStringAndIntInAttributeValue;
         private static readonly AttributeValueExtractor<(string?, string?)> s_attributeStringAndStringValueExtractor = CrackStringAndStringInAttributeValue;
         private static readonly AttributeValueExtractor<bool> s_attributeBooleanValueExtractor = CrackBooleanInAttributeValue;
@@ -1031,6 +1032,16 @@ namespace Microsoft.CodeAnalysis
             return HasStringValuedAttribute(token, AttributeDescription.GuidAttribute, out guidValue);
         }
 
+        internal bool HasImportedFromTypeLibAttribute(EntityHandle token, out string libValue)
+        {
+            return HasStringValuedAttribute(token, AttributeDescription.ImportedFromTypeLibAttribute, out libValue);
+        }
+
+        internal bool HasPrimaryInteropAssemblyAttribute(EntityHandle token, out int majorValue, out int minorValue)
+        {
+            return HasIntAndIntValuedAttribute(token, AttributeDescription.PrimaryInteropAssemblyAttribute, out majorValue, out minorValue);
+        }
+
         internal bool HasFixedBufferAttribute(EntityHandle token, out string elementTypeName, out int bufferSize)
         {
             return HasStringAndIntValuedAttribute(token, AttributeDescription.FixedBufferAttribute, out elementTypeName, out bufferSize);
@@ -1858,6 +1869,13 @@ namespace Microsoft.CodeAnalysis
             return TryExtractValueFromAttribute(handle, out value, s_decimalValueInDecimalConstantAttributeExtractor);
         }
 
+        private bool TryExtractIntAndIntValueFromAttribute(CustomAttributeHandle handle, out int value1, out int value2)
+        {
+            var result = TryExtractValueFromAttribute(handle, out var data, s_attributeIntAndIntValueExtractor);
+            (value1, value2) = data;
+            return result;
+        }
+
         private struct StringAndInt
         {
             public string? StringValue;
@@ -1942,6 +1960,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             value = null;
+            return false;
+        }
+
+        private bool HasIntAndIntValuedAttribute(EntityHandle token, AttributeDescription description, out int value1, out int value2)
+        {
+            AttributeInfo info = FindTargetAttribute(token, description);
+            if (info.HasValue)
+            {
+                return TryExtractIntAndIntValueFromAttribute(info.Handle, out value1, out value2);
+            }
+
+            value1 = 0;
+            value2 = 0;
             return false;
         }
 
@@ -2071,6 +2102,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             value = null;
+            return false;
+        }
+
+        private static bool CrackIntAndIntInAttributeValue(out (int, int) value, ref BlobReader sig)
+        {
+            if (CrackIntInAttributeValue(out int value1, ref sig) &&
+                CrackIntInAttributeValue(out int value2, ref sig))
+            {
+                value = (value1, value2);
+                return true;
+            }
+
+            value = default;
             return false;
         }
 
