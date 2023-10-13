@@ -6,7 +6,7 @@
     <SolidColorBrush x:Key="copilotBranding" Color="#6F66E3"/>
 
     <Style x:Key="CopilotListViewStyle" TargetType="ListView">
-        <Setter Property="ItemsSource" Value="{Binding SuggestedNames}"/>
+        <Setter Property="ItemsSource" Value="{Binding SuggestedNamesViewModel.SuggestedNames}"/>
         <Setter Property="Visibility" Value="{Binding Path=HasSuggestions, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -44,7 +44,6 @@
             </Setter.Value>
         </Setter>
 
-        <!-- ItemTemplate -->
         <Setter Property="ItemTemplate">
             <Setter.Value>
                 <DataTemplate>

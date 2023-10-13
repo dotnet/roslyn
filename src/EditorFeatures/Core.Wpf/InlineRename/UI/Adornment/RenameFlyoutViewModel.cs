@@ -61,8 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             RegisterOleComponent();
         }
 
-        public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>() { "Hello", "World", "Bar", "Goo", "XYZ" };
-
         public bool HasSuggestions => true;
 
         public SuggestedNamesControlViewModel? SuggestedNamesViewModel { get; }
