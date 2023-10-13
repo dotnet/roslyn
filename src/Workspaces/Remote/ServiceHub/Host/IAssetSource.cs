@@ -14,5 +14,6 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal interface IAssetSource
 {
-    ValueTask<ImmutableArray<object>> GetAssetsAsync(Checksum solutionChecksum, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<object>> GetAssetsAsync(
+        Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
 }

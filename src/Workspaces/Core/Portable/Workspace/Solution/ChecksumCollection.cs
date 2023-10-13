@@ -39,7 +39,6 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
-        checksums.AddIfNotNullChecksum(this.Checksum);
         foreach (var checksum in this)
             checksums.AddIfNotNullChecksum(checksum);
     }
@@ -48,7 +47,7 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
     internal static async Task FindAsync<TState>(
         TextDocumentStates<TState> documentStates,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
+        Dictionary<Checksum, object> result,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
         foreach (var (_, state) in documentStates.States)
@@ -67,8 +66,8 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
         IReadOnlyList<T> values,
         ChecksumCollection checksums,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
-        CancellationToken cancellationToken)
+        Dictionary<Checksum, object> result,
+        CancellationToken cancellationToken) where T : class
     {
         Contract.ThrowIfFalse(values.Count == checksums.Children.Length);
 
@@ -77,17 +76,11 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
             cancellationToken.ThrowIfCancellationRequested();
 
             if (searchingChecksumsLeft.Count == 0)
-            {
                 return;
-            }
 
             var checksum = checksums.Children[i];
-            var value = values[i];
-
             if (searchingChecksumsLeft.Remove(checksum))
-            {
-                result[checksum] = value;
-            }
+                result[checksum] = values[i];
         }
     }
 

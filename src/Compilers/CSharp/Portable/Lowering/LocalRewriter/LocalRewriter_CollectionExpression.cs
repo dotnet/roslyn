@@ -98,6 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionTypeKind == CollectionExpressionTypeKind.Span ? WellKnownType.System_Span_T : WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(elementType.Equals(spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0], TypeCompareKind.AllIgnoreOptions));
 
+                if (elements.Length == 0)
+                {
+                    // `default(Span<T>)` is the best way to make empty Spans
+                    return _factory.Default(collectionType);
+                }
+
                 if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan &&
                     ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
                 {

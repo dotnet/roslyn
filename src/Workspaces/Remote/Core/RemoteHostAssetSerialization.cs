@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static async ValueTask WriteDataAsync(
             Stream stream,
-            SolutionAsset? singleAsset,
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
+            Dictionary<Checksum, object> assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
@@ -40,12 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
             if (checksums.Length == 0)
                 return;
 
-            if (singleAsset != null)
-            {
-                WriteAsset(writer, serializer, context, singleAsset, cancellationToken);
-                return;
-            }
-
             Debug.Assert(assetMap != null);
 
             foreach (var checksum in checksums)
@@ -62,14 +54,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return;
 
-            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, SolutionAsset asset, CancellationToken cancellationToken)
+            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, object asset, CancellationToken cancellationToken)
             {
-                Debug.Assert(asset.Kind != WellKnownSynchronizationKind.Null, "We should not be sending null assets");
-                writer.WriteInt32((int)asset.Kind);
+                Contract.ThrowIfNull(asset);
+                var kind = asset.GetWellKnownSynchronizationKind();
+                writer.WriteInt32((int)kind);
 
-                // null is already indicated by checksum and kind above:
-                if (asset.Value is not null)
-                    serializer.Serialize(asset.Value, writer, context, cancellationToken);
+                serializer.Serialize(asset, writer, context, cancellationToken);
             }
         }
 
@@ -97,9 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
-
-                Debug.Assert(result != null, "We should not be requesting null assets");
-
+                Contract.ThrowIfNull(result);
                 results.Add(result);
             }
 
