@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -146,6 +147,9 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
                 if (lastFieldOrProperty >= 0)
                 {
+                    constructorDeclaration = constructorDeclaration
+                        .WithPrependedLeadingTrivia(ElasticCarriageReturnLineFeed, ElasticCarriageReturnLineFeed);
+
                     return currentTypeDeclaration.WithMembers(
                         currentTypeDeclaration.Members.Insert(lastFieldOrProperty + 1, constructorDeclaration));
                 }
@@ -168,10 +172,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
             foreach (var parameter in parameters)
             {
-                if (!parameterToSynthesizedFields.TryGetValue(parameter, out var field))
-                    continue;
-
-                var fieldName = field.Name.ToIdentifierName();
+                //if (parameterToSynthesizedFields.TryGetValue(parameter, out var field))
+                //    continue;
 
                 var references = await SymbolFinder.FindReferencesAsync(
                     parameter, solution, documentsToSearch, cancellationToken).ConfigureAwait(false);
@@ -184,7 +186,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     // Note Use DistinctBy (.Net6) once available.
                     foreach (var referenceLocation in reference.Locations.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance))
                     {
-
                         if (referenceLocation.IsImplicit)
                             continue;
 
@@ -241,10 +242,10 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     continue;
 
                 // only care if there is a single reference to the parameter and it's an initializer.
-                if (references.Count <= 1)
+                if (references.Count != 1)
                     continue;
 
-                var identifierName = references.First();
+                var identifierName = references.Single();
                 var expr = identifierName.WalkUpParentheses();
                 if (expr.Parent is not EqualsValueClauseSyntax initializer)
                     continue;
@@ -313,7 +314,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         ConstructorDeclarationSyntax CreateConstructorDeclaration()
         {
-            var attributes = List(methodTargetingAttributes.Select(a => a.WithTarget(null)));
+            var attributes = List(methodTargetingAttributes.Select(a => a.WithTarget(null).WithAdditionalAnnotations(Formatter.Annotation)));
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var assignmentStatements);
             foreach (var parameter in parameters)
             {

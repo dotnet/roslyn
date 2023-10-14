@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertPrimaryToRegularConstructor;
@@ -47,6 +48,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -566,12 +568,10 @@ public class ConvertPrimaryToRegularConstructorTests
                 class OuterType
                 {
                     private int _i;
-                    private int _j;
 
                     public [|OuterType|](int i, int j)
                     {
                         _i = i;
-                        _j = j;
                     }
 
                     public struct Enumerator
@@ -1476,6 +1476,7 @@ public class ConvertPrimaryToRegularConstructorTests
                """,
             FixedCode = """
                using System;
+
                class C
                {
                    [Obsolete("", error: true)]
@@ -2136,23 +2137,20 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestInParameter2()
+    public async Task TestInParameter2_Unused()
     {
         await new VerifyCS.Test
         {
             TestCode = """
-                class [|C(int i)|]
+                class [|C(in int i)|]
                 {
                 }
                 """,
             FixedCode = """
                 class C
                 {
-                    private int i;
-
                     public C(in int i)
                     {
-                        this.i = i;
                     }
                 }
                 """,
