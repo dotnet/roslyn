@@ -82,7 +82,7 @@ internal sealed class SolutionStateChecksums
         var checksum = Checksum.ReadFrom(reader);
         var result = new SolutionStateChecksums(
             attributes: Checksum.ReadFrom(reader),
-            reader.ReadArray(ProjectId.ReadFrom),
+            projectIds: reader.ReadArray(ProjectId.ReadFrom),
             projects: ChecksumCollection.ReadFrom(reader),
             analyzerReferences: ChecksumCollection.ReadFrom(reader),
             frozenSourceGeneratedDocumentIdentity: Checksum.ReadFrom(reader),

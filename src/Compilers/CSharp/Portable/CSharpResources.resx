@@ -7806,6 +7806,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
     <value>Ref field should be ref-assigned before use.</value>
   </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
   <data name="ERR_ExpectedInterpolatedString" xml:space="preserve">
     <value>Expected interpolated string</value>
   </data>

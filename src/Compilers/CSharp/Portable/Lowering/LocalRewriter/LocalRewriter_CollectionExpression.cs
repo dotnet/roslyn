@@ -107,13 +107,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan &&
                     ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
                 {
+                    // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
+                    Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
                     return _factory.New(constructor, _factory.Array(elementType.Type, elements));
                 }
 
-                if (ShouldUseInlineArray(node) &&
+                if (ShouldUseInlineArray(node, _compilation) &&
                     _additionalLocals is { })
                 {
+                    Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
                     return CreateAndPopulateSpanFromInlineArray(
                         syntax,
                         elementType,
@@ -122,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _additionalLocals);
                 }
 
+                Debug.Assert(IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
                 arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
                 spanConstructor = ((MethodSymbol)_compilation.GetWellKnownTypeMember(
                     collectionTypeKind == CollectionExpressionTypeKind.Span ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array)!).AsMember(spanType);
@@ -305,28 +309,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal static bool ShouldUseRuntimeHelpersCreateSpan(BoundCollectionExpression node, TypeSymbol elementType)
+        internal static bool IsAllocatingRefStructCollectionExpression(BoundCollectionExpressionBase node, CollectionExpressionTypeKind collectionKind, TypeSymbol? elementType, CSharpCompilation compilation)
         {
-            Debug.Assert(node.CollectionTypeKind is
-                CollectionExpressionTypeKind.ReadOnlySpan or
-                CollectionExpressionTypeKind.CollectionBuilder);
+            return collectionKind is CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan
+                && node.Elements.Length > 0
+                && elementType is not null
+                && !(collectionKind == CollectionExpressionTypeKind.ReadOnlySpan && ShouldUseRuntimeHelpersCreateSpan(node, elementType))
+                && !ShouldUseInlineArray(node, compilation);
+        }
 
+        internal static bool ShouldUseRuntimeHelpersCreateSpan(BoundCollectionExpressionBase node, TypeSymbol elementType)
+        {
             return !node.HasSpreadElements(out _, out _) &&
                 node.Elements.Length > 0 &&
                 CodeGenerator.IsTypeAllowedInBlobWrapper(elementType.EnumUnderlyingTypeOrSelf().SpecialType) &&
                 node.Elements.All(e => e.ConstantValueOpt is { });
         }
 
-        private bool ShouldUseInlineArray(BoundCollectionExpression node)
+        private static bool ShouldUseInlineArray(BoundCollectionExpressionBase node, CSharpCompilation compilation)
         {
-            Debug.Assert(node.CollectionTypeKind is
-                CollectionExpressionTypeKind.ReadOnlySpan or
-                CollectionExpressionTypeKind.Span or
-                CollectionExpressionTypeKind.CollectionBuilder);
-
             return !node.HasSpreadElements(out _, out _) &&
                 node.Elements.Length > 0 &&
-                _compilation.Assembly.RuntimeSupportsInlineArrayTypes;
+                compilation.Assembly.RuntimeSupportsInlineArrayTypes;
         }
 
         private BoundExpression CreateAndPopulateSpanFromInlineArray(
