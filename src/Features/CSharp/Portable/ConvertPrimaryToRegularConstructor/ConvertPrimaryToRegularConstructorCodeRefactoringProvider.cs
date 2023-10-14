@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -148,7 +149,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             {
                 // If there is an existing non-static constructor, place it before that
                 var currentTypeDeclaration = (TypeDeclarationSyntax)current;
-                currentTypeDeclaration = RewriteParamRefNodes(currentTypeDeclaration);
 
                 var firstConstructorIndex = currentTypeDeclaration.Members.IndexOf(m => m is ConstructorDeclarationSyntax c && !c.Modifiers.Any(SyntaxKind.StaticKeyword));
                 if (firstConstructorIndex >= 0)
@@ -215,11 +215,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                         if (identifierName.GetAncestor<PrimaryConstructorBaseTypeSyntax>() != null)
                             continue;
 
-                        // Don't need to update doc comment reference (e.g. `paramref=...`).  These will move to the
-                        // new constructor and will still reference the parameters there.
-                        if (identifierName.GetAncestor<DocumentationCommentTriviaSyntax>() != null)
-                            continue;
-
                         result.Add(parameter, identifierName);
                     }
                 }
@@ -243,7 +238,22 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     var editor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocumentId(syntaxTree), cancellationToken).ConfigureAwait(false);
 
                     foreach (var identifierName in grouping)
-                        editor.ReplaceNode(identifierName, fieldName.WithTriviaFrom(identifierName));
+                    {
+                        var xmlElement = identifierName.AncestorsAndSelf().OfType<XmlEmptyElementSyntax>().FirstOrDefault();
+                        if (xmlElement is { Name.LocalName.ValueText: "paramref" })
+                        {
+                            var seeTag = xmlElement
+                                .ReplaceToken(xmlElement.Name.LocalName, Identifier("see").WithTriviaFrom(xmlElement.Name.LocalName))
+                                .WithAttributes(SingletonList<XmlAttributeSyntax>(XmlCrefAttribute(
+                                    TypeCref(fieldName))));
+
+                            editor.ReplaceNode(xmlElement, seeTag);
+                        }
+                        else
+                        {
+                            editor.ReplaceNode(identifierName, fieldName.WithTriviaFrom(identifierName));
+                        }
+                    }
                 }
             }
         }
@@ -258,17 +268,15 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 if (parameterToSynthesizedFields.TryGetValue(parameter, out _))
                     continue;
 
-                // only care if there is a single reference to the parameter and it's an initializer.
+                // only care if all the references to the parameter are in a single initializer.
                 var initializers = references
                     .Select(r => r.AncestorsAndSelf().OfType<EqualsValueClauseSyntax>().LastOrDefault())
+                    .WhereNotNull()
                     .ToSet();
                 if (initializers.Count != 1)
                     continue;
 
                 var initializer = initializers.Single();
-                if (initializer is null)
-                    continue;
-
                 if (initializer.Parent is not PropertyDeclarationSyntax and not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } })
                     continue;
 
@@ -298,7 +306,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
             foreach (var member in namedType.GetMembers())
             {
-                if (member is IFieldSymbol { IsImplicitlyDeclared: false, Locations: [var location, ..] } field)
+                if (member is IFieldSymbol { IsImplicitlyDeclared: true, Locations: [var location, ..] } field)
                     locationToField[location] = field;
             }
 
@@ -394,11 +402,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 return (member.fieldOrProperty, member.initializer.Value);
 
             return null;
-        }
-
-        TypeDeclarationSyntax RewriteParamRefNodes(TypeDeclarationSyntax typeDeclaration)
-        {
-
         }
     }
 }

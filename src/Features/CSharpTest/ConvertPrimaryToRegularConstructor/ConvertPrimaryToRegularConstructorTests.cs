@@ -15,6 +15,17 @@ using VerifyCS = CSharpCodeRefactoringVerifier<ConvertPrimaryToRegularConstructo
 
 public class ConvertPrimaryToRegularConstructorTests
 {
+    private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig = """
+        [*.cs]
+        dotnet_naming_style.field_camel_case.capitalization         = camel_case
+        dotnet_naming_style.field_camel_case.required_prefix        = _
+        dotnet_naming_symbols.fields.applicable_kinds               = field
+        dotnet_naming_symbols.fields.applicable_accessibilities     = *
+        dotnet_naming_rule.fields_should_be_camel_case.severity     = error
+        dotnet_naming_rule.fields_should_be_camel_case.symbols      = fields
+        dotnet_naming_rule.fields_should_be_camel_case.style        = field_camel_case
+        """;
+
     [Fact]
     public async Task TestInCSharp12()
     {
@@ -2335,6 +2346,50 @@ public class ConvertPrimaryToRegularConstructorTests
                 /// </summary>
                 class [|C(int i)|]
                 {
+                    int M()
+                    {
+                        return i;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <see cref="i"/>.
+                /// </summary>
+                class C
+                {
+                    private int i;
+
+                    public C(int i)
+                    {
+                        this.i = i;
+                    }
+
+                    int M()
+                    {
+                        return i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSeeTag3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <paramref name="i"/>.
+                /// </summary>
+                class [|C(int i)|]
+                {
+                    int M()
+                    {
+                        return i;
+                    }
                 }
                 """,
             FixedCode = """
@@ -2345,13 +2400,19 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                     private int _i;
 
-                    public [|C|](int i)
+                    public C(int i)
                     {
                         _i = i;
+                    }
+
+                    int M()
+                    {
+                        return _i;
                     }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
         }.RunAsync();
     }
 
