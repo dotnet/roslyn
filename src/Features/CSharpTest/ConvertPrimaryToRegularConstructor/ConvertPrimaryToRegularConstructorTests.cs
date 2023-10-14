@@ -557,54 +557,27 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembers2()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class C
-                {
-                    private int I { get; }
-                    private int J { get; }
-
-                    public [|C|](int i, int j)
-                    {
-                        this.I = i;
-                        this.J = j;
-                    }
-                }
-                """,
-            FixedCode = """
-                class C(int i, int j)
-                {
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
     public async Task TestRemoveMembersOnlyWithMatchingType()
     {
         await new VerifyCS.Test
         {
             TestCode = """
+                class [|C(int i, int j)|]
+                {
+                    private long J { get; } = j;
+                }
+                """,
+            FixedCode = """
                 class C
                 {
                     private int I { get; }
                     private long J { get; }
 
-                    public [|C|](int i, int j)
+                    public C(int i, int j)
                     {
                         this.I = i;
                         this.J = j;
                     }
-                }
-                """,
-            FixedCode = """
-                class C(int i, int j)
-                {
-                    private long J { get; } = j;
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -881,8 +854,8 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
-                    private int _i;
                     private int _j;
+                    private int _i;
 
                     public C(int i, int j)
                     {
@@ -898,6 +871,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
         }.RunAsync();
     }
 
@@ -1420,19 +1394,10 @@ public class ConvertPrimaryToRegularConstructorTests
                     /// </summary>
                     class C
                     {
-                        /// <summary>Field docs for i.</summary>
-                        private int i;
-                        /// <summary>
-                        /// Field docs for j.
-                        /// </summary>
-                        private int j;
-
                         /// <param name="i">Param docs for i</param>
                         /// <param name="j">Param docs for j</param>
                         public C(int i, int j)
                         {
-                            this.i = i;
-                            this.j = j;
                         }
                     }
                 }

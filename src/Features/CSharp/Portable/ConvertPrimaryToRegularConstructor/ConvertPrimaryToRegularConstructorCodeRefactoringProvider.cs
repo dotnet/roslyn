@@ -149,6 +149,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             {
                 // If there is an existing non-static constructor, place it before that
                 var currentTypeDeclaration = (TypeDeclarationSyntax)current;
+                currentTypeDeclaration = RemoveParamXmlElements(currentTypeDeclaration);
 
                 var firstConstructorIndex = currentTypeDeclaration.Members.IndexOf(m => m is ConstructorDeclarationSyntax c && !c.Modifiers.Any(SyntaxKind.StaticKeyword));
                 if (firstConstructorIndex >= 0)
@@ -177,6 +178,30 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             });
 
         return solutionEditor.GetChangedSolution();
+
+        TypeDeclarationSyntax RemoveParamXmlElements(TypeDeclarationSyntax typeDeclaration)
+        {
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var leadingTrivia);
+
+            foreach (var trivia in typeDeclaration.GetLeadingTrivia())
+            {
+                if (trivia.GetStructure() is not DocumentationCommentTriviaSyntax docComment)
+                {
+                    leadingTrivia.Add(trivia);
+                }
+                else
+                {
+                    var updatedComment = docComment.RemoveNodes(docComment
+                            .DescendantNodes()
+                            .OfType<XmlElementSyntax>()
+                            .Where(x => x.StartTag.Name.LocalName.ValueText == "param"),
+                        SyntaxRemoveOptions.AddElasticMarker);
+                    leadingTrivia.Add(Trivia(updatedComment!));
+                }
+            }
+
+            return typeDeclaration.WithLeadingTrivia(leadingTrivia);
+        }
 
         async Task<MultiDictionary<IParameterSymbol, IdentifierNameSyntax>> GetParameterReferencesAsync()
         {
