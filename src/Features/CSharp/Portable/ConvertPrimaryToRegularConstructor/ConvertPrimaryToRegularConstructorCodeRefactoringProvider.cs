@@ -160,6 +160,12 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         async Task<MultiDictionary<IParameterSymbol, IdentifierNameSyntax>> GetParameterReferencesAsync()
         {
             var result = new MultiDictionary<IParameterSymbol, IdentifierNameSyntax>();
+            var documentsToSearch = namedType.DeclaringSyntaxReferences
+                .Select(r => r.SyntaxTree)
+                .Distinct()
+                .Select(solution.GetRequiredDocument)
+                .ToImmutableHashSet();
+
             foreach (var parameter in parameters)
             {
                 if (!parameterToSynthesizedFields.TryGetValue(parameter, out var field))
@@ -167,7 +173,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
                 var fieldName = field.Name.ToIdentifierName();
 
-                var references = await SymbolFinder.FindReferencesAsync(parameter, solution, cancellationToken).ConfigureAwait(false);
+                var references = await SymbolFinder.FindReferencesAsync(
+                    parameter, solution, documentsToSearch, cancellationToken).ConfigureAwait(false);
                 foreach (var reference in references)
                 {
                     // We may hit a location multiple times due to how we do FAR for linked symbols, but each linked symbol
