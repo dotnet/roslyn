@@ -3,12 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -236,12 +231,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
             If rewrittenLeft.Type.IsNullableType() AndAlso
-               rewrittenRight.IsDefaultValue() AndAlso
                rewrittenRight.Type.IsSameTypeIgnoringAll(rewrittenLeft.Type.GetNullableUnderlyingType()) _
             Then
-                Return NullableValueOrDefault(rewrittenLeft)
+                ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
+                If rewrittenRight.IsDefaultValue() Then
+                    Return NullableValueOrDefault(rewrittenLeft)
+                End If
+
+                ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right value is a constant of type T
+                If rewrittenRight.ConstantValueOpt IsNot Nothing Then
+                    Return NullableValueOrDefault(rewrittenLeft, rewrittenRight)
+                End If
             End If
 
             '=== Rewrite binary conditional expression using ternary conditional expression

@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -3422,8 +3421,8 @@ End Module</file>
 ]]>)
         End Sub
 
-        <Fact()>
-        Public Sub TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3476,17 +3475,13 @@ End Module</file>
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault1",
             <![CDATA[
- {
-  // Code size       19 (0x13)
-  .maxstack  1
+{
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  ldc.i4.2
-  IL_000a:  ret
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_0012:  ret
+  IL_0002:  ldc.i4.2
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  ret
 }
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault2",
@@ -3592,6 +3587,26 @@ End Module</file>
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
         Return If(x, 0)
+                  ~
+</errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWiNonDefault_MissingGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 2)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            compilation.AssertTheseEmitDiagnostics(
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
+        Return If(x, 2)
                   ~
 </errors>)
         End Sub

@@ -3,13 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -200,6 +196,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  isLValue:=False,
                                  suppressObjectClone:=True,
                                  type:=getValueOrDefaultMethod.ReturnType)
+            End If
+
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+        End Function
+
+        Private Function NullableValueOrDefault(expr As BoundExpression, defaultValue As BoundExpression) As BoundExpression
+            Debug.Assert(expr.Type.IsNullableType)
+
+            Dim getValueOrDefaultWithDefaultValueMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+
+            If getValueOrDefaultWithDefaultValueMethod IsNot Nothing Then
+                Return New BoundCall(expr.Syntax,
+                                 getValueOrDefaultWithDefaultValueMethod,
+                                 Nothing,
+                                 expr,
+                                 ImmutableArray.Create(defaultValue),
+                                 Nothing,
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueOrDefaultWithDefaultValueMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
