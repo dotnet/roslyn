@@ -204,7 +204,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                         if (referenceLocation.IsImplicit)
                             continue;
 
-                        if (referenceLocation.Location.FindNode(cancellationToken) is not IdentifierNameSyntax identifierName)
+                        if (referenceLocation.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) is not IdentifierNameSyntax identifierName)
                             continue;
 
                         // Explicitly ignore references in the base-type-list.  Tehse don't need to be rewritten as
