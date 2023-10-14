@@ -148,6 +148,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             {
                 // If there is an existing non-static constructor, place it before that
                 var currentTypeDeclaration = (TypeDeclarationSyntax)current;
+                currentTypeDeclaration = RewriteParamRefNodes(currentTypeDeclaration);
+
                 var firstConstructorIndex = currentTypeDeclaration.Members.IndexOf(m => m is ConstructorDeclarationSyntax c && !c.Modifiers.Any(SyntaxKind.StaticKeyword));
                 if (firstConstructorIndex >= 0)
                 {
@@ -204,7 +206,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                         if (referenceLocation.IsImplicit)
                             continue;
 
-                        if (referenceLocation.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) is not IdentifierNameSyntax identifierName)
+                        if (referenceLocation.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken) is not IdentifierNameSyntax identifierName)
                             continue;
 
                         // Explicitly ignore references in the base-type-list.  Tehse don't need to be rewritten as
@@ -257,11 +259,13 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     continue;
 
                 // only care if there is a single reference to the parameter and it's an initializer.
-                if (references.Count != 1)
+                var initializers = references
+                    .Select(r => r.AncestorsAndSelf().OfType<EqualsValueClauseSyntax>().LastOrDefault())
+                    .ToSet();
+                if (initializers.Count != 1)
                     continue;
 
-                var identifierName = references.Single();
-                var initializer = identifierName.AncestorsAndSelf().OfType<EqualsValueClauseSyntax>().LastOrDefault();
+                var initializer = initializers.Single();
                 if (initializer is null)
                     continue;
 
@@ -390,6 +394,11 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 return (member.fieldOrProperty, member.initializer.Value);
 
             return null;
+        }
+
+        TypeDeclarationSyntax RewriteParamRefNodes(TypeDeclarationSyntax typeDeclaration)
+        {
+
         }
     }
 }
