@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
                 }
 
-                // Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right value is a constant of type T
-                if (unwrappedRight.ConstantValueOpt is not null &&
+                // Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right is a side-effectless expression of type T
+                if (unwrappedRight is { ConstantValueOpt: not null } or { Kind: BoundKind.Local or BoundKind.Parameter } &&
                     TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, out MethodSymbol? getValueOrDefaultDefaultValue, isOptional: true))
                 {
                     return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultDefaultValue, rewrittenRight);

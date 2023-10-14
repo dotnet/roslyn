@@ -4969,35 +4969,122 @@ class Program
 ");
         }
 
-        [WorkItem(732269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/732269")]
         [Fact]
+        [WorkItem(732269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/732269")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
         public void NullCoalesce()
         {
-            var source = @"
-class Program
-{
-    static int Main(int? x, int y) { return x ?? y; }
-}
-";
+            var source = """
+                class Program
+                {
+                    static int Main(int? x, int y) { return x ?? y; }
+                }
+                """;
+
             var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.Main", @"
-{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (int? V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brtrue.s   IL_000d
-  IL_000b:  ldarg.1
-  IL_000c:  ret
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  ret
-}
-");
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  ldarg.1
+                  IL_0003:  call       "int int?.GetValueOrDefault(int)"
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        [InlineData("ref")]
+        [InlineData("in")]
+        [InlineData("ref readonly")]
+        public void NullCoalesce_RefParameter(string refKeyword)
+        {
+            var source = $$"""
+                class Program
+                {
+                    static int Main(int? x, {{refKeyword}} int y) { return x ?? y; }
+                }
+                """;
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  2
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  ldarg.1
+                  IL_0003:  ldind.i4
+                  IL_0004:  call       "int int?.GetValueOrDefault(int)"
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void NullCoalesce_OutParameter()
+        {
+            var source = """
+                class Program
+                {
+                    static int Main(int? x, out int y)
+                    {
+                        y = 0;
+                        return x ?? y;
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stind.i4
+                  IL_0003:  ldarga.s   V_0
+                  IL_0005:  ldarg.1
+                  IL_0006:  ldind.i4
+                  IL_0007:  call       "int int?.GetValueOrDefault(int)"
+                  IL_000c:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void NullCoalesce_RefLocal()
+        {
+            var source = """
+                class Program
+                {
+                    static int Main(int? x, ref int y)
+                    {
+                        ref int z = ref y;
+                        return x ?? z;
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  2
+                  .locals init (int& V_0) //z
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarga.s   V_0
+                  IL_0004:  ldloc.0
+                  IL_0005:  ldind.i4
+                  IL_0006:  call       "int int?.GetValueOrDefault(int)"
+                  IL_000b:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -5830,19 +5917,12 @@ class Program
   IL_0008:  ret
 }");
             comp.VerifyIL("Program.CoalesceWithNonDefault2", @"{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (int? V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brtrue.s   IL_000d
-  IL_000b:  ldarg.1
-  IL_000c:  ret
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  call       ""int int?.GetValueOrDefault(int)""
+  IL_0008:  ret
 }");
             comp.VerifyIL("Program.CoalesceWithNonDefault3", @"{
   // Code size       15 (0xf)

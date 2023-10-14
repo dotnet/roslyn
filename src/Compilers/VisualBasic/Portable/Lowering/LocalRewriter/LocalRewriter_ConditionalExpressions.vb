@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right value is a constant of type T
-                If rewrittenRight.ConstantValueOpt IsNot Nothing Then
+                If rewrittenRight.ConstantValueOpt IsNot Nothing OrElse rewrittenRight.Kind = BoundKind.Local OrElse rewrittenRight.Kind = BoundKind.Parameter Then
                     Return NullableValueOrDefault(rewrittenLeft, rewrittenRight)
                 End If
             End If
