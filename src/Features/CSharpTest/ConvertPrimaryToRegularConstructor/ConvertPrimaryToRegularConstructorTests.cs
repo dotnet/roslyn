@@ -345,7 +345,7 @@ public class ConvertPrimaryToRegularConstructorTests
 
                     public C(int i)
                     {
-                        this.I = i;
+                        I = i;
                     }
                 }
                 """,
@@ -462,11 +462,20 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembers1()
+    public async Task TestRemoveMembers1_Used()
     {
         await new VerifyCS.Test
         {
             TestCode = """
+                class [|C(int i, int j)|]
+                {
+                    int M()
+                    {
+                        return i + j;
+                    }
+                }
+                """,
+            FixedCode = """
                 class C
                 {
                     private int i;
@@ -477,11 +486,33 @@ public class ConvertPrimaryToRegularConstructorTests
                         this.i = i;
                         this.j = j;
                     }
+
+                    int M()
+                    {
+                        return i + j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembers1_Unused()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class [|C(int i, int j)|]
+                {
                 }
                 """,
             FixedCode = """
-                class C(int i, int j)
+                class C
                 {
+                    public C(int i, int j)
+                    {
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -2181,12 +2212,11 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-
-                    #region constructors
-
-                    public [|C|](int i)
+                    public C(int i)
                     {
                     }
+
+                    #region constructors
 
                     #endregion
 
@@ -2218,12 +2248,11 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-
-                    #region constructors
-
                     public C(int i)
                     {
                     }
+
+                    #region constructors
 
                     public C(string s) : this(s.Length)
                     {

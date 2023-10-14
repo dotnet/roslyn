@@ -112,7 +112,21 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         // Remove all the initializers from existing fields/props the params are assigned to.
         foreach (var (parameter, (fieldOrProperty, initializer)) in parameterToExistingFieldOrProperty)
-            mainDocumentEditor.RemoveNode(initializer);
+        {
+            if (initializer.Parent is PropertyDeclarationSyntax propertyDeclaration)
+            {
+                mainDocumentEditor.ReplaceNode(
+                    propertyDeclaration,
+                    propertyDeclaration
+                        .WithInitializer(null)
+                        .WithSemicolonToken(default)
+                        .WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
+            }
+            else
+            {
+                mainDocumentEditor.RemoveNode(initializer);
+            }
+        }
 
         // Now add all the fields.
         mainDocumentEditor.ReplaceNode(
