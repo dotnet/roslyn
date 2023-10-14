@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -334,9 +335,37 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 attributes,
                 TokenList(Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)),
                 typeDeclaration.Identifier.WithoutTrivia(),
-                parameterList.WithoutTrivia(),
+                RewriteParameterDefaults(parameterList).WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),
                 Block(assignmentStatements));
+        }
+
+        ParameterListSyntax RewriteParameterDefaults(ParameterListSyntax parameterList)
+        {
+            return parameterList.ReplaceNodes(
+                parameterList.Parameters,
+                (parameter, _) => RewriteNestedReferences(parameter));
+        }
+
+        TNode RewriteNestedReferences<TNode>(TNode parent) where TNode : SyntaxNode
+        {
+            return parent.ReplaceNodes(
+                parent.DescendantNodes().Where(n => n is MemberAccessExpressionSyntax or QualifiedNameSyntax),
+                (node, _) =>
+                {
+                    if (node is MemberAccessExpressionSyntax memberAccessExpression &&
+                        namedType.Equals(semanticModel.GetSymbolInfo(memberAccessExpression.Expression).Symbol))
+                    {
+                        return memberAccessExpression.Name.WithTriviaFrom(node);
+                    }
+                    else if (node is QualifiedNameSyntax qualifiedName &&
+                        namedType.Equals(semanticModel.GetSymbolInfo(qualifiedName.Left).Symbol))
+                    {
+                        return qualifiedName.Right.WithTriviaFrom(node);
+                    }
+
+                    return node;
+                });
         }
 
         ISymbol? GetMemberToAssignTo(IParameterSymbol parameter)

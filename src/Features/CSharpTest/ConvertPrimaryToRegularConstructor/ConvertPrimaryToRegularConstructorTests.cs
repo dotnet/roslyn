@@ -47,6 +47,11 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                 }
                 """,
+            FixedCode = """
+                record class C(int i)
+                {
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
@@ -2002,11 +2007,11 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-                    public class D
+                    public C(D d)
                     {
                     }
 
-                    public C(D d)
+                    public class D
                     {
                     }
                 }
@@ -2035,11 +2040,11 @@ public class ConvertPrimaryToRegularConstructorTests
 
                 class C<T>
                 {
-                    public class D
+                    public C(List<D> d)
                     {
                     }
 
-                    public C(List<D> d)
+                    public class D
                     {
                     }
                 }
@@ -2064,11 +2069,11 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-                    public class D
+                    public C(D d)
                     {
                     }
 
-                    public C(C.D d)
+                    public class D
                     {
                     }
                 }
@@ -2097,11 +2102,11 @@ public class ConvertPrimaryToRegularConstructorTests
 
                 class C<T>
                 {
-                    public class D
+                    public C(List<D> d)
                     {
                     }
 
-                    public C(List<C<T>.D> d)
+                    public class D
                     {
                     }
                 }
@@ -2341,7 +2346,7 @@ public class ConvertPrimaryToRegularConstructorTests
                     private const int Default = 0;
                     private int _i;
 
-                    public C(int i = C.Default)
+                    public C(int i = Default)
                     {
                         _i = i;
                     }
