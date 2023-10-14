@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             IEnumerable<string> reservedNames,
             bool isCaseSensitive = true)
         {
-            using var _ = PooledStringHashSet.GetInstance(isCaseSensitive, out var nameSet);
+            using var nameSetPool = (isCaseSensitive ? SharedPools.StringHashSet : SharedPools.StringIgnoreCaseHashSet).GetPooledObject();
+            var nameSet = nameSetPool.Object;
 
             nameSet.AddRange(reservedNames);
 
@@ -87,8 +88,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             canUse ??= Functions<string>.True;
 
-            using var _1 = PooledStringHashSet.GetInstance(isCaseSensitive, out var usedNames);
-            using var _2 = PooledStringDictionary<bool>.GetInstance(isCaseSensitive, out var collisionMap);
+            using var usedNamesPool = (isCaseSensitive ? SharedPools.StringHashSet : SharedPools.StringIgnoreCaseHashSet).GetPooledObject();
+            var usedNames = usedNamesPool.Object;
+
+            using var collisionMapPool = (isCaseSensitive ? SharedPools.Default<Dictionary<string, bool>>() : SharedPools.StringIgnoreCaseDictionary<bool>()).GetPooledObject();
+            var collisionMap = collisionMapPool.Object;
 
             // Initial pass through names to determine which names are in collision
             foreach (var name in names)

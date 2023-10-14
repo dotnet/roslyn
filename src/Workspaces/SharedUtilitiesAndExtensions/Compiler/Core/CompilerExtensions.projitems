@@ -397,7 +397,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledStringDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigValueSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigValueSerializer`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IEditorConfigValueSerializer.cs" />
@@ -584,7 +583,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledHashSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledStringBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledStringHashSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\SharedPools.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolVisibility.cs" />
