@@ -106,16 +106,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
-            Dim firstItemName = expectedResults(0).Name
-            If Not expectedResults(0).IsAbsent AndAlso firstItemName IsNot Nothing Then
-                Await VerifyAtPosition_ItemPartiallyWrittenAsync(
-                    code, position, usePreviousCharAsTrigger, hasSuggestionModeItem, sourceCodeKind,
-                    expectedResults, firstItemName, matchingFilters, flags:=Nothing, options, skipSpeculation)
+            For Each item In expectedResults
+                If Not item.IsAbsent AndAlso item.Name IsNot Nothing Then
+                    Await VerifyAtPosition_ItemPartiallyWrittenAsync(
+                        code, position, usePreviousCharAsTrigger, hasSuggestionModeItem, sourceCodeKind,
+                        expectedResults, item.Name, matchingFilters, flags:=Nothing, options, skipSpeculation)
 
-                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
-                    code, position, usePreviousCharAsTrigger, hasSuggestionModeItem, sourceCodeKind,
-                    expectedResults, firstItemName, matchingFilters, flags:=Nothing, options)
-            End If
+                    Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+                        code, position, usePreviousCharAsTrigger, hasSuggestionModeItem, sourceCodeKind,
+                        expectedResults, item.Name, matchingFilters, flags:=Nothing, options)
+                End If
+            Next
+
         End Function
 
         Protected Overrides Async Function VerifyCustomCommitProviderWorkerAsync(codeBeforeCommit As String, position As Integer, itemToCommit As String, expectedCodeAfterCommit As String, sourceCodeKind As SourceCodeKind, Optional commitChar As Char? = Nothing) As Task
