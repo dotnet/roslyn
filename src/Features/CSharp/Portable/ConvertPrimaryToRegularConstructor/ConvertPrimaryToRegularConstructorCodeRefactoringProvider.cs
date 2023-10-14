@@ -261,8 +261,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     continue;
 
                 var identifierName = references.Single();
-                var expr = identifierName.WalkUpParentheses();
-                if (expr.Parent is not EqualsValueClauseSyntax initializer)
+                var initializer = identifierName.AncestorsAndSelf().OfType<EqualsValueClauseSyntax>().LastOrDefault();
+                if (initializer is null)
                     continue;
 
                 if (initializer.Parent is not PropertyDeclarationSyntax and not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } })
@@ -333,15 +333,14 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var assignmentStatements);
             foreach (var parameter in parameters)
             {
-                var member = GetMemberToAssignTo(parameter);
-                if (member is null)
+                if (GetMemberToAssignTo(parameter) is not (var member, var value))
                     continue;
 
                 var fieldName = member.Name.ToIdentifierName();
                 var left = parameter.Name == member.Name
                     ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), fieldName)
                     : (ExpressionSyntax)fieldName;
-                var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, parameter.Name.ToIdentifierName());
+                var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, value);
                 assignmentStatements.Add(ExpressionStatement(assignment));
             }
 
@@ -382,13 +381,13 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 });
         }
 
-        ISymbol? GetMemberToAssignTo(IParameterSymbol parameter)
+        (ISymbol member, ExpressionSyntax value)? GetMemberToAssignTo(IParameterSymbol parameter)
         {
             if (parameterToSynthesizedFields.TryGetValue(parameter, out var field))
-                return field;
+                return (field, parameter.Name.ToIdentifierName());
 
             if (parameterToExistingFieldOrProperty.TryGetValue(parameter, out var member))
-                return member.fieldOrProperty;
+                return (member.fieldOrProperty, member.initializer.Value);
 
             return null;
         }
