@@ -134,16 +134,16 @@ namespace Microsoft.CodeAnalysis
                             // if it's a project that's specifically in the sync'ed cone, include this checksum so that
                             // this project definitely syncs over.
                             if (t.mustCompute)
-                                return (t.state.Id, await t.state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false));
+                                return await t.state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
                             // If it's a project that is not in the cone, still try to get the latest checksum for it if
                             // we have it.  That way we don't send over a checksum *without* that project, causing the
                             // OOP side to throw that project away (along with all the compilation info stored with it).
                             if (t.state.TryGetStateChecksums(out var stateChecksums))
-                                return (t.state.Id, stateChecksums);
+                                return stateChecksums;
 
                             // We have never computed the checksum for this project.  Don't send anything for it.
-                            return default((ProjectId, ProjectStateChecksums));
+                            return null;
                         })
                         .ToArray();
 
@@ -161,14 +161,14 @@ namespace Microsoft.CodeAnalysis
 
                     var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
 
-                    var tuples = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    using var _1 = ArrayBuilder<ProjectId>.GetInstance(projectChecksumTasks.Length, out var projectIds);
-                    using var _2 = ArrayBuilder<Checksum>.GetInstance(projectChecksumTasks.Length, out var projectChecksums);
-                    foreach (var (projectId, projectStateChecksums) in tuples)
+                    var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+                    using var _1 = ArrayBuilder<ProjectId>.GetInstance(allResults.Length, out var projectIds);
+                    using var _2 = ArrayBuilder<Checksum>.GetInstance(allResults.Length, out var projectChecksums);
+                    foreach (var projectStateChecksums in allResults)
                     {
                         if (projectStateChecksums != null)
                         {
-                            projectIds.Add(projectId);
+                            projectIds.Add(projectStateChecksums.ProjectId);
                             projectChecksums.Add(projectStateChecksums.Checksum);
                         }
                     }

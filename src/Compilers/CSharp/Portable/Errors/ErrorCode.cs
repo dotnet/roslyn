@@ -2275,6 +2275,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorGlobalNamespace = 9206,
         ERR_InterceptableMethodMustBeOrdinary = 9207,
 
+        WRN_CollectionExpressionRefStructMayAllocate = 9208,
+        WRN_CollectionExpressionRefStructSpreadMayAllocate = 9209,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:
