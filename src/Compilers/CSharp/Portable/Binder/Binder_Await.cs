@@ -21,6 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, node.AwaitKeyword);
 
             BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
+            if (ContainingMemberOrLambda is MethodSymbol ms &&
+                ms.IsAsync2)
+            {
+                if (expression is BoundCall call && call.Method.IsAsync2)
+                {
+                    return call;
+                }
+            }
 
             return BindAwait(expression, node, diagnostics);
         }
@@ -168,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case SymbolKind.Method:
                         var method = (MethodSymbol)containingMemberOrLambda;
-                        if (method.IsAsync)
+                        if (method.IsAsync || method.IsAsync2)
                         {
                             return false;
                         }

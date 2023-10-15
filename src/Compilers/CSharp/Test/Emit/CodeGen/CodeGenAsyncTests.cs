@@ -6063,10 +6063,23 @@ using System.Threading.Tasks;
 
 class TT
 {
-    public static async2 int Fancy()
+    public static async2 int M1()
     {
         // await Task.Yield();
         return 42;
+    }
+
+    public static async2 int M2()
+    {
+        return await M1();
+    }
+}
+
+class CC
+{
+    public static async Task<long> M3()
+    {
+        return await TT.M2();
     }
 }
 
@@ -6074,14 +6087,12 @@ class Test
 {
     public static void Main()
     {
-        var t = TT.Fancy();
-        Console.WriteLine(t);
-
-        // Console.WriteLine(t.Result);
+        var t = CC.M3();
+        Console.WriteLine(t.Result);
     }
 }";
 
-            var c = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Passes);
+            var c = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Fails);
 
             c.VerifyTypeIL("TT", @"
     .class private auto ansi beforefieldinit TT
@@ -6089,7 +6100,7 @@ class Test
     {
     	// Methods
     	.method public hidebysig static 
-    		int32 modopt([netstandard]System.Threading.Tasks.Task`1) Fancy () cil managed 
+    		int32 modopt([netstandard]System.Threading.Tasks.Task`1) M1 () cil managed 
     	{
     		// Method begins at RVA 0x206c
     		// Code size 8 (0x8)
@@ -6103,11 +6114,27 @@ class Test
     		IL_0004: br.s IL_0006
     		IL_0006: ldloc.0
     		IL_0007: ret
-    	} // end of method TT::Fancy
+    	} // end of method TT::M1
+    	.method public hidebysig static 
+    		int32 modopt([netstandard]System.Threading.Tasks.Task`1) M2 () cil managed 
+    	{
+    		// Method begins at RVA 0x2080
+    		// Code size 11 (0xb)
+    		.maxstack 1
+    		.locals init (
+    			[0] int32
+    		)
+    		IL_0000: nop
+    		IL_0001: call int32 modopt([netstandard]System.Threading.Tasks.Task`1) TT::M1()
+    		IL_0006: stloc.0
+    		IL_0007: br.s IL_0009
+    		IL_0009: ldloc.0
+    		IL_000a: ret
+    	} // end of method TT::M2
     	.method public hidebysig specialname rtspecialname 
     		instance void .ctor () cil managed 
     	{
-    		// Method begins at RVA 0x2080
+    		// Method begins at RVA 0x2097
     		// Code size 8 (0x8)
     		.maxstack 8
     		IL_0000: ldarg.0
@@ -6126,25 +6153,26 @@ class Test
 	    .method public hidebysig static 
 		    void Main () cil managed 
 	    {
-		    // Method begins at RVA 0x208c
-		    // Code size 15 (0xf)
+		    // Method begins at RVA 0x20e0
+		    // Code size 20 (0x14)
 		    .maxstack 1
 		    .entrypoint
 		    .locals init (
-			    [0] int32
+			    [0] class [netstandard]System.Threading.Tasks.Task`1<int64>
 		    )
 		    IL_0000: nop
-		    IL_0001: call int32 modopt([netstandard]System.Threading.Tasks.Task`1) TT::Fancy()
+		    IL_0001: call class [netstandard]System.Threading.Tasks.Task`1<int64> CC::M3()
 		    IL_0006: stloc.0
 		    IL_0007: ldloc.0
-		    IL_0008: call void [netstandard]System.Console::WriteLine(int32)
-		    IL_000d: nop
-		    IL_000e: ret
+		    IL_0008: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int64>::get_Result()
+		    IL_000d: call void [netstandard]System.Console::WriteLine(int64)
+		    IL_0012: nop
+		    IL_0013: ret
 	    } // end of method Test::Main
 	    .method public hidebysig specialname rtspecialname 
 		    instance void .ctor () cil managed 
 	    {
-		    // Method begins at RVA 0x2080
+		    // Method begins at RVA 0x2097
 		    // Code size 8 (0x8)
 		    .maxstack 8
 		    IL_0000: ldarg.0
@@ -6152,7 +6180,8 @@ class Test
 		    IL_0006: nop
 		    IL_0007: ret
 	    } // end of method Test::.ctor
-    } // end of class Test
+} // end of class Test
+
 ");
 
         }
