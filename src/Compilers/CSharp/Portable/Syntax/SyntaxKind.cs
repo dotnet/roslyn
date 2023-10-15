@@ -414,6 +414,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <see langword="file"/>.</summary>
         FileKeyword = 8449,
 
+        /// <summary>Represents <see langword="async"/>.</summary>
+        Async2Keyword = 8450,
+
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
         // <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>

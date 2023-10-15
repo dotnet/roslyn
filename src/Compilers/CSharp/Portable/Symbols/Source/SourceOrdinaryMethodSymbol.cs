@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
+            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async | DeclarationModifiers.Async2;
 
             if (containingType.IsStructType())
             {

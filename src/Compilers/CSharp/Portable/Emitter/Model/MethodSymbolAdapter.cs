@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (AdaptedMethodSymbol.Name.EndsWith("Fancy"))
+                if (AdaptedMethodSymbol.IsAsync2)
                 {
-                    NamedTypeSymbol task = ((NamedTypeSymbol)AdaptedMethodSymbol.ReturnType).ConstructUnboundGenericType();
+                    NamedTypeSymbol task = (AdaptedMethodSymbol.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)).ConstructUnboundGenericType();
                     Debug.Assert(task.IsUnboundGenericType);
                     Cci.ICustomModifier mod = CSharpCustomModifier.CreateOptional(task);
                     return ImmutableArray.Create(mod);
@@ -252,14 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            var returnType = AdaptedMethodSymbol.ReturnType;
-
-            if (AdaptedMethodSymbol.Name.EndsWith("Fancy"))
-            {
-                returnType = ((NamedTypeSymbol)AdaptedMethodSymbol.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-            }
-
-            return ((PEModuleBuilder)context.Module).Translate(returnType,
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedMethodSymbol.ReturnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics);
         }
