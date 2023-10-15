@@ -821,6 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsExtensionMethod => false;
         public override bool HidesBaseMethodsByName => false;
         public override bool IsAsync => false;
+        // public override bool IsAsync2 => define;
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
         public override Symbol? AssociatedSymbol => null;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;

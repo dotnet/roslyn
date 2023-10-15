@@ -559,6 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract bool HasExplicitlyTypedParameterList { get; }
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
+        // public abstract bool IsAsync2 => define;
         public abstract bool IsStatic { get; }
         public abstract bool HasParamsArray { get; }
         public abstract Location ParameterLocation(int index);

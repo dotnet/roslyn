@@ -138,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAsync { get { throw ExceptionUtilities.Unreachable(); } }
 
+        internal override bool IsAsync2 { get { throw ExceptionUtilities.Unreachable(); } }
+
         public override bool IsVirtual { get { throw ExceptionUtilities.Unreachable(); } }
 
         public override bool IsOverride { get { throw ExceptionUtilities.Unreachable(); } }

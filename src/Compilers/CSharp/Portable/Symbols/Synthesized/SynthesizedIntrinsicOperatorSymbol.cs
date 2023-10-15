@@ -213,6 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsAsync2
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public override RefKind RefKind
         {
             get

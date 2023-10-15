@@ -304,6 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override bool IsAsync2
+        {
+            get { return false; }
+        }
+
         public override bool HidesBaseMethodsByName
         {
             get { return false; }

@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool IsAsync { get; }
 
+        internal virtual bool IsAsync2 => false;
+
         /// <summary>
         /// Indicates whether or not the method returns by reference
         /// </summary>

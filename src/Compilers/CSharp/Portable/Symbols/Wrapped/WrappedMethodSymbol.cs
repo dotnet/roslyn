@@ -146,6 +146,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsAsync2
+        {
+            get
+            {
+                return UnderlyingMethod.IsAsync2;
+            }
+        }
+
         public override bool IsOverride
         {
             get

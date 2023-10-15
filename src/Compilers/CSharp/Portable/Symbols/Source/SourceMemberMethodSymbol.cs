@@ -651,6 +651,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsAsync2
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.Async2) != 0;
+            }
+        }
+
         internal override bool IsDeclaredReadOnly
         {
             get

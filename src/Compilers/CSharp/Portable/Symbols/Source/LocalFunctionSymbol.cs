@@ -356,6 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAsync => (_declarationModifiers & DeclarationModifiers.Async) != 0;
 
+        internal override bool IsAsync2 => (_declarationModifiers & DeclarationModifiers.Async2) != 0;
+
         public override bool IsStatic => (_declarationModifiers & DeclarationModifiers.Static) != 0;
 
         public override bool IsVirtual => (_declarationModifiers & DeclarationModifiers.Virtual) != 0;

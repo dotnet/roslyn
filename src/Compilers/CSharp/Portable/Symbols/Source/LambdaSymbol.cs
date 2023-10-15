@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isAsync; }
         }
 
+        // public override bool IsAsync => define;
+
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return false;

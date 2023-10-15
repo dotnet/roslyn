@@ -230,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        // public sealed override bool IsAsync2 => define;
+
         public sealed override bool HidesBaseMethodsByName
         {
             get { return false; }

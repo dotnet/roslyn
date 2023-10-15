@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            internal sealed override bool IsAsync2
+            {
+                get { return false; }
+            }
+
             internal sealed override System.Reflection.MethodImplAttributes ImplementationAttributes
             {
                 get { return default(System.Reflection.MethodImplAttributes); }

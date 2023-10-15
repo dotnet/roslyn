@@ -500,6 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsAsync => false;
 
+        // public override bool IsAsync => define;
+
         public override int Arity
         {
             get

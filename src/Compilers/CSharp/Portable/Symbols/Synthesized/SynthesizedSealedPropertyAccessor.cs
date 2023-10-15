@@ -114,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsAsync2
+        {
+            get
+            {
+                return _overriddenAccessor.IsAsync2;
+            }
+        }
+
         public override bool IsVirtual
         {
             get

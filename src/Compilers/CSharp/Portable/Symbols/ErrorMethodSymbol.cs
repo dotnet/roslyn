@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override bool IsAsync2
+        {
+            get { return false; }
+        }
+
         internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }
