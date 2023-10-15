@@ -1728,6 +1728,13 @@ namespace Microsoft.Cci
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
+            // TODO: Update SRM to not sort Custom Attribute table when emitting EnC delta
+            // https://github.com/dotnet/roslyn/issues/70389
+            if (!IsFullMetadata)
+            {
+                metadata.GetType().GetField("_customAttributeTableNeedsSorting", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(metadata, false);
+            }
+
             // TODO (https://github.com/dotnet/roslyn/issues/3905):
             // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
             // Once fixed enable validation in DEBUG builds.
@@ -1985,38 +1992,32 @@ namespace Microsoft.Cci
 
         private void PopulateCustomAttributeTableRows(ImmutableArray<IGenericParameter> sortedGenericParameters)
         {
-            if (this.IsFullMetadata)
+            if (IsFullMetadata)
             {
-                this.AddAssemblyAttributesToTable();
+                AddAssemblyAttributesToTable();
             }
 
-            this.AddCustomAttributesToTable(GetMethodDefs(), def => GetMethodDefinitionHandle(def));
-            this.AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefinitionHandle(def));
+            AddCustomAttributesToTable(GetMethodDefs(), def => GetMethodDefinitionHandle(def));
+            AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefinitionHandle(def));
 
-            // this.AddCustomAttributesToTable(this.typeRefList, 2);
             var typeDefs = GetTypeDefs();
-            this.AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
-            this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
+            AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
+            AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
-            // TODO: attributes on member reference entries 6
-            if (this.IsFullMetadata)
+            if (IsFullMetadata)
             {
-                this.AddModuleAttributesToTable(module);
+                AddModuleAttributesToTable(module);
             }
 
-            // TODO: declarative security entries 8
-            this.AddCustomAttributesToTable(GetPropertyDefs(), def => GetPropertyDefIndex(def));
-            this.AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefinitionHandle(def));
+            AddCustomAttributesToTable(GetPropertyDefs(), def => GetPropertyDefIndex(def));
+            AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefinitionHandle(def));
+            AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
 
-            // TODO: standalone signature entries 11
+            FinalizeCustomAttributeTableRows();
+        }
 
-            // TODO: type spec entries 13
-            // this.AddCustomAttributesToTable(this.module.AssemblyReferences, 15);
-            // TODO: this.AddCustomAttributesToTable(assembly.Files, 16);
-            // TODO: exported types 17
-            // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
-
-            this.AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
+        protected virtual void FinalizeCustomAttributeTableRows()
+        {
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2106,28 +2107,28 @@ namespace Microsoft.Cci
             }
         }
 
-        protected virtual int AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
+        protected virtual void AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
         {
-            int count = 0;
             foreach (var attr in attributes)
             {
-                count++;
                 AddCustomAttributeToTable(parentHandle, attr);
             }
-            return count;
         }
 
-        private void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
+        protected bool AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
         {
             IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: true);
-
             if (constructor != null)
             {
                 metadata.AddCustomAttribute(
                     parent: parentHandle,
                     constructor: GetCustomAttributeTypeCodedIndex(constructor),
                     value: GetCustomAttributeSignatureIndex(customAttribute));
+
+                return true;
             }
+
+            return false;
         }
 
         private void PopulateDeclSecurityTableRows()
