@@ -23,39 +23,6 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class DeltaMetadataWriter : MetadataWriter
     {
-        /// <summary>
-        /// Ordered table indices emitted to EnC delta.
-        /// </summary>
-        private static readonly ImmutableArray<TableIndex> s_orderedEncTables = ImmutableArray.Create(
-            TableIndex.TypeRef,
-            TableIndex.TypeDef,
-            TableIndex.Field,
-            TableIndex.MethodDef,
-            TableIndex.Param,
-            TableIndex.InterfaceImpl,
-            TableIndex.MemberRef,
-            TableIndex.Constant,
-            TableIndex.CustomAttribute,
-            TableIndex.DeclSecurity,
-            TableIndex.ClassLayout,
-            TableIndex.FieldLayout,
-            TableIndex.StandAloneSig,
-            TableIndex.EventMap,
-            TableIndex.Event,
-            TableIndex.PropertyMap,
-            TableIndex.Property,
-            TableIndex.MethodSemantics,
-            TableIndex.MethodImpl,
-            TableIndex.ModuleRef,
-            TableIndex.TypeSpec,
-            TableIndex.ImplMap,
-            TableIndex.FieldRva,
-            TableIndex.AssemblyRef,
-            TableIndex.NestedClass,
-            TableIndex.GenericParam,
-            TableIndex.MethodSpec,
-            TableIndex.GenericParamConstraint);
-
         private readonly EmitBaseline _previousGeneration;
         private readonly Guid _encId;
         private readonly DefinitionMap _definitionMap;
@@ -104,11 +71,6 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
         private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
         private readonly Dictionary<IMethodDefinition, AddedOrChangedMethodInfo> _addedOrChangedMethods;
-
-        static DeltaMetadataWriter()
-        {
-            Debug.Assert(s_orderedEncTables.IsSorted());
-        }
 
         public DeltaMetadataWriter(
             EmitContext context,
