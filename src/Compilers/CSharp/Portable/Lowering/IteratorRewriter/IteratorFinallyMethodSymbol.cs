@@ -137,6 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
+        internal override bool IsAsync2
+        {
+            get { return false; }
+        }
+
         public override RefKind RefKind
         {
             get { return RefKind.None; }

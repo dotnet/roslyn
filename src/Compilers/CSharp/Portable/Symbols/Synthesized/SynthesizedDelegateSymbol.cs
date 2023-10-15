@@ -160,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        // public override bool IsAsync2 => define;
+
         public override RefKind RefKind { get; }
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }

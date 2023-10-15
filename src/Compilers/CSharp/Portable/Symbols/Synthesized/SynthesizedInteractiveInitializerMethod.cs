@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
+        internal override bool IsAsync2
+        {
+            get { return false; }
+        }
+
         public override bool IsExtensionMethod
         {
             get { return false; }
