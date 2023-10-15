@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.AllowsKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.Async2Keyword; i++)
             {
                 // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
                 if (i != 8441)
@@ -1212,6 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TypeVarKeyword:
                 case SyntaxKind.NameOfKeyword:
                 case SyntaxKind.AsyncKeyword:
+                case SyntaxKind.Async2Keyword:
                 case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.WhenKeyword:
                 case SyntaxKind.UnderscoreToken:
@@ -1321,6 +1322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.GlobalKeyword;
                 case "async":
                     return SyntaxKind.AsyncKeyword;
+                case "async2":
+                    return SyntaxKind.Async2Keyword;
                 case "await":
                     return SyntaxKind.AwaitKeyword;
                 case "when":
@@ -1764,6 +1767,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "nameof";
                 case SyntaxKind.AsyncKeyword:
                     return "async";
+                case SyntaxKind.Async2Keyword:
+                    return "async2";
                 case SyntaxKind.AwaitKeyword:
                     return "await";
                 case SyntaxKind.WhenKeyword:

@@ -316,6 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.OverrideKeyword);
                 case DeclarationModifiers.Async:
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
+                case DeclarationModifiers.Async2:
+                    return SyntaxFacts.GetText(SyntaxKind.Async2Keyword);
                 case DeclarationModifiers.Ref:
                     return SyntaxFacts.GetText(SyntaxKind.RefKeyword);
                 case DeclarationModifiers.Required:
@@ -337,6 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Abstract;
                 case SyntaxKind.AsyncKeyword:
                     return DeclarationModifiers.Async;
+                case SyntaxKind.Async2Keyword:
+                    return DeclarationModifiers.Async2;
                 case SyntaxKind.SealedKeyword:
                     return DeclarationModifiers.Sealed;
                 case SyntaxKind.StaticKeyword:

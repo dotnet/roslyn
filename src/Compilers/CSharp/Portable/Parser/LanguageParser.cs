@@ -1326,6 +1326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.Partial;
                 case SyntaxKind.AsyncKeyword:
                     return DeclarationModifiers.Async;
+                case SyntaxKind.Async2Keyword:
+                    return DeclarationModifiers.Async2;
                 case SyntaxKind.RefKeyword:
                     return DeclarationModifiers.Ref;
                 case SyntaxKind.IdentifierToken:
@@ -1335,6 +1337,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
+                        case SyntaxKind.Async2Keyword:
+                            return DeclarationModifiers.Async2;
                         case SyntaxKind.RequiredKeyword:
                             return DeclarationModifiers.Required;
                         case SyntaxKind.FileKeyword:
@@ -10294,7 +10298,7 @@ done:
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
             {
                 SyntaxToken mod;
-                if (k == SyntaxKind.AsyncKeyword)
+                if (k == SyntaxKind.AsyncKeyword || k == SyntaxKind.Async2Keyword)
                 {
                     // check for things like "async async()" where async is the type and/or the function name
                     if (!shouldTreatAsModifier())
@@ -10378,6 +10382,7 @@ done:
             {
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.AsyncKeyword:
+                case SyntaxKind.Async2Keyword:
                 case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.ExternKeyword:
                 // Not a valid modifier, but we should parse to give a good
@@ -10443,6 +10448,7 @@ done:
                 switch (modifier.ContextualKind)
                 {
                     case SyntaxKind.AsyncKeyword:
+                    case SyntaxKind.Async2Keyword:
                         IsInAsync = true;
                         forceLocalFunc = true;
                         continue;
@@ -11582,7 +11588,8 @@ done:
             // Skip past any static/async keywords.
             var tokenIndex = 0;
             while (this.PeekToken(tokenIndex).Kind == SyntaxKind.StaticKeyword ||
-                   this.PeekToken(tokenIndex).ContextualKind == SyntaxKind.AsyncKeyword)
+                   this.PeekToken(tokenIndex).ContextualKind == SyntaxKind.AsyncKeyword ||
+                   this.PeekToken(tokenIndex).ContextualKind == SyntaxKind.Async2Keyword)
             {
                 tokenIndex++;
             }
@@ -12454,7 +12461,7 @@ done:
                 EatToken();
                 seenStatic = true;
             }
-            else if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+            else if ((this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword || this.CurrentToken.ContextualKind == SyntaxKind.Async2Keyword) &&
                      this.PeekToken(1).Kind == SyntaxKind.StaticKeyword)
             {
                 EatToken();
@@ -12497,7 +12504,7 @@ done:
 
             // Have checked all the static forms.  And have checked for the basic `a => a` form.  
             // At this point we have must be on 'async' or an explicit return type for this to still be a lambda.
-            if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+            if ((this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword || this.CurrentToken.ContextualKind == SyntaxKind.Async2Keyword) &&
                 IsAnonymousFunctionAsyncModifier())
             {
                 EatToken();
@@ -13091,7 +13098,7 @@ done:
             AnonymousMethodExpressionSyntax parseAnonymousMethodExpressionWorker()
             {
                 var modifiers = ParseAnonymousFunctionModifiers();
-                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
+                if (modifiers.Any((int)SyntaxKind.AsyncKeyword) || modifiers.Any((int)SyntaxKind.Async2Keyword))
                 {
                     this.IsInAsync = true;
                 }
@@ -13156,6 +13163,13 @@ done:
                     continue;
                 }
 
+                if (this.CurrentToken.ContextualKind == SyntaxKind.Async2Keyword &&
+                    IsAnonymousFunctionAsyncModifier())
+                {
+                    modifiers.Add(this.EatContextualToken(SyntaxKind.Async2Keyword));
+                    continue;
+                }
+
                 break;
             }
 
@@ -13164,7 +13178,7 @@ done:
 
         private bool IsAnonymousFunctionAsyncModifier()
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword || this.CurrentToken.ContextualKind == SyntaxKind.Async2Keyword);
 
             switch (this.PeekToken(1).Kind)
             {
@@ -13218,6 +13232,11 @@ done:
             {
                 var modifiers = ParseAnonymousFunctionModifiers();
                 if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
+                {
+                    this.IsInAsync = true;
+                }
+
+                if (modifiers.Any((int)SyntaxKind.Async2Keyword))
                 {
                     this.IsInAsync = true;
                 }

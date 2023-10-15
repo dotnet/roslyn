@@ -422,6 +422,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <see langword="allows"/>.</summary>
         AllowsKeyword = 8450,
 
+        /// <summary>Represents <see langword="async"/>.</summary>
+        Async2Keyword = 8451,
+
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
         // <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>

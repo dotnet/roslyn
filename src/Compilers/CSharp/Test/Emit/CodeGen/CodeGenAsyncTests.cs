@@ -6063,9 +6063,9 @@ using System.Threading.Tasks;
 
 class TT
 {
-    public static async Task<int> Fancy()
+    public static async2 int Fancy()
     {
-        await Task.Yield();
+        // await Task.Yield();
         return 42;
     }
 }
@@ -6075,26 +6075,84 @@ class Test
     public static void Main()
     {
         var t = TT.Fancy();
-        Console.WriteLine(t.Result);
+        Console.WriteLine(t);
+
+        // Console.WriteLine(t.Result);
     }
 }";
 
-            var c = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Fails);
+            var c = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Passes);
 
             c.VerifyTypeIL("TT", @"
-{
-  // Code size       20 (0x14)
-  .maxstack  1
-  .locals init (System.Threading.Tasks.Task<int> V_0) //t
-  IL_0000:  nop
-  IL_0001:  call       ""System.Threading.Tasks.Task<int> Test.Fancy()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  callvirt   ""int System.Threading.Tasks.Task<int>.Result.get""
-  IL_000d:  call       ""void System.Console.WriteLine(int)""
-  IL_0012:  nop
-  IL_0013:  ret
-}
+    .class private auto ansi beforefieldinit TT
+    	extends [netstandard]System.Object
+    {
+    	// Methods
+    	.method public hidebysig static 
+    		int32 modopt([netstandard]System.Threading.Tasks.Task`1) Fancy () cil managed 
+    	{
+    		// Method begins at RVA 0x206c
+    		// Code size 8 (0x8)
+    		.maxstack 1
+    		.locals init (
+    			[0] int32
+    		)
+    		IL_0000: nop
+    		IL_0001: ldc.i4.s 42
+    		IL_0003: stloc.0
+    		IL_0004: br.s IL_0006
+    		IL_0006: ldloc.0
+    		IL_0007: ret
+    	} // end of method TT::Fancy
+    	.method public hidebysig specialname rtspecialname 
+    		instance void .ctor () cil managed 
+    	{
+    		// Method begins at RVA 0x2080
+    		// Code size 8 (0x8)
+    		.maxstack 8
+    		IL_0000: ldarg.0
+    		IL_0001: call instance void [netstandard]System.Object::.ctor()
+    		IL_0006: nop
+    		IL_0007: ret
+    	} // end of method TT::.ctor
+    } // end of class TT
+");
+
+            c.VerifyTypeIL("Test", @"
+    .class private auto ansi beforefieldinit Test
+	extends [netstandard]System.Object
+    {
+	    // Methods
+	    .method public hidebysig static 
+		    void Main () cil managed 
+	    {
+		    // Method begins at RVA 0x208c
+		    // Code size 15 (0xf)
+		    .maxstack 1
+		    .entrypoint
+		    .locals init (
+			    [0] int32
+		    )
+		    IL_0000: nop
+		    IL_0001: call int32 modopt([netstandard]System.Threading.Tasks.Task`1) TT::Fancy()
+		    IL_0006: stloc.0
+		    IL_0007: ldloc.0
+		    IL_0008: call void [netstandard]System.Console::WriteLine(int32)
+		    IL_000d: nop
+		    IL_000e: ret
+	    } // end of method Test::Main
+	    .method public hidebysig specialname rtspecialname 
+		    instance void .ctor () cil managed 
+	    {
+		    // Method begins at RVA 0x2080
+		    // Code size 8 (0x8)
+		    .maxstack 8
+		    IL_0000: ldarg.0
+		    IL_0001: call instance void [netstandard]System.Object::.ctor()
+		    IL_0006: nop
+		    IL_0007: ret
+	    } // end of method Test::.ctor
+    } // end of class Test
 ");
 
         }
