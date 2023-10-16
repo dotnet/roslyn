@@ -90,6 +90,9 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         var solutionEditor = new SolutionEditor(solution);
         var mainDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
 
+        var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
+        var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
+
         // Find the references to all the parameters.  This will help us determine how they're used and what change we
         // may need to make.
         var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
@@ -110,7 +113,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         AddNewFields();
         AddConstructorDeclaration();
         await RewritePrimaryConstructorParameterReferencesAsync().ConfigureAwait(false);
-        FixConstructoDeclarationFormatting();
+        FixConstructorDeclarationFormatting();
 
         return solutionEditor.GetChangedSolution();
 
@@ -247,7 +250,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         void RemovePrimaryConstructorTargetingAttributes()
         {
             // Remove all the attributes from the type decl that we're moving to the constructor.
-            var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
             foreach (var attributeList in methodTargetingAttributes)
                 mainDocumentEditor.RemoveNode(attributeList);
         }
