@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitAwaitExpression(BoundAwaitExpression node, bool used)
         {
-            return RewriteAwaitExpression((BoundExpression)base.VisitAwaitExpression(node)!, used);
+            return RewriteAwaitExpression((BoundAwaitExpression)base.VisitAwaitExpression(node)!, used);
         }
 
         private BoundExpression RewriteAwaitExpression(SyntaxNode syntax, BoundExpression rewrittenExpression, BoundAwaitableInfo awaitableInfo, TypeSymbol type, BoundAwaitExpressionDebugInfo debugInfo, bool used)
@@ -28,9 +28,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Lower an await expression that has already had its components rewritten.
         /// </summary>
-        private BoundExpression RewriteAwaitExpression(BoundExpression rewrittenAwait, bool used)
+        private BoundExpression RewriteAwaitExpression(BoundAwaitExpression rewrittenAwait, bool used)
         {
             _sawAwait = true;
+
+            if (_factory.CurrentFunction?.IsAsync2 == true)
+            {
+                // await arg ---> UnsafeAwaitAwaiterFromRuntimeAsync(arg.GetAwaiter)
+                BoundCall getAwaiter = _factory.Call(rewrittenAwait.Expression, (MethodSymbol)rewrittenAwait.AwaitableInfo.GetAwaiter!.ExpressionSymbol!);
+
+                // TODO: VS UnsafeAwaitAwaiterFromRuntimeAsync
+                BoundExpression getResult = _factory.Call(getAwaiter, rewrittenAwait.AwaitableInfo.GetResult!);
+                return getResult;
+            }
+
             if (!used)
             {
                 // Await expression is already at the statement level.
