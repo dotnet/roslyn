@@ -711,6 +711,9 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_Expression__GreaterThanOrEqual,
         System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
 
+        System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter,
+        System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TResult_TAwaiter,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
