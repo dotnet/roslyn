@@ -203,26 +203,39 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         TypeDeclarationSyntax RemoveParamXmlElements(TypeDeclarationSyntax typeDeclaration)
         {
-            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var leadingTrivia);
+            var triviaList = typeDeclaration.GetLeadingTrivia();
+            var trivia = GetDocComment(triviaList);
+            var docComment = GetDocCommentStructure(trivia);
+            if (docComment == null)
+                return typeDeclaration;
 
-            foreach (var trivia in typeDeclaration.GetLeadingTrivia())
+            using var _ = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var content);
+
+            foreach (var node in docComment.Content)
             {
-                if (trivia.GetStructure() is not DocumentationCommentTriviaSyntax docComment)
-                {
-                    leadingTrivia.Add(trivia);
-                }
-                else
-                {
-                    var updatedComment = docComment.RemoveNodes(docComment
-                            .DescendantNodes()
-                            .OfType<XmlElementSyntax>()
-                            .Where(x => x.StartTag.Name.LocalName.ValueText == "param"),
-                        SyntaxRemoveOptions.AddElasticMarker);
-                    leadingTrivia.Add(Trivia(updatedComment!));
-                }
+                if (!IsXmlElement(node, "param", out var paramElement))
+                    content.Add(node);
             }
 
-            return typeDeclaration.WithLeadingTrivia(leadingTrivia);
+            if (content.Count == 0)
+            {
+                // Nothing but param nodes.  Just remove all the doc comments entirely.
+                var triviaIndex = triviaList.IndexOf(trivia);
+
+                // remove the doc comment itself
+                var updatedTriviaList = triviaList.RemoveAt(triviaIndex);
+
+                // If the comment was on a line that started with whitespace, remove that whitespce too.
+                if (triviaIndex > 0 && triviaList[triviaIndex - 1].IsWhitespace())
+                    updatedTriviaList = updatedTriviaList.RemoveAt(triviaIndex - 1);
+
+                return typeDeclaration.WithLeadingTrivia(updatedTriviaList);
+            }
+            else
+            {
+                var updatedTrivia = Trivia(docComment.WithContent(List(content)));
+                return typeDeclaration.WithLeadingTrivia(triviaList.Replace(trivia, updatedTrivia));
+            }
         }
 
         async Task<MultiDictionary<IParameterSymbol, IdentifierNameSyntax>> GetParameterReferencesAsync()
@@ -451,5 +464,28 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
             return null;
         }
+    }
+
+    private static SyntaxTrivia GetDocComment(SyntaxNode node)
+        => GetDocComment(node.GetLeadingTrivia());
+
+    private static SyntaxTrivia GetDocComment(SyntaxTriviaList trivia)
+        => trivia.LastOrDefault(t => t.IsSingleLineDocComment());
+
+    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxNode node)
+        => GetDocCommentStructure(node.GetLeadingTrivia());
+
+    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTriviaList trivia)
+        => GetDocCommentStructure(GetDocComment(trivia));
+
+    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTrivia trivia)
+        => (DocumentationCommentTriviaSyntax?)trivia.GetStructure();
+
+    private static bool IsXmlElement(XmlNodeSyntax node, string name, [NotNullWhen(true)] out XmlElementSyntax? element)
+    {
+        element = node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: var elementName } xmlElement && elementName == name
+            ? xmlElement
+            : null;
+        return element != null;
     }
 }
