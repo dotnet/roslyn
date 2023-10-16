@@ -213,8 +213,16 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
             foreach (var node in docComment.Content)
             {
-                if (!IsXmlElement(node, "param", out var paramElement))
+                if (IsXmlElement(node, "param", out var paramElement))
+                {
+                    // We're skipping a param node.  Remove any blank xml lines preceding this.
+                    if (IsDocCommentNewLine(content.LastOrDefault()))
+                        content.RemoveLast();
+                }
+                else
+                {
                     content.Add(node);
+                }
             }
 
             if (content.Count == 0)
@@ -394,7 +402,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         ConstructorDeclarationSyntax CreateConstructorDeclaration()
         {
-            using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var assignmentStatements);
+            using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(out var assignmentStatements);
 
             // First, if we're making a real field for a primary constructor parameter, assign the parameter to it.
             foreach (var parameter in parameters)
@@ -420,13 +428,43 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 assignmentStatements.Add(ExpressionStatement(assignment));
             }
 
-            return ConstructorDeclaration(
-                List(methodTargetingAttributes.Select(a => a.WithTarget(null).WithAdditionalAnnotations(Formatter.Annotation))),
+            var constructorDeclaration = ConstructorDeclaration(
+                List(methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))),
                 TokenList(Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)),
                 typeDeclaration.Identifier.WithoutTrivia(),
                 RewriteParameterDefaults(parameterList).WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),
                 Block(assignmentStatements));
+
+            // Now move the param tags on the type decl over to the constructor.
+            var triviaList = typeDeclaration.GetLeadingTrivia();
+            var trivia = GetDocComment(triviaList);
+            var docComment = GetDocCommentStructure(trivia);
+            if (docComment != null)
+            {
+                using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var content);
+
+                for (int i = 0, n = docComment.Content.Count; i < n; i++)
+                {
+                    var node = docComment.Content[i];
+                    if (IsXmlElement(node, "param", out var paramElement))
+                    {
+                        // if the param tag was on a newline, the preserve that when transferring over.
+                        if (content.Count > 0 && IsDocCommentNewLine(docComment.Content[i - 1]))
+                            content.Add(docComment.Content[i - 1]);
+
+                        content.Add(node);
+                    }
+                }
+
+                if (content.Count > 0)
+                    content.Add(XmlText(XmlTextNewLine("\r\n", continueXmlDocumentationComment: false)));
+
+                if (content.Count > 0)
+                    return constructorDeclaration.WithLeadingTrivia(Trivia(DocumentationComment(content.ToArray())).WithAdditionalAnnotations(Formatter.Annotation));
+            }
+
+            return constructorDeclaration;
         }
 
         ParameterListSyntax RewriteParameterDefaults(ParameterListSyntax parameterList)
@@ -488,4 +526,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             : null;
         return element != null;
     }
+
+    private static bool IsDocCommentNewLine([NotNullWhen(true)] XmlNodeSyntax? node)
+        => node is XmlTextSyntax { TextTokens: [(kind: SyntaxKind.XmlTextLiteralNewLineToken), (kind: SyntaxKind.XmlTextLiteralToken) precedingText] } &&
+           string.IsNullOrWhiteSpace(precedingText.Text);
 }
