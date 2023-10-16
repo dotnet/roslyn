@@ -116,6 +116,44 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         }
     }
 
+    private static ConstructorDeclarationSyntax WithTypeDeclarationParamDocComments(TypeDeclarationSyntax typeDeclaration, ConstructorDeclarationSyntax constructor)
+    {
+        // Now move the param tags on the type decl over to the constructor.
+        var triviaList = typeDeclaration.GetLeadingTrivia();
+        var trivia = GetDocComment(triviaList);
+        var docComment = GetDocCommentStructure(trivia);
+        if (docComment is not null)
+        {
+            using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var content);
+
+            for (int i = 0, n = docComment.Content.Count; i < n; i++)
+            {
+                var node = docComment.Content[i];
+                if (IsXmlElement(node, "param", out _))
+                {
+                    content.Add(node);
+
+                    // if the param tag is followed with a newline, then preserve that when transferring over.
+                    if (i + 1 < docComment.Content.Count && IsDocCommentNewLine(docComment.Content[i + 1]))
+                        content.Add(docComment.Content[i + 1]);
+                }
+            }
+
+            if (content.Count > 0)
+            {
+                if (!content[0].GetLeadingTrivia().Any(SyntaxKind.DocumentationCommentExteriorTrivia))
+                    content[0] = content[0].WithLeadingTrivia(DocumentationCommentExterior("/// "));
+
+                content[^1] = content[^1].WithTrailingTrivia(EndOfLine(""));
+
+                var finalTrivia = DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content));
+                return constructor.WithLeadingTrivia(Trivia(finalTrivia));
+            }
+        }
+
+        return constructor;
+    }
+
     private static bool IsDocCommentNewLine(XmlNodeSyntax node)
     {
         if (node is not XmlTextSyntax xmlText)

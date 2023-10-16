@@ -83,23 +83,19 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
 
-        var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-        var syntaxGenerator = CSharpSyntaxGenerator.Instance;
         var parameters = parameterList.Parameters.SelectAsArray(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
 
         // Compiler already knows which primary constructor parameters ended up becoming fields.  So just defer to it.  We'll
         // create real fields for all these cases.
         var parameterToSynthesizedFields = await GetSynthesizedFieldsAsync().ConfigureAwait(false);
 
+        // Find the references to all the parameters.  This will help us determine how they're used and what change we
+        // may need to make.
         var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
 
         // Find any field/properties whose initializer references a primary constructor parameter.  These initializers
         // will have to move inside the constructor we generate.
         var initializedFieldsAndProperties = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
-
-        var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
-        var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
-        var constructorDeclaration = CreateConstructorDeclaration();
 
         // Now start editing the document
         var mainDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
@@ -110,10 +106,12 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         // Remove the parameter list, and any base argument passing from the type declaration header itself.
         mainDocumentEditor.RemoveNode(parameterList);
+        var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
         if (baseType != null)
             mainDocumentEditor.ReplaceNode(baseType, (current, _) => SimpleBaseType(((PrimaryConstructorBaseTypeSyntax)current).Type).WithTriviaFrom(baseType));
 
-        // Remove all the attributes from the type decl that were moved to the constructor.
+        // Remove all the attributes from the type decl that we're moving to the constructor.
+        var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
         foreach (var attributeList in methodTargetingAttributes)
             mainDocumentEditor.RemoveNode(attributeList);
 
@@ -148,6 +146,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 var fieldsInOrder = parameters
                     .Select(p => parameterToSynthesizedFields.TryGetValue(p, out var field) ? field : null)
                     .WhereNotNull();
+                var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
                 return codeGenService.AddMembers(
                     currentTypeDeclaration, fieldsInOrder, contextInfo, cancellationToken);
             });
@@ -157,10 +156,13 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             typeDeclaration,
             (current, _) =>
             {
-                // If there is an existing non-static constructor, place it before that
+                // Move any <param> tags from the type decl to the constructor decl.
                 var currentTypeDeclaration = (TypeDeclarationSyntax)current;
                 currentTypeDeclaration = RemoveParamXmlElements(currentTypeDeclaration);
 
+                var constructorDeclaration = CreateConstructorDeclaration();
+
+                // If there is an existing non-static constructor, place it before that
                 var firstConstructorIndex = currentTypeDeclaration.Members.IndexOf(m => m is ConstructorDeclarationSyntax c && !c.Modifiers.Any(SyntaxKind.StaticKeyword));
                 if (firstConstructorIndex >= 0)
                 {
@@ -209,9 +211,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
             foreach (var parameter in parameters)
             {
-                //if (parameterToSynthesizedFields.TryGetValue(parameter, out var field))
-                //    continue;
-
                 var references = await SymbolFinder.FindReferencesAsync(
                     parameter, solution, documentsToSearch, cancellationToken).ConfigureAwait(false);
                 foreach (var reference in references)
@@ -359,14 +358,14 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             // First, if we're making a real field for a primary constructor parameter, assign the parameter to it.
             foreach (var parameter in parameters)
             {
-                if (GetMemberToAssignTo(parameter) is not (var member, var value))
+                if (!parameterToSynthesizedFields.TryGetValue(parameter, out var field))
                     continue;
 
-                var fieldName = member.Name.ToIdentifierName();
-                var left = parameter.Name == member.Name
+                var fieldName = field.Name.ToIdentifierName();
+                var left = parameter.Name == field.Name
                     ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), fieldName)
                     : (ExpressionSyntax)fieldName;
-                var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, value);
+                var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, parameter.Name.ToIdentifierName());
                 assignmentStatements.Add(ExpressionStatement(assignment));
             }
 
@@ -388,40 +387,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),
                 Block(assignmentStatements));
 
-            // Now move the param tags on the type decl over to the constructor.
-            var triviaList = typeDeclaration.GetLeadingTrivia();
-            var trivia = GetDocComment(triviaList);
-            var docComment = GetDocCommentStructure(trivia);
-            if (docComment != null)
-            {
-                using var _2 = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var content);
-
-                for (int i = 0, n = docComment.Content.Count; i < n; i++)
-                {
-                    var node = docComment.Content[i];
-                    if (IsXmlElement(node, "param", out var paramElement))
-                    {
-                        content.Add(node);
-
-                        // if the param tag is followed with a newline, then preserve that when transferring over.
-                        if (i + 1 < docComment.Content.Count && IsDocCommentNewLine(docComment.Content[i + 1]))
-                            content.Add(docComment.Content[i + 1]);
-                    }
-                }
-
-                if (content.Count > 0)
-                {
-                    if (!content[0].GetLeadingTrivia().Any(SyntaxKind.DocumentationCommentExteriorTrivia))
-                        content[0] = content[0].WithLeadingTrivia(DocumentationCommentExterior("/// "));
-
-                    content[^1] = content[^1].WithTrailingTrivia(EndOfLine(""));
-
-                    var finalTrivia = DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content));
-                    return constructorDeclaration.WithLeadingTrivia(Trivia(finalTrivia));
-                }
-            }
-
-            return constructorDeclaration;
+            return WithTypeDeclarationParamDocComments(typeDeclaration, constructorDeclaration);
         }
 
         ParameterListSyntax RewriteParameterDefaults(ParameterListSyntax parameterList)
@@ -450,14 +416,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
                     return node;
                 });
-        }
-
-        (ISymbol member, ExpressionSyntax value)? GetMemberToAssignTo(IParameterSymbol parameter)
-        {
-            if (parameterToSynthesizedFields.TryGetValue(parameter, out var field))
-                return (field, parameter.Name.ToIdentifierName());
-
-            return null;
         }
     }
 }
