@@ -845,7 +845,7 @@ public class ConvertPrimaryToRegularConstructorTests
 
                     public [|C|](int i, int j)
                     {
-                        this. i = i;
+                        this.i = i;
                         _j = j;
                     }
 
@@ -1402,7 +1402,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                     class C
                     {
-                        ///<param name="i">Docs for i.</param>
+                        /// <param name="i">Docs for i.</param>
                         ///<param name="j">
                         ///Docs for j.
                         ///</param>
@@ -1436,7 +1436,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                     class C
                     {
-                        ///<param name="i">Docs for i.</param>
+                        /// <param name="i">Docs for i.</param>
                         ///<param name="j">Docs for j.</param>
                         public C(int i, int j)
                         {

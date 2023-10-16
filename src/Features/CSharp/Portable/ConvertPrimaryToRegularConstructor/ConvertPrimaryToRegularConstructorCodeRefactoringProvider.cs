@@ -218,8 +218,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     // We're skipping a param node.  Remove any blank xml lines preceding this.
                     if (IsDocCommentNewLine(content.LastOrDefault()))
                         content.RemoveLast();
-                    else if (content.Count == 1 && IsEmptyDocCommentStartText(content.LastOrDefault()))
-                        content.RemoveLast();
+                    //else if (content.Count == 1 && IsEmptyDocCommentStartText(content.LastOrDefault()))
+                    //    content.RemoveLast();
                 }
                 else
                 {
@@ -227,7 +227,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 }
             }
 
-            if (content.Count == 0)
+            if (content.All(c => c is XmlTextSyntax xmlText && xmlText.TextTokens.All(
+                    t => t.Kind() == SyntaxKind.XmlTextLiteralNewLineToken || string.IsNullOrWhiteSpace(t.Text))))
             {
                 // Nothing but param nodes.  Just remove all the doc comments entirely.
                 var triviaIndex = triviaList.IndexOf(trivia);
@@ -279,7 +280,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                         if (referenceLocation.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken) is not IdentifierNameSyntax identifierName)
                             continue;
 
-                        // Explicitly ignore references in the base-type-list.  Tehse don't need to be rewritten as
+                        // Explicitly ignore references in the base-type-list.  These don't need to be rewritten as
                         // they will still reference the parameter in the new constructor when we make the `:
                         // base(...)` initializer.
                         if (identifierName.GetAncestor<PrimaryConstructorBaseTypeSyntax>() != null)
