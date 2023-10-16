@@ -428,8 +428,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
-        <source>'{0}' requires a CollectionBuilderAttribute to be used with collection expressions.</source>
-        <target state="new">'{0}' requires a CollectionBuilderAttribute to be used with collection expressions.</target>
+        <source>This version of '{0}' cannot be used with collection expressions.</source>
+        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">

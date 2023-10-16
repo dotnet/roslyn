@@ -7822,6 +7822,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Expected interpolated string</value>
   </data>
   <data name="ERR_CollectionExpressionImmutableArray" xml:space="preserve">
-    <value>'{0}' requires a CollectionBuilderAttribute to be used with collection expressions.</value>
+    <value>This version of '{0}' cannot be used with collection expressions.</value>
   </data>
 </root>

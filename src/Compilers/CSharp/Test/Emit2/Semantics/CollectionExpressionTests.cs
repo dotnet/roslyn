@@ -22017,7 +22017,7 @@ partial class Program
 
             var comp = CreateCompilation(new[] { sourceA, s_collectionExtensions }, targetFramework: TargetFramework.Net60);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(7,35): error CS9210: 'ImmutableArray<T>' requires a CollectionBuilderAttribute to be used with collection expressions.
+                // 0.cs(7,35): error CS9210: This version of 'ImmutableArray<T>' cannot be used with collection expressions.
                 //         ImmutableArray<int> arr = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
@@ -22053,6 +22053,38 @@ partial class Program
                   IL_0021:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void ImmutableArray_07()
+        {
+            // Test an ImmutableArray<T> which implements only non-generic IEnumerable.
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<int> arr = [1, 2, 3];
+                    }
+                }
+
+                namespace System.Collections.Immutable
+                {
+                    struct ImmutableArray<T> : IEnumerable
+                    {
+                        public void Add(T t) { }
+                        IEnumerator IEnumerable.GetEnumerator() => null;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,35): error CS9210: This version of 'ImmutableArray<T>' cannot be used with collection expressions.
+                //         ImmutableArray<int> arr = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
         }
 
         [Fact]
