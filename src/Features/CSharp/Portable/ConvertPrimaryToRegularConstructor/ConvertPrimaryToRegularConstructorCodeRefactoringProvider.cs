@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -89,9 +90,14 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         var syntaxGenerator = CSharpSyntaxGenerator.Instance;
         var parameters = parameterList.Parameters.SelectAsArray(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
 
+        // Compiler already knows which primary constructor parameters ended up becoming fields.  So just defer to it.  We'll
+        // create real fields for all these cases.
         var parameterToSynthesizedFields = await GetSynthesizedFieldsAsync().ConfigureAwait(false);
+
         var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
 
+        // Find any field/properties whose initializer references a primary constructor parameter.  These initializers
+        // will have to move inside the constructor we generate.
         var initializedFieldsAndProperties = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
 
         var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
@@ -115,7 +121,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             mainDocumentEditor.RemoveNode(attributeList);
 
         // Remove all the initializers from existing fields/props the params are assigned to.
-        foreach (var (_, initializer) in initializedFieldsAndProperties.OrderBy(i => i.initializer.SpanStart))
+        foreach (var (_, initializer) in initializedFieldsAndProperties)
         {
             if (initializer.Parent is PropertyDeclarationSyntax propertyDeclaration)
             {
@@ -375,8 +381,9 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
         ConstructorDeclarationSyntax CreateConstructorDeclaration()
         {
-            var attributes = List(methodTargetingAttributes.Select(a => a.WithTarget(null).WithAdditionalAnnotations(Formatter.Annotation)));
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var assignmentStatements);
+
+            // First, if we're making a real field for a primary constructor parameter, assign the parameter to it.
             foreach (var parameter in parameters)
             {
                 if (GetMemberToAssignTo(parameter) is not (var member, var value))
@@ -390,8 +397,18 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 assignmentStatements.Add(ExpressionStatement(assignment));
             }
 
+            // Next, actually assign to all the fields/properties that were previously referencing any primary
+            // constructor parameters.
+            foreach (var (fieldOrProperty, initializer) in initializedFieldsAndProperties.OrderBy(i => i.initializer.SpanStart))
+            {
+                var left = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), fieldOrProperty.Name.ToIdentifierName())
+                    .WithAdditionalAnnotations(Simplifier.Annotation);
+                var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, initializer.EqualsToken, initializer.Value);
+                assignmentStatements.Add(ExpressionStatement(assignment));
+            }
+
             return ConstructorDeclaration(
-                attributes,
+                List(methodTargetingAttributes.Select(a => a.WithTarget(null).WithAdditionalAnnotations(Formatter.Annotation))),
                 TokenList(Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)),
                 typeDeclaration.Identifier.WithoutTrivia(),
                 RewriteParameterDefaults(parameterList).WithoutTrivia(),
@@ -431,9 +448,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         {
             if (parameterToSynthesizedFields.TryGetValue(parameter, out var field))
                 return (field, parameter.Name.ToIdentifierName());
-
-            if (parameterToExistingFieldOrProperty.TryGetValue(parameter, out var member))
-                return (member.fieldOrProperty, member.initializer.Value);
 
             return null;
         }

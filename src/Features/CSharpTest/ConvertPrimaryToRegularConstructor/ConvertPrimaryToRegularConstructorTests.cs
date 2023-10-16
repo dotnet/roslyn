@@ -463,7 +463,7 @@ public class ConvertPrimaryToRegularConstructorTests
                     public C(int i)
                     {
                         this.i = i * i;
-                        this.j = i + i;
+                        j = i + i;
                     }
                 }
                 """,
