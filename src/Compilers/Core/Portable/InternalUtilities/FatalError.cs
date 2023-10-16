@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             static void copyHandlerTo(Assembly assembly, ErrorReporterHandler? handler, string handlerName)
             {
                 var targetType = assembly.GetType(typeof(FatalError).FullName!, throwOnError: true)!;
-                var targetHandlerProperty = targetType.GetProperty(handlerName, BindingFlags.Static | BindingFlags.NonPublic)!;
+                var targetHandlerProperty = targetType.GetField(handlerName, BindingFlags.Static | BindingFlags.NonPublic)!;
                 if (handler is not null)
                 {
                     // We need to convert the delegate type to the type in the linked copy since they won't have identity.
-                    var convertedDelegate = Delegate.CreateDelegate(targetHandlerProperty.PropertyType, handler.Target, handler.Method);
+                    var convertedDelegate = Delegate.CreateDelegate(targetHandlerProperty.FieldType, handler.Target, handler.Method);
                     targetHandlerProperty.SetValue(obj: null, value: convertedDelegate);
                 }
                 else
