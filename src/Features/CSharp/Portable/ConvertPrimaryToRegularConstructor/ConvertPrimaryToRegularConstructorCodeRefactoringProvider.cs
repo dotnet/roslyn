@@ -70,7 +70,15 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         var semanticModels = new ConcurrentSet<SemanticModel>();
 
         var semanticModel = await GetSemanticModelAsync(document).ConfigureAwait(false);
+
         var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, optionsProvider, cancellationToken).ConfigureAwait(false);
+
+        var fieldNameRule = await document.GetApplicableNamingRuleAsync(
+            new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
+            DeclarationModifiers.None,
+            Accessibility.Private,
+            optionsProvider,
+            cancellationToken).ConfigureAwait(false);
 
         // Get the named type and all its parameters for use during the rewrite.
         var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
@@ -82,115 +90,27 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         var solutionEditor = new SolutionEditor(solution);
         var mainDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
 
-        RemovePrimaryConstructorParameterList();
-        RemovePrimaryConstructorBaseTypeArgumentList();
-        RemovePrimaryConstructorTargettingAttributes();
-        RemoveDirectFieldAndPropertyAssignments();
-        AddNewFields();
-        AddConstructorDeclaration();
-        RewritePrimaryConstructorParameterReferences();
-
-        // Remove the parameter list, and any base argument passing from the type declaration header itself.
-
-
-        mainDocumentEditor.RemoveNode(parameterList);
-        var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
-        if (baseType != null)
-            mainDocumentEditor.ReplaceNode(baseType, (current, _) => SimpleBaseType(((PrimaryConstructorBaseTypeSyntax)current).Type).WithTriviaFrom(baseType));
-
-        // Remove all the attributes from the type decl that we're moving to the constructor.
-        var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
-        foreach (var attributeList in methodTargetingAttributes)
-            mainDocumentEditor.RemoveNode(attributeList);
-
         // Find the references to all the parameters.  This will help us determine how they're used and what change we
         // may need to make.
         var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
+
+        // Determine the fields we'll need to synthesize for each parameter.
+        var parameterToSynthesizedFields = await CreateSynthesizedFieldsAsync().ConfigureAwait(false);
 
         // Find any field/properties whose initializer references a primary constructor parameter.  These initializers
         // will have to move inside the constructor we generate.
         var initializedFieldsAndProperties = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
 
-        // Remove all the initializers from existing fields/props the params are assigned to.
-        foreach (var (_, initializer) in initializedFieldsAndProperties)
-        {
-            if (initializer.Parent is PropertyDeclarationSyntax propertyDeclaration)
-            {
-                mainDocumentEditor.ReplaceNode(
-                    propertyDeclaration,
-                    propertyDeclaration
-                        .WithInitializer(null)
-                        .WithSemicolonToken(default)
-                        .WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
-            }
-            else if (initializer.Parent is VariableDeclaratorSyntax)
-            {
-                mainDocumentEditor.RemoveNode(initializer);
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        // Now add all the fields, and rewrite any references to the parameters to now reference the fields.
-
-        var parameterToSynthesizedFields = await CreateSynthesizedFieldsAsync().ConfigureAwait(false);
-        await RewriteReferencesToParametersAsync().ConfigureAwait(false);
-
-        mainDocumentEditor.ReplaceNode(
-            typeDeclaration,
-            (current, _) =>
-            {
-                var currentTypeDeclaration = (TypeDeclarationSyntax)current;
-                var fieldsInOrder = parameters
-                    .Select(p => parameterToSynthesizedFields.TryGetValue(p, out var field) ? field : null)
-                    .WhereNotNull();
-                var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-                return codeGenService.AddMembers(
-                    currentTypeDeclaration, fieldsInOrder, contextInfo, cancellationToken);
-            });
-
-        // Now add the constructor
         var constructorAnnotation = new SyntaxAnnotation();
-        mainDocumentEditor.ReplaceNode(
-            typeDeclaration,
-            (current, _) =>
-            {
-                // Move any <param> tags from the type decl to the constructor decl.
-                var currentTypeDeclaration = (TypeDeclarationSyntax)current;
-                currentTypeDeclaration = RemoveParamXmlElements(currentTypeDeclaration);
 
-                var constructorDeclaration = CreateConstructorDeclaration().WithAdditionalAnnotations(constructorAnnotation);
-
-                // If there is an existing non-static constructor, place it before that
-                var firstConstructorIndex = currentTypeDeclaration.Members.IndexOf(m => m is ConstructorDeclarationSyntax c && !c.Modifiers.Any(SyntaxKind.StaticKeyword));
-                if (firstConstructorIndex >= 0)
-                {
-                    return currentTypeDeclaration.WithMembers(
-                        currentTypeDeclaration.Members.Insert(firstConstructorIndex, constructorDeclaration));
-                }
-
-                // No constructors.  Place after any fields if present, or any properties if there are no fields.
-                var lastFieldOrProperty = currentTypeDeclaration.Members.LastIndexOf(m => m is FieldDeclarationSyntax);
-                if (lastFieldOrProperty < 0)
-                    lastFieldOrProperty = currentTypeDeclaration.Members.LastIndexOf(m => m is PropertyDeclarationSyntax);
-
-                if (lastFieldOrProperty >= 0)
-                {
-                    constructorDeclaration = constructorDeclaration
-                        .WithPrependedLeadingTrivia(ElasticCarriageReturnLineFeed);
-
-                    return currentTypeDeclaration.WithMembers(
-                        currentTypeDeclaration.Members.Insert(lastFieldOrProperty + 1, constructorDeclaration));
-                }
-
-                // Nothing at all.  Just place the construct at the top of the type.
-                return currentTypeDeclaration.WithMembers(
-                    currentTypeDeclaration.Members.Insert(0, constructorDeclaration));
-            });
-
-        // 
+        RemovePrimaryConstructorParameterList();
+        RemovePrimaryConstructorBaseTypeArgumentList();
+        RemovePrimaryConstructorTargetingAttributes();
+        RemoveDirectFieldAndPropertyAssignments();
+        AddNewFields();
+        AddConstructorDeclaration();
+        await RewritePrimaryConstructorParameterReferencesAsync().ConfigureAwait(false);
+        FixConstructoDeclarationFormatting();
 
         return solutionEditor.GetChangedSolution();
 
@@ -245,7 +165,141 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             return result;
         }
 
-        async Task RewriteReferencesToParametersAsync()
+        async Task<ImmutableDictionary<IParameterSymbol, IFieldSymbol>> CreateSynthesizedFieldsAsync()
+        {
+            using var _1 = PooledDictionary<Location, IFieldSymbol>.GetInstance(out var locationToField);
+            using var _2 = PooledDictionary<IParameterSymbol, IFieldSymbol>.GetInstance(out var result);
+
+            // Compiler already knows which primary constructor parameters ended up becoming fields.  So just defer to it.  We'll
+            // create real fields for all these cases.
+
+            foreach (var member in namedType.GetMembers())
+            {
+                if (member is IFieldSymbol { IsImplicitlyDeclared: true, Locations: [var location, ..] } field)
+                    locationToField[location] = field;
+            }
+
+            foreach (var parameter in parameters)
+            {
+                if (parameter.Locations is [var location, ..] &&
+                    locationToField.TryGetValue(location, out var existingField))
+                {
+                    var baseFieldName = fieldNameRule.NamingStyle.MakeCompliant(parameter.Name).First();
+                    var fieldName = NameGenerator.GenerateUniqueName(baseFieldName, n => namedType.Name != n && !namedType.GetMembers(n).Any());
+
+                    var synthesizedField = CodeGenerationSymbolFactory.CreateFieldSymbol(
+                        existingField,
+                        name: fieldName);
+
+                    result.Add(parameter, synthesizedField);
+                }
+            }
+
+            return result.ToImmutableDictionary();
+        }
+
+        void RemovePrimaryConstructorParameterList()
+        {
+            mainDocumentEditor.RemoveNode(parameterList);
+        }
+
+        void RemovePrimaryConstructorBaseTypeArgumentList()
+        {
+            var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
+            if (baseType != null)
+                mainDocumentEditor.ReplaceNode(baseType, (current, _) => SimpleBaseType(((PrimaryConstructorBaseTypeSyntax)current).Type).WithTriviaFrom(baseType));
+        }
+
+        void RemovePrimaryConstructorTargetingAttributes()
+        {
+            // Remove all the attributes from the type decl that we're moving to the constructor.
+            var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
+            foreach (var attributeList in methodTargetingAttributes)
+                mainDocumentEditor.RemoveNode(attributeList);
+        }
+
+        void RemoveDirectFieldAndPropertyAssignments()
+        {
+            // Remove all the initializers from existing fields/props the params are assigned to.
+            foreach (var (_, initializer) in initializedFieldsAndProperties)
+            {
+                if (initializer.Parent is PropertyDeclarationSyntax propertyDeclaration)
+                {
+                    mainDocumentEditor.ReplaceNode(
+                        propertyDeclaration,
+                        propertyDeclaration
+                            .WithInitializer(null)
+                            .WithSemicolonToken(default)
+                            .WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
+                }
+                else if (initializer.Parent is VariableDeclaratorSyntax)
+                {
+                    mainDocumentEditor.RemoveNode(initializer);
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
+        }
+
+        void AddNewFields()
+        {
+            mainDocumentEditor.ReplaceNode(
+            typeDeclaration,
+            (current, _) =>
+            {
+                var currentTypeDeclaration = (TypeDeclarationSyntax)current;
+                var fieldsInOrder = parameters
+                    .Select(p => parameterToSynthesizedFields.TryGetValue(p, out var field) ? field : null)
+                    .WhereNotNull();
+                var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
+                return codeGenService.AddMembers(
+                    currentTypeDeclaration, fieldsInOrder, contextInfo, cancellationToken);
+            });
+        }
+
+        void AddConstructorDeclaration()
+        {
+            mainDocumentEditor.ReplaceNode(
+                typeDeclaration,
+                (current, _) =>
+                {
+                    // Move any <param> tags from the type decl to the constructor decl.
+                    var currentTypeDeclaration = (TypeDeclarationSyntax)current;
+                    currentTypeDeclaration = RemoveParamXmlElements(currentTypeDeclaration);
+
+                    var constructorDeclaration = CreateConstructorDeclaration().WithAdditionalAnnotations(constructorAnnotation);
+
+                    // If there is an existing non-static constructor, place it before that
+                    var firstConstructorIndex = currentTypeDeclaration.Members.IndexOf(m => m is ConstructorDeclarationSyntax c && !c.Modifiers.Any(SyntaxKind.StaticKeyword));
+                    if (firstConstructorIndex >= 0)
+                    {
+                        return currentTypeDeclaration.WithMembers(
+                            currentTypeDeclaration.Members.Insert(firstConstructorIndex, constructorDeclaration));
+                    }
+
+                    // No constructors.  Place after any fields if present, or any properties if there are no fields.
+                    var lastFieldOrProperty = currentTypeDeclaration.Members.LastIndexOf(m => m is FieldDeclarationSyntax);
+                    if (lastFieldOrProperty < 0)
+                        lastFieldOrProperty = currentTypeDeclaration.Members.LastIndexOf(m => m is PropertyDeclarationSyntax);
+
+                    if (lastFieldOrProperty >= 0)
+                    {
+                        constructorDeclaration = constructorDeclaration
+                            .WithPrependedLeadingTrivia(ElasticCarriageReturnLineFeed);
+
+                        return currentTypeDeclaration.WithMembers(
+                            currentTypeDeclaration.Members.Insert(lastFieldOrProperty + 1, constructorDeclaration));
+                    }
+
+                    // Nothing at all.  Just place the construct at the top of the type.
+                    return currentTypeDeclaration.WithMembers(
+                        currentTypeDeclaration.Members.Insert(0, constructorDeclaration));
+                });
+        }
+
+        async Task RewritePrimaryConstructorParameterReferencesAsync()
         {
             foreach (var (parameter, references) in parameterReferences)
             {
@@ -313,49 +367,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             }
 
             return result.ToImmutableHashSet();
-        }
-
-        async Task<ImmutableDictionary<IParameterSymbol, IFieldSymbol>> CreateSynthesizedFieldsAsync()
-        {
-            using var _1 = PooledDictionary<Location, IFieldSymbol>.GetInstance(out var locationToField);
-            using var _2 = PooledDictionary<IParameterSymbol, IFieldSymbol>.GetInstance(out var result);
-
-            // Compiler already knows which primary constructor parameters ended up becoming fields.  So just defer to it.  We'll
-            // create real fields for all these cases.
-
-            foreach (var member in namedType.GetMembers())
-            {
-                if (member is IFieldSymbol { IsImplicitlyDeclared: true, Locations: [var location, ..] } field)
-                    locationToField[location] = field;
-            }
-
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Locations is [var location, ..] &&
-                    locationToField.TryGetValue(location, out var existingField))
-                {
-                    var synthesizedField = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        existingField,
-                        name: await MakeFieldNameAsync(parameter.Name).ConfigureAwait(false));
-
-                    result.Add(parameter, synthesizedField);
-                }
-            }
-
-            return result.ToImmutableDictionary();
-        }
-
-        async Task<string> MakeFieldNameAsync(string parameterName)
-        {
-            var rule = await document.GetApplicableNamingRuleAsync(
-                new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-                DeclarationModifiers.None,
-                Accessibility.Private,
-                optionsProvider,
-                cancellationToken).ConfigureAwait(false);
-
-            var fieldName = rule.NamingStyle.MakeCompliant(parameterName).First();
-            return NameGenerator.GenerateUniqueName(fieldName, n => namedType.Name != n && !namedType.GetMembers(n).Any());
         }
 
         ConstructorDeclarationSyntax CreateConstructorDeclaration()
