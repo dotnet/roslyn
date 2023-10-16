@@ -145,6 +145,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return (GetSourceDecodedWellKnownAttributeData()?.HasImportedFromTypeLibAttribute).GetValueOrDefault()
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return (GetSourceDecodedWellKnownAttributeData()?.HasPrimaryInteropAssemblyAttribute).GetValueOrDefault()
+            End Get
+        End Property
+
         Friend Overrides Function GetSpecialTypeMember(member As SpecialMember) As Symbol
             If _compilation.IsMemberMissing(member) Then
                 Return Nothing
@@ -1080,6 +1092,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
                 attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
+
+                Dim guidString As String = Nothing
+                If attrData.TryGetGuidAttributeValue(guidString) Then
+                    arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().GuidAttribute = guidString
+                End If
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ImportedFromTypeLibAttribute) Then
+                If attrData.CommonConstructorArguments.Length = 1 Then
+                    arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasImportedFromTypeLibAttribute = True
+                End If
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.PrimaryInteropAssemblyAttribute) Then
+                If attrData.CommonConstructorArguments.Length = 2 Then
+                    arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasPrimaryInteropAssemblyAttribute = True
+                End If
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasCompilationRelaxationsAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ReferenceAssemblyAttribute) Then
@@ -1469,6 +1494,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return assemblyData IsNot Nothing AndAlso assemblyData.HasReferenceAssemblyAttribute
             End Get
         End Property
+
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = GetSourceDecodedWellKnownAttributeData()?.GuidAttribute
+            Return guidString IsNot Nothing
+        End Function
 
         Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
