@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -67,44 +66,33 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         CodeActionOptionsProvider optionsProvider,
         CancellationToken cancellationToken)
     {
-        // 1. Create constructor
-        // 2. Remove base arguments
-        // 3. Add fields if necessary
-        // 4. Update references to parameters to be references to fields
-        // 5. Format as appropriate
-
         var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         var semanticModels = new ConcurrentSet<SemanticModel>();
 
         var semanticModel = await GetSemanticModelAsync(document).ConfigureAwait(false);
-        var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
-
-        // We may have to update multiple files (in the case of a partial type).  Use a solution-editor to make that simple.
-        var solution = document.Project.Solution;
-        var solutionEditor = new SolutionEditor(solution);
-
-        var parameters = parameterList.Parameters.SelectAsArray(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
-
-        // Compiler already knows which primary constructor parameters ended up becoming fields.  So just defer to it.  We'll
-        // create real fields for all these cases.
-        var parameterToSynthesizedFields = await GetSynthesizedFieldsAsync().ConfigureAwait(false);
-
-        // Find the references to all the parameters.  This will help us determine how they're used and what change we
-        // may need to make.
-        var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
-
-        // Find any field/properties whose initializer references a primary constructor parameter.  These initializers
-        // will have to move inside the constructor we generate.
-        var initializedFieldsAndProperties = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
-
-        // Now start editing the document
-        var mainDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
         var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, optionsProvider, cancellationToken).ConfigureAwait(false);
 
-        // Now, update all locations that reference the parameters to reference the new fields.
-        await RewriteReferencesToParametersAsync().ConfigureAwait(false);
+        // Get the named type and all its parameters for use during the rewrite.
+        var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
+        var parameters = parameterList.Parameters.SelectAsArray(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
+
+        // We may have to update multiple files (in the case of a partial type).  Use a solution-editor to make that
+        // simple.  We will insert the regular constructor into the partial part containing the primary constructor.
+        var solution = document.Project.Solution;
+        var solutionEditor = new SolutionEditor(solution);
+        var mainDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+
+        RemovePrimaryConstructorParameterList();
+        RemovePrimaryConstructorBaseTypeArgumentList();
+        RemovePrimaryConstructorTargettingAttributes();
+        RemoveDirectFieldAndPropertyAssignments();
+        AddNewFields();
+        AddConstructorDeclaration();
+        RewritePrimaryConstructorParameterReferences();
 
         // Remove the parameter list, and any base argument passing from the type declaration header itself.
+
+
         mainDocumentEditor.RemoveNode(parameterList);
         var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
         if (baseType != null)
@@ -114,6 +102,14 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
         foreach (var attributeList in methodTargetingAttributes)
             mainDocumentEditor.RemoveNode(attributeList);
+
+        // Find the references to all the parameters.  This will help us determine how they're used and what change we
+        // may need to make.
+        var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
+
+        // Find any field/properties whose initializer references a primary constructor parameter.  These initializers
+        // will have to move inside the constructor we generate.
+        var initializedFieldsAndProperties = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
 
         // Remove all the initializers from existing fields/props the params are assigned to.
         foreach (var (_, initializer) in initializedFieldsAndProperties)
@@ -137,7 +133,11 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             }
         }
 
-        // Now add all the fields.
+        // Now add all the fields, and rewrite any references to the parameters to now reference the fields.
+
+        var parameterToSynthesizedFields = await CreateSynthesizedFieldsAsync().ConfigureAwait(false);
+        await RewriteReferencesToParametersAsync().ConfigureAwait(false);
+
         mainDocumentEditor.ReplaceNode(
             typeDeclaration,
             (current, _) =>
@@ -152,6 +152,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             });
 
         // Now add the constructor
+        var constructorAnnotation = new SyntaxAnnotation();
         mainDocumentEditor.ReplaceNode(
             typeDeclaration,
             (current, _) =>
@@ -160,7 +161,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 var currentTypeDeclaration = (TypeDeclarationSyntax)current;
                 currentTypeDeclaration = RemoveParamXmlElements(currentTypeDeclaration);
 
-                var constructorDeclaration = CreateConstructorDeclaration();
+                var constructorDeclaration = CreateConstructorDeclaration().WithAdditionalAnnotations(constructorAnnotation);
 
                 // If there is an existing non-static constructor, place it before that
                 var firstConstructorIndex = currentTypeDeclaration.Members.IndexOf(m => m is ConstructorDeclarationSyntax c && !c.Modifiers.Any(SyntaxKind.StaticKeyword));
@@ -188,6 +189,8 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 return currentTypeDeclaration.WithMembers(
                     currentTypeDeclaration.Members.Insert(0, constructorDeclaration));
             });
+
+        // 
 
         return solutionEditor.GetChangedSolution();
 
@@ -246,6 +249,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         {
             foreach (var (parameter, references) in parameterReferences)
             {
+                // Only have to update references if we're synthesizing a field for this parameter.
                 if (!parameterToSynthesizedFields.TryGetValue(parameter, out var field))
                     continue;
 
@@ -311,10 +315,13 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             return result.ToImmutableHashSet();
         }
 
-        async Task<ImmutableDictionary<IParameterSymbol, IFieldSymbol>> GetSynthesizedFieldsAsync()
+        async Task<ImmutableDictionary<IParameterSymbol, IFieldSymbol>> CreateSynthesizedFieldsAsync()
         {
             using var _1 = PooledDictionary<Location, IFieldSymbol>.GetInstance(out var locationToField);
             using var _2 = PooledDictionary<IParameterSymbol, IFieldSymbol>.GetInstance(out var result);
+
+            // Compiler already knows which primary constructor parameters ended up becoming fields.  So just defer to it.  We'll
+            // create real fields for all these cases.
 
             foreach (var member in namedType.GetMembers())
             {
