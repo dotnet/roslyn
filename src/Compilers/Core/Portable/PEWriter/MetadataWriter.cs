@@ -1799,15 +1799,18 @@ namespace Microsoft.Cci
 
                 DefineModuleImportScope();
 
-                EmbedTypeDefinitionDocumentInformation(module);
-
-                if (module.SourceLinkStreamOpt != null)
+                if (IsFullMetadata)
                 {
-                    EmbedSourceLink(module.SourceLinkStreamOpt);
-                }
+                    // Do not emit TypeDefinitionDocuments or Source Link to EnC deltas.
+                    // This information is only needed to support navigation to symbols from metadata references.
 
-                if (!module.IsEncDelta)
-                {
+                    EmbedTypeDefinitionDocumentInformation(module);
+
+                    if (module.SourceLinkStreamOpt != null)
+                    {
+                        EmbedSourceLink(module.SourceLinkStreamOpt);
+                    }
+
                     EmbedCompilationOptions(module);
                     EmbedMetadataReferenceInformation(module);
                 }
