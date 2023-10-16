@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor DiagnosticDescriptor = new(
+        internal static readonly DiagnosticDescriptor DiagnosticDescriptor = new(
             DiagnosticIds.SemanticModelGetDeclaredSymbolAlwaysReturnsNull,
             CreateLocalizableResourceString(nameof(SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle)),
             CreateLocalizableResourceString(nameof(SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage)),
@@ -24,6 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: CreateLocalizableResourceString(nameof(SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription)),
+            helpLinkUri: null,
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
+
+        internal static readonly DiagnosticDescriptor FieldDiagnosticDescriptor = new(
+            DiagnosticIds.SemanticModelGetDeclaredSymbolAlwaysReturnsNullForField,
+            CreateLocalizableResourceString(nameof(SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle)),
+            CreateLocalizableResourceString(nameof(SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage)),
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: CreateLocalizableResourceString(nameof(SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription)),
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
@@ -37,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                 IMethodSymbol? getDeclaredSymbolMethod;
                 if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpCSharpExtensions, out var csharpExtensions)
                     || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisModelExtensions, out var modelExtensions)
+                    || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpSyntaxBaseFieldDeclarationSyntax, out var baseFieldDeclaration)
+                    || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisSyntaxNode, out var syntaxNode)
                     || (getDeclaredSymbolMethod = modelExtensions.GetMembers(nameof(ModelExtensions.GetDeclaredSymbol)).FirstOrDefault() as IMethodSymbol) is null)
                 {
                     return;
@@ -47,24 +60,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                     .Where(m => m.Parameters.Length >= 2)
                     .Select(m => m.Parameters[1].Type);
 
-                context.RegisterOperationAction(ctx => AnalyzeInvocation(ctx, getDeclaredSymbolMethod, allowedTypes), OperationKind.Invocation);
+                context.RegisterOperationAction(ctx => AnalyzeInvocation(ctx, getDeclaredSymbolMethod, allowedTypes, baseFieldDeclaration, syntaxNode), OperationKind.Invocation);
             });
         }
 
-        private static void AnalyzeInvocation(OperationAnalysisContext context, IMethodSymbol getDeclaredSymbolMethod, IEnumerable<ITypeSymbol> allowedTypes)
+        private static void AnalyzeInvocation(OperationAnalysisContext context, IMethodSymbol getDeclaredSymbolMethod, IEnumerable<ITypeSymbol> allowedTypes, INamedTypeSymbol baseFieldDeclarationType, INamedTypeSymbol syntaxNodeType)
         {
             var invocation = (IInvocationOperation)context.Operation;
             if (SymbolEqualityComparer.Default.Equals(invocation.TargetMethod, getDeclaredSymbolMethod))
             {
-                var syntaxNodeType = invocation.Arguments[1].Value.WalkDownConversion().Type;
-                if (syntaxNodeType is not null && allowedTypes.Any(type => syntaxNodeType.DerivesFrom(type, baseTypesOnly: true, checkTypeParameterConstraints: false)))
+                var syntaxNodeDerivingType = invocation.Arguments[1].Value.WalkDownConversion().Type;
+                if (syntaxNodeDerivingType is null || syntaxNodeDerivingType.Equals(syntaxNodeType))
                 {
-                    var diagnostic = invocation.CreateDiagnostic(DiagnosticDescriptor, syntaxNodeType.Name);
+                    return;
+                }
+
+                Diagnostic? diagnostic = null;
+                if (syntaxNodeDerivingType.DerivesFrom(baseFieldDeclarationType))
+                {
+                    diagnostic = invocation.CreateDiagnostic(FieldDiagnosticDescriptor, syntaxNodeDerivingType.Name);
+                }
+                else if (allowedTypes.All(type => !syntaxNodeDerivingType.DerivesFrom(type, baseTypesOnly: true, checkTypeParameterConstraints: false)))
+                {
+                    diagnostic = invocation.CreateDiagnostic(DiagnosticDescriptor, syntaxNodeDerivingType.Name);
+                }
+
+                if (diagnostic is not null)
+                {
                     context.ReportDiagnostic(diagnostic);
                 }
             }
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptor, FieldDiagnosticDescriptor);
     }
 }

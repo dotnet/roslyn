@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string AddCompilationEndCustomTagRuleId = "RS1037";
         public const string DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleId = "RS1038";
         public const string SemanticModelGetDeclaredSymbolAlwaysReturnsNull = "RS1039";
+        public const string SemanticModelGetDeclaredSymbolAlwaysReturnsNullForField = "RS1040";
 
         // Release tracking analyzer IDs
         public const string DeclareDiagnosticIdInAnalyzerReleaseRuleId = "RS2000";

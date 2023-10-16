@@ -5,3 +5,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1039 | MicrosoftCodeAnalysisCorrectness | Warning | SemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer
+RS1040 | MicrosoftCodeAnalysisCorrectness | Warning | CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer

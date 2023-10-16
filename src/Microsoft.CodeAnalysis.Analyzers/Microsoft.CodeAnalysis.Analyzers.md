@@ -484,6 +484,18 @@ Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'GlobalStatem
 |CodeFix|False|
 ---
 
+## RS1040: This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
+
+Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.
+
+|Item|Value|
+|-|-|
+|Category|MicrosoftCodeAnalysisCorrectness|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
+
 ## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release
 
 All supported analyzer diagnostic IDs should be part of an analyzer release.

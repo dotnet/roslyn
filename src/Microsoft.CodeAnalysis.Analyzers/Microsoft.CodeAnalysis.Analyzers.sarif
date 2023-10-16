@@ -885,6 +885,23 @@
               "Telemetry"
             ]
           }
+        },
+        "RS1040": {
+          "id": "RS1040",
+          "shortDescription": "This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'",
+          "fullDescription": "Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },
