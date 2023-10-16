@@ -4,7 +4,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,17 +16,8 @@ using static SyntaxFactory;
 
 internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringProvider
 {
-    private static SyntaxTrivia GetDocComment(SyntaxNode node)
-        => GetDocComment(node.GetLeadingTrivia());
-
     private static SyntaxTrivia GetDocComment(SyntaxTriviaList trivia)
         => trivia.LastOrDefault(t => t.IsSingleLineDocComment());
-
-    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxNode node)
-        => GetDocCommentStructure(node.GetLeadingTrivia());
-
-    private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTriviaList trivia)
-        => GetDocCommentStructure(GetDocComment(trivia));
 
     private static DocumentationCommentTriviaSyntax? GetDocCommentStructure(SyntaxTrivia trivia)
         => (DocumentationCommentTriviaSyntax?)trivia.GetStructure();

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -107,6 +109,8 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         var constructorAnnotation = new SyntaxAnnotation();
 
+        // Now go do the entire transformation.
+
         RemovePrimaryConstructorParameterList();
         RemovePrimaryConstructorBaseTypeArgumentList();
         RemovePrimaryConstructorTargetingAttributes();
@@ -114,7 +118,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         AddNewFields();
         AddConstructorDeclaration();
         await RewritePrimaryConstructorParameterReferencesAsync().ConfigureAwait(false);
-       //  FixConstructorDeclarationFormatting();
+        FixParameterAndBaseArgumentListIndentation();
 
         return solutionEditor.GetChangedSolution();
 
@@ -373,6 +377,66 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 }
             }
         }
+
+        void FixParameterAndBaseArgumentListIndentation()
+        {
+            var currentRoot = mainDocumentEditor.GetChangedRoot();
+            var formattingOptions = optionsProvider.GetOptions(document.Project.Services).CleanupOptions.FormattingOptions;
+            var indentationOptions = new IndentationOptions(formattingOptions);
+
+            var formattedRoot = Formatter.Format(currentRoot, SyntaxAnnotation.ElasticAnnotation, solution.Services, formattingOptions, cancellationToken);
+
+            var constructor = (ConstructorDeclarationSyntax)formattedRoot.GetAnnotatedNodes(constructorAnnotation).Single();
+
+            var rewrittenParameterList = AddElementIndentation(typeDeclaration, constructor, constructor.ParameterList, static list => list.Parameters);
+            var initializer = constructor.Initializer;
+            var rewrittenInitializer = initializer?.WithArgumentList(AddElementIndentation(typeDeclaration, constructor, initializer.ArgumentList, static list => list.Arguments));
+
+            var rewrittenConstructor = constructor
+                .WithParameterList(rewrittenParameterList)
+                .WithInitializer(rewrittenInitializer);
+
+            var rewrittenRoot = formattedRoot.ReplaceNode(constructor, rewrittenConstructor);
+            mainDocumentEditor.ReplaceNode(mainDocumentEditor.OriginalRoot, rewrittenRoot);
+        }
+
+        static TListSyntax AddElementIndentation<TListSyntax>(
+            TypeDeclarationSyntax typeDeclaration,
+            ConstructorDeclarationSyntax constructorDeclaration,
+            TListSyntax list,
+            Func<TListSyntax, IEnumerable<SyntaxNode>> getElements)
+            where TListSyntax : SyntaxNode
+        {
+            // Since we're moving parameters from the constructor to the type, attempt to dedent them if appropriate.
+
+            var typeLeadingWhitespace = GetLeadingWhitespace(typeDeclaration);
+            var constructorLeadingWhitespace = GetLeadingWhitespace(constructorDeclaration);
+
+            if (constructorLeadingWhitespace.Length > typeLeadingWhitespace.Length &&
+                constructorLeadingWhitespace.StartsWith(typeLeadingWhitespace))
+            {
+                var indentation = constructorLeadingWhitespace[typeLeadingWhitespace.Length..];
+                return list.ReplaceNodes(
+                    getElements(list),
+                    (p, _) =>
+                    {
+                        var elementLeadingWhitespace = GetLeadingWhitespace(p);
+                        if (elementLeadingWhitespace.Length > 0 && elementLeadingWhitespace.StartsWith(typeLeadingWhitespace))
+                        {
+                            var leadingTrivia = p.GetLeadingTrivia();
+                            return p.WithLeadingTrivia(
+                                leadingTrivia.Concat(Whitespace(indentation)));
+                        }
+
+                        return p;
+                    });
+            }
+
+            return list;
+        }
+
+        static string GetLeadingWhitespace(SyntaxNode node)
+            => node.GetLeadingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia) whitespace] ? whitespace.ToString() : "";
 
         ConstructorDeclarationSyntax CreateConstructorDeclaration()
         {
