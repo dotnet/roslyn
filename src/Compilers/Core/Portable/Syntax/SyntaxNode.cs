@@ -1406,7 +1406,7 @@ recurse:
             }
 
             // Report NFW to see if this is being used in the wild.
-            FatalError.ReportAndPropagate(new SerializationDeprecationException());
+            FatalError.ReportNonFatalError(new SerializationDeprecationException());
             using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
             writer.WriteValue(Green);
         }

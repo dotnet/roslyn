@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Report NFW to see if this is being used in the wild.
-            FatalError.ReportAndPropagate(new SerializationDeprecationException());
+            FatalError.ReportNonFatalError(new SerializationDeprecationException());
             using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
 
             if (reader == null)

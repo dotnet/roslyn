@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Report NFW to see if this Is being used in the wild.
-            FatalError.ReportAndPropagate(New SerializationDeprecationException())
+            FatalError.ReportNonFatalError(New SerializationDeprecationException())
 
             Using reader = ObjectReader.TryGetReader(stream, leaveOpen:=True, cancellationToken:=cancellationToken)
                 If reader Is Nothing Then
