@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -404,29 +402,23 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     var node = docComment.Content[i];
                     if (IsXmlElement(node, "param", out var paramElement))
                     {
-                        content.Add(node);//.WithAdditionalAnnotations(Formatter.Annotation));
+                        content.Add(node);
 
                         // if the param tag is followed with a newline, then preserve that when transferring over.
                         if (i + 1 < docComment.Content.Count && IsDocCommentNewLine(docComment.Content[i + 1]))
-                            content.Add(docComment.Content[i + 1]);//.WithAdditionalAnnotations(Formatter.Annotation));
+                            content.Add(docComment.Content[i + 1]);
                     }
                 }
 
                 if (content.Count > 0)
                 {
-                    if (content[0].GetLeadingTrivia().Any(SyntaxKind.DocumentationCommentExteriorTrivia))
-                    {
-                        content[0] = content[0].WithPrependedLeadingTrivia(ElasticMarker);
-                    }
-                    else
-                    {
+                    if (!content[0].GetLeadingTrivia().Any(SyntaxKind.DocumentationCommentExteriorTrivia))
                         content[0] = content[0].WithLeadingTrivia(DocumentationCommentExterior("/// "));
-                    }
 
                     content[^1] = content[^1].WithTrailingTrivia(EndOfLine(""));
 
                     var finalTrivia = DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content));
-                    return constructorDeclaration.WithLeadingTrivia(Trivia(finalTrivia)); //.WithAdditionalAnnotations(Formatter.Annotation));
+                    return constructorDeclaration.WithLeadingTrivia(Trivia(finalTrivia));
                 }
             }
 
