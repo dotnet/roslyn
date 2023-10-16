@@ -404,23 +404,29 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     var node = docComment.Content[i];
                     if (IsXmlElement(node, "param", out var paramElement))
                     {
-                        content.Add(node);
+                        content.Add(node);//.WithAdditionalAnnotations(Formatter.Annotation));
 
                         // if the param tag is followed with a newline, then preserve that when transferring over.
                         if (i + 1 < docComment.Content.Count && IsDocCommentNewLine(docComment.Content[i + 1]))
-                            content.Add(docComment.Content[i + 1]);
+                            content.Add(docComment.Content[i + 1]);//.WithAdditionalAnnotations(Formatter.Annotation));
                     }
                 }
 
                 if (content.Count > 0)
                 {
-                    if (!content[0].GetLeadingTrivia().Any(SyntaxKind.DocumentationCommentExteriorTrivia))
+                    if (content[0].GetLeadingTrivia().Any(SyntaxKind.DocumentationCommentExteriorTrivia))
+                    {
+                        content[0] = content[0].WithPrependedLeadingTrivia(ElasticMarker);
+                    }
+                    else
+                    {
                         content[0] = content[0].WithLeadingTrivia(DocumentationCommentExterior("/// "));
+                    }
 
                     content[^1] = content[^1].WithTrailingTrivia(EndOfLine(""));
 
                     var finalTrivia = DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content));
-                    return constructorDeclaration.WithLeadingTrivia(Trivia(finalTrivia).WithAdditionalAnnotations(Formatter.Annotation));
+                    return constructorDeclaration.WithLeadingTrivia(Trivia(finalTrivia)); //.WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }
 

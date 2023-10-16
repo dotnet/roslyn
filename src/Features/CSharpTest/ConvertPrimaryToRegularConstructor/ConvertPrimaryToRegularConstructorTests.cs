@@ -1233,7 +1233,7 @@ public class ConvertPrimaryToRegularConstructorTests
                     {
                         private int i;
 
-                        ///<param name="i">
+                            ///<param name="i">
                         ///Doc about i
                         ///on multiple lines
                         ///</param>
