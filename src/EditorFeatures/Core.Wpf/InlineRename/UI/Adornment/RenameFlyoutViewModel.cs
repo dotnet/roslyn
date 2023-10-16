@@ -5,24 +5,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Interop;
-using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
@@ -53,17 +49,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+
             if (smartRenameSession is not null)
             {
-                SuggestedNamesViewModel = new SuggestedNamesControlViewModel(smartRenameSession);
+                SmartRenameViewModel = new SmartRenameViewModel(smartRenameSession);
+                SmartRenameViewModel.PropertyChanged += SuggestedNameSelected;
             }
 
             RegisterOleComponent();
         }
 
-        public bool HasSuggestions => true;
+        private void SuggestedNameSelected(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SmartRenameViewModel.CurrentSelectedName)
+                && SmartRenameViewModel?.CurrentSelectedName is not null)
+            {
+                IdentifierText = SmartRenameViewModel.CurrentSelectedName;
+            }
+        }
 
-        public SuggestedNamesControlViewModel? SuggestedNamesViewModel { get; }
+        public SmartRenameViewModel? SmartRenameViewModel { get; }
 
         public string IdentifierText
         {
@@ -215,14 +220,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
-            SuggestedNamesViewModel?.Commit(IdentifierText);
+            SmartRenameViewModel?.Commit(IdentifierText);
             _session.Commit();
             return true;
         }
 
         public void Cancel()
         {
-            SuggestedNamesViewModel?.Cancel();
+            SmartRenameViewModel?.Cancel();
             _session.Cancel();
         }
 
@@ -310,7 +315,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     _session.ReplacementTextChanged -= OnReplacementTextChanged;
                     _session.ReplacementsComputed -= OnReplacementsComputed;
-                    SuggestedNamesViewModel?.Dispose();
+
+                    if (SmartRenameViewModel is not null)
+                    {
+                        SmartRenameViewModel.PropertyChanged -= SuggestedNameSelected;
+                        SmartRenameViewModel.Dispose();
+                    }
 
                     UnregisterOleComponent();
                 }

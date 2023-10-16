@@ -6,22 +6,45 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 {
-    internal class SuggestedNamesControlViewModel : INotifyPropertyChanged, IDisposable
+    internal class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly ISmartRenameSession _smartRenameSession;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
-        public SuggestedNamesControlViewModel(
-            ISmartRenameSession smartRenameSession)
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public event EventHandler<string>? OnSuggestedNameSelected;
+
+        public ObservableCollection<SuggestedNameViewModel> SuggestedNames { get; } = new ObservableCollection<SuggestedNameViewModel>();
+
+        public bool IsAvailable => _smartRenameSession.IsAvailable;
+
+        public bool InProgress => _smartRenameSession.IsInProgress;
+
+        private string? _currentSelectedName;
+
+        public string? CurrentSelectedName
+        {
+            get => _currentSelectedName;
+            set
+            {
+                if (_currentSelectedName != value)
+                {
+                    _currentSelectedName = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentSelectedName)));
+                }
+            }
+        }
+
+        public SmartRenameViewModel(ISmartRenameSession smartRenameSession)
         {
             _smartRenameSession = smartRenameSession;
             _smartRenameSession.PropertyChanged += SessionPropertyChanged;
+
             _cancellationTokenSource = new();
             smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
         }
@@ -33,7 +56,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                 SuggestedNames.Clear();
                 foreach (var name in _smartRenameSession.SuggestedNames)
                 {
-                    SuggestedNames.Add(name);
+                    SuggestedNames.Add(new SuggestedNameViewModel(name, this));
                 }
 
                 return;
@@ -48,18 +71,10 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
             _smartRenameSession.OnCancel();
         }
 
-        public void Commit(string newIdentifierName)
+        public void Commit(string finalIdentifierName)
         {
-            _smartRenameSession.OnSuccess(newIdentifierName);
+            _smartRenameSession.OnSuccess(finalIdentifierName);
         }
-
-        public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
-
-        public bool IsAvailable => _smartRenameSession.IsAvailable;
-
-        public bool InProgress => _smartRenameSession.IsInProgress;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         public void Dispose()
         {
