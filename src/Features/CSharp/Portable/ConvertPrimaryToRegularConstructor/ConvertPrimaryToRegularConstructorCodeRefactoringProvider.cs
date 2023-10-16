@@ -288,17 +288,17 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         void AddNewFields()
         {
             mainDocumentEditor.ReplaceNode(
-            typeDeclaration,
-            (current, _) =>
-            {
-                var currentTypeDeclaration = (TypeDeclarationSyntax)current;
-                var fieldsInOrder = parameters
-                    .Select(p => parameterToSynthesizedFields.TryGetValue(p, out var field) ? field : null)
-                    .WhereNotNull();
-                var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-                return codeGenService.AddMembers(
-                    currentTypeDeclaration, fieldsInOrder, contextInfo, cancellationToken);
-            });
+                typeDeclaration,
+                (current, _) =>
+                {
+                    var currentTypeDeclaration = (TypeDeclarationSyntax)current;
+                    var fieldsInOrder = parameters
+                        .Select(p => parameterToSynthesizedFields.TryGetValue(p, out var field) ? field : null)
+                        .WhereNotNull();
+                    var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
+                    return codeGenService.AddMembers(
+                        currentTypeDeclaration, fieldsInOrder, contextInfo, cancellationToken);
+                });
         }
 
         void AddConstructorDeclaration()
