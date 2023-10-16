@@ -41,8 +41,7 @@
                                             Padding="2"
                                             Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}"
                                             Cursor="Hand"
-                                            Tag="{Binding}"
-                                            MouseDown="MouseDown">
+                                            Tag="{Binding}">
                                         <ContentPresenter />
                                     </Border>
                                 </ControlTemplate>

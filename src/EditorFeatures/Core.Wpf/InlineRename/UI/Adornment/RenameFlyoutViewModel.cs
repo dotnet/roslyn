@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             TextSpan selectionSpan,
             bool registerOleComponent,
             IGlobalOptionService globalOptionService,
-            ISmartRenameSession? smartRenameSession)
+            Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
@@ -49,16 +49,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+            var smartRenameSession = smartRenameSessionFactory.Value.CreateSmartRenameSession(_session.TriggerSpan);
             if (smartRenameSession is not null)
             {
                 SmartRenameViewModel = new SmartRenameViewModel(smartRenameSession);
-                SmartRenameViewModel.PropertyChanged += SuggestedNameSelected;
+                SmartRenameViewModel.PropertyChanged += OnCurrentSelectedNameChanged;
             }
 
             RegisterOleComponent();
         }
 
-        private void SuggestedNameSelected(object sender, PropertyChangedEventArgs e)
+        private void OnCurrentSelectedNameChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(SmartRenameViewModel.CurrentSelectedName)
                 && SmartRenameViewModel?.CurrentSelectedName is not null)
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     if (SmartRenameViewModel is not null)
                     {
-                        SmartRenameViewModel.PropertyChanged -= SuggestedNameSelected;
+                        SmartRenameViewModel.PropertyChanged -= OnCurrentSelectedNameChanged;
                         SmartRenameViewModel.Dispose();
                     }
 

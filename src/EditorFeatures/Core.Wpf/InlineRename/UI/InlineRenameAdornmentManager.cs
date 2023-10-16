@@ -8,10 +8,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.SmartRename;
@@ -109,7 +111,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return null;
             }
 
-            var smartRenameSession = _smartRenameSessionFactory.Value.CreateSmartRenameSession(_renameService.ActiveSession.TriggerSpan);
             var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment);
             if (useInlineAdornment)
             {
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var identifierSelection = new TextSpan(start, length);
 
                 var adornment = new RenameFlyout(
-                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService, smartRenameSession)),
+                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService, _smartRenameSessionFactory)),
                     _textView,
                     _themeService,
                     _asyncQuickInfoBroker,
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             else
             {
                 var newAdornment = new RenameDashboard(
-                    (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session, smartRenameSession)),
+                    (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session, _smartRenameSessionFactory)),
                     _editorFormatMapService,
                     _textView);
 
