@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.CodeAnalysisSuggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 [Export(typeof(ISuggestedActionCallback))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class FirstPartyAnalyzersSuggestedActionCallback(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+internal class CodeAnalysisSuggestionsSuggestedActionCallback(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
     : ForegroundThreadAffinitizedObject(threadingContext), ISuggestedActionCallback
 {
     private static readonly ImmutableHashSet<string> s_codeQualityAnalyzerAssemblyNames = ImmutableHashSet.Create(
@@ -43,7 +44,7 @@ internal class FirstPartyAnalyzersSuggestedActionCallback(IThreadingContext thre
         AssertIsForeground();
 
         // If the user has disabled the feature, then we bail out immediately.
-        if (_globalOptions.GetOption(FirstPartyAnalyzersOptionsStorage.DisableFirstPartyAnalyzersSuggestions))
+        if (_globalOptions.GetOption(CodeAnalysisSuggestionsOptionsStorage.DisableFirstPartyAnalyzersSuggestions))
         {
             return;
         }
@@ -68,15 +69,15 @@ internal class FirstPartyAnalyzersSuggestedActionCallback(IThreadingContext thre
 
             // If the user has already met candidacy conditions, then we have nothing to update.
             var isCandidateOption = codeQuality
-                ? FirstPartyAnalyzersOptionsStorage.HasMetCandidacyRequirementsForCodeQuality
-                : FirstPartyAnalyzersOptionsStorage.HasMetCandidacyRequirementsForCodeStyle;
+                ? CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeQuality
+                : CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeStyle;
             if (options.GetOption(isCandidateOption))
                 return;
 
             // We store in UTC to avoid any timezone offset weirdness
             var lastUsedDateTimeOption = codeQuality
-                ? FirstPartyAnalyzersOptionsStorage.LastDateTimeUsedCodeQualityFix
-                : FirstPartyAnalyzersOptionsStorage.LastDateTimeUsedCodeStyleFix;
+                ? CodeAnalysisSuggestionsOptionsStorage.LastDateTimeUsedCodeQualityFix
+                : CodeAnalysisSuggestionsOptionsStorage.LastDateTimeUsedCodeStyleFix;
             var lastTriggeredTimeBinary = options.GetOption(lastUsedDateTimeOption);
 
             var lastTriggeredTime = DateTime.FromBinary(lastTriggeredTimeBinary);
@@ -88,8 +89,8 @@ internal class FirstPartyAnalyzersSuggestedActionCallback(IThreadingContext thre
             options.SetGlobalOption(lastUsedDateTimeOption, currentTime.ToBinary());
 
             var usedCountOption = codeQuality
-                ? FirstPartyAnalyzersOptionsStorage.InvokedCodeQualityFixCount
-                : FirstPartyAnalyzersOptionsStorage.InvokedCodeStyleFixCount;
+                ? CodeAnalysisSuggestionsOptionsStorage.InvokedCodeQualityFixCount
+                : CodeAnalysisSuggestionsOptionsStorage.InvokedCodeStyleFixCount;
             var usageCount = options.GetOption(usedCountOption);
             options.SetGlobalOption(usedCountOption, ++usageCount);
 

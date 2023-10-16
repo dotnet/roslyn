@@ -5,9 +5,9 @@
 using System;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions;
 
-internal sealed class FirstPartyAnalyzersOptionsStorage
+internal sealed class CodeAnalysisSuggestionsOptionsStorage
 {
     public static readonly Option2<bool> DisableFirstPartyAnalyzersSuggestions = new("disable_first_party_analyzer_suggestions", defaultValue: false);
 
