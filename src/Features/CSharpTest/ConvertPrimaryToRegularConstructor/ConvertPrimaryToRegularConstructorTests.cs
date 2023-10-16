@@ -313,7 +313,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestWithBlockBodyAssignmentToField1()
+    public async Task TestWithReferenceOnlyInExistingSameNamedField()
     {
         await new VerifyCS.Test
         {
@@ -339,7 +339,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestWithBlockBodyAssignmentToProperty1()
+    public async Task TestWithReferenceOnlyInPropertyInitializer1()
     {
         await new VerifyCS.Test
         {
@@ -365,7 +365,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestWithBlockBodyAssignmentToField2()
+    public async Task TestWithReferenceInDifferentNamedField()
     {
         await new VerifyCS.Test
         {
@@ -391,7 +391,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestWithComplexRightSide1()
+    public async Task TestWithComplexFieldInitializer1()
     {
         await new VerifyCS.Test
         {
@@ -417,7 +417,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestWithComplexRightSide2()
+    public async Task TestWithComplexFieldInitializer2()
     {
         await new VerifyCS.Test
         {
@@ -443,7 +443,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestWithComplexRightSide3()
+    public async Task TestWithComplexFieldInitializer3()
     {
         await new VerifyCS.Test
         {
@@ -472,7 +472,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestBlockWithMultipleAssignments1()
+    public async Task TestMultipleParametersWithFieldInitializers1()
     {
         await new VerifyCS.Test
         {
@@ -501,7 +501,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestBlockWithMultipleAssignments2()
+    public async Task TestMultipleParametersWithFieldInitializers2()
     {
         await new VerifyCS.Test
         {
@@ -528,7 +528,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembers1_Used()
+    public async Task TestWithParametersReferencedOutsideOfConstructor()
     {
         await new VerifyCS.Test
         {
@@ -564,7 +564,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembers1_Used_Written1()
+    public async Task TestWithParametersReferencedOutsideOfConstructor_Mutation1()
     {
         await new VerifyCS.Test
         {
@@ -600,7 +600,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembers1_Unused()
+    public async Task TestWithoutParametersReferencedOutsideOfConstructor()
     {
         await new VerifyCS.Test
         {
@@ -622,7 +622,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersOnlyWithMatchingType()
+    public async Task TestAssignmentToPropertyOfDifferentType()
     {
         await new VerifyCS.Test
         {
@@ -648,7 +648,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestNestedTypes()
+    public async Task TestAssignedToFieldUsedInNestedType()
     {
         await new VerifyCS.Test
         {
@@ -700,7 +700,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersUpdateReferences1()
+    public async Task TestWithNotMutatedReferencesOutsideOfConstructor1()
     {
         await new VerifyCS.Test
         {
@@ -738,7 +738,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersUpdateReferences2()
+    public async Task TestEscapedParameterNames()
     {
         await new VerifyCS.Test
         {
@@ -776,45 +776,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersUpdateReferencesWithRename1()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System;
-                class [|C(int i, int j)|]
-                {
-                    void M()
-                    {
-                        Console.WriteLine(i + j);
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-                class C
-                {
-                    private readonly int i;
-                    private readonly int j;
-
-                    public C(int i, int j)
-                    {
-                        this.i = i;
-                        this.j = j;
-                    }
-
-                    void M()
-                    {
-                        Console.WriteLine(i + j);
-                    }
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestRemoveMembersOnlyPrivateMembers()
+    public async Task TestWithNotMutatedReferencesOutsideOfConstructor2()
     {
         await new VerifyCS.Test
         {
@@ -854,7 +816,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersOnlyMembersWithoutAttributes()
+    public async Task TestWithNotMutatedReferencesOutsideOfConstructor3()
     {
         await new VerifyCS.Test
         {
@@ -896,7 +858,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersAccessedOffThis1()
+    public async Task TestGenerateUnderscoreName1()
     {
         await new VerifyCS.Test
         {
@@ -939,7 +901,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersAccessedOffThis2()
+    public async Task TestGenerateUnderscoreName2()
     {
         await new VerifyCS.Test
         {
@@ -982,7 +944,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestWhenRightSideDoesNotReferenceThis()
+    public async Task TestComplexFieldInitializer()
     {
         await new VerifyCS.Test
         {
@@ -1012,7 +974,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_1()
+    public async Task TestMoveParamDocs1()
     {
         await new VerifyCS.Test
         {
@@ -1048,7 +1010,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_IfDef1()
+    public async Task TestMoveParamDocs2()
     {
         await new VerifyCS.Test
         {
@@ -1088,37 +1050,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_2()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                /// <summary>Doc comment on single line</summary>
-                /// <param name="i">Doc about i single line</param>
-                class [|C(int i)|]
-                {
-                    private int i = i;
-                }
-                """,
-            FixedCode = """
-                /// <summary>Doc comment on single line</summary>
-                class C
-                {
-                    private int i;
-
-                    /// <param name="i">Doc about i single line</param>
-                    public C(int i)
-                    {
-                        this.i = i;
-                    }
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_3()
+    public async Task TestMoveParamDocs3()
     {
         await new VerifyCS.Test
         {
@@ -1148,7 +1080,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_1()
+    public async Task TestMoveParamDocs4()
     {
         await new VerifyCS.Test
         {
@@ -1196,7 +1128,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_2()
+    public async Task TestMoveParamDocs5()
     {
         await new VerifyCS.Test
         {
@@ -1240,7 +1172,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_3()
+    public async Task TestMoveParamDocs6()
     {
         await new VerifyCS.Test
         {
@@ -1280,7 +1212,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_4()
+    public async Task TestMoveParamDocs7()
     {
         await new VerifyCS.Test
         {
@@ -1328,7 +1260,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorParamDocCommentsIntoTypeDocComments1()
+    public async Task TestMoveParamDocs9()
     {
         await new VerifyCS.Test
         {
@@ -1377,7 +1309,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestMoveConstructorParamDocCommentsIntoTypeDocComments2()
+    public async Task TestMoveParamDocs10()
     {
         await new VerifyCS.Test
         {
@@ -1424,7 +1356,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments1()
+    public async Task TestMoveParamDocs11()
     {
         await new VerifyCS.Test
         {
@@ -1460,7 +1392,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments4()
+    public async Task TestMoveParamDocs13()
     {
         await new VerifyCS.Test
         {
@@ -1492,7 +1424,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments5()
+    public async Task TestMoveParamDocs14()
     {
         await new VerifyCS.Test
         {
@@ -1524,7 +1456,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments6()
+    public async Task TestMoveParamDocs15()
     {
         await new VerifyCS.Test
         {
@@ -1556,7 +1488,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments2()
+    public async Task TestMoveParamDocs16()
     {
         await new VerifyCS.Test
         {
@@ -1592,7 +1524,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments3()
+    public async Task TestMoveParamDocs17()
     {
         await new VerifyCS.Test
         {
@@ -1624,7 +1556,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments_MembersWithDifferentNames1()
+    public async Task TestMoveParamDocs18()
     {
         await new VerifyCS.Test
         {
@@ -1660,7 +1592,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersMoveDocComments_WhenTypeDocComments1()
+    public async Task TestMoveParamDocs19()
     {
         await new VerifyCS.Test
         {
@@ -1702,7 +1634,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersKeepConstructorDocs1()
+    public async Task TestMoveParamDocs20()
     {
         await new VerifyCS.Test
         {
@@ -1740,7 +1672,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersKeepConstructorDocs2()
+    public async Task TestMoveParamDocs21()
     {
         await new VerifyCS.Test
         {
@@ -1778,7 +1710,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersKeepConstructorDocs3()
+    public async Task TestMoveParamDocs22()
     {
         await new VerifyCS.Test
         {
@@ -2777,83 +2709,6 @@ public class ConvertPrimaryToRegularConstructorTests
                     public C(int i = Default)
                     {
                         _i = i;
-                    }
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestMergeConstructorSummaryIntoTypeDocComment()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System;
-
-                namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
-                {
-                    /// <summary>
-                    /// Active instruction identifier.
-                    /// It has the information necessary to track an active instruction within the debug session.
-                    /// </summary>
-                    /// <remarks>
-                    /// Creates an ActiveInstructionId.
-                    /// </remarks>
-                    /// <param name="method">Method which the instruction is scoped to.</param>
-                    /// <param name="ilOffset">IL offset for the instruction.</param>
-                    [CLSCompliant(false)]
-                    internal readonly struct [|ManagedInstructionId(
-                        string method,
-                        int ilOffset)|]
-                    {
-                        /// <summary>
-                        /// Method which the instruction is scoped to.
-                        /// </summary>
-                        public string Method { get; } = method;
-
-                        /// <summary>
-                        /// The IL offset for the instruction.
-                        /// </summary>
-                        public int ILOffset { get; } = ilOffset;
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-
-                namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
-                {
-                    /// <summary>
-                    /// Active instruction identifier.
-                    /// It has the information necessary to track an active instruction within the debug session.
-                    /// </summary>
-                    /// <remarks>
-                    /// Creates an ActiveInstructionId.
-                    /// </remarks>
-                    [CLSCompliant(false)]
-                    internal readonly struct ManagedInstructionId
-                    {
-                        /// <summary>
-                        /// Method which the instruction is scoped to.
-                        /// </summary>
-                        public string Method { get; }
-                
-                        /// <summary>
-                        /// The IL offset for the instruction.
-                        /// </summary>
-                        public int ILOffset { get; }
-
-                        /// <param name="method">Method which the instruction is scoped to.</param>
-                        /// <param name="ilOffset">IL offset for the instruction.</param>
-                        public ManagedInstructionId(
-                            string method,
-                            int ilOffset)
-                        {
-                            Method = method;
-                            ILOffset = ilOffset;
-                        }
                     }
                 }
                 """,
