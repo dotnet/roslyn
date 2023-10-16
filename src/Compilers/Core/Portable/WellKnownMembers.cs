@@ -4277,6 +4277,23 @@ namespace Microsoft.CodeAnalysis
                         1,
                         (byte)SignatureTypeCode.GenericMethodParameter, 0,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericMethodParameter, 0,                       // Parameter Type
+
+
+                // System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.GenericMethodParameter, 0,
+
+                // System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TResult_TAwaiter
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                2,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericMethodParameter, 1, // Return type
+                    (byte)SignatureTypeCode.GenericMethodParameter, 0,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -4806,6 +4823,8 @@ namespace Microsoft.CodeAnalysis
                 "AsSpan",                                   // System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T
                 "SetCount",                                 // System_Runtime_InteropServices_CollectionsMarshal__SetCount_T
                 "AsImmutableArray",                         // System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T
+                "UnsafeAwaitAwaiterFromRuntimeAsync",       // System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+                "UnsafeAwaitAwaiterFromRuntimeAsync",       // System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TResult_TAwaiter
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

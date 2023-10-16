@@ -37,8 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // await arg ---> UnsafeAwaitAwaiterFromRuntimeAsync(arg.GetAwaiter)
                 BoundCall getAwaiter = _factory.Call(rewrittenAwait.Expression, (MethodSymbol)rewrittenAwait.AwaitableInfo.GetAwaiter!.ExpressionSymbol!);
 
-                // TODO: VS UnsafeAwaitAwaiterFromRuntimeAsync
-                BoundExpression getResult = _factory.Call(getAwaiter, rewrittenAwait.AwaitableInfo.GetResult!);
+                MethodSymbol helper;
+                if (rewrittenAwait.Type.IsVoidType())
+                {
+                    helper = (MethodSymbol)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter)!;
+                    helper = helper.Construct(getAwaiter.Type);
+                }
+                else
+                {
+                    helper = (MethodSymbol)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TResult_TAwaiter)!;
+                    helper = helper.Construct(rewrittenAwait.Type, getAwaiter.Type);
+                }
+
+                BoundExpression getResult = _factory.Call(null, helper, getAwaiter);
                 return getResult;
             }
 
