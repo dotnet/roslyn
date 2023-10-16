@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!a.IsMissing && a.IsLinked)
                 {
-                    if (!a.HasGuidAttribute)
+                    if (!a.GetGuidString(out _))
                     {
                         // ERRID_PIAHasNoAssemblyGuid1/ERR_NoPIAAssemblyMissingAttribute
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttribute, NoLocation.Singleton, a, AttributeDescription.GuidAttribute.FullName);

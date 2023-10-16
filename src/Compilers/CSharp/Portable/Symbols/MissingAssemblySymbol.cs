@@ -84,8 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasGuidAttribute => false;
-
         internal override bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute => false;
 
         public override int GetHashCode()

@@ -131,9 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool HasGuidAttribute
-            => PrimaryModule.Module.HasGuidAttribute(_assembly.Handle, out _);
-
         internal override bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute
         {
             get
