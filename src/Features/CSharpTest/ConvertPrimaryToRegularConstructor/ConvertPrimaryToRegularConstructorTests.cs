@@ -544,8 +544,8 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-                    private int i;
-                    private int j;
+                    private readonly int i;
+                    private readonly int j;
 
                     public [|C|](int i, int j)
                     {
@@ -556,6 +556,42 @@ public class ConvertPrimaryToRegularConstructorTests
                     int M()
                     {
                         return i + j;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembers1_Used_Written1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class [|C(int i, int j)|]
+                {
+                    int M()
+                    {
+                        return i++ + j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    private readonly int j;
+                    private int i;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+
+                    int M()
+                    {
+                        return i++ + j;
                     }
                 }
                 """,
@@ -682,8 +718,8 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
-                    private int i;
-                    private int j;
+                    private readonly int i;
+                    private readonly int j;
 
                     public C(int i, int j)
                     {
@@ -720,8 +756,8 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
-                    private int @this;
-                    private int @delegate;
+                    private readonly int @this;
+                    private readonly int @delegate;
 
                     public C(int @this, int @delegate)
                     {
@@ -758,8 +794,8 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
-                    private int i;
-                    private int j;
+                    private readonly int i;
+                    private readonly int j;
 
                     public C(int i, int j)
                     {
@@ -798,8 +834,8 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
+                    private readonly int i;
                     public int _j;
-                    private int i;
 
                     public C(int i, int j)
                     {
@@ -839,9 +875,9 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
+                    private readonly int i;
                     [CLSCompliant(true)]
                     private int _j;
-                    private int i;
 
                     public [|C|](int i, int j)
                     {
@@ -860,7 +896,7 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
-    public async Task TestRemoveMembersAccessedOffThis()
+    public async Task TestRemoveMembersAccessedOffThis1()
     {
         await new VerifyCS.Test
         {
@@ -881,6 +917,49 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
+                    private readonly int _i;
+                    private int _j;
+
+                    public C(int i, int j)
+                    {
+                        _i = i;
+                        _j = j;
+                    }
+
+                    void M(C c)
+                    {
+                        Console.WriteLine(_i);
+                        Console.WriteLine(_j == c._j);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersAccessedOffThis2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class [|C(int i, int j)|]
+                {
+                    private int _j = j;
+
+                    void M(C c)
+                    {
+                        Console.WriteLine(i++);
+                        Console.WriteLine(_j == c._j);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C
+                {
                     private int _j;
                     private int _i;
 
@@ -892,7 +971,7 @@ public class ConvertPrimaryToRegularConstructorTests
 
                     void M(C c)
                     {
-                        Console.WriteLine(_i);
+                        Console.WriteLine(_i++);
                         Console.WriteLine(_j == c._j);
                     }
                 }
@@ -2563,7 +2642,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 /// </summary>
                 class C
                 {
-                    private int i;
+                    private readonly int i;
 
                     public C(int i)
                     {
@@ -2603,7 +2682,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 /// </summary>
                 class C
                 {
-                    private int _i;
+                    private readonly int _i;
 
                     public C(int i)
                     {

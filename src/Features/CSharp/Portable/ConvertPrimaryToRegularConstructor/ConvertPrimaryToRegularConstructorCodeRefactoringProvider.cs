@@ -73,6 +73,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, optionsProvider, cancellationToken).ConfigureAwait(false);
 
+        // The naming rule we need to follow if we synthesize new private fields.
         var fieldNameRule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
             DeclarationModifiers.None,
@@ -113,7 +114,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         AddNewFields();
         AddConstructorDeclaration();
         await RewritePrimaryConstructorParameterReferencesAsync().ConfigureAwait(false);
-        FixConstructorDeclarationFormatting();
+       //  FixConstructorDeclarationFormatting();
 
         return solutionEditor.GetChangedSolution();
 
@@ -190,8 +191,10 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                     var baseFieldName = fieldNameRule.NamingStyle.MakeCompliant(parameter.Name).First();
                     var fieldName = NameGenerator.GenerateUniqueName(baseFieldName, n => namedType.Name != n && !namedType.GetMembers(n).Any());
 
+                    var isWrittenTo = parameterReferences[parameter].Any(r => r.IsWrittenTo(semanticModel, cancellationToken));
                     var synthesizedField = CodeGenerationSymbolFactory.CreateFieldSymbol(
                         existingField,
+                        modifiers: isWrittenTo ? existingField.GetSymbolModifiers() : existingField.GetSymbolModifiers().WithIsReadOnly(true),
                         name: fieldName);
 
                     result.Add(parameter, synthesizedField);
