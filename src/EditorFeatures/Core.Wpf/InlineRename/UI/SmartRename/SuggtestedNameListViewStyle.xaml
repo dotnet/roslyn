@@ -7,7 +7,7 @@
 
     <Style x:Key="CopilotListViewStyle" TargetType="ListView">
         <Setter Property="ItemsSource" Value="{Binding SuggestedNamesViewModel.SuggestedNames}"/>
-        <Setter Property="Visibility" Value="{Binding Path=HasSuggestions, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
+        <Setter Property="Visibility" Value="{Binding SuggestedNamesViewModel.HasSuggestions, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="BorderBrush" Value="{StaticResource copilotBranding}"/>

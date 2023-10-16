@@ -12,13 +12,16 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameDashboardViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly InlineRenameSession _session;
+        private readonly SmartRenameViewModel? _smartRenameViewModel;
 
         private RenameDashboardSeverity _severity = RenameDashboardSeverity.None;
         private string _searchText;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private string _errorText;
         private bool _isReplacementTextValid;
 
-        public RenameDashboardViewModel(InlineRenameSession session)
+        public RenameDashboardViewModel(InlineRenameSession session, ISmartRenameSession? smartRenameSession)
         {
             _session = session;
             _searchText = EditorFeaturesResources.Searching;
@@ -38,13 +41,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
+
+            if (smartRenameSession is not null)
+            {
+                _smartRenameViewModel = new SmartRenameViewModel(smartRenameSession);
+                _smartRenameViewModel.PropertyChanged += CurrentSelectedNamePropertyChanged;
+            }
+        }
+
+        private void CurrentSelectedNamePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(_smartRenameViewModel.CurrentSelectedName)
+                && _smartRenameViewModel?.CurrentSelectedName is not null)
+            {
+                _session.ApplyReplacementText(_smartRenameViewModel.CurrentSelectedName, propagateEditImmediately: true);
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>() { "Hello", "World", "Bar", "Goo", "XYZ" };
-
-        public bool HasSuggestions => true;
 
         private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {

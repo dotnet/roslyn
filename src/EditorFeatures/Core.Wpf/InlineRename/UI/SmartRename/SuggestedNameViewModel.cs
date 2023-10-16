@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                 if (value != _isSelect)
                 {
                     _isSelect = value;
-                    _smartRenameViewModel.CurrentSelectedName = Name;
+                    if (_isSelect)
+                        _smartRenameViewModel.CurrentSelectedName = Name;
                 }
             }
         }
