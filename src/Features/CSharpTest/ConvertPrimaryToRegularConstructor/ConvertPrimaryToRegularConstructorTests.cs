@@ -599,13 +599,11 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-                    private int I { get; }
                     private long J { get; }
 
                     public C(int i, int j)
                     {
-                        this.I = i;
-                        this.J = j;
+                        J = j;
                     }
                 }
                 """,
@@ -695,7 +693,7 @@ public class ConvertPrimaryToRegularConstructorTests
 
                     void M()
                     {
-                        Console.WriteLine(this.i + this.j);
+                        Console.WriteLine(i + j);
                     }
                 }
                 """,
@@ -722,18 +720,18 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
-                    private int i;
-                    private int j;
+                    private int @this;
+                    private int @delegate;
 
                     public C(int @this, int @delegate)
                     {
-                        this.i = @this;
-                        this.j = @delegate;
+                        this.@this = @this;
+                        this.@delegate = @delegate;
                     }
 
                     void M()
                     {
-                        Console.WriteLine(this.i + this.j);
+                        Console.WriteLine(@this + @delegate);
                     }
                 }
                 """,
@@ -760,18 +758,18 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
-                    private int _i;
-                    private int _j;
+                    private int i;
+                    private int j;
 
                     public C(int i, int j)
                     {
-                        _i = i;
-                        _j = j;
+                        this.i = i;
+                        this.j = j;
                     }
 
                     void M()
                     {
-                        Console.WriteLine(_i + _j);
+                        Console.WriteLine(i + j);
                     }
                 }
                 """,
@@ -800,18 +798,18 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
-                    private int _i;
                     public int _j;
+                    private int i;
 
                     public C(int i, int j)
                     {
-                        _i = i;
+                        this.i = i;
                         _j = j;
                     }
 
                     void M()
                     {
-                        Console.WriteLine(_i + _j);
+                        Console.WriteLine(i + _j);
                     }
                 }
                 """,
@@ -841,19 +839,19 @@ public class ConvertPrimaryToRegularConstructorTests
                 using System;
                 class C
                 {
-                    private int _i;
                     [CLSCompliant(true)]
                     private int _j;
+                    private int i;
 
                     public [|C|](int i, int j)
                     {
-                        _i = i;
+                       this. i = i;
                         _j = j;
                     }
 
                     void M()
                     {
-                        Console.WriteLine(_i + _j);
+                        Console.WriteLine(i + _j);
                     }
                 }
                 """,
@@ -1290,17 +1288,12 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                     class C
                     {
-                        /// <summary>Docs for i.</summary>
-                        private int i;
-                        /// <summary>
+                        /// <param name="i">Docs for i.</param>
+                        /// <param name="j">
                         /// Docs for j.
-                        /// </summary>
-                        private int j;
-
+                        /// </param>
                         public C(int i, int j)
                         {
-                            this.i = i;
-                            this.j = j;
                         }
                     }
                 }
@@ -1331,17 +1324,12 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                     class C
                     {
-                        /// <summary>Docs for x.</summary>
-                        private int x;
-                        /// <summary>
+                        /// <param name="i">Docs for x.</param>
+                        /// <param name="j">
                         /// Docs for y.
-                        /// </summary>
-                        private int y;
-
+                        /// </param>
                         public C(int i, int j)
                         {
-                            this.x = i;
-                            this.y = j;
                         }
                     }
                 }
@@ -1378,17 +1366,12 @@ public class ConvertPrimaryToRegularConstructorTests
                     /// </summary>
                     class C
                     {
-                        /// <summary>Docs for i.</summary>
-                        private int i;
-                        /// <summary>
+                        /// <param name="i">Docs for i.</param>
+                        /// <param name="j">
                         /// Docs for j.
-                        /// </summary>
-                        private int j;
-
+                        /// </param>
                         public C(int i, int j)
                         {
-                            this.i = i;
-                            this.j = j;
                         }
                     }
                 }
@@ -1461,18 +1444,10 @@ public class ConvertPrimaryToRegularConstructorTests
                     /// </summary>
                     class C
                     {
-                        /// <summary>Field docs for i.</summary>
-                        private int i;
-                        /// <summary>
-                        /// Field docs for j.
-                        /// </summary>
-                        private int j;
-
                         /// <param name="j">Param docs for j</param>
+                        /// <param name="i">Field docs for i.</param>
                         public C(int i, int j)
                         {
-                            this.i = i;
-                            this.j = j;
                         }
                     }
                 }
@@ -1509,18 +1484,12 @@ public class ConvertPrimaryToRegularConstructorTests
                     /// </summary>
                     class C
                     {
-                        /// <summary>Field docs for i.</summary>
-                        private int i;
-                        /// <summary>
-                        /// Field docs for j.
-                        /// </summary>
-                        private int j;
-
                         /// <param name="i">Param docs for i</param>
+                        /// <param name="j">
+                        /// Field docs for j.
+                        /// </param>
                         public C(int i, int j)
                         {
-                            this.i = i;
-                            this.j = j;
                         }
                     }
                 }
