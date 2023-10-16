@@ -179,7 +179,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                 if (lastFieldOrProperty >= 0)
                 {
                     constructorDeclaration = constructorDeclaration
-                        .WithPrependedLeadingTrivia(ElasticCarriageReturnLineFeed, ElasticCarriageReturnLineFeed);
+                        .WithPrependedLeadingTrivia(ElasticCarriageReturnLineFeed);
 
                     return currentTypeDeclaration.WithMembers(
                         currentTypeDeclaration.Members.Insert(lastFieldOrProperty + 1, constructorDeclaration));

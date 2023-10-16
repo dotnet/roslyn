@@ -951,11 +951,11 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 namespace N
                 {
+                    /// <summary>Doc comment on single line</summary>
                     class C
                     {
                         private int i;
 
-                        /// <summary>Doc comment on single line</summary>
                         /// <param name="i">Doc about i single line</param>
                         public C(int i)
                         {
@@ -990,11 +990,11 @@ public class ConvertPrimaryToRegularConstructorTests
                 namespace N
                 {
                 #if true
+                    /// <summary>Doc comment on single line</summary>
                     class C
                     {
                         private int i;
 
-                        /// <summary>Doc comment on single line</summary>
                         /// <param name="i">Doc about i single line</param>
                         public C(int i)
                         {
@@ -1022,11 +1022,11 @@ public class ConvertPrimaryToRegularConstructorTests
                 }
                 """,
             FixedCode = """
+                /// <summary>Doc comment on single line</summary>
                 class C
                 {
                     private int i;
 
-                    /// <summary>Doc comment on single line</summary>
                     /// <param name="i">Doc about i single line</param>
                     public C(int i)
                     {
@@ -1052,7 +1052,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 }
                 """,
             FixedCode = """
-                /// <summary>Doc comment on single line</summary>
+                ///<summary>Doc comment on single line</summary>
                 class C
                 {
                     private int i;
@@ -1139,13 +1139,13 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 namespace N
                 {
+                    /// <summary>
+                    /// Doc comment
+                    /// On multiple lines</summary>
                     class C
                     {
                         private int i;
 
-                        /// <summary>
-                        /// Doc comment
-                        /// On multiple lines</summary>
                         /// <param name="i">
                         /// Doc about i
                         /// on multiple lines</param>
@@ -1181,12 +1181,12 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 namespace N
                 {
+                    /// <summary>Doc comment
+                    /// On multiple lines</summary>
                     class C
                     {
                         private int i;
 
-                        /// <summary>Doc comment
-                        /// On multiple lines</summary>
                         /// <param name="i">Doc about i
                         /// on multiple lines</param>
                         public C(int i)
@@ -1276,13 +1276,13 @@ public class ConvertPrimaryToRegularConstructorTests
                     /// <summary>
                     /// Existing doc comment
                     /// </summary>
+                    /// <remarks>Constructor comment
+                    /// On multiple lines</remarks>
                     class C
                     {
                         private int i;
                         private int j;
 
-                        /// <summary>Constructor comment
-                        /// On multiple lines</summary>
                         /// <param name="i">Doc about i</param>
                         /// <param name="i">Doc about j</param>
                         public C(int i, int j)
@@ -1322,12 +1322,12 @@ public class ConvertPrimaryToRegularConstructorTests
                 namespace N
                 {
                     /// <summary>Existing doc comment</summary>
+                    /// <remarks>Constructor comment</remarks>
                     class C
                     {
                         private int i;
                         private int j;
 
-                        /// <summary>Constructor comment</summary>
                         /// <param name="i">Doc about
                         /// i</param>
                         /// <param name="i">Doc about
