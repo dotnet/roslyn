@@ -500,7 +500,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsAsync => false;
 
-        // public override bool IsAsync => define;
+        internal override bool IsAsync2
+        {
+            get
+            {
+                var modifiers = ReturnTypeWithAnnotations.CustomModifiers;
+                if (modifiers.IsDefaultOrEmpty)
+                {
+                    return false;
+                }
+
+                var modifier = modifiers[modifiers.Length - 1];
+                if (!modifier.IsOptional)
+                {
+                    return false;
+                }
+
+                var modifierType = modifier.Modifier;
+                if (this.ReturnsVoid)
+                {
+                    return modifierType.MetadataName == "Task";
+                }
+
+                return modifierType.MetadataName == "Task`1";
+            }
+        }
 
         public override int Arity
         {

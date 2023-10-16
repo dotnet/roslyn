@@ -39,6 +39,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected MethodSymbol? MethodChecks(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
+            if (this.IsAsync2)
+            {
+                CustomModifier modifier;
+                if (returnType.IsVoidType())
+                {
+                    var task = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                    modifier = CSharpCustomModifier.CreateOptional(task);
+                }
+                else
+                {
+                    var openTask = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).ConstructUnboundGenericType();
+                    modifier = CSharpCustomModifier.CreateOptional(openTask);
+                }
+
+                returnType = returnType.WithModifiers(ImmutableArray.Create(modifier));
+            }
+
             _lazyReturnType = returnType;
             _lazyParameters = parameters;
 
@@ -87,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This value may not be correct, but we need something while we compute this.OverriddenMethod.
             // May be re-assigned below.
-            Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
+            Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty || IsAsync2);
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
             MethodSymbol? overriddenOrExplicitlyImplementedMethod = null;

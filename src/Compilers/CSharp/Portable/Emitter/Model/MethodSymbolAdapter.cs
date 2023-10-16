@@ -222,14 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (AdaptedMethodSymbol.IsAsync2)
-                {
-                    NamedTypeSymbol task = (AdaptedMethodSymbol.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)).ConstructUnboundGenericType();
-                    Debug.Assert(task.IsUnboundGenericType);
-                    Cci.ICustomModifier mod = CSharpCustomModifier.CreateOptional(task);
-                    return ImmutableArray.Create(mod);
-                }
-
                 return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedMethodSymbol.ReturnTypeWithAnnotations.CustomModifiers);
             }
         }

@@ -1078,11 +1078,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (returnType.IsVoidType())
                     {
-                        returnType = Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                        var modifiers = method.ReturnTypeWithAnnotations.CustomModifiers;
+                        var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
+                        returnType = modifier.ModifierSymbol;
                     }
                     else
                     {
-                        returnType = Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(ImmutableArray.Create(returnType));
+                        if (method.RefKind != RefKind.None ||
+                            returnType.IsPointerOrFunctionPointer() || returnType.IsRestrictedType())
+                        {
+                            Error(diagnostics, ErrorCode.ERR_BadTypeArgument, expression, returnType);
+                        }
+                        else
+                        {
+                            var modifiers = method.ReturnTypeWithAnnotations.CustomModifiers;
+                            var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
+                            returnType = modifier.ModifierSymbol.OriginalDefinition.Construct(returnType);
+                        }
                     }
 
                     var returnTypeWithAnnotations = TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.SyntaxTree, node.SpanStart), returnType);
