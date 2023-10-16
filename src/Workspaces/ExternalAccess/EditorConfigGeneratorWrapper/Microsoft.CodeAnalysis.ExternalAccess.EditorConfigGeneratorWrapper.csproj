@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGeneratorWrapper</RootNamespace>
+    <TargetFrameworks>$(SourceBuildTargetFrameworks);netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+
+    <!--
+      ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
+      TODO: ADD THE EXTERNAL INTERNALSVISIBLETO
+    -->
+
+  </ItemGroup>
+
+</Project>
