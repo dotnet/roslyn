@@ -201,54 +201,6 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             return semanticModel;
         }
 
-        TypeDeclarationSyntax RemoveParamXmlElements(TypeDeclarationSyntax typeDeclaration)
-        {
-            var triviaList = typeDeclaration.GetLeadingTrivia();
-            var trivia = GetDocComment(triviaList);
-            var docComment = GetDocCommentStructure(trivia);
-            if (docComment == null)
-                return typeDeclaration;
-
-            using var _ = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var content);
-
-            foreach (var node in docComment.Content)
-            {
-                if (IsXmlElement(node, "param", out var paramElement))
-                {
-                    // We're skipping a param node.  Remove any blank xml lines preceding this.
-                    if (IsDocCommentNewLine(content.LastOrDefault()))
-                        content.RemoveLast();
-                    //else if (content.Count == 1 && IsEmptyDocCommentStartText(content.LastOrDefault()))
-                    //    content.RemoveLast();
-                }
-                else
-                {
-                    content.Add(node);
-                }
-            }
-
-            if (content.All(c => c is XmlTextSyntax xmlText && xmlText.TextTokens.All(
-                    t => t.Kind() == SyntaxKind.XmlTextLiteralNewLineToken || string.IsNullOrWhiteSpace(t.Text))))
-            {
-                // Nothing but param nodes.  Just remove all the doc comments entirely.
-                var triviaIndex = triviaList.IndexOf(trivia);
-
-                // remove the doc comment itself
-                var updatedTriviaList = triviaList.RemoveAt(triviaIndex);
-
-                // If the comment was on a line that started with whitespace, remove that whitespce too.
-                if (triviaIndex > 0 && triviaList[triviaIndex - 1].IsWhitespace())
-                    updatedTriviaList = updatedTriviaList.RemoveAt(triviaIndex - 1);
-
-                return typeDeclaration.WithLeadingTrivia(updatedTriviaList);
-            }
-            else
-            {
-                var updatedTrivia = Trivia(docComment.WithContent(List(content)));
-                return typeDeclaration.WithLeadingTrivia(triviaList.Replace(trivia, updatedTrivia));
-            }
-        }
-
         async Task<MultiDictionary<IParameterSymbol, IdentifierNameSyntax>> GetParameterReferencesAsync()
         {
             var result = new MultiDictionary<IParameterSymbol, IdentifierNameSyntax>();
@@ -452,19 +404,24 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     var node = docComment.Content[i];
                     if (IsXmlElement(node, "param", out var paramElement))
                     {
-                        // if the param tag was on a newline, the preserve that when transferring over.
-                        if (content.Count > 0 && IsDocCommentNewLine(docComment.Content[i - 1]))
-                            content.Add(docComment.Content[i - 1]);
-
                         content.Add(node);
+
+                        // if the param tag is followed with a newline, then preserve that when transferring over.
+                        if (i + 1 < docComment.Content.Count && IsDocCommentNewLine(docComment.Content[i + 1]))
+                            content.Add(docComment.Content[i + 1]);
                     }
                 }
 
                 if (content.Count > 0)
-                    content.Add(XmlText(XmlTextNewLine("\r\n", continueXmlDocumentationComment: false)));
+                {
+                    if (!content[0].GetLeadingTrivia().Any(SyntaxKind.DocumentationCommentExteriorTrivia))
+                        content[0] = content[0].WithLeadingTrivia(DocumentationCommentExterior("/// "));
 
-                if (content.Count > 0)
-                    return constructorDeclaration.WithLeadingTrivia(Trivia(DocumentationComment(content.ToArray())).WithAdditionalAnnotations(Formatter.Annotation));
+                    content[^1] = content[^1].WithTrailingTrivia(EndOfLine(""));
+
+                    var finalTrivia = DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content));
+                    return constructorDeclaration.WithLeadingTrivia(Trivia(finalTrivia).WithAdditionalAnnotations(Formatter.Annotation));
+                }
             }
 
             return constructorDeclaration;
@@ -530,11 +487,112 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         return element != null;
     }
 
-    private static bool IsDocCommentNewLine([NotNullWhen(true)] XmlNodeSyntax? node)
-        => node is XmlTextSyntax { TextTokens: [(kind: SyntaxKind.XmlTextLiteralNewLineToken), (kind: SyntaxKind.XmlTextLiteralToken) precedingText] } &&
-           string.IsNullOrWhiteSpace(precedingText.Text);
+    //private static bool IsDocCommentNewLine([NotNullWhen(true)] XmlNodeSyntax? node)
+    //{
+    //    if (node is not XmlTextSyntax xmlText)
+    //        return false;
 
-    private static bool IsEmptyDocCommentStartText([NotNullWhen(true)] XmlNodeSyntax? node)
-        => node is XmlTextSyntax { TextTokens: [(kind: SyntaxKind.XmlTextLiteralToken) precedingText] } &&
-           string.IsNullOrWhiteSpace(precedingText.Text);
+    //    var textTokens = xmlText.TextTokens;
+    //    if (textTokens )
+    //    : [(kind: SyntaxKind.XmlTextLiteralNewLineToken), (kind: SyntaxKind.XmlTextLiteralToken) precedingText] } &&
+    //       string.IsNullOrWhiteSpace(precedingText.Text);
+
+    //private static bool IsEmptyDocCommentStartText([NotNullWhen(true)] XmlNodeSyntax? node)
+    //    => node is XmlTextSyntax { TextTokens: [(kind: SyntaxKind.XmlTextLiteralToken) precedingText] } &&
+    //       string.IsNullOrWhiteSpace(precedingText.Text);
+
+    private static TypeDeclarationSyntax RemoveParamXmlElements(TypeDeclarationSyntax typeDeclaration)
+    {
+        var triviaList = typeDeclaration.GetLeadingTrivia();
+        var trivia = GetDocComment(triviaList);
+        var docComment = GetDocCommentStructure(trivia);
+        if (docComment == null)
+            return typeDeclaration;
+
+        using var _ = ArrayBuilder<XmlNodeSyntax>.GetInstance(out var content);
+
+        foreach (var node in docComment.Content)
+        {
+            if (IsXmlElement(node, "param", out var paramElement))
+            {
+                // We're skipping a param node.  Fixup any preceding text node we may have before it.
+                FixupLastTextNode();
+            }
+            else
+            {
+                content.Add(node);
+            }
+        }
+
+        if (content.All(c => c is XmlTextSyntax xmlText && xmlText.TextTokens.All(
+                t => t.Kind() == SyntaxKind.XmlTextLiteralNewLineToken || string.IsNullOrWhiteSpace(t.Text))))
+        {
+            // Nothing but param nodes.  Just remove all the doc comments entirely.
+            var triviaIndex = triviaList.IndexOf(trivia);
+
+            // remove the doc comment itself
+            var updatedTriviaList = triviaList.RemoveAt(triviaIndex);
+
+            // If the comment was on a line that started with whitespace, remove that whitespce too.
+            if (triviaIndex > 0 && triviaList[triviaIndex - 1].IsWhitespace())
+                updatedTriviaList = updatedTriviaList.RemoveAt(triviaIndex - 1);
+
+            return typeDeclaration.WithLeadingTrivia(updatedTriviaList);
+        }
+        else
+        {
+            var updatedTrivia = Trivia(docComment.WithContent(List(content)));
+            return typeDeclaration.WithLeadingTrivia(triviaList.Replace(trivia, updatedTrivia));
+        }
+
+        void FixupLastTextNode()
+        {
+            var node = content.LastOrDefault();
+            if (node is not XmlTextSyntax xmlText)
+                return;
+
+            var tokens = xmlText.TextTokens;
+            var lastIndex = tokens.Count;
+            if (lastIndex - 1 >= 0 && tokens[lastIndex - 1].Kind() == SyntaxKind.XmlTextLiteralToken && string.IsNullOrWhiteSpace(tokens[lastIndex - 1].Text))
+                lastIndex--;
+
+            if (lastIndex - 1 >= 0 && tokens[lastIndex - 1].Kind() == SyntaxKind.XmlTextLiteralNewLineToken)
+                lastIndex--;
+
+            if (lastIndex == tokens.Count)
+            {
+                // no change necessary.
+                return;
+            }
+            else if (lastIndex == 0)
+            {
+                // Removed all tokens from the text node.  So remove the text node entirely.
+                content.RemoveLast();
+            }
+            else
+            {
+                // Otherwise, replace with newlines stripped.
+                content[^1] = xmlText.WithTextTokens(TokenList(tokens.Take(lastIndex)));
+            }
+        }
+    }
+
+    private static bool IsDocCommentNewLine(XmlNodeSyntax node)
+    {
+        if (node is not XmlTextSyntax xmlText)
+            return false;
+
+        foreach (var textToken in xmlText.TextTokens)
+        {
+            if (textToken.Kind() == SyntaxKind.XmlTextLiteralNewLineToken)
+                continue;
+
+            if (textToken.Kind() == SyntaxKind.XmlTextLiteralToken && string.IsNullOrWhiteSpace(textToken.Text))
+                continue;
+
+            return false;
+        }
+
+        return true;
+    }
 }

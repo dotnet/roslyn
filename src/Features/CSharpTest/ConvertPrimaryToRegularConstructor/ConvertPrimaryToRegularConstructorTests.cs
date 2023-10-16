@@ -1381,6 +1381,102 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
+    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <param name="i">Docs for i.</param> 
+                    /// <param name="j">Docs for j.</param>
+                    class [|C(int i, int j)|]
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        /// <param name="i">Docs for i.</param> 
+                        /// <param name="j">Docs for j.</param>
+                        public C(int i, int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <param name="i">Docs for i.</param> 
+                    /// <param name="j">Docs for j.</param> 
+                    class [|C(int i, int j)|]
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        /// <param name="i">Docs for i.</param> 
+                        /// <param name="j">Docs for j.</param> 
+                        public C(int i, int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    /// <param name="i">Docs for i.</param> 
+                    ///<param name="j">Docs for j.</param>
+                    class [|C(int i, int j)|]
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        /// <param name="i">Docs for i.</param> 
+                        ///<param name="j">Docs for j.</param>
+                        public C(int i, int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments2()
     {
         await new VerifyCS.Test
@@ -1402,7 +1498,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                     class C
                     {
-                        /// <param name="i">Docs for i.</param>
+                        ///<param name="i">Docs for i.</param>
                         ///<param name="j">
                         ///Docs for j.
                         ///</param>
@@ -1436,7 +1532,7 @@ public class ConvertPrimaryToRegularConstructorTests
                 {
                     class C
                     {
-                        /// <param name="i">Docs for i.</param>
+                        ///<param name="i">Docs for i.</param>
                         ///<param name="j">Docs for j.</param>
                         public C(int i, int j)
                         {
@@ -2654,6 +2750,9 @@ public class ConvertPrimaryToRegularConstructorTests
                     /// Active instruction identifier.
                     /// It has the information necessary to track an active instruction within the debug session.
                     /// </summary>
+                    /// <remarks>
+                    /// Creates an ActiveInstructionId.
+                    /// </remarks>
                     [CLSCompliant(false)]
                     internal readonly struct ManagedInstructionId
                     {
@@ -2667,9 +2766,6 @@ public class ConvertPrimaryToRegularConstructorTests
                         /// </summary>
                         public int ILOffset { get; }
 
-                        /// <summary>
-                        /// Creates an ActiveInstructionId.
-                        /// </summary>
                         /// <param name="method">Method which the instruction is scoped to.</param>
                         /// <param name="ilOffset">IL offset for the instruction.</param>
                         public ManagedInstructionId(
