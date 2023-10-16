@@ -443,6 +443,35 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
+    public async Task TestWithComplexRightSide3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class [|C(int i)|]
+                {
+                    private int i = i * i;
+                    private int j = i + i;
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    private int i;
+                    private int j;
+
+                    public C(int i)
+                    {
+                        this.i = i * i;
+                        this.j = i + i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestBlockWithMultipleAssignments1()
     {
         await new VerifyCS.Test

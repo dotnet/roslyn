@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Data.Common;
@@ -74,8 +75,10 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         // 4. Update references to parameters to be references to fields
         // 5. Format as appropriate
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var compilation = semanticModel.Compilation;
+        var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModels = new ConcurrentSet<SemanticModel>();
+
+        var semanticModel = await GetSemanticModelAsync(document).ConfigureAwait(false);
         var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
 
         // We may have to update multiple files (in the case of a partial type).  Use a solution-editor to make that simple.
@@ -89,7 +92,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
         var parameterToSynthesizedFields = await GetSynthesizedFieldsAsync().ConfigureAwait(false);
         var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
 
-        var parameterToExistingFieldOrProperty = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
+        var initializedFieldsAndProperties = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
 
         var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
         var methodTargetingAttributes = typeDeclaration.AttributeLists.Where(list => list.Target?.Identifier.ValueText == "method");
@@ -112,7 +115,7 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             mainDocumentEditor.RemoveNode(attributeList);
 
         // Remove all the initializers from existing fields/props the params are assigned to.
-        foreach (var (parameter, (fieldOrProperty, initializer)) in parameterToExistingFieldOrProperty)
+        foreach (var (_, initializer) in initializedFieldsAndProperties.OrderBy(i => i.initializer.SpanStart))
         {
             if (initializer.Parent is PropertyDeclarationSyntax propertyDeclaration)
             {
@@ -123,9 +126,13 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                         .WithSemicolonToken(default)
                         .WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
             }
-            else
+            else if (initializer.Parent is VariableDeclaratorSyntax)
             {
                 mainDocumentEditor.RemoveNode(initializer);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -178,6 +185,15 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             });
 
         return solutionEditor.GetChangedSolution();
+
+        async ValueTask<SemanticModel> GetSemanticModelAsync(Document document)
+        {
+            // Ensure that if we get a semantic model for another document this named type is contained in, that we only
+            // produce that semantic model once.
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            semanticModels.Add(semanticModel);
+            return semanticModel;
+        }
 
         TypeDeclarationSyntax RemoveParamXmlElements(TypeDeclarationSyntax typeDeclaration)
         {
@@ -283,45 +299,38 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
             }
         }
 
-        async Task<ImmutableDictionary<IParameterSymbol, (ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>> GetExistingAssignedFieldsOrProperties()
+        async Task<ImmutableHashSet<(ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>> GetExistingAssignedFieldsOrProperties()
         {
-            using var _1 = PooledDictionary<IParameterSymbol, EqualsValueClauseSyntax>.GetInstance(out var parameterToMemberInitializer);
-
+            using var _1 = PooledHashSet<EqualsValueClauseSyntax>.GetInstance(out var initializers);
             foreach (var (parameter, references) in parameterReferences)
             {
-                // If this already has a synthesized parameter it is assigned to, there's definitely no field/prop it's assigned to.
-                if (parameterToSynthesizedFields.TryGetValue(parameter, out _))
-                    continue;
-
-                // only care if all the references to the parameter are in a single initializer.
-                var initializers = references
-                    .Select(r => r.AncestorsAndSelf().OfType<EqualsValueClauseSyntax>().LastOrDefault())
-                    .WhereNotNull()
-                    .ToSet();
-                if (initializers.Count != 1)
-                    continue;
-
-                var initializer = initializers.Single();
-                if (initializer.Parent is not PropertyDeclarationSyntax and not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } })
-                    continue;
-
-                parameterToMemberInitializer.Add(parameter, initializer);
-            }
-
-            using var _2 = PooledDictionary<IParameterSymbol, (ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>.GetInstance(out var result);
-            foreach (var grouping in parameterToMemberInitializer.GroupBy(kvp => kvp.Value.SyntaxTree))
-            {
-                var syntaxTree = grouping.Key;
-                var semanticModel = await solution.GetRequiredDocument(syntaxTree).GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var (parameter, initializer) in grouping)
+                foreach (var reference in references)
                 {
-                    var fieldOrProperty = semanticModel.GetRequiredDeclaredSymbol(initializer.GetRequiredParent(), cancellationToken);
-                    result.Add(parameter, (fieldOrProperty, initializer));
+                    var initializer = reference.AncestorsAndSelf().OfType<EqualsValueClauseSyntax>().LastOrDefault();
+                    if (initializer is null)
+                        continue;
+
+                    if (initializer.Parent is not PropertyDeclarationSyntax and not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } })
+                        continue;
+
+                    initializers.Add(initializer);
                 }
             }
 
-            return result.ToImmutableDictionary();
+            using var _2 = PooledHashSet<(ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>.GetInstance(out var result);
+            foreach (var grouping in initializers.GroupBy(kvp => kvp.Value.SyntaxTree))
+            {
+                var syntaxTree = grouping.Key;
+                var semanticModel = await GetSemanticModelAsync(solution.GetRequiredDocument(syntaxTree)).ConfigureAwait(false);
+
+                foreach (var initializer in grouping)
+                {
+                    var fieldOrProperty = semanticModel.GetRequiredDeclaredSymbol(initializer.GetRequiredParent(), cancellationToken);
+                    result.Add((fieldOrProperty, initializer));
+                }
+            }
+
+            return result.ToImmutableHashSet();
         }
 
         async Task<ImmutableDictionary<IParameterSymbol, IFieldSymbol>> GetSynthesizedFieldsAsync()
