@@ -3,31 +3,29 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Microsoft.VisualStudio.Progression;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGeneratorWrapper
 {
-    [Export(typeof(EditorConfigGeneratorWrapper2)), Shared]
-    internal sealed class EditorConfigGeneratorWrapper2
+    [Export(typeof(EditorConfigGeneratorWrapper)), Shared]
+    internal sealed class EditorConfigGeneratorWrapper
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly EditorConfigOptionsGenerator _editorConfigGenerator;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorConfigGeneratorWrapper2(
-            IGlobalOptionService globalOptions,
-            EditorConfigOptionsGenerator optionsGenerator)
+        public EditorConfigGeneratorWrapper(IComponentModel componentModel)
         {
-            _globalOptions = globalOptions;
-            _editorConfigGenerator = optionsGenerator;
+            _editorConfigGenerator = componentModel.GetService<EditorConfigOptionsGenerator>();
+            _globalOptions = componentModel.GetService<IGlobalOptionService>();
         }
 
         public string? Generate(string language)

@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
+Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGeneratorWrapper
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Options.EditorConfig
 Imports Microsoft.CodeAnalysis.Test.Utilities
