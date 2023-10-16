@@ -249,7 +249,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         void RemovePrimaryConstructorBaseTypeArgumentList()
         {
-            var baseType = typeDeclaration.BaseList?.Types is [PrimaryConstructorBaseTypeSyntax type, ..] ? type : null;
             if (baseType != null)
                 mainDocumentEditor.ReplaceNode(baseType, (current, _) => SimpleBaseType(((PrimaryConstructorBaseTypeSyntax)current).Type).WithTriviaFrom(baseType));
         }
