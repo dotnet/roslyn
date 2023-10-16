@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute => _underlyingAssembly.HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute;
+        internal override bool HasImportedFromTypeLibAttribute => _underlyingAssembly.HasImportedFromTypeLibAttribute;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => _underlyingAssembly.HasPrimaryInteropAssemblyAttribute;
 
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {

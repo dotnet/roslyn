@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttribute, NoLocation.Singleton, a, AttributeDescription.GuidAttribute.FullName);
                     }
 
-                    if (!a.HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
+                    if (!a.HasImportedFromTypeLibAttribute && !a.HasPrimaryInteropAssemblyAttribute)
                     {
                         // ERRID_PIAHasNoTypeLibAttribute1/ERR_NoPIAAssemblyMissingAttributes
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttributes, NoLocation.Singleton, a,

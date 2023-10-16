@@ -201,31 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute
-        {
-            get
-            {
-                foreach (var attrData in GetAttributes())
-                {
-                    if (attrData.IsTargetAttribute(this, AttributeDescription.ImportedFromTypeLibAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
-                        {
-                            return true;
-                        }
-                    }
-                    else if (attrData.IsTargetAttribute(this, AttributeDescription.PrimaryInteropAssemblyAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 2)
-                        {
-                            return true;
-                        }
-                    }
-                }
+        internal override bool HasImportedFromTypeLibAttribute
+            => GetSourceDecodedWellKnownAttributeData()?.HasImportedFromTypeLibAttribute == true;
 
-                return false;
-            }
-        }
+        internal override bool HasPrimaryInteropAssemblyAttribute
+            => GetSourceDecodedWellKnownAttributeData()?.HasPrimaryInteropAssemblyAttribute == true;
 
         internal override Symbol GetSpecialTypeMember(SpecialMember member)
         {
@@ -1944,6 +1924,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = GetSourceDecodedWellKnownAttributeData()?.GuidAttribute;
+            return guidString != null;
+        }
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -2520,6 +2506,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
             {
                 attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
+                if (attribute.TryGetGuidAttributeValue(out string guidString))
+                {
+                    arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().GuidAttribute = guidString;
+                }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ImportedFromTypeLibAttribute))
+            {
+                if (attribute.CommonConstructorArguments.Length == 1)
+                {
+                    arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasImportedFromTypeLibAttribute = true;
+                }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.PrimaryInteropAssemblyAttribute))
+            {
+                if (attribute.CommonConstructorArguments.Length == 2)
+                {
+                    arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasPrimaryInteropAssemblyAttribute = true;
+                }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CompilationRelaxationsAttribute))
             {

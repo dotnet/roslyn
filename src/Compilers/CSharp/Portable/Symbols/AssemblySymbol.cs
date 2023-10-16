@@ -305,7 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute { get; }
+        internal abstract bool HasImportedFromTypeLibAttribute { get; }
+
+        internal abstract bool HasPrimaryInteropAssemblyAttribute { get; }
 
 #nullable enable
         /// <summary>

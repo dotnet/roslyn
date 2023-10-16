@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return false; }
         }
 
-        internal override bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute => false;
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
 
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {

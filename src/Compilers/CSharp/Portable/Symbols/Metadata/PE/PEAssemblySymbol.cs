@@ -131,16 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool HasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute
-        {
-            get
-            {
-                var module = PrimaryModule.Module;
-                var handle = _assembly.Handle;
-                return module.HasImportedFromTypeLibAttribute(handle, out _) ||
-                    module.HasPrimaryInteropAssemblyAttribute(handle, out _, out _);
-            }
-        }
+        internal override bool HasImportedFromTypeLibAttribute
+            => PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, out _);
+
+        internal override bool HasPrimaryInteropAssemblyAttribute
+            => PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, out _, out _);
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
