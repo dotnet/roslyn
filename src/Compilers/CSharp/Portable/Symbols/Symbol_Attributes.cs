@@ -226,6 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute)
+                && !SyntaxFacts.IsValidIdentifier((string?)arguments.Attribute.CommonConstructorArguments[0].ValueInternal))
+            {
+                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, arguments.AttributeSyntaxOpt.Location);
+                return;
+            }
+
             DecodeWellKnownAttributeImpl(ref arguments);
         }
 #nullable disable

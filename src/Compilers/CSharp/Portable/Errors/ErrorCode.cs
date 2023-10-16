@@ -2275,6 +2275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorGlobalNamespace = 9206,
         ERR_InterceptableMethodMustBeOrdinary = 9207,
 
+        ERR_InvalidExperimentalDiagID = 9208,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

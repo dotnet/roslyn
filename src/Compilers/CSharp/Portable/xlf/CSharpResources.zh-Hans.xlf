@@ -1117,6 +1117,11 @@
         <target state="translated">引用要编制索引的实例的内插字符串处理程序转换不能用于索引器成员初始化表达式中。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">“{0}”不是有效的函数指针返回类型修饰符。有效的修饰符为 "ref" 和 "ref readonly"。</target>

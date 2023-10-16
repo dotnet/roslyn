@@ -1117,6 +1117,11 @@
         <target state="translated">インデックス付けされているインスタンスを参照する補間された文字列ハンドラーの変換は、インデクサー メンバー初期化子では使用できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}' は有効な関数ポインターの戻り値の型修飾子ではありません。有効な修飾子は 'ref ' および 'ref readonly' です。</target>

@@ -1117,6 +1117,11 @@
         <target state="translated">Převody interpolovaných obslužných rutin řetězců, které odkazují na indexovanou instanci, se nedají použít v inicializátorech členů indexeru.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">{0} není platný modifikátor návratového typu ukazatele na funkci. Platné modifikátory jsou ref a ref readonly.</target>

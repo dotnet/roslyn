@@ -1117,6 +1117,11 @@
         <target state="translated">Le conversioni di gestori di stringhe interpolate che fanno riferimento all'istanza indicizzata non possono essere utilizzate negli inizializzatori di membri dell'indicizzatore.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}' non è un modificatore di tipo restituito di puntatore a funzione valido. I modificatori validi sono 'ref' e 'ref readonly'.</target>
