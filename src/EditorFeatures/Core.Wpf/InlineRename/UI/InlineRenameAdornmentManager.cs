@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return null;
             }
 
+            var smartRenameSession = _smartRenameSessionFactory.Value.CreateSmartRenameSession(_renameService.ActiveSession.TriggerSpan);
             var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment);
             if (useInlineAdornment)
             {
@@ -133,7 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 var identifierSelection = new TextSpan(start, length);
 
-                var smartRenameSession = _smartRenameSessionFactory.Value.CreateSmartRenameSession(originalSpan);
                 var adornment = new RenameFlyout(
                     (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService, smartRenameSession)),
                     _textView,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             else
             {
                 var newAdornment = new RenameDashboard(
-                    (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session)),
+                    (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session, smartRenameSession)),
                     _editorFormatMapService,
                     _textView);
 

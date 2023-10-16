@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-
             if (smartRenameSession is not null)
             {
                 SmartRenameViewModel = new SmartRenameViewModel(smartRenameSession);

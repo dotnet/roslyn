@@ -6,6 +6,7 @@
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
+             xmlns:smartRename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
              x:ClassModifier="internal"
              mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
              MinWidth="300"
@@ -25,7 +26,6 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../InlineRenameColors.xaml"/>
-                <ResourceDictionary Source="../SmartRename/SuggtestedNameListViewStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -123,8 +123,6 @@
                     ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"
                     AutomationProperties.Name="{Binding ElementName=dashboard, Path=CancelRename}"/>
                 </Grid>
-
-                <ListView Style="{StaticResource CopilotListViewStyle}" />
 
                 <!-- Display the new name if it has been adjusted, or instructional text if it has not. -->
 

@@ -13,17 +13,18 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
     internal class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly ISmartRenameSession _smartRenameSession;
+
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public event EventHandler<string>? OnSuggestedNameSelected;
-
         public ObservableCollection<SuggestedNameViewModel> SuggestedNames { get; } = new ObservableCollection<SuggestedNameViewModel>();
 
-        public bool IsAvailable => _smartRenameSession.IsAvailable;
+        public bool IsAvailable => _smartRenameSession?.IsAvailable ?? false;
 
-        public bool InProgress => _smartRenameSession.IsInProgress;
+        public bool HasSuggestion => _smartRenameSession?.HasSuggestions ?? false;
+
+        public bool InProgress => _smartRenameSession?.IsInProgress ?? false;
 
         private string? _currentSelectedName;
 
@@ -44,9 +45,8 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
         {
             _smartRenameSession = smartRenameSession;
             _smartRenameSession.PropertyChanged += SessionPropertyChanged;
-
             _cancellationTokenSource = new();
-            smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
+            _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
         }
 
         private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)

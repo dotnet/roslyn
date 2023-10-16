@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -54,6 +53,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
                 IdentifierTextBox.SelectionChanged += IdentifierTextBox_SelectionChanged;
             };
+
+            if (viewModel.SmartRenameViewModel is not null)
+            {
+                var smartRenameControl = new SmartRenameControl(viewModel.SmartRenameViewModel);
+                var index = MainPanel.Children.IndexOf(IdentifierAndExpandButtonGrid);
+                MainPanel.Children.Insert(index + 1, smartRenameControl);
+            }
 
             InitializeComponent();
 

@@ -582,7 +582,7 @@ class D : B
                 End Using
 
                 Using dashboard = New RenameDashboard(
-                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
+                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), Nothing),
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
