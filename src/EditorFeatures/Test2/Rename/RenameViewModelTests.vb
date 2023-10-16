@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Text.Editor.SmartRename
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -581,8 +582,10 @@ class D : B
                     edit.Apply()
                 End Using
 
+                Dim mockSmartRenameFactory = New Lazy(Of ISmartRenameSessionFactory)(Function() New TestSmartRenameSessionFactory())
+
                 Using dashboard = New RenameDashboard(
-                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), Nothing),
+                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), mockSmartRenameFactory),
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
@@ -621,7 +624,7 @@ class D : B
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
 
                 Using flyout = New RenameFlyout(
-                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, Nothing), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, mockSmartRenameFactory), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView(),
                     themeService:=Nothing,
                     TestQuickInfoBroker,
@@ -706,17 +709,27 @@ class D : B
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
 
-                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Dim mockSmartRenameFactory = New Lazy(Of ISmartRenameSessionFactory)(Function() New TestSmartRenameSessionFactory())
+
+                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.False(vm.IsCollapsed)
                 Assert.True(vm.IsExpanded)
                 vm.IsCollapsed = True
 
-                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.True(vm.IsCollapsed)
                 Assert.False(vm.IsExpanded)
 
             End Using
         End Sub
+    End Class
+
+    Friend Class TestSmartRenameSessionFactory
+        Implements ISmartRenameSessionFactory
+
+        Public Function CreateSmartRenameSession(renamedIdentifier As VisualStudio.Text.SnapshotSpan) As ISmartRenameSession Implements ISmartRenameSessionFactory.CreateSmartRenameSession
+            Return Nothing
+        End Function
     End Class
 
     Friend Class TestQuickInfoBroker
