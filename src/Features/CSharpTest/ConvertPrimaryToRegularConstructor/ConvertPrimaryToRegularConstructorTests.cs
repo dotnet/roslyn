@@ -845,7 +845,7 @@ public class ConvertPrimaryToRegularConstructorTests
 
                     public [|C|](int i, int j)
                     {
-                       this. i = i;
+                        this. i = i;
                         _j = j;
                     }
 
@@ -1039,6 +1039,36 @@ public class ConvertPrimaryToRegularConstructorTests
     }
 
     [Fact]
+    public async Task TestMoveConstructorDocCommentWhenNothingOnType_SingleLine_3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                ///<summary>Doc comment on single line</summary>
+                ///<param name="i">Doc about i single line</param>
+                class [|C(int i)|]
+                {
+                    private int i = i;
+                }
+                """,
+            FixedCode = """
+                /// <summary>Doc comment on single line</summary>
+                class C
+                {
+                    private int i;
+
+                    ///<param name="i">Doc about i single line</param>
+                    public C(int i)
+                    {
+                        this.i = i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_1()
     {
         await new VerifyCS.Test
@@ -1063,14 +1093,14 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 namespace N
                 {
+                    /// <summary>
+                    /// Doc comment
+                    /// On multiple lines
+                    /// </summary>
                     class C
                     {
                         private int i;
 
-                        /// <summary>
-                        /// Doc comment
-                        /// On multiple lines
-                        /// </summary>
                         /// <param name="i">
                         /// Doc about i
                         /// on multiple lines
@@ -1159,6 +1189,54 @@ public class ConvertPrimaryToRegularConstructorTests
                         /// On multiple lines</summary>
                         /// <param name="i">Doc about i
                         /// on multiple lines</param>
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMoveConstructorDocCommentWhenNothingOnType_MultiLine_4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    ///<summary>
+                    ///Doc comment
+                    ///On multiple lines
+                    ///</summary>
+                    ///<param name="i">
+                    ///Doc about i
+                    ///on multiple lines
+                    ///</param>
+                    class [|C(int i)|]
+                    {
+                        private int i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    ///<summary>
+                    ///Doc comment
+                    ///On multiple lines
+                    ///</summary>
+                    class C
+                    {
+                        private int i;
+
+                        ///<param name="i">
+                        ///Doc about i
+                        ///on multiple lines
+                        ///</param>
                         public C(int i)
                         {
                             this.i = i;
@@ -1292,6 +1370,74 @@ public class ConvertPrimaryToRegularConstructorTests
                         /// <param name="j">
                         /// Docs for j.
                         /// </param>
+                        public C(int i, int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    ///<param name="i">Docs for i.</param>
+                    ///<param name="j">
+                    ///Docs for j.
+                    ///</param>
+                    class [|C(int i, int j)|]
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        ///<param name="i">Docs for i.</param>
+                        ///<param name="j">
+                        ///Docs for j.
+                        ///</param>
+                        public C(int i, int j)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRemoveMembersMoveDocComments_WhenNoTypeDocComments3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    ///<param name="i">Docs for i.</param>
+                    ///<param name="j">Docs for j.</param>
+                    class [|C(int i, int j)|]
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    class C
+                    {
+                        ///<param name="i">Docs for i.</param>
+                        ///<param name="j">Docs for j.</param>
                         public C(int i, int j)
                         {
                         }

@@ -218,6 +218,8 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
                     // We're skipping a param node.  Remove any blank xml lines preceding this.
                     if (IsDocCommentNewLine(content.LastOrDefault()))
                         content.RemoveLast();
+                    else if (content.Count == 1 && IsEmptyDocCommentStartText(content.LastOrDefault()))
+                        content.RemoveLast();
                 }
                 else
                 {
@@ -529,5 +531,9 @@ internal sealed class ConvertPrimaryToRegularConstructorCodeRefactoringProvider(
 
     private static bool IsDocCommentNewLine([NotNullWhen(true)] XmlNodeSyntax? node)
         => node is XmlTextSyntax { TextTokens: [(kind: SyntaxKind.XmlTextLiteralNewLineToken), (kind: SyntaxKind.XmlTextLiteralToken) precedingText] } &&
+           string.IsNullOrWhiteSpace(precedingText.Text);
+
+    private static bool IsEmptyDocCommentStartText([NotNullWhen(true)] XmlNodeSyntax? node)
+        => node is XmlTextSyntax { TextTokens: [(kind: SyntaxKind.XmlTextLiteralToken) precedingText] } &&
            string.IsNullOrWhiteSpace(precedingText.Text);
 }
