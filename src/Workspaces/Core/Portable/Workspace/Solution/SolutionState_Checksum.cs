@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionState
     {
+        private static readonly ConditionalWeakTable<IReadOnlyList<ProjectId>, IReadOnlyList<ProjectId>> s_projectIdToSortedProjectsMap = new();
+
+        public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
+            => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
+
         public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
             => _lazyChecksums.TryGetValue(out stateChecksums);
 
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // get states by id order to have deterministic checksum.  Limit expensive computation to the
                     // requested set of projects if applicable.
-                    var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
+                    var orderedProjectIds = GetOrCreateSortedProjectIds(ProjectIds);
                     var projectChecksumTasks = orderedProjectIds
                         .Select(id => (state: ProjectStates[id], mustCompute: projectsToInclude == null || projectsToInclude.Contains(id)))
                         .Where(t => RemoteSupportedLanguages.IsSupported(t.state.Language))
@@ -143,7 +148,7 @@ namespace Microsoft.CodeAnalysis
                         .ToArray();
 
                     var serializer = Services.GetRequiredService<ISerializerService>();
-                    var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
+                    var attributesChecksum = this.SolutionAttributes.Checksum;
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
                     var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
@@ -154,8 +159,7 @@ namespace Microsoft.CodeAnalysis
                         frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
                     }
 
-                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences,
-                        _ => new ChecksumCollection(AnalyzerReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
+                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
 
                     var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
                     using var _1 = ArrayBuilder<ProjectId>.GetInstance(allResults.Length, out var projectIds);
