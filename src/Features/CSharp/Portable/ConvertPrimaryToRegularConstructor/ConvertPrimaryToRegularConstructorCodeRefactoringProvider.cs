@@ -95,7 +95,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         var parameterReferences = await GetParameterReferencesAsync().ConfigureAwait(false);
 
         // Determine the fields we'll need to synthesize for each parameter.
-        var parameterToSynthesizedFields = await CreateSynthesizedFieldsAsync().ConfigureAwait(false);
+        var parameterToSynthesizedFields = CreateSynthesizedFields();
 
         // Find any field/properties whose initializer references a primary constructor parameter.  These initializers
         // will have to move inside the constructor we generate.
@@ -165,7 +165,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             return result;
         }
 
-        async Task<ImmutableDictionary<IParameterSymbol, IFieldSymbol>> CreateSynthesizedFieldsAsync()
+        ImmutableDictionary<IParameterSymbol, IFieldSymbol> CreateSynthesizedFields()
         {
             using var _1 = PooledDictionary<Location, IFieldSymbol>.GetInstance(out var locationToField);
             using var _2 = PooledDictionary<IParameterSymbol, IFieldSymbol>.GetInstance(out var result);
@@ -196,6 +196,40 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             }
 
             return result.ToImmutableDictionary();
+        }
+
+        async Task<ImmutableHashSet<(ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>> GetExistingAssignedFieldsOrProperties()
+        {
+            using var _1 = PooledHashSet<EqualsValueClauseSyntax>.GetInstance(out var initializers);
+            foreach (var (parameter, references) in parameterReferences)
+            {
+                foreach (var reference in references)
+                {
+                    var initializer = reference.AncestorsAndSelf().OfType<EqualsValueClauseSyntax>().LastOrDefault();
+                    if (initializer is null)
+                        continue;
+
+                    if (initializer.Parent is not PropertyDeclarationSyntax and not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } })
+                        continue;
+
+                    initializers.Add(initializer);
+                }
+            }
+
+            using var _2 = PooledHashSet<(ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>.GetInstance(out var result);
+            foreach (var grouping in initializers.GroupBy(kvp => kvp.Value.SyntaxTree))
+            {
+                var syntaxTree = grouping.Key;
+                var semanticModel = await GetSemanticModelAsync(solution.GetRequiredDocument(syntaxTree)).ConfigureAwait(false);
+
+                foreach (var initializer in grouping)
+                {
+                    var fieldOrProperty = semanticModel.GetRequiredDeclaredSymbol(initializer.GetRequiredParent(), cancellationToken);
+                    result.Add((fieldOrProperty, initializer));
+                }
+            }
+
+            return result.ToImmutableHashSet();
         }
 
         void RemovePrimaryConstructorParameterList()
@@ -335,40 +369,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             }
         }
 
-        async Task<ImmutableHashSet<(ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>> GetExistingAssignedFieldsOrProperties()
-        {
-            using var _1 = PooledHashSet<EqualsValueClauseSyntax>.GetInstance(out var initializers);
-            foreach (var (parameter, references) in parameterReferences)
-            {
-                foreach (var reference in references)
-                {
-                    var initializer = reference.AncestorsAndSelf().OfType<EqualsValueClauseSyntax>().LastOrDefault();
-                    if (initializer is null)
-                        continue;
-
-                    if (initializer.Parent is not PropertyDeclarationSyntax and not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax } })
-                        continue;
-
-                    initializers.Add(initializer);
-                }
-            }
-
-            using var _2 = PooledHashSet<(ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>.GetInstance(out var result);
-            foreach (var grouping in initializers.GroupBy(kvp => kvp.Value.SyntaxTree))
-            {
-                var syntaxTree = grouping.Key;
-                var semanticModel = await GetSemanticModelAsync(solution.GetRequiredDocument(syntaxTree)).ConfigureAwait(false);
-
-                foreach (var initializer in grouping)
-                {
-                    var fieldOrProperty = semanticModel.GetRequiredDeclaredSymbol(initializer.GetRequiredParent(), cancellationToken);
-                    result.Add((fieldOrProperty, initializer));
-                }
-            }
-
-            return result.ToImmutableHashSet();
-        }
-
         ConstructorDeclarationSyntax CreateConstructorDeclaration()
         {
             using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(out var assignmentStatements);
@@ -397,22 +397,19 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 assignmentStatements.Add(ExpressionStatement(assignment));
             }
 
+            var rewrittenParameters = parameterList.ReplaceNodes(
+                parameterList.Parameters,
+                (parameter, _) => RewriteNestedReferences(parameter));
+
             var constructorDeclaration = ConstructorDeclaration(
                 List(methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))),
                 TokenList(Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)),
                 typeDeclaration.Identifier.WithoutTrivia(),
-                RewriteParameterDefaults(parameterList).WithoutTrivia(),
+                rewrittenParameters.WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),
                 Block(assignmentStatements));
 
             return WithTypeDeclarationParamDocComments(typeDeclaration, constructorDeclaration);
-        }
-
-        ParameterListSyntax RewriteParameterDefaults(ParameterListSyntax parameterList)
-        {
-            return parameterList.ReplaceNodes(
-                parameterList.Parameters,
-                (parameter, _) => RewriteNestedReferences(parameter));
         }
 
         TNode RewriteNestedReferences<TNode>(TNode parent) where TNode : SyntaxNode
