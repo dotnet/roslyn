@@ -214,6 +214,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, ReferenceAssemblies.Net.Net50);
         }
 
+        private async Task VerifyNet80CSharpAdditionalFileFixAsync(string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
+        {
+            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, AdditionalMetadataReferences.Net80);
+        }
+
         private async Task VerifyAdditionalFileFixAsync(string language, string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText,
             ReferenceAssemblies? referenceAssemblies = null)
         {
@@ -3217,6 +3222,77 @@ C.C() -> void";
                 """;
 
             await VerifyNet50CSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        [WorkItem(6759, "https://github.com/dotnet/roslyn-analyzers/issues/6759")]
+        public async Task TestExperimentalApiAsync()
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                [Experimental("ID1")]
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                }
+                """;
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"[ID1]C
+[ID1]C.C() -> void";
+
+            await VerifyNet80CSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("null")]
+        [InlineData("1")]
+        [InlineData("1, 2")]
+        [WorkItem(6759, "https://github.com/dotnet/roslyn-analyzers/issues/6759")]
+        public async Task TestExperimentalApiWithInvalidArgumentAsync(string invalidArgument)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                [Experimental({{invalidArgument}})]
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                }
+                """;
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"[???]C
+[???]C.C() -> void";
+
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>()
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.Net80,
+                CompilerDiagnostics = CompilerDiagnostics.None,
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles =
+                    {
+                        (ShippedFileName, shippedText),
+                        (UnshippedFileName, unshippedText),
+                    },
+                },
+                FixedState =
+                {
+                    AdditionalFiles =
+                    {
+                        (ShippedFileName, shippedText),
+                        (UnshippedFileName, fixedUnshippedText),
+                    },
+                },
+            };
+
+            test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
+
+            await test.RunAsync();
         }
 
         #endregion

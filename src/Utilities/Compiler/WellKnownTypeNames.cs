@@ -273,6 +273,7 @@ namespace Analyzer.Utilities
         public const string SystemMemoryExtensions = "System.MemoryExtensions";
         public const string SystemNetHttpHttpClient = "System.Net.Http.HttpClient";
         public const string SystemNetHttpHttpClientHandler = "System.Net.Http.HttpClientHandler";
+        public const string SystemNetHttpSocketsHttpHandler = "System.Net.Http.SocketsHttpHandler";
         public const string SystemNetHttpWinHttpHandler = "System.Net.Http.WinHttpHandler";
         public const string SystemNetSecurityProtocolType = "System.Net.SecurityProtocolType";
         public const string SystemNetSecurityRemoteCertificateValidationCallback = "System.Net.Security.RemoteCertificateValidationCallback";
