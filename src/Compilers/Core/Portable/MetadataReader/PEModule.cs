@@ -1871,7 +1871,7 @@ namespace Microsoft.CodeAnalysis
 
         private bool TryExtractIntAndIntValueFromAttribute(CustomAttributeHandle handle, out int value1, out int value2)
         {
-            var result = TryExtractValueFromAttribute(handle, out var data, s_attributeIntAndIntValueExtractor);
+            bool result = TryExtractValueFromAttribute(handle, out (int, int) data, s_attributeIntAndIntValueExtractor);
             (value1, value2) = data;
             return result;
         }
