@@ -11951,7 +11951,7 @@ testData: new CompilationTestData { SymWriterFactory = _ => new MockSymUnmanaged
             var bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var diff1 = compilation1.EmitDifference(
-                    EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                    CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider),
                     ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation0.GetMember("C.Main"), compilation1.GetMember("C.Main"))));
 
             Assert.True(diff1.EmitResult.Success);
