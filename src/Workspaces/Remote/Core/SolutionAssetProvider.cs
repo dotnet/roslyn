@@ -28,7 +28,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly SolutionServices _services = services;
 
         public async ValueTask WriteAssetsAsync(
-            PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+            PipeWriter pipeWriter,
+            Checksum solutionChecksum,
+            AssetHint assetHint,
+            ImmutableArray<Checksum> checksums,
+            CancellationToken cancellationToken)
         {
             // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
             // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
@@ -36,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Exception? exception = null;
             try
             {
-                await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, hintProject, checksums, cancellationToken).ConfigureAwait(false);
+                await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, assetHint, checksums, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
             {
@@ -49,7 +53,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private async ValueTask WriteAssetsWorkerAsync(
-            PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+            PipeWriter pipeWriter,
+            Checksum solutionChecksum,
+            AssetHint assetHint,
+            ImmutableArray<Checksum> checksums,
+            CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
@@ -57,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using var _ = Creator.CreateResultMap(out var resultMap);
 
-            await scope.AddAssetsAsync(hintProject, checksums, resultMap, cancellationToken).ConfigureAwait(false);
+            await scope.AddAssetsAsync(assetHint, checksums, resultMap, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
