@@ -1091,12 +1091,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ComCompatibleVersionAttribute) Then
                 ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
-                attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
-
-                Dim guidString As String = Nothing
-                If attrData.TryGetGuidAttributeValue(guidString) Then
-                    arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().GuidAttribute = guidString
-                End If
+                Dim guidString As String = attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().GuidAttribute = guidString
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ImportedFromTypeLibAttribute) Then
                 If attrData.CommonConstructorArguments.Length = 1 Then
                     arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasImportedFromTypeLibAttribute = True

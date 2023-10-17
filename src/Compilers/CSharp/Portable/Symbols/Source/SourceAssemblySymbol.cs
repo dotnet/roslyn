@@ -2505,11 +2505,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
             {
-                attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
-                if (attribute.TryGetGuidAttributeValue(out string guidString))
-                {
-                    arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().GuidAttribute = guidString;
-                }
+                string guidString = attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().GuidAttribute = guidString;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ImportedFromTypeLibAttribute))
             {
