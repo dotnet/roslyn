@@ -9,15 +9,16 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Metalama.Backstage.Extensibility;
 
 namespace Metalama.Compiler
 {
     public static class CSharpTransformerDriver
     {
         public static (Compilation, ImmutableArray<Diagnostic>) RunTransformers(
-            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader, TransformerOptions? options = null)
+            Compilation input, ImmutableArray<ISourceTransformer> transformers,
+            AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader,
+            TransformerOptions? options = null)
         {
             // We pass null as the IServiceProvider because the main scenario where this code is called is Metalama.Try,
             // where services are passed to Metalama.Framework directly from Metalama.Try using the AsyncLocalConfiguration
@@ -25,10 +26,10 @@ namespace Metalama.Compiler
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            var results = CSharpCompiler.RunTransformers(input, transformers, null, analyzerConfigProvider, options, diagnostics, manifestResources, assemblyLoader, null, CancellationToken.None);
+            var results = CSharpCompiler.RunTransformers(
+                input, transformers, null, analyzerConfigProvider, options, diagnostics, manifestResources,
+                assemblyLoader, null, CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
         }
-
- 
     }
 }

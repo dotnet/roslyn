@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// <Metalama>
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Metalama.Backstage.Extensibility;
 using Metalama.Compiler;
+using Metalama.Compiler.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,10 +31,10 @@ namespace Roslyn.Test.Utilities
             var transformers = ImmutableArray.Create(transformer);
             var diagnostics = new DiagnosticBag();
 
-            var serviceProviderBuilder = new ServiceProviderBuilder();
-
             var transformersResult = CSharpCompiler.RunTransformers(
-                compilation, transformers, null, CompilerAnalyzerConfigOptionsProvider.Empty, null, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
+                compilation, transformers, null, CompilerAnalyzerConfigOptionsProvider.Empty, null, diagnostics,
+                ImmutableArray<ResourceDescription>.Empty, null!, null,
+                CancellationToken.None);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 

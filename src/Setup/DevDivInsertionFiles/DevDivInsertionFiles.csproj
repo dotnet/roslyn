@@ -51,7 +51,6 @@
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
     <!-- <Metalama> -->
-    <ExpectedDependency Include="Metalama.Backstage"/>
     <ExpectedDependency Include="Microsoft.Bcl.HashCode"/>
     <ExpectedDependency Include="System.IO.Packaging"/>
     <!-- </Metalama> -->

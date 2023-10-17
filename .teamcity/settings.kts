@@ -89,20 +89,6 @@ object DebugBuild : BuildType({
         }
     }
 
-    dependencies {
-        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_DebugBuild")) {
-            snapshot {
-                     onDependencyFailure = FailureAction.FAIL_TO_START
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
-            }
-        }
-
-     }
-
 })
 
 object ReleaseBuild : BuildType({
@@ -161,20 +147,6 @@ object ReleaseBuild : BuildType({
             verbose = true
         }
     }
-
-    dependencies {
-        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_ReleaseBuild")) {
-            snapshot {
-                     onDependencyFailure = FailureAction.FAIL_TO_START
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
-            }
-        }
-
-     }
 
 })
 
@@ -248,20 +220,6 @@ object PublicBuild : BuildType({
         }
     }
 
-    dependencies {
-        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_PublicBuild")) {
-            snapshot {
-                     onDependencyFailure = FailureAction.FAIL_TO_START
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
-            }
-        }
-
-     }
-
 })
 
 object PublicDeployment : BuildType({
@@ -318,21 +276,6 @@ object PublicDeployment : BuildType({
     }
 
     dependencies {
-        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_PublicBuild")) {
-            snapshot {
-                     onDependencyFailure = FailureAction.FAIL_TO_START
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
-            }
-        }
-        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_PublicDeployment")) {
-            snapshot {
-                     onDependencyFailure = FailureAction.FAIL_TO_START
-            }
-        }
         dependency(PublicBuild) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START

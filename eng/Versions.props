@@ -25,13 +25,13 @@
   <PropertyGroup>
     <!-- <Metalama> -->
     <RoslynVersion>4.7.0</RoslynVersion>
-  <!-- The Roslyn version must be changed in ..\eng-Metalama\MainVersion.props.
+    <!-- The Roslyn version must be changed above.
 
     <MajorVersion>4</MajorVersion>
     <MinorVersion>7</MinorVersion>
     <PatchVersion>0</PatchVersion>
 
-   -->
+    -->
     <!-- The PreReleaseVersionLabel property must be non-empty otherwise a random suffix is generated instead of 'preview'. -->
     <PreReleaseVersionLabel>6</PreReleaseVersionLabel>
     <VersionPrefix>$(MetalamaCompilerVersionPrefix)</VersionPrefix>
@@ -44,7 +44,9 @@
       ~~Keep the setting conditional.~~ The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
       In Metalama, we have removed the condition.
     -->
+    <!--
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
+    -->
     <MicrosoftNetCompilersToolsetVersion>4.7.0</MicrosoftNetCompilersToolsetVersion>
     <AssemblyVersion>$(MetalamaCompilerAssemblyVersion)</AssemblyVersion>
     <Version>$(MetalamaCompilerVersionWithoutSuffix)</Version>

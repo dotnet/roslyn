@@ -6,7 +6,7 @@ using Spectre.Console.Cli;
 using System.IO;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Dependencies.Definitions;
-using MetalamaDependencies = PostSharp.Engineering.BuildTools.Dependencies.Definitions.MetalamaDependencies.V2023_3;
+using MetalamaDependencies = PostSharp.Engineering.BuildTools.Dependencies.Definitions.MetalamaDependencies.V2023_4;
 
 var product = new Product(MetalamaDependencies.MetalamaCompiler)
 {
@@ -30,7 +30,7 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg"),
-    Dependencies = new[] { DevelopmentDependencies.PostSharpEngineering, MetalamaDependencies.MetalamaBackstage },
+    Dependencies = new[] { DevelopmentDependencies.PostSharpEngineering },
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
     ExportedProperties = { { @"eng\Versions.props", new[] { "RoslynVersion" } } },
     KeepEditorConfig = true,
