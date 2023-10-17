@@ -28,6 +28,7 @@ Public Structure BasicTestSource
     End Function
 
     Private Shared Sub CheckSerializable(tree As SyntaxTree)
+#Disable Warning BC40000 ' Type or member is obsolete
         Using stream = New MemoryStream()
             Dim root = tree.GetRoot()
             root.SerializeTo(stream)
@@ -35,6 +36,7 @@ Public Structure BasicTestSource
 
             ' verify absence of exception
             VisualBasicSyntaxNode.DeserializeFrom(stream)
+#Enable Warning BC40000 ' Type or member is obsolete
         End Using
     End Sub
 
