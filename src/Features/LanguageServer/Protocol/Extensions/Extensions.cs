@@ -86,10 +86,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // We don't call GetRequiredDocument here as the id could be referring to an additional document.
             var documents = documentIds
                 .Select(solution.GetDocument)
+                .Concat(documentIds.Select(solution.GetAdditionalDocument))
                 .WhereNotNull()
-                .Concat(documentIds
-                    .Select(solution.GetAdditionalDocument)
-                    .WhereNotNull())
                 .ToImmutableArray();
             return documents;
         }

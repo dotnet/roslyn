@@ -89,10 +89,9 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                 {
                     this.OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
                 }
-                else if (CurrentSolution.ContainsAdditionalDocument(documentId) && !this.IsDocumentOpen(documentId))
+                else if (CurrentSolution.ContainsAdditionalDocument(documentId))
                 {
-                    // Checking for IsDocumentOpen is the equivalent of requireDocumentPresentAndClosed: false
-                    this.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                    this.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
                 }
                 return ValueTask.CompletedTask;
             },
@@ -127,10 +126,9 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                     {
                         this.OnDocumentClosedEx(documentId, loader, requireDocumentPresentAndOpen: false);
                     }
-                    else if (IsDocumentOpen(documentId))
+                    else
                     {
-                        // Checking for IsDocumentOpen is the equivalent of requireDocumentPresentAndClosed: false
-                        this.OnAdditionalDocumentClosed(documentId, loader);
+                        this.OnAdditionalDocumentClosed(documentId, loader, requireDocumentPresentAndOpen: false);
                     }
                 }
             },

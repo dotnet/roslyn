@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml;
 /// The currently supported set of XAML LSP Server capabilities
 /// </summary>
 [Export(typeof(ICapabilityRegistrationsProvider)), Shared]
-internal class XamlCapabilityRegistrationsProvider : ICapabilityRegistrationsProvider
+internal sealed class XamlCapabilityRegistrationsProvider : ICapabilityRegistrationsProvider
 {
     private readonly string _id = Guid.NewGuid().ToString();
     private readonly DocumentFilter[] _documentFilter = new DocumentFilter[]

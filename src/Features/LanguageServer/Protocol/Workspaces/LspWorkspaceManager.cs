@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -415,6 +416,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             return trackedDocument.LanguageId;
         }
+
+        // Only matters for XAML right now because the default (null) is C#/VB.
+        if (uri.IsFile && Path.GetExtension(uri.LocalPath).Equals(".xaml", StringComparison.OrdinalIgnoreCase))
+        {
+            return "xaml";
+        }
+
         return null;
     }
 
