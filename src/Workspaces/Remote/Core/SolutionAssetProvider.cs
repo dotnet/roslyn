@@ -19,20 +19,16 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Provides solution assets present locally (in the current process) to a remote process where the solution is being replicated to.
     /// </summary>
-    internal sealed class SolutionAssetProvider : ISolutionAssetProvider
+    internal sealed class SolutionAssetProvider(SolutionServices services) : ISolutionAssetProvider
     {
         public const string ServiceName = "SolutionAssetProvider";
 
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
-        private readonly SolutionServices _services;
+        private readonly SolutionServices _services = services;
 
-        public SolutionAssetProvider(SolutionServices services)
-        {
-            _services = services;
-        }
-
-        public ValueTask WriteAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        public ValueTask WriteAssetsAsync(
+            PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
             // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
             // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
@@ -51,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Exception? exception = null;
                 try
                 {
-                    await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
+                    await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, hintProject, checksums, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when ((exception = ex) == null)
                 {
@@ -64,21 +60,22 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask WriteAssetsWorkerAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        private async ValueTask WriteAssetsWorkerAsync(
+            PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 
-            using var _ = PooledDictionary<Checksum, SolutionAsset>.GetInstance(out var assetMap);
+            using var _ = Creator.CreateResultMap(out var resultMap);
 
-            await scope.AddAssetsAsync(checksums, assetMap, cancellationToken).ConfigureAwait(false);
+            await scope.AddAssetsAsync(hintProject, checksums, resultMap, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             using var stream = new PipeWriterStream(pipeWriter);
             await RemoteHostAssetSerialization.WriteDataAsync(
-                stream, assetMap, serializer, scope.ReplicationContext,
+                stream, resultMap, serializer, scope.ReplicationContext,
                 solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
         }
 
