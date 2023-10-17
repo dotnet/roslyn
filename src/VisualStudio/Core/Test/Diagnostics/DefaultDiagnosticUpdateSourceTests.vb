@@ -246,7 +246,7 @@ class 123 { }
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
-                                                               Dim id = DirectCast(a.Id, BuildToolId)
+                                                               Dim id = DirectCast(a.Single().Id, BuildToolId)
                                                                buildTool = id.BuildTool
                                                            End Sub
 
@@ -275,7 +275,7 @@ End Class
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
-                                                               Dim id = DirectCast(a.Id, BuildToolId)
+                                                               Dim id = DirectCast(a.Single().Id, BuildToolId)
                                                                buildTool = id.BuildTool
                                                            End Sub
 
