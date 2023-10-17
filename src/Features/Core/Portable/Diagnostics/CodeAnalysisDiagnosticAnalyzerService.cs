@@ -55,7 +55,12 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
+
                     _analyzedProjectIds.Clear();
+                    _clearedProjectIds.Clear();
+
+                    // Let LSP know so that it requests up to date info, and will see our cached info disappear.
+                    _diagnosticsRefresher.RequestWorkspaceRefresh();
                     break;
             }
         }
@@ -102,6 +107,8 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.
             _analyzedProjectIds.Add(project.Id);
+
+            // Remove from the cleared list now that we've run a more recent "run code analysis" on this project.
             _clearedProjectIds.Remove(project.Id);
 
             // Now raise the callback into our caller to indicate this project has been analyzed.
