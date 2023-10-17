@@ -128,7 +128,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// </summary>
         public Task<ImmutableArray<DiagnosticData>> GetLastComputedProjectDiagnosticsAsync(ProjectId projectId, CancellationToken cancellationToken)
             => !_analyzedProjectIds.Contains(projectId)
-                ? SpecializedTasks.EmptyImmutableArray<DiagnosticData> ()
+                ? SpecializedTasks.EmptyImmutableArray<DiagnosticData>()
                 : _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, projectId, documentId: null,
                     includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: false,
                     includeNonLocalDocumentDiagnostics: false, cancellationToken);
