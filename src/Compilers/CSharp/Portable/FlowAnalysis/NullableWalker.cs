@@ -6927,6 +6927,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: the state may be conditional if a previous argument involved a conditional post-condition
             // The WhenTrue/False states correspond to the invocation returning true/false
 
+            // adjust parameter annotations based on presence of NotNullIfNotNullAttribute and state of other parameters
+            parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParametersOpt, parameter);
+
             switch (refKind)
             {
                 case RefKind.None:
@@ -6939,7 +6942,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.Ref:
                     {
                         // assign from a fictional value from the parameter to the argument.
-                        parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParametersOpt, parameter);
                         var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
                         if (!compareExchangeInfoOpt.IsDefault)
                         {
@@ -6966,7 +6968,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.Out:
                     {
                         // compute the fictional parameter state
-                        parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParametersOpt, parameter);
                         var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
 
                         // Adjust parameter state if MaybeNull or MaybeNullWhen are present (for `var` type and for assignment warnings)
