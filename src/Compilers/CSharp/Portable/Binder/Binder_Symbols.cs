@@ -1679,6 +1679,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(symbol);
             if (useSiteInfo.DiagnosticInfo != null)
             {
+                // If the member is optional and bad for whatever reason ignore it
+                if (isOptional &&
+                    useSiteInfo.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
+                {
+                    symbol = null;
+                    return false;
+                }
+
                 diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
             }
 
