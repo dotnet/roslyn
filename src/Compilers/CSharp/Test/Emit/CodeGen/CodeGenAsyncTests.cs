@@ -6056,7 +6056,7 @@ public class C
         }
 
         [Fact]
-        public void Async_TaskT()
+        public void Async2_TaskT()
         {
             var source = @"
 using System;
@@ -6066,12 +6066,6 @@ namespace System.Runtime.CompilerServices
 {
     public static class RuntimeHelpers
     {
-        public static TResult UnsafeAwaitAwaiterFromRuntimeAsync<TResult, TAwaiter>(TAwaiter awaiter)
-        {
-            // Get the result from the awaiter, or throw the exception stored in the Task
-            return default;
-        }
-
         public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
         {
         }
@@ -6112,100 +6106,86 @@ class Test
     }
 }";
 
-            var c = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Fails);
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Fails);
 
             c.VerifyTypeIL("TT", @"
     .class private auto ansi beforefieldinit TT
-	extends [netstandard]System.Object
+    	extends [netstandard]System.Object
     {
-	    // Methods
-	    .method public hidebysig static 
-		    int32 modopt([netstandard]System.Threading.Tasks.Task`1) M1 () cil managed 
-	    {
-		    // Method begins at RVA 0x206c
-		    // Code size 27 (0x1b)
-		    .maxstack 1
-		    .locals init (
-			    [0] valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable,
-			    [1] int32
-		    )
-		    IL_0000: nop
-		    IL_0001: call valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable [netstandard]System.Threading.Tasks.Task::Yield()
-		    IL_0006: stloc.0
-		    IL_0007: ldloca.s 0
-		    IL_0009: call instance valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter [netstandard]System.Runtime.CompilerServices.YieldAwaitable::GetAwaiter()
-		    IL_000e: call void System.Runtime.CompilerServices.RuntimeHelpers::UnsafeAwaitAwaiterFromRuntimeAsync<valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
-		    IL_0013: nop
-		    IL_0014: ldc.i4.s 42
-		    IL_0016: stloc.1
-		    IL_0017: br.s IL_0019
-		    IL_0019: ldloc.1
-		    IL_001a: ret
-	    } // end of method TT::M1
-	    .method public hidebysig static 
-		    int32 modopt([netstandard]System.Threading.Tasks.Task`1) M2 () cil managed 
-	    {
-		    // Method begins at RVA 0x2094
-		    // Code size 11 (0xb)
-		    .maxstack 1
-		    .locals init (
-			    [0] int32
-		    )
-		    IL_0000: nop
-		    IL_0001: call int32 modopt([netstandard]System.Threading.Tasks.Task`1) TT::M1()
-		    IL_0006: stloc.0
-		    IL_0007: br.s IL_0009
-		    IL_0009: ldloc.0
-		    IL_000a: ret
-	    } // end of method TT::M2
-	    .method public hidebysig specialname rtspecialname 
-		    instance void .ctor () cil managed 
-	    {
-		    // Method begins at RVA 0x20ab
-		    // Code size 8 (0x8)
-		    .maxstack 8
-		    IL_0000: ldarg.0
-		    IL_0001: call instance void [netstandard]System.Object::.ctor()
-		    IL_0006: nop
-		    IL_0007: ret
-	    } // end of method TT::.ctor
+    	// Methods
+    	.method public hidebysig static 
+    		int32 modopt([netstandard]System.Threading.Tasks.Task`1) M1 () cil managed 
+    	{
+    		// Method begins at RVA 0x2068
+    		// Code size 39 (0x27)
+    		.maxstack 1
+    		.locals init (
+    			[0] valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter,
+    			[1] valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable
+    		)
+    		IL_0000: call valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable [netstandard]System.Threading.Tasks.Task::Yield()
+    		IL_0005: stloc.1
+    		IL_0006: ldloca.s 1
+    		IL_0008: call instance valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter [netstandard]System.Runtime.CompilerServices.YieldAwaitable::GetAwaiter()
+    		IL_000d: stloc.0
+    		IL_000e: ldloca.s 0
+    		IL_0010: call instance bool [netstandard]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::get_IsCompleted()
+    		IL_0015: brtrue.s IL_001d
+    		IL_0017: ldloc.0
+    		IL_0018: call void System.Runtime.CompilerServices.RuntimeHelpers::UnsafeAwaitAwaiterFromRuntimeAsync<valuetype [netstandard]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
+    		IL_001d: ldloca.s 0
+    		IL_001f: call instance void [netstandard]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
+    		IL_0024: ldc.i4.s 42
+    		IL_0026: ret
+    	} // end of method TT::M1
+    	.method public hidebysig static 
+    		int32 modopt([netstandard]System.Threading.Tasks.Task`1) M2 () cil managed 
+    	{
+    		// Method begins at RVA 0x209b
+    		// Code size 6 (0x6)
+    		.maxstack 8
+    		IL_0000: call int32 modopt([netstandard]System.Threading.Tasks.Task`1) TT::M1()
+    		IL_0005: ret
+    	} // end of method TT::M2
+    	.method public hidebysig specialname rtspecialname 
+    		instance void .ctor () cil managed 
+    	{
+    		// Method begins at RVA 0x20a2
+    		// Code size 7 (0x7)
+    		.maxstack 8
+    		IL_0000: ldarg.0
+    		IL_0001: call instance void [netstandard]System.Object::.ctor()
+    		IL_0006: ret
+    	} // end of method TT::.ctor
     } // end of class TT
 ");
 
             c.VerifyTypeIL("Test", @"
     .class private auto ansi beforefieldinit Test
-	extends [netstandard]System.Object
+	    extends [netstandard]System.Object
     {
 	    // Methods
 	    .method public hidebysig static 
 		    void Main () cil managed 
 	    {
-		    // Method begins at RVA 0x20f4
-		    // Code size 20 (0x14)
-		    .maxstack 1
+		    // Method begins at RVA 0x20e7
+		    // Code size 16 (0x10)
+		    .maxstack 8
 		    .entrypoint
-		    .locals init (
-			    [0] class [netstandard]System.Threading.Tasks.Task`1<int64>
-		    )
-		    IL_0000: nop
-		    IL_0001: call class [netstandard]System.Threading.Tasks.Task`1<int64> CC::M3()
-		    IL_0006: stloc.0
-		    IL_0007: ldloc.0
-		    IL_0008: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int64>::get_Result()
-		    IL_000d: call void [netstandard]System.Console::WriteLine(int64)
-		    IL_0012: nop
-		    IL_0013: ret
+		    IL_0000: call class [netstandard]System.Threading.Tasks.Task`1<int64> CC::M3()
+		    IL_0005: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int64>::get_Result()
+		    IL_000a: call void [netstandard]System.Console::WriteLine(int64)
+		    IL_000f: ret
 	    } // end of method Test::Main
 	    .method public hidebysig specialname rtspecialname 
 		    instance void .ctor () cil managed 
 	    {
-		    // Method begins at RVA 0x20ab
-		    // Code size 8 (0x8)
+		    // Method begins at RVA 0x20a2
+		    // Code size 7 (0x7)
 		    .maxstack 8
 		    IL_0000: ldarg.0
 		    IL_0001: call instance void [netstandard]System.Object::.ctor()
-		    IL_0006: nop
-		    IL_0007: ret
+		    IL_0006: ret
 	    } // end of method Test::.ctor
     } // end of class Test
 ");
@@ -6213,7 +6193,7 @@ class Test
         }
 
         [Fact]
-        public void Async_TaskT_Metadata()
+        public void Async2_TaskT_Metadata()
         {
             var text1 = @"
 using System;
@@ -6223,12 +6203,6 @@ namespace System.Runtime.CompilerServices
 {
     public static class RuntimeHelpers
     {
-        public static TResult UnsafeAwaitAwaiterFromRuntimeAsync<TResult, TAwaiter>(TAwaiter awaiter)
-        {
-            // Get the result from the awaiter, or throw the exception stored in the Task
-            return default;
-        }
-
         public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
         {
         }

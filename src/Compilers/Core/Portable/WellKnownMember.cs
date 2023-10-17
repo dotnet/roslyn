@@ -618,7 +618,6 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
 
         System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter,
-        System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TResult_TAwaiter,
 
         Count,
 
