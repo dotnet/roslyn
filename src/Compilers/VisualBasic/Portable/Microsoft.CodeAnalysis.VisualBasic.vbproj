@@ -74,9 +74,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\BasicCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
