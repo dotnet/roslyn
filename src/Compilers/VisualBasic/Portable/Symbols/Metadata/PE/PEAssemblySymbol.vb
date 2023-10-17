@@ -161,16 +161,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
             Get
-                Dim libValue As String = Nothing
-                Return PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, libValue)
+                Return PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, Nothing)
             End Get
         End Property
 
         Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
             Get
-                Dim majorValue As Integer
-                Dim minorValue As Integer
-                Return PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, majorValue, minorValue)
+                Return PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, Nothing, Nothing)
             End Get
         End Property
 

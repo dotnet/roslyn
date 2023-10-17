@@ -775,9 +775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Continue For
                 End If
 
-                Dim guidString As String = Nothing
-
-                If Not assembly.GetGuidString(guidString) Then
+                If Not assembly.GetGuidString(Nothing) Then
                     diagnostics.Add(ERRID.ERR_PIAHasNoAssemblyGuid1,
                                     NoLocation.Singleton,
                                     assembly,
