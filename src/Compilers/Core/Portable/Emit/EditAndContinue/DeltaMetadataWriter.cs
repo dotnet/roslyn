@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // When serializing EnC delta the entries added to Custom Attribute are not sorted, they will stay in the order in which they are added to the table.
             // Therefore, the final (aggregate) row ids of newly added custom attribute entries will follow the max row id of custom attribute entries
             // added since the initial generation or the number of attributes in the initial generation if no attribute has been added since.
-            var lastCustomAttributeRowId = _previousGeneration.CustomAttributesAdded.Count > 0
+            int lastCustomAttributeRowId = _previousGeneration.CustomAttributesAdded.Count > 0
                 ? _previousGeneration.CustomAttributesAdded.Max(static entry => entry.Value[^1])
                 : _previousGeneration.OriginalMetadata.MetadataReader.GetTableRowCount(TableIndex.CustomAttribute);
 
@@ -872,8 +872,8 @@ namespace Microsoft.CodeAnalysis.Emit
                     return 0;
                 }
 
-                var xOrdinal = MetadataTokens.GetRowNumber(_previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(x.parentHandle).FirstOrDefault());
-                var yOrdinal = MetadataTokens.GetRowNumber(_previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(y.parentHandle).FirstOrDefault());
+                int xOrdinal = MetadataTokens.GetRowNumber(_previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(x.parentHandle).FirstOrDefault());
+                int yOrdinal = MetadataTokens.GetRowNumber(_previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(y.parentHandle).FirstOrDefault());
 
                 // order entities with no attributes in original metadata after those who have some:
                 if (xOrdinal == 0) xOrdinal = int.MaxValue;
