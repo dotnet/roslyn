@@ -421,8 +421,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                     // Defines an identifier used by the client for merging diagnostics across projects, and merged
                     // against those produced by a build system (like msbuild/cps).  We accomplish this with a simple
-                    // strategy (that we also share with msbuild/cps).  Specifically, the identifier is
-                    // "Code-Line-Char".  This is simple and only allocates a small amount per diagnostic.
+                    // strategy (that we also share with msbuild/cps).  Specifically, the identifier is "ID-Line-Char".
+                    // This is simple and only allocates a small amount per diagnostic.
                     //
                     // Note: LSP client buckets diagnostics against each file uri.  So we do not need to include any
                     // file information in this identifier.
