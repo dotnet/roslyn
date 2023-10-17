@@ -14,8 +14,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Text.Classification;
@@ -65,13 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
             _textView.VisualElement.SizeChanged += OnElementSizeChanged;
             this.SizeChanged += OnElementSizeChanged;
-
-            if (model.SmartRenameViewModel is not null)
-            {
-                var smartRenameControl = new SmartRenameControl(model.SmartRenameViewModel);
-                var index = MainPanel.Children.IndexOf(HeaderGrid);
-                MainPanel.Children.Insert(index + 1, smartRenameControl);
-            }
 
             PresentationSource.AddSourceChangedHandler(this, OnPresentationSourceChanged);
 

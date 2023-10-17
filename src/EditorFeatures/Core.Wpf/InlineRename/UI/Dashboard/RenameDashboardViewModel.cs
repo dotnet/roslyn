@@ -11,8 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.CodeAnalysis.InlineRename;
-using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private string _errorText;
         private bool _isReplacementTextValid;
 
-        public RenameDashboardViewModel(InlineRenameSession session, Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
+        public RenameDashboardViewModel(InlineRenameSession session)
         {
             _session = session;
             _searchText = EditorFeaturesResources.Searching;
@@ -38,25 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
-
-            var smartRenameSession = smartRenameSessionFactory.Value.CreateSmartRenameSession(_session.TriggerSpan);
-            if (smartRenameSession is not null)
-            {
-                SmartRenameViewModel = new SmartRenameViewModel(smartRenameSession);
-                SmartRenameViewModel.PropertyChanged += CurrentSelectedNamePropertyChanged;
-            }
         }
-
-        private void CurrentSelectedNamePropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(SmartRenameViewModel.CurrentSelectedName)
-                && SmartRenameViewModel?.CurrentSelectedName is not null)
-            {
-                _session.ApplyReplacementText(SmartRenameViewModel.CurrentSelectedName, propagateEditImmediately: true, updateSelection: false);
-            }
-        }
-
-        public SmartRenameViewModel SmartRenameViewModel { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -316,11 +297,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReplacementTextChanged -= OnReplacementTextChanged;
             _session.ReferenceLocationsChanged -= OnReferenceLocationsChanged;
             _session.ReplacementsComputed -= OnReplacementsComputed;
-            if (SmartRenameViewModel is not null)
-            {
-                SmartRenameViewModel.PropertyChanged -= CurrentSelectedNamePropertyChanged;
-                SmartRenameViewModel.Dispose();
-            }
         }
     }
 }

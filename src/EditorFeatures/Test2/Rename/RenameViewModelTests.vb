@@ -585,7 +585,7 @@ class D : B
                 Dim mockSmartRenameFactory = New Lazy(Of ISmartRenameSessionFactory)(Function() New TestSmartRenameSessionFactory())
 
                 Using dashboard = New RenameDashboard(
-                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), mockSmartRenameFactory),
+                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
