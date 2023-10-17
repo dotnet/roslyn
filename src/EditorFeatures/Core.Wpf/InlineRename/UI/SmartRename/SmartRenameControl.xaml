@@ -73,7 +73,7 @@
 
         <StackPanel Orientation="Horizontal" Grid.Row="0" Visibility="{Binding Path=IsInProgress, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
             <platformUI:ProgressControl/>
-            <TextBlock Text="Generating suggestions..." Margin="2 0 2 0" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.NewProjectProviderHoverForegroundKey}}"/>
+            <TextBlock Text="{Binding GeneratingSuggestions}" Margin="2 0 2 0" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.NewProjectProviderHoverForegroundKey}}"/>
         </StackPanel>
 
         <TextBlock

@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             InitializeComponent();
 
+            // If smart rename is available, insert the control after the identifier text box.
             if (viewModel.SmartRenameViewModel is not null)
             {
                 var smartRenameControl = new SmartRenameControl(viewModel.SmartRenameViewModel);
@@ -233,25 +234,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
         {
+            // When smart rename is available, allow the user to scrolling up/down the suggestions by keyboard.
             var smartRenameViewModel = _viewModel.SmartRenameViewModel;
             if (smartRenameViewModel is not null)
             {
-                var currentIdentifier = this.IdentifierTextBox.Text;
-                string? newIdentifier = null;
-                if (e.Key == Key.Down)
+                var currentIdentifier = IdentifierTextBox.Text;
+                if (e.Key is Key.Down or Key.Up)
                 {
-                    newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: true);
-                }
-                else if (e.Key == Key.Up)
-                {
-                    newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: false);
-                }
-
-                if (newIdentifier is not null)
-                {
-                    _viewModel.IdentifierText = newIdentifier;
-                    IdentifierTextBox.Select(0, newIdentifier.Length);
-                    e.Handled = true;
+                    var newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: e.Key == Key.Down);
+                    if (newIdentifier is not null)
+                    {
+                        _viewModel.IdentifierText = newIdentifier;
+                        IdentifierTextBox.Select(0, newIdentifier.Length);
+                        e.Handled = true;
+                    }
                 }
             }
         }

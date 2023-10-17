@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 
         public bool StatusMessageVisibility => _smartRenameSession?.StatusMessageVisibility ?? false;
 
+        public static string GeneratingSuggestions => EditorFeaturesWpfResources.Generating_suggestions;
+
         private string? _currentSelectedName;
 
         public string? CurrentSelectedName
