@@ -672,7 +672,7 @@ namespace Roslyn.Test.Utilities
             {
                 var didChangeParams = CreateDidChangeTextDocumentParams(
                     documentUri,
-                    changes.Select(change => (change.Range, change.Text)).ToImmutableArray());
+                    changes.ToImmutableArray());
                 return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
             }
 
