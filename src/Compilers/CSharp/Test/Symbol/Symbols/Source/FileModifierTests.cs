@@ -818,14 +818,6 @@ public partial class C
         }
     }
 
-    private void DeterminismCore(
-        string fileTypeName,
-        CSharpCompilation comp1,
-        CSharpCompilation comp2,
-        CSharpCompilation comp3)
-    {
-    }
-
     [Theory]
     [InlineData("""
             file class Outer1 { }
