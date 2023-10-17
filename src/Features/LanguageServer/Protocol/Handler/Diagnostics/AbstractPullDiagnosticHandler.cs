@@ -419,12 +419,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                         },
                     };
 
-                    // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
-                    // to be merged from separate projects if they have the same code, filepath, range, and message.
+                    // Defines an identifier used by the client for merging diagnostics across projects, and merged
+                    // against those produced by a build system (like msbuild/cps).  We accomplish this with a simple
+                    // strategy (that we also share with msbuild/cps).  Specifically, the identifier is
+                    // "Code-Line-Char".  This is simple and only allocates a small amount per diagnostic.
                     //
-                    // Note: LSP pull diagnostics only operates on unmapped locations.
-                    diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
-                        .GetHashCode().ToString();
+                    // Note: LSP client buckets diagnostics against each file uri.  So we do not need to include any
+                    // file information in this identifier.
+                    //
+                    // Note: It's possible that different systems might report a slightly different diagnostic.  For
+                    // example potentially a slightly different error message from the compiler.  Generally, we think
+                    // this should be very unlikely, and that by just having the right code and location for the
+                    // diagnostic, resolving the issue should always be manageable regardless of which diagnostic
+                    // message is being shown.
+                    diagnostic.Identifier = FormattableString.Invariant($"{diagnostic.Code}-{diagnostic.Range.Start.Line}-{diagnostic.Range.Start.Character}");
                 }
 
                 return diagnostic;
