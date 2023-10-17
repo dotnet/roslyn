@@ -22,7 +22,7 @@
     <!--
       ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" />
+    <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" Key="$(MicrosoftSharedPublicKey)" />
   </ItemGroup>
 
 </Project>
