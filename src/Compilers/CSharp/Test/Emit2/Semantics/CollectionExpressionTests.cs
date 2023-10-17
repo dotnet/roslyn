@@ -21983,6 +21983,93 @@ partial class Program
         }
 
         [Fact]
+        public void ImmutableArray_06()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<int> arr = [1, 2, 3];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { sourceA, s_collectionExtensions }, targetFramework: TargetFramework.Net60);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,35): error CS9210: This version of 'ImmutableArray<T>' cannot be used with collection expressions.
+                //         ImmutableArray<int> arr = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
+
+            // Can work around this error in downlevel scenarios by defining ImmutableCollectionsMarshal.AsImmutableArray
+            string sourceB = """
+                using System.Collections.Immutable;
+
+                namespace System.Runtime.InteropServices
+                {
+                    public static class ImmutableCollectionsMarshal
+                    {
+                        // nb: the real implementation of this would use an unsafe cast
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => ImmutableArray.Create(array);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { sourceA, sourceB, s_collectionExtensions }, targetFramework: TargetFramework.Net60, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_0011:  call       "System.Collections.Immutable.ImmutableArray<int> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<int>(int[])"
+                  IL_0016:  box        "System.Collections.Immutable.ImmutableArray<int>"
+                  IL_001b:  ldc.i4.0
+                  IL_001c:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0021:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_07()
+        {
+            // Test an ImmutableArray<T> which implements only non-generic IEnumerable.
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<int> arr = [1, 2, 3];
+                    }
+                }
+
+                namespace System.Collections.Immutable
+                {
+                    struct ImmutableArray<T> : IEnumerable
+                    {
+                        public void Add(T t) { }
+                        IEnumerator IEnumerable.GetEnumerator() => null;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,35): error CS9210: This version of 'ImmutableArray<T>' cannot be used with collection expressions.
+                //         ImmutableArray<int> arr = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
+        }
+        [Fact]
         public void ElementNullability_ArrayCollection()
         {
             string src = """
