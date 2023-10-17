@@ -1,93 +1,135 @@
 <p align="center">
-<img width="450" src="https://user-images.githubusercontent.com/46729679/109719841-17b7dd00-7b5e-11eb-8f5e-87eb2d4d1be9.png" alt="Roslyn logo">
+<img width="450" src="https://github.com/postsharp/Metalama/raw/master/images/metalama-by-postsharp.svg" alt="Metalama logo">
 </p>
 
-<h1 align="center">The .NET Compiler Platform</h1>
 
-<p align="center"><a href="https://gitter.im/dotnet/roslyn?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge" rel="nofollow"><img            src="https://camo.githubusercontent.com/5dbac0213da25c445bd11f168587c11a200ba153ef3014e8408e462e410169b3/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Join the chat at https://gitter.im/dotnet/roslyn" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a> <a href="http://aka.ms/discord-csharp-roslyn" rel="nofollow"><img src="https://camo.githubusercontent.com/1ea6a95121cbf4179d411e853681838825392a7f0ae7e6bb1e03f4ea37c8fd5d/68747470733a2f2f646973636f72646170702e636f6d2f6170692f6775696c64732f3134333836373833393238323032303335322f7769646765742e706e67" alt="Chat on Discord" data-canonical-src="https://discordapp.com/api/guilds/143867839282020352/widget.png" style="max-width:100%;"></a></p>
+Metalama Compiler is a fork of [Roslyn](https://github.com/dotnet/Roslyn) that adds an extension points to allow analyzer projects to perform arbitrary transformations through the `ISourceTransformer` interface.
 
-Roslyn is the open-source implementation of both the C# and Visual Basic compilers with an API surface for building code analysis tools.
+Metalama Compiler is actively and professionally maintained by [PostSharp Technologies](https://www.postsharp.net/).
 
-### C# and Visual Basic Language Feature Suggestions
+Metalama Compiler is a part of [Metalama](https://github.com/postsharp/Metalama). Metalama Framework is a high-level meta-programming framework for C#. It's first pillar, boilerplate reduction, relies on Metalama Compiler to implement aspect-oriented programming. Metalama relies on several other Roslyn extension points: analyzers, diagnostic suppressors, source generators, code fix providers, and code refactoring providers. However, no extension point was available to transform source code during compilation, so we are relying on this fork.
 
-If you want to suggest a new feature for the C# or Visual Basic languages go here:
-- [dotnet/csharplang](https://github.com/dotnet/csharplang) for C# specific issues
-- [dotnet/vblang](https://github.com/dotnet/vblang) for VB-specific features
-- [dotnet/csharplang](https://github.com/dotnet/csharplang) for features that affect both languages
+For an overview of the modification of Metalama Compiler compared to the vanilla Roslyn, see [this article](docs-Metalama\Modifications.md).
 
-### Contributing
+## Features
 
-All work on the C# and Visual Basic compiler happens directly on [GitHub](https://github.com/dotnet/roslyn). Both core team members and external contributors send pull requests which go through the same review process.
+Metalama Compiler adds the following features to Roslyn:
 
-If you are interested in fixing issues and contributing directly to the code base, a great way to get started is to ask some questions on [GitHub Discussions](https://github.com/dotnet/roslyn/discussions)! Then check out our [contributing guide](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md) which covers the following:
+* **Source transformers.** Ability for analyzer projects to perform arbitrary transformations of source code during compilation thanks to the [ISourceTransformer](https://doc.metalama.net/api/metalama_compiler_isourcetransformer) interface.
 
-- [Coding guidelines](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Contributing-Code.md)
-- [The development workflow, including debugging and running tests](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md)
-- [Submitting pull requests](<https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md#How-to-submit-a-PR>)
-- Finding a bug to fix in the [IDE](https://aka.ms/roslyn-ide-bugs-help-wanted) or [Compiler](https://aka.ms/roslyn-compiler-bugs-help-wanted)
-- Finding a feature to implement in the [IDE](https://aka.ms/roslyn-ide-feature-help-wanted) or [Compiler](https://aka.ms/roslyn-compiler-feature-help-wanted)
-- Roslyn API suggestions should go through the [API review process](<docs/contributing/API Review Process.md>)
+* **Ordering.** Multiple source transformers can be ordered using the [TransformerOrderAttribute](https://doc.metalama.net/api/metalama_compiler_transformerorderattribute)  assembly-level custom attribute or the `MetalamaCompilerTransformerOrder` MSBuild property (see below)
+    
+    > [!Warning]
+    > Having too many source transformers in a project can cause performance issues.
 
-### Community
+* **Source mapping.** Diagnostics and PDBs are mapped to source code by default (even when reported on transformed code). This behavior can be changed by one of the new [MSBuild properties](docs-Metalama/Properties.md) defined by Metalama Compiler. This is by far the most complex feature of Metalama Compiler.
 
-The Roslyn community can be found on [GitHub Discussions](https://github.com/dotnet/roslyn/discussions), where you can ask questions, voice ideas, and share your projects.
+* **Managed resources.** The `TransformerContext` argument of `ISourceTransformer.Execute` provides read-write access to managed resources. It allows to add resources to the reference assembly.
 
-To chat with other community members, you can join the Roslyn [Discord](https://discord.com/invite/tGJvv88) or [Gitter](https://gitter.im/dotnet/roslyn).
+## Building
 
-Our [Code of Conduct](CODE-OF-CONDUCT.md) applies to all Roslyn community channels and has adopted the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
+To build Metalama Compiler, clone the repo and execute the following line from the command line:
 
-### Documentation
+```powershell
+.\Build.ps1 build
+```
 
-Visit [Roslyn Architecture Overview](https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/compiler-api-model) to get started with Roslyn’s API’s.
+## Documentation
 
-### NuGet Feeds
+### Getting started
 
-**The latest pre-release builds** are available from the following public NuGet feeds: 
-- [Compiler](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json`
-- [IDE Services](https://dev.azure.com/azure-public/vside/_packaging?_a=feed&feed=vssdk): `https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json`
-- [.NET SDK](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet5): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json`
+### Step 1. Building a source transformer
 
-[//]: # (Begin current test results)
+To write a source transformer:
 
-### Continuous Integration status
-#### Builds
+1. Create a new .NET Standard 2.0 class library project and add a reference to the `Metalama.Compiler.Sdk` package.
+2. Create a new class that implements the `ISourceTransformer` interface.
+3. Add the `[Transformer]` custom attribute to this class.
+4. Implement the `Execute` method. This method receives a `TransformerContext` object. Use this object to inspect the current compilation, add syntax trees, modify syntax trees, report diagnostics, or suppress diagnostics.
 
-|Branch|Windows Debug|Windows Release|Unix Debug|
-|:--:|:--:|:--:|:--:|
-**main**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Build_Windows_Debug&configuration=Build_Windows_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Build_Windows_Release&configuration=Build_Windows_Release&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Build_Unix_Debug&configuration=Build_Unix_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|
-**main-vs-deps**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Build_Windows_Debug&configuration=Build_Windows_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Build_Windows_Release&configuration=Build_Windows_Release&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Build_Unix_Debug&configuration=Build_Unix_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|
+```cs
+using Metalama.Compiler;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-#### Desktop Unit Tests
+namespace Metalama.SourceTransformer
+{
+    [Transformer]
+    internal class SourceTransformer : ISourceTransformer
+    {
+        public void Execute( TransformerContext context )
+        {
+           
+        }
+    }
+}
+```
 
-|Branch|Debug x86|Debug x64|Release x86|Release x64|
-|:--:|:--:|:--:|:--:|:--:|
-**main**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_Windows_Desktop_Debug_32&configuration=Test_Windows_Desktop_Debug_32&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_Windows_Desktop_Debug_64&configuration=Test_Windows_Desktop_Debug_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_Windows_Desktop_Release_32&configuration=Test_Windows_Desktop_Release_32&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_Windows_Desktop_Release_64&configuration=Test_Windows_Desktop_Release_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|
-**main-vs-deps**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_Windows_Desktop_Debug_32&configuration=Test_Windows_Desktop_Debug_32&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_Windows_Desktop_Debug_64&configuration=Test_Windows_Desktop_Debug_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_Windows_Desktop_Release_32&configuration=Test_Windows_Desktop_Release_32&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_Windows_Desktop_Release_64&configuration=Test_Windows_Desktop_Release_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|
+### Step 2. Packaging a source transformer
 
-#### CoreClr Unit Tests
+The packaging of your transformer should follow the same rules as analyzers and source generators. That is, your output `dll` should be in the `analyzers/dotnet/cs` folder instead of under `lib`.
 
-|Branch|Windows Debug|Windows Release|Linux|
-|:--:|:--:|:--:|:--:|
-**main**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_Windows_CoreClr_Debug&configuration=Test_Windows_CoreClr_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_Windows_CoreClr_Release&configuration=Test_Windows_CoreClr_Release&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_Linux_Debug&configuration=Test_Linux_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|
-**main-vs-deps**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_Windows_CoreClr_Debug&configuration=Test_Windows_CoreClr_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_Windows_CoreClr_Release&configuration=Test_Windows_CoreClr_Release&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_Linux_Debug&configuration=Test_Linux_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|
+Follow [this example](https://github.com/dotnet/roslyn-sdk/blob/main/samples/CSharp/Analyzers/Analyzers.Implementation/Analyzers.CSharp.csproj) from the Roslyn documentation:
 
-#### Integration Tests
+1. Define the `IncludeBuildOutput=False` property to prevent the project output to be added to the `lib` directory of the package.
 
-|Branch|Debug x86|Debug x64|Release x86|Release x64
-|:--:|:--:|:--:|:--:|:--:|
-**main**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=main&jobname=VS_Integration_Debug_32&configuration=VS_Integration_Debug_32&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=96&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=main&jobname=VS_Integration_Debug_64&configuration=VS_Integration_Debug_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=96&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=main&jobname=VS_Integration_Release_32&configuration=VS_Integration_Release_32&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=96&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=main&jobname=VS_Integration_Release_64&configuration=VS_Integration_Release_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=96&branchname=main&view=logs)|
-**main-vs-deps**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=main-vs-deps&jobname=VS_Integration_Debug_32&configuration=VS_Integration_Debug_32&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=96&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=main-vs-deps&jobname=VS_Integration_Debug_64&configuration=VS_Integration_Debug_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=96&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=main-vs-deps&jobname=VS_Integration_Release_32&configuration=VS_Integration_Release_32&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=96&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=main-vs-deps&jobname=VS_Integration_Release_64&configuration=VS_Integration_Release_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=96&branchname=main-vs-deps&view=logs)|
+2. Use the following to include the output under the `analysis/dotnet/cs`:
 
-#### Misc Tests
+    ```xml
+    <ItemGroup>
+     <None Include="$(OutputPath)\$(AssemblyName).dll" 
+           Pack="true" 
+           PackagePath="analyzers/dotnet/cs" 
+           Visible="false" />
+    </ItemGroup>
+    ```
 
-|Branch|Determinism|Analyzers|Build Correctness|Source build|TODO/Prototype|Spanish|MacOS|
-|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-**main**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Correctness_Determinism&configuration=Correctness_Determinism&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Correctness_Analyzers&configuration=Correctness_Analyzers&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Correctness_Build_Artifacts&configuration=Correctness_Build_Artifacts&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Source-Build+(Managed)&configuration=Source-Build+(Managed)&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Correctness_TodoCheck&configuration=Correctness_TodoCheck&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_Windows_Desktop_Spanish_Release_64&configuration=Test_Windows_Desktop_Spanish_Release_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main&jobname=Test_macOS_Debug&configuration=Test_macOS_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main&view=logs)|
-**main-vs-deps**|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Correctness_Determinism&configuration=Correctness_Determinism&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Correctness_Analyzers&configuration=Correctness_Analyzers&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Correctness_Build_Artifacts&configuration=Correctness_Build_Artifacts&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Source-Build+(Managed)&configuration=Source-Build+(Managed)&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Correctness_TodoCheck&configuration=Correctness_TodoCheck&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_Windows_Desktop_Spanish_Release_64&configuration=Test_Windows_Desktop_Spanish_Release_64&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=main-vs-deps&jobname=Test_macOS_Debug&configuration=Test_macOS_Debug&label=build)](https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=95&branchname=main-vs-deps&view=logs)|
 
-[//]: # (End current test results)
+### Step 3. Using a source transformer
 
-### .NET Foundation
+In any project that uses the source transformer:
 
-This project is part of the [.NET Foundation](http://www.dotnetfoundation.org/projects) along with other
-projects like [the .NET Runtime](https://github.com/dotnet/runtime/).
+* Add the package containing your transformer.
+
+    If you need a `ProjectReference` instead of a `PackageReference`, use the following code:
+
+    ```xml
+    <ItemGroup>
+        <ProjectReference Include="..\PathTo\SourceGenerator.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false" />
+    </ItemGroup>
+    
+    ```
+
+
+* Add the `Metalama.Compiler` package. You can specify `PrivateAssets="all"` if you don't want the package to flow to the projects referencing this project.
+
+### API Documentation
+
+See [Metalama.Compiler](https://doc.metalama.net/api/metalama_compiler)
+
+### Architecture
+
+The public API of the extensions introduced by Metalama Compiler is included in the `Metalama.Compiler.Sdk` package. This package only contains interfaces and stubs.
+
+The `Metalama.Compiler` package replaces the Roslyn compiler shipped with Visual Studio or the .NET SDK, but only for projects that reference the package. `Metalama.Compiler`  is actually a fork of `Microsoft.Net.Compilers.Toolset` It contains the implementation of `Metalama.Compiler.Sdk`.
+
+### MSBuild properties
+
+The Metalama compiler can be configured by several custom MSBuild properties from the `csproj` file of a user project:
+
+* `MetalamaEmitCompilerTransformedFiles`: Set to `true` to write transformed files to disk to the `obj/Debug/metalama` or `obj/Release/metalama` directory. The default is `true` if `MetalamaDebugTransformedCode` is enabled and `false` otherwise.
+* `MetalamaCompilerTransformedFilesOutputPath`: Can be used to set the directory where transformed files are written instead of `obj/Debug`.
+* `MetalamaCompilerTransformerOrder`: A semicolon-separated list of namespace-qualified names of transformers. This is necessary to set the execution order of transformers, if the order has not been fully specified by the transformers using [`[TransformerOrder]`](API.md#TransformerOrderAttribute).
+* `MetalamaDebugTransformedCode`: Set to `true` to produce diagnostics and PDB sequence points in transformed code. Otherwise, locations are attempted to be mapped to original user code. The default is `false`.
+* `MetalamaDebugCompiler`: Set to `true` to cause `Debugger.Launch()`.
+* `MetalamaSourceOnlyAnalyzers` contains the list of analyzers that must execute on the source code instead of the transformed code. This is a comma-separated list which can contain the assembly name, an exact namespace (namespace inheritance rules do not apply) or the exact full name of an analyzer type.
+
+
+> [!Note]
+ > If `MetalamaDebugTransformedCode` is set to `true`, but `MetalamaEmitCompilerTransformedFiles` is explicitly set to `false` (and no custom `CompilerTransformedFilesOutputPath` is provided), then transformed sources should be used for debugging and diagnostics, but cannot be written to disk.
+>
+> For debugging, this means transformed sources are embedded into the PDB. For diagnostics, this means the reported locations are nonsensical and the user is warned about this.
+
