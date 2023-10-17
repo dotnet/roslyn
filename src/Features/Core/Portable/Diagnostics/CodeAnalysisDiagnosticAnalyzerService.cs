@@ -33,6 +33,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         private readonly IDiagnosticsRefresher _diagnosticsRefresher;
         private readonly Workspace _workspace;
         private readonly ConcurrentSet<ProjectId> _analyzedProjectIds = new();
+        private readonly ConcurrentSet<ProjectId> _clearedProjectIds = new();
 
         public CodeAnalysisDiagnosticAnalyzerService(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
@@ -54,7 +55,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    Clear();
+                    _analyzedProjectIds.Clear();
                     break;
             }
         }
@@ -62,7 +63,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         public void Clear()
         {
             // Clear the list of analyzed projects.
-            _analyzedProjectIds.Clear();
+            _clearedProjectIds.AddRange(_analyzedProjectIds);
 
             // Let LSP know so that it requests up to date info, and will see our cached info disappear.
             _diagnosticsRefresher.RequestWorkspaceRefresh();
@@ -101,6 +102,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.
             _analyzedProjectIds.Add(project.Id);
+            _clearedProjectIds.Remove(project.Id);
 
             // Now raise the callback into our caller to indicate this project has been analyzed.
             onAfterProjectAnalyzed(project);
@@ -116,7 +118,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// We return these cached document diagnostics here, including both local and non-local document diagnostics.
         /// </summary>
         public Task<ImmutableArray<DiagnosticData>> GetLastComputedDocumentDiagnosticsAsync(DocumentId documentId, CancellationToken cancellationToken)
-            => !_analyzedProjectIds.Contains(documentId.ProjectId)
+            => _clearedProjectIds.Contains(documentId.ProjectId)
                 ? SpecializedTasks.EmptyImmutableArray<DiagnosticData>()
                 : _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, documentId.ProjectId,
                     documentId, includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true,
@@ -127,7 +129,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// We return these cached project diagnostics here, i.e. diagnostics with no location, by excluding all local and non-local document diagnostics.
         /// </summary>
         public Task<ImmutableArray<DiagnosticData>> GetLastComputedProjectDiagnosticsAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => !_analyzedProjectIds.Contains(projectId)
+            => _clearedProjectIds.Contains(projectId)
                 ? SpecializedTasks.EmptyImmutableArray<DiagnosticData>()
                 : _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, projectId, documentId: null,
                     includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: false,
