@@ -824,6 +824,31 @@ public partial class C
         CSharpCompilation comp2,
         CSharpCompilation comp3)
     {
+    }
+
+    [Theory]
+    [InlineData("""
+            file class Outer1 { }
+            file class Outer2 { }
+            """, "Outer2")]
+    [InlineData("""
+            file class Outer { }
+            """, "Outer")]
+    public void Determinism(string source, string fileTypeName)
+    {
+        var (root1, root2) = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? (@"q:\", @"j:\") : ("/q", "/j");
+        var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
+        var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
+        var options = TestOptions.DebugDll.WithDeterministic(true);
+        var comp1 = CreateCompilation(testSource1, options: options, assemblyName: "filetypes");
+        var comp2 = CreateCompilation(testSource2, options: options, assemblyName: "filetypes");
+
+        var resolver = new SourceFileResolver(
+            ImmutableArray<string>.Empty,
+            baseDirectory: null,
+            ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
+        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver), assemblyName: "filetypes");
+
         var outer1 = comp1.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
         var outer2 = comp2.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
         var outer3 = comp3.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
@@ -839,51 +864,6 @@ public partial class C
         var bytes3 = comp3.EmitToArray(emitOptions);
         Assert.False(bytes1.SequenceEqual(bytes2));
         Assert.True(bytes1.SequenceEqual(bytes3));
-    }
-
-    [Fact]
-    public void Determinism_01()
-    {
-        var source = """
-            file class Outer { }
-            """;
-
-        var (root1, root2) = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? (@"q:\", @"j:\") : ("/q", "/j");
-        var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
-        var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
-        var options = TestOptions.DebugDll.WithDeterministic(true);
-        var comp1 = CreateCompilation(testSource1, options: options, assemblyName: "filetypes");
-        var comp2 = CreateCompilation(testSource2, options: options, assemblyName: "filetypes");
-
-        var resolver = new SourceFileResolver(
-            ImmutableArray<string>.Empty,
-            baseDirectory: null,
-            ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
-        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver), assemblyName: "filetypes");
-        DeterminismCore("Outer", comp1, comp2, comp3);
-    }
-
-    [Fact]
-    public void Determinism_02()
-    {
-        var source = """
-            file class Outer1 { }
-            file class Outer2 { }
-            """;
-
-        var (root1, root2) = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? (@"q:\", @"j:\") : ("/q", "/j");
-        var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
-        var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
-        var options = TestOptions.DebugDll.WithDeterministic(true);
-        var comp1 = CreateCompilation(testSource1, options: options, assemblyName: "filetypes");
-        var comp2 = CreateCompilation(testSource2, options: options, assemblyName: "filetypes");
-
-        var resolver = new SourceFileResolver(
-            ImmutableArray<string>.Empty,
-            baseDirectory: null,
-            ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
-        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver), assemblyName: "filetypes");
-        DeterminismCore("Outer2", comp1, comp2, comp3);
     }
 
     [Fact]
