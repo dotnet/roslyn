@@ -582,7 +582,9 @@ class D : B
                     edit.Apply()
                 End Using
 
+#Disable Warning BC40000 'Editor team use Obsolete attribute to mark potential changing API
                 Dim mockSmartRenameFactory = New Lazy(Of ISmartRenameSessionFactory)(Function() New TestSmartRenameSessionFactory())
+#Enable Warning BC40000
 
                 Using dashboard = New RenameDashboard(
                     New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
@@ -709,7 +711,9 @@ class D : B
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
 
+#Disable Warning BC40000 'Editor team use Obsolete attribute to mark potential changing API
                 Dim mockSmartRenameFactory = New Lazy(Of ISmartRenameSessionFactory)(Function() New TestSmartRenameSessionFactory())
+#Enable Warning BC40000
 
                 Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.False(vm.IsCollapsed)
@@ -724,6 +728,8 @@ class D : B
         End Sub
     End Class
 
+#Disable Warning BC40000 'Editor team use Obsolete attribute to mark potential changing API
+
     Friend Class TestSmartRenameSessionFactory
         Implements ISmartRenameSessionFactory
 
@@ -731,6 +737,7 @@ class D : B
             Return Nothing
         End Function
     End Class
+#Enable Warning BC40000
 
     Friend Class TestQuickInfoBroker
         Implements IAsyncQuickInfoBroker
