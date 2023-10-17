@@ -8,7 +8,7 @@ The Metalama Compiler is actively and professionally maintained by [PostSharp Te
 
 This repository is a part of [Metalama](https://github.com/postsharp/Metalama), a high-level meta-programming framework for C#. The first pillar of Metalama, boilerplate reduction, relies on the Metalama Compiler to implement aspect-oriented programming. Metalama utilizes several other Roslyn extension points: analyzers, diagnostic suppressors, source generators, code fix providers, and code refactoring providers. However, no extension point was previously available for transforming source code during compilation, hence the reliance on this fork.
 
-For a detailed comparison of the modifications in the Metalama Compiler compared to the original Roslyn, please refer to [this article](docs-Metalama\Modifications.md).
+For a detailed comparison of the modifications in the Metalama Compiler compared to the original Roslyn, please refer to [this article](docs-Metalama/Modifications.md).
 
 ## Features
 
@@ -23,7 +23,7 @@ The Metalama Compiler introduces the following features to Roslyn:
 
     Analyzers can be ordered before or after transformers using the `MetalamaSourceOnlyAnalyzers` property (see below).
 
-* **Source mapping.** Diagnostics and PDBs are mapped to the source code by default. This behavior can be altered using one of the new [MSBuild properties](docs-Metalama/Properties.md) defined by the Metalama Compiler. This is arguably the most complex feature of the Metalama Compiler.
+* **Source mapping.** Diagnostics and PDBs are mapped to the source code by default. This behavior can be altered using one of the new MSBuild properties defined by the Metalama Compiler (see below). This is arguably the most complex feature of the Metalama Compiler.
 
 * **Managed resources.** The `TransformerContext` argument of `ISourceTransformer.Execute` provides read-write access to managed resources, enabling the addition of resources to the reference assembly.
 
@@ -75,7 +75,7 @@ Follow [this example](https://github.com/dotnet/roslyn-sdk/blob/main/samples/CSh
 
 1. Define the `IncludeBuildOutput=False` property to prevent the project output from being added to the `lib` directory of the package.
 
-2. Use the following to include the output under the `analysis/dotnet/cs`:
+2. Use the following to include the output under the `analyzers/dotnet/cs`:
 
     ```xml
     <ItemGroup>
