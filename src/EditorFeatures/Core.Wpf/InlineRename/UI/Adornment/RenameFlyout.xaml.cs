@@ -230,5 +230,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
             _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
         }
+
+        private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            var smartRenameViewModel = _viewModel.SmartRenameViewModel;
+            if (smartRenameViewModel is not null)
+            {
+                var currentIdentifier = this.IdentifierTextBox.Text;
+                string? newIdentifier = null;
+                if (e.Key == Key.Down)
+                {
+                    newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: true);
+                }
+                else if (e.Key == Key.Up)
+                {
+                    newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: false);
+                }
+
+                if (newIdentifier is not null)
+                {
+                    _viewModel.IdentifierText = newIdentifier;
+                    IdentifierTextBox.Select(0, newIdentifier.Length);
+                    e.Handled = true;
+                }
+            }
+        }
     }
 }

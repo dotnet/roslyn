@@ -59,11 +59,11 @@
             Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}"  
             BorderThickness="0" 
             Padding="7">
-            <StackPanel x:Name="MainPanel">
+            <StackPanel>
 
                 <!-- Heading: Display the old and new identifier names, and an indication if something is wrong (but not the full description, which goes in the Summary section below) -->
 
-                <Grid x:Name="HeaderGrid">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -108,19 +108,19 @@
                                HorizontalAlignment="Left"
                                ToolTip="{Binding Session.OriginalSymbolName, Mode=OneTime}"/>
                     <Button 
-                        Name="CloseButton"
-                        Grid.Row ="0"
-                        Grid.Column="2"
-                        Width="18" Height="18"
-                        Margin="4,0,0,0"
-                        Content="{StaticResource ResourceKey=XShapePath}"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        VerticalAlignment="Center"
-                        HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-                        Click="CloseButton_Click"
-                        ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"
-                        AutomationProperties.Name="{Binding ElementName=dashboard, Path=CancelRename}"/>
+                    Name="CloseButton"
+                    Grid.Row ="0"
+                    Grid.Column="2"
+                    Width="18" Height="18"
+                    Margin="4,0,0,0"
+                    Content="{StaticResource ResourceKey=XShapePath}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    VerticalAlignment="Center"
+                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                    Click="CloseButton_Click"
+                    ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"
+                    AutomationProperties.Name="{Binding ElementName=dashboard, Path=CancelRename}"/>
                 </Grid>
 
                 <!-- Display the new name if it has been adjusted, or instructional text if it has not. -->

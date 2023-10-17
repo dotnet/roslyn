@@ -69,6 +69,19 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
             PropertyChanged?.Invoke(this, e);
         }
 
+        public string? ScrollSuggestions(string currentIdentifier, bool down)
+        {
+            if (!HasSuggestions)
+            {
+                return null;
+            }
+
+            var currentIndex = SuggestedNames.IndexOf(currentIdentifier);
+            currentIndex += down ? 1 : -1;
+            currentIndex = Math.Max(0, Math.Min(this.SuggestedNames.Count - 1, currentIndex));
+            return SuggestedNames[currentIndex];
+        }
+
         public void Cancel()
         {
             _cancellationTokenSource.Cancel();

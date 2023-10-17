@@ -2,8 +2,8 @@
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
@@ -43,7 +43,8 @@
                     x:Name="IdentifierTextBox" 
                     Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}" 
                     GotFocus="IdentifierTextBox_GotFocus"
-                    HorizontalAlignment="Stretch" />
+                    HorizontalAlignment="Stretch" 
+                    PreviewKeyDown="IdentifierTextBox_KeyDown"/>
 
                 <!-- Expand/Collapse button and glyph -->
                 <Button 
