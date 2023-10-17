@@ -1,4 +1,4 @@
-## Component diagram
+# Componens
 
 ![Component diagram of the Metalama compiler](Metalama.Compiler.png)
 
@@ -32,14 +32,3 @@ Metalama.Compiler is a NuGet package used as a dependency of transformer package
 
 It is effectively a renamed Microsoft.Net.Compilers.Toolset.
 
-### Metalama.Compiler.Samples
-
-Note that these projects are just for illustration, they don't actually exist in the repository.
-
-#### Metalama.Compiler.Samples.Virtuosity
-
-A transformer project, which references Metalama.Compiler.Sdk. The built package then depends on Metalama.Compiler.
-
-#### Metalama.Compiler.Samples.Virtuosity.Test
-
-A sample application that depends on the Metalama.Compiler.Samples.Virtuosity transformer package. This means it also indirectly depends on Metalama.Compiler, which means compiling this project will use the Metalama compiler.
