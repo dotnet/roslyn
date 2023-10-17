@@ -5,7 +5,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-             mc:Ignorable="d" >
+             xmlns:platformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             mc:Ignorable="d"
+             Margin="0 0 0 5">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <SolidColorBrush x:Key="copilotBranding" Color="#6F66E3"/>
@@ -16,12 +18,11 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="{StaticResource copilotBranding}"/>
-            <Setter Property="Margin" Value="0 0 0 5"/>
 
             <Setter Property="ItemsPanel">
                 <Setter.Value>
                     <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" Width="238"/>
+                        <WrapPanel Orientation="Horizontal" Width="238" HorizontalAlignment="Left"/>
                     </ItemsPanelTemplate>
                 </Setter.Value>
             </Setter>
@@ -65,17 +66,26 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="2"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ProgressBar
-                    x:Uid="ProgressBar"
-                    x:Name="ProgressBar"
-                    IsIndeterminate="{Binding Path=IsInProgress}"
-                    Visibility="{Binding Path=IsInProgress, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
-                    Foreground="{StaticResource copilotBranding}"
-                    Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}"
-                    Grid.Row="0" />
-        <ListView  Style="{StaticResource CopilotListViewStyle}" Grid.Row="1" />
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Visibility="{Binding Path=IsInProgress, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}">
+            <platformUI:ProgressControl/>
+            <TextBlock Text="Generating suggestions..." Margin="2 0 2 0" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.NewProjectProviderHoverForegroundKey}}"/>
+        </StackPanel>
+
+        <TextBlock
+                x:Uid="ErrorTextBlock"
+                x:Name="ErrorTextBlock"
+                MaxWidth="400"
+                TextWrapping="Wrap"
+                Text="{Binding StatusMessage}"
+                Visibility="{Binding Path=StatusMessageVisibility, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                Foreground="{DynamicResource {x:Static vsfx:VsBrushes.NewProjectProviderHoverForegroundKey}}"
+                Grid.Row="1"/>
+
+        <ListView  Style="{StaticResource CopilotListViewStyle}" Grid.Row="2" />
     </Grid>
 </UserControl>

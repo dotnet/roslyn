@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 
         public bool IsInProgress => _smartRenameSession?.IsInProgress ?? false;
 
+        public string StatusMessage => _smartRenameSession?.StatusMessage ?? string.Empty;
+
+        public bool StatusMessageVisibility => _smartRenameSession?.StatusMessageVisibility ?? false;
+
         private string? _currentSelectedName;
 
         public string? CurrentSelectedName

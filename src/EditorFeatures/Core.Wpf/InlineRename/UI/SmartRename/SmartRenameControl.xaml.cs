@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
             this.DataContext = _smartRenameViewModel = viewModel;
             InitializeComponent();
         }
+
         private void Suggestion_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2)

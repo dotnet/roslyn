@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (e.PropertyName == nameof(SmartRenameViewModel.CurrentSelectedName)
                 && SmartRenameViewModel?.CurrentSelectedName is not null)
             {
-                _session.ApplyReplacementText(SmartRenameViewModel.CurrentSelectedName, propagateEditImmediately: true);
+                _session.ApplyReplacementText(SmartRenameViewModel.CurrentSelectedName, propagateEditImmediately: true, updateSelection: false);
             }
         }
 
