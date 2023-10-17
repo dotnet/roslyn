@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
+
         private readonly Lazy<ISmartRenameSessionFactory> _smartRenameSessionFactory;
+#pragma warning restore CS0618
 
         public const string AdornmentLayerName = "RoslynRenameDashboard";
 

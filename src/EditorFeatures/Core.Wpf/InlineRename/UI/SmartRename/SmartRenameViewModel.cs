@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 {
     internal class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     {
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
         private readonly ISmartRenameSession _smartRenameSession;
+#pragma warning restore CS0618 
 
         private readonly CancellationTokenSource _cancellationTokenSource;
 
@@ -47,7 +49,9 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
             }
         }
 
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
         public SmartRenameViewModel(ISmartRenameSession smartRenameSession)
+#pragma warning restore CS0618
         {
             _smartRenameSession = smartRenameSession;
             _smartRenameSession.PropertyChanged += SessionPropertyChanged;

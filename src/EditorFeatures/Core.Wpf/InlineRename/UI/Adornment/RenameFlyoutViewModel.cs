@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             TextSpan selectionSpan,
             bool registerOleComponent,
             IGlobalOptionService globalOptionService,
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
             Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
+#pragma warning restore CS0618 
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
