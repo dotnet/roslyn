@@ -505,6 +505,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Versione selezionata: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_analysis_suggestions">
+        <source>Code analysis suggestions</source>
+        <target state="new">Code analysis suggestions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_snippet_for_0">
         <source>Code snippet for '{0}'</source>
         <target state="translated">Frammento di codice per '{0}'</target>

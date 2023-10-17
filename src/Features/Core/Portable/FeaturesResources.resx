@@ -3249,6 +3249,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_number" xml:space="preserve">
     <value>Convert number</value>
   </data>
+  <data name="Code_analysis_suggestions" xml:space="preserve">
+    <value>Code analysis suggestions</value>
+  </data>
   <data name="Fix_All_0" xml:space="preserve">
     <value>Fix All: '{0}'</value>
   </data>
