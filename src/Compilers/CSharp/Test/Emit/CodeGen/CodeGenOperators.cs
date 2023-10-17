@@ -5074,6 +5074,43 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void NullCoalesce_Local()
+        {
+            var source = """
+                class Program
+                {
+                    static int Main(int? x)
+                    {
+                        var y = 3;
+                        var z = x ?? y;
+                        return y + z;
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  .locals init (int V_0, //y
+                                int V_1) //z
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarga.s   V_0
+                  IL_0004:  ldloc.0
+                  IL_0005:  call       "int int?.GetValueOrDefault(int)"
+                  IL_000a:  stloc.1
+                  IL_000b:  ldloc.0
+                  IL_000c:  ldloc.1
+                  IL_000d:  add
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
         public void NullCoalesce_RefLocal()
         {
             var source = """
