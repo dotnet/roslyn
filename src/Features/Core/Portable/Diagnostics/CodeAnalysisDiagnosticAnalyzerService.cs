@@ -32,7 +32,21 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly IDiagnosticsRefresher _diagnosticsRefresher;
         private readonly Workspace _workspace;
+
+        /// <summary>
+        /// List of projects that we've finished running "run code analysis" on.  Cached results can now be returned for
+        /// these through <see cref="GetLastComputedDocumentDiagnosticsAsync"/> and <see
+        /// cref="GetLastComputedProjectDiagnosticsAsync"/>.
+        /// </summary>
         private readonly ConcurrentSet<ProjectId> _analyzedProjectIds = new();
+
+        /// <summary>
+        /// Previously analyzed projects that we no longer want to report results for.  This happens when an explicit
+        /// build is kicked off.  At that point, we want the build results to win out for a particular project.  We mark
+        /// this project (as opposed to removing from <see cref="_analyzedProjectIds"/>) as we want our LSP handler to
+        /// still think it should process it, as that will the cause the diagnostics to be removed when they now
+        /// transition to an empty list returned from this type.
+        /// </summary>
         private readonly ConcurrentSet<ProjectId> _clearedProjectIds = new();
 
         public CodeAnalysisDiagnosticAnalyzerService(
