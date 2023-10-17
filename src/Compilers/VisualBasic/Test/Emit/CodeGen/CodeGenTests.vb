@@ -3530,7 +3530,7 @@ End Module</file>
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
         Public Sub TestNullCoalesce_NullableWithNonDefault_ByRefParameter()
-            CompileAndVerify(
+            Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Public Module Program
@@ -3538,17 +3538,23 @@ Public Module Program
         Return If(x, y)
     End Function
 End Module</file>
-</compilation>).
-            VerifyIL("Program.CoalesceWithNonDefault",
+</compilation>)
+
+            ' Dereferencing might throw, so no `GetValueOrDefault(defaultValue)` optimization here
+            verifier.VerifyIL("Program.CoalesceWithNonDefault",
             <![CDATA[
 {
-  // Code size       10 (0xa)
-  .maxstack  2
+  // Code size       20 (0x14)
+  .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarg.1
-  IL_0003:  ldind.i4
-  IL_0004:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
-  IL_0009:  ret
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldarg.1
+  IL_000a:  ldind.i4
+  IL_000b:  ret
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0013:  ret
 }
 ]]>)
         End Sub

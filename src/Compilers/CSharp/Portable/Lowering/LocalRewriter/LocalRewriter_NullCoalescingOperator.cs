@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right is a side-effectless expression of type T
-                if (unwrappedRight is { ConstantValueOpt: not null } or { Kind: BoundKind.Local or BoundKind.Parameter } &&
+                if (unwrappedRight is { ConstantValueOpt: not null } or BoundLocal { LocalSymbol.IsRef: false } or BoundParameter { ParameterSymbol.RefKind: RefKind.None } &&
                     TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, out MethodSymbol? getValueOrDefaultDefaultValue, isOptional: true))
                 {
                     return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultDefaultValue, rewrittenRight);
