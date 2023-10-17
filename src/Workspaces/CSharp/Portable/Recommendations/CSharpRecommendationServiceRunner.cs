@@ -554,14 +554,26 @@ internal partial class CSharpRecommendationService
                 if (symbol is INamedTypeSymbol namedType)
                 {
                     reinterpretedBinding = semanticModel.GetSpeculativeSymbolInfo(identifier.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-                    instanceType = reinterpretedBinding.GetAnySymbol().GetSymbolType() as INamedTypeSymbol;
+                    var reinterpretedSymbol = reinterpretedBinding.GetAnySymbol();
+
+                    // has to actually have reinterpreted to something that has an instance type.
+                    if (reinterpretedSymbol is INamespaceOrTypeSymbol)
+                        return false;
+
+                    instanceType = reinterpretedSymbol.GetSymbolType() as INamedTypeSymbol;
                     staticType = namedType;
                 }
                 else
                 {
                     reinterpretedBinding = semanticModel.GetSpeculativeSymbolInfo(identifier.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+                    var reinterpretedSymbol = reinterpretedBinding.GetAnySymbol();
+
+                    // Has to actually have reinterpreted to a named typed.
+                    if (reinterpretedSymbol is not INamedTypeSymbol reinterprettedNamedType)
+                        return false;
+
                     instanceType = symbol.GetSymbolType() as INamedTypeSymbol;
-                    staticType = reinterpretedBinding.GetAnySymbol() as INamedTypeSymbol;
+                    staticType = reinterprettedNamedType;
                 }
 
                 if (instanceType is null || staticType is null)
