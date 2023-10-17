@@ -317,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool TryApplyChanges(
             Microsoft.CodeAnalysis.Solution newSolution,
-            IProgressTracker progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker)
         {
             if (!_foregroundObject.IsForeground())
             {

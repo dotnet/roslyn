@@ -1197,7 +1197,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
 
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
-            => ReceiverIsSubjectToCloning(receiver, property.GetMethod ?? property.SetMethod);
+        {
+            var method = property.GetMethod ?? property.SetMethod;
+
+            // Property might be missing accessors in invalid code.
+            if (method is null)
+            {
+                return ThreeState.False;
+            }
+
+            return ReceiverIsSubjectToCloning(receiver, method);
+        }
 
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
         {

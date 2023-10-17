@@ -186,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ObjectCreationExpression,
         UnconvertedCollectionExpression,
         CollectionExpression,
+        CollectionExpressionSpreadExpressionPlaceholder,
         CollectionExpressionSpreadElement,
         TupleLiteral,
         ConvertedTupleLiteral,
@@ -2136,7 +2137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAwaitExpression : BoundExpression
     {
-        public BoundAwaitExpression(SyntaxNode syntax, BoundExpression expression, BoundAwaitableInfo awaitableInfo, TypeSymbol type, bool hasErrors = false)
+        public BoundAwaitExpression(SyntaxNode syntax, BoundExpression expression, BoundAwaitableInfo awaitableInfo, BoundAwaitExpressionDebugInfo debugInfo, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.AwaitExpression, syntax, type, hasErrors || expression.HasErrors() || awaitableInfo.HasErrors())
         {
 
@@ -2146,20 +2147,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Expression = expression;
             this.AwaitableInfo = awaitableInfo;
+            this.DebugInfo = debugInfo;
         }
 
         public new TypeSymbol Type => base.Type!;
         public BoundExpression Expression { get; }
         public BoundAwaitableInfo AwaitableInfo { get; }
+        public BoundAwaitExpressionDebugInfo DebugInfo { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAwaitExpression(this);
 
-        public BoundAwaitExpression Update(BoundExpression expression, BoundAwaitableInfo awaitableInfo, TypeSymbol type)
+        public BoundAwaitExpression Update(BoundExpression expression, BoundAwaitableInfo awaitableInfo, BoundAwaitExpressionDebugInfo debugInfo, TypeSymbol type)
         {
-            if (expression != this.Expression || awaitableInfo != this.AwaitableInfo || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (expression != this.Expression || awaitableInfo != this.AwaitableInfo || debugInfo != this.DebugInfo || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAwaitExpression(this.Syntax, expression, awaitableInfo, type, this.HasErrors);
+                var result = new BoundAwaitExpression(this.Syntax, expression, awaitableInfo, debugInfo, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6283,10 +6286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundUnconvertedCollectionExpression : BoundExpression
+    internal abstract partial class BoundCollectionExpressionBase : BoundExpression
     {
-        public BoundUnconvertedCollectionExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> elements, bool hasErrors = false)
-            : base(BoundKind.UnconvertedCollectionExpression, syntax, null, hasErrors || elements.HasErrors())
+        protected BoundCollectionExpressionBase(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> elements, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, type, hasErrors)
         {
 
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6294,8 +6297,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Elements = elements;
         }
 
-        public new TypeSymbol? Type => base.Type;
         public ImmutableArray<BoundExpression> Elements { get; }
+    }
+
+    internal sealed partial class BoundUnconvertedCollectionExpression : BoundCollectionExpressionBase
+    {
+        public BoundUnconvertedCollectionExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> elements, bool hasErrors = false)
+            : base(BoundKind.UnconvertedCollectionExpression, syntax, elements, null, hasErrors || elements.HasErrors())
+        {
+
+            RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+        public new TypeSymbol? Type => base.Type;
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedCollectionExpression(this);
@@ -6312,10 +6327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundCollectionExpression : BoundExpression
+    internal sealed partial class BoundCollectionExpression : BoundCollectionExpressionBase
     {
         public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? collectionBuilderInvocationPlaceholder, BoundExpression? collectionBuilderInvocationConversion, ImmutableArray<BoundExpression> elements, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionExpression, syntax, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderInvocationPlaceholder.HasErrors() || collectionBuilderInvocationConversion.HasErrors() || elements.HasErrors())
+            : base(BoundKind.CollectionExpression, syntax, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderInvocationPlaceholder.HasErrors() || collectionBuilderInvocationConversion.HasErrors() || elements.HasErrors())
         {
 
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6327,7 +6342,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CollectionBuilderMethod = collectionBuilderMethod;
             this.CollectionBuilderInvocationPlaceholder = collectionBuilderInvocationPlaceholder;
             this.CollectionBuilderInvocationConversion = collectionBuilderInvocationConversion;
-            this.Elements = elements;
         }
 
         public new TypeSymbol Type => base.Type!;
@@ -6337,7 +6351,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol? CollectionBuilderMethod { get; }
         public BoundValuePlaceholder? CollectionBuilderInvocationPlaceholder { get; }
         public BoundExpression? CollectionBuilderInvocationConversion { get; }
-        public ImmutableArray<BoundExpression> Elements { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpression(this);
@@ -6354,37 +6367,68 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundCollectionExpressionSpreadExpressionPlaceholder : BoundValuePlaceholderBase
+    {
+        public BoundCollectionExpressionSpreadExpressionPlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.CollectionExpressionSpreadExpressionPlaceholder, syntax, type, hasErrors)
+        {
+        }
+
+        public BoundCollectionExpressionSpreadExpressionPlaceholder(SyntaxNode syntax, TypeSymbol? type)
+            : base(BoundKind.CollectionExpressionSpreadExpressionPlaceholder, syntax, type)
+        {
+        }
+
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpressionSpreadExpressionPlaceholder(this);
+
+        public BoundCollectionExpressionSpreadExpressionPlaceholder Update(TypeSymbol? type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundCollectionExpressionSpreadExpressionPlaceholder(this.Syntax, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundCollectionExpressionSpreadElement : BoundExpression
     {
-        public BoundCollectionExpressionSpreadElement(SyntaxNode syntax, BoundExpression expression, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundValuePlaceholder? addElementPlaceholder, BoundStatement? addMethodInvocation, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionExpressionSpreadElement, syntax, type, hasErrors || expression.HasErrors() || elementPlaceholder.HasErrors() || addElementPlaceholder.HasErrors() || addMethodInvocation.HasErrors())
+        public BoundCollectionExpressionSpreadElement(SyntaxNode syntax, BoundExpression expression, BoundCollectionExpressionSpreadExpressionPlaceholder? expressionPlaceholder, BoundExpression? conversion, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundExpression? lengthOrCount, BoundValuePlaceholder? elementPlaceholder, BoundStatement? iteratorBody, bool hasErrors = false)
+            : base(BoundKind.CollectionExpressionSpreadElement, syntax, null, hasErrors || expression.HasErrors() || expressionPlaceholder.HasErrors() || conversion.HasErrors() || lengthOrCount.HasErrors() || elementPlaceholder.HasErrors() || iteratorBody.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Expression = expression;
+            this.ExpressionPlaceholder = expressionPlaceholder;
+            this.Conversion = conversion;
             this.EnumeratorInfoOpt = enumeratorInfoOpt;
+            this.LengthOrCount = lengthOrCount;
             this.ElementPlaceholder = elementPlaceholder;
-            this.AddElementPlaceholder = addElementPlaceholder;
-            this.AddMethodInvocation = addMethodInvocation;
+            this.IteratorBody = iteratorBody;
         }
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
         public BoundExpression Expression { get; }
+        public BoundCollectionExpressionSpreadExpressionPlaceholder? ExpressionPlaceholder { get; }
+        public BoundExpression? Conversion { get; }
         public ForEachEnumeratorInfo? EnumeratorInfoOpt { get; }
+        public BoundExpression? LengthOrCount { get; }
         public BoundValuePlaceholder? ElementPlaceholder { get; }
-        public BoundValuePlaceholder? AddElementPlaceholder { get; }
-        public BoundStatement? AddMethodInvocation { get; }
+        public BoundStatement? IteratorBody { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpressionSpreadElement(this);
 
-        public BoundCollectionExpressionSpreadElement Update(BoundExpression expression, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundValuePlaceholder? addElementPlaceholder, BoundStatement? addMethodInvocation, TypeSymbol type)
+        public BoundCollectionExpressionSpreadElement Update(BoundExpression expression, BoundCollectionExpressionSpreadExpressionPlaceholder? expressionPlaceholder, BoundExpression? conversion, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundExpression? lengthOrCount, BoundValuePlaceholder? elementPlaceholder, BoundStatement? iteratorBody)
         {
-            if (expression != this.Expression || enumeratorInfoOpt != this.EnumeratorInfoOpt || elementPlaceholder != this.ElementPlaceholder || addElementPlaceholder != this.AddElementPlaceholder || addMethodInvocation != this.AddMethodInvocation || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (expression != this.Expression || expressionPlaceholder != this.ExpressionPlaceholder || conversion != this.Conversion || enumeratorInfoOpt != this.EnumeratorInfoOpt || lengthOrCount != this.LengthOrCount || elementPlaceholder != this.ElementPlaceholder || iteratorBody != this.IteratorBody)
             {
-                var result = new BoundCollectionExpressionSpreadElement(this.Syntax, expression, enumeratorInfoOpt, elementPlaceholder, addElementPlaceholder, addMethodInvocation, type, this.HasErrors);
+                var result = new BoundCollectionExpressionSpreadElement(this.Syntax, expression, expressionPlaceholder, conversion, enumeratorInfoOpt, lengthOrCount, elementPlaceholder, iteratorBody, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9006,6 +9050,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitUnconvertedCollectionExpression((BoundUnconvertedCollectionExpression)node, arg);
                 case BoundKind.CollectionExpression:
                     return VisitCollectionExpression((BoundCollectionExpression)node, arg);
+                case BoundKind.CollectionExpressionSpreadExpressionPlaceholder:
+                    return VisitCollectionExpressionSpreadExpressionPlaceholder((BoundCollectionExpressionSpreadExpressionPlaceholder)node, arg);
                 case BoundKind.CollectionExpressionSpreadElement:
                     return VisitCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)node, arg);
                 case BoundKind.TupleLiteral:
@@ -9304,6 +9350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitObjectCreationExpression(BoundObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpression(BoundCollectionExpression node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTupleLiteral(BoundTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
@@ -9536,6 +9583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpression(BoundCollectionExpression node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTupleLiteral(BoundTupleLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node) => this.DefaultVisit(node);
@@ -10316,6 +10364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.Elements);
             return null;
         }
+        public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node) => null;
         public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
             this.Visit(node.Expression);
@@ -10938,7 +10987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundAwaitableInfo awaitableInfo = (BoundAwaitableInfo)this.Visit(node.AwaitableInfo);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, awaitableInfo, type);
+            return node.Update(expression, awaitableInfo, node.DebugInfo, type);
         }
         public override BoundNode? VisitTypeOfOperator(BoundTypeOfOperator node)
         {
@@ -11589,14 +11638,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, node.CollectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, elements, type);
         }
+        public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(type);
+        }
         public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundCollectionExpressionSpreadExpressionPlaceholder? expressionPlaceholder = node.ExpressionPlaceholder;
+            BoundExpression? conversion = node.Conversion;
+            BoundExpression? lengthOrCount = node.LengthOrCount;
             BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
-            BoundValuePlaceholder? addElementPlaceholder = node.AddElementPlaceholder;
-            BoundStatement? addMethodInvocation = node.AddMethodInvocation;
+            BoundStatement? iteratorBody = node.IteratorBody;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, node.EnumeratorInfoOpt, elementPlaceholder, addElementPlaceholder, addMethodInvocation, type);
+            return node.Update(expression, expressionPlaceholder, conversion, node.EnumeratorInfoOpt, lengthOrCount, elementPlaceholder, iteratorBody);
         }
         public override BoundNode? VisitTupleLiteral(BoundTupleLiteral node)
         {
@@ -12746,12 +12802,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(expression, awaitableInfo, infoAndType.Type!);
+                updatedNode = node.Update(expression, awaitableInfo, node.DebugInfo, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(expression, awaitableInfo, node.Type);
+                updatedNode = node.Update(expression, awaitableInfo, node.DebugInfo, node.Type);
             }
             return updatedNode;
         }
@@ -13824,22 +13880,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundCollectionExpressionSpreadExpressionPlaceholder updatedNode = node.Update(infoAndType.Type);
+            updatedNode.TopLevelNullability = infoAndType.Info;
+            return updatedNode;
+        }
+
         public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundCollectionExpressionSpreadExpressionPlaceholder? expressionPlaceholder = node.ExpressionPlaceholder;
+            BoundExpression? conversion = node.Conversion;
+            BoundExpression? lengthOrCount = node.LengthOrCount;
             BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
-            BoundValuePlaceholder? addElementPlaceholder = node.AddElementPlaceholder;
-            BoundStatement? addMethodInvocation = node.AddMethodInvocation;
+            BoundStatement? iteratorBody = node.IteratorBody;
             BoundCollectionExpressionSpreadElement updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(expression, node.EnumeratorInfoOpt, elementPlaceholder, addElementPlaceholder, addMethodInvocation, infoAndType.Type!);
+                updatedNode = node.Update(expression, expressionPlaceholder, conversion, node.EnumeratorInfoOpt, lengthOrCount, elementPlaceholder, iteratorBody);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(expression, node.EnumeratorInfoOpt, elementPlaceholder, addElementPlaceholder, addMethodInvocation, node.Type);
+                updatedNode = node.Update(expression, expressionPlaceholder, conversion, node.EnumeratorInfoOpt, lengthOrCount, elementPlaceholder, iteratorBody);
             }
             return updatedNode;
         }
@@ -15213,6 +15283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("awaitableInfo", null, new TreeDumperNode[] { Visit(node.AwaitableInfo, null) }),
+            new TreeDumperNode("debugInfo", node.DebugInfo, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -16228,13 +16299,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node, object? arg) => new TreeDumperNode("collectionExpressionSpreadExpressionPlaceholder", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, object? arg) => new TreeDumperNode("collectionExpressionSpreadElement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("expressionPlaceholder", null, new TreeDumperNode[] { Visit(node.ExpressionPlaceholder, null) }),
+            new TreeDumperNode("conversion", null, new TreeDumperNode[] { Visit(node.Conversion, null) }),
             new TreeDumperNode("enumeratorInfoOpt", node.EnumeratorInfoOpt, null),
+            new TreeDumperNode("lengthOrCount", null, new TreeDumperNode[] { Visit(node.LengthOrCount, null) }),
             new TreeDumperNode("elementPlaceholder", null, new TreeDumperNode[] { Visit(node.ElementPlaceholder, null) }),
-            new TreeDumperNode("addElementPlaceholder", null, new TreeDumperNode[] { Visit(node.AddElementPlaceholder, null) }),
-            new TreeDumperNode("addMethodInvocation", null, new TreeDumperNode[] { Visit(node.AddMethodInvocation, null) }),
+            new TreeDumperNode("iteratorBody", null, new TreeDumperNode[] { Visit(node.IteratorBody, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

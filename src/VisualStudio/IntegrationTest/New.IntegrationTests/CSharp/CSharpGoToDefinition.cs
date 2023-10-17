@@ -167,7 +167,7 @@ class C
             Assert.Equal(1, actual.Count(s => s.Collapsed));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70376")]
         public async Task GoToDefinitionFromMetadataSecondHop()
         {
             await TestServices.SolutionExplorer.AddDllReferenceAsync(ProjectName, typeof(CSharpGoToDefinition).Assembly.Location, HangMitigatingCancellationToken);

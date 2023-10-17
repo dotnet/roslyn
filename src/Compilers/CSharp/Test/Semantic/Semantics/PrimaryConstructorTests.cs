@@ -16424,6 +16424,29 @@ class C1 (int p1)
             Assert.Single(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69663")]
+        public void Indexer_SymbolInfo()
+        {
+            var source1 = """
+                C c = null;
+                _ = c[2];
+                """;
+            var source2 = """
+                class C(int p)
+                {
+                    public int this[int i] => p;
+                }
+                """;
+            var comp = CreateCompilation(new[] { source1, source2 });
+            var tree = comp.SyntaxTrees[0];
+            var indexer = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal("c[2]", indexer.ToString());
+            var model = comp.GetSemanticModel(tree);
+            model.GetDiagnostics().Verify();
+            var info = model.GetSymbolInfo(indexer);
+            AssertEx.Equal("System.Int32 C.this[System.Int32 i] { get; }", info.Symbol.ToTestDisplayString());
+        }
+
         [Fact]
         public void IllegalCapturingInStruct_01()
         {
@@ -18450,6 +18473,270 @@ class C1(int* x)
                 // (9,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public int X => *x;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void OrderOfEvaluation_01()
+        {
+            var source =
+@"
+class C1(int x) : Base(M(x, ""3""))
+{
+    int F1 = M(x, ""1"");
+    int F2 = M(x, ""2"");
+
+    static int M(int a, string b)
+    {
+        System.Console.Write(b);
+        return a;
+    }
+}
+
+class Base
+{
+    public Base(int x)
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new C1(0);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OrderOfEvaluation_02()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    int F1 = M(x, ""1"");
+    int F2 = M(x, ""2"");
+
+    static int M(int a, string b)
+    {
+        System.Console.Write(b);
+        return a;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new S1(0);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"12").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OrderOfFieldsInMetadata_01()
+        {
+            var source =
+@"
+class C1(int x, int y)
+{
+    int P1 => x;
+    int P2 => y;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp,
+                             symbolValidator: (m) =>
+                                              {
+                                                  var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                                                  AssertEx.Equal(new[] { "<x>P", "<y>P" }, c1.GetMembers().OfType<FieldSymbol>().Select(f => f.Name));
+                                              });
+        }
+
+        [Fact]
+        public void OrderOfFieldsInMetadata_02()
+        {
+            var source =
+@"
+class C1(int x, int y)
+{
+    int a = 1;
+    int P1 => x;
+    int P2 => y;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp,
+                             symbolValidator: (m) =>
+                             {
+                                 var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                                 AssertEx.Equal(new[] { "<x>P", "<y>P", "a" }, c1.GetMembers().OfType<FieldSymbol>().Select(f => f.Name));
+                             });
+        }
+
+        [Fact]
+        public void OrderOfFieldsInMetadata_03()
+        {
+            var source =
+@"
+partial class C1
+{
+    int b = 2;
+}
+
+partial class C1(int x, int y)
+{
+    int a = 1;
+    int P1 => x;
+    int P2 => y;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp,
+                             symbolValidator: (m) =>
+                             {
+                                 var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                                 AssertEx.Equal(new[] { "b", "<x>P", "<y>P", "a" }, c1.GetMembers().OfType<FieldSymbol>().Select(f => f.Name));
+                             });
+        }
+
+        [Fact]
+        public void OrderOfFieldsInMetadata_04()
+        {
+            var source =
+@"
+partial class C1(int x, int y)
+{
+    int a = 1;
+    int P1 => x;
+    int P2 => y;
+}
+
+partial class C1
+{
+    int b = 2;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp,
+                             symbolValidator: (m) =>
+                             {
+                                 var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                                 AssertEx.Equal(new[] { "<x>P", "<y>P", "a", "b" }, c1.GetMembers().OfType<FieldSymbol>().Select(f => f.Name));
+                             });
+        }
+
+        [Fact]
+        public void OrderOfFieldsInMetadata_05()
+        {
+            var source =
+@"
+partial class C1
+{
+    int b = 2;
+}
+
+partial class C1(int x, int y)
+{
+    int a = 1;
+    int P1 => x;
+    int P2 => y;
+}
+
+partial class C1
+{
+    int c = 3;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp,
+                             symbolValidator: (m) =>
+                             {
+                                 var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                                 AssertEx.Equal(new[] { "b", "<x>P", "<y>P", "a", "c" }, c1.GetMembers().OfType<FieldSymbol>().Select(f => f.Name));
+                             });
+        }
+
+        [Fact]
+        public void OnStaticType()
+        {
+            var source =
+@"
+static struct S1(int x)
+{
+}
+
+static class C1(int x)
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0106: The modifier 'static' is not valid for this item
+                // static struct S1(int x)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("static").WithLocation(2, 15),
+                // (2,22): warning CS9113: Parameter 'x' is unread.
+                // static struct S1(int x)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 22),
+                // (6,14): error CS0710: Static classes cannot have instance constructors
+                // static class C1(int x)
+                Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "C1").WithLocation(6, 14),
+                // (6,21): warning CS9113: Parameter 'x' is unread.
+                // static class C1(int x)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        public void ManagedTypeDueToCapturing()
+        {
+            var source1 =
+@"
+class Test<T> where T : unmanaged
+{
+    static void M()
+    {
+        new Test<S1>();
+        new Test<S2>();
+    }
+}
+";
+            var source2 =
+@"
+public struct S1(string x)
+{
+    string P => x;
+    public int y;
+}
+
+#pragma warning disable CS9113 // Parameter 'x' is unread.
+public struct S2(string x)
+{
+    public int y;
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseDll);
+
+            comp.GetSemanticModel(comp.SyntaxTrees[0]).GetDiagnostics().Verify(
+                // 0.cs(6,18): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         new Test<S1>();
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "S1").WithArguments("Test<T>", "T", "S1").WithLocation(6, 18)
+                );
+
+            comp.GetSemanticModel(comp.SyntaxTrees[1]).GetDiagnostics().Verify();
+
+            comp.VerifyDiagnostics(
+                // 0.cs(6,18): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         new Test<S1>();
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "S1").WithArguments("Test<T>", "T", "S1").WithLocation(6, 18)
                 );
         }
     }

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -1522,6 +1523,133 @@ public class UseCollectionExpressionForFluentTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70101")]
+    public async Task TestAsSpan3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<char> span = "".AsSpan();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70101")]
+    public async Task TestAsSpan4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        char[] buffer = new char[4];
+                        Span<char> span1 = buffer.AsSpan();
+                        span1[0] = 'a';
+                        Console.WriteLine(buffer[0]);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70101")]
+    public async Task TestAsSpan5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<char> span = "now is the time".ToArray().[|AsSpan|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<char> span = [.. "now is the time"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestStringToArray()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        char[] span = "now is the time".[|ToArray|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        char[] span = [.. "now is the time"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task TestMultiLine1()
     {
@@ -2234,6 +2362,44 @@ public class UseCollectionExpressionForFluentTests
                     }
                 }
                 """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(ImmutableArray<int> x, int y, int z)
+                    {
+                        List<int> list = x.AddRange(y, z).[|ToList|]();
+                    }
+                }
+                """.ReplaceLineEndings(endOfLine),
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(ImmutableArray<int> x, int y, int z)
+                    {
+                        List<int> list = [.. x, y, z];
+                    }
+                }
+                """.ReplaceLineEndings(endOfLine),
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();

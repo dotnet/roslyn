@@ -163,7 +163,7 @@ class C
         }
     }
 }";
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            MarkupTestFile.GetSpans(markup, out _, out var _);
 
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -225,7 +225,7 @@ class C
              * applied, and the result is verified against the expected outcome for the .editorconfig style.
              */
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            MarkupTestFile.GetSpans(markup, out _, out var _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
@@ -1103,7 +1103,7 @@ class OtherType
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            MarkupTestFile.GetSpans(markup, out _, out var _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
@@ -1269,7 +1269,7 @@ class OtherType2
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup2, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup1, out _, out ImmutableArray<TextSpan> _);
+            MarkupTestFile.GetSpans(markup1, out _, out var _);
             await SetUpEditorAsync(markup1, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
@@ -1349,7 +1349,7 @@ class C2
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            MarkupTestFile.GetSpans(markup, out _, out var _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
@@ -1483,7 +1483,7 @@ class C2
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup2, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup1, out _, out ImmutableArray<TextSpan> _);
+            MarkupTestFile.GetSpans(markup1, out _, out var _);
             await SetUpEditorAsync(markup1, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
@@ -1561,7 +1561,7 @@ public class Program
             await TestServices.SolutionExplorer.AddAnalyzerReferenceAsync(ProjectName, typeof(NonSourceFileRefactoring).Assembly.Location, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", contents: "", open: true, HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            MarkupTestFile.GetSpans(markup, out _, out var _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]

@@ -1058,4 +1058,41 @@ public class UseCollectionExpressionForCreateTests
             NumberOfFixAllIterations = 2,
         }.RunAsync();
     }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        ImmutableArray<ImmutableArray<int>> v = [|ImmutableArray.[|Create|](|]ImmutableArray.Create(1, 2, 3));
+                    }
+                }
+                """.ReplaceLineEndings(endOfLine),
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        ImmutableArray<ImmutableArray<int>> v = [[1, 2, 3]];
+                    }
+                }
+                """.ReplaceLineEndings(endOfLine),
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            NumberOfFixAllIterations = 2,
+        }.RunAsync();
+    }
 }

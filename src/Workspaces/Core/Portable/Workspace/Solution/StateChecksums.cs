@@ -2,73 +2,158 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Serialization
+namespace Microsoft.CodeAnalysis.Serialization;
+
+internal sealed class SolutionStateChecksums
 {
-    internal sealed class SolutionStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
+    public Checksum Checksum { get; }
+
+    public Checksum Attributes { get; }
+    public ImmutableArray<ProjectId> ProjectIds { get; }
+    public ChecksumCollection Projects { get; }
+    public ChecksumCollection AnalyzerReferences { get; }
+    public Checksum FrozenSourceGeneratedDocumentIdentity { get; }
+    public Checksum FrozenSourceGeneratedDocumentText { get; }
+
+    public SolutionStateChecksums(
+        Checksum attributes,
+        ImmutableArray<ProjectId> projectIds,
+        ChecksumCollection projects,
+        ChecksumCollection analyzerReferences,
+        Checksum frozenSourceGeneratedDocumentIdentity,
+        Checksum frozenSourceGeneratedDocumentText)
     {
-        public SolutionStateChecksums(
-            Checksum attributesChecksum,
-            ChecksumCollection projectChecksums,
-            ChecksumCollection analyzerReferenceChecksums,
-            Checksum frozenSourceGeneratedDocumentIdentity,
-            Checksum frozenSourceGeneratedDocumentText)
-            : this(ImmutableArray.Create<object>(attributesChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText))
+        Contract.ThrowIfFalse(projectIds.Length == projects.Children.Length);
+
+        this.Checksum = Checksum.Create(stackalloc[]
         {
+            attributes.Hash,
+            projects.Checksum.Hash,
+            analyzerReferences.Checksum.Hash,
+            frozenSourceGeneratedDocumentIdentity.Hash,
+            frozenSourceGeneratedDocumentText.Hash,
+        });
+
+        this.Attributes = attributes;
+        this.ProjectIds = projectIds;
+        this.Projects = projects;
+        this.AnalyzerReferences = analyzerReferences;
+        this.FrozenSourceGeneratedDocumentIdentity = frozenSourceGeneratedDocumentIdentity;
+        this.FrozenSourceGeneratedDocumentText = frozenSourceGeneratedDocumentText;
+    }
+
+    public void AddAllTo(HashSet<Checksum> checksums)
+    {
+        checksums.AddIfNotNullChecksum(this.Checksum);
+        checksums.AddIfNotNullChecksum(this.Attributes);
+        this.Projects.AddAllTo(checksums);
+        this.AnalyzerReferences.AddAllTo(checksums);
+        checksums.AddIfNotNullChecksum(this.FrozenSourceGeneratedDocumentIdentity);
+        checksums.AddIfNotNullChecksum(this.FrozenSourceGeneratedDocumentText);
+    }
+
+    public void Serialize(ObjectWriter writer)
+    {
+        // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
+        this.Checksum.WriteTo(writer);
+        this.Attributes.WriteTo(writer);
+        writer.WriteArray(this.ProjectIds, static (writer, value) => value.WriteTo(writer));
+        this.Projects.WriteTo(writer);
+        this.AnalyzerReferences.WriteTo(writer);
+        this.FrozenSourceGeneratedDocumentIdentity.WriteTo(writer);
+        this.FrozenSourceGeneratedDocumentText.WriteTo(writer);
+    }
+
+    public static SolutionStateChecksums Deserialize(ObjectReader reader)
+    {
+        var checksum = Checksum.ReadFrom(reader);
+        var result = new SolutionStateChecksums(
+            attributes: Checksum.ReadFrom(reader),
+            projectIds: reader.ReadArray(ProjectId.ReadFrom),
+            projects: ChecksumCollection.ReadFrom(reader),
+            analyzerReferences: ChecksumCollection.ReadFrom(reader),
+            frozenSourceGeneratedDocumentIdentity: Checksum.ReadFrom(reader),
+            frozenSourceGeneratedDocumentText: Checksum.ReadFrom(reader));
+        Contract.ThrowIfFalse(result.Checksum == checksum);
+        return result;
+    }
+
+    public async Task FindAsync(
+        SolutionState state,
+        ProjectId? hintProject,
+        HashSet<Checksum> searchingChecksumsLeft,
+        Dictionary<Checksum, object> result,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (searchingChecksumsLeft.Count == 0)
+            return;
+
+        // verify input
+        if (searchingChecksumsLeft.Remove(Checksum))
+            result[Checksum] = this;
+
+        if (searchingChecksumsLeft.Remove(Attributes))
+            result[Attributes] = state.SolutionAttributes;
+
+        if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
+        {
+            Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
+            result[FrozenSourceGeneratedDocumentIdentity] = state.FrozenSourceGeneratedDocumentState.Identity;
         }
 
-        public Checksum Attributes => (Checksum)Children[0];
-        public ChecksumCollection Projects => (ChecksumCollection)Children[1];
-        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[2];
-        public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[3];
-        public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[4];
-
-        public async Task FindAsync(
-            SolutionState state,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken)
+        if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentText))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (searchingChecksumsLeft.Count == 0)
-                return;
+            Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
+            result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
+        }
 
-            // verify input
-            if (searchingChecksumsLeft.Remove(Checksum))
-                result[Checksum] = this;
+        ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
-            if (searchingChecksumsLeft.Remove(Attributes))
-                result[Attributes] = state.SolutionAttributes;
+        if (searchingChecksumsLeft.Count == 0)
+            return;
 
-            if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
+        if (hintProject != null)
+        {
+            var projectState = state.GetProjectState(hintProject);
+            if (projectState != null &&
+                projectState.TryGetStateChecksums(out var projectStateChecksums))
             {
-                Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
-                result[FrozenSourceGeneratedDocumentIdentity] = state.FrozenSourceGeneratedDocumentState.Identity;
+                await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        else
+        {
+            // Before doing a depth-first-search *into* each project, first run across all the project at their top level.
+            // This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums' instance
+            // that we don't unnecessarily walk all documents looking just for those.
+
+            foreach (var (_, projectState) in state.ProjectStates)
+            {
+                if (searchingChecksumsLeft.Count == 0)
+                    break;
+
+                if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
+                    searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+                {
+                    result[projectStateChecksums.Checksum] = projectStateChecksums;
+                }
             }
 
-            if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentText))
-            {
-                Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
-                result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (searchingChecksumsLeft.Remove(Projects.Checksum))
-            {
-                result[Projects.Checksum] = Projects;
-            }
-
-            if (searchingChecksumsLeft.Remove(AnalyzerReferences.Checksum))
-            {
-                result[AnalyzerReferences.Checksum] = AnalyzerReferences;
-            }
+            // Now actually do the depth first search into each project.
 
             foreach (var (_, projectState) in state.ProjectStates)
             {
@@ -80,195 +165,256 @@ namespace Microsoft.CodeAnalysis.Serialization
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums))
                     await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
-
-            ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
         }
     }
+}
 
-    internal class ProjectStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
+internal sealed class ProjectStateChecksums(
+    ProjectId projectId,
+    Checksum infoChecksum,
+    Checksum compilationOptionsChecksum,
+    Checksum parseOptionsChecksum,
+    ChecksumCollection documentChecksums,
+    ChecksumCollection projectReferenceChecksums,
+    ChecksumCollection metadataReferenceChecksums,
+    ChecksumCollection analyzerReferenceChecksums,
+    ChecksumCollection additionalDocumentChecksums,
+    ChecksumCollection analyzerConfigDocumentChecksums) : IEquatable<ProjectStateChecksums>
+{
+    public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
-        public ProjectStateChecksums(
-            Checksum infoChecksum,
-            Checksum compilationOptionsChecksum,
-            Checksum parseOptionsChecksum,
-            ChecksumCollection documentChecksums,
-            ChecksumCollection projectReferenceChecksums,
-            ChecksumCollection metadataReferenceChecksums,
-            ChecksumCollection analyzerReferenceChecksums,
-            ChecksumCollection additionalDocumentChecksums,
-            ChecksumCollection analyzerConfigDocumentChecksums)
-            : this(ImmutableArray.Create<object>(
-                infoChecksum,
-                compilationOptionsChecksum,
-                parseOptionsChecksum,
-                documentChecksums,
-                projectReferenceChecksums,
-                metadataReferenceChecksums,
-                analyzerReferenceChecksums,
-                additionalDocumentChecksums,
-                analyzerConfigDocumentChecksums))
-        {
-        }
+        infoChecksum.Hash,
+        compilationOptionsChecksum.Hash,
+        parseOptionsChecksum.Hash,
+        documentChecksums.Checksum.Hash,
+        projectReferenceChecksums.Checksum.Hash,
+        metadataReferenceChecksums.Checksum.Hash,
+        analyzerReferenceChecksums.Checksum.Hash,
+        additionalDocumentChecksums.Checksum.Hash,
+        analyzerConfigDocumentChecksums.Checksum.Hash,
+    });
 
-        public Checksum Info => (Checksum)Children[0];
-        public Checksum CompilationOptions => (Checksum)Children[1];
-        public Checksum ParseOptions => (Checksum)Children[2];
+    public ProjectId ProjectId => projectId;
 
-        public ChecksumCollection Documents => (ChecksumCollection)Children[3];
+    public Checksum Info => infoChecksum;
+    public Checksum CompilationOptions => compilationOptionsChecksum;
+    public Checksum ParseOptions => parseOptionsChecksum;
 
-        public ChecksumCollection ProjectReferences => (ChecksumCollection)Children[4];
-        public ChecksumCollection MetadataReferences => (ChecksumCollection)Children[5];
-        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[6];
+    public ChecksumCollection Documents => documentChecksums;
 
-        public ChecksumCollection AdditionalDocuments => (ChecksumCollection)Children[7];
-        public ChecksumCollection AnalyzerConfigDocuments => (ChecksumCollection)Children[8];
+    public ChecksumCollection ProjectReferences => projectReferenceChecksums;
+    public ChecksumCollection MetadataReferences => metadataReferenceChecksums;
+    public ChecksumCollection AnalyzerReferences => analyzerReferenceChecksums;
 
-        public async Task FindAsync(
-            ProjectState state,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            // verify input
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
-            Contract.ThrowIfFalse(this == stateChecksum);
+    public ChecksumCollection AdditionalDocuments => additionalDocumentChecksums;
+    public ChecksumCollection AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
 
-            if (searchingChecksumsLeft.Count == 0)
-                return;
+    public override bool Equals(object? obj)
+        => Equals(obj as ProjectStateChecksums);
 
-            if (searchingChecksumsLeft.Remove(Checksum))
-            {
-                result[Checksum] = this;
-            }
+    public bool Equals(ProjectStateChecksums? obj)
+        => this.Checksum == obj?.Checksum;
 
-            if (searchingChecksumsLeft.Remove(Info))
-            {
-                result[Info] = state.ProjectInfo.Attributes;
-            }
+    public override int GetHashCode()
+        => this.Checksum.GetHashCode();
 
-            if (searchingChecksumsLeft.Remove(CompilationOptions))
-            {
-                Contract.ThrowIfNull(state.CompilationOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
-                result[CompilationOptions] = state.CompilationOptions;
-            }
-
-            if (searchingChecksumsLeft.Remove(ParseOptions))
-            {
-                Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
-                result[ParseOptions] = state.ParseOptions;
-            }
-
-            if (searchingChecksumsLeft.Remove(Documents.Checksum))
-            {
-                result[Documents.Checksum] = Documents;
-            }
-
-            if (searchingChecksumsLeft.Remove(ProjectReferences.Checksum))
-            {
-                result[ProjectReferences.Checksum] = ProjectReferences;
-            }
-
-            if (searchingChecksumsLeft.Remove(MetadataReferences.Checksum))
-            {
-                result[MetadataReferences.Checksum] = MetadataReferences;
-            }
-
-            if (searchingChecksumsLeft.Remove(AnalyzerReferences.Checksum))
-            {
-                result[AnalyzerReferences.Checksum] = AnalyzerReferences;
-            }
-
-            if (searchingChecksumsLeft.Remove(AdditionalDocuments.Checksum))
-            {
-                result[AdditionalDocuments.Checksum] = AdditionalDocuments;
-            }
-
-            if (searchingChecksumsLeft.Remove(AnalyzerConfigDocuments.Checksum))
-            {
-                result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
-            }
-
-            ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
-            ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
-            ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
-
-            await ChecksumCollection.FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-        }
+    public void AddAllTo(HashSet<Checksum> checksums)
+    {
+        checksums.AddIfNotNullChecksum(this.Checksum);
+        checksums.AddIfNotNullChecksum(this.Info);
+        checksums.AddIfNotNullChecksum(this.CompilationOptions);
+        checksums.AddIfNotNullChecksum(this.ParseOptions);
+        this.Documents.AddAllTo(checksums);
+        this.ProjectReferences.AddAllTo(checksums);
+        this.MetadataReferences.AddAllTo(checksums);
+        this.AnalyzerReferences.AddAllTo(checksums);
+        this.AdditionalDocuments.AddAllTo(checksums);
+        this.AnalyzerConfigDocuments.AddAllTo(checksums);
     }
 
-    internal class DocumentStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
+    public void Serialize(ObjectWriter writer)
     {
-        public DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum)
-            : this(ImmutableArray.Create<object>(infoChecksum, textChecksum))
-        {
-        }
+        // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
+        this.Checksum.WriteTo(writer);
 
-        public Checksum Info => (Checksum)Children[0];
-        public Checksum Text => (Checksum)Children[1];
-
-        public async Task FindAsync(
-            TextDocumentState state,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken)
-        {
-            Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (searchingChecksumsLeft.Remove(Checksum))
-            {
-                result[Checksum] = this;
-            }
-
-            if (searchingChecksumsLeft.Remove(Info))
-            {
-                result[Info] = state.Attributes;
-            }
-
-            if (searchingChecksumsLeft.Remove(Text))
-            {
-                result[Text] = await SerializableSourceText.FromTextDocumentStateAsync(state, cancellationToken).ConfigureAwait(false);
-            }
-        }
+        this.ProjectId.WriteTo(writer);
+        this.Info.WriteTo(writer);
+        this.CompilationOptions.WriteTo(writer);
+        this.ParseOptions.WriteTo(writer);
+        this.Documents.WriteTo(writer);
+        this.ProjectReferences.WriteTo(writer);
+        this.MetadataReferences.WriteTo(writer);
+        this.AnalyzerReferences.WriteTo(writer);
+        this.AdditionalDocuments.WriteTo(writer);
+        this.AnalyzerConfigDocuments.WriteTo(writer);
     }
 
-    /// <summary>
-    /// hold onto object checksum that currently doesn't have a place to hold onto checksum
-    /// </summary>
-    internal static class ChecksumCache
+    public static ProjectStateChecksums Deserialize(ObjectReader reader)
     {
-        private static readonly ConditionalWeakTable<object, object> s_cache = new();
+        var checksum = Checksum.ReadFrom(reader);
+        var result = new ProjectStateChecksums(
+            projectId: ProjectId.ReadFrom(reader),
+            infoChecksum: Checksum.ReadFrom(reader),
+            compilationOptionsChecksum: Checksum.ReadFrom(reader),
+            parseOptionsChecksum: Checksum.ReadFrom(reader),
+            documentChecksums: ChecksumCollection.ReadFrom(reader),
+            projectReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            metadataReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            additionalDocumentChecksums: ChecksumCollection.ReadFrom(reader),
+            analyzerConfigDocumentChecksums: ChecksumCollection.ReadFrom(reader));
+        Contract.ThrowIfFalse(result.Checksum == checksum);
+        return result;
+    }
 
-        public static IReadOnlyList<T> GetOrCreate<T>(IReadOnlyList<T> unorderedList, ConditionalWeakTable<object, object>.CreateValueCallback orderedListGetter)
-            => (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
+    public async Task FindAsync(
+        ProjectState state,
+        HashSet<Checksum> searchingChecksumsLeft,
+        Dictionary<Checksum, object> result,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        // verify input
+        Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
+        Contract.ThrowIfFalse(this == stateChecksum);
 
-        public static bool TryGetValue(object value, [NotNullWhen(true)] out Checksum? checksum)
+        if (searchingChecksumsLeft.Count == 0)
+            return;
+
+        if (searchingChecksumsLeft.Remove(Checksum))
         {
-            // same key should always return same checksum
-            if (!s_cache.TryGetValue(value, out var result))
+            result[Checksum] = this;
+        }
+
+        // It's normal for callers to just want to sync a single ProjectStateChecksum.  So quickly check this, without
+        // doing all the expensive linear work below if we can bail out early here.
+        if (searchingChecksumsLeft.Count == 0)
+            return;
+
+        if (searchingChecksumsLeft.Remove(Info))
+        {
+            result[Info] = state.ProjectInfo.Attributes;
+        }
+
+        if (searchingChecksumsLeft.Remove(CompilationOptions))
+        {
+            Contract.ThrowIfNull(state.CompilationOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
+            result[CompilationOptions] = state.CompilationOptions;
+        }
+
+        if (searchingChecksumsLeft.Remove(ParseOptions))
+        {
+            Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
+            result[ParseOptions] = state.ParseOptions;
+        }
+
+        ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
+        ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
+        ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+
+        await ChecksumCollection.FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+    }
+}
+
+internal sealed class DocumentStateChecksums(
+    DocumentId documentId,
+    Checksum infoChecksum,
+    Checksum textChecksum)
+{
+    public Checksum Checksum { get; } = Checksum.Create(infoChecksum, textChecksum);
+
+    public DocumentId DocumentId => documentId;
+    public Checksum Info => infoChecksum;
+    public Checksum Text => textChecksum;
+
+    public void Serialize(ObjectWriter writer)
+    {
+        // We don't write out the checksum itself as it would bloat the size of this message. If there is corruption
+        // (which should never ever happen), it will be detected at the project level.
+        this.DocumentId.WriteTo(writer);
+        this.Info.WriteTo(writer);
+        this.Text.WriteTo(writer);
+    }
+
+    public static DocumentStateChecksums Deserialize(ObjectReader reader)
+    {
+        return new DocumentStateChecksums(
+            documentId: DocumentId.ReadFrom(reader),
+            infoChecksum: Checksum.ReadFrom(reader),
+            textChecksum: Checksum.ReadFrom(reader));
+    }
+
+    public async Task FindAsync(
+        TextDocumentState state,
+        HashSet<Checksum> searchingChecksumsLeft,
+        Dictionary<Checksum, object> result,
+        CancellationToken cancellationToken)
+    {
+        Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (searchingChecksumsLeft.Remove(Checksum))
+        {
+            result[Checksum] = this;
+        }
+
+        if (searchingChecksumsLeft.Remove(Info))
+        {
+            result[Info] = state.Attributes;
+        }
+
+        if (searchingChecksumsLeft.Remove(Text))
+        {
+            result[Text] = await SerializableSourceText.FromTextDocumentStateAsync(state, cancellationToken).ConfigureAwait(false);
+        }
+    }
+}
+
+/// <summary>
+/// hold onto object checksum that currently doesn't have a place to hold onto checksum
+/// </summary>
+internal static class ChecksumCache
+{
+    public static Checksum GetOrCreate<TValue, TArg>(TValue value, Func<TValue, TArg, Checksum> checksumCreator, TArg arg)
+        where TValue : class
+    {
+        return StronglyTypedChecksumCache<TValue, Checksum>.GetOrCreate(value, checksumCreator, arg);
+    }
+
+    public static ChecksumCollection GetOrCreateChecksumCollection<TReference>(
+        IReadOnlyList<TReference> references, ISerializerService serializer, CancellationToken cancellationToken) where TReference : class
+    {
+        return StronglyTypedChecksumCache<IReadOnlyList<TReference>, ChecksumCollection>.GetOrCreate(
+            references,
+            static (references, tuple) =>
             {
-                checksum = null;
-                return false;
-            }
+                using var _ = ArrayBuilder<Checksum>.GetInstance(references.Count, out var checksums);
+                foreach (var reference in references)
+                    checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
 
-            checksum = (Checksum)result;
-            return true;
-        }
+                return new ChecksumCollection(checksums.ToImmutableAndClear());
+            },
+            (serializer, cancellationToken));
+    }
 
-        public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
+    private static class StronglyTypedChecksumCache<TValue, TResult>
+        where TValue : class
+        where TResult : class
+    {
+        private static readonly ConditionalWeakTable<TValue, TResult> s_objectToChecksumCollectionCache = new();
+
+        public static TResult GetOrCreate<TArg>(TValue value, Func<TValue, TArg, TResult> checksumCreator, TArg arg)
         {
-            // same key should always return same checksum
-            return (Checksum)s_cache.GetValue(value, checksumCreator);
-        }
+            if (s_objectToChecksumCollectionCache.TryGetValue(value, out var checksumCollection))
+                return checksumCollection;
 
-        public static T GetOrCreate<T>(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator) where T : IChecksummedObject
-        {
-            // same key should always return same checksum
-            return (T)s_cache.GetValue(value, checksumCreator);
+            return GetOrCreateSlow(value, checksumCreator, arg);
+
+            static TResult GetOrCreateSlow(TValue value, Func<TValue, TArg, TResult> checksumCreator, TArg arg)
+                => s_objectToChecksumCollectionCache.GetValue(value, _ => checksumCreator(value, arg));
         }
     }
 }

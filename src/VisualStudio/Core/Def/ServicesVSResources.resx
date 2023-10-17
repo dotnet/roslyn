@@ -2032,4 +2032,7 @@ Additional information: {1}</value>
     <value>'System.Void' is not a valid type for a parameter</value>
     <comment>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</comment>
   </data>
+  <data name="Not_applicable" xml:space="preserve">
+    <value>Not applicable</value>
+  </data>
 </root>

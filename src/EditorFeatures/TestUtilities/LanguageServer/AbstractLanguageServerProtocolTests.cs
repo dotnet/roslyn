@@ -300,7 +300,7 @@ namespace Roslyn.Test.Utilities
             };
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
-            => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
+            => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), fixAllFlavors: null);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
@@ -325,10 +325,10 @@ namespace Roslyn.Test.Utilities
                 TestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups, commonReferences: commonReferences),
                 openDocuments: false);
 
-            return CreateTestLspServerAsync(workspace, lspOptions);
+            return CreateTestLspServerAsync(workspace, lspOptions, languageName);
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
+        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
         {
             var solution = workspace.CurrentSolution;
 
@@ -349,7 +349,11 @@ namespace Roslyn.Test.Utilities
                 solution = solution.WithProjectFilePath(project.Id, GetDocumentFilePathFromName(project.FilePath));
             }
 
-            solution = solution.WithAnalyzerReferences(new[] { CreateTestAnalyzersReference() });
+            var analyzerReferencesByLanguage = CreateTestAnalyzersReference();
+            if (initializationOptions.AdditionalAnalyzers != null)
+                analyzerReferencesByLanguage = analyzerReferencesByLanguage.WithAdditionalAnalyzers(languageName, initializationOptions.AdditionalAnalyzers);
+
+            solution = solution.WithAnalyzerReferences(new[] { analyzerReferencesByLanguage });
             await workspace.ChangeSolutionAsync(solution);
 
             // Important: We must wait for workspace creation operations to finish.
@@ -529,6 +533,7 @@ namespace Roslyn.Test.Utilities
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
             private readonly JsonRpc _clientRpc;
+            private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
 
             private readonly RoslynLanguageServer LanguageServer;
 
@@ -545,6 +550,7 @@ namespace Roslyn.Test.Utilities
                 TestWorkspace = testWorkspace;
                 ClientCapabilities = clientCapabilities;
                 _locations = locations;
+                _codeAnalysisService = testWorkspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
                 LanguageServer = target;
 
@@ -641,6 +647,13 @@ namespace Roslyn.Test.Utilities
                 return result;
             }
 
+            public async Task<ResponseType?> ExecuteRequest0Async<ResponseType>(string methodName, CancellationToken cancellationToken)
+            {
+                // If creating the LanguageServer threw we might timeout without this.
+                var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return result;
+            }
+
             public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
             {
                 if (text == null)
@@ -725,6 +738,9 @@ namespace Roslyn.Test.Utilities
             internal T GetRequiredLspService<T>() where T : class, ILspService => LanguageServer.GetTestAccessor().GetRequiredLspService<T>();
 
             internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.Select(v => v.Text).ToImmutableArray();
+
+            internal Task RunCodeAnalysisAsync(ProjectId? projectId)
+                => _codeAnalysisService.RunAnalysisAsync(GetCurrentSolution(), projectId, onAfterProjectAnalyzed: _ => { }, CancellationToken.None);
 
             public async ValueTask DisposeAsync()
             {

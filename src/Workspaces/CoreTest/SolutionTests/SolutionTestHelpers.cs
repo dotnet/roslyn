@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
@@ -14,20 +13,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class SolutionTestHelpers
     {
-        public static Workspace CreateWorkspace(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
+        public static Workspace CreateWorkspace(Type[]? additionalParts = null)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         public static Workspace CreateWorkspaceWithNormalText()
-            => CreateWorkspace(
-            [
+            => CreateWorkspace(new[]
+            {
                 typeof(TestTemporaryStorageServiceFactory)
-            ]);
+            });
 
         public static Workspace CreateWorkspaceWithRecoverableText()
             => CreateWorkspace();
 
-        public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
-            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics([typeof(TestTemporaryStorageServiceFactory)], testHost);
+        public static Workspace CreateWorkspaceWithPartialSemantics()
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestTemporaryStorageServiceFactory) });
 
 #nullable disable
 

@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Use_collection_expression">
         <source>Use collection expression</source>
-        <target state="new">Use collection expression</target>
+        <target state="translated">使用集合運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

@@ -6464,28 +6464,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
-    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
-    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</value>
+    <comment>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
-    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
-    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</value>
+    <comment>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
     <value>Generator failed to generate source.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
-  </data>
-  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
-    <value>Generator threw the following exception:
-'{0}'.</value>
-    <comment>{0} is the string representation of the exception that was thrown.</comment>
-  </data>
-  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
-    <value>Generator threw the following exception:
-'{0}'.</value>
-    <comment>{0} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="IDS_FeatureRecords" xml:space="preserve">
     <value>records</value>
@@ -7604,6 +7602,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorGlobalNamespace" xml:space="preserve">
     <value>An interceptor cannot be declared in the global namespace.</value>
   </data>
+  <data name="ERR_InterceptableMethodMustBeOrdinary" xml:space="preserve">
+    <value>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</value>
+  </data>
   <data name="ERR_InterceptorContainingTypeCannotBeGeneric" xml:space="preserve">
     <value>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</value>
   </data>
@@ -7805,7 +7806,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
     <value>Ref field should be ref-assigned before use.</value>
   </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
   <data name="ERR_ExpectedInterpolatedString" xml:space="preserve">
     <value>Expected interpolated string</value>
+  </data>
+  <data name="ERR_CollectionExpressionImmutableArray" xml:space="preserve">
+    <value>This version of '{0}' cannot be used with collection expressions.</value>
   </data>
 </root>
