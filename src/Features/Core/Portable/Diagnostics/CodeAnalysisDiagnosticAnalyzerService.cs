@@ -15,15 +15,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-[ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerService), ServiceLayer.Host), Shared]
-internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory : IWorkspaceServiceFactory
+[ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspaceServiceFactory
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CodeAnalysisDiagnosticAnalyzerServiceFactory()
-    {
-    }
-
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
         var diagnosticAnalyzerService = workspaceServices.SolutionServices.ExportProvider.GetExports<IDiagnosticAnalyzerService>().Single().Value;
@@ -58,9 +54,18 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory : IWorkspaceS
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    _analyzedProjectIds.Clear();
+                    Clear();
                     break;
             }
+        }
+
+        public void Clear()
+        {
+            // Clear the list of analyzed projects.
+            _analyzedProjectIds.Clear();
+
+            // Let LSP know so that it requests up to date info, and will see our cached info disappear.
+            _diagnosticsRefresher.RequestWorkspaceRefresh();
         }
 
         public bool HasProjectBeenAnalyzed(ProjectId projectId) => _analyzedProjectIds.Contains(projectId);
@@ -83,6 +88,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory : IWorkspaceS
                 using var _ = ArrayBuilder<Task>.GetInstance(solution.ProjectIds.Count, out var tasks);
                 foreach (var project in solution.Projects)
                     tasks.Add(Task.Run(() => AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken), cancellationToken));
+
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
         }
@@ -110,17 +116,21 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory : IWorkspaceS
         /// We return these cached document diagnostics here, including both local and non-local document diagnostics.
         /// </summary>
         public Task<ImmutableArray<DiagnosticData>> GetLastComputedDocumentDiagnosticsAsync(DocumentId documentId, CancellationToken cancellationToken)
-            => _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, documentId.ProjectId,
-                documentId, includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true,
-                includeNonLocalDocumentDiagnostics: true, cancellationToken);
+            => !_analyzedProjectIds.Contains(documentId.ProjectId)
+                ? SpecializedTasks.EmptyImmutableArray<DiagnosticData>()
+                : _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, documentId.ProjectId,
+                    documentId, includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true,
+                    includeNonLocalDocumentDiagnostics: true, cancellationToken);
 
         /// <summary>
         /// Running code analysis on the project force computes and caches the diagnostics on the DiagnosticAnalyzerService.
         /// We return these cached project diagnostics here, i.e. diagnostics with no location, by excluding all local and non-local document diagnostics.
         /// </summary>
         public Task<ImmutableArray<DiagnosticData>> GetLastComputedProjectDiagnosticsAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, projectId, documentId: null,
-                includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: false,
-                includeNonLocalDocumentDiagnostics: false, cancellationToken);
+            => !_analyzedProjectIds.Contains(projectId)
+                ? SpecializedTasks.EmptyImmutableArray<DiagnosticData> ()
+                : _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, projectId, documentId: null,
+                    includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: false,
+                    includeNonLocalDocumentDiagnostics: false, cancellationToken);
     }
 }
