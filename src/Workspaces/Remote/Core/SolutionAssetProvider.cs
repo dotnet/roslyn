@@ -28,7 +28,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly SolutionServices _services = services;
 
         public ValueTask WriteAssetsAsync(
-            PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+            PipeWriter pipeWriter,
+            Checksum solutionChecksum,
+            AssetHint assetHint,
+            ImmutableArray<Checksum> checksums,
+            CancellationToken cancellationToken)
         {
             // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
             // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
@@ -37,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
             // same thread where SuppressFlow was originally run.
             using var _ = FlowControlHelper.TrySuppressFlow();
-            return WriteAssetsSuppressedFlowAsync(pipeWriter, solutionChecksum, checksums, cancellationToken);
+            return WriteAssetsSuppressedFlowAsync(pipeWriter, solutionChecksum, assetHint, checksums, cancellationToken);
 
-            async ValueTask WriteAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+            async ValueTask WriteAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
             {
                 // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
                 // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Exception? exception = null;
                 try
                 {
-                    await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, hintProject, checksums, cancellationToken).ConfigureAwait(false);
+                    await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, assetHint, checksums, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when ((exception = ex) == null)
                 {
@@ -61,7 +65,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private async ValueTask WriteAssetsWorkerAsync(
-            PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+            PipeWriter pipeWriter,
+            Checksum solutionChecksum,
+            AssetHint assetHint,
+            ImmutableArray<Checksum> checksums,
+            CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
@@ -69,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using var _ = Creator.CreateResultMap(out var resultMap);
 
-            await scope.AddAssetsAsync(hintProject, checksums, resultMap, cancellationToken).ConfigureAwait(false);
+            await scope.AddAssetsAsync(assetHint, checksums, resultMap, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
