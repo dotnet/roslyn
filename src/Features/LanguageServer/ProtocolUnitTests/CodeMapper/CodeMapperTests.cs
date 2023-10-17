@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -72,14 +73,20 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
         var documentUri = ranges.Single().Uri;
         var mapCodeParams = new LSP.MapCodeParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(documentUri),
-            Contents = new[] { codeBlock },
-            FocusLocations = ranges
+            Mappings =
+            [
+                new MapCodeMapping()
+                {
+                    TextDocument = CreateTextDocumentIdentifier(documentUri),
+                    Contents = [codeBlock],
+                    FocusLocations = [ranges]
+                }
+            ]
         };
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-        var results = await testLspServer.ExecuteRequestAsync<LSP.MapCodeParams, LSP.WorkspaceEdit>(LSP.MapperMethods.TextDocumentMapCodeName, mapCodeParams, CancellationToken.None);
+        var results = await testLspServer.ExecuteRequestAsync<LSP.MapCodeParams, LSP.WorkspaceEdit>(MapCodeHandler.WorkspaceMapCodeName, mapCodeParams, CancellationToken.None);
         AssertEx.NotNull(results);
 
         TextEdit[] edits;
@@ -89,7 +96,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.DocumentChanges);
 
             var textDocumentEdits = results.DocumentChanges.Value.First.Single();
-            Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.TextDocument.Uri);
+            Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument.Uri);
 
             edits = textDocumentEdits.Edits;
         }
@@ -98,7 +105,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.Changes);
             Assert.Null(results.DocumentChanges);
 
-            Assert.True(results.Changes.TryGetValue(documentUri.AbsolutePath, out edits));
+            Assert.True(results.Changes.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri), out edits));
 
         }
 

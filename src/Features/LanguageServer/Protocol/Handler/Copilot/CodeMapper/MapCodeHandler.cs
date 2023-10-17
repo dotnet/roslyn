@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -20,11 +19,10 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(MapCodeHandler)), Shared]
-[Method(LSP.MapperMethods.TextDocumentMapCodeName)]
-internal sealed partial class MapCodeHandler : ILspServiceDocumentRequestHandler<MapCodeParams, LSP.WorkspaceEdit?>
+[Method(WorkspaceMapCodeName)]
+internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCodeParams, LSP.WorkspaceEdit?>
 {
-    
-    public const string TextDocumentMapCodeName = "textDocument/mapCode";
+    public const string WorkspaceMapCodeName = "workspace/mapCode";
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,62 +33,101 @@ internal sealed partial class MapCodeHandler : ILspServiceDocumentRequestHandler
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-
-    public TextDocumentIdentifier GetTextDocumentIdentifier(MapCodeParams request)
-        => request.TextDocument;
-
     public async Task<WorkspaceEdit?> HandleRequestAsync(MapCodeParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.Document;
-        Contract.ThrowIfNull(document);
-
-        var codeMapper = document.GetLanguageService<IMapCodeService>();
-        if (codeMapper == null)
-            return null;
-
         //TODO: handle request.Updates if not empty
+        Contract.ThrowIfNull(context.Solution);
 
-        using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var focusLocations);
-        foreach (var location in request.FocusLocations.ToImmutableArrayOrEmpty())
+        using var _ = PooledDictionary<Uri, TextEdit[]>.GetInstance(out var uriToEditsMap);
+        foreach (var codeMapping in request.Mappings)
         {
-            if (document.Project.Solution.GetDocument(request.TextDocument) is Document focusDocument)
-            {
-                var focusText = await focusDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                focusLocations.Add(new(document: focusDocument, sourceSpan: ProtocolConversions.RangeToTextSpan(location.Range, focusText)));
-            }
+            var mappingResult = await MapCodeAsync(codeMapping).ConfigureAwait(false);
+
+            // Assume no two codeMappings target a common document.
+            if (mappingResult is (Uri uri, TextEdit[] textEdits))
+                uriToEditsMap[uri] = textEdits;
         }
 
-        var newDocument = await codeMapper.MapCodeAsync(document, request.Contents.ToImmutableArrayOrEmpty(), focusLocations.ToImmutable(), true, cancellationToken).ConfigureAwait(false);
-        var textChanges = (await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
-        if (textChanges.IsEmpty)
-            return null;
-
-        var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var textEdits = textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, oldText)).ToArray();
-
+        // return a combined WorkspaceEdit
         if (context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.DocumentChanges is true)
         {
             return new WorkspaceEdit
             {
-                DocumentChanges = new[]
+                DocumentChanges = uriToEditsMap.Select(kvp => new TextDocumentEdit
                 {
-                    new TextDocumentEdit
-                    {
-                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = document.GetURI() },
-                        Edits = textEdits,
-                    }
-                }
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = kvp.Key },
+                    Edits = kvp.Value,
+                }).ToArray()
             };
         }
         else
         {
             return new WorkspaceEdit
             {
-                Changes = new Dictionary<string, TextEdit[]>
-                {
-                    { document.GetURI().AbsolutePath, textEdits }
-                }
+                Changes = uriToEditsMap.ToDictionary(kvp => ProtocolConversions.GetDocumentFilePathFromUri(kvp.Key), kvp => kvp.Value)
             };
+        }
+
+        async Task<(Uri, TextEdit[])?> MapCodeAsync(LSP.MapCodeMapping codeMapping)
+        {
+            var textDocument = codeMapping.TextDocument;
+            if (textDocument == null)
+                return null;
+
+            if (context.Solution.GetDocument(textDocument) is not Document document)
+                return null;
+
+            var codeMapper = document.GetLanguageService<IMapCodeService>();
+            if (codeMapper == null)
+                return null;
+
+            var focusLocations = await ConvertFocusLocationsToDocumentSpansAsync(
+                document,
+                textDocument,
+                codeMapping.FocusLocations,
+                cancellationToken).ConfigureAwait(false);
+
+            var newDocument = await codeMapper.MapCodeAsync(
+                document,
+                codeMapping.Contents.ToImmutableArrayOrEmpty(),
+                focusLocations,
+                formatMappedCode: true,
+                cancellationToken).ConfigureAwait(false);
+
+            var textChanges = (await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+            if (textChanges.IsEmpty)
+                return null;
+
+            var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var textEdits = textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, oldText)).ToArray();
+
+            return (newDocument.GetURI(), textEdits);
+        }
+
+        static async Task<ImmutableArray<DocumentSpan>> ConvertFocusLocationsToDocumentSpansAsync(
+            Document document, TextDocumentIdentifier textDocumentIdentifier, LSP.Location[][]? focusLocations, CancellationToken cancellationToken)
+        {
+            if (focusLocations is null)
+                return ImmutableArray<DocumentSpan>.Empty;
+
+            using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var builder);
+            foreach (var locationsOfSamePriority in focusLocations)
+            {
+                foreach (var location in locationsOfSamePriority)
+                {
+                    // Ignore anything not in target document, which current code mapper doesn't handle anyway
+                    if (!location.Uri.Equals(textDocumentIdentifier.Uri))
+                        continue;
+
+                    if (document.Project.Solution.GetDocument(textDocumentIdentifier) is Document focusDocument)
+                    {
+                        var focusText = await focusDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        builder.Add(new(document: focusDocument, sourceSpan: ProtocolConversions.RangeToTextSpan(location.Range, focusText)));
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
         }
     }
 }
