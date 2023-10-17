@@ -4,6 +4,7 @@
 
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 {
@@ -19,12 +20,12 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
             InitializeComponent();
         }
 
-        private void Suggestion_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Suggestion_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2)
             {
                 var identifierName = ((FrameworkElement)sender).Tag.ToString();
-                _smartRenameViewModel.CurrentSelectedName = identifierName;
+                _smartRenameViewModel.SelectedSuggestedName = identifierName;
             }
         }
     }

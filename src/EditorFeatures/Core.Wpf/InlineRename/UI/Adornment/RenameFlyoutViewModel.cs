@@ -53,18 +53,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (smartRenameSession is not null)
             {
                 SmartRenameViewModel = new SmartRenameViewModel(smartRenameSession);
-                SmartRenameViewModel.PropertyChanged += OnCurrentSelectedNameChanged;
+                SmartRenameViewModel.PropertyChanged += OnSuggestedNameSelected;
             }
 
             RegisterOleComponent();
         }
 
-        private void OnCurrentSelectedNameChanged(object sender, PropertyChangedEventArgs e)
+        private void OnSuggestedNameSelected(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(SmartRenameViewModel.CurrentSelectedName)
-                && SmartRenameViewModel?.CurrentSelectedName is not null)
+            if (e.PropertyName == nameof(SmartRenameViewModel.SelectedSuggestedName)
+                && SmartRenameViewModel?.SelectedSuggestedName is not null)
             {
-                IdentifierText = SmartRenameViewModel.CurrentSelectedName;
+                IdentifierText = SmartRenameViewModel.SelectedSuggestedName;
             }
         }
 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     if (SmartRenameViewModel is not null)
                     {
-                        SmartRenameViewModel.PropertyChanged -= OnCurrentSelectedNameChanged;
+                        SmartRenameViewModel.PropertyChanged -= OnSuggestedNameSelected;
                         SmartRenameViewModel.Dispose();
                     }
 

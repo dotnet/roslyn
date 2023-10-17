@@ -32,17 +32,17 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 
         public static string GeneratingSuggestions => EditorFeaturesWpfResources.Generating_suggestions;
 
-        private string? _currentSelectedName;
+        private string? _selectedSuggestedName;
 
-        public string? CurrentSelectedName
+        public string? SelectedSuggestedName
         {
-            get => _currentSelectedName;
+            get => _selectedSuggestedName;
             set
             {
-                if (_currentSelectedName != value)
+                if (_selectedSuggestedName != value)
                 {
-                    _currentSelectedName = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentSelectedName)));
+                    _selectedSuggestedName = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedSuggestedName)));
                 }
             }
         }
