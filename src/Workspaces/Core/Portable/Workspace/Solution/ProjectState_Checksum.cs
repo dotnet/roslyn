@@ -5,14 +5,10 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -77,12 +73,12 @@ namespace Microsoft.CodeAnalysis
                         infoChecksum,
                         compilationOptionsChecksum,
                         parseOptionsChecksum,
-                        documentChecksums,
                         projectReferenceChecksums,
                         metadataReferenceChecksums,
                         analyzerReferenceChecksums,
-                        additionalDocumentChecksums,
-                        analyzerConfigDocumentChecksums);
+                        new(documentChecksums, DocumentStates.SelectAsArray(static s => s.Id)),
+                        new(additionalDocumentChecksums, AdditionalDocumentStates.SelectAsArray(static s => s.Id)),
+                        new(analyzerConfigDocumentChecksums, AnalyzerConfigDocumentStates.SelectAsArray(static s => s.Id)));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))

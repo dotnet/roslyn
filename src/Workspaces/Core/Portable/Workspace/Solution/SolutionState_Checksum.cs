@@ -175,8 +175,7 @@ namespace Microsoft.CodeAnalysis
 
                     return new SolutionStateChecksums(
                         attributesChecksum,
-                        projectIds.ToImmutableAndClear(),
-                        new ChecksumCollection(projectChecksums.ToImmutableAndClear()),
+                        new(new ChecksumCollection(projectChecksums.ToImmutableAndClear()), projectIds.ToImmutableAndClear()),
                         analyzerReferenceChecksums,
                         frozenSourceGeneratedDocumentIdentityChecksum,
                         frozenSourceGeneratedDocumentTextChecksum);
