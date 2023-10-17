@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGeneratorWrapper</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator</AssemblyName>
     <TargetFrameworks>$(SourceBuildTargetFrameworks);netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
-    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>

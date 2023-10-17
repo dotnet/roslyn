@@ -4,28 +4,26 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Microsoft.VisualStudio.Progression;
-using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGeneratorWrapper
+namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator
 {
-    [Export(typeof(EditorConfigGeneratorWrapper)), Shared]
-    internal sealed class EditorConfigGeneratorWrapper
+    [Export(typeof(IEditorConfigGenerator)), Shared]
+    internal sealed class EditorConfigGenerator : IEditorConfigGenerator
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly EditorConfigOptionsGenerator _editorConfigGenerator;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorConfigGeneratorWrapper(IComponentModel componentModel)
+        public EditorConfigGenerator(IGlobalOptionService globalOptions,
+            EditorConfigOptionsGenerator optionsGenerator)
         {
-            _editorConfigGenerator = componentModel.GetService<EditorConfigOptionsGenerator>();
-            _globalOptions = componentModel.GetService<IGlobalOptionService>();
+            _globalOptions = globalOptions;
+            _editorConfigGenerator = optionsGenerator;
         }
 
         public string? Generate(string language)
