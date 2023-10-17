@@ -12017,7 +12017,6 @@ void M()
         Public Async Function AccessStaticMembersOffOfColorColor1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
-
 struct Cursor
 {
     public static int StaticMember;
@@ -12041,6 +12040,7 @@ class Derived : BaseClass
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
             End Using
         End Function
@@ -12050,7 +12050,6 @@ class Derived : BaseClass
         Public Async Function AccessStaticMembersOffOfColorColor2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
-
 struct Cursor
 {
     public static int StaticMember;
@@ -12073,6 +12072,7 @@ class Derived : BaseClass
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
             End Using
         End Function
