@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator</AssemblyName>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net472</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +16,6 @@
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
   </ItemGroup>
-
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />

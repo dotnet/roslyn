@@ -152,8 +152,8 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 ' Use the default options 
                 Dim editorService = workspace.GetService(Of IEditorConfigGenerator)()
-                'Dim actualText = editorService.Generate(LanguageNames.VisualBasic)
-                AssertEx.EqualOrDiff(expectedText, "")
+                Dim actualText = editorService.Generate(LanguageNames.VisualBasic)
+                AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
 
