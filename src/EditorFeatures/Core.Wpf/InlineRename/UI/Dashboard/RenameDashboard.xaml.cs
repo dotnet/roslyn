@@ -52,13 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IWpfTextView textView)
         {
             _model = model;
-            if (model.SmartRenameViewModel is not null)
-            {
-                var smartRenameControl = new SmartRenameControl(model.SmartRenameViewModel);
-                var index = MainPanel.Children.IndexOf(HeaderGrid);
-                MainPanel.Children.Insert(index + 1, smartRenameControl);
-            }
-
             InitializeComponent();
 
             _tabNavigableChildren = new UIElement[] { this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton }.ToList();
@@ -72,6 +65,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
             _textView.VisualElement.SizeChanged += OnElementSizeChanged;
             this.SizeChanged += OnElementSizeChanged;
+
+            if (model.SmartRenameViewModel is not null)
+            {
+                var smartRenameControl = new SmartRenameControl(model.SmartRenameViewModel);
+                var index = MainPanel.Children.IndexOf(HeaderGrid);
+                MainPanel.Children.Insert(index + 1, smartRenameControl);
+            }
 
             PresentationSource.AddSourceChangedHandler(this, OnPresentationSourceChanged);
 

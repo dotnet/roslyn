@@ -54,14 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 IdentifierTextBox.SelectionChanged += IdentifierTextBox_SelectionChanged;
             };
 
+            InitializeComponent();
+
             if (viewModel.SmartRenameViewModel is not null)
             {
                 var smartRenameControl = new SmartRenameControl(viewModel.SmartRenameViewModel);
                 var index = MainPanel.Children.IndexOf(IdentifierAndExpandButtonGrid);
                 MainPanel.Children.Insert(index + 1, smartRenameControl);
             }
-
-            InitializeComponent();
 
             if (themeService is not null)
             {

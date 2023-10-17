@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
@@ -11,10 +12,19 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
     /// </summary>
     internal partial class SmartRenameControl : UserControl
     {
+        private readonly SmartRenameViewModel _smartRenameViewModel;
         internal SmartRenameControl(SmartRenameViewModel viewModel)
         {
-            this.DataContext = viewModel;
+            this.DataContext = _smartRenameViewModel = viewModel;
             InitializeComponent();
+        }
+        private void Suggestion_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2)
+            {
+                var identifierName = ((FrameworkElement)sender).Tag.ToString();
+                _smartRenameViewModel.CurrentSelectedName = identifierName;
+            }
         }
     }
 }

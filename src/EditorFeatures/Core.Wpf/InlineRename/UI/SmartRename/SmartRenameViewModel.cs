@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public ObservableCollection<SuggestedNameViewModel> SuggestedNames { get; } = new ObservableCollection<SuggestedNameViewModel>();
+        public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
 
         public bool IsAvailable => _smartRenameSession?.IsAvailable ?? false;
 
-        public bool HasSuggestion => _smartRenameSession?.HasSuggestions ?? false;
+        public bool HasSuggestions => _smartRenameSession?.HasSuggestions ?? false;
 
-        public bool InProgress => _smartRenameSession?.IsInProgress ?? false;
+        public bool IsInProgress => _smartRenameSession?.IsInProgress ?? false;
 
         private string? _currentSelectedName;
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                 SuggestedNames.Clear();
                 foreach (var name in _smartRenameSession.SuggestedNames)
                 {
-                    SuggestedNames.Add(new SuggestedNameViewModel(name, this));
+                    SuggestedNames.Add(name);
                 }
 
                 return;
