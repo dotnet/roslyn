@@ -37,7 +37,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             // any text positions between changes, which makes this quite easy.
             var changes = request.ContentChanges.Select(change => ProtocolConversions.ContentChangeEventToTextChange(change, text));
 
-            text = text.WithChanges(changes);
+            // We need to apply the changes sequentially, one on top of the other as defined by the spec.
+            // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#didChangeTextDocumentParams
+            foreach (var change in changes)
+            {
+                text = text.WithChanges(change);
+            }
 
             context.UpdateTrackedDocument(request.TextDocument.Uri, text);
 

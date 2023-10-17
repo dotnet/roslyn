@@ -320,6 +320,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             }
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70392")]
+        public async Task DidChange_OrdersChangesSequentially(bool mutatingLspWorkspace)
+        {
+            var source = "hello";
+            var expected = "abhello";
+
+            var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+            var uri = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
+
+            await using (testLspServer)
+            {
+                await DidOpen(testLspServer, uri);
+
+                await DidChange(testLspServer, uri, (0, 0, "a"), (0, 1, "b"));
+
+                var document = testLspServer.GetTrackedTexts().FirstOrDefault();
+
+                AssertEx.NotNull(document);
+                Assert.Equal(expected, document.ToString());
+            }
+        }
+
         private async Task<(TestLspServer, LSP.Location, string)> GetTestLspServerAndLocationAsync(string source, bool mutatingLspWorkspace)
         {
             var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
