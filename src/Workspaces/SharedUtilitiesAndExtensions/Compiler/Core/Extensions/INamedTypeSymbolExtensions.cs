@@ -619,5 +619,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
             => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
+
+        public static bool IsCollectionBuilderAttribute([NotNullWhen(true)] this INamedTypeSymbol? type)
+            => type is
+            {
+                Name: "CollectionBuilderAttribute",
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Runtime.CompilerServices),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Runtime),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System),
+                            ContainingNamespace.IsGlobalNamespace: true,
+                        }
+                    }
+                }
+            };
     }
 }

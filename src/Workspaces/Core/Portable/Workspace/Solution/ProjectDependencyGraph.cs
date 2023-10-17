@@ -56,10 +56,15 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap;
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
 
+        /// <remarks>
+        ///   Intentionally created with a null reverseReferencesMap. Doing so indicates _lazyReverseReferencesMap
+        ///    shouldn't be calculated until reverse reference information is requested. Once this information
+        ///    has been calculated, forks of this PDG will calculate their new reverse references in a non-lazy fashion.
+        /// </remarks>
         internal static readonly ProjectDependencyGraph Empty = new(
             ImmutableHashSet<ProjectId>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            reverseReferencesMap: null,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableArray<ProjectId>.Empty,

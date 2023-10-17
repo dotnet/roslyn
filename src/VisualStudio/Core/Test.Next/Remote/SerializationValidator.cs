@@ -11,9 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -28,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             public AssetProvider(SerializationValidator validator)
                 => _validator = validator;
 
-            public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+            public override async ValueTask<T> GetAssetAsync<T>(ProjectId? hintProject, Checksum checksum, CancellationToken cancellationToken)
                 => await _validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
         }
 
-        internal sealed class ChecksumObjectCollection<T> : IEnumerable<T> where T : ChecksumWithChildren
+        internal sealed class ChecksumObjectCollection<T> : IEnumerable<T>
         {
             public ImmutableArray<T> Children { get; }
 
@@ -77,9 +76,16 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Services = services;
         }
 
+        private async Task<SolutionAsset> GetRequiredAssetAsync(Checksum checksum)
+        {
+            var data = await AssetStorage.GetTestAccessor().GetRequiredAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            Contract.ThrowIfNull(data);
+            return new(checksum, data);
+        }
+
         public async Task<T> GetValueAsync<T>(Checksum checksum)
         {
-            var data = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var data = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
             Contract.ThrowIfNull(data.Value);
 
             using var context = new SolutionReplicationContext();
@@ -107,16 +113,16 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         public ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(ChecksumCollection collection)
-            => new ChecksumObjectCollection<ProjectStateChecksums>(this, collection);
+            => new(this, collection);
 
         public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(ChecksumCollection collection)
-            => new ChecksumObjectCollection<DocumentStateChecksums>(this, collection);
+            => new(this, collection);
 
         internal async Task VerifyAssetAsync(SolutionStateChecksums solutionObject)
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
                 solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(v.Checksum, v)).ConfigureAwait(false);
 
             foreach (var projectChecksum in solutionObject.Projects)
             {
@@ -129,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<ProjectInfo.ProjectAttributes>(
                 projectObject.Info, WellKnownSynchronizationKind.ProjectAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(v.Checksum, v)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<CompilationOptions>(
                 projectObject.CompilationOptions, WellKnownSynchronizationKind.CompilationOptions,
@@ -183,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<DocumentInfo.DocumentAttributes>(
                 documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(v.Checksum, v)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SerializableSourceText>(
                 documentObject.Text, WellKnownSynchronizationKind.SerializableSourceText,
@@ -196,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Func<T, WellKnownSynchronizationKind, ISerializerService, SolutionAsset> assetGetter)
         {
             // re-create asset from object
-            var syncObject = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var syncObject = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
 
             var recoveredValue = await GetValueAsync<T>(checksum).ConfigureAwait(false);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, Serializer);
@@ -215,66 +221,67 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
         }
 
+        private static void AssertChecksumCollectionEqual(ChecksumCollection collection1, ChecksumCollection collection2)
+        {
+            Assert.Equal(collection1.Checksum, collection2.Checksum);
+            AssertEx.Equal(collection1.Children, collection2.Children);
+        }
+
         internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)
         {
-            ChecksumWithChildrenEqual(solutionObject1, solutionObject2);
+            Assert.Equal(solutionObject1.Checksum, solutionObject2.Checksum);
+            Assert.Equal(solutionObject1.Attributes, solutionObject2.Attributes);
+            AssertChecksumCollectionEqual(solutionObject1.Projects, solutionObject2.Projects);
+            AssertChecksumCollectionEqual(solutionObject1.AnalyzerReferences, solutionObject2.AnalyzerReferences);
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentIdentity, solutionObject2.FrozenSourceGeneratedDocumentIdentity);
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentText, solutionObject2.FrozenSourceGeneratedDocumentText);
 
             ProjectStatesEqual(ToProjectObjects(solutionObject1.Projects), ToProjectObjects(solutionObject2.Projects));
         }
 
-        internal void ProjectStateEqual(ProjectStateChecksums projectObjects1, ProjectStateChecksums projectObjects2)
+        private void ProjectStateEqual(ProjectStateChecksums projectObjects1, ProjectStateChecksums projectObjects2)
         {
-            ChecksumWithChildrenEqual(projectObjects1, projectObjects2);
+            Assert.Equal(projectObjects1.Checksum, projectObjects2.Checksum);
+            Assert.Equal(projectObjects1.Info, projectObjects2.Info);
+            Assert.Equal(projectObjects1.CompilationOptions, projectObjects2.CompilationOptions);
+            Assert.Equal(projectObjects1.ParseOptions, projectObjects2.ParseOptions);
+            AssertChecksumCollectionEqual(projectObjects1.Documents, projectObjects2.Documents);
+            AssertChecksumCollectionEqual(projectObjects1.ProjectReferences, projectObjects2.ProjectReferences);
+            AssertChecksumCollectionEqual(projectObjects1.MetadataReferences, projectObjects2.MetadataReferences);
+            AssertChecksumCollectionEqual(projectObjects1.AnalyzerReferences, projectObjects2.AnalyzerReferences);
+            AssertChecksumCollectionEqual(projectObjects1.AdditionalDocuments, projectObjects2.AdditionalDocuments);
+            AssertChecksumCollectionEqual(projectObjects1.AnalyzerConfigDocuments, projectObjects2.AnalyzerConfigDocuments);
 
-            ChecksumWithChildrenEqual(ToDocumentObjects(projectObjects1.Documents), ToDocumentObjects(projectObjects2.Documents));
-            ChecksumWithChildrenEqual(ToDocumentObjects(projectObjects1.AdditionalDocuments), ToDocumentObjects(projectObjects2.AdditionalDocuments));
-            ChecksumWithChildrenEqual(ToDocumentObjects(projectObjects1.AnalyzerConfigDocuments), ToDocumentObjects(projectObjects2.AnalyzerConfigDocuments));
+            DocumentStatesEqual(ToDocumentObjects(projectObjects1.Documents), ToDocumentObjects(projectObjects2.Documents));
+            DocumentStatesEqual(ToDocumentObjects(projectObjects1.AdditionalDocuments), ToDocumentObjects(projectObjects2.AdditionalDocuments));
+            DocumentStatesEqual(ToDocumentObjects(projectObjects1.AnalyzerConfigDocuments), ToDocumentObjects(projectObjects2.AnalyzerConfigDocuments));
         }
 
-        internal void ProjectStatesEqual(ChecksumObjectCollection<ProjectStateChecksums> projectObjects1, ChecksumObjectCollection<ProjectStateChecksums> projectObjects2)
+        private static void DocumentStateEqual(DocumentStateChecksums documentObjects1, DocumentStateChecksums documentObjects2)
+        {
+            Assert.Equal(documentObjects1.Checksum, documentObjects2.Checksum);
+            Assert.Equal(documentObjects1.Info, documentObjects2.Info);
+            Assert.Equal(documentObjects1.Text, documentObjects2.Text);
+        }
+
+        private void ProjectStatesEqual(ChecksumObjectCollection<ProjectStateChecksums> projectObjects1, ChecksumObjectCollection<ProjectStateChecksums> projectObjects2)
         {
             SynchronizationObjectEqual(projectObjects1, projectObjects2);
 
             Assert.Equal(projectObjects1.Count, projectObjects2.Count);
 
             for (var i = 0; i < projectObjects1.Count; i++)
-            {
                 ProjectStateEqual(projectObjects1[i], projectObjects2[i]);
-            }
         }
 
-        internal static void ChecksumWithChildrenEqual<T>(ChecksumObjectCollection<T> checksums1, ChecksumObjectCollection<T> checksums2) where T : ChecksumWithChildren
+        private static void DocumentStatesEqual(ChecksumObjectCollection<DocumentStateChecksums> documentObjects1, ChecksumObjectCollection<DocumentStateChecksums> documentObjects2)
         {
-            SynchronizationObjectEqual(checksums1, checksums2);
+            SynchronizationObjectEqual(documentObjects1, documentObjects2);
 
-            Assert.Equal(checksums1.Count, checksums2.Count);
+            Assert.Equal(documentObjects1.Count, documentObjects2.Count);
 
-            for (var i = 0; i < checksums1.Count; i++)
-            {
-                ChecksumWithChildrenEqual(checksums1[i], checksums2[i]);
-            }
-        }
-
-        internal static void ChecksumWithChildrenEqual(ChecksumWithChildren checksums1, ChecksumWithChildren checksums2)
-        {
-            Assert.Equal(checksums1.Checksum, checksums2.Checksum);
-            Assert.Equal(checksums1.Children.Length, checksums2.Children.Length);
-
-            for (var i = 0; i < checksums1.Children.Length; i++)
-            {
-                var child1 = checksums1.Children[i];
-                var child2 = checksums2.Children[i];
-
-                Assert.Equal(child1.GetType(), child2.GetType());
-
-                if (child1 is Checksum)
-                {
-                    Assert.Equal((Checksum)child1, (Checksum)child2);
-                    continue;
-                }
-
-                ChecksumWithChildrenEqual((ChecksumCollection)child1, (ChecksumCollection)child2);
-            }
+            for (var i = 0; i < documentObjects1.Count; i++)
+                DocumentStateEqual(documentObjects1[i], documentObjects2[i]);
         }
 
         internal async Task VerifySnapshotInServiceAsync(
@@ -331,21 +338,21 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task VerifySynchronizationObjectInServiceAsync(SolutionAsset syncObject)
             => await VerifyChecksumInServiceAsync(syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
 
-        internal async Task VerifySynchronizationObjectInServiceAsync<T>(ChecksumObjectCollection<T> syncObject) where T : ChecksumWithChildren
+        internal async Task VerifySynchronizationObjectInServiceAsync<T>(ChecksumObjectCollection<T> syncObject)
             => await VerifyChecksumInServiceAsync(syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
 
         internal async Task VerifyChecksumInServiceAsync(Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Assert.NotNull(checksum);
-            var otherObject = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var otherObject = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }
 
-        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, ChecksumObjectCollection<T> checksumObject2) where T : ChecksumWithChildren
+        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, ChecksumObjectCollection<T> checksumObject2)
             => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
 
-        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, SolutionAsset checksumObject2) where T : ChecksumWithChildren
+        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, SolutionAsset checksumObject2)
             => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
 
         internal static void SynchronizationObjectEqual(SolutionAsset checksumObject1, SolutionAsset checksumObject2)

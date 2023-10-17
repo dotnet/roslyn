@@ -927,13 +927,75 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var isDiagnosticIdEverSuppressed = isAnalyzerEverSuppressed ||
                         SuppressedDiagnosticIdsForUnsuppressedAnalyzers.Contains(descriptor.Id);
 
-                    var info = new DiagnosticDescriptorErrorLoggerInfo(analyzerExecutionTime, executionPercentage, isDiagnosticIdEverSuppressed);
+                    var effectiveSeverities = GetEffectiveSeverities(descriptor, AnalyzerExecutor.Compilation, AnalyzerExecutor.AnalyzerOptions, cancellationToken);
+                    var info = new DiagnosticDescriptorErrorLoggerInfo(analyzerExecutionTime, executionPercentage, effectiveSeverities, isDiagnosticIdEverSuppressed);
                     builder.Add((descriptor, info));
                 }
             }
 
             uniqueDiagnosticIds.Free();
             return builder.ToImmutableAndFree();
+
+            static ImmutableHashSet<ReportDiagnostic> GetEffectiveSeverities(
+                DiagnosticDescriptor descriptor,
+                Compilation compilation,
+                AnalyzerOptions analyzerOptions,
+                CancellationToken cancellationToken)
+            {
+                var defaultSeverity = descriptor.IsEnabledByDefault ?
+                    DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity) :
+                    ReportDiagnostic.Suppress;
+
+                if (descriptor.IsNotConfigurable())
+                    return ImmutableHashSet.Create(defaultSeverity);
+
+                if (compilation.Options.SpecificDiagnosticOptions.TryGetValue(descriptor.Id, out var severity) ||
+                    compilation.Options.SyntaxTreeOptionsProvider?.TryGetGlobalDiagnosticValue(descriptor.Id, cancellationToken, out severity) == true)
+                {
+                    if (severity != ReportDiagnostic.Default)
+                    {
+                        defaultSeverity = severity;
+                    }
+                }
+
+                // Handle /warnaserror
+                if (defaultSeverity == ReportDiagnostic.Warn &&
+                    compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                {
+                    defaultSeverity = ReportDiagnostic.Error;
+                }
+
+                if (compilation.Options.SyntaxTreeOptionsProvider is not { } syntaxTreeProvider ||
+                    compilation.SyntaxTrees.IsEmpty())
+                {
+                    return ImmutableHashSet.Create(defaultSeverity);
+                }
+
+                var builder = ImmutableHashSet.CreateBuilder<ReportDiagnostic>();
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var severityForTree = defaultSeverity;
+
+                    if (syntaxTreeProvider.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out severity) ||
+                        analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out severity))
+                    {
+                        Debug.Assert(severity != ReportDiagnostic.Default);
+
+                        // Handle /warnaserror
+                        if (severity == ReportDiagnostic.Warn &&
+                            compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                        {
+                            severity = ReportDiagnostic.Error;
+                        }
+
+                        severityForTree = severity;
+                    }
+
+                    builder.Add(severityForTree);
+                }
+
+                return builder.ToImmutable();
+            }
         }
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree)

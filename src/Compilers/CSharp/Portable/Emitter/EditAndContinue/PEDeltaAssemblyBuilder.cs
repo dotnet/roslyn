@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class PEDeltaAssemblyBuilder : PEAssemblyBuilderBase, IPEDeltaAssemblyBuilder
     {
-        private readonly EmitBaseline _previousGeneration;
         private readonly CSharpDefinitionMap _previousDefinitions;
         private readonly SymbolChanges _changes;
         private readonly CSharpSymbolMatcher.DeepTranslator _deepTranslator;
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
             var initialBaseline = previousGeneration.InitialBaseline;
-            var context = new EmitContext(this, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
@@ -50,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var matchToMetadata = new CSharpSymbolMatcher(
                 metadataSymbols.SynthesizedTypes,
                 sourceAssembly,
-                context,
                 metadataAssembly);
 
             CSharpSymbolMatcher? matchToPrevious = null;
@@ -60,20 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
 
                 var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-                var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
                 matchToPrevious = new CSharpSymbolMatcher(
                     sourceAssembly: sourceAssembly,
-                    sourceContext: context,
                     otherAssembly: previousAssembly,
-                    otherContext: previousContext,
                     previousGeneration.SynthesizedTypes,
                     otherSynthesizedMembers: previousGeneration.SynthesizedMembers,
                     otherDeletedMembers: previousGeneration.DeletedMembers);
             }
 
-            _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious);
-            _previousGeneration = previousGeneration;
+            _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious, previousGeneration);
             _changes = new CSharpSymbolChanges(_previousDefinitions, edits, isAddedSymbol);
 
             // Workaround for https://github.com/dotnet/roslyn/issues/3192.
@@ -92,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         public override SymbolChanges? EncSymbolChanges => _changes;
-        public override EmitBaseline PreviousGeneration => _previousGeneration;
+        public override EmitBaseline PreviousGeneration => _previousDefinitions.Baseline;
 
         internal override Cci.ITypeReference EncTranslateLocalVariableType(TypeSymbol type, DiagnosticBag diagnostics)
         {
@@ -226,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Compilation.AnonymousTypeManager.GetAnonymousDelegatesWithIndexedNames());
 
             // Should contain all entries in previous generation.
-            Debug.Assert(_previousGeneration.SynthesizedTypes.IsSubsetOf(result));
+            Debug.Assert(PreviousGeneration.SynthesizedTypes.IsSubsetOf(result));
 
             return result;
         }
@@ -241,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
-            return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics);
+            return _previousDefinitions.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics);
         }
 
         internal override MethodInstrumentation GetMethodBodyInstrumentations(MethodSymbol method)
@@ -254,17 +247,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
         {
-            return ImmutableArray.CreateRange(_previousGeneration.SynthesizedTypes.AnonymousTypes.Keys);
+            return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousTypes.Keys);
         }
 
         internal override ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
         {
-            return ImmutableArray.CreateRange(_previousGeneration.SynthesizedTypes.AnonymousDelegates.Keys);
+            return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousDelegates.Keys);
         }
 
         internal override int GetNextAnonymousTypeIndex()
         {
-            return _previousGeneration.GetNextAnonymousTypeIndex();
+            return PreviousGeneration.GetNextAnonymousTypeIndex();
         }
 
         internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)

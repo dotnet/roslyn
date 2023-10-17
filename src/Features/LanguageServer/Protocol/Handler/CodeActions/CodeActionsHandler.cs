@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IGlobalOptionService _globalOptions;
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
+        internal const string RunFixAllCodeActionCommandName = "roslyn.client.fixAllCodeAction";
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

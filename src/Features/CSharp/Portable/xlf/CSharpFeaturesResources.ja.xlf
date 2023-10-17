@@ -434,12 +434,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="new">top-level code</target>
+        <target state="translated">最上位レベルのコード</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="new">top-level statement</target>
+        <target state="translated">最上位レベルのステートメント</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

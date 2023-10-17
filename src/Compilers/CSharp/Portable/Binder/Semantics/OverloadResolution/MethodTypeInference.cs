@@ -1827,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (sourceSignature.GetCallingConventionModifiers(), targetSignature.GetCallingConventionModifiers()) switch
             {
                 (null, null) => true,
-                ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEquals(targetModifiers) => true,
+                ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEqualsWithoutIntermediateHashSet(targetModifiers) => true,
                 _ => false
             };
         }

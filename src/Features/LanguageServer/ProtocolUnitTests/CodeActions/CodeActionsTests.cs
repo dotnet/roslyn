@@ -169,7 +169,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         };
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        Assert.Single(results);
+        Assert.Equal(2, results.Length);
         Assert.Equal("Make method synchronous", results[0].Title);
     }
 

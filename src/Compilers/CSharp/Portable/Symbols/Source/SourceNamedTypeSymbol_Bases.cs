@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // force resolution of bases in containing type
                     // to make base resolution errors more deterministic
-                    if ((object)ContainingType != null)
+                    if ((object)ContainingType != null &&
+                        TypeKind is not (TypeKind.Enum or TypeKind.Delegate or TypeKind.Submission))
                     {
                         var tmp = ContainingType.BaseTypeNoUseSiteDiagnostics;
                     }

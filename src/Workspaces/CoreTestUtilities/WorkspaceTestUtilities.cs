@@ -4,15 +4,14 @@
 
 using System;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public static class WorkspaceTestUtilities
     {
-        public static Workspace CreateWorkspaceWithPartialSemantics(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
-            => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
+        public static Workspace CreateWorkspaceWithPartialSemantics(Type[]? additionalParts = null)
+            => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private class WorkspaceWithPartialSemantics : Workspace
         {

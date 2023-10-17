@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -56,7 +57,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         : attributeNode;
                 }
 
-                protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override async Task<Solution> GetChangedSolutionAsync(
+                    IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 {
                     var attributeNode = await GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
                     var documentWithAttribute = _project.GetDocument(attributeNode.SyntaxTree);
