@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Diagnostics;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         public static string? WriteCrashReport( Exception ex )
         {
-            var crashReportDirectory = Path.Combine(Path.GetTempPath(), "Metalama", "CrashReports");
+            var crashReportDirectory = Path.Combine(MetalamaPathUtilities.GetTempPath(), "Metalama", "CrashReports");
             var crashReportPath = Path.Combine(crashReportDirectory, Guid.NewGuid() + ".txt");
 
  
