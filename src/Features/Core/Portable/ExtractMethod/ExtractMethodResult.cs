@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         internal ExtractMethodResult(
             OperationStatusFlag status,
-            IEnumerable<string> reasons,
+            ImmutableArray<string> reasons,
             Document? documentWithoutFinalFormatting,
             ImmutableArray<AbstractFormattingRule> formattingRules,
             SyntaxToken invocationNameToken,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             Succeeded = status.Succeeded() && !status.HasSuggestion();
             SucceededWithSuggestion = status.Succeeded() && status.HasSuggestion();
 
-            Reasons = (reasons ?? SpecializedCollections.EmptyEnumerable<string>()).ToReadOnlyCollection();
+            Reasons = reasons.NullToEmpty();
 
             DocumentWithoutFinalFormatting = documentWithoutFinalFormatting;
             FormattingRules = formattingRules;
