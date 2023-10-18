@@ -89,7 +89,7 @@ internal sealed class LanguageServerProjectSystem
     {
         using (await _gate.DisposableWaitAsync())
         {
-            _logger.LogInformation($"Loading {solutionFilePath}...");
+            _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
             _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
 
             // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
@@ -176,7 +176,7 @@ internal sealed class LanguageServerProjectSystem
         }
         finally
         {
-            _logger.LogInformation($"Completed (re)load of all projects in {stopwatch.Elapsed}");
+            _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
         }
     }
 
@@ -260,7 +260,7 @@ internal sealed class LanguageServerProjectSystem
                 var errorLevel = LogDiagnostics(projectPath, diagnosticLogItems);
                 if (errorLevel == null)
                 {
-                    _logger.LogInformation($"Successfully completed load of {projectToLoad}");
+                    _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
                 }
 
                 return (errorLevel, preferredBuildHostKind);
@@ -270,7 +270,7 @@ internal sealed class LanguageServerProjectSystem
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Exception thrown while loading {projectToLoad.Path}");
+            _logger.LogError(e, string.Format(LanguageServerResources.Exception_thrown_while_loading_0, projectToLoad.Path));
             return (LSP.MessageType.Error, preferredBuildHostKind);
         }
 

@@ -132,6 +132,10 @@
   <data name="Client_failed_to_attach_the_debugger" xml:space="preserve">
     <value>Client failed to attach the debugger</value>
   </data>
+  <data name="Completed_reload_of_all_projects_in_0" xml:space="preserve">
+    <value>Completed (re)load of all projects in {0}</value>
+    <comment>The placeholder here is a time duration like 00:15</comment>
+  </data>
   <data name="Debugger_attached" xml:space="preserve">
     <value>Debugger attached</value>
   </data>
@@ -140,6 +144,9 @@
   </data>
   <data name="Discovering_tests" xml:space="preserve">
     <value>Discovering tests...</value>
+  </data>
+  <data name="Exception_thrown_while_loading_0" xml:space="preserve">
+    <value>Exception thrown while loading {0}</value>
   </data>
   <data name="Failed" xml:space="preserve">
     <value>Failed!</value>
@@ -152,6 +159,10 @@
   </data>
   <data name="Found_0_tests_in_1" xml:space="preserve">
     <value>Found {0} tests in {1}</value>
+  </data>
+  <data name="Loading_0" xml:space="preserve">
+    <value>Loading {0}...</value>
+    <comment>The placeholder here is a name of a file</comment>
   </data>
   <data name="Message" xml:space="preserve">
     <value>Message</value>
@@ -185,6 +196,9 @@
   </data>
   <data name="Starting_test_run" xml:space="preserve">
     <value>Starting test run</value>
+  </data>
+  <data name="Successfully_completed_load_of_0" xml:space="preserve">
+    <value>Successfully completed load of {0}</value>
   </data>
   <data name="Summary" xml:space="preserve">
     <value>Summary</value>
