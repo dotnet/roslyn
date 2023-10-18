@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (!addedOrChangedMethod.LambdaDebugInfo.IsDefaultOrEmpty &&
                     Baseline.SynthesizedMembers.TryGetValue(oldMethod.ContainingType, out var synthesizedSiblingSymbols))
                 {
-                    return getSynthesizedClosureMethods(synthesizedSiblingSymbols, Baseline.SynthesizedMembers, addedOrChangedMethod.MethodId, addedOrChangedMethod.LambdaDebugInfo);
+                    return getDeletedSynthesizedClosureMethods(synthesizedSiblingSymbols, Baseline.SynthesizedMembers, addedOrChangedMethod.MethodId, addedOrChangedMethod.LambdaDebugInfo);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<IMethodSymbolInternal>();
@@ -587,9 +587,9 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             var debugId = new DebugId(provider.MethodOrdinal, generation: 0);
-            return getSynthesizedClosureMethods(peMethod.ContainingType.GetMembers(), synthesizedMemberMap: null, debugId, provider.Lambdas);
+            return getDeletedSynthesizedClosureMethods(peMethod.ContainingType.GetMembers(), synthesizedMemberMap: null, debugId, provider.Lambdas);
 
-            IEnumerable<IMethodSymbolInternal> getSynthesizedClosureMethods(
+            IEnumerable<IMethodSymbolInternal> getDeletedSynthesizedClosureMethods(
                 ImmutableArray<ISymbolInternal> synthesizedSiblings,
                 IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? synthesizedMemberMap,
                 DebugId methodId,
