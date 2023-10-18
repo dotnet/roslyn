@@ -81,12 +81,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var afterTriviaRestored = applied.With(operationStatus);
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (afterTriviaRestored.Status.FailedWithNoBestEffortSuggestion())
-            {
-                return await CreateExtractMethodResultAsync(
-                    operationStatus, generatedCode.SemanticDocument, ImmutableArray<AbstractFormattingRule>.Empty, generatedCode.MethodNameAnnotation, generatedCode.MethodDefinitionAnnotation, cancellationToken).ConfigureAwait(false);
-            }
-
             var documentWithoutFinalFormatting = afterTriviaRestored.Data.Document;
 
             cancellationToken.ThrowIfCancellationRequested();

@@ -40,16 +40,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var annotationResolver = GetAnnotationResolver(callsite, method);
                 var triviaResolver = GetTriviaResolver(method);
-                if (annotationResolver == null || triviaResolver == null)
-                {
-                    // bug # 6644
-                    // this could happen in malformed code. return as it was.
-                    var status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.can_t_not_construct_final_tree);
-                    return status.With(document);
-                }
 
-                return OperationStatus.Succeeded.With(
-                    await document.WithSyntaxRootAsync(_result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
+                // Failed to restore the trivia.  Just return whatever best effort result is that we have so far.
+                return annotationResolver == null || triviaResolver == null
+                    ? OperationStatus.Succeeded.With(document)
+                    : OperationStatus.Succeeded.With(
+                        await document.WithSyntaxRootAsync(_result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
             }
 
             protected IEnumerable<SyntaxTrivia> FilterTriviaList(IEnumerable<SyntaxTrivia> list)
