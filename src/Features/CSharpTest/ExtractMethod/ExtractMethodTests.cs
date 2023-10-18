@@ -634,7 +634,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                     {
                         goto label2;
                         return x * x;
-                     }
+                    }
                 }
                 """);
         }
