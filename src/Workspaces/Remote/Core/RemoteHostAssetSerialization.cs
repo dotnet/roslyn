@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static async ValueTask WriteDataAsync(
             Stream stream,
-            SolutionAsset? singleAsset,
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
+            Dictionary<Checksum, object> assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
@@ -40,12 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
             if (checksums.Length == 0)
                 return;
 
-            if (singleAsset != null)
-            {
-                WriteAsset(writer, serializer, context, singleAsset, cancellationToken);
-                return;
-            }
-
             Debug.Assert(assetMap != null);
 
             foreach (var checksum in checksums)
@@ -62,22 +54,34 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return;
 
-            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, SolutionAsset asset, CancellationToken cancellationToken)
+            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, object asset, CancellationToken cancellationToken)
             {
-                Debug.Assert(asset.Kind != WellKnownSynchronizationKind.Null, "We should not be sending null assets");
-                writer.WriteInt32((int)asset.Kind);
+                Contract.ThrowIfNull(asset);
+                var kind = asset.GetWellKnownSynchronizationKind();
+                writer.WriteInt32((int)kind);
 
-                // null is already indicated by checksum and kind above:
-                if (asset.Value is not null)
-                    serializer.Serialize(asset.Value, writer, context, cancellationToken);
+                serializer.Serialize(asset, writer, context, cancellationToken);
             }
         }
 
-        public static async ValueTask<ImmutableArray<object>> ReadDataAsync(
+        public static ValueTask<ImmutableArray<object>> ReadDataAsync(
             PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-            return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+            // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
+            // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
+            // CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
+
+            static async ValueTask<ImmutableArray<object>> ReadDataSuppressedFlowAsync(
+                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+            {
+                using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
+                return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+            }
         }
 
         public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
@@ -97,9 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
-
-                Debug.Assert(result != null, "We should not be requesting null assets");
-
+                Contract.ThrowIfNull(result);
                 results.Add(result);
             }
 

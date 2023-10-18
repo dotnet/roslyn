@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// A wrapper around an array of <see cref="Microsoft.CodeAnalysis.Checksum"/>s, which also combines the value into a
 /// single aggregate checksum exposed through <see cref="Checksum"/>.
 /// </summary>
-internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IReadOnlyCollection<Checksum>, IChecksummedObject
+internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IReadOnlyCollection<Checksum>
 {
     public Checksum Checksum { get; } = Checksum.Create(children);
 
@@ -39,7 +39,6 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
-        checksums.AddIfNotNullChecksum(this.Checksum);
         foreach (var checksum in this)
             checksums.AddIfNotNullChecksum(checksum);
     }
@@ -47,18 +46,31 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
     internal static async Task FindAsync<TState>(
         TextDocumentStates<TState> documentStates,
+        DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
+        Dictionary<Checksum, object> result,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
-        foreach (var (_, state) in documentStates.States)
+        if (hintDocument != null)
         {
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
-
-            await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            if (searchingChecksumsLeft.Count == 0)
+            var state = documentStates.GetState(hintDocument);
+            if (state != null)
             {
-                return;
+                Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
+                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        else
+        {
+            foreach (var (_, state) in documentStates.States)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (searchingChecksumsLeft.Count == 0)
+                    return;
+
+                Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
+
+                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -67,27 +79,20 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
         IReadOnlyList<T> values,
         ChecksumCollection checksums,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object?> result,
-        CancellationToken cancellationToken)
+        Dictionary<Checksum, object> result,
+        CancellationToken cancellationToken) where T : class
     {
         Contract.ThrowIfFalse(values.Count == checksums.Children.Length);
 
         for (var i = 0; i < checksums.Children.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             if (searchingChecksumsLeft.Count == 0)
-            {
                 return;
-            }
 
             var checksum = checksums.Children[i];
-            var value = values[i];
-
             if (searchingChecksumsLeft.Remove(checksum))
-            {
-                result[checksum] = value;
-            }
+                result[checksum] = values[i];
         }
     }
 
