@@ -1679,12 +1679,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(symbol);
             if (useSiteInfo.DiagnosticInfo != null)
             {
-                // If the member is optional and bad for whatever reason ignore it
-                if (isOptional &&
-                    useSiteInfo.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
+                // Report errors only for non-optional members
+                if (isOptional)
                 {
-                    symbol = null;
-                    return false;
+                    var severity = useSiteInfo.DiagnosticInfo.Severity;
+
+                    // If the member is optional and bad for whatever reason ignore it
+                    if (severity == DiagnosticSeverity.Error)
+                    {
+                        symbol = null;
+                        return false;
+                    }
+
+                    // Ignore warnings
+                    useSiteInfo = new UseSiteInfo<AssemblySymbol>(diagnosticInfo: null, useSiteInfo.PrimaryDependency, useSiteInfo.SecondaryDependencies);
                 }
 
                 diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
