@@ -75,11 +75,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Options.CodeGenerationOptions,
                 cancellationToken).ConfigureAwait(false);
 
-            var applied = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
-            var afterTriviaRestored = applied.With(operationStatus);
+            var afterTriviaRestored = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentWithoutFinalFormatting = afterTriviaRestored.Data.Document;
+            var documentWithoutFinalFormatting = afterTriviaRestored.Document;
 
             cancellationToken.ThrowIfCancellationRequested();
             return await CreateExtractMethodResultAsync(
