@@ -136,10 +136,11 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet passThroughOptions,
             ImmutableHashSet<string>? roles = null)
         {
+            if (trigger.Kind is CompletionTriggerKind.Invoke or CompletionTriggerKind.InvokeAndCommitIfUnique)
+                return true;
+
             if (!options.TriggerOnTyping)
-            {
                 return false;
-            }
 
             if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
             {

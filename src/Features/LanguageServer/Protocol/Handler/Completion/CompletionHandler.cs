@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // We don't have access to the original trigger, but we know the completion list is already present.
                 // It is safe to recompute with the invoked trigger as we will get all the items and filter down based on the current trigger.
-                var originalTrigger = new CompletionTrigger(CompletionTriggerKind.Invoke);
+                var originalTrigger = CompletionTrigger.Invoke;
                 result = await CalculateListAsync(request, document, position, originalTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
             }
             else

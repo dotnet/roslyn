@@ -12011,5 +12011,30 @@ void M()
                 Await state.AssertCompletionItemsContain("scoped", "")
             End Using
         End Function
+
+        <WpfFact>
+        Public Async Function TriggerOnTypingShouldNotAffectExplicitInvoke() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.CSharp, False)
+
+                ' TriggerOnTyping should not block explicit trigger
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("M", "")
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("M")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
     End Class
 End Namespace
