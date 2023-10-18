@@ -201,6 +201,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
         End Function
 
+        Private Function NullableValueOrDefaultOpt(expr As BoundExpression) As BoundExpression
+            Debug.Assert(expr.Type.IsNullableType)
+
+            Dim getValueOrDefaultWithDefaultValueMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, isOptional:=True)
+
+            If getValueOrDefaultWithDefaultValueMethod IsNot Nothing Then
+                Return New BoundCall(expr.Syntax,
+                                 getValueOrDefaultWithDefaultValueMethod,
+                                 Nothing,
+                                 expr,
+                                 ImmutableArray(Of BoundExpression).Empty,
+                                 Nothing,
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueOrDefaultWithDefaultValueMethod.ReturnType)
+            End If
+
+            Return Nothing
+        End Function
+
         Private Function NullableValueOrDefaultOpt(expr As BoundExpression, defaultValue As BoundExpression) As BoundExpression
             Debug.Assert(expr.Type.IsNullableType)
 

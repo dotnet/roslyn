@@ -236,7 +236,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Then
                 ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
                 If rewrittenRight.IsDefaultValue() Then
-                    Return NullableValueOrDefault(rewrittenLeft)
+                    Dim optimized = NullableValueOrDefaultOpt(rewrittenLeft)
+                    If optimized IsNot Nothing Then
+                        Return optimized
+                    End If
                 End If
 
                 ' Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right is a side-effectless expression of type T

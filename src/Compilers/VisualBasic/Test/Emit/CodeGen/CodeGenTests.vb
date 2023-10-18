@@ -3632,7 +3632,7 @@ value
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
         Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
             Dim compilation = CreateCompilation(
 <compilation>
@@ -3644,6 +3644,38 @@ Public Module Program
 End Module</file>
 </compilation>)
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.AssertTheseEmitDiagnostics()
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            ' We gracefully fallback to calling `GetValueOrDefault(defaultValue)` member
+            verifier.VerifyIL("Program.Coalesce",
+            <![CDATA[
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  box        "Integer"
+  IL_000d:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 0)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
             compilation.AssertTheseEmitDiagnostics(
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
@@ -3685,6 +3717,27 @@ End Module</file>
   IL_0018:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWiNonDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 2)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            compilation.AssertTheseEmitDiagnostics(
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
+        Return If(x, 2)
+                  ~
+</errors>)
         End Sub
 
         <Fact()>
