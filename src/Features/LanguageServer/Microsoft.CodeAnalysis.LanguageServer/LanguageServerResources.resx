@@ -134,7 +134,7 @@
   </data>
   <data name="Completed_reload_of_all_projects_in_0" xml:space="preserve">
     <value>Completed (re)load of all projects in {0}</value>
-    <comment>The placeholder here is a time duration like 00:15</comment>
+    <comment>The placeholder is a time duration like 00:15</comment>
   </data>
   <data name="Debugger_attached" xml:space="preserve">
     <value>Debugger attached</value>
@@ -162,7 +162,7 @@
   </data>
   <data name="Loading_0" xml:space="preserve">
     <value>Loading {0}...</value>
-    <comment>The placeholder here is a name of a file</comment>
+    <comment>The placeholder is a name of a file</comment>
   </data>
   <data name="Message" xml:space="preserve">
     <value>Message</value>
@@ -178,6 +178,10 @@
   </data>
   <data name="Projects_failed_to_load_because_MSBuild_could_not_be_found" xml:space="preserve">
     <value>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</value>
+  </data>
+  <data name="Project_0_loaded_by_CSharp_Dev_Kit" xml:space="preserve">
+    <value>Project {0} loaded by C# Dev Kit</value>
+    <comment>The placeholder is a name of a file</comment>
   </data>
   <data name="Running_tests" xml:space="preserve">
     <value>Running tests...</value>

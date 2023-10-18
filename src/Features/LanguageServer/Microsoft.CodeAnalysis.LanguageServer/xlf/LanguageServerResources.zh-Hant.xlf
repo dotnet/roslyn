@@ -30,7 +30,7 @@
       <trans-unit id="Completed_reload_of_all_projects_in_0">
         <source>Completed (re)load of all projects in {0}</source>
         <target state="new">Completed (re)load of all projects in {0}</target>
-        <note>The placeholder here is a time duration like 00:15</note>
+        <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
       <trans-unit id="Debugger_attached">
         <source>Debugger attached</source>
@@ -75,7 +75,7 @@
       <trans-unit id="Loading_0">
         <source>Loading {0}...</source>
         <target state="new">Loading {0}...</target>
-        <note>The placeholder here is a name of a file</note>
+        <note>The placeholder is a name of a file</note>
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>
@@ -91,6 +91,11 @@
         <source>Passed!</source>
         <target state="new">Passed!</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
+        <source>Project {0} loaded by C# Dev Kit</source>
+        <target state="new">Project {0} loaded by C# Dev Kit</target>
+        <note>The placeholder is a name of a file</note>
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
         <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
