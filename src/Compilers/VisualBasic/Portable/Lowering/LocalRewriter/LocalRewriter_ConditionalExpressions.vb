@@ -239,11 +239,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return NullableValueOrDefault(rewrittenLeft)
                 End If
 
-                ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is a side-effectless expression of type T
+                ' Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right is a side-effectless expression of type T
                 If rewrittenRight.ConstantValueOpt IsNot Nothing OrElse
                    Not If(TryCast(rewrittenRight, BoundLocal)?.LocalSymbol.IsRef, True) OrElse
                    Not If(TryCast(rewrittenRight, BoundParameter)?.ParameterSymbol.IsByRef, True) Then
-                    Return NullableValueOrDefault(rewrittenLeft, rewrittenRight)
+                    Dim optimized = NullableValueOrDefaultOpt(rewrittenLeft, rewrittenRight)
+                    If optimized IsNot Nothing Then
+                        Return optimized
+                    End If
                 End If
             End If
 

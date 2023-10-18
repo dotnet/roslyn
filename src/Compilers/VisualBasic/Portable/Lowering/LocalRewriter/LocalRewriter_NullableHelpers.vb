@@ -201,10 +201,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
         End Function
 
-        Private Function NullableValueOrDefault(expr As BoundExpression, defaultValue As BoundExpression) As BoundExpression
+        Private Function NullableValueOrDefaultOpt(expr As BoundExpression, defaultValue As BoundExpression) As BoundExpression
             Debug.Assert(expr.Type.IsNullableType)
 
-            Dim getValueOrDefaultWithDefaultValueMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            Dim getValueOrDefaultWithDefaultValueMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, isOptional:=True)
 
             If getValueOrDefaultWithDefaultValueMethod IsNot Nothing Then
                 Return New BoundCall(expr.Syntax,
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  type:=getValueOrDefaultWithDefaultValueMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+            Return Nothing
         End Function
 
         Private Shared Function IsConversionFromUnderlyingToNullable(conversion As BoundConversion) As Boolean
@@ -322,10 +322,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WrapInNullable(New BoundLiteral(syntax, ConstantValue.True, booleanType), nullableOfBoolean)
         End Function
 
-        Private Function GetNullableMethod(syntax As SyntaxNode, nullableType As TypeSymbol, member As SpecialMember) As MethodSymbol
+        Private Function GetNullableMethod(syntax As SyntaxNode, nullableType As TypeSymbol, member As SpecialMember, Optional isOptional As Boolean = False) As MethodSymbol
             Dim method As MethodSymbol = Nothing
 
-            If TryGetSpecialMember(method, member, syntax) Then
+            If TryGetSpecialMember(method, member, syntax, isOptional) Then
                 Dim substitutedType = DirectCast(nullableType, SubstitutedNamedType)
                 Return DirectCast(substitutedType.GetMemberForDefinition(method), MethodSymbol)
             End If

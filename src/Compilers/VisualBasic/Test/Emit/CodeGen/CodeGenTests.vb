@@ -3664,12 +3664,27 @@ Public Module Program
 End Module</file>
 </compilation>)
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
-            compilation.AssertTheseEmitDiagnostics(
-<errors>
-BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
-        Return If(x, 2)
-                  ~
-</errors>)
+            compilation.AssertTheseEmitDiagnostics()
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            ' We gracefully fallback to less efficient implementation with branching
+            verifier.VerifyIL("Program.Coalesce",
+            <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldc.i4.2
+  IL_000a:  br.s       IL_0013
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0013:  box        "Integer"
+  IL_0018:  ret
+}
+]]>)
         End Sub
 
         <Fact()>
