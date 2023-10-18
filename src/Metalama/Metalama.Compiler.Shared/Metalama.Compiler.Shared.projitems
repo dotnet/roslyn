@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilteringRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Intrinsics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISourceTransformer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MetalamaPathUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RefAssemblyResourceMarker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\IExceptionReporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ILogger.cs" />
