@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -17,12 +18,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             Contract.ThrowIfTrue(flag.Succeeded() && flag.HasBestEffort());
 
             Flag = flag;
-            Reasons = reason == null ? SpecializedCollections.EmptyEnumerable<string>() : SpecializedCollections.SingletonEnumerable(reason);
+            Reasons = reason == null ? ImmutableArray<string>.Empty : ImmutableArray.Create(reason);
         }
 
-        private OperationStatus(OperationStatusFlag flag, IEnumerable<string> reasons)
+        private OperationStatus(OperationStatusFlag flag, ImmutableArray<string> reasons)
         {
-            Contract.ThrowIfNull(reasons);
+            Contract.ThrowIfTrue(reasons.IsDefault);
             Contract.ThrowIfTrue(flag.Succeeded() && flag.HasBestEffort());
 
             Flag = flag;
@@ -61,6 +62,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             => Create(this, data);
 
         public OperationStatusFlag Flag { get; }
-        public IEnumerable<string> Reasons { get; }
+        public ImmutableArray<string> Reasons { get; }
     }
 }

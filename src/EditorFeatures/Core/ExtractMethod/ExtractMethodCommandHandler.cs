@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 document, span, localFunction: false, options, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 
-            if (!result.Succeeded && !result.SucceededWithSuggestion)
+            if (!result.Succeeded)
             {
                 // if it failed due to out/ref parameter in async method, try it with different option
                 var newResult = await TryWithoutMakingValueTypesRefAsync(
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     cancellationToken).ConfigureAwait(false);
 
                 // retry succeeded, return new result
-                if (newResult.Succeeded || newResult.SucceededWithSuggestion)
+                if (newResult.Succeeded)
                     return newResult;
             }
 

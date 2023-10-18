@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var serializer = solutionServices.GetRequiredService<ISerializerService>();
 
-                    var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
+                    var infoChecksum = this.Attributes.Checksum;
                     var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
                     var textChecksum = serializer.CreateChecksum(serializableText, cancellationToken);
 

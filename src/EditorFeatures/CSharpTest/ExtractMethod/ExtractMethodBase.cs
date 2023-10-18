@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             Assert.NotNull(result);
             Assert.Equal(succeed,
                 result.Succeeded ||
-                result.SucceededWithSuggestion ||
                 (allowBestEffort && result.Status.HasBestEffort()));
 
             var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);
