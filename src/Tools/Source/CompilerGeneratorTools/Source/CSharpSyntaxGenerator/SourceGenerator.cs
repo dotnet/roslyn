@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -117,7 +118,7 @@ namespace CSharpSyntaxGenerator
                 // Write out the contents to a StringBuilder to avoid creating a single large string
                 // in memory
                 var stringBuilder = new StringBuilder();
-                using (var textWriter = new StringWriter(stringBuilder))
+                using (var textWriter = new StringWriter(stringBuilder, CultureInfo.InvariantCulture))
                 {
                     writeFunction(textWriter);
                 }

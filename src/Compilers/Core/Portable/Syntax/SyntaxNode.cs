@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -325,8 +326,8 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public SourceText GetText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
-            var builder = new StringBuilder();
-            this.WriteTo(new StringWriter(builder));
+            var builder = new StringBuilder(FullWidth, FullWidth);
+            this.WriteTo(new StringWriter(builder, CultureInfo.InvariantCulture));
             return new StringBuilderText(builder, encoding, checksumAlgorithm);
         }
 

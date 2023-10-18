@@ -6,6 +6,7 @@
 ' Contains the definition of the Scanner, which produces tokens from text 
 '-----------------------------------------------------------------------------
 
+Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -359,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
             Dim builder = PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder)
+            Dim writer As New IO.StringWriter(builder, CultureInfo.InvariantCulture)
 
             firstToken.WriteTo(writer)
             secondToken.WriteTo(writer)

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
@@ -837,7 +838,7 @@ namespace Microsoft.CodeAnalysis
 
             if (queue != null && queue.Count > 0)
             {
-                var writer = new System.IO.StringWriter(builder);
+                var writer = new System.IO.StringWriter(builder, CultureInfo.InvariantCulture);
 
                 foreach (var n in queue)
                 {
