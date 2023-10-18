@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             Status = status;
 
-            Succeeded = status.Succeeded() && !status.HasSuggestion();
+            Succeeded = status.Succeeded();
 
             Reasons = reasons.NullToEmpty();
 
