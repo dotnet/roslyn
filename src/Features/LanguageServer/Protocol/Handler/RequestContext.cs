@@ -116,7 +116,18 @@ internal readonly struct RequestContext
                 throw new InvalidOperationException();
             }
 
-            return _lspSolution.Value.Document as Document;
+            if (_lspSolution.Value.Document is null)
+            {
+                return null;
+            }
+
+            if (_lspSolution.Value.Document is Document document)
+            {
+                return document;
+            }
+
+            // Explicitly throw for attempts to get a Document when only a TextDocument is available.
+            throw new InvalidOperationException();
         }
     }
 

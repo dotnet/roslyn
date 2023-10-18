@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml;
@@ -14,11 +12,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml;
 /// <summary>
 /// The currently supported set of XAML LSP Server capabilities
 /// </summary>
-[Export(typeof(ICapabilityRegistrationsProvider)), Shared]
-internal sealed class XamlCapabilityRegistrationsProvider : ICapabilityRegistrationsProvider
+internal sealed class XamlCapabilityRegistrations
 {
-    private readonly string _id = Guid.NewGuid().ToString();
-    private readonly DocumentFilter[] _documentFilter = new DocumentFilter[]
+    private static readonly string s_id = Guid.NewGuid().ToString();
+    private static readonly DocumentFilter[] s_documentFilter = new DocumentFilter[]
     {
         new DocumentFilter()
         {
@@ -27,153 +24,182 @@ internal sealed class XamlCapabilityRegistrationsProvider : ICapabilityRegistrat
         },
     };
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public XamlCapabilityRegistrationsProvider()
-    {
-    }
-
-    public ImmutableArray<Registration> GetRegistrations()
-    {
-        return new Registration[]
+    [Export]
+    public Registration DidOpenRegistration { get; } =
+        new()
         {
-            new Registration
+            Id = s_id,
+            Method = Methods.TextDocumentDidOpenName,
+            RegisterOptions = new TextDocumentRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentDidOpenName,
-                RegisterOptions = new TextDocumentRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+            }
+        };
+
+    [Export]
+    public Registration DidChangeRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentDidChangeName,
+            RegisterOptions = new TextDocumentChangeRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentDidChangeName,
-                RegisterOptions = new TextDocumentChangeRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                    SyncKind = TextDocumentSyncKind.Incremental
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+                SyncKind = TextDocumentSyncKind.Incremental
+            }
+        };
+
+    [Export]
+    public Registration DidCloseRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentDidCloseName,
+            RegisterOptions = new TextDocumentRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentDidCloseName,
-                RegisterOptions = new TextDocumentRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+            }
+        };
+
+    [Export]
+    public Registration CompletionRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentCompletionName,
+            RegisterOptions = new CompletionRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentCompletionName,
-                RegisterOptions = new CompletionRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                    ResolveProvider = true,
-                    TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" },
-                    AllCommitCharacters = Completion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray()
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+                ResolveProvider = true,
+                TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" },
+                AllCommitCharacters = Completion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray()
+            }
+        };
+
+    [Export]
+    public Registration HoverDidChangeRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentHoverName,
+            RegisterOptions = new HoverRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentHoverName,
-                RegisterOptions = new HoverRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+            }
+        };
+
+    [Export]
+    public Registration FoldingRangeDidChangeRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentFoldingRangeName,
+            RegisterOptions = new FoldingRangeRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentFoldingRangeName,
-                RegisterOptions = new FoldingRangeRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+            }
+        };
+
+    [Export]
+    public Registration DocumentFormattingDidChangeRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentFormattingName,
+            RegisterOptions = new DocumentFormattingRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentFormattingName,
-                RegisterOptions = new DocumentFormattingRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+            }
+        };
+
+    [Export]
+    public Registration DocumentRangeFormattingDidChangeRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentRangeFormattingName,
+            RegisterOptions = new DocumentRangeFormattingRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentRangeFormattingName,
-                RegisterOptions = new DocumentRangeFormattingRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+            }
+        };
+
+    [Export]
+    public Registration DocumentOnTypeFormattingRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentOnTypeFormattingName,
+            RegisterOptions = new DocumentOnTypeFormattingRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentOnTypeFormattingName,
-                RegisterOptions = new DocumentOnTypeFormattingRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                    FirstTriggerCharacter = ">",
-                    MoreTriggerCharacter = new string[] { " " }
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+                FirstTriggerCharacter = ">",
+                MoreTriggerCharacter = new string[] { " " }
+            }
+        };
+
+    [Export]
+    public Registration DefinitionRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentDefinitionName,
+            RegisterOptions = new DefinitionRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentDefinitionName,
-                RegisterOptions = new DefinitionRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+            }
+        };
+
+    [Export]
+    public Registration DiagnosticRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentDiagnosticName,
+            RegisterOptions = new DiagnosticRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentDiagnosticName,
-                RegisterOptions = new DiagnosticRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                    WorkspaceDiagnostics = true
-                }
-            },
-            new Registration
+                DocumentSelector = s_documentFilter,
+                WorkspaceDiagnostics = true
+            }
+        };
+
+    [Export]
+    public Registration CodeActionRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.TextDocumentCodeActionName,
+            RegisterOptions = new CodeActionRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.TextDocumentCodeActionName,
-                RegisterOptions = new CodeActionRegistrationOptions
-                {
-                    DocumentSelector = _documentFilter,
-                    CodeActionKinds = new CodeActionKind[] { CodeActionKind.QuickFix, CodeActionKind.SourceOrganizeImports },
-                    ResolveProvider = true
-                }
-            },
-            //// TODO: Dynamically register this for the custom client
-            ////new Registration
-            ////{
-            ////    Id = _id,
-            ////    Method = VSInternalMethods.OnAutoInsertName,
-            ////    RegisterOptions = new VSInternalDocumentOnAutoInsertRegistrationOptions
-            ////    {
-            ////        DocumentSelector = _documentFilter,
-            ////        TriggerCharacters = new string[] { "=", "/" }
-            ////    }
-            ////},
-            new Registration
+                DocumentSelector = s_documentFilter,
+                CodeActionKinds = new CodeActionKind[] { CodeActionKind.QuickFix, CodeActionKind.SourceOrganizeImports },
+                ResolveProvider = true
+            }
+        };
+
+    // TODO: Dynamically register this for the custom client
+    //[Export]
+    //public Registration AutoInsertRegistration { get; } =
+    //    new()
+    //    {
+    //        Id = s_id,
+    //        Method = VSInternalMethods.OnAutoInsertName,
+    //        RegisterOptions = new VSInternalDocumentOnAutoInsertRegistrationOptions
+    //        {
+    //            DocumentSelector = s_documentFilter,
+    //            TriggerCharacters = new string[] { "=", "/" }
+    //        }
+    //    };
+
+    [Export]
+    public Registration ExecuteCommandRegistration { get; } =
+        new()
+        {
+            Id = s_id,
+            Method = Methods.WorkspaceExecuteCommandName,
+            RegisterOptions = new ExecuteCommandRegistrationOptions
             {
-                Id = _id,
-                Method = Methods.WorkspaceExecuteCommandName,
-                RegisterOptions = new ExecuteCommandRegistrationOptions
-                {
-                    Commands = new string[] { StringConstants.CreateEventHandlerCommand }
-                }
-            },
-        }.AsImmutable();
-    }
+                Commands = new string[] { StringConstants.CreateEventHandlerCommand }
+            }
+        };
 }

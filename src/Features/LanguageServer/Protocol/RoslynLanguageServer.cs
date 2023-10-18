@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
         private readonly WellKnownLspServerKinds _serverKind;
-        private readonly IEnumerable<Lazy<ICapabilityRegistrationsProvider>>? _capabilityRegistrationsProviders;
 
         public RoslynLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
@@ -32,13 +31,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ILspServiceLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind,
-            IEnumerable<Lazy<ICapabilityRegistrationsProvider>>? capabilityRegistrationsProviders = null)
+            WellKnownLspServerKinds serverKind)
             : base(jsonRpc, logger)
         {
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;
-            _capabilityRegistrationsProviders = capabilityRegistrationsProviders;
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
@@ -108,19 +105,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             OnInitialized();
 
-            if (_capabilityRegistrationsProviders != null)
+            var capabilityRegistrationsProvider = GetLspServices().GetRequiredService<ICapabilityRegistrationsProvider>();
+            var registrations = capabilityRegistrationsProvider.GetRegistrations();
+            if (registrations.Length == 0)
             {
-                var clientLanguageServerManager = GetLspServices().GetRequiredService<IClientLanguageServerManager>();
-                foreach (var provider in _capabilityRegistrationsProviders)
-                {
-                    var registrations = provider.Value.GetRegistrations();
-                    if (registrations != null)
-                    {
-                        // Call LSP method client/registerCapability
-                        await RoslynLanguageServer.RegisterCapabilityAsync(clientLanguageServerManager, registrations, cancellationToken).ConfigureAwait(false);
-                    }
-                }
+                return;
             }
+
+            // Call LSP method client/registerCapability
+            var clientLanguageServerManager = GetLspServices().GetRequiredService<IClientLanguageServerManager>();
+            await RoslynLanguageServer.RegisterCapabilityAsync(clientLanguageServerManager, registrations, cancellationToken).ConfigureAwait(false);
         }
 
         private static ValueTask RegisterCapabilityAsync(IClientLanguageServerManager clientLanguageServerManager, ImmutableArray<Registration> registrations, CancellationToken cancellationToken)

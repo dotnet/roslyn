@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
             ILspServiceLogger logger,
-            HostServices hostServices,
-            IEnumerable<Lazy<ICapabilityRegistrationsProvider>>? capabilityRegistrationsProviders = null);
+            HostServices hostServices);
     }
 }

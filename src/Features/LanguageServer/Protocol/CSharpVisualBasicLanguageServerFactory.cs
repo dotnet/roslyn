@@ -18,16 +18,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
-        private readonly IEnumerable<Lazy<ICapabilityRegistrationsProvider>> _capabilityRegistrationsProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVisualBasicLanguageServerFactory(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
-            [ImportMany] IEnumerable<Lazy<ICapabilityRegistrationsProvider>> capabilityRegistrationsProviders)
+            CSharpVisualBasicLspServiceProvider lspServiceProvider)
         {
             _lspServiceProvider = lspServiceProvider;
-            _capabilityRegistrationsProviders = capabilityRegistrationsProviders;
         }
 
         public AbstractLanguageServer<RequestContext> Create(
@@ -35,8 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
             ILspServiceLogger logger,
-            HostServices hostServices,
-            IEnumerable<Lazy<ICapabilityRegistrationsProvider>>? capabilityRegistrationsProviders = null)
+            HostServices hostServices)
         {
             var server = new RoslynLanguageServer(
                 _lspServiceProvider,
@@ -45,8 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 logger,
                 hostServices,
                 ProtocolConstants.RoslynLspLanguages,
-                serverKind,
-                _capabilityRegistrationsProviders);
+                serverKind);
 
             return server;
         }

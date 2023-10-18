@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            var document = context.Document;
+            var document = textDocument as Document;
             if (taskList && document is null)
             {
                 context.TraceInformation("Ignoring task list diagnostics request because no document was provided");
