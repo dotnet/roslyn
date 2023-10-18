@@ -74,7 +74,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
     }
 
-    logger.LogTrace($"Dotnet Runtime: {RuntimeInformation.FrameworkDescription}");
+    logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
 
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.SharedDependenciesPath, loggerFactory);
 
