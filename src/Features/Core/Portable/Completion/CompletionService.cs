@@ -136,11 +136,18 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet passThroughOptions,
             ImmutableHashSet<string>? roles = null)
         {
+            // The trigger kind guarantees that user wants a completion.
             if (trigger.Kind is CompletionTriggerKind.Invoke or CompletionTriggerKind.InvokeAndCommitIfUnique)
                 return true;
 
             if (!options.TriggerOnTyping)
                 return false;
+
+            // Enter does not trigger completion.
+            if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == '\n')
+            {
+                return false;
+            }
 
             if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
             {
