@@ -12011,5 +12011,70 @@ void M()
                 Await state.AssertCompletionItemsContain("scoped", "")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
+        Public Async Function AccessStaticMembersOffOfColorColor1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+struct Cursor
+{
+    public static int StaticMember;
+    public int InstanceMember;
+}
+
+class BaseClass
+{
+    public Cursor Cursor { get; set; }
+}
+
+class Derived : BaseClass
+{
+    void Method()
+    {
+        Cursor.$$
+        Object o = new Object();
+    }
+}
+
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
+        Public Async Function AccessStaticMembersOffOfColorColor2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+struct Cursor
+{
+    public static int StaticMember;
+    public int InstanceMember;
+}
+
+class BaseClass
+{
+    public Cursor Cursor { get; set; }
+}
+
+class Derived : BaseClass
+{
+    void Method()
+    {
+        Cursor.$$
+    }
+}
+
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
+            End Using
+        End Function
     End Class
 End Namespace
