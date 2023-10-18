@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public bool Succeeded { get; }
 
         /// <summary>
+        /// The reasons why the extract method operation did not succeed.
+        /// </summary>
+        public ImmutableArray<string> Reasons { get; }
+
+        /// <summary>
         /// The transformed document that was produced as a result of the extract method operation.
         /// </summary>
         public Document? DocumentWithoutFinalFormatting { get; }
@@ -33,11 +38,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// document.
         /// </summary>
         public ImmutableArray<AbstractFormattingRule> FormattingRules { get; }
-
-        /// <summary>
-        /// The reasons why the extract method operation did not succeed.
-        /// </summary>
-        public ImmutableArray<string> Reasons { get; }
 
         /// <summary>
         /// the generated method node that contains the extracted code.
