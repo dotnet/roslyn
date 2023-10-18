@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
+        private readonly IThreadingContext _threadingContext;
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
         private readonly Lazy<ISmartRenameSessionFactory> _smartRenameSessionFactory;
 #pragma warning restore CS0618
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IWpfThemeService? themeService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
             IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext,
 #pragma warning disable CS0618  // Editor team use Obsolete attribute to mark potential changing API
             Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
 #pragma warning restore CS0618
@@ -58,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _listenerProvider = listenerProvider;
             _adornmentLayer = textView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
+            _threadingContext = threadingContext;
             _smartRenameSessionFactory = smartRenameSessionFactory;
 
             _renameService.ActiveSessionChanged += OnActiveSessionChanged;
@@ -141,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     _textView,
                     _themeService,
                     _asyncQuickInfoBroker,
+                    _threadingContext,
                     _listenerProvider);
 
                 return adornment;

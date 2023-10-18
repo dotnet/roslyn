@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly IThreadingContext _threadingContext;
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
 
         private readonly Lazy<ISmartRenameSessionFactory> _smartRenameSessionFactory;
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IGlobalOptionService globalOptionService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
             IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext,
             Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
         {
             _renameService = renameService;
@@ -70,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _listenerProvider = listenerProvider;
             _smartRenameSessionFactory = smartRenameSessionFactory;
+            _threadingContext = threadingContext;
         }
 
         public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)

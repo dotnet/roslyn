@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -27,12 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IWpfTextView _textView;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext;
 
         public RenameFlyout(
             RenameFlyoutViewModel viewModel,
             IWpfTextView textView,
             IWpfThemeService? themeService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
+            IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             DataContext = _viewModel = viewModel;
@@ -42,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
+            _threadingContext = threadingContext;
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -234,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            // When smart rename is available, allow the user to scrolling up/down the suggestions by keyboard.
+            // When smart rename is available, allow the user choose the suggestions using the up/down keys.
             var smartRenameViewModel = _viewModel.SmartRenameViewModel;
             if (smartRenameViewModel is not null)
             {
