@@ -1,11 +1,11 @@
 {
   "sdk": {
-    "version": "8.0.100-rtm.23506.1",
+    "version": "8.0.100-rc.1.23463.5",
     "allowPrerelease": false,
     "rollForward": "latestPatch"
   },
   "tools": {
-    "dotnet": "8.0.100-rtm.23506.1",
+    "dotnet": "8.0.100-rc.1.23463.5",
     "vs": {
       "version": "17.7.2"
     },
