@@ -97,8 +97,6 @@ The value of `Assembly.Location` previously held the location on disk where an a
 
 This could already happen in other load scenarios but this change moves it into mainline build scenarios. 
 
-# Version XXX
-
 ### Deprecation warning for SyntaxNode serialization
 
 The ability to serialize/deserialize a SyntaxNode to/from a Stream has been deprecated.  The code for this still exists in Roslyn, but attempting to call the APIs to perform these functions will result in 'Obsolete' warnings being reported.  A future version of Roslyn will remove this functionality entirely. This functionality could only work for a host that wrote out the nodes to a stream, and later read it back in within the same process instance.  It could not be used to communicate across processes, or for persisting nodes to disk to be read in at a later time by a new host sessions.  This functionality originally existed for the days when Roslyn was hosted in 32bit processes with limited address space. That is no longer a mainline supported scenario. Clients can get similar functionality by persisting the text of the node, and parsing it back out when needed.
