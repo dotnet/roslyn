@@ -1690,12 +1690,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbol = null;
                         return false;
                     }
-
-                    // Ignore warnings
-                    useSiteInfo = new UseSiteInfo<AssemblySymbol>(diagnosticInfo: null, useSiteInfo.PrimaryDependency, useSiteInfo.SecondaryDependencies);
                 }
-
-                diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
+                else
+                {
+                    diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
+                }
             }
 
             // No need to track assemblies used by special members or types. They are coming from core library, which 
