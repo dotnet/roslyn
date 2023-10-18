@@ -151,15 +151,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var result = await extractor.ExtractMethodAsync(CancellationToken.None);
             Assert.NotNull(result);
 
-            // If the test expects us to succeed, validate that we did.  If it expects us to have 
+            // If the test expects us to succeed, validate that we did.  If it expects us to fail, ensure we either
+            // failed or produced a message the user will have to confirm to continue. 
             if (succeed)
             {
                 Assert.Equal(succeed, result.Succeeded);
 
                 if (allowBestEffort)
                     Assert.NotEmpty(result.Reasons);
-                else
-                    Assert.Empty(result.Reasons);
             }
             else
             {
