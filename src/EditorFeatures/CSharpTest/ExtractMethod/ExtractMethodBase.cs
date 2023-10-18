@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             Assert.True(expectedFail ? result.Status.Failed() : result.Status.Succeeded());
 
-            if (result.Status.Succeeded() && result.Status.Reasons.Length == 0)
+            if (result.Status.Succeeded() && result.SelectionChanged)
                 Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
         }
 

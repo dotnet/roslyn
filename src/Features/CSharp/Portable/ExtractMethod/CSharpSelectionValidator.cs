@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
             }
 
+            var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
+
             return await CSharpSelectionResult.CreateAsync(
                 selectionInfo.Status,
                 selectionInfo.OriginalSpan,
@@ -81,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 doc,
                 selectionInfo.FirstTokenInFinalSpan,
                 selectionInfo.LastTokenInFinalSpan,
+                selectionChanged,
                 cancellationToken).ConfigureAwait(false);
         }
 

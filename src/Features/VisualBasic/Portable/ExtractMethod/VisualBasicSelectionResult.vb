@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             document As SemanticDocument,
             firstToken As SyntaxToken,
             lastToken As SyntaxToken,
+            selectionChanged As Boolean,
             cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
 
             Contract.ThrowIfNull(document)
@@ -46,7 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionInExpression,
                 newDocument,
                 firstAnnotation,
-                lastAnnotation)
+                lastAnnotation,
+                selectionChanged)
         End Function
 
         Private Sub New(
@@ -57,7 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstTokenAnnotation As SyntaxAnnotation,
-            lastTokenAnnotation As SyntaxAnnotation)
+            lastTokenAnnotation As SyntaxAnnotation,
+            selectionChanged As Boolean)
 
             MyBase.New(
                 status,
@@ -67,7 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionInExpression,
                 document,
                 firstTokenAnnotation,
-                lastTokenAnnotation)
+                lastTokenAnnotation,
+                selectionChanged)
         End Sub
 
         Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean

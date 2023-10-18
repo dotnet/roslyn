@@ -62,15 +62,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End If
 
-            Return Await VisualBasicSelectionResult.CreateResultAsync(selectionInfo.Status,
-                                                           selectionInfo.OriginalSpan,
-                                                           selectionInfo.FinalSpan,
-                                                           Me.Options,
-                                                           selectionInfo.SelectionInExpression,
-                                                           Me.SemanticDocument,
-                                                           selectionInfo.FirstTokenInFinalSpan,
-                                                           selectionInfo.LastTokenInFinalSpan,
-                                                           cancellationToken).ConfigureAwait(False)
+            Return Await VisualBasicSelectionResult.CreateResultAsync(
+                selectionInfo.Status,
+                selectionInfo.OriginalSpan,
+                selectionInfo.FinalSpan,
+                Me.Options,
+                selectionInfo.SelectionInExpression,
+                Me.SemanticDocument,
+                selectionInfo.FirstTokenInFinalSpan,
+                selectionInfo.LastTokenInFinalSpan,
+                SelectionChanged(selectionInfo),
+                cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Shared Function GetControlFlowSpan(selectionInfo As SelectionInfo) As TextSpan
