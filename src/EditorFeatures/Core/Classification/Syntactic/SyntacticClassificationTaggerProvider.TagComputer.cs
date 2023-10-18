@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
@@ -43,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly ITextBuffer2 _subjectBuffer;
             private readonly IAsynchronousOperationListener _listener;
             private readonly IClassificationTypeMap _typeMap;
-
             private readonly WorkspaceRegistration _workspaceRegistration;
 
             private readonly CancellationTokenSource _disposalCancellationSource = new();

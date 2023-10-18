@@ -558,6 +558,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = (ExpressionSyntax)node.Syntax;
+            if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
+            {
+                diagnostics.Add(node.HasSpreadElements(out _, out _)
+                    ? ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate
+                    : ErrorCode.WRN_CollectionExpressionRefStructMayAllocate,
+                    syntax, targetType);
+            }
+
             MethodSymbol? collectionBuilderMethod = null;
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
@@ -611,6 +619,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
                         ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
                         ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+                    }
+                    break;
+
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    if (targetType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CollectionExpressionImmutableArray, syntax, targetType.OriginalDefinition);
+                        return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
                     }
                     break;
             }

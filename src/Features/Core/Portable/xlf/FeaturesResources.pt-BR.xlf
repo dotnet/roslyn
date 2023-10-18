@@ -785,6 +785,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">"Localizar Todas as Referências" não invocado no símbolo aplicável</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corrigir erro de digitação '{0}'</target>
@@ -2870,6 +2875,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Desencapsular cadeia de chamadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="new">Unwrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Desencapsular a expressão</target>
@@ -3040,6 +3050,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Encapsular cadeia de chamadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="new">Wrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">Encapsular cada argumento</target>
@@ -3068,6 +3083,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Encapsular cadeia longa de chamadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="new">Wrap long collection</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">

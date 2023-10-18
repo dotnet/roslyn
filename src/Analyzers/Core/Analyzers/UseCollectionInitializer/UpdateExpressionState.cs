@@ -424,7 +424,9 @@ internal readonly struct UpdateExpressionState<
                 if (whenFalse is null)
                 {
                     // add the form `.. x ? [y] : []` to the result
-                    return new Match<TStatementSyntax>(ifStatement, UseSpread: true);
+                    return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
+                        ? new Match<TStatementSyntax>(ifStatement, UseSpread: true)
+                        : null;
                 }
 
                 var whenFalseStatements = whenFalse.ToImmutableArray();

@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
             Dim result = Await extractor.ExtractMethodAsync(CancellationToken.None)
             Assert.NotNull(result)
-            Assert.Equal(succeeded, result.Succeeded OrElse result.SucceededWithSuggestion)
+            Assert.Equal(succeeded, result.Succeeded)
 
             Return Await (Await result.GetFormattedDocumentAsync(cleanupOptions, CancellationToken.None)).document.GetSyntaxRootAsync()
         End Function

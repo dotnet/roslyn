@@ -551,6 +551,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                     return 1;
                 default:
                     return 0;
@@ -2404,6 +2406,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.ERR_ExpectedInterpolatedString:
                 case ErrorCode.ERR_InterceptorGlobalNamespace:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                case ErrorCode.ERR_CollectionExpressionImmutableArray:
                 case ErrorCode.ERR_InvalidExperimentalDiagID:
                     return false;
                 default:
