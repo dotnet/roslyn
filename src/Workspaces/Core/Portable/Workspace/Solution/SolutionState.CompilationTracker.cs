@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis
 
             private static void ValidateCompilationTreesMatchesProjectState(Compilation compilation, ProjectState projectState, CompilationTrackerGeneratorInfo? generatorInfo)
             {
-                // We'll do this all in a try/catch so it makes validations easy to do with Contract.ThrowIfFalse().
+                // We'll do this all in a try/catch so it makes validations easy to do with ThrowExceptionIfFalse().
                 try
                 {
                     // Assert that all the trees we expect to see are in the Compilation...
@@ -983,28 +983,47 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var documentInProjectState in projectState.DocumentStates.States)
                     {
-                        Contract.ThrowIfFalse(documentInProjectState.Value.TryGetSyntaxTree(out var tree), "We should have a tree since we have a compilation that should contain it.");
+                        ThrowExceptionIfFalse(documentInProjectState.Value.TryGetSyntaxTree(out var tree), "We should have a tree since we have a compilation that should contain it.");
                         syntaxTreesInWorkspaceStates.Add(tree);
-                        Contract.ThrowIfFalse(compilation.ContainsSyntaxTree(tree), "The tree in the ProjectState should have been in the compilation.");
+                        ThrowExceptionIfFalse(compilation.ContainsSyntaxTree(tree), "The tree in the ProjectState should have been in the compilation.");
                     }
 
                     if (generatorInfo != null)
                     {
                         foreach (var generatedDocument in generatorInfo.Value.Documents.States)
                         {
-                            Contract.ThrowIfFalse(generatedDocument.Value.TryGetSyntaxTree(out var tree), "We should have a tree since we have a compilation that should contain it.");
+                            ThrowExceptionIfFalse(generatedDocument.Value.TryGetSyntaxTree(out var tree), "We should have a tree since we have a compilation that should contain it.");
                             syntaxTreesInWorkspaceStates.Add(tree);
-                            Contract.ThrowIfFalse(compilation.ContainsSyntaxTree(tree), "The tree for the generated document should have been in the compilation.");
+                            ThrowExceptionIfFalse(compilation.ContainsSyntaxTree(tree), "The tree for the generated document should have been in the compilation.");
                         }
                     }
 
                     // ...and that the reverse is true too.
                     foreach (var tree in compilation.SyntaxTrees)
-                        Contract.ThrowIfFalse(syntaxTreesInWorkspaceStates.Contains(tree), "The tree in the Compilation should have been from the workspace.");
+                        ThrowExceptionIfFalse(syntaxTreesInWorkspaceStates.Contains(tree), "The tree in the Compilation should have been from the workspace.");
                 }
                 catch (Exception e) when (FatalError.ReportWithDumpAndCatch(e, ErrorSeverity.Critical))
                 {
                 }
+            }
+
+            /// <summary>
+            /// This is just the same as <see cref="Contract.ThrowIfFalse(bool, string, int)"/> but throws a custom exception type to make this easier to find in telemetry since the exception type
+            /// is easily seen in telemetry.
+            /// </summary>
+            private static void ThrowExceptionIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string message)
+            {
+                if (!condition)
+                {
+                    throw new CompilationTrackerValidationException(message);
+                }
+            }
+
+            public class CompilationTrackerValidationException : Exception
+            {
+                public CompilationTrackerValidationException() { }
+                public CompilationTrackerValidationException(string message) : base(message) { }
+                public CompilationTrackerValidationException(string message, Exception inner) : base(message, inner) { }
             }
 
             #region Versions and Checksums
