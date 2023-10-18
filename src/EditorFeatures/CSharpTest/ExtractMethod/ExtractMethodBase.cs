@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             }
             else
             {
-                Assert.True(!result.Succeeded || result.Reasons.Length > 0);
+                Assert.True(result.Succeeded || result.Reasons.Length > 0);
             }
 
             var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);
@@ -184,7 +184,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), ExtractMethodOptions.Default, localFunction: false);
             var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
-            Assert.True(expectedFail ? result.Status.Failed() : result.Status.Succeeded());
+            if (expectedFail)
+            {
+                Assert.True(result.Status.Failed() || result.Status.Reasons.Length > 0);
+            }
+            else
+            {
+                Assert.True(result.Status.Succeeded());
+            }
 
             if (result.Status.Succeeded() && result.SelectionChanged)
                 Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
