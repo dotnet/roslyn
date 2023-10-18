@@ -58,7 +58,7 @@ internal static class Program
 
         logger.LogInformation("RPC channel started.");
 
-        logger.LogInformation($"Dotnet Runtime: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
+        logger.LogInformation($"BuildHost Runtime Version: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
 
         await jsonRpc.Completion.ConfigureAwait(false);
 
