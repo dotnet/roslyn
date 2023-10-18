@@ -57,10 +57,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             operationStatus = await CheckVariableTypesAsync(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken).ConfigureAwait(false);
-            if (operationStatus.FailedWithNoBestEffortSuggestion())
-            {
+            if (operationStatus.Failed())
                 return new FailedExtractMethodResult(operationStatus);
-            }
 
             var insertionPoint = await GetInsertionPointAsync(analyzeResult.SemanticDocument, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -158,10 +156,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SemanticDocument document, SyntaxNode contextNode, IEnumerable<VariableInfo> variables,
             OperationStatus status, CancellationToken cancellationToken)
         {
-            if (status.FailedWithNoBestEffortSuggestion())
-            {
+            if (status.Failed())
                 return Tuple.Create(false, status);
-            }
 
             var location = contextNode.GetLocation();
 
@@ -169,7 +165,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 var originalType = variable.GetVariableType();
                 var result = await CheckTypeAsync(document.Document, contextNode, location, originalType, cancellationToken).ConfigureAwait(false);
-                if (result.FailedWithNoBestEffortSuggestion())
+                if (result.Failed())
                 {
                     status = status.With(result);
                     return Tuple.Create(false, status);

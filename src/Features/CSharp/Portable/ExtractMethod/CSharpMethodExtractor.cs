@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
                 {
-                    return new OperationStatus(OperationStatusFlag.BestEffort,
+                    return new OperationStatus(OperationStatusFlag.Succeeded,
                         string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             currentType == null ? string.Empty : currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));

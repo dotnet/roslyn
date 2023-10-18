@@ -141,10 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);
 
             var selectedCode = await validator.GetValidSelectionAsync(CancellationToken.None);
-            if (!succeed && selectedCode.Status.FailedWithNoBestEffortSuggestion())
-            {
+            if (!succeed && selectedCode.Status.Failed())
                 return null;
-            }
 
             Assert.True(selectedCode.ContainsValidContext);
 
@@ -152,9 +150,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var extractor = new CSharpMethodExtractor((CSharpSelectionResult)selectedCode, options, localFunction: false);
             var result = await extractor.ExtractMethodAsync(CancellationToken.None);
             Assert.NotNull(result);
-            Assert.Equal(succeed,
-                result.Succeeded ||
-                (allowBestEffort && result.Status.HasBestEffort()));
+            Assert.Equal(succeed, result.Succeeded);
+
+            if (allowBestEffort)
+                Assert.True(result.Reasons.Length > 0);
 
             var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);
             return doc == null
@@ -177,10 +176,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             Assert.True(expectedFail ? result.Status.Failed() : result.Status.Succeeded());
 
-            if ((result.Status.Succeeded() || result.Status.Flag.HasBestEffort()) && result.Status.Flag.HasSuggestion())
-            {
+            if (result.Status.Succeeded())
                 Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
-            }
         }
 
         protected static async Task IterateAllAsync(string code)
@@ -200,9 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
                 // check the obvious case
                 if (!(node is ExpressionSyntax) && !node.UnderValidContext())
-                {
-                    Assert.True(result.Status.FailedWithNoBestEffortSuggestion());
-                }
+                    Assert.True(result.Status.Failed());
             }
         }
     }
