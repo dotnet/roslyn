@@ -119,8 +119,8 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
     {
         const int MaxIdsToSuggestPerCategoryWhenNoComputedDiagnostics = 5;
 
-        var enableCodeQuality = ShouldShowSuggestions(configSummary, codeQuality: true, globalOptions, out var codeQualityConfiguredDiagnosticIds);
-        var enableCodeStyle = ShouldShowSuggestions(configSummary, codeQuality: true, globalOptions, out var codeStyleConfiguredDiagnosticIds);
+        var enableCodeQuality = ShouldShowSuggestions(configSummary, codeQuality: true, globalOptions);
+        var enableCodeStyle = ShouldShowSuggestions(configSummary, codeQuality: false, globalOptions);
         if (!enableCodeQuality && !enableCodeStyle)
             return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
 
@@ -175,25 +175,17 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
 
         return builder.ToImmutable();
 
-        static bool ShouldShowSuggestions(
-            FirstPartyAnalyzerConfigSummary configSummary,
-            bool codeQuality,
-            IGlobalOptionService globalOptions,
-            out ImmutableHashSet<string> configuredDiagnosticIds)
+        static bool ShouldShowSuggestions(FirstPartyAnalyzerConfigSummary configSummary, bool codeQuality, IGlobalOptionService globalOptions)
         {
             var warningsAndErrorsCount = codeQuality
                 ? configSummary.CodeQualitySummary.WarningsAndErrorsCount
                 : configSummary.CodeStyleSummary.WarningsAndErrorsCount;
-            configuredDiagnosticIds = codeQuality
-                ? configSummary.CodeQualitySummary.ConfiguredDiagnosticIds
-                : configSummary.CodeStyleSummary.ConfiguredDiagnosticIds;
-
             if (warningsAndErrorsCount >= 3)
                 return true;
 
             var isCandidateOption = codeQuality
-                    ? CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeQuality
-                    : CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeStyle;
+                ? CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeQuality
+                : CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeStyle;
             return globalOptions.GetOption(isCandidateOption);
         }
 
