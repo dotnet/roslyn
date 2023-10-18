@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
@@ -23,11 +22,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// True if the extract method operation succeeded.
         /// </summary>
         public bool Succeeded { get; }
-
-        /// <summary>
-        /// True if the extract method operation is possible if the original span is adjusted.
-        /// </summary>
-        public bool SucceededWithSuggestion { get; }
 
         /// <summary>
         /// The transformed document that was produced as a result of the extract method operation.
@@ -43,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// <summary>
         /// The reasons why the extract method operation did not succeed.
         /// </summary>
-        public IEnumerable<string> Reasons { get; }
+        public ImmutableArray<string> Reasons { get; }
 
         /// <summary>
         /// the generated method node that contains the extracted code.
@@ -66,7 +60,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             Status = status;
 
             Succeeded = status.Succeeded() && !status.HasSuggestion();
-            SucceededWithSuggestion = status.Succeeded() && status.HasSuggestion();
 
             Reasons = reasons.NullToEmpty();
 
