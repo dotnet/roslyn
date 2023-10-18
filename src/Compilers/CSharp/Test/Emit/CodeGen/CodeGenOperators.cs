@@ -5110,15 +5110,17 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
-        public void NullCoalesce_RefLocal()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        public void NullCoalesce_RefLocal(string refKeyword)
         {
-            var source = """
+            var source = $$"""
                 class Program
                 {
                     static int Main(int? x, ref int y)
                     {
-                        ref int z = ref y;
+                        {{refKeyword}} int z = ref y;
                         return x ?? z;
                     }
                 }
