@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal class ExtractMethodResult
+    internal abstract class ExtractMethodResult
     {
         /// <summary>
         /// True if the extract method operation succeeded.
