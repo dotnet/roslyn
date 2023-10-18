@@ -15,7 +15,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// </summary>
 internal interface ICodeAnalysisDiagnosticAnalyzerService : IWorkspaceService
 {
-    void Clear();
+    /// <summary>
+    /// Removes the last computed diagnostics for a particular project.  Note: this will not affect if a project has
+    /// been considered 'analyzed' or not (see <see cref="HasProjectBeenAnalyzed"/>).  Generally, this should be called
+    /// when a solution is closed, or if a real build is kicked off and has produced diagnostics for a project that
+    /// should now supersede the last computed code analysis diagnostics.
+    /// </summary>
+    /// <param name="projectId"></param>
+    void ClearProjectDiagnostics(ProjectId projectId);
 
     /// <summary>
     /// Runs all the applicable analyzers on the given project or entire solution if <paramref name="projectId"/> is null.
@@ -23,18 +30,19 @@ internal interface ICodeAnalysisDiagnosticAnalyzerService : IWorkspaceService
     Task RunAnalysisAsync(Solution solution, ProjectId? projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns true if <see cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/> was invoked
-    /// on either the current or a prior snapshot of the project or containing solution for the given <paramref name="projectId"/>.
-    /// This method will keep returning true for a given project ID once any given snapshot of the project has been analyzed.
-    /// This changes once the solution is closed/reloaded, at which point all the projects are returned back to not analyzed state
-    /// and this method will return false.
+    /// Returns true if <see cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/> was
+    /// invoked on either the current or a prior snapshot of the project or containing solution for the given <paramref
+    /// name="projectId"/>. This method will keep returning true for a given project ID once any given snapshot of the
+    /// project has been analyzed. This changes once the solution is closed/reloaded, at which point all the projects
+    /// are returned back to not analyzed state and this method will return false.
     /// </summary>
     bool HasProjectBeenAnalyzed(ProjectId projectId);
 
     /// <summary>
-    /// Returns analyzer diagnostics reported on the given <paramref name="documentId"/>> from the last
-    /// <see cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/> invocation on the containing project or solution.
-    /// The caller is expected to check <see cref="HasProjectBeenAnalyzed(ProjectId)"/> prior to calling this method.
+    /// Returns analyzer diagnostics reported on the given <paramref name="documentId"/>> from the last <see
+    /// cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/> invocation on the containing
+    /// project or solution. The caller is expected to check <see cref="HasProjectBeenAnalyzed(ProjectId)"/> prior to
+    /// calling this method.
     /// </summary>
     /// <remarks>
     /// Note that the returned diagnostics may not be from the latest document snapshot.
@@ -42,9 +50,10 @@ internal interface ICodeAnalysisDiagnosticAnalyzerService : IWorkspaceService
     Task<ImmutableArray<DiagnosticData>> GetLastComputedDocumentDiagnosticsAsync(DocumentId documentId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns analyzer diagnostics without any document location reported on the given <paramref name="projectId"/>> from the last
-    /// <see cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/> invocation on the given project or solution.
-    /// The caller is expected to check <see cref="HasProjectBeenAnalyzed(ProjectId)"/> prior to calling this method.
+    /// Returns analyzer diagnostics without any document location reported on the given <paramref name="projectId"/>>
+    /// from the last <see cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/>
+    /// invocation on the given project or solution. The caller is expected to check <see
+    /// cref="HasProjectBeenAnalyzed(ProjectId)"/> prior to calling this method.
     /// </summary>
     /// <remarks>
     /// Note that the returned diagnostics may not be from the latest project snapshot.

@@ -177,6 +177,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             // on a serialized task queue.
             _taskQueue.ScheduleTask(nameof(ClearErrors), async () =>
             {
+                // A real build just finished for this project.  Clear out any results from the last "run code analysis"
+                // command. We want the real build errors to take precedence for this project from this point on.
+                _workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().ClearProjectDiagnostics(projectId);
+
                 if (state == null)
                 {
                     // TODO: Is it possible that ClearErrors can be invoked while the build is not in progress?
