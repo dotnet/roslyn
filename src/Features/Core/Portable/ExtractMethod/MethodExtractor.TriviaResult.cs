@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public SemanticDocument SemanticDocument { get; } = document;
 
-            public async Task<OperationStatus<SemanticDocument>> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
+            public async Task<SemanticDocument> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
             {
                 var document = generatedCode.SemanticDocument;
                 var root = document.Root;
@@ -42,10 +42,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var triviaResolver = GetTriviaResolver(method);
 
                 // Failed to restore the trivia.  Just return whatever best effort result is that we have so far.
-                return annotationResolver == null || triviaResolver == null
-                    ? OperationStatus.Succeeded.With(document)
-                    : OperationStatus.Succeeded.With(
-                        await document.WithSyntaxRootAsync(_result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
+                if (annotationResolver == null || triviaResolver == null)
+                    return document;
+
+                return await document.WithSyntaxRootAsync(
+                    _result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false);
             }
 
             protected IEnumerable<SyntaxTrivia> FilterTriviaList(IEnumerable<SyntaxTrivia> list)
