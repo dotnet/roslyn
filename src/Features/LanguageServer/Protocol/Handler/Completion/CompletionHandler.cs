@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CompletionList?> HandleRequestAsync(
             LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            context.TraceInformation($"{nameof(CompletionHandler)} received request");
+
             Contract.ThrowIfNull(context.Document);
             Contract.ThrowIfNull(context.Solution);
 
@@ -57,22 +59,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionOptions = GetCompletionOptions(document, capabilityHelper);
             var completionService = document.GetRequiredLanguageService<CompletionService>();
 
+            context.TraceInformation($"{nameof(CompletionHandler)} documentText: {documentText}");
+            context.TraceInformation($"{nameof(CompletionHandler)} TriggerKind: {request.Context?.TriggerKind}");
+            context.TraceInformation($"{nameof(CompletionHandler)} TriggerCharacter: {request.Context?.TriggerCharacter}");
+            context.TraceInformation($"{nameof(CompletionHandler)} Position: L:{request.Position.Line}, C:{request.Position.Character}");
+            context.TraceInformation($"{nameof(CompletionHandler)} completionTrigger: {completionTrigger}");
+            context.TraceInformation($"{nameof(CompletionHandler)} completionOptions: {completionOptions}");
+
             // Let CompletionService decide if we should trigger completion, unless the request is for incomplete results, in which case we always trigger. 
             if (request.Context?.TriggerKind is not LSP.CompletionTriggerKind.TriggerForIncompleteCompletions
                 && !completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, documentText, position, completionTrigger, completionOptions, document.Project.Solution.Options, roles: null))
             {
+                context.TraceInformation($"{nameof(CompletionHandler)} returns null due to fail to trigger. TriggerKind = {request.Context?.TriggerKind}");
                 return null;
             }
 
             var completionListResult = await GetFilteredCompletionListAsync(request, context, documentText, document, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
             if (completionListResult == null)
+            {
+                context.TraceInformation($"{nameof(CompletionHandler)} returns null due to CompletionService returned empty list");
                 return null;
+            }
 
             var (list, isIncomplete, resultId) = completionListResult.Value;
 
             var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
-            return await creationService.ConvertToLspCompletionListAsync(document, position, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
+            var result = await creationService.ConvertToLspCompletionListAsync(document, position, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
                 .ConfigureAwait(false);
+
+            context.TraceInformation($"{nameof(CompletionHandler)} returns {result.Items.Length} items");
+            return result;
         }
 
         private async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId)?> GetFilteredCompletionListAsync(
