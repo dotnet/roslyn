@@ -111,7 +111,7 @@ internal sealed class LoadedProject : IDisposable
             document => _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders),
             document => _projectSystemProject.RemoveSourceFile(document.FilePath));
 
-        var metadataReferences = _optionsProcessor.GetParsedCommandLineArguments().MetadataReferences.Distinct();
+        var metadataReferences = _optionsProcessor.GetParsedCommandLineArguments().MetadataReferences;
 
         UpdateProjectSystemProjectCollection(
             metadataReferences,
@@ -123,7 +123,7 @@ internal sealed class LoadedProject : IDisposable
         // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
         _mostRecentMetadataReferences = metadataReferences;
 
-        var analyzerReferences = _optionsProcessor.GetParsedCommandLineArguments().AnalyzerReferences.Distinct();
+        var analyzerReferences = _optionsProcessor.GetParsedCommandLineArguments().AnalyzerReferences;
 
         UpdateProjectSystemProjectCollection(
             analyzerReferences,
@@ -135,8 +135,8 @@ internal sealed class LoadedProject : IDisposable
         _mostRecentAnalyzerReferences = analyzerReferences;
 
         UpdateProjectSystemProjectCollection(
-            newProjectInfo.AdditionalDocuments.Distinct(DocumentFileInfoComparer.Instance), // TODO: figure out why we have duplicates
-            _mostRecentFileInfo?.AdditionalDocuments.Distinct(DocumentFileInfoComparer.Instance),
+            newProjectInfo.AdditionalDocuments,
+            _mostRecentFileInfo?.AdditionalDocuments,
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddAdditionalFile(document.FilePath),
             document => _projectSystemProject.RemoveAdditionalFile(document.FilePath));
@@ -149,8 +149,8 @@ internal sealed class LoadedProject : IDisposable
             document => _projectSystemProject.RemoveAnalyzerConfigFile(document.FilePath));
 
         UpdateProjectSystemProjectCollection(
-            newProjectInfo.AdditionalDocuments.Where(TreatAsIsDynamicFile).Distinct(DocumentFileInfoComparer.Instance), // TODO: figure out why we have duplicates
-            _mostRecentFileInfo?.AdditionalDocuments.Where(TreatAsIsDynamicFile).Distinct(DocumentFileInfoComparer.Instance),
+            newProjectInfo.AdditionalDocuments.Where(TreatAsIsDynamicFile),
+            _mostRecentFileInfo?.AdditionalDocuments.Where(TreatAsIsDynamicFile),
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: ImmutableArray<string>.Empty),
             document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath));
@@ -163,6 +163,10 @@ internal sealed class LoadedProject : IDisposable
 
         static void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem)
         {
+            // It's possible for projects to end up with duplicate items of pretty much any kind, so we'll always remove duplicates from the loadedCollection. There's
+            // no reason to deduplicate oldLoadedCollection since we're implicitly doing that adding everything to a hash set.
+            loadedCollection = loadedCollection.Distinct(comparer);
+
             var oldItems = new HashSet<T>(comparer);
 
             if (oldLoadedCollection != null)
