@@ -991,16 +991,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             result = Nothing
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
-            Dim memberSymbol = Binder.GetSpecialTypeMember(Me._topMethod.ContainingAssembly, memberId, useSiteInfo, isOptional)
+            Dim memberSymbol = Binder.GetSpecialTypeMember(Me._topMethod.ContainingAssembly, memberId, useSiteInfo)
 
-            If memberSymbol Is Nothing Then
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                If Not isOptional Then
+                    Binder.ReportUseSite(_diagnostics, syntax.GetLocation(), useSiteInfo)
+                End If
+
                 Return False
             End If
 
-            If Binder.ReportUseSite(_diagnostics, syntax.GetLocation(), useSiteInfo) Then
-                Return False
-            End If
-
+            _diagnostics.AddDependencies(useSiteInfo)
             result = DirectCast(memberSymbol, T)
             Return True
         End Function

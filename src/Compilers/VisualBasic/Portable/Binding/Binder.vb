@@ -2,13 +2,19 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Concurrent
+Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Utilities
+Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -555,33 +561,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return specialMemberSymbol
         End Function
 
-        Friend Shared Function GetSpecialTypeMember(assembly As AssemblySymbol, member As SpecialMember, <Out> ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol), Optional isOptional As Boolean = False) As Symbol
+        Friend Shared Function GetSpecialTypeMember(assembly As AssemblySymbol, member As SpecialMember, <Out> ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As Symbol
             Dim specialMemberSymbol As Symbol = assembly.GetSpecialTypeMember(member)
 
-            If specialMemberSymbol IsNot Nothing Then
-                useSiteInfo = GetUseSiteInfoForMemberAndContainingType(specialMemberSymbol)
-
-                If useSiteInfo.DiagnosticInfo IsNot Nothing Then
-                    ' Report errors only for non-optional members
-                    If isOptional Then
-                        Dim severity = useSiteInfo.DiagnosticInfo.Severity
-
-                        ' If the member is optional and bad for whatever reason ignore it
-                        If severity = DiagnosticSeverity.Error Then
-                            useSiteInfo = Nothing
-                            Return Nothing
-                        End If
-
-                        ' Ignore warnings
-                        useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(diagnosticInfo:=Nothing, useSiteInfo.PrimaryDependency, useSiteInfo.SecondaryDependencies)
-                    End If
-                End If
-            ElseIf Not isOptional Then
-                ' Member is missing
+            If specialMemberSymbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = SpecialMembers.GetDescriptor(member)
                 useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, memberDescriptor.DeclaringTypeMetadataName & "." & memberDescriptor.Name))
             Else
-                useSiteInfo = Nothing
+                useSiteInfo = GetUseSiteInfoForMemberAndContainingType(specialMemberSymbol)
             End If
 
             Return specialMemberSymbol
