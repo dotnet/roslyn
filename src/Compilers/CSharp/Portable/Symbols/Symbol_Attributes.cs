@@ -229,7 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute)
                 && !SyntaxFacts.IsValidIdentifier((string?)arguments.Attribute.CommonConstructorArguments[0].ValueInternal))
             {
-                Debug.Assert(arguments.AttributeSyntaxOpt is not null);
                 var attrArgumentLocation = arguments.Attribute.GetAttributeArgumentSyntaxLocation(parameterIndex: 0, arguments.AttributeSyntaxOpt);
                 arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
                 return;
