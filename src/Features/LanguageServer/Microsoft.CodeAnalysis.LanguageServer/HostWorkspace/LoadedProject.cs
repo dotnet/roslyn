@@ -75,7 +75,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo)
+    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ILogger logger)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -87,10 +87,13 @@ internal sealed class LoadedProject : IDisposable
         await using var batch = _projectSystemProject.CreateBatchScope();
 
         var projectDisplayName = Path.GetFileNameWithoutExtension(newProjectInfo.FilePath)!;
+        var projectFullPathWithTargetFramework = newProjectInfo.FilePath;
 
         if (newProjectInfo.TargetFramework != null)
         {
-            projectDisplayName += " (" + newProjectInfo.TargetFramework + ")";
+            var targetFrameworkSuffix = " (" + newProjectInfo.TargetFramework + ")";
+            projectDisplayName += targetFrameworkSuffix;
+            projectFullPathWithTargetFramework += targetFrameworkSuffix;
         }
 
         _projectSystemProject.DisplayName = projectDisplayName;
@@ -109,7 +112,8 @@ internal sealed class LoadedProject : IDisposable
             _mostRecentFileInfo?.Documents,
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders),
-            document => _projectSystemProject.RemoveSourceFile(document.FilePath));
+            document => _projectSystemProject.RemoveSourceFile(document.FilePath),
+            "Project {0} now has {1} source file(s).");
 
         var metadataReferences = _optionsProcessor.GetParsedCommandLineArguments().MetadataReferences;
 
@@ -118,7 +122,8 @@ internal sealed class LoadedProject : IDisposable
             _mostRecentMetadataReferences,
             EqualityComparer<CommandLineReference>.Default, // CommandLineReference already implements equality
             reference => _projectSystemProject.AddMetadataReference(reference.Reference, reference.Properties),
-            reference => _projectSystemProject.RemoveMetadataReference(reference.Reference, reference.Properties));
+            reference => _projectSystemProject.RemoveMetadataReference(reference.Reference, reference.Properties),
+            "Project {0} now has {1} reference(s).");
 
         // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
         _mostRecentMetadataReferences = metadataReferences;
@@ -130,7 +135,8 @@ internal sealed class LoadedProject : IDisposable
             _mostRecentAnalyzerReferences,
             EqualityComparer<CommandLineAnalyzerReference>.Default, // CommandLineAnalyzerReference already implements equality
             reference => _projectSystemProject.AddAnalyzerReference(reference.FilePath),
-            reference => _projectSystemProject.RemoveAnalyzerReference(reference.FilePath));
+            reference => _projectSystemProject.RemoveAnalyzerReference(reference.FilePath),
+            "Project {0} now has {1} analyzer reference(s).");
 
         _mostRecentAnalyzerReferences = analyzerReferences;
 
@@ -139,21 +145,24 @@ internal sealed class LoadedProject : IDisposable
             _mostRecentFileInfo?.AdditionalDocuments,
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddAdditionalFile(document.FilePath),
-            document => _projectSystemProject.RemoveAdditionalFile(document.FilePath));
+            document => _projectSystemProject.RemoveAdditionalFile(document.FilePath),
+            "Project {0} now has {1} additional file(s).");
 
         UpdateProjectSystemProjectCollection(
             newProjectInfo.AnalyzerConfigDocuments,
             _mostRecentFileInfo?.AnalyzerConfigDocuments,
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddAnalyzerConfigFile(document.FilePath),
-            document => _projectSystemProject.RemoveAnalyzerConfigFile(document.FilePath));
+            document => _projectSystemProject.RemoveAnalyzerConfigFile(document.FilePath),
+            "Project {0} now has {1} analyzer config file(s).");
 
         UpdateProjectSystemProjectCollection(
             newProjectInfo.AdditionalDocuments.Where(TreatAsIsDynamicFile),
             _mostRecentFileInfo?.AdditionalDocuments.Where(TreatAsIsDynamicFile),
             DocumentFileInfoComparer.Instance,
             document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: ImmutableArray<string>.Empty),
-            document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath));
+            document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath),
+            "Project {0} now has {1} dynamic file(s).");
 
         _mostRecentFileInfo = newProjectInfo;
 
@@ -161,13 +170,12 @@ internal sealed class LoadedProject : IDisposable
         var outputKind = _projectSystemProject.CompilationOptions.OutputKind;
         return (metadataReferences, outputKind);
 
-        static void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem)
+        // logMessage should be a string with two placeholders; the first is the project name, the second is the number of items.
+        void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)
         {
-            // It's possible for projects to end up with duplicate items of pretty much any kind, so we'll always remove duplicates from the loadedCollection. There's
-            // no reason to deduplicate oldLoadedCollection since we're implicitly doing that adding everything to a hash set.
-            loadedCollection = loadedCollection.Distinct(comparer);
-
+            var newItems = new HashSet<T>(loadedCollection, comparer);
             var oldItems = new HashSet<T>(comparer);
+            var oldItemsCount = oldItems.Count;
 
             if (oldLoadedCollection != null)
             {
@@ -175,7 +183,7 @@ internal sealed class LoadedProject : IDisposable
                     oldItems.Add(item);
             }
 
-            foreach (var newItem in loadedCollection)
+            foreach (var newItem in newItems)
             {
                 // If oldItems already has this, we don't need to add it again. We'll remove it, and what is left in oldItems is stuff to remove
                 if (!oldItems.Remove(newItem))
@@ -186,6 +194,9 @@ internal sealed class LoadedProject : IDisposable
             {
                 removeItem(oldItem);
             }
+
+            if (newItems.Count != oldItemsCount)
+                logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count);
         }
     }
 
