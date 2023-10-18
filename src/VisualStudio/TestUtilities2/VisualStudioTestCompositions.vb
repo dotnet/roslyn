@@ -21,10 +21,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             AddAssemblies(
                 GetType(ServicesVSResources).Assembly,
                 GetType(CSharpVSResources).Assembly,
-                GetType(BasicVSResources).Assembly).
+                GetType(BasicVSResources).Assembly,
+                GetType(EditorConfigGenerator).Assembly).
             AddParts(
-                GetType(StubVsEditorAdaptersFactoryService),
-                GetType(EditorConfigGenerator)).
+                GetType(StubVsEditorAdaptersFactoryService)).
             AddExcludedPartTypes(
                 GetType(VisualStudioRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
                 GetType(IStreamingFindUsagesPresenter),                ' TODO: should we be using the actual implementation (https://github.com/dotnet/roslyn/issues/46380)?

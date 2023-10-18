@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator</RootNamespace>
-    <AssemblyName>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator</AssemblyName>
     <TargetFrameworks>net472</TargetFrameworks>
 
     <!-- NuGet -->
