@@ -2,6 +2,10 @@
 <img width="450" src="https://github.com/postsharp/Metalama/raw/master/images/metalama-by-postsharp.svg" alt="Metalama logo">
 </p>
 
+<!-- Matomo Image Tracker-->
+<img referrerpolicy="no-referrer-when-downgrade" src="https://postsharp.matomo.cloud/matomo.php?idsite=4&amp;rec=1" style="border:0" alt="" />
+<!-- End Matomo -->
+
 The Metalama Compiler is a fork of [Roslyn](https://github.com/dotnet/Roslyn) that introduces extension points enabling analyzer projects to execute arbitrary transformations via the `ISourceTransformer` interface.
 
 The Metalama Compiler is actively and professionally maintained by [PostSharp Technologies](https://www.postsharp.net/).
