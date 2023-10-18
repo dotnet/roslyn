@@ -4823,7 +4823,7 @@ class Program
         [WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
         public async Task TestMissingOnUsingStatement()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
                 """
                 class C
                 {

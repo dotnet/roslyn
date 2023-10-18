@@ -4520,7 +4520,7 @@ class Program
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
         public async Task TestMissingOnInvalidUsingStatement()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
                 """
                 class C
                 {
