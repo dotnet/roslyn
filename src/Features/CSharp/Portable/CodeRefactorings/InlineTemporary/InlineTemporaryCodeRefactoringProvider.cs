@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             newScope = GetScope(declarator);
 
             // Note that we only remove the local declaration if there weren't any conflicts,
-            if (conflictReferences.Count == 0)
+             if (conflictReferences.Count == 0)
             {
                 // No semantic conflicts, we can remove the definition.
                 document = await document.ReplaceNodeAsync(
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
                     return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
                 }
-                else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
+                else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax or InvocationExpressionSyntax)
                 {
                     // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
                     // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
