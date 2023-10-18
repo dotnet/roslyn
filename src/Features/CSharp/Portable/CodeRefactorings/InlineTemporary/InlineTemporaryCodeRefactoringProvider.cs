@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             newScope = GetScope(declarator);
 
             // Note that we only remove the local declaration if there weren't any conflicts,
-             if (conflictReferences.Count == 0)
+            if (conflictReferences.Count == 0)
             {
                 // No semantic conflicts, we can remove the definition.
                 document = await document.ReplaceNodeAsync(
