@@ -86,13 +86,14 @@ internal sealed class LoadedProject : IDisposable
 
         await using var batch = _projectSystemProject.CreateBatchScope();
 
-        var projectDisplayName = Path.GetFileNameWithoutExtension(newProjectInfo.FilePath);
+        var projectDisplayName = Path.GetFileNameWithoutExtension(newProjectInfo.FilePath)!;
 
         if (newProjectInfo.TargetFramework != null)
         {
             projectDisplayName += " (" + newProjectInfo.TargetFramework + ")";
         }
 
+        _projectSystemProject.DisplayName = projectDisplayName;
         _projectSystemProject.OutputFilePath = newProjectInfo.OutputFilePath;
         _projectSystemProject.OutputRefFilePath = newProjectInfo.OutputRefFilePath;
 
