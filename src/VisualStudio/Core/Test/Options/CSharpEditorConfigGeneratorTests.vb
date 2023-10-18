@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorDefault()
-            Using workspace = TestWorkspace.CreateCSharp("")
+            Using workspace = TestWorkspace.CreateCSharp("", composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 

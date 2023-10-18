@@ -4,11 +4,13 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.ExternalAccess
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp
 Imports Microsoft.VisualStudio.LanguageServices.Remote
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
+Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Friend NotInheritable Class VisualStudioTestCompositions
@@ -21,7 +23,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(CSharpVSResources).Assembly,
                 GetType(BasicVSResources).Assembly).
             AddParts(
-                GetType(StubVsEditorAdaptersFactoryService)).
+                GetType(StubVsEditorAdaptersFactoryService),
+                GetType(EditorConfigGenerator)).
             AddExcludedPartTypes(
                 GetType(VisualStudioRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
                 GetType(IStreamingFindUsagesPresenter),                ' TODO: should we be using the actual implementation (https://github.com/dotnet/roslyn/issues/46380)?
