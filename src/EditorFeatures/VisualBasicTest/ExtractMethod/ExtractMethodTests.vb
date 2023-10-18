@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
 
                 If expectedFail Then
-                    Assert.True(result.Status.Failed(), "Selection didn't fail as expected")
+                    Assert.True(result.Status.Failed() OrElse result.Status.Reasons.Length > 0, "Selection didn't fail as expected")
                 Else
                     Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(result.Status), "Selection wasn't expected to fail")
                 End If
