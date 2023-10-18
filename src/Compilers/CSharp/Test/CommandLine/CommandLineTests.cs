@@ -14875,6 +14875,88 @@ public class C
             var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ExperimentalWithWhitespaceDiagnosticID()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(" ")]
+public class C
+{
+    public static void M() { }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+    }
+}
+""");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.CS9208.severity = warning
+""");
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith("test.cs(3,2): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier",
+                outWriter.ToString());
+        }
+
+        [Fact]
+        public void ExperimentalWithValidDiagnosticID()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID")]
+public class C
+{
+    public static void M() { }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+    }
+}
+""");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.DiagID.severity = warning
+""");
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.StartsWith("test.cs(1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
+                outWriter.ToString());
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

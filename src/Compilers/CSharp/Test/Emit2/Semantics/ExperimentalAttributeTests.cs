@@ -1388,9 +1388,71 @@ C.M();
             // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
             Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
-            // 1.cs(1,2): error CS9208: The argument to the 'Experimental' attribute must be a valid identifier
+            // 1.cs(1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
             // [System.Diagnostics.CodeAnalysis.Experimental(null)]
-            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, "System.Diagnostics.CodeAnalysis.Experimental(null)").WithLocation(1, 2)
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, "null").WithLocation(1, 47)
+            );
+    }
+
+    [Fact]
+    public void MissingDiagnosticIdArgument()
+    {
+        var src = """
+C.M();
+[System.Diagnostics.CodeAnalysis.Experimental()]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(2,2): error CS7036: There is no argument given that corresponds to the required parameter 'diagnosticId' of 'ExperimentalAttribute.ExperimentalAttribute(string)'
+            // [System.Diagnostics.CodeAnalysis.Experimental()]
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "System.Diagnostics.CodeAnalysis.Experimental()").WithArguments("diagnosticId", "System.Diagnostics.CodeAnalysis.ExperimentalAttribute.ExperimentalAttribute(string)").WithLocation(2, 2)
+            );
+    }
+
+    [Fact]
+    public void IntegerDiagnosticIdArgument()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(42)]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(3,47): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            // [System.Diagnostics.CodeAnalysis.Experimental(42)]
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(3, 47)
+            );
+    }
+
+    [Fact]
+    public void MultipleArguments()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(3,2): error CS1729: 'ExperimentalAttribute' does not contain a constructor that takes 2 arguments
+            // [System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")]
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"System.Diagnostics.CodeAnalysis.Experimental(""DiagID"", ""other"")").WithArguments("System.Diagnostics.CodeAnalysis.ExperimentalAttribute", "2").WithLocation(3, 2)
             );
     }
 
@@ -1414,9 +1476,9 @@ C.M();
             // 0.cs(1,1): error Diag\n: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
             // C.M();
             Diagnostic("Diag\n", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
-            // 1.cs(1,2): error CS9208: The argument to the 'Experimental' attribute must be a valid identifier
+            // 1.cs(1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
             // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
-            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"System.Diagnostics.CodeAnalysis.Experimental(""Diag\n"")").WithLocation(1, 2)
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n""").WithLocation(1, 47)
             );
     }
 
@@ -1438,9 +1500,9 @@ public class C
             // 0.cs(1,1): error Diag\n01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
             // C.M();
             Diagnostic("Diag\n01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
-            // 0.cs(3,2): error CS9208: The argument to the 'Experimental' attribute must be a valid identifier
+            // 0.cs(3,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
             // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n01")]
-            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"System.Diagnostics.CodeAnalysis.Experimental(""Diag\n01"")").WithLocation(3, 2)
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n01""").WithLocation(3, 47)
             );
     }
 
@@ -1465,9 +1527,9 @@ C.M();
             // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
             Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
-            // (1,2): error CS9208: The argument to the 'Experimental' attribute must be a valid identifier
+            // (1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
             // [System.Diagnostics.CodeAnalysis.Experimental(" ")]
-            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, $$"""System.Diagnostics.CodeAnalysis.Experimental({{whitespace}})""").WithLocation(1, 2)
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, whitespace).WithLocation(1, 47)
             );
     }
 
@@ -1488,9 +1550,9 @@ class C
             // 0.cs(1,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
             Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
-            // 0.cs(3,2): error CS9208: The argument to the 'Experimental' attribute must be a valid identifier
+            // 0.cs(3,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
             // [System.Diagnostics.CodeAnalysis.Experimental("Diag 01")]
-            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"System.Diagnostics.CodeAnalysis.Experimental(""Diag 01"")").WithLocation(3, 2)
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag 01""").WithLocation(3, 47)
             );
     }
 
@@ -1501,8 +1563,7 @@ class C
 .class public auto ansi beforefieldinit C
     extends [mscorlib]System.Object
 {
-    // Experimental("Diag 01")
-    .custom instance void System.Diagnostics.CodeAnalysis.ExperimentalAttribute::.ctor(string) = ( 01 00 07 44 69 61 67 20 30 31 00 00 )
+    .custom instance void System.Diagnostics.CodeAnalysis.ExperimentalAttribute::.ctor(string) = { string('Diag 01') }
 
     .method public hidebysig static void M () cil managed
     {
@@ -1520,34 +1581,11 @@ class C
 .class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.ExperimentalAttribute
     extends [mscorlib]System.Attribute
 {
-    .field private string '<UrlFormat>k__BackingField'
-
     .method public hidebysig specialname rtspecialname instance void .ctor ( string diagnosticId ) cil managed
     {
         IL_0000: ldarg.0
         IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
         IL_0006: ret
-    }
-
-    .method public hidebysig specialname instance string get_UrlFormat () cil managed
-    {
-        IL_0000: ldarg.0
-        IL_0001: ldfld string System.Diagnostics.CodeAnalysis.ExperimentalAttribute::'<UrlFormat>k__BackingField'
-        IL_0006: ret
-    }
-
-    .method public hidebysig specialname instance void set_UrlFormat ( string 'value' ) cil managed
-    {
-        IL_0000: ldarg.0
-        IL_0001: ldarg.1
-        IL_0002: stfld string System.Diagnostics.CodeAnalysis.ExperimentalAttribute::'<UrlFormat>k__BackingField'
-        IL_0007: ret
-    }
-
-    .property instance string UrlFormat()
-    {
-        .get instance string System.Diagnostics.CodeAnalysis.ExperimentalAttribute::get_UrlFormat()
-        .set instance void System.Diagnostics.CodeAnalysis.ExperimentalAttribute::set_UrlFormat(string)
     }
 }
 """;

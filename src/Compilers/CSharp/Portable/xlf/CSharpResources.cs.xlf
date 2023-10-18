@@ -1118,8 +1118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
-        <source>The argument to the 'Experimental' attribute must be a valid identifier</source>
-        <target state="new">The argument to the 'Experimental' attribute must be a valid identifier</target>
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
