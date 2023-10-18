@@ -184,31 +184,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             undoTransaction.Complete();
         }
 
-        private static async Task<ExtractMethodResult?> TryWithoutMakingValueTypesRefAsync(
-            Document document, TextSpan span, ExtractMethodResult result, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
-        {
-            if (options.ExtractOptions.DoNotPutOutOrRefOnStruct || !result.Reasons.IsSingle())
-                return null;
-
-            var reason = result.Reasons.FirstOrDefault();
-            var length = FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket.IndexOf(':');
-            if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket[..length], 0, length, StringComparison.Ordinal) >= 0)
-            {
-                var newResult = await ExtractMethodService.ExtractMethodAsync(
-                    document,
-                    span,
-                    localFunction: false,
-                    options with { ExtractOptions = options.ExtractOptions with { DoNotPutOutOrRefOnStruct = true } },
-                    cancellationToken).ConfigureAwait(false);
-
-                // retry succeeded, return new result
-                if (newResult.Succeeded)
-                    return newResult;
-            }
-
-            return null;
-        }
-
         private async Task<ExtractMethodResult?> NotifyUserIfNecessaryAsync(
             Document document, TextSpan span, ExtractMethodGenerationOptions options, ExtractMethodResult result, CancellationToken cancellationToken)
         {
@@ -279,6 +254,31 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             return result;
+        }
+
+        private static async Task<ExtractMethodResult?> TryWithoutMakingValueTypesRefAsync(
+            Document document, TextSpan span, ExtractMethodResult result, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
+        {
+            if (options.ExtractOptions.DoNotPutOutOrRefOnStruct || !result.Reasons.IsSingle())
+                return null;
+
+            var reason = result.Reasons.FirstOrDefault();
+            var length = FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket.IndexOf(':');
+            if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket[..length], 0, length, StringComparison.Ordinal) >= 0)
+            {
+                var newResult = await ExtractMethodService.ExtractMethodAsync(
+                    document,
+                    span,
+                    localFunction: false,
+                    options with { ExtractOptions = options.ExtractOptions with { DoNotPutOutOrRefOnStruct = true } },
+                    cancellationToken).ConfigureAwait(false);
+
+                // retry succeeded, return new result
+                if (newResult.Succeeded)
+                    return newResult;
+            }
+
+            return null;
         }
     }
 }
