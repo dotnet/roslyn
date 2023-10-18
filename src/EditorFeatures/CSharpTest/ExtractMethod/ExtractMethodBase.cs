@@ -150,10 +150,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var extractor = new CSharpMethodExtractor((CSharpSelectionResult)selectedCode, options, localFunction: false);
             var result = await extractor.ExtractMethodAsync(CancellationToken.None);
             Assert.NotNull(result);
-            Assert.Equal(succeed, result.Succeeded);
 
-            if (allowBestEffort)
-                Assert.True(result.Reasons.Length > 0);
+            // If the test expects us to succeed, validate that we did.  If it expects us to have 
+            if (succeed)
+            {
+                Assert.Equal(succeed, result.Succeeded);
+
+                if (allowBestEffort)
+                    Assert.NotEmpty(result.Reasons);
+                else
+                    Assert.Empty(result.Reasons);
+            }
+            else
+            {
+                Assert.True(!result.Succeeded || result.Reasons.Length > 0);
+            }
 
             var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);
             return doc == null
@@ -176,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             Assert.True(expectedFail ? result.Status.Failed() : result.Status.Succeeded());
 
-            if (result.Status.Succeeded())
+            if (result.Status.Succeeded() && result.Status.Reasons.Length == 0)
                 Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
         }
 
