@@ -74,6 +74,8 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
     }
 
+    logger.LogTrace($"Dotnet Runtime: {RuntimeInformation.FrameworkDescription}");
+
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.SharedDependenciesPath, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
