@@ -17,6 +17,6 @@ internal sealed class CodeAnalysisSuggestionsOptionsStorage
     public static readonly Option2<long> LastDateTimeUsedCodeQualityFix = new("last_date_time_used_code_quality_fix", defaultValue: DateTime.MinValue.ToBinary());
     public static readonly Option2<long> LastDateTimeUsedCodeStyleFix = new("last_date_time_used_code_style_fix", defaultValue: DateTime.MinValue.ToBinary());
 
-    public static readonly Option2<uint> InvokedCodeQualityFixCount = new("invoked_code_quality_fix_count", defaultValue: 0);
-    public static readonly Option2<uint> InvokedCodeStyleFixCount = new("invoked_code_style_fix_count", defaultValue: 0);
+    public static readonly Option2<int> InvokedCodeQualityFixCount = new("invoked_code_quality_fix_count", defaultValue: 0);
+    public static readonly Option2<int> InvokedCodeStyleFixCount = new("invoked_code_style_fix_count", defaultValue: 0);
 }
