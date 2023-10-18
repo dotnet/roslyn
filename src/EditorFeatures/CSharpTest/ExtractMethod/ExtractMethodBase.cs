@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             string expected,
             bool temporaryFailing = false,
             bool dontPutOutOrRefOnStruct = true,
-            bool allowBestEffort = false,
             CSharpParseOptions parseOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
@@ -93,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             var tree = await ExtractMethodAsync(
                 workspace, testDocument,
-                dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct,
-                allowBestEffort: allowBestEffort);
+                dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
 
             using (var edit = subjectBuffer.CreateEdit())
             {
@@ -125,8 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             TestWorkspace workspace,
             TestHostDocument testDocument,
             bool succeed = true,
-            bool dontPutOutOrRefOnStruct = true,
-            bool allowBestEffort = false)
+            bool dontPutOutOrRefOnStruct = true)
         {
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
@@ -156,13 +153,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             if (succeed)
             {
                 Assert.Equal(succeed, result.Succeeded);
-
-                if (allowBestEffort)
-                    Assert.NotEmpty(result.Reasons);
             }
             else
             {
-                Assert.True(result.Succeeded || result.Reasons.Length > 0);
+                Assert.True(!result.Succeeded || result.Reasons.Length > 0);
             }
 
             var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);
