@@ -81,32 +81,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             static IVsTextLines RetrieveDocData(IVsInvisibleEditor invisibleEditor, bool needsSave)
             {
                 IVsTextLines? buffer = null;
+                var docDataPtrViaTextBufferProvider = IntPtr.Zero;
 
                 var hr = invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextLines).GUID, ppDocData: out var docDataPtrViaTextLines);
-                if (ErrorHandler.Succeeded(hr) &&
-                    Marshal.GetObjectForIUnknown(docDataPtrViaTextLines) is IVsTextLines vsTextLines)
+                try
                 {
-                    buffer = vsTextLines;
-                }
-                else
-                {
-                    hr = invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextBufferProvider).GUID, ppDocData: out var docDataPtrViaTextBufferProvider);
                     if (ErrorHandler.Succeeded(hr) &&
-                        Marshal.GetObjectForIUnknown(docDataPtrViaTextBufferProvider) is IVsTextBufferProvider vsTextBufferProvider)
+                        Marshal.GetObjectForIUnknown(docDataPtrViaTextLines) is IVsTextLines vsTextLines)
                     {
-                        hr = vsTextBufferProvider.GetTextBuffer(out buffer);
+                        buffer = vsTextLines;
                     }
-
+                    else
+                    {
+                        hr = invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextBufferProvider).GUID, ppDocData: out docDataPtrViaTextBufferProvider);
+                        if (ErrorHandler.Succeeded(hr) &&
+                            Marshal.GetObjectForIUnknown(docDataPtrViaTextBufferProvider) is IVsTextBufferProvider vsTextBufferProvider)
+                        {
+                            hr = vsTextBufferProvider.GetTextBuffer(out buffer);
+                        }
+                    }
+                }
+                finally
+                {
                     if (docDataPtrViaTextBufferProvider != IntPtr.Zero)
                         Marshal.Release(docDataPtrViaTextBufferProvider);
+
+                    if (docDataPtrViaTextLines != IntPtr.Zero)
+                        Marshal.Release(docDataPtrViaTextLines);
                 }
 
-                if (docDataPtrViaTextLines != IntPtr.Zero)
-                    Marshal.Release(docDataPtrViaTextLines);
-
                 Marshal.ThrowExceptionForHR(hr);
+                Contract.ThrowIfNull(buffer, $"We were unable to fetch a buffer in {nameof(InvisibleEditor)}.");
 
-                return buffer ?? throw new InvalidOperationException();
+                return buffer;
             }
         }
 
