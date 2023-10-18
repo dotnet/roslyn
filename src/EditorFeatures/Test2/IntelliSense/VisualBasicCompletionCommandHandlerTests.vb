@@ -2165,7 +2165,7 @@ Class G
 End Class
             ]]></Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.VisualBasic, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.VisualBasic, False)
 
                 state.SendBackspace()
                 Await state.AssertNoCompletionSession()
