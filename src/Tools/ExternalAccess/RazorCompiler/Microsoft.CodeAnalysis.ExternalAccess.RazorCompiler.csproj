@@ -25,7 +25,9 @@
     <!--
       ⚠ ONLY RAZOR ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
+    <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Test" Key="$(RazorKey)" />
   </ItemGroup>
 

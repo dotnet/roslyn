@@ -1144,7 +1144,9 @@ namespace Microsoft.CodeAnalysis
 
                 var generatorType = result.Generator.GetGeneratorType();
                 return generatorType.FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator" &&
-                       generatorType.Assembly.GetName().Name == "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators";
+                       generatorType.Assembly.GetName().Name is "Microsoft.NET.Sdk.Razor.SourceGenerators" or
+                            "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators" or
+                            "Microsoft.CodeAnalysis.Razor.Compiler";
             }
 
             // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
