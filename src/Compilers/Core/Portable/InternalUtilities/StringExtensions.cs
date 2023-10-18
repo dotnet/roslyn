@@ -275,17 +275,5 @@ namespace Roslyn.Utilities
 
             return x;
         }
-
-        /// <summary>
-        /// Returns <see cref="ReadOnlySpan{T}"/> on platforms that have full support for <see cref="Span{T}"/> APIs,
-        /// <see cref="string"/> otherwise.
-        /// </summary>
-#if NETSTANDARD2_0
-        public static string AsSpanOrString(this string str)
-            => str;
-#else
-        public static ReadOnlySpan<char> AsSpanOrString(this string str)
-            => str.AsSpan();
-#endif
     }
 }

@@ -596,8 +596,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 ImmutableArray<LambdaDebugInfo> previousLambdas)
             {
                 var lambdaIdSet = PooledHashSet<DebugId>.GetInstance();
-                lambdaIdSet.AddAll(previousLambdas, static info => info.LambdaId);
-                lambdaIdSet.RemoveAll(currentLambdas, static info => info.LambdaId);
+
+                foreach (var info in previousLambdas)
+                {
+                    lambdaIdSet.Add(info.LambdaId);
+                }
+
+                foreach (var info in currentLambdas)
+                {
+                    lambdaIdSet.Remove(info.LambdaId);
+                }
 
                 foreach (var method in GetSynthesizedClosureMethods(synthesizedSiblings, synthesizedMemberMap, methodId, lambdaIdSet))
                 {

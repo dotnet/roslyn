@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Xml.XPath;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -351,13 +349,13 @@ namespace Microsoft.CodeAnalysis.Emit
         private void CalculateChanges(
             IEnumerable<SemanticEdit> edits,
             out IReadOnlyDictionary<ISymbolInternal, SymbolChange> changes,
-            out ISet<ISymbolInternal> replaceSymbols,
+            out ISet<ISymbolInternal> replacedSymbols,
             out IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
             out IReadOnlyDictionary<INamedTypeSymbolInternal, ImmutableArray<(IMethodSymbolInternal oldMethod, IMethodSymbolInternal newMethod)>> updatedMethods)
         {
             var changesBuilder = new Dictionary<ISymbolInternal, SymbolChange>();
             var updatedMethodsBuilder = new Dictionary<INamedTypeSymbolInternal, ArrayBuilder<(IMethodSymbolInternal oldMethod, IMethodSymbolInternal newMethod)>>();
-            var lazyReplaceSymbolsBuilder = (HashSet<ISymbolInternal>?)null;
+            var lazyReplacedSymbolsBuilder = (HashSet<ISymbolInternal>?)null;
             var lazyDeletedMembersBuilder = (Dictionary<ISymbolInternal, ArrayBuilder<ISymbolInternal>>?)null;
 
             foreach (var edit in edits)
@@ -375,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         break;
 
                     case SemanticEditKind.Replace:
-                        (lazyReplaceSymbolsBuilder ??= new HashSet<ISymbolInternal>()).Add(GetRequiredInternalSymbol(edit.NewSymbol));
+                        (lazyReplacedSymbolsBuilder ??= new HashSet<ISymbolInternal>()).Add(GetRequiredInternalSymbol(edit.NewSymbol));
                         change = SymbolChange.Added;
                         break;
 
@@ -455,7 +453,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             changes = changesBuilder;
-            replaceSymbols = lazyReplaceSymbolsBuilder ?? SpecializedCollections.EmptySet<ISymbolInternal>();
+            replacedSymbols = lazyReplacedSymbolsBuilder ?? SpecializedCollections.EmptySet<ISymbolInternal>();
 
             deletedMembers = lazyDeletedMembersBuilder?.ToImmutableSegmentedDictionary(
                 keySelector: static e => e.Key,
