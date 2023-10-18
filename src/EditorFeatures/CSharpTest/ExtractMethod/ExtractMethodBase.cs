@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             string expected,
             bool temporaryFailing = false,
             bool dontPutOutOrRefOnStruct = true,
-            bool allowBestEffort = false,
             CSharpParseOptions parseOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
@@ -93,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             var tree = await ExtractMethodAsync(
                 workspace, testDocument,
-                dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct,
-                allowBestEffort: allowBestEffort);
+                dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
 
             using (var edit = subjectBuffer.CreateEdit())
             {
@@ -125,8 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             TestWorkspace workspace,
             TestHostDocument testDocument,
             bool succeed = true,
-            bool dontPutOutOrRefOnStruct = true,
-            bool allowBestEffort = false)
+            bool dontPutOutOrRefOnStruct = true)
         {
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
@@ -141,10 +138,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);
 
             var selectedCode = await validator.GetValidSelectionAsync(CancellationToken.None);
-            if (!succeed && selectedCode.Status.FailedWithNoBestEffortSuggestion())
-            {
+            if (!succeed && selectedCode.Status.Failed())
                 return null;
-            }
 
             Assert.True(selectedCode.ContainsValidContext);
 
@@ -152,9 +147,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var extractor = new CSharpMethodExtractor((CSharpSelectionResult)selectedCode, options, localFunction: false);
             var result = await extractor.ExtractMethodAsync(CancellationToken.None);
             Assert.NotNull(result);
-            Assert.Equal(succeed,
-                result.Succeeded ||
-                (allowBestEffort && result.Status.HasBestEffort()));
+
+            // If the test expects us to succeed, validate that we did.  If it expects us to fail, ensure we either
+            // failed or produced a message the user will have to confirm to continue. 
+            if (succeed)
+            {
+                Assert.Equal(succeed, result.Succeeded);
+            }
+            else
+            {
+                Assert.True(!result.Succeeded || result.Reasons.Length > 0);
+            }
 
             var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);
             return doc == null
@@ -175,12 +178,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), ExtractMethodOptions.Default, localFunction: false);
             var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
-            Assert.True(expectedFail ? result.Status.Failed() : result.Status.Succeeded());
-
-            if ((result.Status.Succeeded() || result.Status.Flag.HasBestEffort()) && result.Status.Flag.HasSuggestion())
+            if (expectedFail)
             {
-                Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
+                Assert.True(result.Status.Failed() || result.Status.Reasons.Length > 0);
             }
+            else
+            {
+                Assert.True(result.Status.Succeeded());
+            }
+
+            if (result.Status.Succeeded() && result.SelectionChanged)
+                Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
         }
 
         protected static async Task IterateAllAsync(string code)
@@ -200,9 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
                 // check the obvious case
                 if (!(node is ExpressionSyntax) && !node.UnderValidContext())
-                {
-                    Assert.True(result.Status.FailedWithNoBestEffortSuggestion());
-                }
+                    Assert.True(result.Status.Failed());
             }
         }
     }

@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             SemanticDocument document,
             SyntaxToken firstToken,
             SyntaxToken lastToken,
+            bool selectionChanged,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(status);
@@ -50,13 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new ExpressionResult(
                     status, originalSpan, finalSpan, options, selectionInExpression,
-                    newDocument, firstTokenAnnotation, lastTokenAnnotation);
+                    newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
             }
             else
             {
                 return new StatementResult(
                     status, originalSpan, finalSpan, options, selectionInExpression,
-                    newDocument, firstTokenAnnotation, lastTokenAnnotation);
+                    newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
             }
         }
 
@@ -68,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
-            SyntaxAnnotation lastTokenAnnotation)
+            SyntaxAnnotation lastTokenAnnotation,
+            bool selectionChanged)
             : base(status, originalSpan, finalSpan, options, selectionInExpression,
-                   document, firstTokenAnnotation, lastTokenAnnotation)
+                   document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
         {
         }
 

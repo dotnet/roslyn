@@ -4,64 +4,53 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal partial class OperationStatus
 {
-    internal partial class OperationStatus
+    public OperationStatus(OperationStatusFlag flag, string reason)
     {
-        public OperationStatus(OperationStatusFlag flag, string reason)
-        {
-            Contract.ThrowIfTrue(flag.Succeeded() && flag.HasBestEffort());
-
-            Flag = flag;
-            Reasons = reason == null ? ImmutableArray<string>.Empty : ImmutableArray.Create(reason);
-        }
-
-        private OperationStatus(OperationStatusFlag flag, ImmutableArray<string> reasons)
-        {
-            Contract.ThrowIfTrue(reasons.IsDefault);
-            Contract.ThrowIfTrue(flag.Succeeded() && flag.HasBestEffort());
-
-            Flag = flag;
-            Reasons = reasons;
-        }
-
-        public OperationStatus With(OperationStatusFlag flag, string reason)
-        {
-            var newFlag = Flag | flag;
-
-            newFlag = (this.Failed() || flag.Failed()) ? newFlag.RemoveFlag(OperationStatusFlag.Succeeded) : newFlag;
-            newFlag = newFlag.Succeeded() ? newFlag.RemoveFlag(OperationStatusFlag.BestEffort) : newFlag;
-
-            var reasons = reason == null ? Reasons : Reasons.Concat(reason);
-            return new OperationStatus(newFlag, reasons);
-        }
-
-        public OperationStatus With(OperationStatus operationStatus)
-        {
-            var newFlag = Flag | operationStatus.Flag;
-
-            newFlag = (this.Failed() || operationStatus.Failed()) ? newFlag.RemoveFlag(OperationStatusFlag.Succeeded) : newFlag;
-            newFlag = newFlag.Succeeded() ? newFlag.RemoveFlag(OperationStatusFlag.BestEffort) : newFlag;
-
-            var reasons = Reasons.Concat(operationStatus.Reasons);
-            return new OperationStatus(newFlag, reasons);
-        }
-
-        public OperationStatus MakeFail()
-            => new(OperationStatusFlag.None, Reasons);
-
-        public OperationStatus MarkSuggestion()
-            => new(Flag | OperationStatusFlag.Suggestion, Reasons);
-
-        public OperationStatus<T> With<T>(T data)
-            => Create(this, data);
-
-        public OperationStatusFlag Flag { get; }
-        public ImmutableArray<string> Reasons { get; }
+        Flag = flag;
+        Reasons = reason == null ? ImmutableArray<string>.Empty : ImmutableArray.Create(reason);
     }
+
+    private OperationStatus(OperationStatusFlag flag, ImmutableArray<string> reasons)
+    {
+        Contract.ThrowIfTrue(reasons.IsDefault);
+
+        Flag = flag;
+        Reasons = reasons;
+    }
+
+    public OperationStatus With(OperationStatusFlag flag, string reason)
+    {
+        var newFlag = Flag | flag;
+
+        newFlag = (this.Failed() || flag.Failed()) ? newFlag.RemoveFlag(OperationStatusFlag.Succeeded) : newFlag;
+
+        var reasons = reason == null ? Reasons : Reasons.Concat(reason);
+        return new OperationStatus(newFlag, reasons);
+    }
+
+    public OperationStatus With(OperationStatus operationStatus)
+    {
+        var newFlag = Flag | operationStatus.Flag;
+
+        newFlag = (this.Failed() || operationStatus.Failed()) ? newFlag.RemoveFlag(OperationStatusFlag.Succeeded) : newFlag;
+
+        var reasons = Reasons.Concat(operationStatus.Reasons);
+        return new OperationStatus(newFlag, reasons);
+    }
+
+    public OperationStatus MakeFail()
+        => new(OperationStatusFlag.Failed, Reasons);
+
+    public OperationStatus<T> With<T>(T data)
+        => Create(this, data);
+
+    public OperationStatusFlag Flag { get; }
+    public ImmutableArray<string> Reasons { get; }
 }

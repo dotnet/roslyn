@@ -5,14 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ExtractMethod
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.UnitTests
@@ -123,7 +120,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
             Dim result = Await extractor.ExtractMethodAsync(CancellationToken.None)
             Assert.NotNull(result)
-            Assert.Equal(succeeded, result.Succeeded)
+
+            If succeeded Then
+                Assert.Equal(succeeded, result.Succeeded)
+            Else
+                Assert.True(Not result.Succeeded OrElse result.Reasons.Length > 0)
+            End If
 
             Return Await (Await result.GetFormattedDocumentAsync(cleanupOptions, CancellationToken.None)).document.GetSyntaxRootAsync()
         End Function
@@ -143,12 +145,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
 
                 If expectedFail Then
-                    Assert.True(result.Status.Failed(), "Selection didn't fail as expected")
+                    Assert.True(result.Status.Failed() OrElse result.Status.Reasons.Length > 0, "Selection didn't fail as expected")
                 Else
                     Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(result.Status), "Selection wasn't expected to fail")
                 End If
 
-                If (Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(result.Status) OrElse result.Status.Flag.HasBestEffort()) AndAlso result.Status.Flag.HasSuggestion() Then
+                If Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(result.Status) AndAlso result.SelectionChanged Then
                     Assert.Equal(namedSpans("r").Single(), result.FinalSpan)
                 End If
             End Using
@@ -178,7 +180,7 @@ End Class</text>
 
                         ' check the obvious case
                         If Not (TypeOf node Is ExpressionSyntax) AndAlso (Not node.UnderValidContext()) Then
-                            Assert.True(result.Status.Flag.Failed())
+                            Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Failed(result.Status.Flag))
                         End If
                     Catch e1 As ArgumentException
                         ' catch and ignore unknown issue. currently control flow analysis engine doesn't support field initializer.
