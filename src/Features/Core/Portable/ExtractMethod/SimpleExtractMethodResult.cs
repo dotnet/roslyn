@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal class SimpleExtractMethodResult(
+    internal sealed class SimpleExtractMethodResult(
         OperationStatus status,
         Document documentWithoutFinalFormatting,
         ImmutableArray<AbstractFormattingRule> formattingRules,
