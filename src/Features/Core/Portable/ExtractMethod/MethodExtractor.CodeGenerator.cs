@@ -109,13 +109,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var rootWithUpdatedCallSite = this.SemanticDocument.Root.ReplaceNode(
                     outermostCallSiteContainer,
                     await GenerateBodyForCallSiteContainerAsync(outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
+
+                // Then insert the local-function/method into the updated document that contains the updated callsite.
                 var documentWithUpdatedCallSite = await this.SemanticDocument.WithSyntaxRootAsync(rootWithUpdatedCallSite, cancellationToken).ConfigureAwait(false);
+                var finalRoot = LocalFunction
+                    ? InsertLocalFunction()
+                    : InsertNormalMethod();
 
-                return LocalFunction
-                    ? await InsertLocalFunction().ConfigureAwait(false)
-                    : await InsertNormalMethod().ConfigureAwait(false);
+                return await documentWithUpdatedCallSite.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
 
-                async Task<SemanticDocument> InsertLocalFunction()
+                SyntaxNode InsertLocalFunction()
                 {
                     // Now, insert the local function.
                     var info = codeGenerationService.GetInfo(
@@ -130,15 +133,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var updatedDestination = codeGenerationService.AddStatements(destination, new[] { localMethod }, info, cancellationToken);
 
                     var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, updatedDestination);
-
-                    var updatedDocument = await documentWithUpdatedCallSite.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
-                    return updatedDocument;
+                    return finalRoot;
                 }
 
-                async Task<SemanticDocument> InsertNormalMethod()
+                SyntaxNode InsertNormalMethod()
                 {
-                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                    var syntaxKinds = syntaxFacts.SyntaxKinds;
+                    var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
 
                     // Find the destination for the new method after the callsite has been fixed up.
                     var mappedMember = this.InsertionPoint.With(documentWithUpdatedCallSite).GetContext();
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     var newContainer = codeGenerationService.AddMethod(destination, newMethodDefinition, info, cancellationToken);
                     var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, newContainer);
-                    return await documentWithUpdatedCallSite.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
+                    return finalRoot;
                 }
             }
 
