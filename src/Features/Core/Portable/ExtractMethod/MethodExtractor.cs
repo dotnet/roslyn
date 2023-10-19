@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected abstract Task<OperationStatus> CheckTypeAsync(Document document, SyntaxNode contextNode, Location location, ITypeSymbol type, CancellationToken cancellationToken);
 
-        protected abstract Task<(Document document, SyntaxToken methodName, SyntaxNode methodDefinition)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(Document document, SyntaxToken methodName, SyntaxNode methodDefinition, CancellationToken cancellationToken);
+        protected abstract Task<(Document document, SyntaxToken methodName)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(Document document, SyntaxToken methodName, SyntaxNode methodDefinition, CancellationToken cancellationToken);
 
         public async Task<ExtractMethodResult> ExtractMethodAsync(CancellationToken cancellationToken)
         {
@@ -137,15 +137,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             var newRoot = semanticDocumentWithoutFinalFormatting.Root;
             var methodName = GetMethodNameAtInvocation(newRoot.GetAnnotatedNodesAndTokens(invocationAnnotation));
-            var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(methodAnnotation).FirstOrDefault().AsNode();
 
             if (LocalFunction && status.Succeeded())
             {
+                var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(methodAnnotation).FirstOrDefault().AsNode();
                 var result = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(semanticDocumentWithoutFinalFormatting.Document, methodName, methodDefinition, cancellationToken).ConfigureAwait(false);
-                return new SimpleExtractMethodResult(status, result.document, formattingRules, result.methodName, result.methodDefinition);
+                return new SimpleExtractMethodResult(status, result.document, formattingRules, result.methodName);
             }
 
-            return new SimpleExtractMethodResult(status, semanticDocumentWithoutFinalFormatting.Document, formattingRules, methodName, methodDefinition);
+            return new SimpleExtractMethodResult(status, semanticDocumentWithoutFinalFormatting.Document, formattingRules, methodName);
         }
 
         private async Task<OperationStatus> CheckVariableTypesAsync(

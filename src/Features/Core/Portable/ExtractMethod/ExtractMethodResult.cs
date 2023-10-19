@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public ImmutableArray<AbstractFormattingRule> FormattingRules { get; }
 
         /// <summary>
-        /// the generated method node that contains the extracted code.
-        /// </summary>
-        public SyntaxNode? MethodDeclarationNode { get; }
-
-        /// <summary>
         /// The name token for the invocation node that replaces the extracted code.
         /// </summary>
         public SyntaxToken InvocationNameToken { get; }
@@ -54,8 +49,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             ImmutableArray<string> reasons,
             Document? documentWithoutFinalFormatting,
             ImmutableArray<AbstractFormattingRule> formattingRules,
-            SyntaxToken invocationNameToken,
-            SyntaxNode? methodDeclarationNode)
+            SyntaxToken invocationNameToken)
         {
             Status = status;
 
@@ -66,7 +60,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             DocumentWithoutFinalFormatting = documentWithoutFinalFormatting;
             FormattingRules = formattingRules;
             InvocationNameToken = invocationNameToken;
-            MethodDeclarationNode = methodDeclarationNode;
         }
 
         /// <summary>
@@ -82,7 +75,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var annotation = new SyntaxAnnotation();
 
             var root = await DocumentWithoutFinalFormatting.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            root = root.ReplaceToken(InvocationNameToken, InvocationNameToken.WithAdditionalAnnotations(annotation));
+ 
+            if (InvocationNameToken != default)
+                root = root.ReplaceToken(InvocationNameToken, InvocationNameToken.WithAdditionalAnnotations(annotation));
 
             var annotatedDocument = DocumentWithoutFinalFormatting.WithSyntaxRoot(root);
             var simplifiedDocument = await Simplifier.ReduceAsync(annotatedDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
@@ -94,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Formatter.Format(simplifiedRoot, Formatter.Annotation, services, cleanupOptions.FormattingOptions, FormattingRules, cancellationToken));
 
             var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return (formattedDocument, formattedRoot.GetAnnotatedTokens(annotation).Single());
+            return (formattedDocument, formattedRoot.GetAnnotatedTokens(annotation).SingleOrDefault());
         }
     }
 }

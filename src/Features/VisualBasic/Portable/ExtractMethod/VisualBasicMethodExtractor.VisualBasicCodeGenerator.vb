@@ -84,7 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                    Formatter.Annotation.AddAnnotationToSymbol(methodSymbol)))
             End Function
 
-            Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(additionalStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+                Contract.ThrowIfTrue(additionalStatement IsNot Nothing)
+
                 Dim container = GetOutermostCallSiteContainerToProcess(cancellationToken)
                 Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken)
                 Dim firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite()

@@ -116,7 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         Formatter.Annotation.AddAnnotationToSymbol(methodSymbol)));
             }
 
-            protected override async Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken)
+            protected override async Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(
+                SyntaxNode additionalNode,
+                CancellationToken cancellationToken)
             {
                 var container = GetOutermostCallSiteContainerToProcess(cancellationToken);
                 var variableMapToRemove = CreateVariableDeclarationToRemoveMap(
@@ -128,14 +130,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstStatementToRemove, lastStatementToRemove));
 
                 var statementsToInsert = await CreateStatementsOrInitializerToInsertAtCallSiteAsync(cancellationToken).ConfigureAwait(false);
+                //if (additionalStatement != null)
+                //    statementsToInsert = statementsToInsert.Add(additionalStatement);
 
-                var callSiteGenerator =
-                    new CallSiteContainerRewriter(
-                        container,
-                        variableMapToRemove,
-                        firstStatementToRemove,
-                        lastStatementToRemove,
-                        statementsToInsert);
+                var callSiteGenerator = new CallSiteContainerRewriter(
+                    container,
+                    variableMapToRemove,
+                    firstStatementToRemove,
+                    lastStatementToRemove,
+                    statementsToInsert,
+                    additionalNode);
 
                 return container.CopyAnnotationsTo(callSiteGenerator.Generate()).WithAdditionalAnnotations(Formatter.Annotation);
             }
@@ -145,8 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var selectedNode = GetFirstStatementOrInitializerSelectedAtCallSite();
 
                 // field initializer, constructor initializer, expression bodied member case
-                if (selectedNode is ConstructorInitializerSyntax ||
-                    selectedNode is FieldDeclarationSyntax ||
+                if (selectedNode is ConstructorInitializerSyntax or FieldDeclarationSyntax ||
                     IsExpressionBodiedMember(selectedNode) ||
                     IsExpressionBodiedAccessor(selectedNode))
                 {

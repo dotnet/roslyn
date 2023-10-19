@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return OperationStatus.Succeeded;
         }
 
-        protected override async Task<(Document document, SyntaxToken methodName, SyntaxNode methodDefinition)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+        protected override async Task<(Document document, SyntaxToken methodName)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
             SyntaxToken methodName,
             SyntaxNode methodDefinition,
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 methodName = newRoot.FindToken(methodName.SpanStart);
             }
 
-            return (document, methodName, methodDefinition);
+            return (document, methodName);
         }
     }
 }
