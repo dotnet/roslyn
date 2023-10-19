@@ -6,28 +6,27 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
+namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
+
+/// <summary>
+/// Interaction logic for SmartRenameControl.xaml
+/// </summary>
+internal sealed partial class SmartRenameControl : UserControl
 {
-    /// <summary>
-    /// Interaction logic for SmartRenameControl.xaml
-    /// </summary>
-    internal sealed partial class SmartRenameControl : UserControl
+    private readonly SmartRenameViewModel _smartRenameViewModel;
+
+    public SmartRenameControl(SmartRenameViewModel viewModel)
     {
-        private readonly SmartRenameViewModel _smartRenameViewModel;
+        this.DataContext = _smartRenameViewModel = viewModel;
+        InitializeComponent();
+    }
 
-        public SmartRenameControl(SmartRenameViewModel viewModel)
+    private void Suggestion_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 1)
         {
-            this.DataContext = _smartRenameViewModel = viewModel;
-            InitializeComponent();
-        }
-
-        private void Suggestion_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ClickCount == 1)
-            {
-                var identifierName = ((FrameworkElement)sender).Tag.ToString();
-                _smartRenameViewModel.SelectedSuggestedName = identifierName;
-            }
+            var identifierName = ((FrameworkElement)sender).Tag.ToString();
+            _smartRenameViewModel.SelectedSuggestedName = identifierName;
         }
     }
 }
