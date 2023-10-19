@@ -1534,6 +1534,29 @@ C.M();
     }
 
     [Fact]
+    public void WhitespaceDiagnosticId_WithSuppression()
+    {
+        var src = """
+#pragma warning disable CS9204
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(" ")]
+public class C
+{
+    public static void M() { }
+}
+""";
+
+        var comp = CreateCompilation(new CSharpTestSource[] { (src, "0.cs"), experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(4,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental(" ")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @""" """).WithLocation(4, 47)
+            );
+    }
+
+    [Fact]
     public void SpacedDiagnosticId()
     {
         var src = """
@@ -1553,6 +1576,26 @@ class C
             // 0.cs(3,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
             // [System.Diagnostics.CodeAnalysis.Experimental("Diag 01")]
             Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag 01""").WithLocation(3, 47)
+            );
+    }
+
+    [Fact]
+    public void SpacedDiagnosticId_WithSecondArgument()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")]
+class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+        comp.VerifyDiagnostics(
+            // 0.cs(3,2): error CS1729: 'ExperimentalAttribute' does not contain a constructor that takes 2 arguments
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")]
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"System.Diagnostics.CodeAnalysis.Experimental(""Diag 01"", ""other"")").WithArguments("System.Diagnostics.CodeAnalysis.ExperimentalAttribute", "2").WithLocation(3, 2)
             );
     }
 

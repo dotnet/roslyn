@@ -14899,8 +14899,9 @@ namespace System.Diagnostics.CodeAnalysis
 """);
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
 [*.cs]
-dotnet_diagnostic.CS9208.severity = warning
+dotnet_diagnostic.CS9211.severity = warning
 """);
+            Assert.Equal((ErrorCode)9211, ErrorCode.ERR_InvalidExperimentalDiagID);
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
                 "/nologo",
                 "/t:exe",
@@ -14983,6 +14984,7 @@ namespace System.Diagnostics.CodeAnalysis
 [*.cs]
 dotnet_diagnostic.CS9204.severity = warning
 """);
+            Assert.Equal((ErrorCode)9204, ErrorCode.WRN_Experimental);
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
                 "/nologo",
                 "/t:exe",
