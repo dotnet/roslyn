@@ -12440,6 +12440,268 @@ public static class Extension
             await VerifyItemIsAbsentAsync(source, "other");
         }
 
+        public static readonly IEnumerable<object[]> PatternMatchingPrecedingPatterns = new object[][]
+        {
+            ["is"],
+            ["is ("],
+            ["is not"],
+            ["is (not"],
+            ["is not ("],
+            ["is Constants.A and"],
+            ["is (Constants.A and"],
+            ["is Constants.A and ("],
+            ["is Constants.A and not"],
+            ["is (Constants.A and not"],
+            ["is Constants.A and (not"],
+            ["is Constants.A and not ("],
+            ["is Constants.A or"],
+            ["is (Constants.A or"],
+            ["is Constants.A or ("],
+            ["is Constants.A or not"],
+            ["is (Constants.A or not"],
+            ["is Constants.A or (not"],
+            ["is Constants.A or not ("],
+        };
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_01(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} Constants.$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "D");
+            await VerifyItemIsAbsentAsync(source, "M");
+            await VerifyItemExistsAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_02(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} Constants.R.$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemIsAbsentAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "D");
+            await VerifyItemIsAbsentAsync(source, "M");
+            await VerifyItemIsAbsentAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_03(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} $$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemExistsAsync(source, "Constants");
+            await VerifyItemExistsAsync(source, "System");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_04(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} global::$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            // In scripts, we also get a Script class containing our defined types
+            await VerifyItemExistsAsync(source, "C", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "Constants", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "System");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        public async Task PatternMatching_05()
+        {
+            var expression = $"return $$ is Constants.A";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "input");
+            await VerifyItemExistsAsync(source, "Constants");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemExistsAsync(source, "M");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_06(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} Constants.$$.A";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "D");
+            await VerifyItemIsAbsentAsync(source, "M");
+            await VerifyItemExistsAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_07(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} Enum.$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemExistsAsync(source, "D");
+            await VerifyItemIsAbsentAsync(source, "M");
+            await VerifyItemIsAbsentAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_08(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} nameof(Constants.$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemExistsAsync(source, "D");
+            await VerifyItemExistsAsync(source, "E");
+            await VerifyItemExistsAsync(source, "M");
+            await VerifyItemExistsAsync(source, "R");
+            await VerifyItemExistsAsync(source, "ToString");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_09(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} nameof(Constants.R.$$";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "D");
+            await VerifyItemExistsAsync(source, "E");
+            await VerifyItemExistsAsync(source, "M");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_10(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} nameof(Constants.$$.A";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemExistsAsync(source, "D");
+            await VerifyItemExistsAsync(source, "E");
+            await VerifyItemExistsAsync(source, "M");
+            await VerifyItemExistsAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_11(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} [Constants.R(Constants.$$, nameof(Constants.R))]";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "D");
+            await VerifyItemIsAbsentAsync(source, "M");
+            await VerifyItemExistsAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_12(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} [Constants.R(Constants.$$), nameof(Constants.R)]";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "D");
+            await VerifyItemIsAbsentAsync(source, "M");
+            await VerifyItemExistsAsync(source, "R");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_13(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} [Constants.R(Constants.A) {{ P.$$: Constants.A, InstanceProperty: 153 }}, nameof(Constants.R)]";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemExistsAsync(source, "Length");
+            await VerifyItemIsAbsentAsync(source, "Constants");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
+        [MemberData(nameof(PatternMatchingPrecedingPatterns))]
+        public async Task PatternMatching_14(string precedingPattern)
+        {
+            var expression = $"return input {precedingPattern} [Constants.R(Constants.A) {{ P: $$ }}, nameof(Constants.R)]";
+            var source = WrapPatternMatchingSource(expression);
+
+            await VerifyItemIsAbsentAsync(source, "InstanceProperty");
+            await VerifyItemIsAbsentAsync(source, "P");
+            await VerifyItemExistsAsync(source, "Constants");
+        }
+
+        private static string WrapPatternMatchingSource(string returnedExpression)
+        {
+            return $$"""
+                class C
+                {
+                    bool M(string input)
+                    {
+                {{returnedExpression}}
+                    }
+                }
+
+                public static class Constants
+                {
+                    public const string
+                        A = "a",
+                        B = "b",
+                        C = "c";
+
+                    public static readonly string D = "d";
+                    public static string E => "e";
+
+                    public static void M() { }
+
+                    public record R(string P)
+                    {
+                        public const string
+                            A = "a",
+                            B = "b";
+
+                        public static readonly string D = "d";
+                        public static string E => "e";
+
+                        public int InstanceProperty { get; set; }
+
+                        public static void M() { }
+                    }
+                }
+
+                public enum Enum { A, B, C, D }
+                """;
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""
