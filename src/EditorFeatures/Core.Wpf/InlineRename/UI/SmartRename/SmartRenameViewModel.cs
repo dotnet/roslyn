@@ -90,7 +90,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
             return;
         }
 
-        // For the rest of the property, just forward it has changed to subscriber
+        // For the rest of the property, like HasSuggestions, IsAvailable and etc. Just forward it has changed to subscriber
         PropertyChanged?.Invoke(this, e);
     }
 
