@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.ComponentModel
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
@@ -84,10 +85,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                    Formatter.Annotation.AddAnnotationToSymbol(methodSymbol)))
             End Function
 
-            Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(additionalStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(
+                    container As SyntaxNode,
+                    additionalStatement As SyntaxNode,
+                    cancellationToken As CancellationToken) As Task(Of SyntaxNode)
                 Contract.ThrowIfTrue(additionalStatement IsNot Nothing)
 
-                Dim container = GetOutermostCallSiteContainerToProcess(cancellationToken)
                 Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken)
                 Dim firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite()
                 Dim lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite()

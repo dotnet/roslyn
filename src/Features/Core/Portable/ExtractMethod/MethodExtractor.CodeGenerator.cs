@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             #region method to be implemented in sub classes
 
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
-            protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode additionalStatement, CancellationToken cancellationToken);
+            protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode outermostCallSiteContainer, SyntaxNode additionalStatement, CancellationToken cancellationToken);
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
@@ -87,10 +87,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // should I check venus hidden position check here as well?
 
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
-
                 var newMethodDefinition = GenerateMethodDefinition(LocalFunction, cancellationToken);
 
+                var blockFacts = SemanticDocument.Document.GetLanguageService<IBlockFactsService>();
+                var syntaxFacts = SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxKinds = syntaxFacts.SyntaxKinds;
+
                 SyntaxNode additionalLocalStatement = null;
+                var outermostCallSiteContainer = GetOutermostCallSiteContainerToProcess(cancellationToken);
                 if (LocalFunction)
                 {
                     var info = codeGenerationService.GetInfo(
@@ -102,16 +106,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     var localMethod = codeGenerationService.CreateMethodDeclaration(newMethodDefinition.Data, CodeGenerationDestination.Unspecified, info, cancellationToken);
                     additionalLocalStatement = localMethod;
+
+                    // Try to place the new local function at the topmost block we can find (without crossing outside of any local function we're inside of).
+                    for (var current = outermostCallSiteContainer; current != null; current = current.Parent)
+                    {
+                        if (blockFacts.IsScopeBlock(current))
+                            outermostCallSiteContainer = current;
+
+                        if (syntaxFacts.IsLocalFunctionStatement(current))
+                            break;
+                    }
                 }
 
-                root = root.ReplaceNode(
-                    GetOutermostCallSiteContainerToProcess(cancellationToken),
-                    await GenerateBodyForCallSiteContainerAsync(additionalLocalStatement, cancellationToken).ConfigureAwait(false));
-                var callSiteDocument = await SemanticDocument.WithSyntaxRootAsync(root, cancellationToken).ConfigureAwait(false);
-
-                var newCallSiteRoot = callSiteDocument.Root;
-
-                var syntaxKinds = SemanticDocument.Document.GetLanguageService<ISyntaxKindsService>();
+                var newRoot = root.ReplaceNode(
+                    outermostCallSiteContainer,
+                    await GenerateBodyForCallSiteContainerAsync(outermostCallSiteContainer, additionalLocalStatement, cancellationToken).ConfigureAwait(false));
+                var callSiteDocument = await SemanticDocument.WithSyntaxRootAsync(newRoot, cancellationToken).ConfigureAwait(false);
 
                 SyntaxNode destination, newContainer;
                 if (!LocalFunction)
@@ -133,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         callSiteDocument.Project.ParseOptions);
 
                     newContainer = codeGenerationService.AddMethod(destination, newMethodDefinition.Data, info, cancellationToken);
-                    var newSyntaxRoot = newCallSiteRoot.ReplaceNode(destination, newContainer);
+                    var newSyntaxRoot = callSiteDocument.Root.ReplaceNode(destination, newContainer);
                     callSiteDocument = await callSiteDocument.WithSyntaxRootAsync(newSyntaxRoot, cancellationToken).ConfigureAwait(false);
                 }
 

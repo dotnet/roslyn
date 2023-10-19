@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override async Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(
+                SyntaxNode container,
                 SyntaxNode additionalNode,
                 CancellationToken cancellationToken)
             {
-                var container = GetOutermostCallSiteContainerToProcess(cancellationToken);
                 var variableMapToRemove = CreateVariableDeclarationToRemoveMap(
                     AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken);
                 var firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite();
@@ -130,8 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstStatementToRemove, lastStatementToRemove));
 
                 var statementsToInsert = await CreateStatementsOrInitializerToInsertAtCallSiteAsync(cancellationToken).ConfigureAwait(false);
-                //if (additionalStatement != null)
-                //    statementsToInsert = statementsToInsert.Add(additionalStatement);
 
                 var callSiteGenerator = new CallSiteContainerRewriter(
                     container,
