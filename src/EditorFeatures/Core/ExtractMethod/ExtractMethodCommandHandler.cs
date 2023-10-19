@@ -158,17 +158,17 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
 
         ApplyChange_OnUIThread(textBuffer, changes, waitContext);
 
-        if (methodNameAtInvocation != default)
+        if (methodNameAtInvocation != null)
         {
             // start inline rename to allow the user to change the name if they want.
             var textSnapshot = textBuffer.CurrentSnapshot;
             document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
-                _renameService.StartInlineSession(document, methodNameAtInvocation.Span, cancellationToken);
+                _renameService.StartInlineSession(document, methodNameAtInvocation.Value.Span, cancellationToken);
 
             // select invocation span
-            view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(textSnapshot, methodNameAtInvocation.Span.End));
-            view.SetSelection(methodNameAtInvocation.Span.ToSnapshotSpan(textSnapshot));
+            view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(textSnapshot, methodNameAtInvocation.Value.Span.End));
+            view.SetSelection(methodNameAtInvocation.Value.Span.ToSnapshotSpan(textSnapshot));
         }
     }
 
