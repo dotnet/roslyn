@@ -920,4 +920,59 @@ public class C
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
         Assert.Equal((long)268, resolvedItem.Command.Arguments[3]);
     }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6495")]
+    public async Task FilteringShouldBeDoneByTextBeforeCursorLocation(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+public class Z
+{
+    public int M()
+    {
+        int ia, ib, ic, ifa, ifb, ifc; 
+        i{|caret:|}Exception
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var caret = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(caret.Uri);
+
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var globalOptions = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
+        var listMaxSize = 3;
+
+        globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, listMaxSize);
+
+        // Because of the limit in list size, we should not have item "if" returned here
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        AssertEx.NotNull(results);
+        Assert.True(results.IsIncomplete);
+        Assert.Equal(listMaxSize, results.Items.Length);
+        Assert.False(results.Items.Any(i => i.Label == "if"));
+
+        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "f"));
+
+        completionParams = CreateCompletionParams(
+            GetLocationPlusOne(caret),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "f",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        // Now that user typed "Z", we should have item "Z" in the updated list since it's a perfect match
+        results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        Assert.True(results.IsIncomplete);
+        Assert.Equal(listMaxSize, results.Items.Length);
+        Assert.True(results.Items.Any(i => i.Label == "if"));
+
+    }
 }
