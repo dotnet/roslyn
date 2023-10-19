@@ -14913,7 +14913,7 @@ dotnet_diagnostic.CS9208.severity = warning
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(1, exitCode);
-            Assert.StartsWith("test.cs(3,2): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier",
+            Assert.StartsWith("test.cs(3,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier",
                 outWriter.ToString());
         }
 
