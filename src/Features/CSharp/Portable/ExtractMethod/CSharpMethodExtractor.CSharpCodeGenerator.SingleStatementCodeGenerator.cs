@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(CSharpSelectionResult.IsExtractMethodOnSingleStatement());
+                    Contract.ThrowIfFalse(this.CSharpSelectionResult.IsExtractMethodOnSingleStatement());
 
                     return ImmutableArray.Create(CSharpSelectionResult.GetFirstStatement());
                 }
