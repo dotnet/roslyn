@@ -11,10 +11,11 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
     /// <summary>
     /// Interaction logic for SmartRenameControl.xaml
     /// </summary>
-    internal partial class SmartRenameControl : UserControl
+    internal sealed partial class SmartRenameControl : UserControl
     {
         private readonly SmartRenameViewModel _smartRenameViewModel;
-        internal SmartRenameControl(SmartRenameViewModel viewModel)
+
+        public SmartRenameControl(SmartRenameViewModel viewModel)
         {
             this.DataContext = _smartRenameViewModel = viewModel;
             InitializeComponent();
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 
         private void Suggestion_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount == 2)
+            if (e.ClickCount == 1)
             {
                 var identifierName = ((FrameworkElement)sender).Tag.ToString();
                 _smartRenameViewModel.SelectedSuggestedName = identifierName;

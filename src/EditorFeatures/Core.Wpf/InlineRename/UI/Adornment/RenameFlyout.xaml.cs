@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             // When smart rename is available, allow the user choose the suggestions using the up/down keys.
+            _threadingContext.ThrowIfNotOnUIThread();
             var smartRenameViewModel = _viewModel.SmartRenameViewModel;
             if (smartRenameViewModel is not null)
             {
@@ -249,7 +250,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     if (newIdentifier is not null)
                     {
                         _viewModel.IdentifierText = newIdentifier;
-                        IdentifierTextBox.Select(0, newIdentifier.Length);
                         e.Handled = true;
                     }
                 }

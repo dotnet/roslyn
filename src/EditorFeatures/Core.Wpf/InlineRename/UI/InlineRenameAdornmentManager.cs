@@ -141,7 +141,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var identifierSelection = new TextSpan(start, length);
 
                 var adornment = new RenameFlyout(
-                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService, _smartRenameSessionFactory)),
+                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(
+                        _renameService.ActiveSession,
+                        session => new RenameFlyoutViewModel(session,
+                            identifierSelection,
+                            registerOleComponent: true,
+                            _globalOptionService,
+                            _threadingContext,
+                            _listenerProvider,
+                            _smartRenameSessionFactory)),
                     _textView,
                     _themeService,
                     _asyncQuickInfoBroker,

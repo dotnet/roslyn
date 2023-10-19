@@ -6,6 +6,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
@@ -624,12 +625,14 @@ class D : B
 
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
 
                 Using flyout = New RenameFlyout(
-                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, mockSmartRenameFactory), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, mockSmartRenameFactory), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView(),
                     themeService:=Nothing,
                     TestQuickInfoBroker,
+                    threadingContext,
                     listenerProvider)
 
                     Await WaitForRename(workspace)
@@ -715,12 +718,15 @@ class D : B
                 Dim mockSmartRenameFactory = New Lazy(Of ISmartRenameSessionFactory)(Function() New TestSmartRenameSessionFactory())
 #Enable Warning BC40000
 
-                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
+
+                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.False(vm.IsCollapsed)
                 Assert.True(vm.IsExpanded)
                 vm.IsCollapsed = True
 
-                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, mockSmartRenameFactory) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.True(vm.IsCollapsed)
                 Assert.False(vm.IsExpanded)
 

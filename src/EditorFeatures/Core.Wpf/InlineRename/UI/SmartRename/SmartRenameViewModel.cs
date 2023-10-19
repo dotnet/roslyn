@@ -6,17 +6,24 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 {
-    internal class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
+    internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     {
+        public static string GeneratingSuggestions => EditorFeaturesWpfResources.Generating_suggestions;
+
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
         private readonly ISmartRenameSession _smartRenameSession;
 #pragma warning restore CS0618 
 
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly IThreadingContext _threadingContext;
+
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -32,8 +39,6 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 
         public bool StatusMessageVisibility => _smartRenameSession?.StatusMessageVisibility ?? false;
 
-        public static string GeneratingSuggestions => EditorFeaturesWpfResources.Generating_suggestions;
-
         private string? _selectedSuggestedName;
 
         public string? SelectedSuggestedName
@@ -43,24 +48,32 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
             {
                 if (_selectedSuggestedName != value)
                 {
+                    _threadingContext.ThrowIfNotOnUIThread();
                     _selectedSuggestedName = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedSuggestedName)));
                 }
             }
         }
 
+        public SmartRenameViewModel(
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-        public SmartRenameViewModel(ISmartRenameSession smartRenameSession)
+            ISmartRenameSession smartRenameSession)
 #pragma warning restore CS0618
         {
+            _threadingContext = threadingContext;
             _smartRenameSession = smartRenameSession;
             _smartRenameSession.PropertyChanged += SessionPropertyChanged;
-            _cancellationTokenSource = new();
+            var listener = listenerProvider.GetListener(FeatureAttribute.SmartRename);
+
+            using var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
             _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
         }
 
         private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
             {
                 SuggestedNames.Clear();
@@ -77,6 +90,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 
         public string? ScrollSuggestions(string currentIdentifier, bool down)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             if (!HasSuggestions)
             {
                 return null;
@@ -101,9 +115,9 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
 
         public void Dispose()
         {
+            _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
             _smartRenameSession.Dispose();
             _cancellationTokenSource.Dispose();
-            _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
         }
     }
 }

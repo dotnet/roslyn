@@ -12,9 +12,11 @@ using System.Runtime.CompilerServices;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameSession _session;
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
+        private readonly IThreadingContext _threadingContext;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
@@ -39,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             TextSpan selectionSpan,
             bool registerOleComponent,
             IGlobalOptionService globalOptionService,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
             Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
 #pragma warning restore CS0618 
@@ -46,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session = session;
             _registerOleComponent = registerOleComponent;
             _globalOptionService = globalOptionService;
+            _threadingContext = threadingContext;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
@@ -54,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var smartRenameSession = smartRenameSessionFactory.Value.CreateSmartRenameSession(_session.TriggerSpan);
             if (smartRenameSession is not null)
             {
-                SmartRenameViewModel = new SmartRenameViewModel(smartRenameSession);
+                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession);
                 SmartRenameViewModel.PropertyChanged += OnSuggestedNameSelected;
             }
 
@@ -63,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnSuggestedNameSelected(object sender, PropertyChangedEventArgs e)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             if (e.PropertyName == nameof(SmartRenameViewModel.SelectedSuggestedName)
                 && SmartRenameViewModel?.SelectedSuggestedName is not null)
             {
