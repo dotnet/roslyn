@@ -21,8 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             AddAssemblies(
                 GetType(ServicesVSResources).Assembly,
                 GetType(CSharpVSResources).Assembly,
-                GetType(BasicVSResources).Assembly,
-                GetType(EditorConfigGenerator).Assembly).
+                GetType(BasicVSResources).Assembly).
             AddParts(
                 GetType(StubVsEditorAdaptersFactoryService)).
             AddExcludedPartTypes(

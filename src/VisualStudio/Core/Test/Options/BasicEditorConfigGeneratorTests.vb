@@ -6,7 +6,6 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Options.EditorConfig
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -20,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorDefault()
-            Using workspace = TestWorkspace.CreateVisualBasic("", composition:=VisualStudioTestCompositions.LanguageServices)
+            Using workspace = TestWorkspace.CreateVisualBasic("")
                 Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
@@ -151,8 +150,10 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 ' Use the default options 
-                Dim editorService = workspace.GetService(Of IEditorConfigGenerator)()
-                Dim actualText = editorService.Generate(LanguageNames.VisualBasic)
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
+                Dim editorConfigOptions = editorService.GetDefaultOptions(LanguageNames.VisualBasic)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.VisualBasic)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
