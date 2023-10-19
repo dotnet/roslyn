@@ -13,11 +13,10 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal class ExtractMethodResult
+    internal abstract class ExtractMethodResult
     {
         /// <summary>
         /// True if the extract method operation succeeded.
@@ -25,9 +24,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public bool Succeeded { get; }
 
         /// <summary>
-        /// True if the extract method operation is possible if the original span is adjusted.
+        /// The reasons why the extract method operation did not succeed.
         /// </summary>
-        public bool SucceededWithSuggestion { get; }
+        public ImmutableArray<string> Reasons { get; }
 
         /// <summary>
         /// The transformed document that was produced as a result of the extract method operation.
@@ -41,11 +40,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public ImmutableArray<AbstractFormattingRule> FormattingRules { get; }
 
         /// <summary>
-        /// The reasons why the extract method operation did not succeed.
-        /// </summary>
-        public IEnumerable<string> Reasons { get; }
-
-        /// <summary>
         /// the generated method node that contains the extracted code.
         /// </summary>
         public SyntaxNode? MethodDeclarationNode { get; }
@@ -57,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         internal ExtractMethodResult(
             OperationStatusFlag status,
-            IEnumerable<string> reasons,
+            ImmutableArray<string> reasons,
             Document? documentWithoutFinalFormatting,
             ImmutableArray<AbstractFormattingRule> formattingRules,
             SyntaxToken invocationNameToken,
@@ -65,10 +59,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             Status = status;
 
-            Succeeded = status.Succeeded() && !status.HasSuggestion();
-            SucceededWithSuggestion = status.Succeeded() && status.HasSuggestion();
+            Succeeded = status.Succeeded();
 
-            Reasons = (reasons ?? SpecializedCollections.EmptyEnumerable<string>()).ToReadOnlyCollection();
+            Reasons = reasons.NullToEmpty();
 
             DocumentWithoutFinalFormatting = documentWithoutFinalFormatting;
             FormattingRules = formattingRules;

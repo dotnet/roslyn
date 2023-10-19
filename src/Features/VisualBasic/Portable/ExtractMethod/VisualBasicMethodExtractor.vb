@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
 
                 If Not SymbolEqualityComparer.Default.Equals(currentType, binding.ResolveType(typeParameter)) Then
-                    Return New OperationStatus(OperationStatusFlag.BestEffort,
+                    Return New OperationStatus(OperationStatusFlag.Succeeded,
                         String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             If(currentType Is Nothing, String.Empty, currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))))

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             var root = document.Root;
             var annotation = new SyntaxAnnotation();
-            var newRoot = root.AddAnnotations(SpecializedCollections.SingletonEnumerable(Tuple.Create(node, annotation)));
+            var newRoot = root.ReplaceNode(node, node.WithAdditionalAnnotations(annotation));
             return new InsertionPoint(await document.WithSyntaxRootAsync(newRoot, cancellationToken).ConfigureAwait(false), annotation);
         }
 

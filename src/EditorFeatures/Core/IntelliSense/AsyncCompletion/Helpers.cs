@@ -65,25 +65,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public static RoslynTrigger GetRoslynTrigger(EditorAsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
             var completionTriggerKind = GetRoslynTriggerKind(trigger.Reason);
-            if (completionTriggerKind == CompletionTriggerKind.Deletion)
+            switch (completionTriggerKind)
             {
-                var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
-                char characterRemoved;
-                if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
-                {
-                    // If multiple characters were removed (selection), this finds the first character from the left. 
-                    characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
-                }
-                else
-                {
-                    characterRemoved = (char)0;
-                }
+                case CompletionTriggerKind.Deletion:
+                    var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
+                    char characterRemoved;
+                    if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
+                    {
+                        // If multiple characters were removed (selection), this finds the first character from the left. 
+                        characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
+                    }
+                    else
+                    {
+                        characterRemoved = (char)0;
+                    }
 
-                return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
-            }
-            else
-            {
-                return new RoslynTrigger(completionTriggerKind, trigger.Character);
+                    return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
+
+                case CompletionTriggerKind.Insertion:
+                    return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
+
+                default:
+                    return new RoslynTrigger(completionTriggerKind);
             }
         }
 

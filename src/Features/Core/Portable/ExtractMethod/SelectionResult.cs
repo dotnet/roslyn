@@ -6,7 +6,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -33,7 +32,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
-            SyntaxAnnotation lastTokenAnnotation)
+            SyntaxAnnotation lastTokenAnnotation,
+            bool selectionChanged)
         {
             Status = status;
 
@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             LastTokenAnnotation = lastTokenAnnotation;
 
             SemanticDocument = document;
+            SelectionChanged = selectionChanged;
         }
 
         protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public SemanticDocument SemanticDocument { get; private set; }
         public SyntaxAnnotation FirstTokenAnnotation { get; }
         public SyntaxAnnotation LastTokenAnnotation { get; }
+        public bool SelectionChanged { get; }
 
         public SelectionResult With(SemanticDocument document)
         {

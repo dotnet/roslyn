@@ -57,10 +57,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             operationStatus = await CheckVariableTypesAsync(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken).ConfigureAwait(false);
-            if (operationStatus.FailedWithNoBestEffortSuggestion())
-            {
+            if (operationStatus.Failed())
                 return new FailedExtractMethodResult(operationStatus);
-            }
 
             var insertionPoint = await GetInsertionPointAsync(analyzeResult.SemanticDocument, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -80,12 +78,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var applied = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
             var afterTriviaRestored = applied.With(operationStatus);
             cancellationToken.ThrowIfCancellationRequested();
-
-            if (afterTriviaRestored.Status.FailedWithNoBestEffortSuggestion())
-            {
-                return await CreateExtractMethodResultAsync(
-                    operationStatus, generatedCode.SemanticDocument, ImmutableArray<AbstractFormattingRule>.Empty, generatedCode.MethodNameAnnotation, generatedCode.MethodDefinitionAnnotation, cancellationToken).ConfigureAwait(false);
-            }
 
             var documentWithoutFinalFormatting = afterTriviaRestored.Data.Document;
 
@@ -164,10 +156,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SemanticDocument document, SyntaxNode contextNode, IEnumerable<VariableInfo> variables,
             OperationStatus status, CancellationToken cancellationToken)
         {
-            if (status.FailedWithNoBestEffortSuggestion())
-            {
+            if (status.Failed())
                 return Tuple.Create(false, status);
-            }
 
             var location = contextNode.GetLocation();
 
@@ -175,7 +165,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 var originalType = variable.GetVariableType();
                 var result = await CheckTypeAsync(document.Document, contextNode, location, originalType, cancellationToken).ConfigureAwait(false);
-                if (result.FailedWithNoBestEffortSuggestion())
+                if (result.Failed())
                 {
                     status = status.With(result);
                     return Tuple.Create(false, status);
