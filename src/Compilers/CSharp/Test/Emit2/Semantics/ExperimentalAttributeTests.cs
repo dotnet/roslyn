@@ -1483,6 +1483,32 @@ C.M();
     }
 
     [Fact]
+    public void DiagnosticIdWithTrailingNewline_WithSuppression()
+    {
+        var src = """
+#pragma warning disable CS9204
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
+public class C
+{
+    public static void M() { }
+}
+""";
+        Assert.Equal((ErrorCode)9204, ErrorCode.WRN_Experimental);
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(2,1): error Diag\n: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
+            // C.M();
+            Diagnostic("Diag\n", "C").WithArguments("C").WithLocation(2, 1).WithWarningAsError(true),
+            // 0.cs(4,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n""").WithLocation(4, 47)
+            );
+    }
+
+    [Fact]
     public void DiagnosticIdWithNewline()
     {
         var src = """
