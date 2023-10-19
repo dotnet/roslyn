@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
         internal const string RunFixAllCodeActionCommandName = "roslyn.client.fixAllCodeAction";
+        internal const string RunNestedCodeActionCommandName = "roslyn.client.nestedCodeAction";
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

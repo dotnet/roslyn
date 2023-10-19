@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
+            if (data.NestedCodeAction is not null && !data.NestedCodeAction.NestedActions.IsEmpty)
+            {
+                return codeAction;
+            }
+
             var document = context.GetRequiredDocument();
             var solution = document.Project.Solution;
 

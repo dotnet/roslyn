@@ -3250,6 +3250,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Convert number</value>
   </data>
   <data name="Fix_All_0" xml:space="preserve">
-    <value>Fix All: '{0}'</value>
+    <value>Fix All: {0}</value>
   </data>
 </root>
