@@ -751,22 +751,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // Only need to update for nullable reference types in return
                 if (methodSymbolResult.Data.ReturnType.NullableAnnotation != NullableAnnotation.Annotated)
-                {
-                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
-                }
+                    return originalDocument;
 
                 var syntaxNode = originalDocument.Root.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
                 var nodeIsMethodOrLocalFunction = syntaxNode is MethodDeclarationSyntax or LocalFunctionStatementSyntax;
                 if (!nodeIsMethodOrLocalFunction)
-                {
-                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
-                }
+                    return originalDocument;
 
-                var nullableReturnOperations = await CheckReturnOperations(syntaxNode, methodSymbolResult, originalDocument, cancellationToken).ConfigureAwait(false);
-                if (nullableReturnOperations is object)
-                {
+                var nullableReturnOperations = CheckReturnOperations(syntaxNode, methodSymbolResult, originalDocument, cancellationToken);
+                if (nullableReturnOperations is not null)
                     return nullableReturnOperations;
-                }
 
                 var returnType = syntaxNode is MethodDeclarationSyntax method ? method.ReturnType : ((LocalFunctionStatementSyntax)syntaxNode).ReturnType;
                 var newDocument = await GenerateNewDocument(methodSymbolResult, returnType, originalDocument, cancellationToken).ConfigureAwait(false);
@@ -786,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return enclosingMethod == methodSyntax;
                 }
 
-                async Task<SemanticDocument> CheckReturnOperations(
+                SemanticDocument CheckReturnOperations(
                     SyntaxNode node,
                     OperationStatus<IMethodSymbol> methodSymbolResult,
                     SemanticDocument originalDocument,
@@ -802,16 +796,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         // If the return statement is located in a nested local function or lambda it
                         // shouldn't contribute to the nullability of the extracted method's return type
                         if (!ReturnOperationBelongsToMethod(returnOperation.Syntax, methodOperation.Syntax))
-                        {
                             continue;
-                        }
 
                         var syntax = returnOperation.ReturnedValue?.Syntax ?? returnOperation.Syntax;
                         var returnTypeInfo = semanticModel.GetTypeInfo(syntax, cancellationToken);
                         if (returnTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
                         {
                             // Flow state shows that return is correctly nullable
-                            return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                            return originalDocument;
                         }
                     }
 

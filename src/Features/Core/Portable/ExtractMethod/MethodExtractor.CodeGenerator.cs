@@ -138,17 +138,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var generatedDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
 
-                // For nullable reference types, we can provide a better experience by reducing use 
-                // of nullable reference types after a method is done being generated. If we can
-                // determine that the method never returns null, for example, then we can
-                // make the signature into a non-null reference type even though
-                // the original type was nullable. This allows our code generation to
-                // follow our recommendation of only using nullable when necessary.
-                // This is done after method generation instead of at analyzer time because it's purely
-                // based on the resulting code, which the generator can modify as needed. If return statements
-                // are added, the flow analysis could change to indicate something different. It's cleaner to rely
-                // on flow analysis of the final resulting code than to try and predict from the analyzer what 
-                // will happen in the generator. 
+                // For nullable reference types, we can provide a better experience by reducing use of nullable
+                // reference types after a method is done being generated. If we can determine that the method never
+                // returns null, for example, then we can make the signature into a non-null reference type even though
+                // the original type was nullable. This allows our code generation to follow our recommendation of only
+                // using nullable when necessary. This is done after method generation instead of at analyzer time
+                // because it's purely based on the resulting code, which the generator can modify as needed. If return
+                // statements are added, the flow analysis could change to indicate something different. It's cleaner to
+                // rely on flow analysis of the final resulting code than to try and predict from the analyzer what will
+                // happen in the generator. 
                 var finalDocument = await UpdateMethodAfterGenerationAsync(generatedDocument, result, cancellationToken).ConfigureAwait(false);
                 var finalRoot = finalDocument.Root;
 
@@ -169,11 +167,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return await CreateGeneratedCodeAsync(result.Status, finalDocument, cancellationToken).ConfigureAwait(false);
             }
 
-            protected virtual Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+            protected abstract Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
                 SemanticDocument originalDocument,
                 OperationStatus<IMethodSymbol> methodSymbolResult,
-                CancellationToken cancellationToken)
-                => Task.FromResult(originalDocument);
+                CancellationToken cancellationToken);
 
             protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(OperationStatus status, SemanticDocument newDocument, CancellationToken cancellationToken)
             {
