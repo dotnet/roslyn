@@ -40,7 +40,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
   
