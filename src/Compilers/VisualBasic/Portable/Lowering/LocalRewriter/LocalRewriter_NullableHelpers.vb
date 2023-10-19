@@ -177,8 +177,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim whenNull As BoundExpression = Nothing
                         If IsConditionalAccess(expr, whenNotNull, whenNull) AndAlso HasNoValue(whenNull) Then
                             Debug.Assert(Not HasNoValue(whenNotNull))
+                            Dim valueOrDefault = NullableValueOrDefault(whenNotNull, isOptional)
+                            If valueOrDefault Is Nothing Then
+                                Debug.Assert(isOptional)
+                                Return Nothing
+                            End If
                             Return UpdateConditionalAccess(expr,
-                                                           NullableValueOrDefault(whenNotNull, isOptional),
+                                                           valueOrDefault,
                                                            New BoundLiteral(expr.Syntax, ConstantValue.False, expr.Type.GetNullableUnderlyingType()))
                         End If
                     End If
