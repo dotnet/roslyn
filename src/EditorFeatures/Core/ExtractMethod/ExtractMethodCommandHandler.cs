@@ -3,15 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using EnvDTE;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
@@ -24,8 +20,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -151,44 +145,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 document, span, localFunction: false, options, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 
-            if (!result.Succeeded && !result.SucceededWithSuggestion)
-            {
-                // if it failed due to out/ref parameter in async method, try it with different option
-                var newResult = await TryWithoutMakingValueTypesRefAsync(
-                    document, span, result, options, cancellationToken).ConfigureAwait(false);
-                if (newResult != null)
-                {
-                    var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-                    if (notificationService != null)
-                    {
-                        // We are about to show a modal UI dialog so we should take over the command execution
-                        // wait context. That means the command system won't attempt to show its own wait dialog 
-                        // and also will take it into consideration when measuring command handling duration.
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                        if (!notificationService.ConfirmMessageBox(
-                                EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
-                                string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
-                                EditorFeaturesResources.We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed,
-                                title: EditorFeaturesResources.Extract_Method,
-                                severity: NotificationSeverity.Error))
-                        {
-                            // We handled the command, displayed a notification and did not produce code.
-                            return;
-                        }
-
-                        await TaskScheduler.Default;
-                    }
-
-                    // reset result
-                    result = newResult;
-                }
-                else if (await TryNotifyFailureToUserAsync(document, result, cancellationToken).ConfigureAwait(false))
-                {
-                    // We handled the command, displayed a notification and did not produce code.
-                    return;
-                }
-            }
+            result = await NotifyUserIfNecessaryAsync(
+                document, span, options, result, cancellationToken).ConfigureAwait(false);
+            if (result is null)
+                return;
 
             var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
             var (formattedDocument, methodNameAtInvocation) = await result.GetFormattedDocumentAsync(cleanupOptions, cancellationToken).ConfigureAwait(false);
@@ -224,55 +184,76 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             undoTransaction.Complete();
         }
 
-        /// <returns>
-        /// True: if a failure notification was displayed or the user did not want to proceed in a best effort scenario. 
-        ///       Extract Method does not proceed further and is done.
-        /// False: the user proceeded to a best effort scenario.
-        /// </returns>
-        private async Task<bool> TryNotifyFailureToUserAsync(
-            Document document, ExtractMethodResult result, CancellationToken cancellationToken)
+        private async Task<ExtractMethodResult?> NotifyUserIfNecessaryAsync(
+            Document document, TextSpan span, ExtractMethodGenerationOptions options, ExtractMethodResult result, CancellationToken cancellationToken)
         {
-            // We are about to show a modal UI dialog so we should take over the command execution
-            // wait context. That means the command system won't attempt to show its own wait dialog 
-            // and also will take it into consideration when measuring command handling duration.
-            var project = document.Project;
-            var solution = project.Solution;
-            var notificationService = solution.Services.GetService<INotificationService>();
+            // If we succeeded without any problems, just proceed without notifying the user.
+            if (result is { Succeeded: true, Reasons.Length: 0, DocumentWithoutFinalFormatting: not null })
+                return result;
 
-            // see whether we will allow best effort extraction and if it is possible.
-            if (!_globalOptions.GetOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, document.Project.Language) ||
-                !result.Status.HasBestEffort() ||
-                result.DocumentWithoutFinalFormatting == null)
+            // We have some sort of issue.  See what the user wants to do.  If we have no way to inform the user bail
+            // out rather than doing something wrong.
+            var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
+            if (notificationService is null)
+                return null;
+
+            // The initial extract method failed, or it succeeded with warning reasons.  Attempt again with
+            // different options to see if we get better results.
+            var alternativeResult = await TryWithoutMakingValueTypesRefAsync(
+                document, span, result, options, cancellationToken).ConfigureAwait(false);
+            if (alternativeResult is { Succeeded: true, Reasons.Length: 0, DocumentWithoutFinalFormatting: not null })
             {
-                if (notificationService != null)
-                {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    notificationService.SendNotification(
-                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
-                        string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)),
+                // We are about to show a modal UI dialog so we should take over the command execution
+                // wait context. That means the command system won't attempt to show its own wait dialog 
+                // and also will take it into consideration when measuring command handling duration.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                if (!notificationService.ConfirmMessageBox(
+                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
+                        string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
+                        EditorFeaturesResources.We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed,
                         title: EditorFeaturesResources.Extract_Method,
-                        severity: NotificationSeverity.Error);
+                        severity: NotificationSeverity.Error))
+                {
+                    // We handled the command, displayed a notification and did not produce code.
+                    return null;
                 }
 
-                return true;
+                // Otherwise, prefer the new approach that has less problems.
+                return alternativeResult;
             }
 
-            // okay, best effort is turned on, let user know it is an best effort
-            if (notificationService != null)
+            // The alternative approach wasn't better.  If we failed, just let the user know and bail out.  Otherwise,
+            // if we succeeded with messages, tell the user and let them decide if they want to proceed or not.
+            if (!result.Succeeded || result.DocumentWithoutFinalFormatting is null)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                if (!notificationService.ConfirmMessageBox(
-                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
-                        string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)) + Environment.NewLine + Environment.NewLine +
-                        EditorFeaturesResources.Do_you_still_want_to_proceed_This_may_produce_broken_code,
-                        title: EditorFeaturesResources.Extract_Method,
-                        severity: NotificationSeverity.Warning))
-                {
-                    return true;
-                }
+                notificationService.SendNotification(
+                    EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
+                    string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)),
+                    title: EditorFeaturesResources.Extract_Method,
+                    severity: NotificationSeverity.Error);
+
+                return null;
             }
 
-            return false;
+            // We succeed and have a not null document.  We must them have some issues to report to the user (otherwise
+            // we would have fast returned at the top of this method).  Tell the user about them and let them decide
+            // what they want to do.
+            Contract.ThrowIfTrue(result.Reasons.Length == 0);
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (!notificationService.ConfirmMessageBox(
+                    EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
+                    string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)) + Environment.NewLine + Environment.NewLine +
+                    EditorFeaturesResources.Do_you_still_want_to_proceed_This_may_produce_broken_code,
+                    title: EditorFeaturesResources.Extract_Method,
+                    severity: NotificationSeverity.Warning))
+            {
+                return null;
+            }
+
+            return result;
         }
 
         private static async Task<ExtractMethodResult?> TryWithoutMakingValueTypesRefAsync(
@@ -293,7 +274,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     cancellationToken).ConfigureAwait(false);
 
                 // retry succeeded, return new result
-                if (newResult.Succeeded || newResult.SucceededWithSuggestion)
+                if (newResult.Succeeded)
                     return newResult;
             }
 

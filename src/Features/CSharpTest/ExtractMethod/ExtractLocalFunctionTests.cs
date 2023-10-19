@@ -4872,9 +4872,9 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInGoto()
+        public async Task TestOnGoto()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
                 """
                 delegate int del(int i);
 
@@ -4890,7 +4890,29 @@ class Program
                         return;
                     }
                 }
-                """, new TestParameters(index: CodeActionIndex));
+                """,
+                """
+                delegate int del(int i);
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        del q = x =>
+                        {
+                            return {|Rename:NewMethod|}(x);
+                
+                            static int NewMethod(int x)
+                            {
+                                goto label2;
+                                return x * x;
+                            }
+                        };
+                    label2:
+                        return;
+                    }
+                }
+                """, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]

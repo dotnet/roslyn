@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
             Contract.ThrowIfNull(result);
 
-            if (!result.Succeeded && !result.SucceededWithSuggestion)
+            if (!result.Succeeded)
                 return null;
 
             return CodeAction.Create(
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(localFunctionResult);
 
-            if (localFunctionResult.Succeeded || localFunctionResult.SucceededWithSuggestion)
+            if (localFunctionResult.Succeeded)
             {
                 var codeAction = CodeAction.Create(
                     FeaturesResources.Extract_local_function,
