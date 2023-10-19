@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
 
-        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, CancellationToken cancellationToken)
+        protected override SyntaxNode GetInsertionPointNode(SemanticDocument document)
         {
             var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
-            var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = document.Root;
             var basePosition = root.FindToken(originalSpanStart);
 
             if (LocalFunction)
@@ -84,9 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 if (functionNode is not null)
-                {
-                    return await InsertionPoint.CreateAsync(document, functionNode, cancellationToken).ConfigureAwait(false);
-                }
+                    return functionNode;
             }
 
             var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
@@ -96,31 +94,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (LocalFunction && memberNode is BasePropertyDeclarationSyntax propertyDeclaration)
             {
                 var accessorNode = basePosition.GetAncestor<AccessorDeclarationSyntax>();
-                if (accessorNode is object)
-                {
-                    return await InsertionPoint.CreateAsync(document, accessorNode, cancellationToken).ConfigureAwait(false);
-                }
+                if (accessorNode is not null)
+                    return accessorNode;
             }
 
             if (memberNode is GlobalStatementSyntax globalStatement)
             {
                 // check whether we are extracting whole global statement out
                 if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
-                {
-                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
-                }
+                    return globalStatement.Parent;
 
                 // check whether the global statement is a statement container
                 if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
                 {
                     // The extracted function will be a new global statement
-                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
+                    return globalStatement.Parent;
                 }
 
-                return await InsertionPoint.CreateAsync(document, globalStatement.Statement, cancellationToken).ConfigureAwait(false);
+                return globalStatement.Statement;
             }
 
-            return await InsertionPoint.CreateAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
+            return memberNode;
         }
 
         private bool OriginalSelectionWithin(SyntaxNode node)

@@ -94,12 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private CSharpSelectionResult CSharpSelectionResult
                 => (CSharpSelectionResult)SelectionResult;
 
-            protected override SyntaxNode GetPreviousMember(SemanticDocument document)
-            {
-                var node = InsertionPoint.With(document).GetContext();
-                return (node.Parent is GlobalStatementSyntax) ? node.Parent : node;
-            }
-
             protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken)
             {
                 var result = CreateMethodBody(cancellationToken);

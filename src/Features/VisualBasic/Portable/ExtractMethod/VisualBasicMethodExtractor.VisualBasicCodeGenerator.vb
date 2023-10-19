@@ -59,10 +59,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Get
             End Property
 
-            Protected Overrides Function GetPreviousMember(document As SemanticDocument) As SyntaxNode
-                Return Me.InsertionPoint.With(document).GetContext()
-            End Function
-
             Protected Overrides Function ShouldLocalFunctionCaptureParameter(node As SyntaxNode) As Boolean
                 Return False
             End Function

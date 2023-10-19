@@ -11,9 +11,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         protected abstract Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
-        protected abstract Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetInsertionPointNode(SemanticDocument document);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
@@ -60,7 +61,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             if (operationStatus.Failed())
                 return new FailedExtractMethodResult(operationStatus);
 
-            var insertionPoint = await GetInsertionPointAsync(analyzeResult.SemanticDocument, cancellationToken).ConfigureAwait(false);
+            var insertionPointNode = GetInsertionPointNode(analyzeResult.SemanticDocument);
+            if (!CanAddTo(analyzeResult.SemanticDocument.Document, insertionPointNode, out var canAddStatus))
+                return new FailedExtractMethodResult(canAddStatus);
+
+            var insertionPoint = await InsertionPoint.CreateAsync(analyzeResult.SemanticDocument, insertionPointNode, cancellationToken).ConfigureAwait(false);
+
             cancellationToken.ThrowIfCancellationRequested();
 
             var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(insertionPoint.SemanticDocument), cancellationToken).ConfigureAwait(false);
@@ -88,6 +94,36 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 generatedCode.MethodNameAnnotation,
                 generatedCode.MethodDefinitionAnnotation,
                 cancellationToken).ConfigureAwait(false);
+
+            bool CanAddTo(Document document, SyntaxNode insertionPointNode, out OperationStatus status)
+            {
+                var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
+                var codeGenService = document.GetLanguageService<ICodeGenerationService>();
+
+                if (insertionPointNode is null)
+                {
+                    status = OperationStatus.NoValidLocationToInsertMethodCall;
+                    return false;
+                }
+
+                var destination = insertionPointNode;
+                if (!LocalFunction)
+                {
+                    var mappedPoint = insertionPointNode.RawKind == syntaxKinds.GlobalStatement
+                        ? insertionPointNode.Parent
+                        : insertionPointNode;
+                    destination = mappedPoint.Parent ?? mappedPoint;
+                }
+
+                if (!codeGenService.CanAddTo(destination, document, cancellationToken))
+                {
+                    status = OperationStatus.OverlapsHiddenPosition;
+                    return false;
+                }
+
+                status = OperationStatus.Succeeded;
+                return true;
+            }
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)

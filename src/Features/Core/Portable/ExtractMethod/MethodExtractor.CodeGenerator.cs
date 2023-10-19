@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -61,7 +62,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
-            protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var newCallSiteRoot = callSiteDocument.Root;
 
+                var syntaxKinds = SemanticDocument.Document.GetLanguageService<ISyntaxKindsService>();
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
                 var result = GenerateMethodDefinition(LocalFunction, cancellationToken);
 
@@ -117,14 +118,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
                 else
                 {
-                    var previousMemberNode = GetPreviousMember(callSiteDocument);
+                    var mappedMember = this.InsertionPoint.With(callSiteDocument).GetContext();
+                    mappedMember = mappedMember.RawKind == syntaxKinds.GlobalStatement
+                        ? mappedMember.Parent
+                        : mappedMember;
 
                     // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
-                    destination = previousMemberNode.Parent ?? previousMemberNode;
+                    destination = mappedMember.Parent ?? mappedMember;
 
                     var info = codeGenerationService.GetInfo(
                         new CodeGenerationContext(
-                            afterThisLocation: previousMemberNode.GetLocation(),
+                            afterThisLocation: mappedMember.GetLocation(),
                             generateDefaultAccessibility: true,
                             generateMethodBodies: true),
                         Options,
@@ -155,13 +159,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     return await CreateGeneratedCodeAsync(
                         result.Status.With(OperationStatus.FailedWithUnknownReason), finalDocument, cancellationToken).ConfigureAwait(false);
-                }
-
-                if (methodDefinition.SyntaxTree.IsHiddenPosition(methodDefinition.AsNode().SpanStart, cancellationToken) ||
-                    methodDefinition.SyntaxTree.IsHiddenPosition(methodDefinition.AsNode().Span.End, cancellationToken))
-                {
-                    return await CreateGeneratedCodeAsync(
-                        result.Status.With(OperationStatus.OverlapsHiddenPosition), finalDocument, cancellationToken).ConfigureAwait(false);
                 }
 
                 return await CreateGeneratedCodeAsync(result.Status, finalDocument, cancellationToken).ConfigureAwait(false);

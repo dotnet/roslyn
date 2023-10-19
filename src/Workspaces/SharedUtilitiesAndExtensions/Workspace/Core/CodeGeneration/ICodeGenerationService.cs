@@ -179,9 +179,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken);
 
         /// <summary>
-        /// <c>true</c> if destination is a location where other symbols can be added to.
+        /// <c>true</c> if destination is a location where other symbols can be added to.  <paramref
+        /// name="destination"/> must be from a <see cref="Document"/> located within <paramref name="solution"/>.
         /// </summary>
         bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// <c>true</c> if destination is a location where other symbols can be added to.  <paramref
+        /// name="destination"/> must be contained with <paramref name="document"/>.
+        /// </summary>
+        bool CanAddTo(SyntaxNode destination, Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Return the most relevant declaration to namespaceOrType,

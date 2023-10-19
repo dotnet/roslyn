@@ -7,9 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.ExtractMethod
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -27,11 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
         End Function
 
-        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
+        Protected Overrides Function GetInsertionPointNode(
+                document As SemanticDocument) As SyntaxNode
             Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
             Contract.ThrowIfFalse(originalSpanStart >= 0)
 
-            Dim root = Await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = document.Root
             Dim basePosition = root.FindToken(originalSpanStart)
 
             Dim enclosingTopLevelNode As SyntaxNode = basePosition.GetAncestor(Of PropertyBlockSyntax)()
@@ -52,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             Contract.ThrowIfNull(enclosingTopLevelNode)
-            Return Await InsertionPoint.CreateAsync(document, enclosingTopLevelNode, cancellationToken).ConfigureAwait(False)
+            Return enclosingTopLevelNode
         End Function
 
         Protected Overrides Async Function PreserveTriviaAsync(selectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
