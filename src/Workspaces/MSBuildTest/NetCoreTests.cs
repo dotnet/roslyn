@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -510,12 +511,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             DotNetRestore("Project.csproj");
 
-            using var workspace = CreateMSBuildWorkspace();
-
-            var loader = workspace.Services
-                .GetLanguageServices(LanguageNames.CSharp)
-                .GetRequiredService<IProjectFileLoader>();
-
+            var loader = new CSharpProjectFileLoader();
             var logger = new TestMSBuildLogger();
             var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
             buildManager.StartBatchBuild();
@@ -543,15 +539,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             DotNetRestore("Project.csproj");
 
-            using var workspace = CreateMSBuildWorkspace();
-
-            var loader = workspace.Services
-                .GetLanguageServices(LanguageNames.CSharp)
-                .GetRequiredService<IProjectFileLoader>();
+            var loader = new CSharpProjectFileLoader();
 
             var logger = new TestMSBuildLogger();
             var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
-            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+            await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
 
             Assert.True(logger.WasInitialized);
             var logLines = logger.GetLogLines();

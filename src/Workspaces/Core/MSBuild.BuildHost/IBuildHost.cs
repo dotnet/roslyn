@@ -20,12 +20,9 @@ internal interface IBuildHost
 
     Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>> GetProjectsInSolutionAsync(string solutionFilePath, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Returns whether this project's is supported by this host.
-    /// </summary>
-    Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken);
+    Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken);
 
-    Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, CancellationToken cancellationToken);
+    Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken);
 
     Task ShutdownAsync();
 }

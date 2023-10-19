@@ -158,35 +158,28 @@ internal sealed class BuildHost : IBuildHost
         return builder.ToImmutable();
     }
 
-    public Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken)
+    public async Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
     {
         EnsureMSBuildLoaded(projectFilePath);
         CreateBuildManager();
 
-        return Task.FromResult(TryGetLoaderForPath(projectFilePath) is not null);
-    }
+        ProjectFileLoader projectLoader = languageName switch
+        {
+            LanguageNames.CSharp => new CSharp.CSharpProjectFileLoader(),
+            LanguageNames.VisualBasic => new VisualBasic.VisualBasicProjectFileLoader(),
+            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
+        };
 
-    public async Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, CancellationToken cancellationToken)
-    {
-        EnsureMSBuildLoaded(projectFilePath);
-        CreateBuildManager();
-
-        var projectLoader = TryGetLoaderForPath(projectFilePath);
-        Contract.ThrowIfNull(projectLoader, $"We don't support this project path; we should have called {nameof(IsProjectFileSupportedAsync)} first.");
         _logger.LogInformation($"Loading {projectFilePath}");
         return new RemoteProjectFile(await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false));
     }
 
-    private static IProjectFileLoader? TryGetLoaderForPath(string projectFilePath)
+    public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)
     {
-        var extension = Path.GetExtension(projectFilePath);
+        EnsureMSBuildLoaded(projectFilePath);
+        CreateBuildManager();
 
-        return extension switch
-        {
-            ".csproj" => new CSharp.CSharpProjectFileLoader(),
-            ".vbproj" => new VisualBasic.VisualBasicProjectFileLoader(),
-            _ => null
-        };
+        return _buildManager.TryGetOutputFilePathAsync(projectFilePath, cancellationToken);
     }
 
     public Task ShutdownAsync()

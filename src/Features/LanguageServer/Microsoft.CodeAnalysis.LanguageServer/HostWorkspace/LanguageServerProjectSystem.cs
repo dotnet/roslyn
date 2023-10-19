@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.BuildHostProcessManager;
+using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -51,6 +51,7 @@ internal sealed class LanguageServerProjectSystem
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
+    private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
@@ -76,6 +77,7 @@ internal sealed class LanguageServerProjectSystem
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspaceFactory.Workspace.CurrentSolution.Services, new DiagnosticReporter(workspaceFactory.Workspace));
 
         _projectsToLoadAndReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
@@ -203,9 +205,9 @@ internal sealed class LanguageServerProjectSystem
 
             (var buildHost, preferredBuildHostKind) = await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
 
-            if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
+            if (_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
             {
-                var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, cancellationToken);
+                var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
                 var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
                 if (diagnosticLogItems.Any(item => item.Kind is WorkspaceDiagnosticKind.Failure))
                 {

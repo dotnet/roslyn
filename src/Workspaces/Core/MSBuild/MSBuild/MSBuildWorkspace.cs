@@ -5,21 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -33,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly NonReentrantLock _serializationLock = new();
 
         private readonly MSBuildProjectLoader _loader;
-        private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
+        private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
         private readonly DiagnosticReporter _reporter;
 
         private MSBuildWorkspace(
@@ -42,8 +33,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             : base(hostServices, WorkspaceKind.MSBuild)
         {
             _reporter = new DiagnosticReporter(this);
-            _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(Services.SolutionServices, _reporter);
-            _loader = new MSBuildProjectLoader(Services.SolutionServices, _reporter, _projectFileLoaderRegistry, properties);
+            _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(Services.SolutionServices, _reporter);
+            _loader = new MSBuildProjectLoader(Services.SolutionServices, _reporter, _projectFileExtensionRegistry, properties);
         }
 
         /// <summary>
@@ -158,10 +149,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
+#if SUPPORT_TRYAPPLYCHANGES
+
         private static string GetAbsolutePath(string path, string baseDirectoryPath)
         {
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectoryPath) ?? path);
         }
+
+#endif
 
         #region Open Solution & Project
         /// <summary>
@@ -269,6 +264,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         #region Apply Changes
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
+#if SUPPORT_TRYAPPLYCHANGES
             return feature is
                 ApplyChangesKind.ChangeDocument or
                 ApplyChangesKind.AddDocument or
@@ -280,7 +276,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 ApplyChangesKind.AddAnalyzerReference or
                 ApplyChangesKind.RemoveAnalyzerReference or
                 ApplyChangesKind.ChangeAdditionalDocument;
+#else
+            return false;
+#endif
         }
+
+#if SUPPORT_TRYAPPLYCHANGES
 
         private static bool HasProjectFileChanges(ProjectChanges changes)
         {
@@ -294,12 +295,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
                    changes.GetRemovedAnalyzerReferences().Any();
         }
 
+
         private IProjectFile? _applyChangesProjectFile;
+#endif
 
         public override bool TryApplyChanges(Solution newSolution)
         {
+#if SUPPORT_TRYAPPLYCHANGES
             return TryApplyChanges(newSolution, CodeAnalysisProgress.None);
+#else
+            return base.TryApplyChanges(newSolution);
+#endif
         }
+
+#if SUPPORT_TRYAPPLYCHANGES
 
         internal override bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progressTracker)
         {
@@ -557,6 +566,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.OnMetadataReferenceRemoved(projectId, metadataReference);
         }
 
+
         private AssemblyIdentity? GetAssemblyIdentity(ProjectId projectId, MetadataReference metadataReference)
         {
             var project = this.CurrentSolution.GetProject(projectId);
@@ -619,6 +629,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _applyChangesProjectFile.RemoveAnalyzerReference(analyzerReference);
             this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
         }
+
+#endif
+
     }
+
     #endregion
 }

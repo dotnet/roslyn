@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -40,22 +41,51 @@
     <EmbeddedResource Update="WorkspaceMSBuildResources.resx" GenerateSource="true" />
   </ItemGroup>
   <!--
-    Include the BuildHost binaries into this package as well. At the moment, we're including it in lib because we're internally using it as a library in-process. Once
-    we move to launching it, we'll need to move this to the content path instead, since we'll be deploying both the .NET Framework and .NET Core versions, no matter
-    which platform you are targeting.
+    Include the BuildHost binaries into this package as well as a regular library. At the moment, we're including it in lib because we're internally using it as a library in-process for a few of our 
+    RPC interfaces with our remote process.
     -->
-    <PropertyGroup>
-      <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);GetBuildHostBinaries</TargetsForTfmSpecificBuildOutput>
-      <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificBuildOutput);GetBuildHostDebugSymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
-    </PropertyGroup>
-    <Target Name="GetBuildHostBinaries" DependsOnTargets="ResolveReferences">
-        <MSBuild Projects="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Targets="_GetBuildOutputFilesWithTfm">
-          <Output TaskParameter="TargetOutputs" ItemName="BuildOutputInPackage" />
-        </MSBuild>
-    </Target>
-    <Target Name="GetBuildHostDebugSymbols">
-      <MSBuild Projects="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Targets="_GetDebugSymbolsWithTfm">
-        <Output TaskParameter="TargetOutputs" ItemName="_TargetPathsToSymbolsWithTfm" />
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);GetBuildHostBinaries</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificBuildOutput);GetBuildHostDebugSymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
+  </PropertyGroup>
+  <Target Name="GetBuildHostBinaries" DependsOnTargets="ResolveReferences">
+      <MSBuild Projects="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Targets="_GetBuildOutputFilesWithTfm">
+        <Output TaskParameter="TargetOutputs" ItemName="BuildOutputInPackage" />
       </MSBuild>
-    </Target>
+  </Target>
+  <Target Name="GetBuildHostDebugSymbols">
+    <MSBuild Projects="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Targets="_GetDebugSymbolsWithTfm">
+      <Output TaskParameter="TargetOutputs" ItemName="_TargetPathsToSymbolsWithTfm" />
+    </MSBuild>
+  </Target>
+
+  <!--
+    Deploy a net472 and net6.0 version of the BuildHost process which will be used depending on the type of project. We will use the deployed version even if
+    it matches the runtime of the caller of MSBuildWorkspace since we still need the separate process for dependency isolation and in the case of the .NET Core
+    side, ensuring we potential rollforward to a runtime that supports the SDK version.
+  -->
+  <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
+        <TargetFramework>net472</TargetFramework>
+      </_NetFrameworkBuildHostProjectReference>
+      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
+        <TargetFramework>net6.0</TargetFramework>
+      </_NetFrameworkBuildHostProjectReference>
+    </ItemGroup>
+
+    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433  -->
+    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
+             Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
+             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)">
+      <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
+    </MSBuild>
+
+    <ItemGroup>
+      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
+               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
+               TargetPath="BuildHost-%(NetFrameworkBuildHostAssets.TargetFramework)\%(NetFrameworkBuildHostAssets.TargetPath)"
+               CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 </Project>

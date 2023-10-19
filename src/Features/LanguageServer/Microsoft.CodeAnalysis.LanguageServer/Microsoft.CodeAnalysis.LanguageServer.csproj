@@ -120,34 +120,6 @@
     </ItemGroup>
   </Target>
 
-  <!--
-    Deploy a net472 version of the BuildHost process.
-  -->
-  <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
-    <ItemGroup>
-      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>net472</TargetFramework>
-      </_NetFrameworkBuildHostProjectReference>
-    </ItemGroup>
-
-    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
-             Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
-             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)"
-             RemoveProperties="PackRuntimeIdentifier">
-      <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
-    </MSBuild>
-
-    <ItemGroup>
-      <!-- We set Pack="false" because we only care about the RID-specific folders -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
-               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               Pack="false"
-               TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
-               CopyToOutputDirectory="PreserveNewest" />
-    </ItemGroup>
-  </Target>
-
   <!-- If we don't have a PackRuntimeIdentifier set, that means pack has been invoked on the project directly, with say dotnet pack. In this case
        we'll replace the Pack target with one that instead recursively invokes pack for each runtime identifier. We define those targets
        in a separate .targets file, since we can't say to MSBuild "only consider our Pack target as a definition based on this condition" any other way. -->

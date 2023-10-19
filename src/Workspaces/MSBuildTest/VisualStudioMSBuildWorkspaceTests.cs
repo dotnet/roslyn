@@ -29,6 +29,7 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -1138,7 +1139,7 @@ class C1
             });
 
             var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, LanguageNames.CSharp);
             Assert.Equal(expected, e.Message);
         }
 
@@ -1156,7 +1157,7 @@ class C1
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, LanguageNames.CSharp);
             Assert.Equal(expected, workspace.Diagnostics.Single().Message);
         }
 
@@ -1171,7 +1172,7 @@ class C1
             using var workspace = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
             var e = await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectName));
 
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectName, LanguageNames.CSharp);
             Assert.Equal(expected, e.Message);
         }
 
@@ -3046,9 +3047,7 @@ class C { }";
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             using var workspace = CreateMSBuildWorkspace();
-            var loader = workspace.Services
-                .GetLanguageServices(LanguageNames.CSharp)
-                .GetRequiredService<IProjectFileLoader>();
+            var loader = new CSharpProjectFileLoader();
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
@@ -3078,11 +3077,7 @@ class C { }";
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            using var workspace = CreateMSBuildWorkspace();
-            var loader = workspace.Services
-                .GetLanguageServices(LanguageNames.CSharp)
-                .GetRequiredService<IProjectFileLoader>();
-
+            var loader = new CSharpProjectFileLoader();
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
             var logger = new TestMSBuildLogger();
@@ -3106,11 +3101,7 @@ class C { }";
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            using var workspace = CreateMSBuildWorkspace();
-            var loader = workspace.Services
-                .GetLanguageServices(LanguageNames.CSharp)
-                .GetRequiredService<IProjectFileLoader>();
-
+            var loader = new CSharpProjectFileLoader();
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
             var logger = new TestMSBuildLogger();

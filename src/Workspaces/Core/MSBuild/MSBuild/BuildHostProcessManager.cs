@@ -2,8 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
@@ -11,7 +17,7 @@ using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class BuildHostProcessManager : IAsyncDisposable
 {
@@ -53,11 +59,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // us to discover VS instances in .NET Framework hosts right now.
         if (neededBuildHostKind == BuildHostProcessKind.NetFramework)
         {
-            if (!await buildHost.HasUsableMSBuildAsync(projectFilePath, cancellationToken))
+            if (!await buildHost.HasUsableMSBuildAsync(projectFilePath, cancellationToken).ConfigureAwait(false))
             {
                 // It's not usable, so we'll fall back to the .NET Core one.
                 _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
-                return (await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken), PreferredKind: BuildHostProcessKind.NetFramework);
+                return (await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken).ConfigureAwait(false), PreferredKind: BuildHostProcessKind.NetFramework);
             }
         }
 
@@ -113,7 +119,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             if (processToDispose != null)
             {
                 processToDispose.LoggerForProcessMessages?.LogTrace("Process exited.");
-                await processToDispose.DisposeAsync();
+                await processToDispose.DisposeAsync().ConfigureAwait(false);
             }
         });
     }
@@ -121,7 +127,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         foreach (var process in _processes.Values)
-            await process.DisposeAsync();
+            await process.DisposeAsync().ConfigureAwait(false);
     }
 
     private ProcessStartInfo CreateDotNetCoreBuildHostStartInfo()
@@ -134,10 +140,12 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // We need to roll forward to the latest runtime, since the project may be using an SDK (or an SDK required runtime) newer than we ourselves built with.
         // We set the environment variable since --roll-forward LatestMajor doesn't roll forward to prerelease SDKs otherwise.
         processStartInfo.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
-        processStartInfo.ArgumentList.Add("--roll-forward");
-        processStartInfo.ArgumentList.Add("LatestMajor");
+        AddArgument(processStartInfo, "--roll-forward");
+        AddArgument(processStartInfo, "LatestMajor");
 
-        processStartInfo.ArgumentList.Add(typeof(IBuildHost).Assembly.Location);
+        var netCoreBuildHostPath = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net6.0", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
+
+        AddArgument(processStartInfo, netCoreBuildHostPath);
 
         AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
@@ -164,7 +172,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             FileName = "mono"
         };
 
-        processStartInfo.ArgumentList.Add(GetPathToDotNetFrameworkBuildHost());
+        AddArgument(processStartInfo, GetPathToDotNetFrameworkBuildHost());
 
         AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
@@ -182,8 +190,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     {
         if (_binaryLogPath is not null)
         {
-            processStartInfo.ArgumentList.Add("--binlog");
-            processStartInfo.ArgumentList.Add(_binaryLogPath);
+            AddArgument(processStartInfo, "--binlog");
+            AddArgument(processStartInfo, _binaryLogPath);
         }
 
         // MSBUILD_EXE_PATH is read by MSBuild to find related tasks and targets. We don't want this to be inherited by our build process, or otherwise
@@ -195,6 +203,23 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         processStartInfo.RedirectStandardInput = true;
         processStartInfo.RedirectStandardOutput = true;
         processStartInfo.RedirectStandardError = true;
+    }
+
+    private static void AddArgument(ProcessStartInfo processStartInfo, string argument)
+    {
+        // On .NET Core 2.1 and higher we can just use ArgumentList to do the right thing; downlevel we need to manually
+        // construct the string
+#if NET
+        processStartInfo.ArgumentList.Add(argument);
+#else
+        if (processStartInfo.Arguments.Length > 0)
+            processStartInfo.Arguments += ' ';
+
+        if (argument.Contains(' '))
+            processStartInfo.Arguments += '"' + argument + '"';
+        else
+            processStartInfo.Arguments += argument;
+#endif
     }
 
     private static readonly XmlReaderSettings s_xmlSettings = new()
@@ -298,7 +323,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             // We will call Shutdown in a try/catch; if the process has gone bad it's possible the connection is no longer functioning.
             try
             {
-                await BuildHost.ShutdownAsync();
+                await BuildHost.ShutdownAsync().ConfigureAwait(false);
                 _jsonRpc.Dispose();
 
                 LoggerForProcessMessages?.LogTrace("Process gracefully shut down.");
