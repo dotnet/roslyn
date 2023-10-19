@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private TSelf This => (TSelf)this;
 
-        internal TSelf AddBaseline(string source, Action<GenerationVerifier> validator)
+        internal TSelf AddBaseline(string source, Action<GenerationVerifier>? validator = null)
+            => AddBaseline(CreateSourceWithMarkedNodes(source), validator);
+
+        internal TSelf AddBaseline(SourceWithMarkedNodes source, Action<GenerationVerifier>? validator = null)
         {
             _hasVerified = false;
 
@@ -59,8 +62,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var baseline = EditAndContinueTestUtilities.CreateInitialBaseline(compilation, md, verifier.CreateSymReader().GetEncMethodDebugInfo);
 
-            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator));
-            _sources.Add(markedSource);
+            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator ?? new(x => { })));
+            _sources.Add(source);
 
             return This;
         }
@@ -113,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation, readers);
+                var verifier = new GenerationVerifier(index, generation, readers.ToImmutableArray());
                 generation.Verifier(verifier);
 
                 index++;
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     syntaxMap = null;
                 }
 
-                return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap, e.PreserveLocalVariables);
+                return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap);
             }));
         }
 
