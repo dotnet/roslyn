@@ -35,27 +35,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private readonly ImmutableArray<VariableInfo> _variables = variables;
             private readonly VariableInfo _variableToUseAsReturnValue = variableToUseAsReturnValue;
 
-            //public AnalyzerResult With(SemanticDocument document)
-            //{
-            //    if (SemanticDocument == document)
-            //    {
-            //        return this;
-            //    }
-
-            //    return new AnalyzerResult(
-            //        document,
-            //        _typeParametersInDeclaration,
-            //        _typeParametersInConstraintList,
-            //        _variables,
-            //        _variableToUseAsReturnValue,
-            //        ReturnType,
-            //        AwaitTaskReturn,
-            //        UseInstanceMember,
-            //        ShouldBeReadOnly,
-            //        EndOfSelectionReachable,
-            //        Status);
-            //}
-
             /// <summary>
             /// used to determine whether static can be used
             /// </summary>
@@ -70,11 +49,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// used to determine whether "return" statement needs to be inserted
             /// </summary>
             public bool EndOfSelectionReachable { get; } = endOfSelectionReachable;
-
-            ///// <summary>
-            ///// document this result is based on
-            ///// </summary>
-            //public SemanticDocument SemanticDocument { get; } = document;
 
             /// <summary>
             /// flag to show whether task return type is due to await
