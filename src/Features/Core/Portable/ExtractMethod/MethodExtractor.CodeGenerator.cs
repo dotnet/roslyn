@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 else
                 {
                     var mappedMember = this.InsertionPoint.With(callSiteDocument).GetContext();
-                    mappedMember = mappedMember.RawKind == syntaxKinds.GlobalStatement
+                    mappedMember = mappedMember.Parent?.RawKind == syntaxKinds.GlobalStatement
                         ? mappedMember.Parent
                         : mappedMember;
 
