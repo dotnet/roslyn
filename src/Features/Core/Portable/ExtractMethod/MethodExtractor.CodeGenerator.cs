@@ -93,14 +93,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // rely on flow analysis of the final resulting code than to try and predict from the analyzer what will
                 // happen in the generator. 
                 var finalDocument = await UpdateMethodAfterGenerationAsync(callSiteDocument, newMethodDefinition, cancellationToken).ConfigureAwait(false);
-                var finalRoot = finalDocument.Root;
-
-                var methodDefinition = finalRoot.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault();
-                if (!methodDefinition.IsNode || methodDefinition.AsNode() == null)
-                {
-                    return await CreateGeneratedCodeAsync(
-                        newMethodDefinition.Status.With(OperationStatus.FailedWithUnknownReason), finalDocument, cancellationToken).ConfigureAwait(false);
-                }
 
                 return await CreateGeneratedCodeAsync(newMethodDefinition.Status, finalDocument, cancellationToken).ConfigureAwait(false);
             }
