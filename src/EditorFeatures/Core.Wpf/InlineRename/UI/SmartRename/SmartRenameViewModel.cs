@@ -41,6 +41,10 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     private string? _selectedSuggestedName;
 
+    /// <summary>
+    /// The last selected name when user click one of the suggestions. <see langword="null"/> if user hasn't clicked any suggestions.
+    /// It would trigger <see cref="PropertyChanged"/> when it get changed.
+    /// </summary>
     public string? SelectedSuggestedName
     {
         get => _selectedSuggestedName;
@@ -74,6 +78,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         _threadingContext.ThrowIfNotOnUIThread();
+        // _smartRenameSession.SuggestedNames is a normal list. We need to convert it to ObservableCollection to bind to UI Element.
         if (e.PropertyName == nameof(_smartRenameSession.SuggestedNames))
         {
             SuggestedNames.Clear();
@@ -85,6 +90,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
             return;
         }
 
+        // For the rest of the property, just forward it has changed to subscriber
         PropertyChanged?.Invoke(this, e);
     }
 
@@ -108,11 +114,13 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     public void Cancel()
     {
         _cancellationTokenSource.Cancel();
+        // It's needed by editor-side telemetry.
         _smartRenameSession.OnCancel();
     }
 
     public void Commit(string finalIdentifierName)
     {
+        // It's needed by editor-side telemetry.
         _smartRenameSession.OnSuccess(finalIdentifierName);
     }
 

@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnSuggestedNameSelected(object sender, PropertyChangedEventArgs e)
         {
+            // When user clicks one of the suggestions, update the IdentifierTextBox content to it.
             _threadingContext.ThrowIfNotOnUIThread();
             if (e.PropertyName == nameof(SmartRenameViewModel.SelectedSuggestedName)
                 && SmartRenameViewModel?.SelectedSuggestedName is not null)
