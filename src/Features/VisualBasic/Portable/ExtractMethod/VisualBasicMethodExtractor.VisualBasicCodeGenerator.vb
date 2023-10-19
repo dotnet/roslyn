@@ -424,10 +424,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim methodDefinition = root.GetAnnotatedNodes(Of MethodBlockBaseSyntax)(Me.MethodDefinitionAnnotation).First()
                     Dim lastTokenOfBeginStatement = methodDefinition.BlockStatement.GetLastToken(includeZeroWidth:=True)
 
-                    Dim newMethodDefinition =
-                        methodDefinition.ReplaceToken(lastTokenOfBeginStatement,
-                                                      lastTokenOfBeginStatement.WithAppendedTrailingTrivia(
-                                                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)))
+                    Dim newMethodDefinition = methodDefinition.ReplaceToken(
+                        lastTokenOfBeginStatement,
+                        lastTokenOfBeginStatement.WithAppendedTrailingTrivia(
+                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)))
 
                     newDocument = Await newDocument.WithSyntaxRootAsync(root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(False)
                 End If

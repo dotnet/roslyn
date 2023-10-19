@@ -681,22 +681,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // here, we explicitly insert newline at the end of "{" of auto generated method decl so that anchor knows how to find out
                     // indentation of inserted statements (from users code) with user code style preserved
                     var root = newDocument.Root;
-                    var methodDefinition = root.GetAnnotatedNodes<SyntaxNode>(MethodDefinitionAnnotation).FirstOrDefault();
-                    if (methodDefinition != null)
+                    var methodDefinition = root.GetAnnotatedNodes<SyntaxNode>(MethodDefinitionAnnotation).First();
+
+                    SyntaxNode newMethodDefinition = methodDefinition switch
                     {
+                        MethodDeclarationSyntax method => TweakNewLinesInMethod(method),
+                        LocalFunctionStatementSyntax localFunction => TweakNewLinesInMethod(localFunction),
+                        _ => throw new NotSupportedException("SyntaxNode expected to be MethodDeclarationSyntax or LocalFunctionStatementSyntax."),
+                    };
 
-#pragma warning disable IDE0007 // Use implicit type (False positive: https://github.com/dotnet/roslyn/issues/44507)
-                        SyntaxNode newMethodDefinition = methodDefinition switch
-#pragma warning restore IDE0007 // Use implicit type
-                        {
-                            MethodDeclarationSyntax method => TweakNewLinesInMethod(method),
-                            LocalFunctionStatementSyntax localFunction => TweakNewLinesInMethod(localFunction),
-                            _ => throw new NotSupportedException("SyntaxNode expected to be MethodDeclarationSyntax or LocalFunctionStatementSyntax."),
-                        };
-
-                        newDocument = await newDocument.WithSyntaxRootAsync(
-                            root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
-                    }
+                    newDocument = await newDocument.WithSyntaxRootAsync(
+                        root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
                 }
 
                 return await base.CreateGeneratedCodeAsync(status, newDocument, cancellationToken).ConfigureAwait(false);
