@@ -67,12 +67,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             if (!CanAddTo(originalSemanticDocument.Document, insertionPointNode, out var canAddStatus))
                 return new FailedExtractMethodResult(canAddStatus);
 
-            var insertionPoint = await InsertionPoint.CreateAsync(originalSemanticDocument, insertionPointNode, cancellationToken).ConfigureAwait(false);
-
             cancellationToken.ThrowIfCancellationRequested();
 
-            var analyzedDocument = await analyzeResult.CreateAnnotatedDocumentAsync(
-                insertionPoint.SemanticDocument, cancellationToken).ConfigureAwait(false);
+            var (analyzedDocument, insertionPoint) = await GetAnnotatedDocumentAndInsertionPointAsync(
+                originalSemanticDocument, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
 
             var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -129,6 +127,34 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 status = OperationStatus.Succeeded;
                 return true;
             }
+        }
+
+        private static async Task<(SemanticDocument analyzedDocument, InsertionPoint insertionPoint)> GetAnnotatedDocumentAndInsertionPointAsync(
+            SemanticDocument document,
+            AnalyzerResult analyzeResult,
+            SyntaxNode insertionPointNode,
+            CancellationToken cancellationToken)
+        {
+            var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(analyzeResult.Variables.Length);
+            foreach (var variable in analyzeResult.Variables)
+                variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
+
+            var tokenMap = annotations.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
+
+            var insertionPointAnnotation = new SyntaxAnnotation();
+
+            var finalRoot = document.Root.ReplaceSyntax(
+                nodes: new[] { insertionPointNode },
+                computeReplacementNode: (o, n) => o.WithAdditionalAnnotations(insertionPointAnnotation),
+                tokens: tokenMap.Keys,
+                computeReplacementToken: (o, n) => o.WithAdditionalAnnotations(tokenMap[o]),
+                trivia: null,
+                computeReplacementTrivia: null);
+
+            var finalDocument = await document.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
+            var insertionPoint = new InsertionPoint(finalDocument, insertionPointAnnotation);
+
+            return (finalDocument, insertionPoint);
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)

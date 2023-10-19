@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// </summary>
             public OperationStatus Status { get; } = status;
 
+            public ImmutableArray<VariableInfo> Variables => _variables;
+
             public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInDeclaration
             {
                 get
@@ -177,15 +179,27 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return variables[0];
             }
 
-            public async ValueTask<SemanticDocument> CreateAnnotatedDocumentAsync(SemanticDocument document, CancellationToken cancellationToken)
+            public async ValueTask<(SemanticDocument, InsertionPoint)> CreateAnnotatedDocumentAsync(
+                SemanticDocument document, SyntaxNode insertionPointNode, CancellationToken cancellationToken)
             {
                 var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(_variables.Length);
                 _variables.Do(v => v.AddIdentifierTokenAnnotationPair(annotations, cancellationToken));
 
-                if (annotations.Count == 0)
-                    return document;
+                var tokenMap = annotations.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
 
-                return await document.WithSyntaxRootAsync(document.Root.AddAnnotations(annotations), cancellationToken).ConfigureAwait(false);
+                var insertionPointAnnotation = new SyntaxAnnotation();
+                // return new InsertionPoint(await document.WithSyntaxRootAsync(newRoot, cancellationToken).ConfigureAwait(false), annotation);
+
+                var finalRoot = document.Root.ReplaceSyntax(
+                    nodes: new[] { insertionPointNode },
+                    computeReplacementNode: (o, n) => o.WithAdditionalAnnotations(insertionPointAnnotation),
+                    tokens: tokenMap.Keys,
+                    computeReplacementToken: (o, n) => o.WithAdditionalAnnotations(tokenMap[o]),
+                    trivia: null,
+                    computeReplacementTrivia: null);
+                var finalDocument = await document.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
+                var insertionPoint = new InsertionPoint(finalDocument, insertionPointAnnotation);
+                return (finalDocument, insertionPoint);
             }
         }
     }
