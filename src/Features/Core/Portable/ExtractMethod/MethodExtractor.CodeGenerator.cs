@@ -97,26 +97,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return await CreateGeneratedCodeAsync(newMethodDefinition.Status, finalDocument, cancellationToken).ConfigureAwait(false);
             }
 
-            private Task<SemanticDocument> InsertMethodAndUpdateCallSiteAsync(
+            private async Task<SemanticDocument> InsertMethodAndUpdateCallSiteAsync(
                 IMethodSymbol newMethodDefinition, CancellationToken cancellationToken)
             {
                 var document = this.SemanticDocument.Document;
                 var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
 
+                // First, update the callsite with the call to the new method.
+                var outermostCallSiteContainer = GetOutermostCallSiteContainerToProcess(cancellationToken);
+
+                var rootWithUpdatedCallSite = this.SemanticDocument.Root.ReplaceNode(
+                    outermostCallSiteContainer,
+                    await GenerateBodyForCallSiteContainerAsync(outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
+                var documentWithUpdatedCallSite = await this.SemanticDocument.WithSyntaxRootAsync(rootWithUpdatedCallSite, cancellationToken).ConfigureAwait(false);
+
                 return LocalFunction
-                    ? InsertLocalFunctionAndUpdateCallSiteAsync()
-                    : InsertNormalMethodAndUpdateCallSiteAsync();
+                    ? await InsertLocalFunction().ConfigureAwait(false)
+                    : await InsertNormalMethod().ConfigureAwait(false);
 
-                async Task<SemanticDocument> InsertLocalFunctionAndUpdateCallSiteAsync()
+                async Task<SemanticDocument> InsertLocalFunction()
                 {
-                    // First, update the callsite with the call to the new method.
-                    var outermostCallSiteContainer = GetOutermostCallSiteContainerToProcess(cancellationToken);
-
-                    var newRoot1 = this.SemanticDocument.Root.ReplaceNode(
-                        outermostCallSiteContainer,
-                        await GenerateBodyForCallSiteContainerAsync(outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
-                    var updatedDoc = await this.SemanticDocument.WithSyntaxRootAsync(newRoot1, cancellationToken).ConfigureAwait(false);
-
                     // Now, insert the local function.
                     var info = codeGenerationService.GetInfo(
                         new CodeGenerationContext(generateDefaultAccessibility: false),
@@ -125,27 +125,23 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     var localMethod = codeGenerationService.CreateMethodDeclaration(newMethodDefinition, CodeGenerationDestination.Unspecified, info, cancellationToken);
 
-                    var destination = InsertionPoint.With(updatedDoc).GetContext();
+                    // Find the destination for the local function after the callsite has been fixed up.
+                    var destination = InsertionPoint.With(documentWithUpdatedCallSite).GetContext();
                     var updatedDestination = codeGenerationService.AddStatements(destination, new[] { localMethod }, info, cancellationToken);
-                    var newRoot2 = updatedDoc.Root.ReplaceNode(destination, updatedDestination);
 
-                    var updatedDocument = await SemanticDocument.WithSyntaxRootAsync(newRoot2, cancellationToken).ConfigureAwait(false);
+                    var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, updatedDestination);
+
+                    var updatedDocument = await documentWithUpdatedCallSite.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
                     return updatedDocument;
                 }
 
-                async Task<SemanticDocument> InsertNormalMethodAndUpdateCallSiteAsync()
+                async Task<SemanticDocument> InsertNormalMethod()
                 {
-                    var outermostCallSiteContainer = GetOutermostCallSiteContainerToProcess(cancellationToken);
-                    var newRoot = this.SemanticDocument.Root.ReplaceNode(
-                        outermostCallSiteContainer,
-                        await GenerateBodyForCallSiteContainerAsync(outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
-
-                    var callSiteDocument = await SemanticDocument.WithSyntaxRootAsync(newRoot, cancellationToken).ConfigureAwait(false);
-
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                     var syntaxKinds = syntaxFacts.SyntaxKinds;
 
-                    var mappedMember = this.InsertionPoint.With(callSiteDocument).GetContext();
+                    // Find the destination for the new method after the callsite has been fixed up.
+                    var mappedMember = this.InsertionPoint.With(documentWithUpdatedCallSite).GetContext();
                     mappedMember = mappedMember.Parent?.RawKind == syntaxKinds.GlobalStatement
                         ? mappedMember.Parent
                         : mappedMember;
@@ -159,11 +155,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             generateDefaultAccessibility: true,
                             generateMethodBodies: true),
                         Options,
-                        callSiteDocument.Project.ParseOptions);
+                        documentWithUpdatedCallSite.Project.ParseOptions);
 
                     var newContainer = codeGenerationService.AddMethod(destination, newMethodDefinition, info, cancellationToken);
-                    var newSyntaxRoot = callSiteDocument.Root.ReplaceNode(destination, newContainer);
-                    return await callSiteDocument.WithSyntaxRootAsync(newSyntaxRoot, cancellationToken).ConfigureAwait(false);
+                    var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, newContainer);
+                    return await documentWithUpdatedCallSite.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
                 }
             }
 
