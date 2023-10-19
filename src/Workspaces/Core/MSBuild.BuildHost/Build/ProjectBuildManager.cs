@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             {
                 if (!projectInstance.Targets.ContainsKey(target))
                 {
-                    log.Add(string.Format(WorkspaceMSBuildResources.Project_does_not_contain_0_target, target), projectInstance.FullPath);
+                    log.Add(string.Format(WorkspaceMSBuildBuildHostResources.Project_does_not_contain_0_target, target), projectInstance.FullPath);
                     return projectInstance;
                 }
             }
