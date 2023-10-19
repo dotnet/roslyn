@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             LocalFunction = localFunction;
         }
 
-        protected abstract Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
+        protected abstract AnalyzerResult Analyze(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var operationStatus = OriginalSelectionResult.Status;
 
             var originalSemanticDocument = OriginalSelectionResult.SemanticDocument;
-            var analyzeResult = await AnalyzeAsync(OriginalSelectionResult, LocalFunction, cancellationToken).ConfigureAwait(false);
+            var analyzeResult = Analyze(OriginalSelectionResult, LocalFunction, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
             operationStatus = CheckVariableTypes(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken);

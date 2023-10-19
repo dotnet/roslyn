@@ -45,8 +45,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
             {
-                Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
-
                 InsertionPoint = insertionPoint;
                 SemanticDocument = insertionPoint.SemanticDocument;
 

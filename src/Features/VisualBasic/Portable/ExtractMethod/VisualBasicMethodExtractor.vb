@@ -21,13 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             MyBase.New(result, options, localFunction:=False)
         End Sub
 
-        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
-            Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
+        Protected Overrides Function Analyze(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult
+            Return VisualBasicAnalyzer.AnalyzeResult(selectionResult, cancellationToken)
         End Function
 
         Protected Overrides Function GetInsertionPointNode(
                 analyzerResult As AnalyzerResult, cancellationToken As CancellationToken) As SyntaxNode
-            Dim document = analyzerResult.SemanticDocument
+            Dim document = Me.OriginalSelectionResult.SemanticDocument
             Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
             Contract.ThrowIfFalse(originalSpanStart >= 0)
 
@@ -81,11 +81,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return CType(methodNames.FirstOrDefault(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement), SyntaxToken)
         End Function
 
-        Protected Overrides Async Function CheckTypeAsync(document As Document,
-                                               contextNode As SyntaxNode,
-                                               location As Location,
-                                               type As ITypeSymbol,
-                                               cancellationToken As CancellationToken) As Task(Of OperationStatus)
+        Protected Overrides Function CheckType(
+                semanticModel As SemanticModel,
+                contextNode As SyntaxNode,
+                location As Location,
+                type As ITypeSymbol) As OperationStatus
             Contract.ThrowIfNull(type)
 
             If type.SpecialType = SpecialType.System_Void Then
@@ -98,14 +98,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             ' if it is type parameter, make sure we are getting same type parameter
-            Dim binding = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-
             For Each typeParameter In TypeParameterCollector.Collect(type)
                 Dim typeName = SyntaxFactory.ParseTypeName(typeParameter.Name)
-                Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
+                Dim symbolInfo = semanticModel.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
 
-                If Not SymbolEqualityComparer.Default.Equals(currentType, binding.ResolveType(typeParameter)) Then
+                If Not SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)) Then
                     Return New OperationStatus(OperationStatusFlag.Succeeded,
                         String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),

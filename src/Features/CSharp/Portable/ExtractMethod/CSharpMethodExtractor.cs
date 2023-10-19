@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
         : MethodExtractor(result, options, localFunction)
     {
-        protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-            => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
+        protected override AnalyzerResult Analyze(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
 
         protected override SyntaxNode GetInsertionPointNode(
             AnalyzerResult analyzerResult, CancellationToken cancellationToken)
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames)
             => (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
-        protected override async OperationStatus CheckType(
+        protected override OperationStatus CheckType(
             SemanticModel semanticModel,
             SyntaxNode contextNode,
             Location location,
