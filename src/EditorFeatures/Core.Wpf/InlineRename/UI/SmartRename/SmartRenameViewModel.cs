@@ -96,9 +96,12 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                 return null;
             }
 
+            // ↑ and ↓ would navigate via the Suggested list.
+            // The previous element of first element is the last one. And the next element of the last element is the first one.
             var currentIndex = SuggestedNames.IndexOf(currentIdentifier);
             currentIndex += down ? 1 : -1;
-            currentIndex = Math.Max(0, Math.Min(this.SuggestedNames.Count - 1, currentIndex));
+            var count = this.SuggestedNames.Count;
+            currentIndex = (currentIndex + count) % count;
             return SuggestedNames[currentIndex];
         }
 
