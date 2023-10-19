@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
                     : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
 
+                if (baseNode is CompilationUnitSyntax)
+                    return baseNode;
+
                 var currentNode = baseNode;
                 while (currentNode is not null)
                 {
