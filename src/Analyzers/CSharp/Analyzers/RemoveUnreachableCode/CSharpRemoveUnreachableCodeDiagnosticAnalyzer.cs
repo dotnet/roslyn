@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // recompile things to determine the diagnostics.  It will have already stashed the
             // binding diagnostics directly on the SourceMethodSymbol containing this block, and
             // so it can retrieve the diagnostics at practically no cost.
-            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            SyntaxNode root;
             var diagnostics = semanticModel.GetDiagnostics(context.FilterSpan, cancellationToken);
             foreach (var diagnostic in diagnostics)
             {
@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
                 if (diagnostic.Id == CS0162)
                 {
+                    root ??= semanticModel.SyntaxTree.GetRoot(cancellationToken);
                     ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan);
                 }
             }
