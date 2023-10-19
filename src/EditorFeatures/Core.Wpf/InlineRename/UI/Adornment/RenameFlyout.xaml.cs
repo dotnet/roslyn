@@ -250,6 +250,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     if (newIdentifier is not null)
                     {
                         _viewModel.IdentifierText = newIdentifier;
+                        // Place the cursor at the end of the input text box.
+                        IdentifierTextBox.Select(newIdentifier.Length, 0);
                         e.Handled = true;
                     }
                 }
