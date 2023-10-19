@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Api
 {
-    internal interface IMapCodeService : ILanguageService
+    internal interface ICopilotMapCodeService : ILanguageService
     {
         Task<Document> MapCodeAsync(
             Document document,
