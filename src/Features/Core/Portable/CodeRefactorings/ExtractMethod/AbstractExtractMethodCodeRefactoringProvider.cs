@@ -138,16 +138,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return null;
         }
 
-        private static async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
+        private static async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken? invocationNameToken, CancellationToken cancellationToken)
         {
-            if (invocationNameToken == default)
+            if (invocationNameToken == null)
                 return document;
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var finalRoot = root.ReplaceToken(
-                invocationNameToken,
-                invocationNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()));
+                invocationNameToken.Value,
+                invocationNameToken.Value.WithAdditionalAnnotations(RenameAnnotation.Create()));
 
             return document.WithSyntaxRoot(finalRoot);
         }
