@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// This type generally assumes that files on disk aren't changing, since it ensure that two calls to <see cref="LoadFromPath(string)"/>
     /// will always return the same thing, per that interface's contract.
     /// </remarks>
-    internal abstract partial class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+    internal abstract partial class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoaderInternal
     {
         private readonly object _guard = new();
 

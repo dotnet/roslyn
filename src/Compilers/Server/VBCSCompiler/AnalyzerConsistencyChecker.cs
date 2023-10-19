@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NETFRAMEWORK
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,25 +21,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string baseDirectory,
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
             IAnalyzerAssemblyLoader loader,
-            ICompilerServerLogger? logger = null) => Check(baseDirectory, analyzerReferences, loader, logger, out var _);
+            ICompilerServerLogger logger) => Check(baseDirectory, analyzerReferences, loader, logger, out var _);
 
         public static bool Check(
             string baseDirectory,
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
             IAnalyzerAssemblyLoader loader,
-            ICompilerServerLogger? logger,
-            [NotNullWhen(false)]
-            out List<string>? errorMessages)
+            ICompilerServerLogger logger,
+            [NotNullWhen(false)] out List<string>? errorMessages)
         {
             errorMessages = null;
             try
             {
-                logger?.Log($"Begin Analyzer Consistency Check for {baseDirectory}");
+                logger.Log($"Begin Analyzer Consistency Check for {baseDirectory}");
                 return CheckCore(baseDirectory, analyzerReferences, loader, logger, out errorMessages);
             }
             catch (Exception e)
             {
-                logger?.LogException(e, "Analyzer Consistency Check");
+                logger.LogException(e, "Analyzer Consistency Check");
                 errorMessages ??= new List<string>();
                 errorMessages.Add(e.Message);
                 return false;
@@ -56,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string baseDirectory,
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
             IAnalyzerAssemblyLoader loader,
-            ICompilerServerLogger? logger,
+            ICompilerServerLogger logger,
             [NotNullWhen(false)] out List<string>? errorMessages)
         {
             errorMessages = null;
@@ -91,27 +88,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 loadedAssemblies.Add(loader.LoadFromPath(resolvedPath));
             }
 
-            // Third, check that the MVIDs of the files on disk match the MVIDs of the loaded assemblies.
-            var comparer = PathUtilities.Comparer;
-            var compilerDirectory = Path.GetDirectoryName(typeof(AnalyzerConsistencyChecker).Assembly.CodeBase);
-
             for (int i = 0; i < resolvedPaths.Count; i++)
             {
                 var resolvedPath = resolvedPaths[i];
                 var loadedAssembly = loadedAssemblies[i];
 
-                // When an assembly is loaded from the GAC then the load result would be the same if 
-                // this ran on command line compiler. So there is no consistency issue here, this 
-                // is just runtime rules expressing themselves.
-                if (loadedAssembly.GlobalAssemblyCache)
-                {
-                    continue;
-                }
-
-                // When an assembly is loaded from the compiler directory then this means it's assembly
-                // binding redirects taking over. For example it's moving from an older version of System.Memory
-                // to the one shipping in the compiler. This is not a consistency issue.
-                if (PathUtilities.Comparer.Equals(compilerDirectory, Path.GetDirectoryName(loadedAssembly.CodeBase)))
+                // Do not perform consistency checks on assemblies that are owned by the host. These
+                // always loaded from paths and at versions controlled by the compiler host. It's 
+                // expected that the version the compilation specifies may get overriden.
+                if (loader is IAnalyzerAssemblyLoaderInternal internalLoader && internalLoader.IsHostAssembly(loadedAssembly))
                 {
                     continue;
                 }
@@ -131,5 +116,3 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 }
-
-#endif

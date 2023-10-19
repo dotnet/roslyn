@@ -46,4 +46,13 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="fullPath" /> is not a full path.</exception>
         void AddDependencyLocation(string fullPath);
     }
+
+    internal interface IAnalyzerAssemblyLoaderInternal : IAnalyzerAssemblyLoader
+    {
+        /// <summary>
+        /// Is this an <see cref="Assembly"/> that the loader considers to be part of the hosting 
+        /// process. Either part of the compiler itself or the process hosting the compiler.
+        /// </summary>
+        bool IsHostAssembly(Assembly assembly);
+    }
 }
