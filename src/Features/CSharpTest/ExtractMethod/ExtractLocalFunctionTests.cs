@@ -5445,9 +5445,9 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/45422")]
-        public async Task TestMissingOnExtractLocalFunction()
+        public async Task TestOnExtractLocalFunction()
         {
-            await TestMissingInRegularAndScriptAsync("""
+            await TestInRegularAndScriptAsync("""
                 class C
                 {
                     static void M()
@@ -5465,14 +5465,34 @@ class Program
                         }
                     }
                 }
-                """, codeActionIndex: 1);
+                """, """
+                class C
+                {
+                    static void M()
+                    {
+                        if (true)
+                            {|Rename:NewMethod|}();
+
+                        static void NewMethod()
+                        {
+                            static void L()
+                            {
+                                static void L2()
+                                {
+                                    var x = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                """, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/45422")]
-        public async Task TestMissingOnExtractLocalFunctionWithExtraBrace()
+        public async Task TestExtractLocalFunctionWithExtraBrace()
         {
-            await TestMissingInRegularAndScriptAsync("""
+            await TestInRegularAndScript1Async("""
                 class C
                 {
                     static void M()
@@ -5489,7 +5509,27 @@ class Program
                         }
                     }
                 }
-                """, codeActionIndex: 1);
+                """, """
+                class C
+                {
+                    static void M()
+                    {
+                        if (true)
+                            {|Rename:NewMethod|}();
+
+                        static void NewMethod()
+                        {
+                            static void L()
+                            {
+                                static void L2()
+                                {
+                                    var x = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                """, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
