@@ -46,7 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
 
                 if (baseNode is CompilationUnitSyntax)
-                    return baseNode;
+                {
+                    // In some sort of global statement.  Have to special case these a bit for script files.
+                    var globalStatement = root.FindToken(originalSpanStart).GetAncestor<GlobalStatementSyntax>();
+                    if (globalStatement is null)
+                        return null;
+
+                    return GetInsertionPointForGlobalStatement(globalStatement, globalStatement);
+                }
 
                 var currentNode = baseNode;
                 while (currentNode is not null)
@@ -112,22 +119,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
                 if (memberNode is GlobalStatementSyntax globalStatement)
-                {
-                    // check whether we are extracting whole global statement out
-                    if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
-                        return globalStatement.Parent;
-
-                    // check whether the global statement is a statement container
-                    if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
-                    {
-                        // The extracted function will be a new global statement
-                        return globalStatement.Parent;
-                    }
-
-                    return globalStatement.Statement;
-                }
+                    return GetInsertionPointForGlobalStatement(globalStatement, memberNode);
 
                 return memberNode;
+            }
+
+            SyntaxNode GetInsertionPointForGlobalStatement(GlobalStatementSyntax globalStatement, MemberDeclarationSyntax memberNode)
+            {
+                // check whether we are extracting whole global statement out
+                if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
+                    return globalStatement.Parent;
+
+                // check whether the global statement is a statement container
+                if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                {
+                    // The extracted function will be a new global statement
+                    return globalStatement.Parent;
+                }
+
+                return globalStatement.Statement;
             }
         }
 
