@@ -615,10 +615,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeCollectionExpressionTypeInferences(binder, (BoundUnconvertedCollectionExpression)argument, target, kind, ref useSiteInfo);
             }
-            else if (argument.Kind == BoundKind.CollectionExpressionSpreadElement)
-            {
-                MakeSpreadElementTypeInferences((BoundCollectionExpressionSpreadElement)argument, target, ref useSiteInfo);
-            }
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
             {
@@ -662,7 +658,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                MakeExplicitParameterTypeInferences(binder, element, targetElementType, kind, ref useSiteInfo);
+                if (element is BoundCollectionExpressionSpreadElement spread)
+                {
+                    MakeSpreadElementTypeInferences(spread, targetElementType, ref useSiteInfo);
+                }
+                else
+                {
+                    MakeExplicitParameterTypeInferences(binder, (BoundExpression)element, targetElementType, kind, ref useSiteInfo);
+                }
             }
         }
 
@@ -880,7 +883,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                MakeOutputTypeInferences(binder, element, targetElementType, ref useSiteInfo);
+                if (element is BoundExpression expression)
+                {
+                    MakeOutputTypeInferences(binder, expression, targetElementType, ref useSiteInfo);
+                }
             }
         }
 
