@@ -3347,6 +3347,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: "(System.Object[]) [one, null], 3, (System.Object[]) [one, null, three], 5, ");
         }
 
+        [Fact]
+        public void Spread_String()
+        {
+            string source = """
+                class Program
+                {
+                    static char[] GetChars() => [.."abcd"];
+                    static void Main()
+                    {
+                        GetChars().Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: IncludeExpectedOutput("[a, b, c, d], "));
+            verifier.VerifyIL("Program.GetChars", """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                char[] V_1,
+                                System.CharEnumerator V_2,
+                                char V_3)
+                  IL_0000:  ldstr      "abcd"
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  stloc.0
+                  IL_0007:  dup
+                  IL_0008:  callvirt   "int string.Length.get"
+                  IL_000d:  newarr     "char"
+                  IL_0012:  stloc.1
+                  IL_0013:  callvirt   "System.CharEnumerator string.GetEnumerator()"
+                  IL_0018:  stloc.2
+                  .try
+                  {
+                    IL_0019:  br.s       IL_002a
+                    IL_001b:  ldloc.2
+                    IL_001c:  callvirt   "char System.CharEnumerator.Current.get"
+                    IL_0021:  stloc.3
+                    IL_0022:  ldloc.1
+                    IL_0023:  ldloc.0
+                    IL_0024:  ldloc.3
+                    IL_0025:  stelem.i2
+                    IL_0026:  ldloc.0
+                    IL_0027:  ldc.i4.1
+                    IL_0028:  add
+                    IL_0029:  stloc.0
+                    IL_002a:  ldloc.2
+                    IL_002b:  callvirt   "bool System.CharEnumerator.MoveNext()"
+                    IL_0030:  brtrue.s   IL_001b
+                    IL_0032:  leave.s    IL_003e
+                  }
+                  finally
+                  {
+                    IL_0034:  ldloc.2
+                    IL_0035:  brfalse.s  IL_003d
+                    IL_0037:  ldloc.2
+                    IL_0038:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003d:  endfinally
+                  }
+                  IL_003e:  ldloc.1
+                  IL_003f:  ret
+                }
+                """);
+        }
+
         [CombinatorialData]
         [Theory]
         public void Spread_RefEnumerable(bool useCompilationReference)
