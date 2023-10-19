@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
         protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
 
-        protected abstract Task<OperationStatus> CheckTypeAsync(Document document, SyntaxNode contextNode, Location location, ITypeSymbol type, CancellationToken cancellationToken);
+        protected abstract OperationStatus CheckType(SemanticModel semanticModel, SyntaxNode contextNode, Location location, ITypeSymbol type);
 
         protected abstract Task<(Document document, SyntaxToken methodName)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(Document document, SyntaxToken methodName, SyntaxNode methodDefinition, CancellationToken cancellationToken);
 
@@ -54,22 +54,27 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             var operationStatus = OriginalSelectionResult.Status;
 
+            var originalSemanticDocument = OriginalSelectionResult.SemanticDocument;
             var analyzeResult = await AnalyzeAsync(OriginalSelectionResult, LocalFunction, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
-            operationStatus = await CheckVariableTypesAsync(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken).ConfigureAwait(false);
+            operationStatus = CheckVariableTypes(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken);
             if (operationStatus.Failed())
                 return new FailedExtractMethodResult(operationStatus);
 
             var insertionPointNode = GetInsertionPointNode(analyzeResult, cancellationToken);
-            if (!CanAddTo(analyzeResult.SemanticDocument.Document, insertionPointNode, out var canAddStatus))
+
+            if (!CanAddTo(originalSemanticDocument.Document, insertionPointNode, out var canAddStatus))
                 return new FailedExtractMethodResult(canAddStatus);
 
-            var insertionPoint = await InsertionPoint.CreateAsync(analyzeResult.SemanticDocument, insertionPointNode, cancellationToken).ConfigureAwait(false);
+            var insertionPoint = await InsertionPoint.CreateAsync(originalSemanticDocument, insertionPointNode, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(insertionPoint.SemanticDocument), cancellationToken).ConfigureAwait(false);
+            var analyzedDocument = await analyzeResult.CreateAnnotatedDocumentAsync(
+                insertionPoint.SemanticDocument, cancellationToken).ConfigureAwait(false);
+
+            var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var generatedCode = await GenerateCodeAsync(
                 insertionPoint.With(expandedDocument),
                 OriginalSelectionResult.With(expandedDocument),
-                analyzeResult.With(expandedDocument),
+                analyzeResult,
                 Options.CodeGenerationOptions,
                 cancellationToken).ConfigureAwait(false);
 
@@ -148,30 +153,30 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return new SimpleExtractMethodResult(status, semanticDocumentWithoutFinalFormatting.Document, formattingRules, methodName);
         }
 
-        private async Task<OperationStatus> CheckVariableTypesAsync(
+        private OperationStatus CheckVariableTypes(
             OperationStatus status,
             AnalyzerResult analyzeResult,
             CancellationToken cancellationToken)
         {
-            var document = analyzeResult.SemanticDocument;
+            var semanticModel = OriginalSelectionResult.SemanticDocument.SemanticModel;
 
             // sync selection result to same semantic data as analyzeResult
-            var firstToken = OriginalSelectionResult.With(document).GetFirstTokenInSelection();
+            var firstToken = OriginalSelectionResult.GetFirstTokenInSelection();
             var context = firstToken.Parent;
 
-            var result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status, cancellationToken).ConfigureAwait(false);
+            var result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status);
             if (!result.Item1)
             {
-                result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), result.Item2, cancellationToken).ConfigureAwait(false);
+                result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), result.Item2);
                 if (!result.Item1)
                 {
-                    result = await TryCheckVariableTypeAsync(document, context, analyzeResult.MethodParameters, result.Item2, cancellationToken).ConfigureAwait(false);
+                    result = TryCheckVariableType(semanticModel, context, analyzeResult.MethodParameters, result.Item2);
                     if (!result.Item1)
                     {
-                        result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), result.Item2, cancellationToken).ConfigureAwait(false);
+                        result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), result.Item2);
                         if (!result.Item1)
                         {
-                            result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), result.Item2, cancellationToken).ConfigureAwait(false);
+                            result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), result.Item2);
                             if (!result.Item1)
                             {
                                 return result.Item2;
@@ -183,13 +188,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             status = result.Item2;
 
-            var checkedStatus = await CheckTypeAsync(document.Document, context, context.GetLocation(), analyzeResult.ReturnType, cancellationToken).ConfigureAwait(false);
+            var checkedStatus = CheckType(semanticModel, context, context.GetLocation(), analyzeResult.ReturnType);
             return checkedStatus.With(status);
         }
 
-        private async Task<Tuple<bool, OperationStatus>> TryCheckVariableTypeAsync(
-            SemanticDocument document, SyntaxNode contextNode, IEnumerable<VariableInfo> variables,
-            OperationStatus status, CancellationToken cancellationToken)
+        private Tuple<bool, OperationStatus> TryCheckVariableType(
+            SemanticModel semanticModel,
+            SyntaxNode contextNode,
+            IEnumerable<VariableInfo> variables,
+            OperationStatus status)
         {
             if (status.Failed())
                 return Tuple.Create(false, status);
@@ -199,7 +206,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             foreach (var variable in variables)
             {
                 var originalType = variable.GetVariableType();
-                var result = await CheckTypeAsync(document.Document, contextNode, location, originalType, cancellationToken).ConfigureAwait(false);
+                var result = CheckType(semanticModel, contextNode, location, originalType);
                 if (result.Failed())
                 {
                     status = status.With(result);

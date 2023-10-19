@@ -4,20 +4,22 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
-        protected class AnalyzerResult(
-            SemanticDocument document,
+        protected sealed class AnalyzerResult(
             IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
             IEnumerable<ITypeParameterSymbol> typeParametersInConstraintList,
             ImmutableArray<VariableInfo> variables,
@@ -34,26 +36,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private readonly ImmutableArray<VariableInfo> _variables = variables;
             private readonly VariableInfo _variableToUseAsReturnValue = variableToUseAsReturnValue;
 
-            public AnalyzerResult With(SemanticDocument document)
-            {
-                if (SemanticDocument == document)
-                {
-                    return this;
-                }
+            //public AnalyzerResult With(SemanticDocument document)
+            //{
+            //    if (SemanticDocument == document)
+            //    {
+            //        return this;
+            //    }
 
-                return new AnalyzerResult(
-                    document,
-                    _typeParametersInDeclaration,
-                    _typeParametersInConstraintList,
-                    _variables,
-                    _variableToUseAsReturnValue,
-                    ReturnType,
-                    AwaitTaskReturn,
-                    UseInstanceMember,
-                    ShouldBeReadOnly,
-                    EndOfSelectionReachable,
-                    Status);
-            }
+            //    return new AnalyzerResult(
+            //        document,
+            //        _typeParametersInDeclaration,
+            //        _typeParametersInConstraintList,
+            //        _variables,
+            //        _variableToUseAsReturnValue,
+            //        ReturnType,
+            //        AwaitTaskReturn,
+            //        UseInstanceMember,
+            //        ShouldBeReadOnly,
+            //        EndOfSelectionReachable,
+            //        Status);
+            //}
 
             /// <summary>
             /// used to determine whether static can be used
@@ -70,10 +72,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// </summary>
             public bool EndOfSelectionReachable { get; } = endOfSelectionReachable;
 
-            /// <summary>
-            /// document this result is based on
-            /// </summary>
-            public SemanticDocument SemanticDocument { get; } = document;
+            ///// <summary>
+            ///// document this result is based on
+            ///// </summary>
+            //public SemanticDocument SemanticDocument { get; } = document;
 
             /// <summary>
             /// flag to show whether task return type is due to await
@@ -171,8 +173,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (variables.Count <= 0)
                     return null;
 
-                VariableInfo.SortVariables(SemanticDocument.SemanticModel.Compilation, variables);
+                VariableInfo.SortVariables(variables);
                 return variables[0];
+            }
+
+            public async ValueTask<SemanticDocument> CreateAnnotatedDocumentAsync(SemanticDocument document, CancellationToken cancellationToken)
+            {
+                var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(_variables.Length);
+                _variables.Do(v => v.AddIdentifierTokenAnnotationPair(annotations, cancellationToken));
+
+                if (annotations.Count == 0)
+                    return document;
+
+                return await document.WithSyntaxRootAsync(document.Root.AddAnnotations(annotations), cancellationToken).ConfigureAwait(false);
             }
         }
     }

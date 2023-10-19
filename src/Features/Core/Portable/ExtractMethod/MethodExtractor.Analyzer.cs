@@ -122,9 +122,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var returnTypeHasAnonymousType = returnTypeTuple.hasAnonymousType;
                 var awaitTaskReturn = returnTypeTuple.awaitTaskReturn;
 
-                // create new document
-                var newDocument = await CreateDocumentWithAnnotationsAsync(_semanticDocument, parameters, CancellationToken).ConfigureAwait(false);
-
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
                 var typeParametersInConstraintList = GetMethodTypeParametersInConstraintList(model, variableInfoMap, symbolMap, sortedMap);
@@ -135,7 +132,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType, containsAnyLocalFunctionCallNotWithinSpan);
 
                 return new AnalyzerResult(
-                    newDocument,
                     typeParametersInDeclaration,
                     typeParametersInConstraintList,
                     parameters,
@@ -331,19 +327,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            private static ValueTask<SemanticDocument> CreateDocumentWithAnnotationsAsync(SemanticDocument document, IList<VariableInfo> variables, CancellationToken cancellationToken)
-            {
-                var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(variables.Count);
-                variables.Do(v => v.AddIdentifierTokenAnnotationPair(annotations, cancellationToken));
-
-                if (annotations.Count == 0)
-                {
-                    return ValueTaskFactory.FromResult(document);
-                }
-
-                return document.WithSyntaxRootAsync(document.Root.AddAnnotations(annotations), cancellationToken);
-            }
-
             private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap(SemanticModel model)
             {
                 var syntaxFactsService = _semanticDocument.Document.Project.Services.GetService<ISyntaxFactsService>();
@@ -391,12 +374,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
             }
 
-            private ImmutableArray<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
+            private static ImmutableArray<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
             {
                 using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfo.Count, out var list);
                 list.AddRange(variableInfo);
 
-                VariableInfo.SortVariables(_semanticDocument.SemanticModel.Compilation, list);
+                VariableInfo.SortVariables(list);
                 return list.ToImmutable();
             }
 

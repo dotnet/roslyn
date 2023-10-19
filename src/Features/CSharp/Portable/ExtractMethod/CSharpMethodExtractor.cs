@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
-            var document = analyzerResult.SemanticDocument;
+            var document = this.OriginalSelectionResult.SemanticDocument;
             var root = document.Root;
 
             if (LocalFunction)
@@ -158,12 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames)
             => (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
-        protected override async Task<OperationStatus> CheckTypeAsync(
-            Document document,
+        protected override async OperationStatus CheckType(
+            SemanticModel semanticModel,
             SyntaxNode contextNode,
             Location location,
-            ITypeSymbol type,
-            CancellationToken cancellationToken)
+            ITypeSymbol type)
         {
             Contract.ThrowIfNull(type);
 
@@ -180,8 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // if it is type parameter, make sure we are getting same type parameter
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             foreach (var typeParameter in TypeParameterCollector.Collect(type))
             {
                 var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
