@@ -45,18 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
                     : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
 
-                SyntaxNode functionNode = null;
-
                 var currentNode = baseNode;
                 while (currentNode is not null)
                 {
                     if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
                     {
                         if (OriginalSelectionWithin(anonymousFunction.Body) || OriginalSelectionWithin(anonymousFunction.ExpressionBody))
-                        {
-                            functionNode = currentNode;
-                            break;
-                        }
+                            return currentNode;
 
                         if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
                         {
@@ -71,10 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (currentNode is LocalFunctionStatementSyntax localFunction)
                     {
                         if (OriginalSelectionWithin(localFunction.ExpressionBody) || OriginalSelectionWithin(localFunction.Body))
-                        {
-                            functionNode = currentNode;
-                            break;
-                        }
+                            return currentNode;
 
                         if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
                         {
@@ -86,42 +78,54 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         }
                     }
 
+                    if (currentNode is AccessorDeclarationSyntax)
+                        return currentNode;
+
+                    if (currentNode is BaseMethodDeclarationSyntax)
+                        return currentNode;
+
+                    if (currentNode is GlobalStatementSyntax globalStatement)
+                    {
+                        // check whether the global statement is a statement container
+                        if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                        {
+                            // The extracted function will be a new global statement
+                            return globalStatement.Parent;
+                        }
+
+                        return globalStatement.Statement;
+                    }
+
                     currentNode = currentNode.Parent;
                 }
 
-                if (functionNode is not null)
-                    return functionNode;
+                return null;
             }
-
-            var baseToken = root.FindToken(originalSpanStart);
-            var memberNode = baseToken.GetAncestor<MemberDeclarationSyntax>();
-            Contract.ThrowIfNull(memberNode);
-            Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
-
-            if (LocalFunction && memberNode is BasePropertyDeclarationSyntax propertyDeclaration)
+            else
             {
-                var accessorNode = baseToken.GetAncestor<AccessorDeclarationSyntax>();
-                if (accessorNode is not null)
-                    return accessorNode;
-            }
+                var baseToken = root.FindToken(originalSpanStart);
+                var memberNode = baseToken.GetAncestor<MemberDeclarationSyntax>();
+                Contract.ThrowIfNull(memberNode);
+                Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
-            if (memberNode is GlobalStatementSyntax globalStatement)
-            {
-                // check whether we are extracting whole global statement out
-                if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
-                    return globalStatement.Parent;
-
-                // check whether the global statement is a statement container
-                if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                if (memberNode is GlobalStatementSyntax globalStatement)
                 {
-                    // The extracted function will be a new global statement
-                    return globalStatement.Parent;
+                    // check whether we are extracting whole global statement out
+                    if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
+                        return globalStatement.Parent;
+
+                    // check whether the global statement is a statement container
+                    if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                    {
+                        // The extracted function will be a new global statement
+                        return globalStatement.Parent;
+                    }
+
+                    return globalStatement.Statement;
                 }
 
-                return globalStatement.Statement;
+                return memberNode;
             }
-
-            return memberNode;
         }
 
         private bool OriginalSelectionWithin(SyntaxNode node)

@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             bool CanAddTo(Document document, SyntaxNode insertionPointNode, out OperationStatus status)
             {
-                var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxKinds = syntaxFacts.SyntaxKinds;
                 var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
                 if (insertionPointNode is null)
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = mappedPoint.Parent ?? mappedPoint;
                 }
 
-                if (!codeGenService.CanAddTo(destination, document, cancellationToken))
+                if (!codeGenService.CanAddTo(destination, document.Project.Solution, cancellationToken))
                 {
                     status = OperationStatus.OverlapsHiddenPosition;
                     return false;

@@ -51,42 +51,31 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return TextSpan.FromBounds(start.SpanStart, end.Span.End);
         }
 
-        public bool CanAddTo(SyntaxNode destination, Document document, CancellationToken cancellationToken)
-            => CanAddTo(destination, document, cancellationToken, out _);
-
         public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
-        {
-            var document = solution.GetDocument(destination.SyntaxTree);
-            if (document is null)
-                return false;
-
-            return CanAddTo(destination, document, cancellationToken, out _);
-        }
+            => CanAddTo(destination, solution, cancellationToken, out _);
 
         private bool CanAddTo(SyntaxNode? destination, Solution solution, CancellationToken cancellationToken,
             out IList<bool>? availableIndices, bool checkGeneratedCode = false)
         {
             availableIndices = null;
-            var document = solution.GetDocument(destination?.SyntaxTree);
-            if (document is null)
-                return false;
-
-            return CanAddTo(destination, document, cancellationToken, out availableIndices, checkGeneratedCode);
-        }
-
-        private bool CanAddTo(SyntaxNode? destination, Document document, CancellationToken cancellationToken,
-            out IList<bool>? availableIndices, bool checkGeneratedCode = false)
-        {
-            availableIndices = null;
             if (destination == null)
+            {
                 return false;
+            }
+
+            var syntaxTree = destination.SyntaxTree;
+            var document = solution.GetDocument(syntaxTree);
 
             if (document == null)
+            {
                 return false;
+            }
 
             // We can never generate into a document from a source generator, because those are immutable
             if (document is SourceGeneratedDocument)
+            {
                 return false;
+            }
 
 #if !CODE_STYLE
             // If we are avoiding generating into files marked as generated (but are still regular files)
@@ -102,7 +91,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // is something you can add to.  Anything that is partially hidden will have to defer to
             // the underlying language to make a determination.
             var span = GetSpan(destination);
-            var syntaxTree = destination.SyntaxTree;
             if (syntaxTree.IsEntirelyHidden(span, cancellationToken))
             {
                 // It's entirely hidden, there's no place to generate inside of this.
@@ -110,8 +98,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             var overlapsHiddenRegion = syntaxTree.OverlapsHiddenPosition(span, cancellationToken);
+
             if (cancellationToken.IsCancellationRequested)
+            {
                 return false;
+            }
 
             if (!overlapsHiddenRegion)
             {
@@ -123,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // to see if there's anywhere we can generate into here.
 
             availableIndices = GetAvailableInsertionIndices(destination, cancellationToken);
-            return availableIndices != null && availableIndices.Contains(true);
+            return availableIndices != null && availableIndices.Any(b => b);
         }
 
         /// <summary>
