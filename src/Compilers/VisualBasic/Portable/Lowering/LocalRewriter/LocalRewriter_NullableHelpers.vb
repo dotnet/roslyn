@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The helper is familiar with wrapping expressions and will go directly after the value 
         ''' skipping wrap/unwrap steps.
         ''' </summary>
-        Private Function NullableValueOrDefault(expr As BoundExpression) As BoundExpression
+        Private Function NullableValueOrDefault(expr As BoundExpression, Optional isOptional As Boolean = False) As BoundExpression
             Debug.Assert(expr.Type.IsNullableType)
 
             ' check if we are not getting value from freshly constructed nullable
@@ -178,13 +178,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If IsConditionalAccess(expr, whenNotNull, whenNull) AndAlso HasNoValue(whenNull) Then
                             Debug.Assert(Not HasNoValue(whenNotNull))
                             Return UpdateConditionalAccess(expr,
-                                                           NullableValueOrDefault(whenNotNull),
+                                                           NullableValueOrDefault(whenNotNull, isOptional),
                                                            New BoundLiteral(expr.Syntax, ConstantValue.False, expr.Type.GetNullableUnderlyingType()))
                         End If
                     End If
             End Select
 
-            Dim getValueOrDefaultMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault)
+            Dim getValueOrDefaultMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, isOptional)
 
             If getValueOrDefaultMethod IsNot Nothing Then
                 Return New BoundCall(expr.Syntax,
@@ -198,27 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  type:=getValueOrDefaultMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
-        End Function
-
-        Private Function NullableValueOrDefaultOpt(expr As BoundExpression) As BoundExpression
-            Debug.Assert(expr.Type.IsNullableType)
-
-            Dim getValueOrDefaultWithDefaultValueMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, isOptional:=True)
-
-            If getValueOrDefaultWithDefaultValueMethod IsNot Nothing Then
-                Return New BoundCall(expr.Syntax,
-                                 getValueOrDefaultWithDefaultValueMethod,
-                                 Nothing,
-                                 expr,
-                                 ImmutableArray(Of BoundExpression).Empty,
-                                 Nothing,
-                                 isLValue:=False,
-                                 suppressObjectClone:=True,
-                                 type:=getValueOrDefaultWithDefaultValueMethod.ReturnType)
-            End If
-
-            Return Nothing
+            Return If(isOptional, Nothing, New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True))
         End Function
 
         Private Function NullableValueOrDefaultOpt(expr As BoundExpression, defaultValue As BoundExpression) As BoundExpression
