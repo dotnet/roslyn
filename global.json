@@ -1,18 +1,18 @@
 {
   "sdk": {
-    "version": "8.0.100-rc.1.23463.5",
+    "version": "8.0.100-rtm.23506.1",
     "allowPrerelease": false,
     "rollForward": "latestPatch"
   },
   "tools": {
-    "dotnet": "8.0.100-rc.1.23463.5",
+    "dotnet": "8.0.100-rtm.23506.1",
     "vs": {
       "version": "17.7.2"
     },
     "xcopy-msbuild": "17.7.2-1"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.23517.7",
-    "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.23517.7"
+    "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.23518.2",
+    "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.23518.2"
   }
 }
