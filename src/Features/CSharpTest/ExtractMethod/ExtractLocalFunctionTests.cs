@@ -5477,6 +5477,7 @@ class Program
                         {
                             static void L()
                             {
+
                                 static void L2()
                                 {
                                     var x = 1;
