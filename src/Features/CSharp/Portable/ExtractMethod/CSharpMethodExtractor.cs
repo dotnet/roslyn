@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
-            var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
-
             var document = analyzerResult.SemanticDocument;
             var root = document.Root;
 
@@ -42,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
+                var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
                 var baseNode = outermostCapturedVariable != null
                     ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
                     : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
