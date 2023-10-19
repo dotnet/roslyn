@@ -447,9 +447,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             => PlaceholderReplacement(node);
 
         public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
-        {
-            return PlaceholderReplacement(node);
-        }
+            => PlaceholderReplacement(node);
+
+        public override BoundNode? VisitCollectionExpressionSpreadIteratorPlaceholder(BoundCollectionExpressionSpreadIteratorPlaceholder node)
+            => PlaceholderReplacement(node);
 
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
@@ -990,6 +991,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CollectionExpressionSpreadExpressionPlaceholder:
                     // Used for Length or Count properties only which are effectively readonly.
+                    return true;
+
+                case BoundKind.CollectionExpressionSpreadIteratorPlaceholder:
                     return true;
 
                 case BoundKind.EventAccess:

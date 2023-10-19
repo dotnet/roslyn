@@ -1192,35 +1192,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     break;
 
                                 case CSharp.SyntaxKind.LockStatement:
-                                    if (((LockStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((LockStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.UsingStatement:
-                                    if (((CSharp.Syntax.UsingStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((CSharp.Syntax.UsingStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.SwitchStatement:
-                                    if (((CSharp.Syntax.SwitchStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((CSharp.Syntax.SwitchStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.SwitchExpression:
-                                    if (((CSharp.Syntax.SwitchExpressionSyntax)syntax.Parent).GoverningExpression == syntax)
+                                    if (((CSharp.Syntax.SwitchExpressionSyntax)parent).GoverningExpression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.CoalesceAssignmentExpression:
-                                    if (((AssignmentExpressionSyntax)syntax.Parent).Left == syntax)
+                                    if (((AssignmentExpressionSyntax)parent).Left == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.SpreadElement:
+                                    if (((SpreadElementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
@@ -1919,6 +1926,7 @@ endRegion:
                         // Will be removed when CFG support for interpolated string handlers is implemented, tracked by
                         // https://github.com/dotnet/roslyn/issues/54718
                         instanceReference.ReferenceKind == InstanceReferenceKind.InterpolatedStringHandler ||
+                        instanceReference.ReferenceKind == InstanceReferenceKind.IteratorValue ||
                         (instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                          n.Type.IsAnonymousType &&
                          n.Parent is IPropertyReferenceOperation propertyReference &&
@@ -2008,6 +2016,8 @@ endRegion:
                 case OperationKind.ImplicitIndexerReference:
                 case OperationKind.Attribute:
                 case OperationKind.InlineArrayAccess:
+                case OperationKind.CollectionExpression:
+                case OperationKind.Spread:
                     return true;
             }
 

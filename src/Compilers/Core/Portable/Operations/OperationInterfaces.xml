@@ -3387,4 +3387,76 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="ICollectionExpressionOperation" Base="IOperation"  ChildrenOrder="CreateCollection,Elements" HasType="true">
+    <Property Name="TypeKind" Type="CollectionExpressionTypeKind" Internal="true" />
+    <Property Name="ElementType" Type="ITypeSymbol?" Internal="true" />
+    <Comments>
+      <summary>
+        Represents a collection expression.
+        <para>
+          Current usage:
+          (1) C# collection expression.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="CreateCollection" Type="IOperation?">
+      <Comments>
+        <summary>
+          Method to construct the collection instance.
+          <para>
+            If the collection expression type is an array, span, or array interface, the operation is null.
+            If the collection type has a [CollectionBuilder] attribute, the operation is a call to the builder
+            method with an IInstanceReferenceOperation with ReferenceKind.ImplicitReceiver as the
+            span argument, and with the result converted to the collection type.
+            Otherwise, the operation is a call to the collection constructor.
+          </para>
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="Elements" Type="ImmutableArray&lt;IOperation&gt;">
+      <Comments>
+        <summary>
+          Collection expression elements.
+          <para>
+            If the element is not an ISpreadOperation then if the collection expression has a target type
+            that uses Add methods for construction, the element is a call to the applicable Add method
+            with the original element expression as the converted argument; otherwise, the element is
+            the original element expression converted to the target element type. If the element is an
+            ISpreadOperation, the call to Add or the conversion to the target element type is included
+            in the ISpreadOperation.IteratorBody instead.
+          </para>
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="ISpreadOperation" Base="IOperation"  ChildrenOrder="Collection,IteratorBody" HasType="true">
+      <Comments>
+      <summary>
+        Represents a collection expression spread element.
+        <para>
+          Current usage:
+          (1) C# spread element.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Collection" Type="IOperation">
+      <Comments>
+        <summary>Collection being spread.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ForEachInfo" Type="ForEachLoopOperationInfo?" Internal="true" />
+    <Property Name="ContinueLabel" Type="ILabelSymbol" Internal="true" />
+    <Property Name="ExitLabel" Type="ILabelSymbol" Internal="true" />
+    <Property Name="IteratorVariable" Type="IVariableDeclaratorOperation" Internal="true" />
+    <Property Name="IteratorBody" Type="IOperation?">
+      <Comments>
+        <summary>
+          Iterator body for each collection element.
+          <para>
+            Contains an IInstanceReferenceOperation with ReferenceKind.IteratorValue for the current iterator value.
+          </para>
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

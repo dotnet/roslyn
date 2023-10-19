@@ -1625,6 +1625,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
         }
 
+        public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
+        {
+            LogString(nameof(ICollectionExpressionOperation));
+            LogString($" ({operation.Elements.Length} elements)");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.CreateCollection, "CreateCollection");
+            VisitArray(operation.Elements, "Elements", logElementCount: true);
+        }
+
+        public override void VisitSpread(ISpreadOperation operation)
+        {
+            LogString(nameof(ISpreadOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Collection, "Collection");
+            Visit(operation.IteratorBody, "IteratorBody");
+        }
+
         public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
         {
             LogString(nameof(ISimpleAssignmentOperation));

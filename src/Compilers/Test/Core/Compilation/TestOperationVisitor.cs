@@ -484,6 +484,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.Variables, operation.Body }, operation.ChildOperations);
         }
 
+        public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
+        {
+            Assert.Equal(OperationKind.CollectionExpression, operation.Kind);
+            var builder = ArrayBuilder<IOperation>.GetInstance();
+            builder.AddIfNotNull(operation.CreateCollection);
+            builder.AddRange(operation.Elements);
+            AssertEx.Equal(builder.ToImmutableAndFree(), operation.ChildOperations);
+        }
+
+        public override void VisitSpread(ISpreadOperation operation)
+        {
+            Assert.Equal(OperationKind.Spread, operation.Kind);
+            var builder = ArrayBuilder<IOperation>.GetInstance();
+            builder.AddIfNotNull(operation.Collection);
+            builder.AddIfNotNull(operation.IteratorBody);
+            AssertEx.Equal(builder.ToImmutableAndFree(), operation.ChildOperations);
+        }
+
         internal override void VisitAggregateQuery(IAggregateQueryOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);

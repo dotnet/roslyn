@@ -104,6 +104,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundCollectionExpression((BoundCollectionExpression)boundNode);
                 case BoundKind.CollectionExpressionSpreadElement:
                     return CreateBoundCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)boundNode);
+                case BoundKind.CollectionExpressionSpreadIteratorPlaceholder:
+                    return CreateBoundCollectionExpressionSpreadIteratorPlaceholder((BoundCollectionExpressionSpreadIteratorPlaceholder)boundNode);
+                case BoundKind.ValuePlaceholder:
+                    return CreateBoundValuePlaceholder((BoundValuePlaceholder)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -1221,45 +1225,179 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
-        private IOperation CreateBoundCollectionExpression(BoundCollectionExpression boundCollectionExpression)
+        private IOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
         {
-            ImmutableArray<IOperation> elements = createChildren(boundCollectionExpression.Elements);
-            SyntaxNode syntax = boundCollectionExpression.Syntax;
-            ITypeSymbol? type = boundCollectionExpression.GetPublicTypeSymbol();
-            bool isImplicit = boundCollectionExpression.WasCompilerGenerated;
-            return new NoneOperation(elements, _semanticModel, syntax, type: type, constantValue: null, isImplicit);
+            SyntaxNode syntax = expr.Syntax;
+            ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
+            bool isImplicit = expr.WasCompilerGenerated;
 
-            ImmutableArray<IOperation> createChildren(ImmutableArray<BoundNode> elements)
+            // Binding special-cases List<T>, since that type is optimized later in lowering, and only includes
+            // the converted elements, but not the Add() calls. We need to generate the Add() calls here.
+            if (expr.CollectionTypeKind == CSharp.CollectionExpressionTypeKind.List)
             {
-                var builder = ArrayBuilder<IOperation>.GetInstance(elements.Length);
-                foreach (var element in elements)
+                Debug.Assert(expr.Type is { });
+                // PROTOTYPE: Test with missing List<T>..ctor().
+                var constructor = ((MethodSymbol)((CSharpCompilation)_semanticModel.Compilation).GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor)!).AsMember((NamedTypeSymbol)expr.Type).GetPublicSymbol();
+                if (constructor is null)
                 {
-                    var child = createChild(element);
-                    if (child is { })
-                    {
-                        builder.Add(child);
-                    }
+                    // PROTOTYPE: ...
+                    throw ExceptionUtilities.UnexpectedValue(expr.CollectionCreation);
                 }
-                return builder.ToImmutableAndFree();
-            }
+                // PROTOTYPE: We're also getting the .ctor and creating an ObjectCreationOperation in
+                // ControlFlowGraphBuilder.HandleCollectionExpressionAsList. Can we share code with that case?
+                IOperation createCollection = new ObjectCreationOperation(
+                    constructor,
+                    initializer: null,
+                    arguments: ImmutableArray<IArgumentOperation>.Empty,
+                    _semanticModel,
+                    syntax,
+                    collectionType,
+                    constantValue: null,
+                    isImplicit: true);
+                // PROTOTYPE: Test with missing List<T>.Add().
+                var addMethod = ((MethodSymbol)((CSharpCompilation)_semanticModel.Compilation).GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add)!).AsMember((NamedTypeSymbol)expr.Type).GetPublicSymbol();
+                ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(
+                    element =>
+                    {
+                        if (element is BoundCollectionExpressionSpreadElement spread)
+                        {
+                            Debug.Assert(spread.IteratorBody is { });
+                            return CreateBoundCollectionExpressionSpreadElement(spread, createAddInvocation(((BoundExpressionStatement)spread.IteratorBody).Expression));
+                        }
+                        else
+                        {
+                            return createAddInvocation((BoundExpression)element);
+                        }
+                    });
+                return new CollectionExpressionOperation(
+                    CollectionExpressionTypeKind.ImplementsIEnumerableT,
+                    expr.ElementType.GetPublicSymbol(),
+                    createCollection,
+                    elements,
+                    _semanticModel,
+                    syntax,
+                    collectionType,
+                    isImplicit);
 
-            IOperation? createChild(BoundNode element)
-            {
-                var result = element switch
+                // PROTOTYPE: Test when Add is missing.
+                IOperation createAddInvocation(BoundExpression convertedElement)
                 {
-                    BoundCollectionElementInitializer initializer => initializer.Arguments.First(),
-                    _ => element,
+                    // PROTOTYPE: We're also getting an Add method and creating an InvocationOperation in
+                    // ControlFlowGraphBuilder.HandleCollectionExpressionAsList. Can we share code with that case?
+                    IOperation e = Create(convertedElement);
+                    IArgumentOperation argument = new ArgumentOperation(
+                        ArgumentKind.Explicit,
+                        addMethod.Parameters[0],
+                        e,
+                        inConversion: OperationFactory.IdentityConversion,
+                        outConversion: OperationFactory.IdentityConversion,
+                        _semanticModel,
+                        e.Syntax,
+                        isImplicit: true);
+                    return new InvocationOperation(
+                        addMethod,
+                        constrainedToType: null,
+                        instance: new InstanceReferenceOperation(
+                            InstanceReferenceKind.ImplicitReceiver,
+                            _semanticModel,
+                            syntax,
+                            collectionType,
+                            isImplicit: true),
+                        isVirtual: false,
+                        arguments: ImmutableArray.Create(argument),
+                        _semanticModel,
+                        e.Syntax,
+                        addMethod.ReturnType,
+                        isImplicit: true);
+                }
+            }
+            else
+            {
+                CollectionExpressionTypeKind typeKind = expr.CollectionTypeKind switch
+                {
+                    CSharp.CollectionExpressionTypeKind.None => CollectionExpressionTypeKind.None,
+                    CSharp.CollectionExpressionTypeKind.Array => CollectionExpressionTypeKind.Array,
+                    CSharp.CollectionExpressionTypeKind.Span => CollectionExpressionTypeKind.Span,
+                    CSharp.CollectionExpressionTypeKind.ReadOnlySpan => CollectionExpressionTypeKind.Span,
+                    CSharp.CollectionExpressionTypeKind.CollectionBuilder => CollectionExpressionTypeKind.CollectionBuilder,
+                    CSharp.CollectionExpressionTypeKind.ImplementsIEnumerableT => CollectionExpressionTypeKind.ImplementsIEnumerableT,
+                    CSharp.CollectionExpressionTypeKind.ImplementsIEnumerable => CollectionExpressionTypeKind.ImplementsIEnumerable,
+                    CSharp.CollectionExpressionTypeKind.ArrayInterface => CollectionExpressionTypeKind.ArrayInterface,
+                    CSharp.CollectionExpressionTypeKind.ImmutableArray => CollectionExpressionTypeKind.ImmutableArray,
+                    var value => throw ExceptionUtilities.UnexpectedValue(value),
                 };
-                return Create(result);
+
+                IOperation? createCollection;
+                switch (expr.CollectionTypeKind)
+                {
+                    case CSharp.CollectionExpressionTypeKind.None:
+                    case CSharp.CollectionExpressionTypeKind.Array:
+                    case CSharp.CollectionExpressionTypeKind.Span:
+                    case CSharp.CollectionExpressionTypeKind.ReadOnlySpan:
+                    case CSharp.CollectionExpressionTypeKind.ArrayInterface:
+                    case CSharp.CollectionExpressionTypeKind.ImmutableArray: // PROTOTYPE: Test with .NET 7 where ImmutableCollectionsMarshal is included but [CollectionBuilder] is not.
+                        createCollection = null;
+                        break;
+                    case CSharp.CollectionExpressionTypeKind.CollectionBuilder:
+                        Debug.Assert(expr.CollectionBuilderInvocationConversion is { });
+                        createCollection = Create(expr.CollectionBuilderInvocationConversion);
+                        break;
+                    case CSharp.CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                    case CSharp.CollectionExpressionTypeKind.ImplementsIEnumerable:
+                        Debug.Assert(expr.CollectionCreation is { });
+                        createCollection = Create(expr.CollectionCreation);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
+                }
+
+                var elements = CreateFromArray<BoundNode, IOperation>(expr.Elements);
+                return new CollectionExpressionOperation(
+                    typeKind,
+                    expr.ElementType.GetPublicSymbol(),
+                    createCollection,
+                    elements,
+                    _semanticModel,
+                    syntax,
+                    collectionType,
+                    isImplicit);
             }
         }
 
-        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement boundSpreadExpression)
+        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element)
         {
-            SyntaxNode syntax = boundSpreadExpression.Syntax;
-            bool isImplicit = boundSpreadExpression.WasCompilerGenerated;
-            var children = ImmutableArray.Create<IOperation>(Create(boundSpreadExpression.Expression));
-            return new NoneOperation(children, _semanticModel, syntax, type: null, constantValue: null, isImplicit);
+            var iteratorBody = Create(((BoundExpressionStatement?)element.IteratorBody)?.Expression);
+            return CreateBoundCollectionExpressionSpreadElement(element, iteratorBody);
+        }
+
+        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element, IOperation? iteratorBody)
+        {
+            var collection = Create(element.Expression);
+            SyntaxNode syntax = element.Syntax;
+            bool isImplicit = element.WasCompilerGenerated;
+            // PROTOTYPE: Test with error case where boundSpreadElement.EnumeratorInfoOpt is null.
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return new InvalidOperation(ImmutableArray.Create(collection), _semanticModel, syntax, type: null, constantValue: null, isImplicit);
+            }
+
+            var exprSyntax = element.Expression.Syntax;
+            var continueLabel = (new GeneratedLabelSymbol("continue")).GetPublicSymbol();
+            var breakLabel = (new GeneratedLabelSymbol("break")).GetPublicSymbol();
+            var forEachInfo = GetForEachLoopOperatorInfo(
+                syntax,
+                exprSyntax,
+                enumeratorInfo,
+                elementPlaceholder: null,
+                elementConversion: null);
+            var iteratorVariable = new SynthesizedLocal(
+                containingMethodOpt: null,
+                enumeratorInfo.ElementTypeWithAnnotations,
+                SynthesizedLocalKind.ForEachEnumerator,
+                exprSyntax).GetPublicSymbol();
+            var iteratorVariableDeclarator = new VariableDeclaratorOperation(iteratorVariable, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, _semanticModel, exprSyntax, isImplicit: true);
+            return new SpreadOperation(collection, forEachInfo, continueLabel, breakLabel, iteratorVariableDeclarator, iteratorBody, _semanticModel, syntax, type: null, isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
@@ -1836,9 +1974,13 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ForLoopOperation(before, conditionLocals, condition, atLoopBottom, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 
-        internal ForEachLoopOperationInfo? GetForEachLoopOperatorInfo(BoundForEachStatement boundForEachStatement)
+        internal ForEachLoopOperationInfo? GetForEachLoopOperatorInfo(
+            SyntaxNode syntax,
+            SyntaxNode expressionSyntax,
+            ForEachEnumeratorInfo? enumeratorInfoOpt,
+            BoundValuePlaceholder? elementPlaceholder,
+            BoundExpression? elementConversion)
         {
-            ForEachEnumeratorInfo? enumeratorInfoOpt = boundForEachStatement.EnumeratorInfoOpt;
             ForEachLoopOperationInfo? info;
 
             if (enumeratorInfoOpt != null)
@@ -1866,11 +2008,11 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
-                                                    BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
-                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
-                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
+                                                    BoundNode.GetConversion(elementConversion, elementPlaceholder),
+                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, expressionSyntax),
+                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, expressionSyntax),
                                                     disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
-                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
+                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, syntax)
                                                         : default);
             }
             else
@@ -1934,7 +2076,12 @@ namespace Microsoft.CodeAnalysis.Operations
                                                operand);
             var nextVariables = ImmutableArray<IOperation>.Empty;
             IOperation body = Create(boundForEachStatement.Body);
-            ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(boundForEachStatement);
+            ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(
+                boundForEachStatement.Syntax,
+                boundForEachStatement.Expression.Syntax,
+                boundForEachStatement.EnumeratorInfoOpt,
+                boundForEachStatement.ElementPlaceholder,
+                boundForEachStatement.ElementConversion);
 
             ImmutableArray<ILocalSymbol> locals = boundForEachStatement.IterationVariables.GetPublicSymbols();
 
@@ -2454,6 +2601,27 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new InstanceReferenceOperation(
                 InstanceReferenceKind.InterpolatedStringHandler,
+                _semanticModel,
+                placeholder.Syntax,
+                placeholder.GetPublicTypeSymbol(),
+                isImplicit: placeholder.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundCollectionExpressionSpreadIteratorPlaceholder(BoundCollectionExpressionSpreadIteratorPlaceholder placeholder)
+        {
+            return new InstanceReferenceOperation(
+                InstanceReferenceKind.IteratorValue,
+                _semanticModel,
+                placeholder.Syntax,
+                placeholder.GetPublicTypeSymbol(),
+                isImplicit: placeholder.WasCompilerGenerated);
+        }
+
+        // PROTOTYPE: Should we have a specific BoundCollectionExpressionBuilderArgumentPlaceholder?
+        private IOperation CreateBoundValuePlaceholder(BoundValuePlaceholder placeholder)
+        {
+            return new InstanceReferenceOperation(
+                InstanceReferenceKind.ImplicitReceiver,
                 _semanticModel,
                 placeholder.Syntax,
                 placeholder.GetPublicTypeSymbol(),
