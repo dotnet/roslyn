@@ -91,22 +91,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return ImmutableArray.Create(statement)
                 End Function
 
-                Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                    Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                    Return If(callSiteContainer, (GetCallSiteContainerFromExpression()))
-                End Function
-
-                Private Function GetCallSiteContainerFromExpression() As SyntaxNode
-                    Dim container = VBSelectionResult.InnermostStatementContainer()
-
-                    Contract.ThrowIfNull(container)
-                    Contract.ThrowIfFalse(container.IsStatementContainerNode() OrElse
-                                          TypeOf container Is TypeBlockSyntax OrElse
-                                          TypeOf container Is CompilationUnitSyntax)
-
-                    Return container
-                End Function
-
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                     Return VBSelectionResult.GetContainingScopeOf(Of StatementSyntax)()
                 End Function

@@ -28,15 +28,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Private Shared Function Create(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
-                If ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult) Then
+                If selectionResult.SelectionInExpression Then
                     Return New ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
-                If SingleStatementCodeGenerator.IsExtractMethodOnSingleStatement(selectionResult) Then
+                If selectionResult.IsExtractMethodOnSingleStatement() Then
                     Return New SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
-                If MultipleStatementsCodeGenerator.IsExtractMethodOnMultipleStatements(selectionResult) Then
+                If selectionResult.IsExtractMethodOnMultipleStatements() Then
                     Return New MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
@@ -151,6 +151,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Contract.ThrowIfFalse(declStatement.Parent.IsStatementContainerNode())
 
                 Return declStatement.Parent
+            End Function
+
+            Protected NotOverridable Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
+                Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
+                Return If(callSiteContainer, Me.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken))
             End Function
 
             Private Function CreateMethodModifiers() As DeclarationModifiers

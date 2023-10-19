@@ -37,17 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             var document = analyzerResult.SemanticDocument;
             var root = document.Root;
-            var basePosition = outermostCapturedVariable != null
-                ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document)
-                : root.FindToken(originalSpanStart);
 
             if (LocalFunction)
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
+                var baseNode = outermostCapturedVariable != null
+                    ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
+                    : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
+
                 SyntaxNode functionNode = null;
 
-                var currentNode = basePosition.Parent;
+                var currentNode = baseNode;
                 while (currentNode is not null)
                 {
                     if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
@@ -93,13 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return functionNode;
             }
 
-            var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
+            var baseToken = root.FindToken(originalSpanStart);
+            var memberNode = baseToken.GetAncestor<MemberDeclarationSyntax>();
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
             if (LocalFunction && memberNode is BasePropertyDeclarationSyntax propertyDeclaration)
             {
-                var accessorNode = basePosition.GetAncestor<AccessorDeclarationSyntax>();
+                var accessorNode = baseToken.GetAncestor<AccessorDeclarationSyntax>();
                 if (accessorNode is not null)
                     return accessorNode;
             }

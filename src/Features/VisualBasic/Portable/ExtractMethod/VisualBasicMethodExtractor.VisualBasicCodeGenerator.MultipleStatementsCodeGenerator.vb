@@ -19,19 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
                 End Sub
 
-                Public Shared Function IsExtractMethodOnMultipleStatements(code As SelectionResult) As Boolean
-                    Dim result = DirectCast(code, VisualBasicSelectionResult)
-                    Dim first = result.GetFirstStatement()
-                    Dim last = result.GetLastStatement()
-                    If first IsNot last Then
-                        Dim firstUnderContainer = result.GetFirstStatementUnderContainer()
-                        Dim lastUnderContainer = result.GetLastStatementUnderContainer()
-                        Contract.ThrowIfFalse(firstUnderContainer.Parent Is lastUnderContainer.Parent)
-                        Return True
-                    End If
-
-                    Return False
-                End Function
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     ' change this to more smarter one.
@@ -58,11 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                 Take(lastStatementIndex - firstStatementIndex + 1)
 
                     Return nodes.ToImmutableArray()
-                End Function
-
-                Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                    Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                    Return If(callSiteContainer, Me.VBSelectionResult.GetFirstStatementUnderContainer().Parent)
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax

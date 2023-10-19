@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,7 +22,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -59,20 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 CSharpCodeGenerationOptions options,
                 bool localFunction)
             {
-                if (ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult))
-                {
+                if (selectionResult.SelectionInExpression)
                     return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
-                }
 
-                if (SingleStatementCodeGenerator.IsExtractMethodOnSingleStatement(selectionResult))
-                {
+                if (selectionResult.IsExtractMethodOnSingleStatement())
                     return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
-                }
 
-                if (MultipleStatementsCodeGenerator.IsExtractMethodOnMultipleStatements(selectionResult))
-                {
+                if (selectionResult.IsExtractMethodOnMultipleStatements())
                     return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
-                }
 
                 throw ExceptionUtilities.UnexpectedValue(selectionResult);
             }
@@ -197,13 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SyntaxFactory.SeparatedList(typeVariables);
             }
 
-            protected SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken)
+            private SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken)
             {
                 var outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
                 if (outmostVariable == null)
-                {
                     return null;
-                }
 
                 var idToken = outmostVariable.GetIdentifierTokenAtDeclaration(SemanticDocument);
                 var declStatement = idToken.GetAncestor<LocalDeclarationStatementSyntax>();
@@ -211,6 +201,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 Contract.ThrowIfFalse(declStatement.Parent.IsStatementContainerNode());
 
                 return declStatement.Parent;
+            }
+
+            protected sealed override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+            {
+                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
+                if (callSiteContainer != null)
+                {
+                    return callSiteContainer;
+                }
+                else
+                {
+                    return this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
+                }
             }
 
             private DeclarationModifiers CreateMethodModifiers()

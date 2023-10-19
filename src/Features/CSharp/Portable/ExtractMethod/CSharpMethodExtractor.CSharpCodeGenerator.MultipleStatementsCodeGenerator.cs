@@ -10,13 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -32,23 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 CSharpCodeGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction)
             {
-                public static bool IsExtractMethodOnMultipleStatements(SelectionResult code)
-                {
-                    var result = (CSharpSelectionResult)code;
-                    var first = result.GetFirstStatement();
-                    var last = result.GetLastStatement();
-
-                    if (first != last)
-                    {
-                        var firstUnderContainer = result.GetFirstStatementUnderContainer();
-                        var lastUnderContainer = result.GetLastStatementUnderContainer();
-                        Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
-                        return true;
-                    }
-
-                    return false;
-                }
-
                 protected override SyntaxToken CreateMethodName() => GenerateMethodNameForStatementGenerators();
 
                 protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
@@ -82,24 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
 
                     return list.ToImmutable();
-                }
-
-                protected override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
-                {
-                    var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
-                    if (callSiteContainer != null)
-                    {
-                        return callSiteContainer;
-                    }
-                    else
-                    {
-                        var firstStatement = CSharpSelectionResult.GetFirstStatementUnderContainer();
-                        var container = firstStatement.Parent;
-                        if (container is GlobalStatementSyntax)
-                            return container.Parent;
-
-                        return container;
-                    }
                 }
 
                 private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
