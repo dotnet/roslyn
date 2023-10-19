@@ -23,8 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <!--
       ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
     -->

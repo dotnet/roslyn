@@ -4,13 +4,11 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.ExternalAccess
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp
 Imports Microsoft.VisualStudio.LanguageServices.Remote
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
-Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Friend NotInheritable Class VisualStudioTestCompositions
