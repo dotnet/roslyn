@@ -27,15 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 private readonly SyntaxNode _firstStatementOrFieldToReplace;
                 private readonly SyntaxNode _lastStatementOrFieldToReplace;
                 private readonly ImmutableArray<SyntaxNode> _statementsOrMemberOrAccessorToInsert;
-                private readonly SyntaxNode _additionalNode;
 
                 public CallSiteContainerRewriter(
                     SyntaxNode outmostCallSiteContainer,
                     HashSet<SyntaxAnnotation> variableToRemoveMap,
                     SyntaxNode firstStatementOrFieldToReplace,
                     SyntaxNode lastStatementOrFieldToReplace,
-                    ImmutableArray<SyntaxNode> statementsOrFieldToInsert,
-                    SyntaxNode additionalNode)
+                    ImmutableArray<SyntaxNode> statementsOrFieldToInsert)
                 {
                     Contract.ThrowIfNull(outmostCallSiteContainer);
                     Contract.ThrowIfNull(variableToRemoveMap);
@@ -49,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     _firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
                     _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
                     _statementsOrMemberOrAccessorToInsert = statementsOrFieldToInsert;
-                    _additionalNode = additionalNode;
 
                     Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent
                         || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(_firstStatementOrFieldToReplace, _lastStatementOrFieldToReplace));
@@ -283,21 +280,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     // if all three same
                     if ((statement != _firstStatementOrFieldToReplace) || (_firstStatementOrFieldToReplace != _lastStatementOrFieldToReplace))
-                    {
                         return statement;
-                    }
 
                     // replace one statement with another
-                    if (_statementsOrMemberOrAccessorToInsert.Length == 1 && _additionalNode is null)
-                    {
+                    if (_statementsOrMemberOrAccessorToInsert.Length == 1)
                         return _statementsOrMemberOrAccessorToInsert.Cast<StatementSyntax>().Single();
-                    }
 
                     // replace one statement with multiple statements (see bug # 6310)
                     var statements = _statementsOrMemberOrAccessorToInsert.CastArray<StatementSyntax>();
-                    if (_additionalNode is StatementSyntax additionalStatement)
-                        statements = statements.Add(additionalStatement);
-
                     return SyntaxFactory.Block(SyntaxFactory.List(statements));
                 }
 
@@ -320,9 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     // add new statements to replace
                     newList.InsertRange(firstIndex, _statementsOrMemberOrAccessorToInsert.Cast<TSyntax>());
-
-                    if (_additionalNode is TSyntax syntax)
-                        newList.Add(syntax);
 
                     return newList.ToSyntaxList();
                 }

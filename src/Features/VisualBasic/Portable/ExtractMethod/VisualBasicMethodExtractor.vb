@@ -26,7 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         End Function
 
         Protected Overrides Function GetInsertionPointNode(
-                document As SemanticDocument) As SyntaxNode
+                analyzerResult As AnalyzerResult, cancellationToken As CancellationToken) As SyntaxNode
+            Dim document = analyzerResult.SemanticDocument
             Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
             Contract.ThrowIfFalse(originalSpanStart >= 0)
 

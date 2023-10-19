@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override async Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(
                 SyntaxNode container,
-                SyntaxNode additionalNode,
                 CancellationToken cancellationToken)
             {
                 var variableMapToRemove = CreateVariableDeclarationToRemoveMap(
@@ -136,8 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     variableMapToRemove,
                     firstStatementToRemove,
                     lastStatementToRemove,
-                    statementsToInsert,
-                    additionalNode);
+                    statementsToInsert);
 
                 return container.CopyAnnotationsTo(callSiteGenerator.Generate()).WithAdditionalAnnotations(Formatter.Annotation);
             }

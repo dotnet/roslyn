@@ -87,10 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(
                     container As SyntaxNode,
-                    additionalStatement As SyntaxNode,
                     cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-                Contract.ThrowIfTrue(additionalStatement IsNot Nothing)
-
                 Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken)
                 Dim firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite()
                 Dim lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite()

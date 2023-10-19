@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -161,6 +162,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitOut or
                                                  DeclarationBehavior.MoveOut);
+            }
+
+            public VariableInfo GetOutermostVariableToMoveIntoMethodDefinition(CancellationToken cancellationToken)
+            {
+                using var _ = ArrayBuilder<VariableInfo>.GetInstance(out var variables);
+                variables.AddRange(this.GetVariablesToMoveIntoMethodDefinition(cancellationToken));
+                if (variables.Count <= 0)
+                    return null;
+
+                VariableInfo.SortVariables(SemanticDocument.SemanticModel.Compilation, variables);
+                return variables[0];
             }
         }
     }

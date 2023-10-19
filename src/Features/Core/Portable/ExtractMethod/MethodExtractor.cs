@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         protected abstract Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
-        protected abstract SyntaxNode GetInsertionPointNode(SemanticDocument document);
+        protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             if (operationStatus.Failed())
                 return new FailedExtractMethodResult(operationStatus);
 
-            var insertionPointNode = GetInsertionPointNode(analyzeResult.SemanticDocument);
+            var insertionPointNode = GetInsertionPointNode(analyzeResult, cancellationToken);
             if (!CanAddTo(analyzeResult.SemanticDocument.Document, insertionPointNode, out var canAddStatus))
                 return new FailedExtractMethodResult(canAddStatus);
 

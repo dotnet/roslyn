@@ -27,13 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
 
-        protected override SyntaxNode GetInsertionPointNode(SemanticDocument document)
+        protected override SyntaxNode GetInsertionPointNode(
+            AnalyzerResult analyzerResult, CancellationToken cancellationToken)
         {
             var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
+            var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
+
+            var document = analyzerResult.SemanticDocument;
             var root = document.Root;
-            var basePosition = root.FindToken(originalSpanStart);
+            var basePosition = outermostCapturedVariable != null
+                ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document)
+                : root.FindToken(originalSpanStart);
 
             if (LocalFunction)
             {
