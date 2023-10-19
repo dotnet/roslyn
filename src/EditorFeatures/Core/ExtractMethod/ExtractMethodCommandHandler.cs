@@ -200,13 +200,14 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (notificationService is null)
             return null;
 
-        // We're about to show an notification to the user.  Switch to the ui thread to do so.
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
         // The initial extract method failed, or it succeeded with warning reasons.  Attempt again with
         // different options to see if we get better results.
         var alternativeResult = await TryWithoutMakingValueTypesRefAsync(
             document, span, result, options, cancellationToken).ConfigureAwait(false);
+
+        // We're about to show an notification to the user.  Switch to the ui thread to do so.
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
         if (alternativeResult is { Succeeded: true, Reasons.Length: 0, DocumentWithoutFinalFormatting: not null })
         {
             if (!notificationService.ConfirmMessageBox(
