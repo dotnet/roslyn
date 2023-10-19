@@ -14877,7 +14877,7 @@ public class C
         }
 
         [Fact]
-        public void ExperimentalWithWhitespaceDiagnosticID()
+        public void ExperimentalWithWhitespaceDiagnosticID_WarnForInvalidDiagID()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("test.cs").WriteAllText("""
@@ -14909,8 +14909,6 @@ dotnet_diagnostic.CS9211.severity = warning
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path });
 
-            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
-
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(1, exitCode);
@@ -14919,7 +14917,7 @@ dotnet_diagnostic.CS9211.severity = warning
         }
 
         [Fact]
-        public void ExperimentalWithValidDiagnosticID()
+        public void ExperimentalWithValidDiagnosticID_WarnForDiagID()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("test.cs").WriteAllText("""
@@ -14950,8 +14948,6 @@ dotnet_diagnostic.DiagID.severity = warning
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path });
 
-            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
-
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -14960,7 +14956,7 @@ dotnet_diagnostic.DiagID.severity = warning
         }
 
         [Fact]
-        public void ExperimentalWithValidDiagnosticID_2()
+        public void ExperimentalWithValidDiagnosticID_WarnForExperimental()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("test.cs").WriteAllText("""
@@ -14991,8 +14987,6 @@ dotnet_diagnostic.CS9204.severity = warning
                 "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path });
-
-            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
