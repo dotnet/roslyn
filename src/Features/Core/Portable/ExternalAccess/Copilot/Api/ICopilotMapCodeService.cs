@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Api
 {
     internal interface ICopilotMapCodeService : ILanguageService
     {
-        Task<Document> MapCodeAsync(
+        Task<Document?> MapCodeAsync(
             Document document,
             ImmutableArray<string> contents,
             ImmutableArray<DocumentSpan> focusLocations,
