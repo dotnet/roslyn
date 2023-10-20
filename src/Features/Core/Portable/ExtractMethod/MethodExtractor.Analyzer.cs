@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
                 GetSignatureInformation(
                     DataFlowAnalysis dataFlowAnalysisData,
-                    IDictionary<ISymbol, VariableInfo> variableInfoMap,
+                    Dictionary<ISymbol, VariableInfo> variableInfoMap,
                     bool isInExpressionOrHasReturnStatement)
             {
                 var model = _semanticDocument.SemanticModel;
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (isInExpressionOrHasReturnStatement)
                 {
                     // check whether current selection contains return statement
-                    var parameters = GetMethodParameters(variableInfoMap.Values);
+                    var parameters = GetMethodParameters(variableInfoMap);
                     var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 else
                 {
                     // no return statement
-                    var parameters = MarkVariableInfoToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap.Values));
+                    var parameters = MarkVariableInfoToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap));
                     var variableToUseAsReturnValue = parameters.FirstOrDefault(v => v.UseAsReturnValue);
                     var returnType = variableToUseAsReturnValue != null
                         ? variableToUseAsReturnValue.GetVariableType()
@@ -438,12 +438,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
             }
 
-            private static ImmutableArray<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
+            private static ImmutableArray<VariableInfo> GetMethodParameters(Dictionary<ISymbol, VariableInfo> variableInfoMap)
             {
-                using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfo.Count, out var list);
-                list.AddRange(variableInfo);
+                using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfoMap.Count, out var list);
+                list.AddRange(variableInfoMap.Values);
 
-                VariableInfo.SortVariables(list);
+                list.Sort();
                 return list.ToImmutable();
             }
 
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 SemanticModel model,
                 DataFlowAnalysis dataFlowAnalysisData,
                 Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
-                out IDictionary<ISymbol, VariableInfo> variableInfoMap,
+                out Dictionary<ISymbol, VariableInfo> variableInfoMap,
                 out List<ISymbol> failedVariables)
             {
                 Contract.ThrowIfNull(model);

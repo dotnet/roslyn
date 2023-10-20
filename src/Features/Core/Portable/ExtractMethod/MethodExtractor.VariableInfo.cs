@@ -126,13 +126,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
 
             public static void SortVariables(ArrayBuilder<VariableInfo> variables)
-                => variables.Sort(Compare);
+                => variables.Sort();
 
-            public static int Compare(VariableInfo left, VariableInfo right)
-                => VariableSymbol.Compare(left._variableSymbol, right._variableSymbol);
+            //public static int Compare(VariableInfo left, VariableInfo right)
+            //    => (left._variableSymbol, right._variableSymbol);
 
             public int CompareTo(VariableInfo other)
-                => Compare(this, other);
+                => VariableSymbol.Compare(this._variableSymbol, other._variableSymbol);
         }
     }
 }
