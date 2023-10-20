@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         where TSelectionResult : SelectionResult<TStatementSyntax>
         where TStatementSyntax : SyntaxNode
     {
-        // protected static readonly SelectionResult NullSelection = new NullSelectionResult();
-
         protected readonly SemanticDocument SemanticDocument;
         protected readonly TextSpan OriginalSpan;
         protected readonly ExtractMethodOptions Options;
