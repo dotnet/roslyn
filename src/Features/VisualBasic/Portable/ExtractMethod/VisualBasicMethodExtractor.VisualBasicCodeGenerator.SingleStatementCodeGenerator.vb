@@ -23,25 +23,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' change this to more smarter one.
                     Dim semanticModel = CType(SemanticDocument.SemanticModel, SemanticModel)
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
-                    Dim containingScope = VBSelectionResult.GetContainingScope()
+                    Dim containingScope = Me.SelectionResult.GetContainingScope()
                     Return SyntaxFactory.Identifier(
                         nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
-                    Contract.ThrowIfFalse(VBSelectionResult.IsExtractMethodOnSingleStatement())
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of ExecutableStatementSyntax)
+                    Contract.ThrowIfFalse(Me.SelectionResult.IsExtractMethodOnSingleStatement())
 
-                    Return ImmutableArray.Create(Of StatementSyntax)(VBSelectionResult.GetFirstStatement())
+                    Return ImmutableArray.Create(Me.SelectionResult.GetFirstStatement())
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return VBSelectionResult.GetFirstStatement()
+                    Return Me.SelectionResult.GetFirstStatement()
                 End Function
 
                 Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                     ' it is a single statement case. either first statement is same as last statement or
                     ' last statement belongs (embedded statement) to the first statement.
-                    Return VBSelectionResult.GetFirstStatement()
+                    Return Me.SelectionResult.GetFirstStatement()
                 End Function
 
                 Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)

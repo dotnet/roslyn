@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor
     {
-        private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode, CSharpCodeGenerationOptions>
+        private abstract partial class CSharpCodeGenerator : CodeGenerator<SyntaxNode, CSharpCodeGenerationOptions>
         {
             private readonly SyntaxToken _methodName;
 
@@ -80,9 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var nameToken = CreateMethodName();
                 _methodName = nameToken.WithAdditionalAnnotations(MethodNameAnnotation);
             }
-
-            private CSharpSelectionResult CSharpSelectionResult
-                => (CSharpSelectionResult)SelectionResult;
 
             public override OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(SyntaxNode insertionPointNode, CancellationToken cancellationToken)
             {
@@ -226,8 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private DeclarationModifiers CreateMethodModifiers()
             {
-                var isUnsafe = CSharpSelectionResult.ShouldPutUnsafeModifier();
-                var isAsync = CSharpSelectionResult.ShouldPutAsyncModifier();
+                var isUnsafe = this.SelectionResult.ShouldPutUnsafeModifier();
+                var isAsync = this.SelectionResult.ShouldPutAsyncModifier();
                 var isStatic = !AnalyzerResult.UseInstanceMember;
                 var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
 
@@ -293,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private ImmutableArray<StatementSyntax> WrapInCheckStatementIfNeeded(ImmutableArray<StatementSyntax> statements)
             {
-                var kind = CSharpSelectionResult.UnderCheckedStatementContext();
+                var kind = this.SelectionResult.UnderCheckedStatementContext();
                 if (kind == SyntaxKind.None)
                     return statements;
 
@@ -601,15 +598,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 var invocation = SyntaxFactory.InvocationExpression(methodName,
-                                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
 
-                var shouldPutAsyncModifier = CSharpSelectionResult.ShouldPutAsyncModifier();
+                var shouldPutAsyncModifier = this.SelectionResult.ShouldPutAsyncModifier();
                 if (!shouldPutAsyncModifier)
                 {
                     return invocation;
                 }
 
-                if (CSharpSelectionResult.ShouldCallConfigureAwaitFalse())
+                if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
                 {
                     if (AnalyzerResult.ReturnType.GetMembers().Any(static x => x is IMethodSymbol
                         {
@@ -807,12 +804,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var semanticModel = SemanticDocument.SemanticModel;
                 var nameGenerator = new UniqueNameGenerator(semanticModel);
-                var scope = CSharpSelectionResult.GetContainingScope();
+                var scope = this.SelectionResult.GetContainingScope();
 
                 // If extracting a local function, we want to ensure all local variables are considered when generating a unique name.
                 if (LocalFunction)
                 {
-                    scope = CSharpSelectionResult.GetFirstTokenInSelection().Parent;
+                    scope = this.SelectionResult.GetFirstTokenInSelection().Parent;
                 }
 
                 return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, GenerateMethodNameFromUserPreference()));

@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
                     var firstSeen = false;
-                    var firstStatementUnderContainer = CSharpSelectionResult.GetFirstStatementUnderContainer();
-                    var lastStatementUnderContainer = CSharpSelectionResult.GetLastStatementUnderContainer();
+                    var firstStatementUnderContainer = this.SelectionResult.GetFirstStatementUnderContainer();
+                    var lastStatementUnderContainer = this.SelectionResult.GetLastStatementUnderContainer();
 
                     using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var list);
                     foreach (var statement in GetStatementsFromContainer(firstStatementUnderContainer.Parent))
@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                    => CSharpSelectionResult.GetFirstStatementUnderContainer();
+                    => this.SelectionResult.GetFirstStatementUnderContainer();
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
-                    => CSharpSelectionResult.GetLastStatementUnderContainer();
+                    => this.SelectionResult.GetLastStatementUnderContainer();
 
                 protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
                 {

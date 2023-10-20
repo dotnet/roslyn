@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
         Partial Private MustInherit Class VisualBasicCodeGenerator
-            Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax, VisualBasicCodeGenerationOptions)
+            Inherits CodeGenerator(Of StatementSyntax, VisualBasicCodeGenerationOptions)
 
             Private ReadOnly _methodName As SyntaxToken
 
@@ -52,12 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Protected Overrides Function UpdateMethodAfterGenerationAsync(originalDocument As SemanticDocument, methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
                 Return Task.FromResult(originalDocument)
             End Function
-
-            Private ReadOnly Property VBSelectionResult() As VisualBasicSelectionResult
-                Get
-                    Return CType(SelectionResult, VisualBasicSelectionResult)
-                End Get
-            End Property
 
             Protected Overrides Function ShouldLocalFunctionCaptureParameter(node As SyntaxNode) As Boolean
                 Return False
@@ -161,12 +155,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim isShared = False
 
                 If Not Me.AnalyzerResult.UseInstanceMember AndAlso
-                   Not VBSelectionResult.IsUnderModuleBlock() AndAlso
-                   Not VBSelectionResult.ContainsInstanceExpression() Then
+                   Not Me.SelectionResult.IsUnderModuleBlock() AndAlso
+                   Not Me.SelectionResult.ContainsInstanceExpression() Then
                     isShared = True
                 End If
 
-                Dim isAsync = Me.VBSelectionResult.ShouldPutAsyncModifier()
+                Dim isAsync = Me.SelectionResult.ShouldPutAsyncModifier()
 
                 Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
             End Function
@@ -178,12 +172,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return status.With(statements.CastArray(Of SyntaxNode))
             End Function
 
-            Private Function CreateMethodBody(context As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
+            Private Function CreateMethodBody(context As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of ExecutableStatementSyntax)
                 Dim statements = GetInitialStatementsForMethodDefinitions()
                 statements = SplitOrMoveDeclarationIntoMethodDefinition(context, statements, cancellationToken)
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken)
 
-                Dim emptyStatements = ImmutableArray(Of StatementSyntax).Empty
+                Dim emptyStatements = ImmutableArray(Of ExecutableStatementSyntax).Empty
                 Dim returnStatements = AppendReturnStatementIfNeeded(emptyStatements)
 
                 statements = statements.Concat(returnStatements)
@@ -196,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return statements
             End Function
 
-            Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of StatementSyntax)) As OperationStatus
+            Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of ExecutableStatementSyntax)) As OperationStatus
                 Dim count = statements.Count()
                 If count = 0 Then
                     Return OperationStatus.NoActiveStatement
@@ -230,11 +224,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return OperationStatus.NoActiveStatement
             End Function
 
-            Private Function MoveDeclarationOutFromMethodDefinition(statements As ImmutableArray(Of StatementSyntax), cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
+            Private Function MoveDeclarationOutFromMethodDefinition(statements As ImmutableArray(Of ExecutableStatementSyntax), cancellationToken As CancellationToken) As ImmutableArray(Of ExecutableStatementSyntax)
                 Dim variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
                     Me.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken)
 
-                Dim declarationStatements = New List(Of StatementSyntax)()
+                Dim declarationStatements = New List(Of ExecutableStatementSyntax)()
 
                 For Each statement In statements
 
@@ -245,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Continue For
                     End If
 
-                    Dim expressionStatements = New List(Of StatementSyntax)()
+                    Dim expressionStatements = New List(Of ExecutableStatementSyntax)()
                     Dim variableDeclarators = New List(Of VariableDeclaratorSyntax)()
                     Dim triviaList = New List(Of SyntaxTrivia)()
 
@@ -263,15 +257,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         ' trivia to the statement
 
                         ' TODO : think about a way to trivia attached to next token
-                        Dim emptyStatement As StatementSyntax = SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken).WithLeadingTrivia(SyntaxFactory.TriviaList(triviaList)))
-                        declarationStatements.Add(emptyStatement)
+                        Dim emptyStatement = SyntaxFactory.ParseExecutableStatement("").WithLeadingTrivia(SyntaxFactory.TriviaList(triviaList))
+                        declarationStatements.Add(DirectCast(emptyStatement, ExecutableStatementSyntax))
 
                         triviaList.Clear()
                     End If
 
                     ' return survived var decls
                     If variableDeclarators.Count > 0 Then
-                        Dim localStatement As StatementSyntax =
+                        Dim localStatement =
                             SyntaxFactory.LocalDeclarationStatement(
                                 declarationStatement.Modifiers,
                                 SyntaxFactory.SeparatedList(variableDeclarators)).WithPrependedLeadingTrivia(triviaList)
@@ -291,9 +285,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private Function SplitOrMoveDeclarationIntoMethodDefinition(
                     context As SyntaxNode,
-                    statements As ImmutableArray(Of StatementSyntax),
-                    cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
-                Dim semanticModel = CType(Me.SemanticDocument.SemanticModel, SemanticModel)
+                    statements As ImmutableArray(Of ExecutableStatementSyntax),
+                    cancellationToken As CancellationToken) As ImmutableArray(Of ExecutableStatementSyntax)
+                Dim semanticModel = Me.SemanticDocument.SemanticModel
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
 
                 Dim declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken)
@@ -306,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.Identifier(name)
             End Function
 
-            Protected Overrides Function CreateReturnStatement(Optional identifierName As String = Nothing) As StatementSyntax
+            Protected Overrides Function CreateReturnStatement(Optional identifierName As String = Nothing) As ExecutableStatementSyntax
                 If String.IsNullOrEmpty(identifierName) Then
                     Return SyntaxFactory.ReturnStatement()
                 End If
@@ -347,8 +341,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim invocation = SyntaxFactory.InvocationExpression(
                     methodName, SyntaxFactory.ArgumentList(arguments:=SyntaxFactory.SeparatedList(arguments)))
 
-                If Me.VBSelectionResult.ShouldPutAsyncModifier() Then
-                    If Me.VBSelectionResult.ShouldCallConfigureAwaitFalse() Then
+                If Me.SelectionResult.ShouldPutAsyncModifier() Then
+                    If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
                         If AnalyzerResult.ReturnType.GetMembers().Any(
                         Function(x)
                             Dim method = TryCast(x, IMethodSymbol)
@@ -397,14 +391,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.IdentifierName(name)
             End Function
 
-            Protected Overrides Function CreateAssignmentExpressionStatement(identifier As SyntaxToken, rvalue As ExpressionSyntax) As StatementSyntax
+            Protected Overrides Function CreateAssignmentExpressionStatement(identifier As SyntaxToken, rvalue As ExpressionSyntax) As ExecutableStatementSyntax
                 Return identifier.CreateAssignmentExpressionStatementWithValue(rvalue)
             End Function
 
             Protected Overrides Function CreateDeclarationStatement(
                     variable As VariableInfo,
                     givenInitializer As ExpressionSyntax,
-                    cancellationToken As CancellationToken) As StatementSyntax
+                    cancellationToken As CancellationToken) As ExecutableStatementSyntax
 
                 Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso
                                                   (variable.ParameterModifier = ParameterBehavior.Out)

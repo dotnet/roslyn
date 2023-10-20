@@ -384,14 +384,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         End Function
 
         <Extension()>
-        Public Function CreateAssignmentExpressionStatementWithValue(identifier As SyntaxToken, rvalue As ExpressionSyntax) As StatementSyntax
+        Public Function CreateAssignmentExpressionStatementWithValue(identifier As SyntaxToken, rvalue As ExpressionSyntax) As ExecutableStatementSyntax
             Return SyntaxFactory.SimpleAssignmentStatement(SyntaxFactory.IdentifierName(identifier), SyntaxFactory.Token(SyntaxKind.EqualsToken), rvalue).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
         End Function
 
         <Extension()>
         Public Function ProcessLocalDeclarationStatement(variableToRemoveMap As HashSet(Of SyntaxAnnotation),
                                                          declarationStatement As LocalDeclarationStatementSyntax,
-                                                         expressionStatements As List(Of StatementSyntax),
+                                                         expressionStatements As List(Of ExecutableStatementSyntax),
                                                          variableDeclarators As List(Of VariableDeclaratorSyntax),
                                                          triviaList As List(Of SyntaxTrivia)) As Boolean
             ' go through each var decls in decl statement, and create new assignment if

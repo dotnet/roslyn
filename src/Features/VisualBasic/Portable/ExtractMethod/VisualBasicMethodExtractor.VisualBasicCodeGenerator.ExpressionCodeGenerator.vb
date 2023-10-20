@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     Dim methodName = "NewMethod"
-                    Dim containingScope = VBSelectionResult.GetContainingScope()
+                    Dim containingScope = Me.SelectionResult.GetContainingScope()
 
                     methodName = GetMethodNameBasedOnExpression(methodName, containingScope)
 
@@ -67,12 +67,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return methodName
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
-                    Contract.ThrowIfFalse(IsExtractMethodOnExpression(VBSelectionResult))
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of ExecutableStatementSyntax)
+                    Contract.ThrowIfFalse(IsExtractMethodOnExpression(Me.SelectionResult))
 
-                    Dim expression = DirectCast(VBSelectionResult.GetContainingScope(), ExpressionSyntax)
+                    Dim expression = DirectCast(Me.SelectionResult.GetContainingScope(), ExpressionSyntax)
 
-                    Dim statement As StatementSyntax
+                    Dim statement As ExecutableStatementSyntax
                     If Me.AnalyzerResult.HasReturnType Then
                         statement = SyntaxFactory.ReturnStatement(expression:=expression)
                     Else
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         ' return error code
                         If expression.Kind <> SyntaxKind.InvocationExpression AndAlso
                            expression.Kind <> SyntaxKind.SimpleMemberAccessExpression Then
-                            Return ImmutableArray(Of StatementSyntax).Empty
+                            Return ImmutableArray(Of ExecutableStatementSyntax).Empty
                         End If
 
                         statement = SyntaxFactory.ExpressionStatement(expression:=expression)
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return VBSelectionResult.GetContainingScopeOf(Of StatementSyntax)()
+                    Return Me.SelectionResult.GetContainingScopeOf(Of StatementSyntax)()
                 End Function
 
                 Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite()
                     Dim callSignature = CreateCallSignature().WithAdditionalAnnotations(CallSiteAnnotation)
 
-                    Dim sourceNode = VBSelectionResult.GetContainingScope()
+                    Dim sourceNode = Me.SelectionResult.GetContainingScope()
                     Contract.ThrowIfTrue(
                         sourceNode.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                         DirectCast(sourceNode.Parent, MemberAccessExpressionSyntax).Name Is sourceNode,
