@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax>
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         /// <summary>
         /// temporary symbol until we have a symbol that can hold onto both local and parameter symbol

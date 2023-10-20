@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
-        Inherits MethodExtractor(Of VisualBasicSelectionResult, ExecutableStatementSyntax)
+        Inherits MethodExtractor(Of VisualBasicSelectionResult, ExecutableStatementSyntax, ExpressionSyntax)
 
         Public Sub New(result As VisualBasicSelectionResult, options As ExtractMethodGenerationOptions)
             MyBase.New(result, options, localFunction:=False)
@@ -61,16 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
         Protected Overrides Async Function PreserveTriviaAsync(selectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
             Return Await VisualBasicTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Protected Overrides Async Function ExpandAsync(selection As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
-            Dim lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors(Of ExpressionSyntax)().LastOrDefault()
-            If lastExpression Is Nothing Then
-                Return selection.SemanticDocument
-            End If
-
-            Dim newStatement = Await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, Function(n) n IsNot selection.GetContainingScope(), expandParameter:=False, cancellationToken:=cancellationToken).ConfigureAwait(False)
-            Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)

@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
-        : MethodExtractor<CSharpSelectionResult, StatementSyntax>(result, options, localFunction)
+        : MethodExtractor<CSharpSelectionResult, StatementSyntax, ExpressionSyntax>(result, options, localFunction)
     {
         protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
             => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, (CSharpCodeGenerationOptions)this.Options.CodeGenerationOptions, this.LocalFunction);
@@ -156,18 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         protected override async Task<TriviaResult> PreserveTriviaAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
             => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
-
-        protected override async Task<SemanticDocument> ExpandAsync(CSharpSelectionResult selection, CancellationToken cancellationToken)
-        {
-            var lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors<ExpressionSyntax>().LastOrDefault();
-            if (lastExpression == null)
-            {
-                return selection.SemanticDocument;
-            }
-
-            var newExpression = await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, n => n != selection.GetContainingScope(), expandParameter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
-        }
 
         protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
             => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);

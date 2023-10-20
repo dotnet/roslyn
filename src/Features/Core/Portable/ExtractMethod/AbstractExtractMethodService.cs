@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -13,11 +12,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         TValidator,
         TExtractor,
         TSelectionResult,
-        TStatementSyntax> : IExtractMethodService
+        TStatementSyntax,
+        TExpressionSyntax> : IExtractMethodService
         where TValidator : SelectionValidator<TSelectionResult, TStatementSyntax>
-        where TExtractor : MethodExtractor<TSelectionResult, TStatementSyntax>
+        where TExtractor : MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
         where TSelectionResult : SelectionResult<TStatementSyntax>
         where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
         protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, ExtractMethodOptions options, bool localFunction);
         protected abstract TExtractor CreateMethodExtractor(TSelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);

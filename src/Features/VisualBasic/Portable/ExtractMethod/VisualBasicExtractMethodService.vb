@@ -5,7 +5,6 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -16,7 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             VisualBasicSelectionValidator,
             VisualBasicMethodExtractor,
             VisualBasicSelectionResult,
-            ExecutableStatementSyntax)
+            ExecutableStatementSyntax,
+            ExpressionSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

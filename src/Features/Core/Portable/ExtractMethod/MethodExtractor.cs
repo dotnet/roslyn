@@ -22,9 +22,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor<
         TSelectionResult,
-        TStatementSyntax>
+        TStatementSyntax,
+        TExpressionSyntax>
         where TSelectionResult : SelectionResult<TStatementSyntax>
         where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
         protected readonly TSelectionResult OriginalSelectionResult;
         protected readonly ExtractMethodGenerationOptions Options;
@@ -44,7 +46,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract AnalyzerResult Analyze(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(TSelectionResult selectionResult, CancellationToken cancellationToken);
-        protected abstract Task<SemanticDocument> ExpandAsync(TSelectionResult selection, CancellationToken cancellationToken);
 
         protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
         protected abstract Task<GeneratedCode> GenerateCodeAsync(
@@ -149,6 +150,18 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 status = OperationStatus.Succeeded;
                 return true;
             }
+        }
+
+        private async Task<SemanticDocument> ExpandAsync(TSelectionResult selection, CancellationToken cancellationToken)
+        {
+            var lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors<TExpressionSyntax>().LastOrDefault();
+            if (lastExpression == null)
+            {
+                return selection.SemanticDocument;
+            }
+
+            var newExpression = await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, n => n != selection.GetContainingScope(), expandParameter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<(Document document, SyntaxToken? invocationNameToken)> GetFormattedDocumentAsync(
