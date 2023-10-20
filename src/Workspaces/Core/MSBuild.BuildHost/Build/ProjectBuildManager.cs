@@ -104,12 +104,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 xml.FullPath = path;
 
                 // Roughly matches the VS project load settings for their design time builds.
-                var projectLoadSettings = MSB.Evaluation.ProjectLoadSettings.RecordDuplicateButNotCircularImports
-                    | MSB.Evaluation.ProjectLoadSettings.RejectCircularImports
+                var projectLoadSettings = MSB.Evaluation.ProjectLoadSettings.RejectCircularImports
                     | MSB.Evaluation.ProjectLoadSettings.IgnoreEmptyImports
                     | MSB.Evaluation.ProjectLoadSettings.IgnoreMissingImports
                     | MSB.Evaluation.ProjectLoadSettings.IgnoreInvalidImports
-                    | MSB.Evaluation.ProjectLoadSettings.RecordEvaluatedItemElements
                     | MSB.Evaluation.ProjectLoadSettings.DoNotEvaluateElementsWithFalseCondition
                     | MSB.Evaluation.ProjectLoadSettings.FailOnUnresolvedSdk;
 
