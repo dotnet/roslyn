@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected readonly ExtractMethodGenerationOptions Options = options;
         protected readonly bool LocalFunction = localFunction;
 
+        protected abstract SyntaxNode ParseTypeName(string name);
         protected abstract AnalyzerResult Analyze(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(TSelectionResult selectionResult, CancellationToken cancellationToken);
@@ -258,8 +259,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             return status;
         }
-
-        protected abstract SyntaxNode ParseTypeName(string name);
 
         private OperationStatus CheckType(
             SemanticModel semanticModel, SyntaxNode contextNode, ITypeSymbol type)
