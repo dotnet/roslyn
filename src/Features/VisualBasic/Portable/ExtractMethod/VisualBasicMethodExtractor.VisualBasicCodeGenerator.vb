@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.SeparatedList(typeVariables)
             End Function
 
-            Protected Function GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken As CancellationToken) As SyntaxNode
+            Protected Overrides Function GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken As CancellationToken) As SyntaxNode
                 Dim outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken)
                 If outmostVariable Is Nothing Then
                     Return Nothing
@@ -144,11 +144,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Contract.ThrowIfFalse(declStatement.Parent.IsStatementContainerNode())
 
                 Return declStatement.Parent
-            End Function
-
-            Protected NotOverridable Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                Return If(callSiteContainer, Me.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken))
             End Function
 
             Private Function CreateMethodModifiers() As DeclarationModifiers

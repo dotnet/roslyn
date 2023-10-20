@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SyntaxFactory.SeparatedList(typeVariables);
             }
 
-            private SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken)
+            protected override SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken)
             {
                 var outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
                 if (outmostVariable == null)
@@ -206,19 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 Contract.ThrowIfFalse(declStatement.Parent.IsStatementContainerNode());
 
                 return declStatement.Parent;
-            }
-
-            protected sealed override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
-            {
-                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
-                if (callSiteContainer != null)
-                {
-                    return callSiteContainer;
-                }
-                else
-                {
-                    return this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
-                }
             }
 
             private DeclarationModifiers CreateMethodModifiers()

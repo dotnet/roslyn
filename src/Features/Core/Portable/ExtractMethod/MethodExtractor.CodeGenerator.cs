@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             #region method to be implemented in sub classes
 
-            protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
+            protected abstract SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken);
+
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode insertionPointNode, SyntaxNode outermostCallSiteContainer, CancellationToken cancellationToken);
             protected abstract IMethodSymbol GenerateMethodDefinition(SyntaxNode insertionPointNode, CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
@@ -170,6 +171,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var newContainer = codeGenerationService.AddMethod(destination, newMethodDefinition, info, cancellationToken);
                     var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, newContainer);
                     return finalRoot;
+                }
+            }
+
+            private SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+            {
+                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
+                if (callSiteContainer != null)
+                {
+                    return callSiteContainer;
+                }
+                else
+                {
+                    return this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
                 }
             }
 
