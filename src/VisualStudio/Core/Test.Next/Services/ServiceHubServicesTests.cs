@@ -7,26 +7,32 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.TaskList;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
@@ -35,7 +41,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     public class ServiceHubServicesTests
     {
         private static TestWorkspace CreateWorkspace(Type[] additionalParts = null)
-             => new TestWorkspace(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
+             => new(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
 
         [Fact]
         public async Task TestRemoteHostSynchronize()
@@ -319,6 +325,348 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 remoteWorkspace.GetTestAccessor().CreateSolutionFromInfo(solutionInfo), workspaceVersion: 1);
             Assert.True(updated);
             Assert.NotNull(solution);
+        }
+
+        private static ImmutableArray<ImmutableArray<T>> Permute<T>(T[] values)
+        {
+            using var _ = ArrayBuilder<ImmutableArray<T>>.GetInstance(out var result);
+            DoPermute(0, values.Length - 1);
+            return result.ToImmutable();
+
+            void DoPermute(int start, int end)
+            {
+                if (start == end)
+                {
+                    // We have one of our possible n! solutions,
+                    // add it to the list.
+                    result.Add(values.ToImmutableArray());
+                }
+                else
+                {
+                    for (var i = start; i <= end; i++)
+                    {
+                        (values[start], values[i]) = (values[i], values[start]);
+                        DoPermute(start + 1, end);
+                        (values[start], values[i]) = (values[i], values[start]);
+                    }
+                }
+            }
+        }
+
+        private static async Task TestInProcAndRemoteWorkspace(
+            bool syncWithRemoteServer, params ImmutableArray<(string hintName, SourceText text)>[] values)
+        {
+            // Try every permutation of these values.
+            foreach (var permutation in Permute(values))
+            {
+                var gotException = false;
+                try
+                {
+                    await TestInProcAndRemoteWorkspaceWorker(syncWithRemoteServer, permutation);
+                }
+                catch (XunitException)
+                {
+                    gotException = true;
+                }
+
+                // If we're syncing to the remove server, we should get no exceptions, since the data should be matched
+                // between both.  If we're not syncing, we should see a failure since the two processes will disagree on
+                // the contents.
+                Assert.Equal(syncWithRemoteServer, !gotException);
+            }
+        }
+
+        [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), SharedAttribute, PartNotDiscoverable]
+        private sealed class NoSyncWorkspaceConfigurationService : IWorkspaceConfigurationService
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public NoSyncWorkspaceConfigurationService()
+            {
+            }
+
+            public WorkspaceConfigurationOptions Options => WorkspaceConfigurationOptions.Default with { RunSourceGeneratorsInSameProcessOnly = true };
+        }
+
+        private static async Task TestInProcAndRemoteWorkspaceWorker(
+            bool syncWithRemoteServer, ImmutableArray<ImmutableArray<(string hintName, SourceText text)>> values)
+        {
+            var throwIfCalled = false;
+            ImmutableArray<(string hintName, SourceText text)> sourceTexts = default;
+            var generator = new CallbackGenerator(
+                onInit: _ => { },
+                onExecute: _ => { },
+                computeSourceTexts: () =>
+                {
+                    Contract.ThrowIfTrue(throwIfCalled);
+                    return sourceTexts;
+                });
+
+            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() : new[] { typeof(NoSyncWorkspaceConfigurationService) });
+
+            DocumentId tempDocId;
+
+            // Keep this all in a nested scope so we don't accidentally access this data inside the loop below.  We only
+            // want to access the true workspace solution (which will be a fork of the solution we're producing here).
+            {
+                var projectId = ProjectId.CreateNewId();
+                var analyzerReference = new TestGeneratorReference(generator);
+                var project = localWorkspace.CurrentSolution
+                    .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+                    .GetRequiredProject(projectId)
+                    .AddAnalyzerReference(analyzerReference);
+                var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+                tempDocId = tempDoc.Id;
+
+                Assert.True(localWorkspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+            }
+
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                sourceTexts = values[i];
+
+                // make a change to the project to force a change between the local and oop solutions.
+
+                Assert.True(localWorkspace.SetCurrentSolution(s => s.WithDocumentText(tempDocId, SourceText.From("// " + i)), WorkspaceChangeKind.SolutionChanged));
+                await UpdatePrimaryWorkspace(client, localWorkspace.CurrentSolution);
+
+                var localProject = localWorkspace.CurrentSolution.Projects.Single();
+                var remoteProject = remoteWorkspace.CurrentSolution.Projects.Single();
+
+                // Run generators locally
+                throwIfCalled = false;
+                var localCompilation = await localProject.GetCompilationAsync();
+
+                // Now run them remotely.  This must not actually call into the generator since nothing has changed.
+                throwIfCalled = true;
+                var remoteCompilation = await remoteProject.GetCompilationAsync();
+
+                await AssertSourceGeneratedDocumentsAreSame(localProject, remoteProject, expectedCount: sourceTexts.Length);
+            }
+
+            static async Task AssertSourceGeneratedDocumentsAreSame(Project localProject, Project remoteProject, int expectedCount)
+            {
+                // The docs on both sides must be in the exact same order, and with identical contents (including
+                // source-text encoding/hash-algorithm).
+
+                var localGeneratedDocs = (await localProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+                var remoteGeneratedDocs = (await remoteProject.GetSourceGeneratedDocumentsAsync()).ToImmutableArray();
+
+                Assert.Equal(localGeneratedDocs.Length, remoteGeneratedDocs.Length);
+                Assert.Equal(expectedCount, localGeneratedDocs.Length);
+
+                for (var i = 0; i < expectedCount; i++)
+                {
+                    var localDoc = localGeneratedDocs[i];
+                    var remoteDoc = remoteGeneratedDocs[i];
+
+                    Assert.Equal(localDoc.HintName, remoteDoc.HintName);
+                    Assert.Equal(localDoc.DocumentState.Id, remoteDoc.DocumentState.Id);
+
+                    var localText = await localDoc.GetTextAsync();
+                    var remoteText = await localDoc.GetTextAsync();
+                    Assert.Equal(localText.ToString(), remoteText.ToString());
+                    Assert.Equal(localText.Encoding, remoteText.Encoding);
+                    Assert.Equal(localText.ChecksumAlgorithm, remoteText.ChecksumAlgorithm);
+                }
+            }
+        }
+
+        private static SourceText CreateText(string content, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+            => SourceText.From(content, encoding ?? Encoding.UTF8, checksumAlgorithm);
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree1(bool syncWithRemoteServer)
+        {
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree2(bool syncWithRemoteServer)
+        {
+            var sourceText = CreateText(Guid.NewGuid().ToString());
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", sourceText)),
+                ImmutableArray.Create(("SG.cs", sourceText)));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree3(bool syncWithRemoteServer)
+        {
+            var sourceText = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(sourceText))),
+                ImmutableArray.Create(("SG.cs", CreateText(sourceText))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree4(bool syncWithRemoteServer)
+        {
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree5(bool syncWithRemoteServer)
+        {
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
+                ImmutableArray.Create(("NewName.cs", CreateText(Guid.NewGuid().ToString()))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree6(bool syncWithRemoteServer)
+        {
+            var sourceText = CreateText(Guid.NewGuid().ToString());
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", sourceText)),
+                ImmutableArray.Create(("NewName.cs", sourceText)));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree7(bool syncWithRemoteServer)
+        {
+            var sourceText = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(sourceText))),
+                ImmutableArray.Create(("NewName.cs", CreateText(sourceText))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree8(bool syncWithRemoteServer)
+        {
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
+                ImmutableArray.Create(("NewName.cs", CreateText(Guid.NewGuid().ToString()))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree9(bool syncWithRemoteServer)
+        {
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.ASCII))),
+                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree10(bool syncWithRemoteServer)
+        {
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1))),
+                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree11(bool syncWithRemoteServer)
+        {
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
+                ImmutableArray<(string, SourceText)>.Empty);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree12(bool syncWithRemoteServer)
+        {
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray<(string, SourceText)>.Empty,
+                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree13(bool syncWithRemoteServer)
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree14(bool syncWithRemoteServer)
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG.cs", CreateText(contents)), ("SG1.cs", CreateText("Other"))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree15(bool syncWithRemoteServer)
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG.cs", CreateText("Other"))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree16(bool syncWithRemoteServer)
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree17(bool syncWithRemoteServer)
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))),
+                ImmutableArray<(string, SourceText)>.Empty);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree18(bool syncWithRemoteServer)
+        {
+            var contents = CreateText(Guid.NewGuid().ToString());
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG1.cs", contents), ("SG2.cs", contents)));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree19(bool syncWithRemoteServer)
+        {
+            var contents = CreateText(Guid.NewGuid().ToString());
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG1.cs", contents), ("SG2.cs", contents)),
+                ImmutableArray.Create(("SG2.cs", contents), ("SG1.cs", contents)));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree20(bool syncWithRemoteServer)
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG2.cs", CreateText(contents))),
+                ImmutableArray.Create(("SG2.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
         }
 
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(

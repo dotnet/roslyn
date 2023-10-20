@@ -618,8 +618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' declarations that never have a block
 
                 Case SyntaxKind.ModifiedIdentifier
-                    Contract.ThrowIfFalse(
-                        parent.Parent.IsKind(SyntaxKind.FieldDeclaration) OrElse parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement))
+                    ' Field defined in a field declaration, or a locla variable defined in local declaration, For Each, For, Using, etc.
                     Return syntax
 
                 Case SyntaxKind.VariableDeclarator

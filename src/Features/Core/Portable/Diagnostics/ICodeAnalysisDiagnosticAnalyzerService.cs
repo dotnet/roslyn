@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// </summary>
 internal interface ICodeAnalysisDiagnosticAnalyzerService : IWorkspaceService
 {
+    void Clear();
+
     /// <summary>
     /// Runs all the applicable analyzers on the given project or entire solution if <paramref name="projectId"/> is null.
     /// </summary>

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
 
-            Assert.Equal(0, solutionObject.Projects.Count);
+            Assert.Equal(0, solutionObject.Projects.Length);
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
 
-            Assert.Equal(1, solutionObject.Projects.Count);
+            Assert.Equal(1, solutionObject.Projects.Length);
         }
 
         [Fact]
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
 
-            Assert.Equal(2, solutionObject.Projects.Count);
+            Assert.Equal(2, solutionObject.Projects.Length);
         }
 
         [Fact]
