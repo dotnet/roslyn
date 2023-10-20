@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (oldSymbol is not IMethodSymbol)
                 {
-                    throw new ArgumentException("Expected a method symbol", nameof(oldSymbol));
+                    throw new ArgumentException(CodeAnalysisResources.MethodSymbolExpected, nameof(oldSymbol));
                 }
 
                 if (newSymbol is not IMethodSymbol)
                 {
-                    throw new ArgumentException("Expected a method symbol", nameof(newSymbol));
+                    throw new ArgumentException(CodeAnalysisResources.MethodSymbolExpected, nameof(newSymbol));
                 }
             }
 
@@ -185,8 +185,6 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// True if <see cref="SyntaxMap"/> is not null.
         /// </summary>
-        [Obsolete("Use SyntaxMap instead")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public bool PreserveLocalVariables => SyntaxMap != null;
 
         // for testing non-public instrumentation kinds
