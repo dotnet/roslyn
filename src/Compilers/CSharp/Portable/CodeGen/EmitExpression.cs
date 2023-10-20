@@ -3763,26 +3763,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
             {
                 var constantValue = expr.ConstantValueOpt;
-                if (constantValue is not null &&
-                    (constantValue.IsIntegral ||
-                     constantValue.IsBoolean ||
-                     constantValue.IsChar))
+                switch (constantValue)
                 {
-                    if (constantValue.IsDefaultValue)
-                    {
+                    case { IsDefaultValue: true }:
                         isOne = false;
-                        return true;
-                    }
+                        break;
 
-                    if (constantValue.IsOne)
-                    {
+                    case { IsOne: true }:
                         isOne = true;
-                        return true;
-                    }
+                        break;
+
+                    default:
+                        isOne = default;
+                        return false;
                 }
 
-                isOne = default;
-                return false;
+                return 
+                    constantValue.IsIntegral ||
+                    constantValue.IsBoolean ||
+                    constantValue.IsChar;
             }
         }
 
