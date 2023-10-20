@@ -46,19 +46,32 @@ internal sealed class ChecksumCollection(ImmutableArray<Checksum> children) : IR
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
     internal static async Task FindAsync<TState>(
         TextDocumentStates<TState> documentStates,
+        DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
-        foreach (var (_, state) in documentStates.States)
+        if (hintDocument != null)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (searchingChecksumsLeft.Count == 0)
-                return;
+            var state = documentStates.GetState(hintDocument);
+            if (state != null)
+            {
+                Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
+                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        else
+        {
+            foreach (var (_, state) in documentStates.States)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (searchingChecksumsLeft.Count == 0)
+                    return;
 
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
+                Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
-            await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 

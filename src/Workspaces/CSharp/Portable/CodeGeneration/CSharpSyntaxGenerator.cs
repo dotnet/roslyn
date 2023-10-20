@@ -3612,18 +3612,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var parameters = parameterDeclarations?.Cast<ParameterSyntax>().ToList();
 
-            if (parameters != null && parameters.Count == 1 && IsSimpleLambdaParameter(parameters[0]))
-            {
-                return SyntaxFactory.SimpleLambdaExpression(parameters[0], (CSharpSyntaxNode)expression);
-            }
-            else
-            {
-                return SyntaxFactory.ParenthesizedLambdaExpression(AsParameterList(parameters), (CSharpSyntaxNode)expression);
-            }
+            return parameters is [var parameter] && IsSimpleLambdaParameter(parameter)
+                ? SyntaxFactory.SimpleLambdaExpression(parameter, (CSharpSyntaxNode)expression)
+                : SyntaxFactory.ParenthesizedLambdaExpression(AsParameterList(parameters), (CSharpSyntaxNode)expression);
         }
 
         private static bool IsSimpleLambdaParameter(SyntaxNode node)
-            => node is ParameterSyntax p && p.Type == null && p.Default == null && p.Modifiers.Count == 0;
+            => node is ParameterSyntax { Type: null, Default: null, Modifiers.Count: 0 };
 
         public override SyntaxNode VoidReturningLambdaExpression(IEnumerable<SyntaxNode>? lambdaParameters, SyntaxNode expression)
             => this.ValueReturningLambdaExpression(lambdaParameters, expression);

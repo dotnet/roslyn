@@ -3508,7 +3508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Visit(spread);
                         break;
                     default:
-                        _ = VisitOptionalImplicitConversion(element, targetElementType, useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment);
+                        _ = VisitOptionalImplicitConversion((BoundExpression)element, targetElementType, useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment);
 
                         break;
                 }
@@ -3522,17 +3522,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var element in node.Elements)
             {
-                VisitRvalue(element);
+                if (element is BoundExpression expression)
+                {
+                    VisitRvalue(expression);
+                }
+                else
+                {
+                    Visit(element);
+                }
             }
 
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
-            return null;
-        }
-
-        public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
-        {
-            base.VisitCollectionExpressionSpreadElement(node);
-            SetResultType(node, default);
             return null;
         }
 

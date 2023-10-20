@@ -38,11 +38,6 @@
     <SelfContained>false</SelfContained>
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
     <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
-    <!--
-        Set the minimum runtime to a .NET 7 prerelease so that prerelease SDKs will be considered during rollForward.
-        RollForward values for roslyn are set in eng/config/runtimeconfig.template.json
-    -->
-    <RuntimeFrameworkVersion>7.0.0-preview.7.22362.8</RuntimeFrameworkVersion>
 
     <!-- List of runtime identifiers that we want to publish an executable for -->
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;alpine-x64;alpine-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
