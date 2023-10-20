@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);
 
             var (selectedCode, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
-            if (!succeed && status.Failed())
+            if (!succeed && status.Failed)
                 return null;
 
             Assert.NotNull(selectedCode);
@@ -181,14 +181,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             if (expectedFail)
             {
-                Assert.True(status.Failed() || status.Reasons.Length > 0);
+                Assert.True(status.Failed || status.Reasons.Length > 0);
             }
             else
             {
-                Assert.True(status.Succeeded());
+                Assert.True(status.Succeeded);
             }
 
-            if (status.Succeeded() && result.SelectionChanged)
+            if (status.Succeeded && result.SelectionChanged)
                 Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
                 // check the obvious case
                 if (node is not ExpressionSyntax && !node.UnderValidContext())
-                    Assert.True(status.Failed());
+                    Assert.True(status.Failed);
             }
         }
     }

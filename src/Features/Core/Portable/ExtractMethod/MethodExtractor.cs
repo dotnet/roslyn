@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             var status = CheckVariableTypes(analyzeResult.Status.With(initialStatus), analyzeResult, cancellationToken);
-            if (status.Failed())
+            if (status.Failed)
                 return ExtractMethodResult.Fail(status);
 
             var insertionPointNode = GetInsertionPointNode(analyzeResult, cancellationToken);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var codeGenerator = this.CreateCodeGenerator(analyzeResult);
 
             var statements = codeGenerator.GetNewMethodStatements(insertionPointNode, cancellationToken);
-            if (statements.Status.Failed())
+            if (statements.Status.Failed)
                 return ExtractMethodResult.Fail(statements.Status);
 
             return ExtractMethodResult.Success(
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return false;
                 }
 
-                status = OperationStatus.Succeeded;
+                status = OperationStatus.SucceededStatus;
                 return true;
             }
         }
@@ -260,14 +260,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             IEnumerable<VariableInfo> variables,
             OperationStatus status)
         {
-            if (status.Failed())
+            if (status.Failed)
                 return Tuple.Create(false, status);
 
             foreach (var variable in variables)
             {
                 var originalType = variable.GetVariableType();
                 var result = CheckType(semanticModel, contextNode, originalType);
-                if (result.Failed())
+                if (result.Failed)
                 {
                     status = status.With(result);
                     return Tuple.Create(false, status);
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             // this happens when there is no return type
             if (type.SpecialType == SpecialType.System_Void)
-                return OperationStatus.Succeeded;
+                return OperationStatus.SucceededStatus;
 
             if (type.TypeKind is TypeKind.Error or TypeKind.Unknown)
                 return OperationStatus.ErrorOrUnknownType;
@@ -298,14 +298,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
                 {
-                    return new OperationStatus(OperationStatusFlag.Succeeded,
+                    return new OperationStatus(succeeded: true,
                         string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             currentType == null ? string.Empty : currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
                 }
             }
 
-            return OperationStatus.Succeeded;
+            return OperationStatus.SucceededStatus;
         }
 
         internal static string MakeMethodName(string prefix, string originalName, bool camelCase)

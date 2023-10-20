@@ -347,28 +347,28 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 var anonymousTypeStatus = !namesWithAnonymousTypes.Any()
-                    ? OperationStatus.Succeeded
-                    : new OperationStatus(OperationStatusFlag.Succeeded,
+                    ? OperationStatus.SucceededStatus
+                    : new OperationStatus(succeeded: true,
                         string.Format(
                             FeaturesResources.Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket,
                             string.Join(", ", namesWithAnonymousTypes)));
 
                 var unsafeAddressStatus = unsafeAddressTakenUsed
                     ? OperationStatus.UnsafeAddressTaken
-                    : OperationStatus.Succeeded;
+                    : OperationStatus.SucceededStatus;
 
                 var asyncRefOutParameterStatus = CheckAsyncMethodRefOutParameters(parameters);
 
                 var variableMapStatus = failedVariables.Count == 0
-                    ? OperationStatus.Succeeded
-                    : new OperationStatus(OperationStatusFlag.Succeeded,
+                    ? OperationStatus.SucceededStatus
+                    : new OperationStatus(succeeded: true,
                         string.Format(
                             FeaturesResources.Failed_to_analyze_data_flow_for_0,
                             string.Join(", ", failedVariables.Select(v => v.Name))));
 
                 var localFunctionStatus = (containsAnyLocalFunctionCallNotWithinSpan && !LocalFunction)
                     ? OperationStatus.LocalFunctionCallWithoutDeclaration
-                    : OperationStatus.Succeeded;
+                    : OperationStatus.SucceededStatus;
 
                 return readonlyFieldStatus.With(anonymousTypeStatus)
                                           .With(unsafeAddressStatus)
@@ -385,10 +385,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                                           .Select(p => p.Name ?? string.Empty);
 
                     if (names.Any())
-                        return new OperationStatus(OperationStatusFlag.Succeeded, string.Format(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket, string.Join(", ", names)));
+                        return new OperationStatus(succeeded: true, string.Format(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket, string.Join(", ", names)));
                 }
 
-                return OperationStatus.Succeeded;
+                return OperationStatus.SucceededStatus;
             }
 
             private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap(SemanticModel model)
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private OperationStatus CheckReadOnlyFields(SemanticModel semanticModel, Dictionary<ISymbol, List<SyntaxToken>> symbolMap)
             {
                 if (ReadOnlyFieldAllowed())
-                    return OperationStatus.Succeeded;
+                    return OperationStatus.SucceededStatus;
 
                 using var _ = ArrayBuilder<string>.GetInstance(out var names);
                 var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
@@ -970,9 +970,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 if (names.Count > 0)
-                    return new OperationStatus(OperationStatusFlag.Succeeded, string.Format(FeaturesResources.Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket, string.Join(", ", names)));
+                    return new OperationStatus(succeeded: true, string.Format(FeaturesResources.Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket, string.Join(", ", names)));
 
-                return OperationStatus.Succeeded;
+                return OperationStatus.SucceededStatus;
             }
 
             protected static VariableInfo CreateFromSymbolCommon<T>(

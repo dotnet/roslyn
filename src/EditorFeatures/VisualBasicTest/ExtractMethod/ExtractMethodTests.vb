@@ -152,10 +152,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 If expectedFail Then
                     Assert.True(status.Failed() OrElse status.Reasons.Length > 0, "Selection didn't fail as expected")
                 Else
-                    Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(status), "Selection wasn't expected to fail")
+                    Assert.True(status.Succeeded, "Selection wasn't expected to fail")
                 End If
 
-                If Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(status) AndAlso result.SelectionChanged Then
+                If status.Succeeded AndAlso result.SelectionChanged Then
                     Assert.Equal(namedSpans("r").Single(), result.FinalSpan)
                 End If
             End Using
@@ -187,7 +187,7 @@ End Class</text>
 
                         ' check the obvious case
                         If Not (TypeOf node Is ExpressionSyntax) AndAlso (Not node.UnderValidContext()) Then
-                            Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Failed(status.Flag))
+                            Assert.True(status.Failed)
                         End If
                     Catch e1 As ArgumentException
                         ' catch and ignore unknown issue. currently control flow analysis engine doesn't support field initializer.

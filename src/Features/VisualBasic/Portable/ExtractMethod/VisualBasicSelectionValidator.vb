@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim statementRange = GetStatementRangeContainedInSpan(Of StatementSyntax)(root, controlFlowSpan, cancellationToken)
                 If statementRange Is Nothing Then
                     With selectionInfo
-                        .Status = .Status.With(OperationStatusFlag.Failed, VBFeaturesResources.can_t_determine_valid_range_of_statements_to_extract_out)
+                        .Status = .Status.With(succeeded:=False, VBFeaturesResources.can_t_determine_valid_range_of_statements_to_extract_out)
                     End With
 
                     Return (Nothing, selectionInfo.Status)
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' check control flow only if we are extracting statement level, not expression level.
                     ' you can't have goto that moves control out of scope in expression level (even in lambda)
                     With selectionInfo
-                        .Status = .Status.With(OperationStatusFlag.Succeeded, VBFeaturesResources.Not_all_code_paths_return)
+                        .Status = .Status.With(succeeded:=True, VBFeaturesResources.Not_all_code_paths_return)
                     End With
                 End If
             End If
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             If selectionInfo.FirstTokenInFinalSpan.IsMissing OrElse selectionInfo.LastTokenInFinalSpan.IsMissing Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Failed, VBFeaturesResources.contains_invalid_selection)
+                    .Status = .Status.With(succeeded:=False, VBFeaturesResources.contains_invalid_selection)
                 End With
             End If
 
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             If (selectionInfo.SelectionInExpression OrElse selectionInfo.SelectionInSingleStatement) AndAlso commonNode.HasDiagnostics() Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Failed, VBFeaturesResources.the_selection_contains_syntactic_errors)
+                    .Status = .Status.With(succeeded:=False, VBFeaturesResources.the_selection_contains_syntactic_errors)
                 End With
             End If
 
@@ -105,33 +105,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Dim tokens = root.DescendantTokens(selectionInfo.FinalSpan)
             If tokens.ContainPreprocessorCrossOver(selectionInfo.FinalSpan) Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Succeeded, VBFeaturesResources.Selection_can_t_be_crossed_over_preprocessors)
+                    .Status = .Status.With(succeeded:=True, VBFeaturesResources.Selection_can_t_be_crossed_over_preprocessors)
                 End With
             End If
 
             ' TODO : check behavior of control flow analysis engine around exception and exception handling.
             If tokens.ContainArgumentlessThrowWithoutEnclosingCatch(selectionInfo.FinalSpan) Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Succeeded, VBFeaturesResources.Selection_can_t_contain_throw_without_enclosing_catch_block)
+                    .Status = .Status.With(succeeded:=True, VBFeaturesResources.Selection_can_t_contain_throw_without_enclosing_catch_block)
                 End With
             End If
 
             If selectionInfo.SelectionInExpression AndAlso commonNode.PartOfConstantInitializerExpression() Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Failed, VBFeaturesResources.Selection_can_t_be_parts_of_constant_initializer_expression)
+                    .Status = .Status.With(succeeded:=False, VBFeaturesResources.Selection_can_t_be_parts_of_constant_initializer_expression)
                 End With
             End If
 
             If selectionInfo.SelectionInExpression AndAlso commonNode.IsArgumentForByRefParameter(semanticModel, cancellationToken) Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Succeeded, VBFeaturesResources.Argument_used_for_ByRef_parameter_can_t_be_extracted_out)
+                    .Status = .Status.With(succeeded:=True, VBFeaturesResources.Argument_used_for_ByRef_parameter_can_t_be_extracted_out)
                 End With
             End If
 
             Dim containsAllStaticLocals = ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(selectionInfo, semanticModel, cancellationToken)
             If Not containsAllStaticLocals Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Succeeded, VBFeaturesResources.all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection)
+                    .Status = .Status.With(succeeded:=True, VBFeaturesResources.all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection)
                 End With
             End If
 
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 If commonNode.GetAncestorOrThis(Of WithBlockSyntax)() IsNot Nothing Then
                     If commonNode.GetImplicitMemberAccessExpressions(selectionInfo.FinalSpan).Any() Then
                         With clone
-                            .Status = .Status.With(OperationStatusFlag.Succeeded, VBFeaturesResources.Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement)
+                            .Status = .Status.With(succeeded:=True, VBFeaturesResources.Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement)
                         End With
                     End If
                 End If
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 If selectionInfo.FirstTokenInFinalSpan.GetAncestor(Of ExecutableStatementSyntax)() Is Nothing OrElse
                     selectionInfo.LastTokenInFinalSpan.GetAncestor(Of ExecutableStatementSyntax)() Is Nothing Then
                     With clone
-                        .Status = .Status.With(OperationStatusFlag.Failed, VBFeaturesResources.Selection_must_be_part_of_executable_statements)
+                        .Status = .Status.With(succeeded:=False, VBFeaturesResources.Selection_must_be_part_of_executable_statements)
                     End With
                 End If
             End If
@@ -281,7 +281,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                Not symbol.Locations.First().IsInSource OrElse
                symbol.Locations.First().SourceTree IsNot semanticModel.SyntaxTree Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Failed, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement)
+                    .Status = .Status.With(succeeded:=False, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement)
                 End With
 
                 Return clone
@@ -292,7 +292,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Dim forBlock = root.FindToken(startPosition).GetAncestor(Of ForOrForEachBlockSyntax)()
             If forBlock Is Nothing Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.Failed, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement)
+                    .Status = .Status.With(succeeded:=False, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement)
                 End With
 
                 Return clone
@@ -337,7 +337,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If firstValidNode Is Nothing Then
                 ' couldn't find any valid node
                 With clone
-                    .Status = New OperationStatus(OperationStatusFlag.Failed, VBFeaturesResources.Selection_doesn_t_contain_any_valid_node)
+                    .Status = New OperationStatus(succeeded:=False, VBFeaturesResources.Selection_doesn_t_contain_any_valid_node)
                     .FirstTokenInFinalSpan = Nothing
                     .LastTokenInFinalSpan = Nothing
                 End With
@@ -384,7 +384,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
 
             If range Is Nothing Then
                 With clone
-                    .Status = clone.Status.With(OperationStatusFlag.Failed, VBFeaturesResources.no_valid_statement_range_to_extract_out)
+                    .Status = clone.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out)
                 End With
 
                 Return clone
@@ -413,7 +413,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
 
                 If singleStatement Is Nothing Then
                     With clone
-                        .Status = clone.Status.With(OperationStatusFlag.Failed, VBFeaturesResources.no_valid_statement_range_to_extract_out)
+                        .Status = clone.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out)
                     End With
 
                     Return clone
@@ -467,18 +467,18 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)
 
             If firstTokenInSelection.Kind = SyntaxKind.None OrElse lastTokenInSelection.Kind = SyntaxKind.None Then
-                Return New SelectionInfo With {.Status = New OperationStatus(OperationStatusFlag.Failed, FeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
+                Return New SelectionInfo With {.Status = New OperationStatus(succeeded:=False, FeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
             End If
 
             If firstTokenInSelection <> lastTokenInSelection AndAlso
                firstTokenInSelection.Span.End > lastTokenInSelection.SpanStart Then
-                Return New SelectionInfo With {.Status = New OperationStatus(OperationStatusFlag.Failed, FeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
+                Return New SelectionInfo With {.Status = New OperationStatus(succeeded:=False, FeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
             End If
 
             If (Not adjustedSpan.Contains(firstTokenInSelection.Span)) AndAlso (Not adjustedSpan.Contains(lastTokenInSelection.Span)) Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.Failed, FeaturesResources.Selection_does_not_contain_a_valid_token),
+                           .Status = New OperationStatus(succeeded:=False, FeaturesResources.Selection_does_not_contain_a_valid_token),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -488,7 +488,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If (Not firstTokenInSelection.UnderValidContext()) OrElse (Not lastTokenInSelection.UnderValidContext()) Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.Failed, FeaturesResources.No_valid_selection_to_perform_extraction),
+                           .Status = New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -499,7 +499,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If commonRoot Is Nothing Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.Failed, FeaturesResources.No_common_root_node_for_extraction),
+                           .Status = New OperationStatus(succeeded:=False, FeaturesResources.No_common_root_node_for_extraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -509,7 +509,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If Not commonRoot.ContainedInValidType() Then
                 Return New SelectionInfo With
                     {
-                        .Status = New OperationStatus(OperationStatusFlag.Failed, FeaturesResources.Selection_not_contained_inside_a_type),
+                        .Status = New OperationStatus(succeeded:=False, FeaturesResources.Selection_not_contained_inside_a_type),
                         .OriginalSpan = adjustedSpan,
                         .FirstTokenInOriginalSpan = firstTokenInSelection,
                         .LastTokenInOriginalSpan = lastTokenInSelection
@@ -523,7 +523,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If (Not selectionInExpression) AndAlso (Not commonRoot.UnderValidContext()) Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.Failed, FeaturesResources.No_valid_selection_to_perform_extraction),
+                           .Status = New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -534,7 +534,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             If commonRoot.GetAncestor(Of TypeBlockSyntax)() Is Nothing Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.Failed, FeaturesResources.No_valid_selection_to_perform_extraction),
+                           .Status = New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection
@@ -543,7 +543,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
 
             Return New SelectionInfo With
                    {
-                       .Status = OperationStatus.Succeeded,
+                       .Status = OperationStatus.SucceededStatus,
                        .OriginalSpan = adjustedSpan,
                        .CommonRootFromOriginalSpan = commonRoot,
                        .SelectionInExpression = selectionInExpression,

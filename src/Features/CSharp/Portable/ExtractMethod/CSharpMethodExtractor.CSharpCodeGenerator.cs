@@ -307,12 +307,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 foreach (var statement in statements)
                 {
                     if (statement is not LocalDeclarationStatementSyntax declStatement)
-                        return OperationStatus.Succeeded;
+                        return OperationStatus.SucceededStatus;
 
                     foreach (var variable in declStatement.Declaration.Variables)
                     {
                         if (variable.Initializer != null)
-                            return OperationStatus.Succeeded;
+                            return OperationStatus.SucceededStatus;
                     }
                 }
 

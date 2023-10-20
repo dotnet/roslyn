@@ -202,16 +202,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim localDeclStatement = TryCast(statement, LocalDeclarationStatementSyntax)
                     If localDeclStatement Is Nothing Then
                         'found one
-                        Return OperationStatus.Succeeded
+                        Return OperationStatus.SucceededStatus
                     End If
 
                     For Each variableDecl In localDeclStatement.Declarators
                         If variableDecl.Initializer IsNot Nothing Then
                             'found one
-                            Return OperationStatus.Succeeded
+                            Return OperationStatus.SucceededStatus
                         ElseIf TypeOf variableDecl.AsClause Is AsNewClauseSyntax Then
                             'found one
-                            Return OperationStatus.Succeeded
+                            Return OperationStatus.SucceededStatus
                         End If
                     Next
                 Next

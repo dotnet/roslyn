@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
         protected override SyntaxNode ParseTypeName(string name)
-            => ParseTypeName(name);
+            => SyntaxFactory.ParseTypeName(name);
 
         protected override async Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
