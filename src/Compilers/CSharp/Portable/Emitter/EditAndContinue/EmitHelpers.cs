@@ -113,36 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 changedTypes: changedTypes.ToImmutableAndFree());
         }
 
-        private static bool ContainsPreviousAnonymousDelegates(
-            CSharpDefinitionMap definitionMap,
-            ImmutableSegmentedDictionary<string, AnonymousTypeValue> previousDictionary,
-            IEnumerable<Cci.ITypeDefinition> currentTypes)
-        {
-            if (previousDictionary.Count == 0)
-            {
-                return true;
-            }
-
-            var currentTypesByName = currentTypes.ToImmutableDictionary(getName);
-            if (previousDictionary.Count > currentTypesByName.Count)
-            {
-                return false;
-            }
-
-            foreach (var previousType in previousDictionary)
-            {
-                if (!currentTypesByName.TryGetValue(getName(previousType.Value.Type), out var currentType) ||
-                    definitionMap.MapDefinition(currentType) is null)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-
-            static string getName(Cci.ITypeDefinition type) => ((Cci.INamedEntity)type).Name!;
-        }
-
         /// <summary>
         /// Return a version of the baseline with all definitions mapped to this compilation.
         /// Definitions from the initial generation, from metadata, are not mapped since

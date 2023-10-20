@@ -633,19 +633,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal IEnumerable<Cci.INamedTypeDefinition> GetCreatedAnonymousDelegateTypesWithIndexedNames()
-        {
-            var templates = ArrayBuilder<AnonymousDelegateTemplateSymbol>.GetInstance();
-            GetCreatedAnonymousDelegatesWithIndexedNames(templates);
-
-            foreach (var template in templates)
-            {
-                yield return template.GetCciAdapter();
-            }
-
-            templates.Free();
-        }
-
         /// <summary>
         /// The set of synthesized delegates created by
         /// this AnonymousTypeManager.
