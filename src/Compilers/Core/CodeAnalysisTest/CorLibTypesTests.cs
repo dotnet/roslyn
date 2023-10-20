@@ -90,21 +90,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void ConstantValueOneTest01()
+        {
+            var cv1 = ConstantValue.Create(1);
+            Assert.True(cv1.IsOne);
+
+            Assert.Equal(1, cv1.ByteValue);
+            Assert.Equal(1, cv1.SByteValue);
+            Assert.Equal(true, cv1.BooleanValue);
+            Assert.Equal(1, cv1.DoubleValue);
+            Assert.Equal(1, cv1.SingleValue);
+            Assert.Equal(1, cv1.DecimalValue);
+            Assert.Equal(1, cv1.Int16Value);
+            Assert.Equal(1, cv1.UInt16Value);
+            Assert.Equal(1, cv1.Int32Value);
+            Assert.Equal(1U, cv1.UInt32Value);
+            Assert.Equal(1, cv1.Int64Value);
+            Assert.Equal(1U, cv1.UInt64Value);
+            Assert.Equal(1, cv1.CharValue);
+        }
+
+        [Fact]
         public void ConstantValueInvalidOperationTest01()
         {
             Assert.Throws<InvalidOperationException>(() => { ConstantValue.Create(null, ConstantValueTypeDiscriminator.Bad); });
 
-            var cv = ConstantValue.Create(1);
-            Assert.Throws<InvalidOperationException>(() => { var c = cv.StringValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv.DateTimeValue; });
+            var cv1 = ConstantValue.Create(1);
+            Assert.Throws<InvalidOperationException>(() => { var c = cv1.StringValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cv1.DateTimeValue; });
 
-            var cv1 = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.BooleanValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.DecimalValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.DoubleValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.SingleValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.SByteValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.ByteValue; });
+            var cv2 = ConstantValue.Create(2);
+            Assert.Throws<InvalidOperationException>(() => { var c = cv2.StringValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cv2.CharValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cv2.DateTimeValue; });
+
+            var cvNull = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.BooleanValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.DecimalValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.DoubleValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.SingleValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.SByteValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.ByteValue; });
         }
 
         [Fact]
