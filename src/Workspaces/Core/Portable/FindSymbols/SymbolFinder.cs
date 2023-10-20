@@ -259,7 +259,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
                 var originalDocument = solution.GetDocument(location.SyntaxTree);
-                var originalRoot = await location.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // GetDocument will return null for locations in #load'ed trees. TODO:  Remove this check and add logic
                 // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
@@ -269,6 +268,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     continue;
                 }
 
+                var originalRoot = await location.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var linkedDocumentId in originalDocument.GetLinkedDocumentIds())
                 {
                     var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
