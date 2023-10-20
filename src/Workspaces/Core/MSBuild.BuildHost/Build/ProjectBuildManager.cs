@@ -103,7 +103,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
                 xml.FullPath = path;
 
-                var project = new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection);
+                var project = new MSB.Evaluation.Project(
+                    xml,
+                    globalProperties: null,
+                    toolsVersion: null,
+                    projectCollection,
+                    MSB.Evaluation.ProjectLoadSettings.DoNotEvaluateElementsWithFalseCondition);
 
                 return (project, log);
             }
