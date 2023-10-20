@@ -82,13 +82,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // can pass in a range from the full document if they wish.
             ranges ??= new[] { ProtocolConversions.TextSpanToRange(root.FullSpan, text) };
 
-            foreach (var range in ranges)
+            var textSpans = new TextSpan[ranges.Length];
+            for (var i = 0; i < ranges.Length; i++)
             {
-                var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
-
-                await GetClassifiedSpansForDocumentAsync(
-                    classifiedSpans, document, textSpan, options, cancellationToken).ConfigureAwait(false);
+                textSpans[i] = ProtocolConversions.RangeToTextSpan(ranges[i], text);
             }
+
+            await GetClassifiedSpansForDocumentAsync(
+                classifiedSpans, document, textSpans, options, cancellationToken).ConfigureAwait(false);
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private static async Task GetClassifiedSpansForDocumentAsync(
             SegmentedList<ClassifiedSpan> classifiedSpans,
             Document document,
-            TextSpan textSpan,
+            TextSpan[] textSpans,
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
             var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-                document, textSpan, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
+                document, textSpans, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
 
             // The spans returned to us may include some empty spans, which we don't care about. We also don't care
             // about the 'text' classification.  It's added for everything between real classifications (including

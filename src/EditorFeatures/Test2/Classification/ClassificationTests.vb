@@ -93,9 +93,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim text = Await document.GetTextAsync()
+                Dim spanArray As TextSpan() = {New TextSpan(0, text.Length)}
 
                 Dim spans = Await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, New TextSpan(0, text.Length), ClassificationOptions.Default, includeAdditiveSpans:=False, CancellationToken.None)
+                    document, spanArray, ClassificationOptions.Default, includeAdditiveSpans:=False, CancellationToken.None)
 
                 Assert.Equal(
 "(text, '<spaces>', [0..26))
@@ -154,9 +155,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim text = Await document.GetTextAsync()
+                Dim spanArray As TextSpan() = {New TextSpan(0, text.Length)}
 
                 Dim spans = Await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, New TextSpan(0, text.Length), ClassificationOptions.Default, includeAdditiveSpans:=False, CancellationToken.None)
+                    document, spanArray, ClassificationOptions.Default, includeAdditiveSpans:=False, CancellationToken.None)
 
                 Assert.Equal(
 "(text, '<spaces>', [0..26))

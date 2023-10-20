@@ -196,9 +196,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                         // we don't have guarantee that primary snapshot is from same snapshot as roslyn snapshot. make
                         // sure we map it to right snapshot
+                        // Question roslynSpan is also part of a for loop, could we bulk pass TextSpan here? 
                         var fixedUpSpan = roslynSpan.TranslateTo(roslynSnapshot, SpanTrackingMode.EdgeExclusive);
                         var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(
-                            document, fixedUpSpan.Span.ToTextSpan(), options, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
+                            document, new[] { fixedUpSpan.Span.ToTextSpan() }, options, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
                         if (classifiedSpans.IsDefault)
                         {
                             continue;

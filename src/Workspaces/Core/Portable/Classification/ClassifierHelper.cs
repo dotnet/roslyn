@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// overwritten'.  i.e. they add additional information to a previous classification.</param>
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
-            TextSpan span,
+            TextSpan[] spans,
             ClassificationOptions options,
             bool includeAdditiveSpans,
             CancellationToken cancellationToken)
@@ -45,12 +45,17 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _1 = Classifier.GetPooledList(out var syntaxSpans);
             using var _2 = Classifier.GetPooledList(out var semanticSpans);
 
-            await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
+            for (var i = 0; i < spans.Length; i++)
+            {
+                var span = spans[i];
+                await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
 
-            // Intentional that we're adding both semantic and embedded lang classifications to the same array.  Both
-            // are 'semantic' from the perspective of this helper method.
-            await classificationService.AddSemanticClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
-            await classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
+                // Intentional that we're adding both semantic and embedded lang classifications to the same array.  Both
+                // are 'semantic' from the perspective of this helper method.
+                // AddSemanticClassificationsAsync is part of a hotpath, could we send down a text span of the full document instead?
+                await classificationService.AddSemanticClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
+            }
 
             // MergeClassifiedSpans will ultimately filter multiple classifications for the same
             // span down to one. We know that additive classifications are there just to 
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 RemoveAdditiveSpans(semanticSpans);
             }
 
-            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
+            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, spans);
             return classifiedSpans;
         }
 
@@ -81,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Classification
         private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
             SegmentedList<ClassifiedSpan> syntaxSpans,
             SegmentedList<ClassifiedSpan> semanticSpans,
-            TextSpan widenedSpan)
+            TextSpan[] widenedSpans)
         {
             // The spans produced by the language services may not be ordered
             // (indeed, this happens with semantic classification as different
@@ -101,18 +106,26 @@ namespace Microsoft.CodeAnalysis.Classification
             // 
             // To deal with that, we adjust all spans so that they don't go outside
             // of the range we care about.
-            AdjustSpans(syntaxSpans, widenedSpan);
-            AdjustSpans(semanticSpans, widenedSpan);
+            for (var i = 0; i < widenedSpans.Length; i++)
+            {
+                var widenedSpan = widenedSpans[i];
+                AdjustSpans(syntaxSpans, widenedSpan);
+                AdjustSpans(semanticSpans, widenedSpan);
+            }
 
             using var _1 = Classifier.GetPooledList(out var mergedSpans);
-
             MergeParts(syntaxSpans, semanticSpans, mergedSpans);
             Order(mergedSpans);
 
             // The classification service will only produce classifications for things it knows about.  i.e. there will
             // be gaps in what it produces. Fill in those gaps so we have *all* parts of the span classified properly.
             using var _2 = Classifier.GetPooledList(out var filledInSpans);
-            FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
+            for (var i = 0; i < widenedSpans.Length; i++)
+            {
+                var widenedSpan = widenedSpans[i];
+                FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
+            }
+
             return filledInSpans.ToImmutableArray();
         }
 

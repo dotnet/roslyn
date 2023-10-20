@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Classification
             // We don't present things like static/assigned variables differently.  So pass `includeAdditiveSpans:
             // false` as we don't need that data.
             var result = await ClassifierHelper.GetClassifiedSpansAsync(
-                document, widenedSpan, options, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
+                document, new[] { widenedSpan }, options, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefault)
                 return result;
 

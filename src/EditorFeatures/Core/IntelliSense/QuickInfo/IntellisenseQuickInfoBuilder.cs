@@ -109,8 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 {
                     // We don't present additive-spans (like static/reassigned-variable) any differently, so strip them
                     // out of the classifications we get back.
+                    // Question - could we directly pass in quickInfoItem.RelatedSpans and take this out of above for loop?
                     var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(
-                        document, span, context.ClassificationOptions, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
+                        document, new[] { span }, context.ClassificationOptions, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
 
                     var tabSize = context.LineFormattingOptions.TabSize;
 
