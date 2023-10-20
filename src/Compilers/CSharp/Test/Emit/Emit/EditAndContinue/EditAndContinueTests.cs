@@ -1957,21 +1957,10 @@ class C
         var z = <N:2>(int* a) => a</N:2>;
     }
 }");
-            var source3 = MarkedSource(
-@"class C
-{
-    static unsafe void F()
-    {
-        var x = <N:0>(int* a, int b) => b</N:0>;
-        var y = <N:1>(int a, int* b) => b</N:1>;
-        var z = <N:2>(int* a) => a</N:2>;
-    }
-}");
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
-            var compilation3 = compilation2.WithSource(source3.Tree);
 
             var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -1980,7 +1969,6 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var method2 = compilation2.GetMember<MethodSymbol>("C.F");
-            var method3 = compilation3.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -2021,64 +2009,6 @@ class C
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
                 "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
-
-            var diff3 = compilation3.EmitDifference(
-                diff2.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method2, method3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
-
-            Assert.False(diff3.EmitResult.Success);
-            diff3.EmitResult.Diagnostics.Verify(
-                // error CS8984: Cannot update because an inferred delegate type has changed.
-                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
-        }
-
-        [Fact]
-        public void Lambda_SynthesizedDelegate_03()
-        {
-            var source0 = MarkedSource(
-@"class A { }
-struct B<T> { }
-class C
-{
-    static unsafe void F()
-    {
-        var x = <N:0>(B<A>* a, int b) => a</N:0>;
-    }
-}");
-            var source1 = MarkedSource(
-@"class A { }
-struct B<T> { }
-class C
-{
-    static unsafe void F()
-    {
-        var x = <N:0>(B<A>* a, int b) => b</N:0>;
-    }
-}");
-
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation1 = compilation0.WithSource(source1.Tree);
-
-            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-            var reader0 = md0.MetadataReader;
-
-            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0", "A", "B`1", "C", "<>c");
-            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", ".ctor", "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0");
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
-
-            Assert.False(diff1.EmitResult.Success);
-            diff1.EmitResult.Diagnostics.Verify(
-                // error CS8984: Cannot update because an inferred delegate type has changed.
-                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
         }
 
         [Fact]
@@ -2103,20 +2033,9 @@ class C
         var x = <N:0>(B<A>* a, int b) => a</N:0>;
     }
 }");
-            var source2 = MarkedSource(
-@"class A { }
-struct B<T> { }
-class C
-{
-    static unsafe void F()
-    {
-        var x = <N:0>(B<A>* a, int b) => b</N:0>;
-    }
-}");
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
 
             var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2124,7 +2043,6 @@ class C
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -2148,15 +2066,6 @@ class C
             diff1.VerifySynthesizedMembers(
                "C.<>c: {<>9__0#1, <F>b__0#1}",
                "C: {<>c}");
-
-            var diff2 = compilation2.EmitDifference(
-                diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
-
-            Assert.False(diff2.EmitResult.Success);
-            diff2.EmitResult.Diagnostics.Verify(
-                // error CS8984: Cannot update because an inferred delegate type has changed.
-                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
         }
 
         [Fact]
@@ -2188,20 +2097,10 @@ class C
         var y = <N:1>(U u, T* t) => *t</N:1>;
     }
 }");
-            var source3 = MarkedSource(
-@"class C<T> where T : unmanaged
-{
-    static unsafe void F<U>() where U : unmanaged
-    {
-        var x = <N:0>(T t, U* u) => *u</N:0>;
-        var y = <N:1>(U u, T* t) => t</N:1>;
-    }
-}");
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
-            var compilation3 = compilation2.WithSource(source3.Tree);
 
             var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2210,7 +2109,6 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var method2 = compilation2.GetMember<MethodSymbol>("C.F");
-            var method3 = compilation3.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -2263,15 +2161,6 @@ class C
                 "System.Runtime: {CompilerServices}",
                 "Microsoft: {CodeAnalysis}",
                 "C<T>.<>c__0<U>: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
-
-            var diff3 = compilation3.EmitDifference(
-                diff2.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method2, method3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
-
-            Assert.False(diff3.EmitResult.Success);
-            diff3.EmitResult.Diagnostics.Verify(
-                // error CS8984: Cannot update because an inferred delegate type has changed.
-                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
         }
 
         [Fact]
@@ -2329,69 +2218,69 @@ class C
                 "C: {<>c}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67243")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67243")]
-        public void SynthesizedDelegate_MethodGroup()
+        public void SynthesizedDelegates_Ordering()
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugExe)
                 .AddBaseline(
-                    source: @"
-using System;
-
-Console.WriteLine(1);
-var <N:0>y = C.G</N:0>;
-Console.WriteLine(2);
-
-class C
-{
-   public static void G(bool a = true) { }
-}
-",
+                    source: """
+                    var <N:0>g1 = C.G1</N:0>;
+                    var <N:1>g2 = C.G2</N:1>;
+                    
+                    class C
+                    {
+                       public static void G1(bool a = true) { }
+                       public static void G2(bool a = false) { }
+                    }
+                    """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "<>f__AnonymousDelegate0`1", "Program", "C", "<>O");
+                        g.VerifyTypeDefNames("<Module>", "<>f__AnonymousDelegate0`1", "<>f__AnonymousDelegate1`1", "Program", "C", "<>O");
 
-                        g.VerifyMethodBody("<top-level-statements-entry-point>", @"
-{
-  // Code size       43 (0x2b)
-  .maxstack  2
-  .locals init (<>f__AnonymousDelegate0<bool> V_0) //y
-  // sequence point: Console.WriteLine(1);
-  IL_0000:  ldc.i4.1
-  IL_0001:  call       ""void System.Console.WriteLine(int)""
-  IL_0006:  nop
-  // sequence point: var      y = C.G      ;
-  IL_0007:  ldsfld     ""<anonymous delegate> Program.<>O.<0>__G""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0022
-  IL_000f:  pop
-  IL_0010:  ldnull
-  IL_0011:  ldftn      ""void C.G(bool)""
-  IL_0017:  newobj     ""<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)""
-  IL_001c:  dup
-  IL_001d:  stsfld     ""<anonymous delegate> Program.<>O.<0>__G""
-  IL_0022:  stloc.0
-  // sequence point: Console.WriteLine(2);
-  IL_0023:  ldc.i4.2
-  IL_0024:  call       ""void System.Console.WriteLine(int)""
-  IL_0029:  nop
-  IL_002a:  ret
-}
-");
+                        g.VerifyMethodBody("<top-level-statements-entry-point>", """
+                        {
+                          // Code size       57 (0x39)
+                          .maxstack  2
+                          .locals init (<>f__AnonymousDelegate0<bool> V_0, //g1
+                                        <>f__AnonymousDelegate1<bool> V_1) //g2
+                          // sequence point: var      g1 = C.G1      ;
+                          IL_0000:  ldsfld     "<anonymous delegate> Program.<>O.<0>__G1"
+                          IL_0005:  dup
+                          IL_0006:  brtrue.s   IL_001b
+                          IL_0008:  pop
+                          IL_0009:  ldnull
+                          IL_000a:  ldftn      "void C.G1(bool)"
+                          IL_0010:  newobj     "<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)"
+                          IL_0015:  dup
+                          IL_0016:  stsfld     "<anonymous delegate> Program.<>O.<0>__G1"
+                          IL_001b:  stloc.0
+                          // sequence point: var      g2 = C.G2      ;
+                          IL_001c:  ldsfld     "<anonymous delegate> Program.<>O.<1>__G2"
+                          IL_0021:  dup
+                          IL_0022:  brtrue.s   IL_0037
+                          IL_0024:  pop
+                          IL_0025:  ldnull
+                          IL_0026:  ldftn      "void C.G2(bool)"
+                          IL_002c:  newobj     "<>f__AnonymousDelegate1<bool>..ctor(object, System.IntPtr)"
+                          IL_0031:  dup
+                          IL_0032:  stsfld     "<anonymous delegate> Program.<>O.<1>__G2"
+                          IL_0037:  stloc.1
+                          IL_0038:  ret
+                        }
+                        """);
                     })
                 .AddGeneration(
-                    source: @"
-using System;
+                    source: """
+                    var <N:1>g2 = C.G2</N:1>;
+                    var <N:0>g1 = C.G1</N:0>;
 
-Console.WriteLine(1);
-var <N:0>y = C.G</N:0>;
-Console.WriteLine(3);
-
-class C
-{
-   public static void G(bool a = true) { }
-}
-",
+                    class C
+                    {
+                       public static void G1(bool a = true) { }
+                       public static void G2(bool a = false) { }
+                    }
+                    """,
                     edits: new[]
                     {
                         Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true),
@@ -2400,31 +2289,127 @@ class C
                     {
                         g.VerifyTypeDefNames("<>O#1");
 
-                        g.VerifyIL("<top-level-statements-entry-point>", @"
-{
-  // Code size       43 (0x2b)
-  .maxstack  2
-  .locals init ([unchanged] V_0,
-                <>f__AnonymousDelegate0<bool> V_1) //y
-  IL_0000:  ldc.i4.1
-  IL_0001:  call       ""void System.Console.WriteLine(int)""
-  IL_0006:  nop
-  IL_0007:  ldsfld     ""<anonymous delegate> Program.<>O#1.<0>__G""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0022
-  IL_000f:  pop
-  IL_0010:  ldnull
-  IL_0011:  ldftn      ""void C.G(bool)""
-  IL_0017:  newobj     ""<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)""
-  IL_001c:  dup
-  IL_001d:  stsfld     ""<anonymous delegate> Program.<>O#1.<0>__G""
-  IL_0022:  stloc.1
-  IL_0023:  ldc.i4.3
-  IL_0024:  call       ""void System.Console.WriteLine(int)""
-  IL_0029:  nop
-  IL_002a:  ret
-}
-");
+                        g.VerifyIL("<top-level-statements-entry-point>", """
+                        {
+                          // Code size       57 (0x39)
+                          .maxstack  2
+                          .locals init (<>f__AnonymousDelegate0<bool> V_0, //g1
+                                        <>f__AnonymousDelegate1<bool> V_1) //g2
+                          IL_0000:  ldsfld     "<anonymous delegate> Program.<>O#1.<0>__G2"
+                          IL_0005:  dup
+                          IL_0006:  brtrue.s   IL_001b
+                          IL_0008:  pop
+                          IL_0009:  ldnull
+                          IL_000a:  ldftn      "void C.G2(bool)"
+                          IL_0010:  newobj     "<>f__AnonymousDelegate1<bool>..ctor(object, System.IntPtr)"
+                          IL_0015:  dup
+                          IL_0016:  stsfld     "<anonymous delegate> Program.<>O#1.<0>__G2"
+                          IL_001b:  stloc.1
+                          IL_001c:  ldsfld     "<anonymous delegate> Program.<>O#1.<1>__G1"
+                          IL_0021:  dup
+                          IL_0022:  brtrue.s   IL_0037
+                          IL_0024:  pop
+                          IL_0025:  ldnull
+                          IL_0026:  ldftn      "void C.G1(bool)"
+                          IL_002c:  newobj     "<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)"
+                          IL_0031:  dup
+                          IL_0032:  stsfld     "<anonymous delegate> Program.<>O#1.<1>__G1"
+                          IL_0037:  stloc.0
+                          IL_0038:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void SynthesizedDelegates_Delete()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugExe)
+                .AddBaseline(
+                    source: """
+                    var <N:0>g1 = C.G1</N:0>;
+                    var <N:1>g2 = C.G2</N:1>;
+                    
+                    class C
+                    {
+                       public static void G1(bool a = true) { }
+                       public static void G2(bool a = false) { }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "<>f__AnonymousDelegate0`1", "<>f__AnonymousDelegate1`1", "Program", "C", "<>O");
+
+                        g.VerifyMethodBody("<top-level-statements-entry-point>", """
+                        {
+                          // Code size       57 (0x39)
+                          .maxstack  2
+                          .locals init (<>f__AnonymousDelegate0<bool> V_0, //g1
+                                        <>f__AnonymousDelegate1<bool> V_1) //g2
+                          // sequence point: var      g1 = C.G1      ;
+                          IL_0000:  ldsfld     "<anonymous delegate> Program.<>O.<0>__G1"
+                          IL_0005:  dup
+                          IL_0006:  brtrue.s   IL_001b
+                          IL_0008:  pop
+                          IL_0009:  ldnull
+                          IL_000a:  ldftn      "void C.G1(bool)"
+                          IL_0010:  newobj     "<>f__AnonymousDelegate0<bool>..ctor(object, System.IntPtr)"
+                          IL_0015:  dup
+                          IL_0016:  stsfld     "<anonymous delegate> Program.<>O.<0>__G1"
+                          IL_001b:  stloc.0
+                          // sequence point: var      g2 = C.G2      ;
+                          IL_001c:  ldsfld     "<anonymous delegate> Program.<>O.<1>__G2"
+                          IL_0021:  dup
+                          IL_0022:  brtrue.s   IL_0037
+                          IL_0024:  pop
+                          IL_0025:  ldnull
+                          IL_0026:  ldftn      "void C.G2(bool)"
+                          IL_002c:  newobj     "<>f__AnonymousDelegate1<bool>..ctor(object, System.IntPtr)"
+                          IL_0031:  dup
+                          IL_0032:  stsfld     "<anonymous delegate> Program.<>O.<1>__G2"
+                          IL_0037:  stloc.1
+                          IL_0038:  ret
+                        }
+                        """);
+                    })
+                .AddGeneration(
+                    source: """
+                    var <N:1>g2 = C.G2</N:1>;
+
+                    class C
+                    {
+                       public static void G1(bool a = true) { }
+                       public static void G2(bool a = false) { }
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<>O#1");
+
+                        g.VerifyIL("<top-level-statements-entry-point>", """
+                        {
+                          // Code size       29 (0x1d)
+                          .maxstack  2
+                          .locals init ([unchanged] V_0,
+                                        <>f__AnonymousDelegate1<bool> V_1) //g2
+                          IL_0000:  ldsfld     "<anonymous delegate> Program.<>O#1.<0>__G2"
+                          IL_0005:  dup
+                          IL_0006:  brtrue.s   IL_001b
+                          IL_0008:  pop
+                          IL_0009:  ldnull
+                          IL_000a:  ldftn      "void C.G2(bool)"
+                          IL_0010:  newobj     "<>f__AnonymousDelegate1<bool>..ctor(object, System.IntPtr)"
+                          IL_0015:  dup
+                          IL_0016:  stsfld     "<anonymous delegate> Program.<>O#1.<0>__G2"
+                          IL_001b:  stloc.1
+                          IL_001c:  ret
+                        }
+                        """);
                     })
                 .Verify();
         }

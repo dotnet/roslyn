@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override LambdaSyntaxFacts GetLambdaSyntaxFacts()
             => CSharpLambdaSyntaxFacts.Instance;
 
-        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
-            => _mapToPrevious.TryGetAnonymousTypeName(template, out name, out index);
+        internal bool TryGetAnonymousTypeValue(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, out AnonymousTypeValue typeValue)
+            => _mapToPrevious.TryGetAnonymousTypeValue(template, out typeValue);
 
         protected override void GetStateMachineFieldMapFromMetadata(
             ITypeSymbolInternal stateMachineType,

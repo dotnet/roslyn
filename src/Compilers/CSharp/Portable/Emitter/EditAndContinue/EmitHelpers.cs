@@ -84,32 +84,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
-                if (!ContainsPreviousAnonymousDelegates(definitionMap, baseline.SynthesizedTypes.AnonymousDelegatesWithIndexedNames, compilation.AnonymousTypeManager.GetCreatedAnonymousDelegateTypesWithIndexedNames()))
-                {
-                    diagnostics.Add(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged, Location.None);
-                }
-                else
-                {
-                    // Map the definitions from the previous compilation to the current compilation.
-                    // This must be done after compiling above since synthesized definitions
-                    // (generated when compiling method bodies) may be required.
-                    var mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
+                // Map the definitions from the previous compilation to the current compilation.
+                // This must be done after compiling above since synthesized definitions
+                // (generated when compiling method bodies) may be required.
+                var mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
 
-                    newBaseline = compilation.SerializeToDeltaStreams(
-                        moduleBeingBuilt,
-                        mappedBaseline,
-                        definitionMap,
-                        changes,
-                        metadataStream,
-                        ilStream,
-                        pdbStream,
-                        updatedMethods,
-                        changedTypes,
-                        diagnostics,
-                        testData?.SymWriterFactory,
-                        emitOptions.PdbFilePath,
-                        cancellationToken);
-                }
+                newBaseline = compilation.SerializeToDeltaStreams(
+                    moduleBeingBuilt,
+                    mappedBaseline,
+                    definitionMap,
+                    changes,
+                    metadataStream,
+                    ilStream,
+                    pdbStream,
+                    updatedMethods,
+                    changedTypes,
+                    diagnostics,
+                    testData?.SymWriterFactory,
+                    emitOptions.PdbFilePath,
+                    cancellationToken);
             }
 
             return new EmitDifferenceResult(
