@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     debugInfo = Baseline.DebugInformationProvider(methodHandle);
                     localSignature = Baseline.LocalSignatureProvider(methodHandle);
                 }
-                catch (Exception e) when (e is InvalidDataException || e is IOException)
+                catch (Exception e) when (e is InvalidDataException or IOException)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_InvalidDebugInfo,
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 provider = Baseline.DebugInformationProvider(MetadataTokens.MethodDefinitionHandle(methodRowId));
             }
-            catch (Exception e) when (e is InvalidDataException || e is IOException)
+            catch (Exception e) when (e is InvalidDataException or IOException)
             {
                 return SpecializedCollections.EmptyEnumerable<IMethodSymbolInternal>();
             }

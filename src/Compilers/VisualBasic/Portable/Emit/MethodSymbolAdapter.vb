@@ -562,6 +562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     (Me.IsMetadataVirtual AndAlso Not (Me.IsOverridable OrElse Me.IsMustOverride OrElse Me.IsOverrides))
             End Get
         End Property
+
         Friend Overridable ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean
             Get
                 CheckDefinitionInvariant()
