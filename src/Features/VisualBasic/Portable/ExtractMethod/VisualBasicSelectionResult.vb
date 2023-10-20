@@ -34,9 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Dim lastAnnotation = New SyntaxAnnotation()
 
             Dim root = document.Root
-            Dim newDocument = Await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(root.AddAnnotations(
-                {Tuple.Create(firstToken, firstAnnotation),
-                    Tuple.Create(lastToken, lastAnnotation)})), cancellationToken).ConfigureAwait(False)
+            Dim newDocument = Await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
+                root, {(firstToken, firstAnnotation), (lastToken, lastAnnotation)})), cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSelectionResult(
                 originalSpan,

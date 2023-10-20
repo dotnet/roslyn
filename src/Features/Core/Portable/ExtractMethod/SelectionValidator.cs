@@ -38,10 +38,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public abstract bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion);
 
         protected bool IsFinalSpanSemanticallyValidSpan(
-            SemanticModel semanticModel, TextSpan textSpan, Tuple<SyntaxNode, SyntaxNode> range, CancellationToken cancellationToken)
+            SemanticModel semanticModel, TextSpan textSpan, (SyntaxNode, SyntaxNode) range, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(range);
-
             var controlFlowAnalysisData = semanticModel.AnalyzeControlFlow(range.Item1, range.Item2);
 
             // there must be no control in and out of given span
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return IsFinalSpanSemanticallyValidSpan(semanticModel.SyntaxTree.GetRoot(cancellationToken), textSpan, returnStatements, cancellationToken);
         }
 
-        protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainingSpan<T>(
+        protected static (T, T)? GetStatementRangeContainingSpan<T>(
             ISyntaxFacts syntaxFacts,
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
@@ -139,13 +137,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return null;
             }
 
-            return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
+            return (firstStatement, lastStatement);
 
             static bool CanMergeExistingSpineWithCurrent(ISyntaxFacts syntaxFacts, T existing, T current)
                 => syntaxFacts.AreStatementsInSameContainer(existing, current);
         }
 
-        protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainedInSpan<T>(
+        protected static (T, T)? GetStatementRangeContainedInSpan<T>(
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
             // use top-down approach to find largest statement range contained in the given span
@@ -178,7 +176,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return null;
             }
 
-            return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
+            return (firstStatement, lastStatement);
         }
 
         protected sealed class SelectionInfo

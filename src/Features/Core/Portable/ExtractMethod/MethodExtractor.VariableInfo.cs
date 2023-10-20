@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
             {
                 _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
             }

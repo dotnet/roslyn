@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SyntaxNode insertionPointNode,
             CancellationToken cancellationToken)
         {
-            var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(analyzeResult.Variables.Length);
+            var annotations = new List<(SyntaxToken, SyntaxAnnotation)>(analyzeResult.Variables.Length);
             foreach (var variable in analyzeResult.Variables)
                 variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
 

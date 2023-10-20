@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -195,6 +197,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var expression = syntaxFacts.GetExpressionOfArgument(arguments[0]);
                 return syntaxFacts.IsFalseLiteralExpression(expression);
             }
+        }
+
+        /// <summary>
+        /// create a new root node from the given root after adding annotations to the tokens
+        /// 
+        /// tokens should belong to the given root
+        /// </summary>
+        protected static SyntaxNode AddAnnotations(SyntaxNode root, IEnumerable<(SyntaxToken, SyntaxAnnotation)> pairs)
+        {
+            Contract.ThrowIfNull(root);
+
+            var tokenMap = pairs.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
+            return root.ReplaceTokens(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
+        }
+
+        /// <summary>
+        /// create a new root node from the given root after adding annotations to the nodes
+        /// 
+        /// nodes should belong to the given root
+        /// </summary>
+        protected static SyntaxNode AddAnnotations(SyntaxNode root, IEnumerable<(SyntaxNode, SyntaxAnnotation)> pairs)
+        {
+            Contract.ThrowIfNull(root);
+
+            var tokenMap = pairs.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
+            return root.ReplaceNodes(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
         }
     }
 }

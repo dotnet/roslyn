@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return (Nothing, selectionInfo.Status)
                 End If
 
-                Dim isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange, cancellationToken)
+                Dim isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken)
                 If Not isFinalSpanSemanticallyValid Then
                     ' check control flow only if we are extracting statement level, not expression level.
                     ' you can't have goto that moves control out of scope in expression level (even in lambda)
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return True
                 End If
 
-                result = semanticModel.AnalyzeDataFlow(range.Item1, range.Item2)
+                result = semanticModel.AnalyzeDataFlow(range.Value.Item1, range.Value.Item2)
             End If
 
             For Each symbol In result.VariablesDeclared
@@ -390,8 +390,8 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 Return clone
             End If
 
-            Dim statement1 = DirectCast(range.Item1, StatementSyntax)
-            Dim statement2 = DirectCast(range.Item2, StatementSyntax)
+            Dim statement1 = DirectCast(range.Value.Item1, StatementSyntax)
+            Dim statement2 = DirectCast(range.Value.Item2, StatementSyntax)
 
             If statement1 Is statement2 Then
                 ' check one more time to see whether it is an expression case
@@ -582,7 +582,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             End If
 
             Dim returnableConstructPairs = returnStatements.
-                                                Select(Function(r) Tuple.Create(r, r.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
+                                                Select(Function(r) (r, r.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
                                                 Where(Function(p) p.Item2 IsNot Nothing)
 
             ' now filter return statements to only include the one under outmost container

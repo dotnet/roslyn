@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var statementRange = GetStatementRangeContainedInSpan<StatementSyntax>(root, controlFlowSpan, cancellationToken);
                 if (statementRange == null)
                 {
-                    selectionInfo = selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Can_t_determine_valid_range_of_statements_to_extract));
+                    selectionInfo = selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
                     return (null, selectionInfo.Status);
                 }
 
-                var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange, cancellationToken);
+                var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken);
                 if (!isFinalSpanSemanticallyValid)
                 {
                     // check control flow only if we are extracting statement level, not expression
@@ -351,8 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.No_valid_statement_range_to_extract));
             }
 
-            var statement1 = (StatementSyntax)range.Item1;
-            var statement2 = (StatementSyntax)range.Item2;
+            var statement1 = range.Value.Item1;
+            var statement2 = range.Value.Item2;
 
             if (statement1 == statement2)
             {
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }
 
-            var returnableConstructPairs = returnStatements.Select(r => Tuple.Create(r, r.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
+            var returnableConstructPairs = returnStatements.Select(r => (r, r.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
                                                            .Where(p => p.Item2 != null);
 
             // now filter return statements to only include the one under outmost container

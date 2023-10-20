@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
-                var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>();
+                var annotations = new List<(SyntaxToken, SyntaxAnnotation)>();
 
                 foreach (var variable in variables)
                 {

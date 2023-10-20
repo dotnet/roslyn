@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public abstract SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken);
 
             public abstract void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken);
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken);
 
             protected abstract int CompareTo(VariableSymbol right);
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override SyntaxAnnotation IdentifierTokenAnnotation => throw ExceptionUtilities.Unreachable();
 
             public override void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
             {
                 // do nothing for parameter
             }
@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override bool CanBeCapturedByLocalFunction => true;
 
             public override void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
             {
-                annotations.Add(Tuple.Create(GetOriginalIdentifierToken(cancellationToken), _annotation));
+                annotations.Add((GetOriginalIdentifierToken(cancellationToken), _annotation));
             }
 
             public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
