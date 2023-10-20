@@ -170,7 +170,7 @@
       ],
       "vsBranch": "rel/d17.7",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.7P3]"
+      "insertionTitlePrefix": "[d17.7]"
     },
     "release/dev17.8": {
       "nugetKind": [
@@ -179,7 +179,17 @@
       ],
       "vsBranch": "rel/d17.8",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.8P3]"
+      "insertionTitlePrefix": "[d17.8]"
+    },
+    "release/dev17.9": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.9P1]"
     },
     "main": {
       "nugetKind": [
@@ -189,7 +199,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.9P1]"
+      "insertionTitlePrefix": "[main]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [
