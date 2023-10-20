@@ -3778,7 +3778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         return false;
                 }
 
-                return 
+                return
                     constantValue.IsIntegral ||
                     constantValue.IsBoolean ||
                     constantValue.IsChar;
