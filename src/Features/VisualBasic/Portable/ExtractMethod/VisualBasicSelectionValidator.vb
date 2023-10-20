@@ -657,27 +657,5 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             ' move end position of the selection
             Return TextSpan.FromBounds(textSpan.Start, previousLine.End)
         End Function
-
-        Private Class SelectionInfo
-            Public Property Status() As OperationStatus
-
-            Public Property OriginalSpan() As TextSpan
-            Public Property FinalSpan() As TextSpan
-
-            Public Property CommonRootFromOriginalSpan() As SyntaxNode
-
-            Public Property FirstTokenInOriginalSpan() As SyntaxToken
-            Public Property LastTokenInOriginalSpan() As SyntaxToken
-
-            Public Property FirstTokenInFinalSpan() As SyntaxToken
-            Public Property LastTokenInFinalSpan() As SyntaxToken
-
-            Public Property SelectionInExpression() As Boolean
-            Public Property SelectionInSingleStatement() As Boolean
-
-            Public Function Clone() As SelectionInfo
-                Return CType(Me.MemberwiseClone(), SelectionInfo)
-            End Function
-        End Class
     End Class
 End Namespace

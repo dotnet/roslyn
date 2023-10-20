@@ -198,5 +198,37 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
         }
+
+        protected sealed class SelectionInfo
+        {
+            public OperationStatus Status { get; set; }
+
+            public TextSpan OriginalSpan { get; set; }
+            public TextSpan FinalSpan { get; set; }
+
+            public SyntaxNode CommonRootFromOriginalSpan { get; set; }
+
+            public SyntaxToken FirstTokenInOriginalSpan { get; set; }
+            public SyntaxToken LastTokenInOriginalSpan { get; set; }
+
+            public SyntaxToken FirstTokenInFinalSpan { get; set; }
+            public SyntaxToken LastTokenInFinalSpan { get; set; }
+
+            public bool SelectionInExpression { get; set; }
+            public bool SelectionInSingleStatement { get; set; }
+
+            public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
+                => With(s => s.Status = statusGetter(s.Status));
+
+            public SelectionInfo With(Action<SelectionInfo> valueSetter)
+            {
+                var newInfo = Clone();
+                valueSetter(newInfo);
+                return newInfo;
+            }
+
+            public SelectionInfo Clone()
+                => (SelectionInfo)MemberwiseClone();
+        }
     }
 }
