@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override bool ShouldLocalFunctionCaptureParameter(SyntaxNode node)
-            => node.SyntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp8;
+                => node.SyntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp8;
 
             private static bool IsExpressionBodiedMember(SyntaxNode node)
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
