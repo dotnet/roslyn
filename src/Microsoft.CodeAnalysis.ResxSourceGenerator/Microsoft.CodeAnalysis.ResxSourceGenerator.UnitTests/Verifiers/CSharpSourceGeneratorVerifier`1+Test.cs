@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
             public Test AddGeneratedSources()
             {
                 var expectedPrefix = $"{Assembly.GetExecutingAssembly().GetName().Name}.Resources.{ResourceName}.";
-                foreach (var resourceName in typeof(Test).Assembly.GetManifestResourceNames())
+                foreach (var resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
                 {
                     if (!resourceName.StartsWith(expectedPrefix, StringComparison.Ordinal))
                     {
