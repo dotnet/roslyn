@@ -2,19 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
@@ -29,16 +27,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Private Shared Function Create(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
-
-                If ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult) Then
+                If selectionResult.SelectionInExpression Then
                     Return New ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
-                If SingleStatementCodeGenerator.IsExtractMethodOnSingleStatement(selectionResult) Then
+                If selectionResult.IsExtractMethodOnSingleStatement() Then
                     Return New SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
-                If MultipleStatementsCodeGenerator.IsExtractMethodOnMultipleStatements(selectionResult) Then
+                If selectionResult.IsExtractMethodOnMultipleStatements() Then
                     Return New MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
@@ -52,15 +49,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)
             End Sub
 
+            Protected Overrides Function UpdateMethodAfterGenerationAsync(originalDocument As SemanticDocument, methodSymbolResult As OperationStatus(Of IMethodSymbol), cancellationToken As CancellationToken) As Task(Of SemanticDocument)
+                Return Task.FromResult(originalDocument)
+            End Function
+
             Private ReadOnly Property VBSelectionResult() As VisualBasicSelectionResult
                 Get
                     Return CType(SelectionResult, VisualBasicSelectionResult)
                 End Get
             End Property
-
-            Protected Overrides Function GetPreviousMember(document As SemanticDocument) As SyntaxNode
-                Return Me.InsertionPoint.With(document).GetContext()
-            End Function
 
             Protected Overrides Function ShouldLocalFunctionCaptureParameter(node As SyntaxNode) As Boolean
                 Return False
@@ -87,8 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                    Formatter.Annotation.AddAnnotationToSymbol(methodSymbol)))
             End Function
 
-            Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-                Dim container = GetOutermostCallSiteContainerToProcess(cancellationToken)
+            Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(
+                    container As SyntaxNode,
+                    cancellationToken As CancellationToken) As Task(Of SyntaxNode)
                 Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken)
                 Dim firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite()
                 Dim lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite()
@@ -152,6 +150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Contract.ThrowIfFalse(declStatement.Parent.IsStatementContainerNode())
 
                 Return declStatement.Parent
+            End Function
+
+            Protected NotOverridable Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
+                Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
+                Return If(callSiteContainer, Me.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken))
             End Function
 
             Private Function CreateMethodModifiers() As DeclarationModifiers
@@ -421,10 +424,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim methodDefinition = root.GetAnnotatedNodes(Of MethodBlockBaseSyntax)(Me.MethodDefinitionAnnotation).First()
                     Dim lastTokenOfBeginStatement = methodDefinition.BlockStatement.GetLastToken(includeZeroWidth:=True)
 
-                    Dim newMethodDefinition =
-                        methodDefinition.ReplaceToken(lastTokenOfBeginStatement,
-                                                      lastTokenOfBeginStatement.WithAppendedTrailingTrivia(
-                                                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)))
+                    Dim newMethodDefinition = methodDefinition.ReplaceToken(
+                        lastTokenOfBeginStatement,
+                        lastTokenOfBeginStatement.WithAppendedTrailingTrivia(
+                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)))
 
                     newDocument = Await newDocument.WithSyntaxRootAsync(root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(False)
                 End If

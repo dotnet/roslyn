@@ -24,33 +24,44 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
         : MethodExtractor(result, options, localFunction)
     {
-        protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-            => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
+        protected override AnalyzerResult Analyze(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
 
-        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, CancellationToken cancellationToken)
+        protected override SyntaxNode GetInsertionPointNode(
+            AnalyzerResult analyzerResult, CancellationToken cancellationToken)
         {
             var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
-            var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var basePosition = root.FindToken(originalSpanStart);
+            var document = this.OriginalSelectionResult.SemanticDocument;
+            var root = document.Root;
 
             if (LocalFunction)
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                SyntaxNode functionNode = null;
+                var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
+                var baseNode = outermostCapturedVariable != null
+                    ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
+                    : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
 
-                var currentNode = basePosition.Parent;
+                if (baseNode is CompilationUnitSyntax)
+                {
+                    // In some sort of global statement.  Have to special case these a bit for script files.
+                    var globalStatement = root.FindToken(originalSpanStart).GetAncestor<GlobalStatementSyntax>();
+                    if (globalStatement is null)
+                        return null;
+
+                    return GetInsertionPointForGlobalStatement(globalStatement, globalStatement);
+                }
+
+                var currentNode = baseNode;
                 while (currentNode is not null)
                 {
                     if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
                     {
                         if (OriginalSelectionWithin(anonymousFunction.Body) || OriginalSelectionWithin(anonymousFunction.ExpressionBody))
-                        {
-                            functionNode = currentNode;
-                            break;
-                        }
+                            return currentNode;
 
                         if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
                         {
@@ -65,10 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (currentNode is LocalFunctionStatementSyntax localFunction)
                     {
                         if (OriginalSelectionWithin(localFunction.ExpressionBody) || OriginalSelectionWithin(localFunction.Body))
-                        {
-                            functionNode = currentNode;
-                            break;
-                        }
+                            return currentNode;
 
                         if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
                         {
@@ -80,47 +88,57 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         }
                     }
 
+                    if (currentNode is AccessorDeclarationSyntax)
+                        return currentNode;
+
+                    if (currentNode is BaseMethodDeclarationSyntax)
+                        return currentNode;
+
+                    if (currentNode is GlobalStatementSyntax globalStatement)
+                    {
+                        // check whether the global statement is a statement container
+                        if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                        {
+                            // The extracted function will be a new global statement
+                            return globalStatement.Parent;
+                        }
+
+                        return globalStatement.Statement;
+                    }
+
                     currentNode = currentNode.Parent;
                 }
 
-                if (functionNode is not null)
-                {
-                    return await InsertionPoint.CreateAsync(document, functionNode, cancellationToken).ConfigureAwait(false);
-                }
+                return null;
             }
-
-            var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
-            Contract.ThrowIfNull(memberNode);
-            Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
-
-            if (LocalFunction && memberNode is BasePropertyDeclarationSyntax propertyDeclaration)
+            else
             {
-                var accessorNode = basePosition.GetAncestor<AccessorDeclarationSyntax>();
-                if (accessorNode is object)
-                {
-                    return await InsertionPoint.CreateAsync(document, accessorNode, cancellationToken).ConfigureAwait(false);
-                }
+                var baseToken = root.FindToken(originalSpanStart);
+                var memberNode = baseToken.GetAncestor<MemberDeclarationSyntax>();
+                Contract.ThrowIfNull(memberNode);
+                Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
+
+                if (memberNode is GlobalStatementSyntax globalStatement)
+                    return GetInsertionPointForGlobalStatement(globalStatement, memberNode);
+
+                return memberNode;
             }
 
-            if (memberNode is GlobalStatementSyntax globalStatement)
+            SyntaxNode GetInsertionPointForGlobalStatement(GlobalStatementSyntax globalStatement, MemberDeclarationSyntax memberNode)
             {
                 // check whether we are extracting whole global statement out
                 if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
-                {
-                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
-                }
+                    return globalStatement.Parent;
 
                 // check whether the global statement is a statement container
                 if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
                 {
                     // The extracted function will be a new global statement
-                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
+                    return globalStatement.Parent;
                 }
 
-                return await InsertionPoint.CreateAsync(document, globalStatement.Statement, cancellationToken).ConfigureAwait(false);
+                return globalStatement.Statement;
             }
-
-            return await InsertionPoint.CreateAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
         }
 
         private bool OriginalSelectionWithin(SyntaxNode node)
@@ -157,12 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames)
             => (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
-        protected override async Task<OperationStatus> CheckTypeAsync(
-            Document document,
+        protected override OperationStatus CheckType(
+            SemanticModel semanticModel,
             SyntaxNode contextNode,
             Location location,
-            ITypeSymbol type,
-            CancellationToken cancellationToken)
+            ITypeSymbol type)
         {
             Contract.ThrowIfNull(type);
 
@@ -179,8 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // if it is type parameter, make sure we are getting same type parameter
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             foreach (var typeParameter in TypeParameterCollector.Collect(type))
             {
                 var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
@@ -197,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return OperationStatus.Succeeded;
         }
 
-        protected override async Task<(Document document, SyntaxToken methodName, SyntaxNode methodDefinition)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+        protected override async Task<(Document document, SyntaxToken methodName)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
             SyntaxToken methodName,
             SyntaxNode methodDefinition,
@@ -225,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 methodName = newRoot.FindToken(methodName.SpanStart);
             }
 
-            return (document, methodName, methodDefinition);
+            return (document, methodName);
         }
     }
 }

@@ -19,14 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
                 End Sub
 
-                Public Shared Function IsExtractMethodOnSingleStatement(code As SelectionResult) As Boolean
-                    Dim result = DirectCast(code, VisualBasicSelectionResult)
-                    Dim firstStatement = result.GetFirstStatement()
-                    Dim lastStatement = result.GetLastStatement()
-
-                    Return firstStatement Is lastStatement OrElse firstStatement.Span.Contains(lastStatement.Span)
-                End Function
-
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     ' change this to more smarter one.
                     Dim semanticModel = CType(SemanticDocument.SemanticModel, SemanticModel)
@@ -37,19 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Function
 
                 Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
-                    Contract.ThrowIfFalse(IsExtractMethodOnSingleStatement(VBSelectionResult))
+                    Contract.ThrowIfFalse(VBSelectionResult.IsExtractMethodOnSingleStatement())
 
                     Return ImmutableArray.Create(Of StatementSyntax)(VBSelectionResult.GetFirstStatement())
-                End Function
-
-                Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                    Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                    If callSiteContainer IsNot Nothing Then
-                        Return callSiteContainer
-                    Else
-                        Dim first = VBSelectionResult.GetFirstStatement()
-                        Return first.Parent
-                    End If
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax

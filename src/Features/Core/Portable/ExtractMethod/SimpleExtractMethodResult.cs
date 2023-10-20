@@ -11,8 +11,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         OperationStatus status,
         Document documentWithoutFinalFormatting,
         ImmutableArray<AbstractFormattingRule> formattingRules,
-        SyntaxToken invocationNameToken,
-        SyntaxNode methodDefinition) : ExtractMethodResult(status.Flag, status.Reasons, documentWithoutFinalFormatting, formattingRules, invocationNameToken, methodDefinition)
+        SyntaxToken invocationNameToken)
+        : ExtractMethodResult(
+            status.Flag, status.Reasons, documentWithoutFinalFormatting, formattingRules, invocationNameToken)
     {
     }
 }
