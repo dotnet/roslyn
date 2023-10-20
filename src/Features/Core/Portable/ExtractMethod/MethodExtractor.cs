@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -43,12 +44,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
 
-        protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
+        protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
 
         protected abstract OperationStatus CheckType(SemanticModel semanticModel, SyntaxNode contextNode, Location location, ITypeSymbol type);
 
-        protected abstract Task<(Document document, SyntaxToken methodName)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(Document document, SyntaxToken methodName, SyntaxNode methodDefinition, CancellationToken cancellationToken);
+        protected abstract Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+            Document document, SyntaxToken? invocationNameToken, SyntaxNode methodDefinition, CancellationToken cancellationToken);
 
         public ExtractMethodResult ExtractMethod(CancellationToken cancellationToken)
         {
@@ -94,15 +96,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var documentWithoutFinalFormatting = afterTriviaRestored.Document;
 
                     cancellationToken.ThrowIfCancellationRequested();
-                    var formattingRules = GetFormattingRules(documentWithoutFinalFormatting);
 
-                    var (finalDocument, nameToken) = await CreateExtractMethodResultAsync(
-                        await SemanticDocument.CreateAsync(documentWithoutFinalFormatting, cancellationToken).ConfigureAwait(false),
-                        generatedCode.MethodNameAnnotation,
-                        generatedCode.MethodDefinitionAnnotation,
-                        cancellationToken).ConfigureAwait(false);
+                    var newRoot = afterTriviaRestored.Root;
+                    var invocationNameToken = GetInvocationNameToken(newRoot.GetAnnotatedTokens(generatedCode.MethodNameAnnotation));
 
-                    return (finalDocument, formattingRules, nameToken);
+                    // Do some final patchups of whitespace when inserting a local function.
+                    if (LocalFunction)
+                    {
+                        var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(generatedCode.MethodNameAnnotation).FirstOrDefault().AsNode();
+                        (documentWithoutFinalFormatting, invocationNameToken) = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+                            documentWithoutFinalFormatting, invocationNameToken, methodDefinition, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    return await GetFormattedDocumentAsync(
+                        documentWithoutFinalFormatting, invocationNameToken, cancellationToken).ConfigureAwait(false);
                 });
 
             bool CanAddTo(Document document, SyntaxNode insertionPointNode, out OperationStatus status)
@@ -137,6 +144,33 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
         }
 
+        private async Task<(Document document, SyntaxToken? invocationNameToken)> GetFormattedDocumentAsync(
+            Document document,
+            SyntaxToken? invocationNameToken,
+            CancellationToken cancellationToken)
+        {
+            var annotation = new SyntaxAnnotation();
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            if (invocationNameToken != null)
+                root = root.ReplaceToken(invocationNameToken.Value, invocationNameToken.Value.WithAdditionalAnnotations(annotation));
+
+            var annotatedDocument = document.WithSyntaxRoot(root);
+            var simplifiedDocument = await Simplifier.ReduceAsync(annotatedDocument, Simplifier.Annotation, this.Options.CodeCleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+            var simplifiedRoot = await simplifiedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var services = document.Project.Solution.Services;
+
+            var formattingRules = GetFormattingRules(document);
+            var formattedDocument = simplifiedDocument.WithSyntaxRoot(
+                Formatter.Format(simplifiedRoot, Formatter.Annotation, services, this.Options.CodeCleanupOptions.FormattingOptions, formattingRules, cancellationToken));
+
+            var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var finalInvocationNameToken = formattedRoot.GetAnnotatedTokens(annotation).SingleOrDefault();
+            return (formattedDocument, finalInvocationNameToken == default ? null : finalInvocationNameToken);
+        }
+
         private static async Task<(SemanticDocument analyzedDocument, InsertionPoint insertionPoint)> GetAnnotatedDocumentAndInsertionPointAsync(
             SemanticDocument document,
             AnalyzerResult analyzeResult,
@@ -168,24 +202,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
             => GetCustomFormattingRules(document).AddRange(Formatter.GetDefaultFormattingRules(document));
-
-        private async Task<(Document document, SyntaxToken methodName)> CreateExtractMethodResultAsync(
-            SemanticDocument semanticDocumentWithoutFinalFormatting,
-            SyntaxAnnotation invocationAnnotation, SyntaxAnnotation methodAnnotation,
-            CancellationToken cancellationToken)
-        {
-            var newRoot = semanticDocumentWithoutFinalFormatting.Root;
-            var methodName = GetMethodNameAtInvocation(newRoot.GetAnnotatedNodesAndTokens(invocationAnnotation));
-
-            if (LocalFunction)
-            {
-                var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(methodAnnotation).FirstOrDefault().AsNode();
-                var result = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(semanticDocumentWithoutFinalFormatting.Document, methodName, methodDefinition, cancellationToken).ConfigureAwait(false);
-                return (result.document, result.methodName);
-            }
-
-            return (semanticDocumentWithoutFinalFormatting.Document, methodName);
-        }
 
         private OperationStatus CheckVariableTypes(
             OperationStatus status,

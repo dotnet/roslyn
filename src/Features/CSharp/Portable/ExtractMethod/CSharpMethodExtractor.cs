@@ -172,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document)
             => ImmutableArray.Create<AbstractFormattingRule>(new FormattingRule());
 
-        protected override SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames)
-            => (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
+        protected override SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> methodNames)
+            => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
         protected override OperationStatus CheckType(
             SemanticModel semanticModel,
@@ -212,9 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return OperationStatus.Succeeded;
         }
 
-        protected override async Task<(Document document, SyntaxToken methodName)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+        protected override async Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
-            SyntaxToken methodName,
+            SyntaxToken? invocationNameToken,
             SyntaxNode methodDefinition,
             CancellationToken cancellationToken)
         {
@@ -237,10 +237,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 document = document.WithSyntaxRoot(root.ReplaceNode(originalMethodDefinition, methodDefinition));
 
                 var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                methodName = newRoot.FindToken(methodName.SpanStart);
+
+                if (invocationNameToken != null)
+                    invocationNameToken = newRoot.FindToken(invocationNameToken.Value.SpanStart);
             }
 
-            return (document, methodName);
+            return (document, invocationNameToken);
         }
     }
 }

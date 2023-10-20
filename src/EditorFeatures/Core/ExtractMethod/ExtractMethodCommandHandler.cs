@@ -150,8 +150,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (result is null)
             return;
 
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
-        var (formattedDocument, methodNameAtInvocation) = await result.GetFormattedDocumentAsync(cleanupOptions, cancellationToken).ConfigureAwait(false);
+        var (formattedDocument, methodNameAtInvocation) = await result.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         var changes = await formattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

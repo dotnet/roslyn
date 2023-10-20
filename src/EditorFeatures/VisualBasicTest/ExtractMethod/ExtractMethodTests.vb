@@ -100,7 +100,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Assert.NotNull(document)
 
             Dim extractOptions = New ExtractMethodOptions() With {.DoNotPutOutOrRefOnStruct = dontPutOutOrRefOnStruct}
-            Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
             Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), extractOptions)
@@ -115,6 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             ' extract method
             Dim extractGenerationOptions = VBOptionsFactory.CreateExtractMethodGenerationOptions(
                 CodeGenerationOptions.GetDefault(document.Project.Services),
+                CodeCleanupOptions.GetDefault(document.Project.Services),
                 extractOptions)
 
             Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Assert.True(Not result.Succeeded OrElse result.Reasons.Length > 0)
             End If
 
-            Return Await (Await result.GetFormattedDocumentAsync(cleanupOptions, CancellationToken.None)).document.GetSyntaxRootAsync()
+            Return Await (Await result.GetDocumentAsync(CancellationToken.None)).document.GetSyntaxRootAsync()
         End Function
 
         Private Shared Async Function TestSelectionAsync(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False) As Tasks.Task

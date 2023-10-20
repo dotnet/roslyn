@@ -77,8 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return ImmutableArray.Create(Of AbstractFormattingRule)(New FormattingRule())
         End Function
 
-        Protected Overrides Function GetMethodNameAtInvocation(methodNames As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxToken
-            Return CType(methodNames.FirstOrDefault(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement), SyntaxToken)
+        Protected Overrides Function GetInvocationNameToken(methodNames As IEnumerable(Of SyntaxToken)) As SyntaxToken?
+            Return methodNames.FirstOrNull(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement)
         End Function
 
         Protected Overrides Function CheckType(
@@ -155,11 +155,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
         Protected Overrides Function InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
                 document As Document,
-                methodName As SyntaxToken,
+                invocationNameToken? As SyntaxToken,
                 methodDefinition As SyntaxNode,
-                cancellationToken As CancellationToken) As Task(Of (document As Document, methodName As SyntaxToken))
+                cancellationToken As CancellationToken) As Task(Of (document As Document, invocationNameToken As SyntaxToken?))
             ' VB doesn't need to do any correction, so we just return the values untouched
-            Return Task.FromResult((document, methodName))
+            Return Task.FromResult((document, invocationNameToken))
         End Function
     End Class
 End Namespace
