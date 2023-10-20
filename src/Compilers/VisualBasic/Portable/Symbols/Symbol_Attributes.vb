@@ -204,11 +204,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseCompilerFeatureRequired, arguments.AttributeSyntaxOpt.Location)
             ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.RequiredMemberAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseRequiredMember, arguments.AttributeSyntaxOpt.Location)
-            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) AndAlso
-                Not SyntaxFacts.IsValidIdentifier(DirectCast(arguments.Attribute.CommonConstructorArguments(0).ValueInternal, String)) Then
-
-                Dim attrArgumentLocation = VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt)
-                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_InvalidExperimentalDiagID, attrArgumentLocation)
+            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+                If Not SyntaxFacts.IsValidIdentifier(DirectCast(arguments.Attribute.CommonConstructorArguments(0).ValueInternal, String)) Then
+                    Dim attrArgumentLocation = VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_InvalidExperimentalDiagID, attrArgumentLocation)
+                End If
             End If
         End Sub
 

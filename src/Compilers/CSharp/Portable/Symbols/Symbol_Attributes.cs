@@ -226,11 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute)
-                && !SyntaxFacts.IsValidIdentifier((string?)arguments.Attribute.CommonConstructorArguments[0].ValueInternal))
+            if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
             {
-                var attrArgumentLocation = arguments.Attribute.GetAttributeArgumentSyntaxLocation(parameterIndex: 0, arguments.AttributeSyntaxOpt);
-                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
+                if (!SyntaxFacts.IsValidIdentifier((string?)arguments.Attribute.CommonConstructorArguments[0].ValueInternal))
+                {
+                    var attrArgumentLocation = arguments.Attribute.GetAttributeArgumentSyntaxLocation(parameterIndex: 0, arguments.AttributeSyntaxOpt);
+                    arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
+                }
                 return;
             }
 
