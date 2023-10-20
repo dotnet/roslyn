@@ -19,7 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
                 End Sub
 
-
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     ' change this to more smarter one.
                     Dim semanticModel = SemanticDocument.SemanticModel
