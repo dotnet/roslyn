@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
-        protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
+        protected abstract AbstractFormattingRule GetCustomFormattingRule(Document document);
 
         protected abstract Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document, SyntaxToken? invocationNameToken, SyntaxNode methodDefinition, CancellationToken cancellationToken);
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
         }
 
-        private async Task<SemanticDocument> ExpandAsync(TSelectionResult selection, CancellationToken cancellationToken)
+        private static async Task<SemanticDocument> ExpandAsync(TSelectionResult selection, CancellationToken cancellationToken)
         {
             var lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors<TExpressionSyntax>().LastOrDefault();
             if (lastExpression == null)
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
-            => GetCustomFormattingRules(document).AddRange(Formatter.GetDefaultFormattingRules(document));
+            => ImmutableArray.Create(GetCustomFormattingRule(document)).AddRange(Formatter.GetDefaultFormattingRules(document));
 
         private OperationStatus CheckVariableTypes(
             OperationStatus status,
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             status = result.Item2;
 
-            var checkedStatus = CheckType(semanticModel, context, context.GetLocation(), analyzeResult.ReturnType);
+            var checkedStatus = CheckType(semanticModel, context, analyzeResult.ReturnType);
             return checkedStatus.With(status);
         }
 
@@ -271,12 +271,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             if (status.Failed())
                 return Tuple.Create(false, status);
 
-            var location = contextNode.GetLocation();
-
             foreach (var variable in variables)
             {
                 var originalType = variable.GetVariableType();
-                var result = CheckType(semanticModel, contextNode, location, originalType);
+                var result = CheckType(semanticModel, contextNode, originalType);
                 if (result.Failed())
                 {
                     status = status.With(result);
@@ -290,7 +288,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract SyntaxNode ParseTypeName(string name);
 
         private OperationStatus CheckType(
-            SemanticModel semanticModel, SyntaxNode contextNode, Location location, ITypeSymbol type)
+            SemanticModel semanticModel, SyntaxNode contextNode, ITypeSymbol type)
         {
             Contract.ThrowIfNull(type);
 

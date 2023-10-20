@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
             => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);
 
-        protected override ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document)
-            => ImmutableArray.Create<AbstractFormattingRule>(new FormattingRule());
+        protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
+            => FormattingRule.Instance;
 
         protected override SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> methodNames)
             => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));

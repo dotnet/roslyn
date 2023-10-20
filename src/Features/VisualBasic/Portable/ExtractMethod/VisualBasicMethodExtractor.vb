@@ -67,8 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, DirectCast(options, VisualBasicCodeGenerationOptions), cancellationToken)
         End Function
 
-        Protected Overrides Function GetCustomFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
-            Return ImmutableArray.Create(Of AbstractFormattingRule)(New FormattingRule())
+        Protected Overrides Function GetCustomFormattingRule(document As Document) As AbstractFormattingRule
+            Return FormattingRule.Instance
         End Function
 
         Protected Overrides Function GetInvocationNameToken(methodNames As IEnumerable(Of SyntaxToken)) As SyntaxToken?
@@ -79,8 +79,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return SyntaxFactory.ParseTypeName(name)
         End Function
 
-        Private Class FormattingRule
+        Private NotInheritable Class FormattingRule
             Inherits CompatAbstractFormattingRule
+
+            Public Shared ReadOnly Instance As New FormattingRule()
+
+            Private Sub New()
+            End Sub
 
             Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
                 If Not previousToken.IsLastTokenOfStatement() Then
