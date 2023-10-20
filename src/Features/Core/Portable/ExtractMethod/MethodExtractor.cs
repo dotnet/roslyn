@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     // Do some final patchups of whitespace when inserting a local function.
                     if (LocalFunction)
                     {
-                        var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(generatedCode.MethodNameAnnotation).FirstOrDefault().AsNode();
+                        var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(generatedCode.MethodDefinitionAnnotation).FirstOrDefault().AsNode();
                         (documentWithoutFinalFormatting, invocationNameToken) = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
                             documentWithoutFinalFormatting, invocationNameToken, methodDefinition, cancellationToken).ConfigureAwait(false);
                     }

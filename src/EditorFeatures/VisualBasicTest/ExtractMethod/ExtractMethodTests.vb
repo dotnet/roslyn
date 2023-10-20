@@ -125,6 +125,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Assert.Equal(succeeded, result.Succeeded)
             Else
                 Assert.True(Not result.Succeeded OrElse result.Reasons.Length > 0)
+
+                If Not result.Succeeded Then
+                    Return Nothing
+                End If
             End If
 
             Return Await (Await result.GetDocumentAsync(CancellationToken.None)).document.GetSyntaxRootAsync()
