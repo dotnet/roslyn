@@ -321,34 +321,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private static OperationStatus CheckActiveStatements(ImmutableArray<StatementSyntax> statements)
             {
-                var count = statements.Count();
-                if (count == 0)
-                {
+                if (statements.IsEmpty)
                     return OperationStatus.NoActiveStatement;
-                }
 
-                if (count == 1)
-                {
-                    if (statements.Single() is ReturnStatementSyntax returnStatement && returnStatement.Expression == null)
-                    {
-                        return OperationStatus.NoActiveStatement;
-                    }
-                }
+                if (statements is [ReturnStatementSyntax { Expression: null }])
+                    return OperationStatus.NoActiveStatement;
 
+                // Look for at least one non local-variable-decl statement, or at least one local variable with an initializer.
                 foreach (var statement in statements)
                 {
                     if (statement is not LocalDeclarationStatementSyntax declStatement)
-                    {
                         return OperationStatus.Succeeded;
-                    }
 
                     foreach (var variable in declStatement.Declaration.Variables)
                     {
                         if (variable.Initializer != null)
-                        {
-                            // found one
                             return OperationStatus.Succeeded;
-                        }
                     }
                 }
 
