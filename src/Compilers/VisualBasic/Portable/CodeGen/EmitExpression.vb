@@ -1327,21 +1327,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Function HasIntegralValueZeroOrOne(expr As BoundExpression, ByRef isOne As Boolean) As Boolean
             If expr.IsConstant Then
                 Dim constantValue = expr.ConstantValueOpt
-
-                If constantValue.IsIntegral AndAlso constantValue.UInt64Value <= 1 Then
-                    isOne = (constantValue.UInt64Value = 1)
-                    Return True
+                If constantValue.IsDefaultValue Then
+                    isOne = False
+                ElseIf constantValue.IsOne Then
+                    isOne = True
+                Else
+                    Return False
                 End If
 
-                If constantValue.IsBoolean Then
-                    isOne = constantValue.BooleanValue
-                    Return True
-                End If
-
-                If constantValue.IsChar AndAlso AscW(constantValue.CharValue) <= 1 Then
-                    isOne = (AscW(constantValue.CharValue) = 1)
-                    Return True
-                End If
+                Return constantValue.IsIntegral OrElse
+                       constantValue.IsBoolean OrElse
+                       constantValue.IsChar
             End If
 
             Return False
