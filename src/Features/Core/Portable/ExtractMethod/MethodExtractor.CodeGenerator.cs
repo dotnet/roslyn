@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected abstract class CodeGenerator
         {
+            /// <summary>
+            /// Used to produced the set of statements that will go into the generated method.
+            /// </summary>
             public abstract OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(
                 SyntaxNode insertionPointNode, CancellationToken cancellationToken);
         }
@@ -38,7 +41,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
             protected readonly SyntaxAnnotation CallSiteAnnotation;
 
-            // protected readonly SyntaxNode InsertionPointNode;
             protected readonly TSelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
