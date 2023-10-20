@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             // extract method
             var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction: false);
-            var result = extractor.ExtractMethod(CancellationToken.None);
+            var result = extractor.ExtractMethod(status, CancellationToken.None);
             Assert.NotNull(result);
 
             // If the test expects us to succeed, validate that we did.  If it expects us to fail, ensure we either
@@ -181,14 +181,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             if (expectedFail)
             {
-                Assert.True(result.Status.Failed() || result.Status.Reasons.Length > 0);
+                Assert.True(status.Failed() || status.Reasons.Length > 0);
             }
             else
             {
-                Assert.True(result.Status.Succeeded());
+                Assert.True(status.Succeeded());
             }
 
-            if (result.Status.Succeeded() && result.SelectionChanged)
+            if (status.Succeeded() && result.SelectionChanged)
                 Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
         }
 
@@ -205,11 +205,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             foreach (var node in iterator)
             {
                 var validator = new CSharpSelectionValidator(semanticDocument, node.Span, ExtractMethodOptions.Default, localFunction: false);
-                var result = await validator.GetValidSelectionAsync(CancellationToken.None);
+                var (_, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
 
                 // check the obvious case
-                if (!(node is ExpressionSyntax) && !node.UnderValidContext())
-                    Assert.True(result.Status.Failed());
+                if (node is not ExpressionSyntax && !node.UnderValidContext())
+                    Assert.True(status.Failed());
             }
         }
     }

@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 extractOptions)
 
             Dim extractor = New VisualBasicMethodExtractor(selectedCode, extractGenerationOptions)
-            Dim result = extractor.ExtractMethod(CancellationToken.None)
+            Dim result = extractor.ExtractMethod(status, CancellationToken.None)
             Assert.NotNull(result)
 
             If succeeded Then
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                     Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(status), "Selection wasn't expected to fail")
                 End If
 
-                If Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(result.Status) AndAlso result.SelectionChanged Then
+                If Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(status) AndAlso result.SelectionChanged Then
                     Assert.Equal(namedSpans("r").Single(), result.FinalSpan)
                 End If
             End Using

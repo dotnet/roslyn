@@ -98,8 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override Tuple<SyntaxNode, SyntaxNode> GetFlowAnalysisNodeRange()
             {
-                var csharpSelectionResult = SelectionResult as CSharpSelectionResult;
-
                 var first = SelectionResult.GetFirstStatement();
                 var last = SelectionResult.GetLastStatement();
 
@@ -111,8 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 // multiple statement case
-                var firstUnderContainer = csharpSelectionResult.GetFirstStatementUnderContainer();
-                var lastUnderContainer = csharpSelectionResult.GetLastStatementUnderContainer();
+                var firstUnderContainer = selectionResult.GetFirstStatementUnderContainer();
+                var lastUnderContainer = selectionResult.GetLastStatementUnderContainer();
                 return new Tuple<SyntaxNode, SyntaxNode>(firstUnderContainer, lastUnderContainer);
             }
 

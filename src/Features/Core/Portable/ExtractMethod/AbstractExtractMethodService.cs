@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             // extract method
             var extractor = CreateMethodExtractor(selectionResult, options, localFunction);
-            return extractor.ExtractMethod(cancellationToken);
+            return extractor.ExtractMethod(status, cancellationToken);
         }
     }
 }

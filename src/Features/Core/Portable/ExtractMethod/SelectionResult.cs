@@ -19,15 +19,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal abstract class SelectionResult<TStatementSyntax>
         where TStatementSyntax : SyntaxNode
     {
-        protected SelectionResult(OperationStatus status)
-        {
-            Contract.ThrowIfNull(status);
-
-            Status = status;
-        }
-
         protected SelectionResult(
-            OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
             ExtractMethodOptions options,
@@ -37,8 +29,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SyntaxAnnotation lastTokenAnnotation,
             bool selectionChanged)
         {
-            Status = status;
-
             OriginalSpan = originalSpan;
             FinalSpan = finalSpan;
 
@@ -52,7 +42,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SelectionChanged = selectionChanged;
         }
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
+
+        public abstract TStatementSyntax GetFirstStatementUnderContainer();
+        public abstract TStatementSyntax GetLastStatementUnderContainer();
 
         public abstract bool ContainingScopeHasAsyncKeyword();
 
@@ -60,9 +54,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public abstract ITypeSymbol GetContainingScopeType();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-        public abstract bool IsExtractMethodOnMultipleStatements();
-
-        public OperationStatus Status { get; }
         public TextSpan OriginalSpan { get; }
         public TextSpan FinalSpan { get; }
         public ExtractMethodOptions Options { get; }
@@ -103,6 +94,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var lastStatement = this.GetLastStatement();
 
             return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
+        }
+
+        public bool IsExtractMethodOnMultipleStatements()
+        {
+            var first = this.GetFirstStatement();
+            var last = this.GetLastStatement();
+
+            if (first != last)
+            {
+                var firstUnderContainer = this.GetFirstStatementUnderContainer();
+                var lastUnderContainer = this.GetLastStatementUnderContainer();
+                Contract.ThrowIfFalse(this.SyntaxFacts.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
+                return true;
+            }
+
+            return false;
         }
 
         public TStatementSyntax GetFirstStatement()

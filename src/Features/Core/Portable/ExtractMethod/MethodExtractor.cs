@@ -58,17 +58,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document, SyntaxToken? invocationNameToken, SyntaxNode methodDefinition, CancellationToken cancellationToken);
 
-        public ExtractMethodResult ExtractMethod(CancellationToken cancellationToken)
+        public ExtractMethodResult ExtractMethod(OperationStatus initialStatus, CancellationToken cancellationToken)
         {
-            var operationStatus = OriginalSelectionResult.Status;
-
             var originalSemanticDocument = OriginalSelectionResult.SemanticDocument;
             var analyzeResult = Analyze(OriginalSelectionResult, LocalFunction, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            operationStatus = CheckVariableTypes(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken);
-            if (operationStatus.Failed())
-                return ExtractMethodResult.Fail(operationStatus);
+            var status = CheckVariableTypes(analyzeResult.Status.With(initialStatus), analyzeResult, cancellationToken);
+            if (status.Failed())
+                return ExtractMethodResult.Fail(status);
 
             var insertionPointNode = GetInsertionPointNode(analyzeResult, cancellationToken);
 
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return ExtractMethodResult.Fail(statements.Status);
 
             return ExtractMethodResult.Success(
-                operationStatus,
+                status,
                 async cancellationToken =>
                 {
                     var (analyzedDocument, insertionPoint) = await GetAnnotatedDocumentAndInsertionPointAsync(

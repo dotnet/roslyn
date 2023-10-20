@@ -63,7 +63,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             Dim result = Await VisualBasicSelectionResult.CreateResultAsync(
-                selectionInfo.Status,
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
                 Me.Options,
@@ -73,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionInfo.LastTokenInFinalSpan,
                 SelectionChanged(selectionInfo),
                 cancellationToken).ConfigureAwait(False)
-            Return (result, result.Status)
+            Return (result, selectionInfo.Status)
         End Function
 
         Private Shared Function GetControlFlowSpan(selectionInfo As SelectionInfo) As TextSpan

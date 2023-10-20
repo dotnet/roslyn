@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
 
             var result = await CSharpSelectionResult.CreateAsync(
-                selectionInfo.Status,
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
                 Options,
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 selectionInfo.LastTokenInFinalSpan,
                 selectionChanged,
                 cancellationToken).ConfigureAwait(false);
-            return (result, result.Status);
+            return (result, selectionInfo.Status);
         }
 
         private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
