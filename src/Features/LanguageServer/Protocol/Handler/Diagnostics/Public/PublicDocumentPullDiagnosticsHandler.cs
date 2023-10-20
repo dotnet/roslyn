@@ -49,27 +49,25 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
 
     protected override string? GetDiagnosticSourceIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.Identifier;
 
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
-    {
-        return ConvertTags(diagnosticData, potentialDuplicate: false);
-    }
+    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
+        => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
 
     protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
-        => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
+        => new(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = resultId,
             Items = diagnostics,
         });
 
     protected override DocumentDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
-        => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
+        => new(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = null,
             Items = Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(),
         });
 
     protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-        => new DocumentDiagnosticPartialReport(new RelatedUnchangedDocumentDiagnosticReport
+        => new(new RelatedUnchangedDocumentDiagnosticReport
         {
             ResultId = resultId
         });
