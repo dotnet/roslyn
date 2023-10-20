@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
-        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
+        protected abstract CodeGenerator CreateCodeGenerator(SyntaxNode insertionPointNode, AnalyzerResult analyzerResult);
+        protected abstract Task<GeneratedCode> GenerateCodeAsync(
+            SyntaxNode insertionPointNode, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
@@ -70,6 +72,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return ExtractMethodResult.Fail(canAddStatus);
 
             cancellationToken.ThrowIfCancellationRequested();
+            var codeGenerator = this.CreateCodeGenerator(insertionPointNode, analyzeResult);
+
+            var statements = codeGenerator.GetNewMethodStatements();
+            if (statements.Status.Failed())
+                return ExtractMethodResult.Fail(statements.Status);
 
             return ExtractMethodResult.Success(
                 operationStatus,
@@ -84,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
 
                     var generatedCode = await GenerateCodeAsync(
-                        insertionPoint.With(expandedDocument),
+                        insertionPoint.With(expandedDocument).GetContext(),
                         OriginalSelectionResult.With(expandedDocument),
                         analyzeResult,
                         Options.CodeGenerationOptions,

@@ -21,7 +21,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
+        protected abstract class CodeGenerator
+        {
+            public abstract OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements();
+        }
+
         protected abstract partial class CodeGenerator<TStatement, TExpression, TNodeUnderContainer, TCodeGenerationOptions>
+            : CodeGenerator
             where TStatement : SyntaxNode
             where TExpression : SyntaxNode
             where TNodeUnderContainer : SyntaxNode
@@ -31,18 +37,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
             protected readonly SyntaxAnnotation CallSiteAnnotation;
 
-            protected readonly InsertionPoint InsertionPoint;
-            protected readonly SemanticDocument SemanticDocument;
+            protected readonly SyntaxNode InsertionPointNode;
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
             protected readonly TCodeGenerationOptions Options;
             protected readonly bool LocalFunction;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
+            protected CodeGenerator(SyntaxNode insertionPointNode, SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
             {
-                InsertionPoint = insertionPoint;
-                SemanticDocument = insertionPoint.SemanticDocument;
+                InsertionPointNode = insertionPointNode;
 
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
@@ -55,11 +59,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 MethodDefinitionAnnotation = new SyntaxAnnotation();
             }
 
+            protected SemanticDocument SemanticDocument => SelectionResult.SemanticDocument;
+
             #region method to be implemented in sub classes
 
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode outermostCallSiteContainer, CancellationToken cancellationToken);
-            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
+            protected abstract IMethodSymbol GenerateMethodDefinition(CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
@@ -76,12 +82,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract TStatement CreateReturnStatement(string identifierName = null);
 
             protected abstract ImmutableArray<TStatement> GetInitialStatementsForMethodDefinitions();
+
+            protected abstract Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+                SemanticDocument originalDocument, IMethodSymbol methodSymbolResult, CancellationToken cancellationToken);
+
             #endregion
 
-            public async Task<GeneratedCode> GenerateAsync(CancellationToken cancellationToken)
+            public async Task<GeneratedCode> GenerateAsync(InsertionPoint insertionPoint, CancellationToken cancellationToken)
             {
-                var newMethodDefinition = GenerateMethodDefinition(LocalFunction, cancellationToken);
-                var callSiteDocument = await InsertMethodAndUpdateCallSiteAsync(newMethodDefinition.Data, cancellationToken).ConfigureAwait(false);
+                var newMethodDefinition = GenerateMethodDefinition(cancellationToken);
+                var callSiteDocument = await InsertMethodAndUpdateCallSiteAsync(newMethodDefinition, cancellationToken).ConfigureAwait(false);
 
                 // For nullable reference types, we can provide a better experience by reducing use of nullable
                 // reference types after a method is done being generated. If we can determine that the method never
@@ -94,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // happen in the generator. 
                 var finalDocument = await UpdateMethodAfterGenerationAsync(callSiteDocument, newMethodDefinition, cancellationToken).ConfigureAwait(false);
 
-                return await CreateGeneratedCodeAsync(newMethodDefinition.Status, finalDocument, cancellationToken).ConfigureAwait(false);
+                return await CreateGeneratedCodeAsync(finalDocument, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<SemanticDocument> InsertMethodAndUpdateCallSiteAsync(
@@ -163,15 +173,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            protected abstract Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
-                SemanticDocument originalDocument,
-                OperationStatus<IMethodSymbol> methodSymbolResult,
-                CancellationToken cancellationToken);
-
-            protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(OperationStatus status, SemanticDocument newDocument, CancellationToken cancellationToken)
+            protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(SemanticDocument newDocument, CancellationToken cancellationToken)
             {
                 return Task.FromResult(new GeneratedCode(
-                    status,
                     newDocument,
                     MethodNameAnnotation,
                     CallSiteAnnotation,
