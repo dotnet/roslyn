@@ -25,15 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         private partial class CSharpCodeGenerator
         {
             private sealed class ExpressionCodeGenerator(
-                InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CSharpCodeGenerationOptions options,
-                bool localFunction) : CSharpCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction)
+                bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
             {
-                public static bool IsExtractMethodOnExpression(SelectionResult code)
-                    => code.SelectionInExpression;
-
                 protected override SyntaxToken CreateMethodName()
                 {
                     var methodName = GenerateMethodNameFromUserPreference();
@@ -93,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(IsExtractMethodOnExpression(CSharpSelectionResult));
+                    Contract.ThrowIfFalse(CSharpSelectionResult.SelectionInExpression);
 
                     // special case for array initializer
                     var returnType = AnalyzerResult.ReturnType;
@@ -134,32 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
 
                     return SyntaxFactory.CheckedExpression(kind, expression);
-                }
-
-                protected override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
-                {
-                    var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
-                    if (callSiteContainer != null)
-                    {
-                        return callSiteContainer;
-                    }
-                    else
-                    {
-                        return GetCallSiteContainerFromExpression();
-                    }
-                }
-
-                private SyntaxNode GetCallSiteContainerFromExpression()
-                {
-                    var container = CSharpSelectionResult.GetInnermostStatementContainer();
-
-                    Contract.ThrowIfNull(container);
-                    Contract.ThrowIfFalse(container.IsStatementContainerNode() ||
-                                          container is TypeDeclarationSyntax ||
-                                          container is ConstructorDeclarationSyntax ||
-                                          container is CompilationUnitSyntax);
-
-                    return container;
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()

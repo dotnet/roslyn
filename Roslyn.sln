@@ -549,6 +549,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Work
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Copilot", "src\Tools\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj", "{5E8FB6D6-6C5C-42E6-9220-1EAA7ED9BCAD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator", "src\Tools\ExternalAccess\EditorConfigGenerator\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj", "{09AEDEE4-6358-47C9-8022-3BD37A518070}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1355,6 +1357,10 @@ Global
 		{5E8FB6D6-6C5C-42E6-9220-1EAA7ED9BCAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E8FB6D6-6C5C-42E6-9220-1EAA7ED9BCAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E8FB6D6-6C5C-42E6-9220-1EAA7ED9BCAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09AEDEE4-6358-47C9-8022-3BD37A518070}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09AEDEE4-6358-47C9-8022-3BD37A518070}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09AEDEE4-6358-47C9-8022-3BD37A518070}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09AEDEE4-6358-47C9-8022-3BD37A518070}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1605,6 +1611,7 @@ Global
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{B1481D94-682E-46EC-ADBE-A16EB46FEEE9} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{5E8FB6D6-6C5C-42E6-9220-1EAA7ED9BCAD} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{09AEDEE4-6358-47C9-8022-3BD37A518070} = {8977A560-45C2-4EC2-A849-97335B382C74}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

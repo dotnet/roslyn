@@ -5692,4 +5692,7 @@
   <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
     <value>'{0}' is defined in assembly '{1}'.</value>
   </data>
+  <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
+    <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
+  </data>
 </root>

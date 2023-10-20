@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task DoNotOverparenthesize()
+        public async Task DoNotOverParenthesize()
         {
             await TestAsync(
                 """
@@ -694,7 +694,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
                     }
                 }
                 """,
-
                 """
                 using System;
 
@@ -728,15 +727,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 
                     static void Main()
                     {
-                        Outer(y => Inner(x =>
-                        {
-                            {|Rename:GetX|}(x).Ex();
+                        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
 
-                            static string GetX(string x)
-                            {
-                                return x;
-                            }
-                        }, y), (object)- -1);
+                        static string GetX(string x)
+                        {
+                            return x;
+                        }
                     }
                 }
 
@@ -752,7 +748,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task DoNotOverparenthesizeGenerics()
+        public async Task DoNotOverParenthesizeGenerics()
         {
             await TestAsync(
                 """
@@ -799,7 +795,6 @@ parseOptions: Options.Regular, index: CodeActionIndex);
                     }
                 }
                 """,
-
                 """
                 using System;
 
@@ -833,15 +828,12 @@ parseOptions: Options.Regular, index: CodeActionIndex);
 
                     static void Main()
                     {
-                        Outer(y => Inner(x =>
-                        {
-                            {|Rename:GetX|}(x).Ex<int>();
+                        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
 
-                            static string GetX(string x)
-                            {
-                                return x;
-                            }
-                        }, y), (object)- -1);
+                        static string GetX(string x)
+                        {
+                            return x;
+                        }
                     }
                 }
 
@@ -5445,9 +5437,9 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/45422")]
-        public async Task TestMissingOnExtractLocalFunction()
+        public async Task TestOnExtractLocalFunction()
         {
-            await TestMissingInRegularAndScriptAsync("""
+            await TestInRegularAndScriptAsync("""
                 class C
                 {
                     static void M()
@@ -5465,14 +5457,35 @@ class Program
                         }
                     }
                 }
-                """, codeActionIndex: 1);
+                """, """
+                class C
+                {
+                    static void M()
+                    {
+                        if (true)
+                            {|Rename:NewMethod|}();
+
+                        static void NewMethod()
+                        {
+                            static void L()
+                            {
+
+                                static void L2()
+                                {
+                                    var x = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                """, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/45422")]
-        public async Task TestMissingOnExtractLocalFunctionWithExtraBrace()
+        public async Task TestExtractLocalFunctionWithExtraBrace()
         {
-            await TestMissingInRegularAndScriptAsync("""
+            await TestInRegularAndScript1Async("""
                 class C
                 {
                     static void M()
@@ -5489,7 +5502,27 @@ class Program
                         }
                     }
                 }
-                """, codeActionIndex: 1);
+                """, """
+                class C
+                {
+                    static void M()
+                    {
+                        if (true)
+                            {|Rename:NewMethod|}();
+
+                        static void NewMethod()
+                        {
+                            static void L()
+                            {
+                                static void L2()
+                                {
+                                    var x = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                """, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]

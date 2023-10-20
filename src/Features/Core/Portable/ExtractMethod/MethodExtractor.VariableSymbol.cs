@@ -50,14 +50,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// </summary>
             public ITypeSymbol OriginalType { get; }
 
-            public static int Compare(
-                VariableSymbol left,
-                VariableSymbol right,
-                INamedTypeSymbol cancellationTokenType)
+            public static int Compare(VariableSymbol left, VariableSymbol right)
             {
                 // CancellationTokens always go at the end of method signature.
-                var leftIsCancellationToken = left.OriginalType.Equals(cancellationTokenType);
-                var rightIsCancellationToken = right.OriginalType.Equals(cancellationTokenType);
+                var leftIsCancellationToken = IsCancellationToken(left.OriginalType);
+                var rightIsCancellationToken = IsCancellationToken(right.OriginalType);
 
                 if (leftIsCancellationToken && !rightIsCancellationToken)
                 {
@@ -74,6 +71,23 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 return left.DisplayOrder - right.DisplayOrder;
+            }
+
+            private static bool IsCancellationToken(ITypeSymbol originalType)
+            {
+                return originalType is
+                {
+                    Name: nameof(CancellationToken),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Threading),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System),
+                            ContainingNamespace.IsGlobalNamespace: true,
+                        }
+                    }
+                };
             }
         }
 
