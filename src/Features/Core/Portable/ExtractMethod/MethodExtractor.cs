@@ -226,55 +226,37 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var firstToken = OriginalSelectionResult.GetFirstTokenInSelection();
             var context = firstToken.Parent;
 
-            var result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status);
-            if (!result.Item1)
-            {
-                result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), result.Item2);
-                if (!result.Item1)
-                {
-                    result = TryCheckVariableType(semanticModel, context, analyzeResult.MethodParameters, result.Item2);
-                    if (!result.Item1)
-                    {
-                        result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), result.Item2);
-                        if (!result.Item1)
-                        {
-                            result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), result.Item2);
-                            if (!result.Item1)
-                            {
-                                return result.Item2;
-                            }
-                        }
-                    }
-                }
-            }
+            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status);
+            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), status);
+            status = TryCheckVariableType(semanticModel, context, analyzeResult.MethodParameters, status);
+            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), status);
+            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), status);
 
-            status = result.Item2;
+            if (status.Failed)
+                return status;
 
             var checkedStatus = CheckType(semanticModel, context, analyzeResult.ReturnType);
             return checkedStatus.With(status);
         }
 
-        private Tuple<bool, OperationStatus> TryCheckVariableType(
+        private OperationStatus TryCheckVariableType(
             SemanticModel semanticModel,
             SyntaxNode contextNode,
             IEnumerable<VariableInfo> variables,
             OperationStatus status)
         {
-            if (status.Failed)
-                return Tuple.Create(false, status);
-
-            foreach (var variable in variables)
+            if (status.Succeeded)
             {
-                var originalType = variable.GetVariableType();
-                var result = CheckType(semanticModel, contextNode, originalType);
-                if (result.Failed)
+                foreach (var variable in variables)
                 {
-                    status = status.With(result);
-                    return Tuple.Create(false, status);
+                    var originalType = variable.GetVariableType();
+                    var result = CheckType(semanticModel, contextNode, originalType);
+                    if (result.Failed)
+                        return status.With(result);
                 }
             }
 
-            return Tuple.Create(true, status);
+            return status;
         }
 
         protected abstract SyntaxNode ParseTypeName(string name);
