@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (!nodeIsMethodOrLocalFunction)
                     return originalDocument;
 
-                var nullableReturnOperations = CheckReturnOperations(syntaxNode, methodSymbol, originalDocument, cancellationToken);
+                var nullableReturnOperations = CheckReturnOperations(syntaxNode, originalDocument, cancellationToken);
                 if (nullableReturnOperations is not null)
                     return nullableReturnOperations;
 
@@ -741,9 +741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return enclosingMethod == methodSyntax;
                 }
 
-                SemanticDocument CheckReturnOperations(
+                static SemanticDocument CheckReturnOperations(
                     SyntaxNode node,
-                    IMethodSymbol methodSymbol,
                     SemanticDocument originalDocument,
                     CancellationToken cancellationToken)
                 {
