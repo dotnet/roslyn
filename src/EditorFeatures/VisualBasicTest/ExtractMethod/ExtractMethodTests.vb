@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                         Assert.True(False, subjectBuffer.CurrentSnapshot.GetText())
                     End If
 
-                    Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText())
+                    AssertEx.EqualOrDiff(expected, subjectBuffer.CurrentSnapshot.GetText())
                 End If
             End Using
         End Function

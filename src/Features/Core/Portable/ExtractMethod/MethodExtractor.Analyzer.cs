@@ -54,7 +54,57 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <summary>
             /// among variables that will be used as parameters at the extracted method, check whether one of the parameter can be used as return
             /// </summary>
-            protected abstract int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo);
+            // protected abstract int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo);
+
+            private int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo)
+            {
+                var numberOfOutParameters = 0;
+                var numberOfRefParameters = 0;
+
+                var outSymbolIndex = -1;
+                var refSymbolIndex = -1;
+
+                for (var i = 0; i < variableInfo.Count; i++)
+                {
+                    var variable = variableInfo[i];
+
+                    // there should be no-one set as return value yet
+                    Contract.ThrowIfTrue(variable.UseAsReturnValue);
+
+                    if (!variable.CanBeUsedAsReturnValue)
+                    {
+                        continue;
+                    }
+
+                    // check modifier
+                    if (variable.ParameterModifier == ParameterBehavior.Ref ||
+                        (variable.ParameterModifier == ParameterBehavior.Out && TreatOutAsRef))
+                    {
+                        numberOfRefParameters++;
+                        refSymbolIndex = i;
+                    }
+                    else if (variable.ParameterModifier == ParameterBehavior.Out)
+                    {
+                        numberOfOutParameters++;
+                        outSymbolIndex = i;
+                    }
+                }
+
+                // if there is only one "out" or "ref", that will be converted to return statement.
+                if (numberOfOutParameters == 1)
+                {
+                    return outSymbolIndex;
+                }
+
+                if (numberOfRefParameters == 1)
+                {
+                    return refSymbolIndex;
+                }
+
+                return -1;
+            }
+
+            protected abstract bool TreatOutAsRef { get; }
 
             /// <summary>
             /// get type of the range variable symbol

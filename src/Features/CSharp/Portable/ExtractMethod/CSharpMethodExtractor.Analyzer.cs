@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return analyzer.Analyze();
             }
 
+            protected override bool TreatOutAsRef => false;
+
             protected override VariableInfo CreateFromSymbol(
                 Compilation compilation,
                 ISymbol symbol,
@@ -34,53 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 bool variableDeclared)
             {
                 return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(compilation, symbol, type, style, s_nonNoisySyntaxKindSet);
-            }
-
-            protected override int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo)
-            {
-                var numberOfOutParameters = 0;
-                var numberOfRefParameters = 0;
-
-                var outSymbolIndex = -1;
-                var refSymbolIndex = -1;
-
-                for (var i = 0; i < variableInfo.Count; i++)
-                {
-                    var variable = variableInfo[i];
-
-                    // there should be no-one set as return value yet
-                    Contract.ThrowIfTrue(variable.UseAsReturnValue);
-
-                    if (!variable.CanBeUsedAsReturnValue)
-                    {
-                        continue;
-                    }
-
-                    // check modifier
-                    if (variable.ParameterModifier == ParameterBehavior.Ref)
-                    {
-                        numberOfRefParameters++;
-                        refSymbolIndex = i;
-                    }
-                    else if (variable.ParameterModifier == ParameterBehavior.Out)
-                    {
-                        numberOfOutParameters++;
-                        outSymbolIndex = i;
-                    }
-                }
-
-                // if there is only one "out" or "ref", that will be converted to return statement.
-                if (numberOfOutParameters == 1)
-                {
-                    return outSymbolIndex;
-                }
-
-                if (numberOfRefParameters == 1)
-                {
-                    return refSymbolIndex;
-                }
-
-                return -1;
             }
 
             protected override ITypeSymbol GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)

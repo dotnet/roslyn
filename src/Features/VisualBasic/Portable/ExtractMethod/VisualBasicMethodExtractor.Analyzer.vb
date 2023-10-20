@@ -24,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(currentSelectionResult, localFunction:=False, cancellationToken)
             End Sub
 
+            Protected Overrides ReadOnly Property TreatOutAsRef As Boolean = True
+
             Protected Overrides Function CreateFromSymbol(
                 compilation As Compilation, symbol As ISymbol,
                 type As ITypeSymbol, style As VariableStyle, requiresDeclarationExpressionRewrite As Boolean) As VariableInfo
@@ -33,38 +35,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 Return CreateFromSymbolCommon(Of LocalDeclarationStatementSyntax)(compilation, symbol, type, style, s_nonNoisySyntaxKindSet)
-            End Function
-
-            Protected Overrides Function GetIndexOfVariableInfoToUseAsReturnValue(variableInfo As IList(Of VariableInfo)) As Integer
-                ' in VB, only byRef exist, not out or ref distinction like C#
-                Dim numberOfByRefParameters = 0
-
-                Dim byRefSymbolIndex As Integer = -1
-
-                For i As Integer = 0 To variableInfo.Count - 1
-                    Dim variable = variableInfo(i)
-
-                    ' there should be no-one set as return value yet
-                    Contract.ThrowIfTrue(variable.UseAsReturnValue)
-
-                    If Not variable.CanBeUsedAsReturnValue Then
-                        Continue For
-                    End If
-
-                    ' check modifier
-                    If variable.ParameterModifier = ParameterBehavior.Ref OrElse
-                       variable.ParameterModifier = ParameterBehavior.Out Then
-                        numberOfByRefParameters += 1
-                        byRefSymbolIndex = i
-                    End If
-                Next i
-
-                ' if there is only one "byRef", that will be converted to return statement.
-                If numberOfByRefParameters = 1 Then
-                    Return byRefSymbolIndex
-                End If
-
-                Return -1
             End Function
 
             Protected Overrides Function GetRangeVariableType(semanticModel As SemanticModel, symbol As IRangeVariableSymbol) As ITypeSymbol
