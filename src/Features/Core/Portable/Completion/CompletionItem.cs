@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Completion
             => With(sortText: text);
 
         /// <summary>
-        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Properties"/> property changed.
+        /// Creates a copy of this <see cref="CompletionItem"/> with the specified property changed.
         /// </summary>
         public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
             => With(properties: properties != null ? properties.ToImmutableArray() : default);
