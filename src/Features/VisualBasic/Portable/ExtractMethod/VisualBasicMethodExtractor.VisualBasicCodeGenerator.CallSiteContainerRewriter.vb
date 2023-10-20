@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Public Overrides Function VisitLocalDeclarationStatement(node As LocalDeclarationStatementSyntax) As SyntaxNode
                     node = CType(MyBase.VisitLocalDeclarationStatement(node), LocalDeclarationStatementSyntax)
 
-                    Dim expressionStatements = New List(Of ExecutableStatementSyntax)()
+                    Dim expressionStatements = New List(Of StatementSyntax)()
                     Dim variableDeclarators = New List(Of VariableDeclaratorSyntax)()
                     Dim triviaList = New List(Of SyntaxTrivia)()
 

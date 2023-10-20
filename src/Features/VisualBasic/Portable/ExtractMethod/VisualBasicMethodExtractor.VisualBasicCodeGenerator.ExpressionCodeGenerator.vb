@@ -67,12 +67,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return methodName
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of ExecutableStatementSyntax)
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
                     Contract.ThrowIfFalse(IsExtractMethodOnExpression(Me.SelectionResult))
 
                     Dim expression = DirectCast(Me.SelectionResult.GetContainingScope(), ExpressionSyntax)
 
-                    Dim statement As ExecutableStatementSyntax
+                    Dim statement As StatementSyntax
                     If Me.AnalyzerResult.HasReturnType Then
                         statement = SyntaxFactory.ReturnStatement(expression:=expression)
                     Else
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         ' return error code
                         If expression.Kind <> SyntaxKind.InvocationExpression AndAlso
                            expression.Kind <> SyntaxKind.SimpleMemberAccessExpression Then
-                            Return ImmutableArray(Of ExecutableStatementSyntax).Empty
+                            Return ImmutableArray(Of StatementSyntax).Empty
                         End If
 
                         statement = SyntaxFactory.ExpressionStatement(expression:=expression)

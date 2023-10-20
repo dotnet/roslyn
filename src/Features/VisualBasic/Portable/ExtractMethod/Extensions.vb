@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         <Extension()>
         Public Function ProcessLocalDeclarationStatement(variableToRemoveMap As HashSet(Of SyntaxAnnotation),
                                                          declarationStatement As LocalDeclarationStatementSyntax,
-                                                         expressionStatements As List(Of ExecutableStatementSyntax),
+                                                         expressionStatements As List(Of StatementSyntax),
                                                          variableDeclarators As List(Of VariableDeclaratorSyntax),
                                                          triviaList As List(Of SyntaxTrivia)) As Boolean
             ' go through each var decls in decl statement, and create new assignment if

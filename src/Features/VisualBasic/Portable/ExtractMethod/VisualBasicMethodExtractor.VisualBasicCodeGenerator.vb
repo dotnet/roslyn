@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
         Partial Private MustInherit Class VisualBasicCodeGenerator
-            Inherits CodeGenerator(Of StatementSyntax, VisualBasicCodeGenerationOptions)
+            Inherits CodeGenerator(Of StatementSyntax, StatementSyntax, VisualBasicCodeGenerationOptions)
 
             Private ReadOnly _methodName As SyntaxToken
 
@@ -172,12 +172,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return status.With(statements.CastArray(Of SyntaxNode))
             End Function
 
-            Private Function CreateMethodBody(context As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of ExecutableStatementSyntax)
+            Private Function CreateMethodBody(context As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim statements = GetInitialStatementsForMethodDefinitions()
                 statements = SplitOrMoveDeclarationIntoMethodDefinition(context, statements, cancellationToken)
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken)
 
-                Dim emptyStatements = ImmutableArray(Of ExecutableStatementSyntax).Empty
+                Dim emptyStatements = ImmutableArray(Of StatementSyntax).Empty
                 Dim returnStatements = AppendReturnStatementIfNeeded(emptyStatements)
 
                 statements = statements.Concat(returnStatements)
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return statements
             End Function
 
-            Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of ExecutableStatementSyntax)) As OperationStatus
+            Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of StatementSyntax)) As OperationStatus
                 Dim count = statements.Count()
                 If count = 0 Then
                     Return OperationStatus.NoActiveStatement
@@ -224,11 +224,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return OperationStatus.NoActiveStatement
             End Function
 
-            Private Function MoveDeclarationOutFromMethodDefinition(statements As ImmutableArray(Of ExecutableStatementSyntax), cancellationToken As CancellationToken) As ImmutableArray(Of ExecutableStatementSyntax)
+            Private Function MoveDeclarationOutFromMethodDefinition(statements As ImmutableArray(Of StatementSyntax), cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
                     Me.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken)
 
-                Dim declarationStatements = New List(Of ExecutableStatementSyntax)()
+                Dim declarationStatements = New List(Of StatementSyntax)()
 
                 For Each statement In statements
 
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Continue For
                     End If
 
-                    Dim expressionStatements = New List(Of ExecutableStatementSyntax)()
+                    Dim expressionStatements = New List(Of StatementSyntax)()
                     Dim variableDeclarators = New List(Of VariableDeclaratorSyntax)()
                     Dim triviaList = New List(Of SyntaxTrivia)()
 
@@ -257,8 +257,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         ' trivia to the statement
 
                         ' TODO : think about a way to trivia attached to next token
-                        Dim emptyStatement = SyntaxFactory.ParseExecutableStatement("").WithLeadingTrivia(SyntaxFactory.TriviaList(triviaList))
-                        declarationStatements.Add(DirectCast(emptyStatement, ExecutableStatementSyntax))
+                        Dim emptyStatement = SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken).WithLeadingTrivia(SyntaxFactory.TriviaList(triviaList)))
+                        declarationStatements.Add(emptyStatement)
 
                         triviaList.Clear()
                     End If
@@ -285,8 +285,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private Function SplitOrMoveDeclarationIntoMethodDefinition(
                     context As SyntaxNode,
-                    statements As ImmutableArray(Of ExecutableStatementSyntax),
-                    cancellationToken As CancellationToken) As ImmutableArray(Of ExecutableStatementSyntax)
+                    statements As ImmutableArray(Of StatementSyntax),
+                    cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim semanticModel = Me.SemanticDocument.SemanticModel
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
 
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.Identifier(name)
             End Function
 
-            Protected Overrides Function CreateReturnStatement(Optional identifierName As String = Nothing) As ExecutableStatementSyntax
+            Protected Overrides Function CreateReturnStatement(Optional identifierName As String = Nothing) As StatementSyntax
                 If String.IsNullOrEmpty(identifierName) Then
                     Return SyntaxFactory.ReturnStatement()
                 End If
@@ -391,14 +391,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.IdentifierName(name)
             End Function
 
-            Protected Overrides Function CreateAssignmentExpressionStatement(identifier As SyntaxToken, rvalue As ExpressionSyntax) As ExecutableStatementSyntax
+            Protected Overrides Function CreateAssignmentExpressionStatement(identifier As SyntaxToken, rvalue As ExpressionSyntax) As StatementSyntax
                 Return identifier.CreateAssignmentExpressionStatementWithValue(rvalue)
             End Function
 
             Protected Overrides Function CreateDeclarationStatement(
                     variable As VariableInfo,
                     givenInitializer As ExpressionSyntax,
-                    cancellationToken As CancellationToken) As ExecutableStatementSyntax
+                    cancellationToken As CancellationToken) As StatementSyntax
 
                 Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso
                                                   (variable.ParameterModifier = ParameterBehavior.Out)

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of ExecutableStatementSyntax)
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
                     Dim firstStatementUnderContainer = Me.SelectionResult.GetFirstStatementUnderContainer()
                     Dim lastStatementUnderContainer = Me.SelectionResult.GetLastStatementUnderContainer()
 
@@ -41,8 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     Dim nodes = statements.
                                 Skip(firstStatementIndex).
-                                Take(lastStatementIndex - firstStatementIndex + 1).
-                                Cast(Of ExecutableStatementSyntax)
+                                Take(lastStatementIndex - firstStatementIndex + 1)
 
                     Return nodes.ToImmutableArray()
                 End Function

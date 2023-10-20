@@ -27,7 +27,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 SyntaxNode insertionPointNode, CancellationToken cancellationToken);
         }
 
-        protected abstract partial class CodeGenerator<TNodeUnderContainer, TCodeGenerationOptions> : CodeGenerator
+#pragma warning disable CS0693 // Intentionally hiding the outer TStatementSyntax
+        protected abstract partial class CodeGenerator<TStatementSyntax, TNodeUnderContainer, TCodeGenerationOptions> : CodeGenerator
+#pragma warning restore CS0693
+            where TStatementSyntax : SyntaxNode
             where TNodeUnderContainer : SyntaxNode
             where TCodeGenerationOptions : CodeGenerationOptions
         {

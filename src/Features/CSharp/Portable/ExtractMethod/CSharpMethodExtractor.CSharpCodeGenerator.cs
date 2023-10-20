@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor
     {
-        private abstract partial class CSharpCodeGenerator : CodeGenerator<SyntaxNode, CSharpCodeGenerationOptions>
+        private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, SyntaxNode, CSharpCodeGenerationOptions>
         {
             private readonly SyntaxToken _methodName;
 

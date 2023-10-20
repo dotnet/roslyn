@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Me._contextPosition = contextPosition
             End Sub
 
-            Public Function MergeDeclarationStatements(statements As ImmutableArray(Of ExecutableStatementSyntax)) As ImmutableArray(Of ExecutableStatementSyntax)
+            Public Function MergeDeclarationStatements(statements As ImmutableArray(Of StatementSyntax)) As ImmutableArray(Of StatementSyntax)
                 If statements.FirstOrDefault() Is Nothing Then
                     Return statements
                 End If
@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return MergeDeclarationStatementsWorker(statements)
             End Function
 
-            Private Function MergeDeclarationStatementsWorker(statements As ImmutableArray(Of ExecutableStatementSyntax)) As ImmutableArray(Of ExecutableStatementSyntax)
-                Dim declarationStatements = New List(Of ExecutableStatementSyntax)()
+            Private Function MergeDeclarationStatementsWorker(statements As ImmutableArray(Of StatementSyntax)) As ImmutableArray(Of StatementSyntax)
+                Dim declarationStatements = New List(Of StatementSyntax)()
 
                 Dim map = New Dictionary(Of ITypeSymbol, List(Of LocalDeclarationStatementSyntax))()
                 For Each statement In statements
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return True
             End Function
 
-            Public Shared Function RemoveDeclarationAssignmentPattern(statements As ImmutableArray(Of ExecutableStatementSyntax)) As ImmutableArray(Of ExecutableStatementSyntax)
+            Public Shared Function RemoveDeclarationAssignmentPattern(statements As ImmutableArray(Of StatementSyntax)) As ImmutableArray(Of StatementSyntax)
                 If statements.Count() < 2 Then
                     Return statements
                 End If
@@ -208,10 +208,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim variable = declaration.Declarators(0).WithoutTrailingTrivia().WithInitializer(SyntaxFactory.EqualsValue(assignment.Right))
                 Dim newDeclaration = declaration.WithDeclarators(SyntaxFactory.SingletonSeparatedList(variable))
 
-                Return SpecializedCollections.SingletonEnumerable(Of ExecutableStatementSyntax)(newDeclaration).Concat(statements.Skip(2)).ToImmutableArray()
+                Return SpecializedCollections.SingletonEnumerable(Of StatementSyntax)(newDeclaration).Concat(statements.Skip(2)).ToImmutableArray()
             End Function
 
-            Public Shared Function RemoveInitializedDeclarationAndReturnPattern(statements As ImmutableArray(Of ExecutableStatementSyntax)) As ImmutableArray(Of ExecutableStatementSyntax)
+            Public Shared Function RemoveInitializedDeclarationAndReturnPattern(statements As ImmutableArray(Of StatementSyntax)) As ImmutableArray(Of StatementSyntax)
                 ' if we have inline temp variable as service, we could just use that service here.
                 ' since it is not a service right now, do very simple clean up
                 If statements.Count() <> 2 Then
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return statements
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(Of ExecutableStatementSyntax)(
+                Return SpecializedCollections.SingletonEnumerable(Of StatementSyntax)(
                     SyntaxFactory.ReturnStatement(declaration.Declarators(0).Initializer.Value)).Concat(statements.Skip(2)).ToImmutableArray()
             End Function
         End Class

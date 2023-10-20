@@ -28,10 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of ExecutableStatementSyntax)
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
                     Contract.ThrowIfFalse(Me.SelectionResult.IsExtractMethodOnSingleStatement())
 
-                    Return ImmutableArray.Create(Me.SelectionResult.GetFirstStatement())
+                    Return ImmutableArray.Create(Of StatementSyntax)(Me.SelectionResult.GetFirstStatement())
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
