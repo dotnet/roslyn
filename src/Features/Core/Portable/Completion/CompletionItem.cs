@@ -105,9 +105,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal IEnumerable<KeyValuePair<string, string>> GetProperties()
         {
-            if (_propertiesAsImmutableDictionary is not null)
-                return _propertiesAsImmutableDictionary;
-
             return _properties;
         }
 

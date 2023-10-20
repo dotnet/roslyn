@@ -70,19 +70,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             switch (completionTriggerKind)
             {
                 case CompletionTriggerKind.Deletion:
-                var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
-                char characterRemoved;
-                if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
-                {
-                    // If multiple characters were removed (selection), this finds the first character from the left. 
-                    characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
-                }
-                else
-                {
-                    characterRemoved = (char)0;
-                }
+                    var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
+                    char characterRemoved;
+                    if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
+                    {
+                        // If multiple characters were removed (selection), this finds the first character from the left. 
+                        characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
+                    }
+                    else
+                    {
+                        characterRemoved = (char)0;
+                    }
 
-                return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
+                    return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
 
                 case CompletionTriggerKind.Insertion:
                     return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
