@@ -786,8 +786,8 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <note />
       </trans-unit>
       <trans-unit id="Fix_All_0">
-        <source>Fix All: '{0}'</source>
-        <target state="new">Fix All: '{0}'</target>
+        <source>Fix All: {0}</source>
+        <target state="new">Fix All: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
