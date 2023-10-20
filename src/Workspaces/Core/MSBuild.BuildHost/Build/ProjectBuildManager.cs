@@ -123,7 +123,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
             else
             {
-                var projectCollection = new MSB.Evaluation.ProjectCollection(AllGlobalProperties);
+                var projectCollection = new MSB.Evaluation.ProjectCollection(
+                    AllGlobalProperties,
+                    _msbuildLogger != null ? ImmutableArray.Create(_msbuildLogger) : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                    MSB.Evaluation.ToolsetDefinitionLocations.Default);
                 try
                 {
                     return LoadProjectAsync(path, projectCollection, cancellationToken);
@@ -158,18 +161,21 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             globalProperties ??= ImmutableDictionary<string, string>.Empty;
             var allProperties = s_defaultGlobalProperties.RemoveRange(globalProperties.Keys).AddRange(globalProperties);
-            _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
+
             _batchBuildLogger = new MSBuildDiagnosticLogger()
             {
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
             };
 
+            var loggers = _msbuildLogger is not null
+                ? ImmutableArray.Create(_msbuildLogger)
+                : ImmutableArray<MSB.Framework.ILogger>.Empty;
+
+            _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers, MSB.Evaluation.ToolsetDefinitionLocations.Default);
+
             var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
             {
-                Loggers = _msbuildLogger is null
-                    ? (new MSB.Framework.ILogger[] { _batchBuildLogger })
-                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger }),
-
+                Loggers = loggers.Add(_batchBuildLogger),
                 // If we have an additional logger and it's diagnostic, then we need to opt into task inputs globally, or otherwise
                 // it won't get any log events. This logic matches https://github.com/dotnet/msbuild/blob/fa6710d2720dcf1230a732a8858ffe71bcdbe110/src/Build/Instance/ProjectInstance.cs#L2365-L2371
                 LogTaskInputs = _msbuildLogger is not null && _msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic
