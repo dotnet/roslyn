@@ -166,6 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_variableBySlot.Count == 1);
 
                 _variableBySlot.AddMany(default, snapshot.VariableSlot.Length);
+#if NETCOREAPP
+                _variableSlot.EnsureCapacity(snapshot.VariableSlot.Length);
+                _variableTypes.EnsureCapacity(snapshot.VariableTypes.Count);
+#endif
                 foreach (var pair in snapshot.VariableSlot)
                 {
                     var identifier = pair.Key;
