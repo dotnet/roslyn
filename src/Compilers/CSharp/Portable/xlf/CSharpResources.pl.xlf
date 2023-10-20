@@ -2337,6 +2337,11 @@
         <target state="translated">wskaźnik</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_StringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">Operator „&amp;” nie powinien być używany w parametrach ani zmiennych lokalnych w metodach asynchronicznych.</target>

@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 case '0': ch = '\0'; break;
                 case 'a': ch = '\a'; break;
                 case 'b': ch = '\b'; break;
+                case 'e': ch = '\u001b'; break;
                 case 'f': ch = '\f'; break;
                 case 'n': ch = '\n'; break;
                 case 'r': ch = '\r'; break;
