@@ -150,8 +150,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (result is null)
             return;
 
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
-        var (formattedDocument, methodNameAtInvocation) = await result.GetFormattedDocumentAsync(cleanupOptions, cancellationToken).ConfigureAwait(false);
+        var (formattedDocument, methodNameAtInvocation) = await result.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         var changes = await formattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -191,7 +190,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         Document document, TextSpan span, ExtractMethodGenerationOptions options, ExtractMethodResult result, CancellationToken cancellationToken)
     {
         // If we succeeded without any problems, just proceed without notifying the user.
-        if (result is { Succeeded: true, Reasons.Length: 0, DocumentWithoutFinalFormatting: not null })
+        if (result is { Succeeded: true, Reasons.Length: 0 })
             return result;
 
         // We have some sort of issue.  See what the user wants to do.  If we have no way to inform the user bail
@@ -208,7 +207,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         // We're about to show an notification to the user.  Switch to the ui thread to do so.
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        if (alternativeResult is { Succeeded: true, Reasons.Length: 0, DocumentWithoutFinalFormatting: not null })
+        if (alternativeResult is { Succeeded: true, Reasons.Length: 0 })
         {
             if (!notificationService.ConfirmMessageBox(
                     EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
@@ -227,7 +226,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
 
         // The alternative approach wasn't better.  If we failed, just let the user know and bail out.  Otherwise,
         // if we succeeded with messages, tell the user and let them decide if they want to proceed or not.
-        if (!result.Succeeded || result.DocumentWithoutFinalFormatting is null)
+        if (!result.Succeeded)
         {
             notificationService.SendNotification(
                 EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
