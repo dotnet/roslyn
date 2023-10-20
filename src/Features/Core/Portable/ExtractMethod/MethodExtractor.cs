@@ -23,25 +23,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal abstract partial class MethodExtractor<
         TSelectionResult,
         TStatementSyntax,
-        TExpressionSyntax>
+        TExpressionSyntax>(
+            TSelectionResult selectionResult,
+            ExtractMethodGenerationOptions options,
+            bool localFunction)
         where TSelectionResult : SelectionResult<TStatementSyntax>
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        protected readonly TSelectionResult OriginalSelectionResult;
-        protected readonly ExtractMethodGenerationOptions Options;
-        protected readonly bool LocalFunction;
-
-        public MethodExtractor(
-            TSelectionResult selectionResult,
-            ExtractMethodGenerationOptions options,
-            bool localFunction)
-        {
-            Contract.ThrowIfNull(selectionResult);
-            OriginalSelectionResult = selectionResult;
-            Options = options;
-            LocalFunction = localFunction;
-        }
+        protected readonly TSelectionResult OriginalSelectionResult = selectionResult;
+        protected readonly ExtractMethodGenerationOptions Options = options;
+        protected readonly bool LocalFunction = localFunction;
 
         protected abstract AnalyzerResult Analyze(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
