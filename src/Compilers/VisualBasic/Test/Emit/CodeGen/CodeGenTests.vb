@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -3422,8 +3421,8 @@ End Module</file>
 ]]>)
         End Sub
 
-        <Fact()>
-        Public Sub TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3476,32 +3475,24 @@ End Module</file>
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault1",
             <![CDATA[
- {
-  // Code size       19 (0x13)
-  .maxstack  1
+{
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  ldc.i4.2
-  IL_000a:  ret
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_0012:  ret
+  IL_0002:  ldc.i4.2
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  ret
 }
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault2",
             <![CDATA[
- {
-  // Code size       19 (0x13)
-  .maxstack  1
+{
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  ldarg.1
-  IL_000a:  ret
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_0012:  ret
+  IL_0002:  ldarg.1
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  ret
 }
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault3",
@@ -3535,6 +3526,71 @@ End Module</file>
   IL_0014:  ret
 }
             ]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault_ByRefParameter()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceWithNonDefault(x As Integer?, ByRef y As Integer) As Integer
+        Return If(x, y)
+    End Function
+End Module</file>
+</compilation>)
+
+            ' Dereferencing might throw, so no `GetValueOrDefault(defaultValue)` optimization here
+            verifier.VerifyIL("Program.CoalesceWithNonDefault",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldarg.1
+  IL_000a:  ldind.i4
+  IL_000b:  ret
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0013:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault_Local()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceWithNonDefault(x As Integer?) As Integer
+        Dim y = 3
+        Dim z = If(x, y)
+        Return y + z
+    End Function
+End Module</file>
+</compilation>).
+            VerifyIL("Program.CoalesceWithNonDefault",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (Integer V_0, //y
+                Integer V_1) //z
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  ldloc.0
+  IL_0005:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  add.ovf
+  IL_000e:  ret
+}
+]]>)
         End Sub
 
         <Fact()>
@@ -3576,7 +3632,7 @@ value
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
         Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
             Dim compilation = CreateCompilation(
 <compilation>
@@ -3588,10 +3644,98 @@ Public Module Program
 End Module</file>
 </compilation>)
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.AssertTheseEmitDiagnostics()
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            ' We gracefully fallback to calling `GetValueOrDefault(defaultValue)` member
+            verifier.VerifyIL("Program.Coalesce",
+            <![CDATA[
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  box        "Integer"
+  IL_000d:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 0)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
             compilation.AssertTheseEmitDiagnostics(
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
         Return If(x, 0)
+                  ~
+</errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWiNonDefault_MissingGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 2)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            compilation.AssertTheseEmitDiagnostics()
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            ' We gracefully fallback to less efficient implementation with branching
+            verifier.VerifyIL("Program.Coalesce",
+            <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldc.i4.2
+  IL_000a:  br.s       IL_0013
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0013:  box        "Integer"
+  IL_0018:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWiNonDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 2)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            compilation.AssertTheseEmitDiagnostics(
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
+        Return If(x, 2)
                   ~
 </errors>)
         End Sub
