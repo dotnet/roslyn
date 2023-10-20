@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        internal IEnumerable<KeyValuePair<string, string>> GetProperties()
+        internal ImmutableArray<KeyValuePair<string, string>> GetProperties()
         {
             return _properties;
         }
@@ -130,6 +130,10 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             if (TryGetProperty(name, out var value))
                 return value;
+
+            // Let ImmutableDictionary handle throwing
+            if (_propertiesAsImmutableDictionary is not null)
+                return _propertiesAsImmutableDictionary[name];
 
             throw new KeyNotFoundException($"Property {name} not found");
         }
