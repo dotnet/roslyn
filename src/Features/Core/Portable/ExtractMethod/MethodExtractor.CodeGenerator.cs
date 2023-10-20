@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected abstract class CodeGenerator
         {
-            public abstract OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(SyntaxNode insertionPointNode);
+            public abstract OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(
+                SyntaxNode insertionPointNode, CancellationToken cancellationToken);
         }
 
         protected abstract partial class CodeGenerator<TStatement, TExpression, TNodeUnderContainer, TCodeGenerationOptions>
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             #region method to be implemented in sub classes
 
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
-            protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode outermostCallSiteContainer, CancellationToken cancellationToken);
+            protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode insertionPointNode, SyntaxNode outermostCallSiteContainer, CancellationToken cancellationToken);
             protected abstract IMethodSymbol GenerateMethodDefinition(SyntaxNode insertionPointNode, CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
@@ -118,7 +119,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var rootWithUpdatedCallSite = this.SemanticDocument.Root.ReplaceNode(
                     outermostCallSiteContainer,
-                    await GenerateBodyForCallSiteContainerAsync(outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
+                    await GenerateBodyForCallSiteContainerAsync(
+                        insertionPoint.GetContext(), outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
 
                 // Then insert the local-function/method into the updated document that contains the updated callsite.
                 var documentWithUpdatedCallSite = await this.SemanticDocument.WithSyntaxRootAsync(rootWithUpdatedCallSite, cancellationToken).ConfigureAwait(false);

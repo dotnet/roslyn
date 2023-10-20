@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
             var codeGenerator = this.CreateCodeGenerator(analyzeResult);
 
-            var statements = codeGenerator.GetNewMethodStatements(insertionPointNode);
+            var statements = codeGenerator.GetNewMethodStatements(insertionPointNode, cancellationToken);
             if (statements.Status.Failed())
                 return ExtractMethodResult.Fail(statements.Status);
 
