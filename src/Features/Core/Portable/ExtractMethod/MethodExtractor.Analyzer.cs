@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private readonly SemanticDocument _semanticDocument;
 
             protected readonly CancellationToken CancellationToken;
-            protected readonly SelectionResult<TStatementSyntax> SelectionResult;
+            protected readonly TSelectionResult SelectionResult;
             protected readonly bool LocalFunction;
 
-            protected Analyzer(SelectionResult<TStatementSyntax> selectionResult, bool localFunction, CancellationToken cancellationToken)
+            protected Analyzer(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(selectionResult);
 
