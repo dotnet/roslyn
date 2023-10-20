@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -35,14 +36,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return item;
 
             Debug.Assert(item.DisplayText.StartsWith(Completion.Utilities.UnicodeStarAndSpace));
+            var newProperties = item.GetProperties().WhereAsArray((kvp, propName) => kvp.Key != propName, PromotedItemOriginalIndexPropertyName);
             return item
                 .WithDisplayText(item.DisplayText[Completion.Utilities.UnicodeStarAndSpace.Length..])
-                .WithProperties(item.Properties.Remove(PromotedItemOriginalIndexPropertyName));
+                .WithProperties(newProperties);
         }
 
         public static bool TryGetOriginalIndexOfPromotedItem(RoslynCompletionItem item, out int originalIndex)
         {
-            if (item.Properties.TryGetValue(PromotedItemOriginalIndexPropertyName, out var indexString))
+            if (item.TryGetProperty(PromotedItemOriginalIndexPropertyName, out var indexString))
             {
                 originalIndex = int.Parse(indexString);
                 return true;
@@ -68,19 +70,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             switch (completionTriggerKind)
             {
                 case CompletionTriggerKind.Deletion:
-                    var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
-                    char characterRemoved;
-                    if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
-                    {
-                        // If multiple characters were removed (selection), this finds the first character from the left. 
-                        characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
-                    }
-                    else
-                    {
-                        characterRemoved = (char)0;
-                    }
+                var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
+                char characterRemoved;
+                if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
+                {
+                    // If multiple characters were removed (selection), this finds the first character from the left. 
+                    characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
+                }
+                else
+                {
+                    characterRemoved = (char)0;
+                }
 
-                    return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
+                return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
 
                 case CompletionTriggerKind.Insertion:
                     return RoslynTrigger.CreateInsertionTrigger(trigger.Character);

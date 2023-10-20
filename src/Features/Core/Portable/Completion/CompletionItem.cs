@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly string? _filterText;
         private string? _lazyEntireDisplayText;
+        private ImmutableDictionary<string, string>? _propertiesAsImmutableDictionary;
+        private readonly ImmutableArray<KeyValuePair<string, string>> _properties;
 
         /// <summary>
         /// The text that is displayed to the user.
@@ -89,7 +92,50 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Additional information attached to a completion item by it creator.
         /// </summary>
-        public ImmutableDictionary<string, string> Properties { get; }
+        public ImmutableDictionary<string, string> Properties
+        {
+            get
+            {
+                if (_propertiesAsImmutableDictionary is null)
+                    _propertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
+
+                return _propertiesAsImmutableDictionary;
+            }
+        }
+
+        internal IEnumerable<KeyValuePair<string, string>> GetProperties()
+        {
+            if (_propertiesAsImmutableDictionary is not null)
+                return _propertiesAsImmutableDictionary;
+
+            return _properties;
+        }
+
+        internal bool TryGetProperty(string name, [NotNullWhen(true)] out string? value)
+        {
+            if (_propertiesAsImmutableDictionary is not null)
+                return _propertiesAsImmutableDictionary.TryGetValue(name, out value);
+
+            foreach ((var propName, var propValue) in _properties)
+            {
+                if (name == propName)
+                {
+                    value = propValue;
+                    return true;
+                }
+            }
+
+            value = null;
+            return false;
+        }
+
+        internal string GetProperty(string name)
+        {
+            if (TryGetProperty(name, out var value))
+                return value;
+
+            throw new KeyNotFoundException($"Property {name} not found");
+        }
 
         /// <summary>
         /// Descriptive tags from <see cref="Tags.WellKnownTags"/>.
@@ -132,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string? filterText,
             string? sortText,
             TextSpan span,
-            ImmutableDictionary<string, string>? properties,
+            ImmutableArray<KeyValuePair<string, string>> properties,
             ImmutableArray<string> tags,
             CompletionItemRules? rules,
             string? displayTextPrefix,
@@ -146,10 +192,17 @@ namespace Microsoft.CodeAnalysis.Completion
             SortText = sortText ?? DisplayText;
             InlineDescription = inlineDescription ?? "";
             Span = span;
-            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             Tags = tags.NullToEmpty();
             Rules = rules ?? CompletionItemRules.Default;
             IsComplexTextEdit = isComplexTextEdit;
+
+            _properties = properties.NullToEmpty();
+            if (_properties.Length > 10)
+            {
+                // Prefer to just keep an ImmutableArray, but performance on large property collections
+                //  (quite uncommon) dictate falling back to a non-linear lookup data structure.
+                _propertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
+            }
 
             if (!DisplayText.Equals(filterText ?? "", StringComparison.Ordinal))
             {
@@ -212,6 +265,23 @@ namespace Microsoft.CodeAnalysis.Completion
             string? inlineDescription = null,
             bool isComplexTextEdit = false)
         {
+            return CreateInternal(
+                displayText, filterText, sortText, properties != null ? properties.ToImmutableArray() : default, tags, rules, displayTextPrefix,
+                displayTextSuffix, inlineDescription, isComplexTextEdit);
+        }
+
+        internal static CompletionItem CreateInternal(
+            string? displayText,
+            string? filterText = null,
+            string? sortText = null,
+            ImmutableArray<KeyValuePair<string, string>> properties = default,
+            ImmutableArray<string> tags = default,
+            CompletionItemRules? rules = null,
+            string? displayTextPrefix = null,
+            string? displayTextSuffix = null,
+            string? inlineDescription = null,
+            bool isComplexTextEdit = false)
+        {
             return new CompletionItem(
                 span: default,
                 displayText: displayText,
@@ -253,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
-                properties: properties,
+                properties: properties != null ? properties.ToImmutableArray() : default,
                 tags: tags,
                 rules: rules,
                 displayTextPrefix: null,
@@ -267,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayText = default,
             Optional<string> filterText = default,
             Optional<string> sortText = default,
-            Optional<ImmutableDictionary<string, string>?> properties = default,
+            Optional<ImmutableArray<KeyValuePair<string, string>>> properties = default,
             Optional<ImmutableArray<string>> tags = default,
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
@@ -281,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var newFilterText = filterText.HasValue ? filterText.Value : FilterText;
             var newSortText = sortText.HasValue ? sortText.Value : SortText;
             var newInlineDescription = inlineDescription.HasValue ? inlineDescription.Value : InlineDescription;
-            var newProperties = properties.HasValue ? properties.Value : Properties;
+            var newProperties = properties.HasValue ? properties.Value : _properties;
             var newTags = tags.HasValue ? tags.Value : Tags;
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
@@ -293,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 newDisplayText == DisplayText &&
                 newFilterText == FilterText &&
                 newSortText == SortText &&
-                newProperties == Properties &&
+                newProperties == _properties &&
                 newTags == Tags &&
                 newRules == Rules &&
                 newDisplayTextPrefix == DisplayTextPrefix &&
@@ -367,13 +437,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Properties"/> property changed.
         /// </summary>
         public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
+            => With(properties: properties != null ? properties.ToImmutableArray() : default);
+
+        internal CompletionItem WithProperties(ImmutableArray<KeyValuePair<string, string>> properties)
             => With(properties: properties);
 
         /// <summary>
-        /// Creates a copy of this <see cref="CompletionItem"/> with a property added to the <see cref="Properties"/> collection.
+        /// Creates a copy of this <see cref="CompletionItem"/> with the specified property.
         /// </summary>
         public CompletionItem AddProperty(string name, string value)
-            => With(properties: Properties.Add(name, value));
+            => With(properties: ImmutableArray.Create(new KeyValuePair<string, string>(name, value)));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.
