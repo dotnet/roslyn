@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundCollectionExpression.WasCompilerGenerated;
             return new NoneOperation(elements, _semanticModel, syntax, type: type, constantValue: null, isImplicit);
 
-            ImmutableArray<IOperation> createChildren(ImmutableArray<BoundExpression> elements)
+            ImmutableArray<IOperation> createChildren(ImmutableArray<BoundNode> elements)
             {
                 var builder = ArrayBuilder<IOperation>.GetInstance(elements.Length);
                 foreach (var element in elements)
@@ -1243,24 +1243,23 @@ namespace Microsoft.CodeAnalysis.Operations
                 return builder.ToImmutableAndFree();
             }
 
-            IOperation? createChild(BoundExpression expression)
+            IOperation? createChild(BoundNode element)
             {
-                var element = expression switch
+                var result = element switch
                 {
                     BoundCollectionElementInitializer initializer => initializer.Arguments.First(),
-                    _ => expression,
+                    _ => element,
                 };
-                return Create(element);
+                return Create(result);
             }
         }
 
         private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement boundSpreadExpression)
         {
             SyntaxNode syntax = boundSpreadExpression.Syntax;
-            ITypeSymbol? type = boundSpreadExpression.GetPublicTypeSymbol();
             bool isImplicit = boundSpreadExpression.WasCompilerGenerated;
             var children = ImmutableArray.Create<IOperation>(Create(boundSpreadExpression.Expression));
-            return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
+            return new NoneOperation(children, _semanticModel, syntax, type: null, constantValue: null, isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
