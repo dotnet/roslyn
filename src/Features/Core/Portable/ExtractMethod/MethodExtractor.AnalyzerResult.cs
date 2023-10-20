@@ -146,8 +146,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (variables.Count <= 0)
                     return null;
 
-                VariableInfo.SortVariables(variables);
-                return variables[0];
+                return variables.Min();
             }
         }
     }

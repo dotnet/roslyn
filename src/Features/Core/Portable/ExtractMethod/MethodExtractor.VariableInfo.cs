@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected class VariableInfo(
             VariableSymbol variableSymbol,
             VariableStyle variableStyle,
-            bool useAsReturnValue = false)
+            bool useAsReturnValue = false) : IComparable<VariableInfo>
         {
             private readonly VariableSymbol _variableSymbol = variableSymbol;
             private readonly VariableStyle _variableStyle = variableStyle;
@@ -128,8 +128,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public static void SortVariables(ArrayBuilder<VariableInfo> variables)
                 => variables.Sort(Compare);
 
-            private static int Compare(VariableInfo left, VariableInfo right)
+            public static int Compare(VariableInfo left, VariableInfo right)
                 => VariableSymbol.Compare(left._variableSymbol, right._variableSymbol);
+
+            public int CompareTo(VariableInfo other)
+                => Compare(this, other);
         }
     }
 }
