@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public static Task<GeneratedCode> GenerateAsync(
                 InsertionPoint insertionPoint,
-                SelectionResult selectionResult,
+                CSharpSelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CSharpCodeGenerationOptions options,
                 bool localFunction,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             public static CSharpCodeGenerator Create(
-                SelectionResult selectionResult,
+                CSharpSelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CSharpCodeGenerationOptions options,
                 bool localFunction)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected CSharpCodeGenerator(
-                SelectionResult selectionResult,
+                CSharpSelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CSharpCodeGenerationOptions options,
                 bool localFunction)

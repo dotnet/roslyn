@@ -18,9 +18,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class SelectionValidator
+    internal abstract partial class SelectionValidator<
+        TSelectionResult,
+        TStatementSyntax>
+        where TSelectionResult : SelectionResult<TStatementSyntax>
+        where TStatementSyntax : SyntaxNode
     {
-        protected static readonly SelectionResult NullSelection = new NullSelectionResult();
+        // protected static readonly SelectionResult NullSelection = new NullSelectionResult();
 
         protected readonly SemanticDocument SemanticDocument;
         protected readonly TextSpan OriginalSpan;
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
         }
 
-        public abstract Task<SelectionResult> GetValidSelectionAsync(CancellationToken cancellationToken);
+        public abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken);
         public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
         public abstract bool IsFinalSpanSemanticallyValidSpan(SyntaxNode node, TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
         public abstract bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion);

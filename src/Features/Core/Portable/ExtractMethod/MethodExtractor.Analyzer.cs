@@ -16,17 +16,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax>
     {
         protected abstract partial class Analyzer
         {
             private readonly SemanticDocument _semanticDocument;
 
             protected readonly CancellationToken CancellationToken;
-            protected readonly SelectionResult SelectionResult;
+            protected readonly SelectionResult<TStatementSyntax> SelectionResult;
             protected readonly bool LocalFunction;
 
-            protected Analyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            protected Analyzer(SelectionResult<TStatementSyntax> selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(selectionResult);
 

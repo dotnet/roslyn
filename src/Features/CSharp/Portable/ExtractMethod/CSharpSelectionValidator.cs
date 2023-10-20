@@ -24,16 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         SemanticDocument document,
         TextSpan textSpan,
         ExtractMethodOptions options,
-        bool localFunction) : SelectionValidator(document, textSpan, options)
+        bool localFunction) : SelectionValidator<CSharpSelectionResult, StatementSyntax>(document, textSpan, options)
     {
         private readonly bool _localFunction = localFunction;
 
-        public override async Task<SelectionResult> GetValidSelectionAsync(CancellationToken cancellationToken)
+        public override async Task<(CSharpSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
             if (!ContainsValidSelection)
-            {
-                return NullSelection;
-            }
+                return (null, OperationStatus.FailedWithUnknownReason);
 
             var text = SemanticDocument.Text;
             var root = SemanticDocument.Root;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             // there was a fatal error that we couldn't even do negative preview, return error result
             if (selectionInfo.Status.Failed())
-                return new ErrorSelectionResult(selectionInfo.Status);
+                return (null, selectionInfo.Status);
 
             var controlFlowSpan = GetControlFlowSpan(selectionInfo);
             if (!selectionInfo.SelectionInExpression)
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (statementRange == null)
                 {
                     selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.Failed, CSharpFeaturesResources.Can_t_determine_valid_range_of_statements_to_extract));
-                    return new ErrorSelectionResult(selectionInfo.Status);
+                    return (null, selectionInfo.Status);
                 }
 
                 var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange, cancellationToken);
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
 
-            return await CSharpSelectionResult.CreateAsync(
+            var result = await CSharpSelectionResult.CreateAsync(
                 selectionInfo.Status,
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
@@ -85,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 selectionInfo.LastTokenInFinalSpan,
                 selectionChanged,
                 cancellationToken).ConfigureAwait(false);
+            return (result, OperationStatus.Succeeded);
         }
 
         private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)

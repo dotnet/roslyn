@@ -22,12 +22,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
-        : MethodExtractor(result, options, localFunction)
+        : MethodExtractor<CSharpSelectionResult, StatementSyntax>(result, options, localFunction)
     {
         protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
             => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, (CSharpCodeGenerationOptions)this.Options.CodeGenerationOptions, this.LocalFunction);
 
-        protected override AnalyzerResult Analyze(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+        protected override AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
 
         protected override SyntaxNode GetInsertionPointNode(
@@ -154,10 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
         }
 
-        protected override async Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
+        protected override async Task<TriviaResult> PreserveTriviaAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
             => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
 
-        protected override async Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken)
+        protected override async Task<SemanticDocument> ExpandAsync(CSharpSelectionResult selection, CancellationToken cancellationToken)
         {
             var lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors<ExpressionSyntax>().LastOrDefault();
             if (lastExpression == null)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
             => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);
 
         protected override ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document)

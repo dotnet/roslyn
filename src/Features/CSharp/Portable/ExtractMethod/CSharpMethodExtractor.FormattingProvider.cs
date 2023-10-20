@@ -5,12 +5,13 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
-    internal partial class CSharpMethodExtractor : MethodExtractor
+    internal partial class CSharpMethodExtractor
     {
         private class FormattingRule : AbstractFormattingRule
         {

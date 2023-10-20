@@ -20,14 +20,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<
+        TSelectionResult,
+        TStatementSyntax>
+        where TSelectionResult : SelectionResult<TStatementSyntax>
+        where TStatementSyntax : SyntaxNode
     {
-        protected readonly SelectionResult OriginalSelectionResult;
+        protected readonly TSelectionResult OriginalSelectionResult;
         protected readonly ExtractMethodGenerationOptions Options;
         protected readonly bool LocalFunction;
 
         public MethodExtractor(
-            SelectionResult selectionResult,
+            TSelectionResult selectionResult,
             ExtractMethodGenerationOptions options,
             bool localFunction)
         {
@@ -37,14 +41,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             LocalFunction = localFunction;
         }
 
-        protected abstract AnalyzerResult Analyze(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
+        protected abstract AnalyzerResult Analyze(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
-        protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
-        protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
+        protected abstract Task<TriviaResult> PreserveTriviaAsync(TSelectionResult selectionResult, CancellationToken cancellationToken);
+        protected abstract Task<SemanticDocument> ExpandAsync(TSelectionResult selection, CancellationToken cancellationToken);
 
         protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
         protected abstract Task<GeneratedCode> GenerateCodeAsync(
-            InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
+            InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
@@ -85,14 +89,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var (analyzedDocument, insertionPoint) = await GetAnnotatedDocumentAndInsertionPointAsync(
                         originalSemanticDocument, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
 
-                    var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
+                    var triviaResult = await PreserveTriviaAsync((TSelectionResult)OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
+                    var expandedDocument = await ExpandAsync((TSelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
 
                     var generatedCode = await GenerateCodeAsync(
                         insertionPoint.With(expandedDocument),
-                        OriginalSelectionResult.With(expandedDocument),
+                        (TSelectionResult)OriginalSelectionResult.With(expandedDocument),
                         analyzeResult,
                         Options.CodeGenerationOptions,
                         cancellationToken).ConfigureAwait(false);

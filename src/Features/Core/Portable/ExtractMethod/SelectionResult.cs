@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     /// <summary>
     /// clean up this code when we do selection validator work.
     /// </summary>
-    internal abstract class SelectionResult
+    internal abstract class SelectionResult<TStatementSyntax>
+        where TStatementSyntax : SyntaxNode
     {
         protected SelectionResult(OperationStatus status)
         {
@@ -59,7 +60,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public abstract ITypeSymbol GetContainingScopeType();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-        public abstract bool IsExtractMethodOnSingleStatement();
         public abstract bool IsExtractMethodOnMultipleStatements();
 
         public OperationStatus Status { get; }
@@ -72,25 +72,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public SyntaxAnnotation LastTokenAnnotation { get; }
         public bool SelectionChanged { get; }
 
-        public SelectionResult With(SemanticDocument document)
+        public SelectionResult<TStatementSyntax> With(SemanticDocument document)
         {
             if (SemanticDocument == document)
             {
                 return this;
             }
 
-            var clone = (SelectionResult)MemberwiseClone();
+            var clone = (SelectionResult<TStatementSyntax>)MemberwiseClone();
             clone.SemanticDocument = document;
 
             return clone;
-        }
-
-        public bool ContainsValidContext
-        {
-            get
-            {
-                return SemanticDocument != null;
-            }
         }
 
         public SyntaxToken GetFirstTokenInSelection()
@@ -105,20 +97,28 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return containingScope.GetAncestorOrThis<TNode>();
         }
 
-        protected T GetFirstStatement<T>() where T : SyntaxNode
+        public bool IsExtractMethodOnSingleStatement()
+        {
+            var firstStatement = this.GetFirstStatement();
+            var lastStatement = this.GetLastStatement();
+
+            return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
+        }
+
+        public TStatementSyntax GetFirstStatement()
         {
             Contract.ThrowIfTrue(SelectionInExpression);
 
             var token = GetFirstTokenInSelection();
-            return token.GetAncestor<T>();
+            return token.GetAncestor<TStatementSyntax>();
         }
 
-        protected T GetLastStatement<T>() where T : SyntaxNode
+        public TStatementSyntax GetLastStatement()
         {
             Contract.ThrowIfTrue(SelectionInExpression);
 
             var token = GetLastTokenInSelection();
-            return token.GetAncestor<T>();
+            return token.GetAncestor<TStatementSyntax>();
         }
 
         public bool ShouldPutAsyncModifier()

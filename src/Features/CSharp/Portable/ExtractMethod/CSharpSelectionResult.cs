@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
-    internal abstract partial class CSharpSelectionResult : SelectionResult
+    internal abstract partial class CSharpSelectionResult : SelectionResult<StatementSyntax>
     {
         public static async Task<CSharpSelectionResult> CreateAsync(
             OperationStatus status,
@@ -101,14 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                    current.GetLastToken().Span.End <= lastToken.Span.End;
         }
 
-        public override bool IsExtractMethodOnSingleStatement()
-        {
-            var firstStatement = this.GetFirstStatement();
-            var lastStatement = this.GetLastStatement();
-
-            return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
-        }
-
         public override bool IsExtractMethodOnMultipleStatements()
         {
             var first = this.GetFirstStatement();
@@ -158,12 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             throw ExceptionUtilities.Unreachable();
         }
-
-        public StatementSyntax GetFirstStatement()
-            => GetFirstStatement<StatementSyntax>();
-
-        public StatementSyntax GetLastStatement()
-            => GetLastStatement<StatementSyntax>();
 
         public StatementSyntax GetFirstStatementUnderContainer()
         {

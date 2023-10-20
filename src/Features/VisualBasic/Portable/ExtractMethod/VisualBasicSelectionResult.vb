@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Friend Class VisualBasicSelectionResult
-        Inherits SelectionResult
+        Inherits SelectionResult(Of ExecutableStatementSyntax)
 
         Public Shared Async Function CreateResultAsync(
             status As OperationStatus,

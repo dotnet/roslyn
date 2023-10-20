@@ -14,13 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
-    internal partial class CSharpMethodExtractor : MethodExtractor
+    internal partial class CSharpMethodExtractor
     {
-        private class CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken) : Analyzer(selectionResult, localFunction, cancellationToken)
+        private class CSharpAnalyzer(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken) : Analyzer(selectionResult, localFunction, cancellationToken)
         {
             private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
 
-            public static AnalyzerResult Analyze(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            public static AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 var analyzer = new CSharpAnalyzer(selectionResult, localFunction, cancellationToken);
                 return analyzer.Analyze();
@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var csharpSelectionResult = SelectionResult as CSharpSelectionResult;
 
-                var first = csharpSelectionResult.GetFirstStatement();
-                var last = csharpSelectionResult.GetLastStatement();
+                var first = SelectionResult.GetFirstStatement();
+                var last = SelectionResult.GetLastStatement();
 
                 // single statement case
                 if (first == last ||

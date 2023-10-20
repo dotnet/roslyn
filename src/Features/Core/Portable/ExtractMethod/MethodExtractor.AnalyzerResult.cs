@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax>
     {
         protected sealed class AnalyzerResult(
             IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,

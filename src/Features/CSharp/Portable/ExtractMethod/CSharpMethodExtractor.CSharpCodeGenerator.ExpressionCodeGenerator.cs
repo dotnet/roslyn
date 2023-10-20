@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         private partial class CSharpCodeGenerator
         {
             private sealed class ExpressionCodeGenerator(
-                SelectionResult selectionResult,
+                CSharpSelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CSharpCodeGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)

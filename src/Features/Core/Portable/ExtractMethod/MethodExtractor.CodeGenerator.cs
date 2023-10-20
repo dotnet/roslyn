@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax>
     {
         protected abstract class CodeGenerator
         {
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SyntaxAnnotation CallSiteAnnotation;
 
             // protected readonly SyntaxNode InsertionPointNode;
-            protected readonly SelectionResult SelectionResult;
+            protected readonly SelectionResult<TStatementSyntax> SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
             protected readonly TCodeGenerationOptions Options;
             protected readonly bool LocalFunction;
 
-            protected CodeGenerator(/*SyntaxNode insertionPointNode, */SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
+            protected CodeGenerator(SelectionResult<TStatementSyntax> selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
             {
                 // InsertionPointNode = insertionPointNode;
 

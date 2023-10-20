@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         private partial class CSharpCodeGenerator
         {
             public sealed class MultipleStatementsCodeGenerator(
-                SelectionResult selectionResult,
+                CSharpSelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CSharpCodeGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
