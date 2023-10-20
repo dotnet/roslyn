@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(1, cv1.ByteValue);
             Assert.Equal(1, cv1.SByteValue);
-            Assert.Equal(true, cv1.BooleanValue);
+            Assert.True(cv1.BooleanValue);
             Assert.Equal(1, cv1.DoubleValue);
             Assert.Equal(1, cv1.SingleValue);
             Assert.Equal(1, cv1.DecimalValue);
