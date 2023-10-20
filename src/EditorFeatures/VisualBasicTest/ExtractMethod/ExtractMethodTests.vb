@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 extractOptions)
 
             Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
-            Dim result = Await extractor.ExtractMethodAsync(CancellationToken.None)
+            Dim result = extractor.ExtractMethod(CancellationToken.None)
             Assert.NotNull(result)
 
             If succeeded Then

@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             // extract method
             var extractor = new CSharpMethodExtractor((CSharpSelectionResult)selectedCode, options, localFunction: false);
-            var result = await extractor.ExtractMethodAsync(CancellationToken.None);
+            var result = extractor.ExtractMethod(CancellationToken.None);
             Assert.NotNull(result);
 
             // If the test expects us to succeed, validate that we did.  If it expects us to fail, ensure we either
