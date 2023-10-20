@@ -290,12 +290,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     if (linkedSymbol.Kind != symbol.Kind)
                     {
+                        // With primary constructors, the declaring node of the primary constructor is the type
+                        // declaration node itself.  So, see if we're in that situation, and try to find the
+                        // corresponding primary constructor in the linked file.
                         if (linkedSymbol is INamedTypeSymbol linkedNamedType &&
                             symbol.IsConstructor())
                         {
-                            // With primary constructors, the declaring node of the primary constructor is the type
-                            // declaration node itself.  So, see if we're in that situation, and try to find the
-                            // corresponding primary constructor in the linked file.
                             linkedSymbol = linkedNamedType.Constructors.FirstOrDefault(
                                 c => c.DeclaringSyntaxReferences.Any(r => linkedNode.Equals(r.GetSyntax(cancellationToken))));
                             if (linkedSymbol is null)
