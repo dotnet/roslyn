@@ -46,24 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return If(info.ConvertedType.IsObjectType(), info.ConvertedType, info.Type)
             End Function
 
-            Protected Overrides Function GetFlowAnalysisNodeRange() As Tuple(Of SyntaxNode, SyntaxNode)
-                Dim vbSelectionResult = DirectCast(Me.SelectionResult, VisualBasicSelectionResult)
-
-                Dim firstStatement = vbSelectionResult.GetFirstStatement()
-                Dim lastStatement = vbSelectionResult.GetLastStatement()
-
-                ' single statement case
-                If firstStatement Is lastStatement OrElse
-                   firstStatement.Span.Contains(lastStatement.Span) Then
-                    Return New Tuple(Of SyntaxNode, SyntaxNode)(firstStatement, firstStatement)
-                End If
-
-                ' multiple statement case
-                Dim firstUnderContainer = vbSelectionResult.GetFirstStatementUnderContainer()
-                Dim lastUnderContainer = vbSelectionResult.GetLastStatementUnderContainer()
-                Return New Tuple(Of SyntaxNode, SyntaxNode)(firstUnderContainer, lastUnderContainer)
-            End Function
-
             Protected Overrides Function ContainsReturnStatementInSelectedCode(jumpOutOfRegionStatements As IEnumerable(Of SyntaxNode)) As Boolean
                 Return jumpOutOfRegionStatements.Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).Any()
             End Function

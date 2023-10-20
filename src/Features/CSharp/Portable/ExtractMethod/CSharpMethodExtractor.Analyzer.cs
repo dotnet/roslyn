@@ -51,24 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     : info.ConvertedType;
             }
 
-            protected override Tuple<SyntaxNode, SyntaxNode> GetFlowAnalysisNodeRange()
-            {
-                var first = SelectionResult.GetFirstStatement();
-                var last = SelectionResult.GetLastStatement();
-
-                // single statement case
-                if (first == last ||
-                    first.Span.Contains(last.Span))
-                {
-                    return new Tuple<SyntaxNode, SyntaxNode>(first, first);
-                }
-
-                // multiple statement case
-                var firstUnderContainer = selectionResult.GetFirstStatementUnderContainer();
-                var lastUnderContainer = selectionResult.GetLastStatementUnderContainer();
-                return new Tuple<SyntaxNode, SyntaxNode>(firstUnderContainer, lastUnderContainer);
-            }
-
             protected override bool ContainsReturnStatementInSelectedCode(IEnumerable<SyntaxNode> jumpOutOfRegionStatements)
                 => jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
 

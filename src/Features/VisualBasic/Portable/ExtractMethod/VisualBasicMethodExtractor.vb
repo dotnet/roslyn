@@ -85,37 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return methodNames.FirstOrNull(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement)
         End Function
 
-        Protected Overrides Function CheckType(
-                semanticModel As SemanticModel,
-                contextNode As SyntaxNode,
-                location As Location,
-                type As ITypeSymbol) As OperationStatus
-            Contract.ThrowIfNull(type)
-
-            If type.SpecialType = SpecialType.System_Void Then
-                ' this can happen if there is no return value
-                Return OperationStatus.Succeeded
-            End If
-
-            If type.TypeKind = TypeKind.Error OrElse type.TypeKind = TypeKind.Unknown Then
-                Return OperationStatus.ErrorOrUnknownType
-            End If
-
-            ' if it is type parameter, make sure we are getting same type parameter
-            For Each typeParameter In TypeParameterCollector.Collect(type)
-                Dim typeName = SyntaxFactory.ParseTypeName(typeParameter.Name)
-                Dim symbolInfo = semanticModel.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
-                Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
-
-                If Not SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)) Then
-                    Return New OperationStatus(OperationStatusFlag.Succeeded,
-                        String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
-                            typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                            If(currentType Is Nothing, String.Empty, currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))))
-                End If
-            Next typeParameter
-
-            Return OperationStatus.Succeeded
+        Protected Overrides Function ParseTypeName(name As String) As SyntaxNode
+            Return SyntaxFactory.ParseTypeName(name)
         End Function
 
         Private Class FormattingRule

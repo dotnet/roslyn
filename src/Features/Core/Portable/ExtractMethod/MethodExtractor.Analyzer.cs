@@ -39,7 +39,23 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <summary>
             /// convert text span to node range for the flow analysis API
             /// </summary>
-            protected abstract Tuple<SyntaxNode, SyntaxNode> GetFlowAnalysisNodeRange();
+            private (SyntaxNode, SyntaxNode) GetFlowAnalysisNodeRange()
+            {
+                var first = this.SelectionResult.GetFirstStatement();
+                var last = this.SelectionResult.GetLastStatement();
+
+                // single statement case
+                if (first == last ||
+                    first.Span.Contains(last.Span))
+                {
+                    return (first, first);
+                }
+
+                // multiple statement case
+                var firstUnderContainer = this.SelectionResult.GetFirstStatementUnderContainer();
+                var lastUnderContainer = this.SelectionResult.GetLastStatementUnderContainer();
+                return (firstUnderContainer, lastUnderContainer);
+            }
 
             /// <summary>
             /// check whether selection contains return statement or not
@@ -54,8 +70,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <summary>
             /// among variables that will be used as parameters at the extracted method, check whether one of the parameter can be used as return
             /// </summary>
-            // protected abstract int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo);
-
             private int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo)
             {
                 var numberOfOutParameters = 0;

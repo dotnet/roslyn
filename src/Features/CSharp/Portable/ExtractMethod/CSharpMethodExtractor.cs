@@ -178,42 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> methodNames)
             => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
-        protected override OperationStatus CheckType(
-            SemanticModel semanticModel,
-            SyntaxNode contextNode,
-            Location location,
-            ITypeSymbol type)
-        {
-            Contract.ThrowIfNull(type);
-
-            // this happens when there is no return type
-            if (type.SpecialType == SpecialType.System_Void)
-            {
-                return OperationStatus.Succeeded;
-            }
-
-            if (type.TypeKind is TypeKind.Error or
-                TypeKind.Unknown)
-            {
-                return OperationStatus.ErrorOrUnknownType;
-            }
-
-            // if it is type parameter, make sure we are getting same type parameter
-            foreach (var typeParameter in TypeParameterCollector.Collect(type))
-            {
-                var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
-                var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
-                {
-                    return new OperationStatus(OperationStatusFlag.Succeeded,
-                        string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
-                            typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                            currentType == null ? string.Empty : currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
-                }
-            }
-
-            return OperationStatus.Succeeded;
-        }
+        protected override SyntaxNode ParseTypeName(string name)
+            => ParseTypeName(name);
 
         protected override async Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
