@@ -128,9 +128,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public static void SortVariables(ArrayBuilder<VariableInfo> variables)
                 => variables.Sort();
 
-            //public static int Compare(VariableInfo left, VariableInfo right)
-            //    => (left._variableSymbol, right._variableSymbol);
-
             public int CompareTo(VariableInfo other)
                 => VariableSymbol.Compare(this._variableSymbol, other._variableSymbol);
         }
