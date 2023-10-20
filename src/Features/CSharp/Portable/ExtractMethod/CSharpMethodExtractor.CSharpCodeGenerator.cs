@@ -297,17 +297,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (kind == SyntaxKind.None)
                     return statements;
 
-                if (statements.Length != 1)
-                {
-                    return ImmutableArray.Create<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
-                }
-
-                if (statements[0] is BlockSyntax block)
-                {
-                    return ImmutableArray.Create<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, block));
-                }
-
-                return ImmutableArray.Create<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
+                return statements is [BlockSyntax block]
+                    ? ImmutableArray.Create<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, block))
+                    : ImmutableArray.Create<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
             }
 
             private static ImmutableArray<StatementSyntax> CleanupCode(ImmutableArray<StatementSyntax> statements)
