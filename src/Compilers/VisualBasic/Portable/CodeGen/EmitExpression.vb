@@ -1324,7 +1324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.MarkLabel(doneLabel)
         End Sub
 
-        Private Function HasIntegralValueZeroOrOne(expr As BoundExpression, ByRef isOne As Boolean) As Boolean
+        Private Shared Function HasIntegralValueZeroOrOne(expr As BoundExpression, ByRef isOne As Boolean) As Boolean
             If expr.IsConstant Then
                 Dim constantValue = expr.ConstantValueOpt
                 If constantValue.IsDefaultValue Then
