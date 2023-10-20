@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override async Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(
-                SyntaxNode context,
+                SyntaxNode insertionPointNode,
                 SyntaxNode container,
                 CancellationToken cancellationToken)
             {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstStatementToRemove, lastStatementToRemove));
 
                 var statementsToInsert = await CreateStatementsOrInitializerToInsertAtCallSiteAsync(
-                    context, cancellationToken).ConfigureAwait(false);
+                    insertionPointNode, cancellationToken).ConfigureAwait(false);
 
                 var callSiteGenerator = new CallSiteContainerRewriter(
                     container,
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             private async Task<ImmutableArray<SyntaxNode>> CreateStatementsOrInitializerToInsertAtCallSiteAsync(
-                SyntaxNode context, CancellationToken cancellationToken)
+                SyntaxNode insertionPointNode, CancellationToken cancellationToken)
             {
                 var selectedNode = GetFirstStatementOrInitializerSelectedAtCallSite();
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // regular case
                 var semanticModel = SemanticDocument.SemanticModel;
-                var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
+                var postProcessor = new PostProcessor(semanticModel, insertionPointNode.SpanStart);
 
                 var statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken);
                 statements = postProcessor.MergeDeclarationStatements(statements);
@@ -509,12 +509,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             private ImmutableArray<StatementSyntax> SplitOrMoveDeclarationIntoMethodDefinition(
-                SyntaxNode context,
+                SyntaxNode insertionPointNode,
                 ImmutableArray<StatementSyntax> statements,
                 CancellationToken cancellationToken)
             {
                 var semanticModel = SemanticDocument.SemanticModel;
-                var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
+                var postProcessor = new PostProcessor(semanticModel, insertionPointNode.SpanStart);
 
                 var declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken);
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements);

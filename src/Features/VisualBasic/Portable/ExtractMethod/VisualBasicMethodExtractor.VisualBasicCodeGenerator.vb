@@ -57,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
 
-            Protected Overrides Function GenerateMethodDefinition(context As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol
-                Dim statements = CreateMethodBody(context, cancellationToken)
+            Protected Overrides Function GenerateMethodDefinition(insertionPointNode As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol
+                Dim statements = CreateMethodBody(insertionPointNode, cancellationToken)
 
                 Dim methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes:=ImmutableArray(Of AttributeData).Empty,
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(
-                    context As SyntaxNode,
+                    insertionPointNode As SyntaxNode,
                     container As SyntaxNode,
                     cancellationToken As CancellationToken) As Task(Of SyntaxNode)
                 Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken)
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Contract.ThrowIfFalse(firstStatementToRemove.Parent Is lastStatementToRemove.Parent)
 
                 Dim statementsToInsert = Await CreateStatementsToInsertAtCallSiteAsync(
-                    context, cancellationToken).ConfigureAwait(False)
+                    insertionPointNode, cancellationToken).ConfigureAwait(False)
 
                 Dim callSiteGenerator = New CallSiteContainerRewriter(
                     container,
@@ -100,9 +100,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Private Async Function CreateStatementsToInsertAtCallSiteAsync(
-                    context As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of StatementSyntax))
+                    insertionPointNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of StatementSyntax))
                 Dim semanticModel = SemanticDocument.SemanticModel
-                Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
+                Dim postProcessor = New PostProcessor(semanticModel, insertionPointNode.SpanStart)
 
                 Dim statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken)
                 statements = postProcessor.MergeDeclarationStatements(statements)
@@ -167,9 +167,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return status.With(statements.CastArray(Of SyntaxNode))
             End Function
 
-            Private Function CreateMethodBody(context As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
+            Private Function CreateMethodBody(insertionPointNode As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim statements = GetInitialStatementsForMethodDefinitions()
-                statements = SplitOrMoveDeclarationIntoMethodDefinition(context, statements, cancellationToken)
+                statements = SplitOrMoveDeclarationIntoMethodDefinition(insertionPointNode, statements, cancellationToken)
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken)
 
                 Dim emptyStatements = ImmutableArray(Of StatementSyntax).Empty
@@ -279,11 +279,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Private Function SplitOrMoveDeclarationIntoMethodDefinition(
-                    context As SyntaxNode,
+                    insertionPointNode As SyntaxNode,
                     statements As ImmutableArray(Of StatementSyntax),
                     cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim semanticModel = Me.SemanticDocument.SemanticModel
-                Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
+                Dim postProcessor = New PostProcessor(semanticModel, insertionPointNode.SpanStart)
 
                 Dim declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken)
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements)
