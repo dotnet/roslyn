@@ -64,8 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Function GenerateMethodDefinition(context As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol
-                Dim result = CreateMethodBody(context, cancellationToken)
-                Dim statements = result.Data
+                Dim statements = CreateMethodBody(context, cancellationToken)
 
                 Dim methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes:=ImmutableArray(Of AttributeData).Empty,
@@ -77,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     name:=_methodName.ToString(),
                     typeParameters:=CreateMethodTypeParameters(),
                     parameters:=CreateMethodParameters(),
-                    statements:=statements.Cast(Of SyntaxNode).ToImmutableArray())
+                    statements:=statements.CastArray(Of SyntaxNode))
 
                 Return Me.MethodDefinitionAnnotation.AddAnnotationToSymbol(
                     Formatter.Annotation.AddAnnotationToSymbol(methodSymbol))
@@ -174,11 +173,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Public Overrides Function GetNewMethodStatements(
                     insertionPointNode As SyntaxNode, cancellationToken As CancellationToken) As OperationStatus(Of ImmutableArray(Of SyntaxNode))
-                Dim result = CreateMethodBody(insertionPointNode, cancellationToken)
-                Return result.With(result.Data.CastArray(Of SyntaxNode))
+                Dim statements = CreateMethodBody(insertionPointNode, cancellationToken)
+                Dim status = CheckActiveStatements(statements)
+                Return status.With(statements.CastArray(Of SyntaxNode))
             End Function
 
-            Private Function CreateMethodBody(context As SyntaxNode, cancellationToken As CancellationToken) As OperationStatus(Of ImmutableArray(Of StatementSyntax))
+            Private Function CreateMethodBody(context As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim statements = GetInitialStatementsForMethodDefinitions()
                 statements = SplitOrMoveDeclarationIntoMethodDefinition(context, statements, cancellationToken)
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken)
@@ -193,8 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 statements = PostProcessor.RemoveDeclarationAssignmentPattern(statements)
                 statements = PostProcessor.RemoveInitializedDeclarationAndReturnPattern(statements)
 
-                ' assign before checking issues so that we can do negative preview
-                Return CheckActiveStatements(statements).With(statements)
+                Return statements
             End Function
 
             Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of StatementSyntax)) As OperationStatus

@@ -86,14 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(SyntaxNode insertionPointNode, CancellationToken cancellationToken)
             {
-                var result = CreateMethodBody(insertionPointNode, cancellationToken);
-                return result.With(result.Data.CastArray<SyntaxNode>());
+                var statements = CreateMethodBody(insertionPointNode, cancellationToken);
+                var status = CheckActiveStatements(statements);
+                return status.With(statements.CastArray<SyntaxNode>());
             }
 
             protected override IMethodSymbol GenerateMethodDefinition(
                 SyntaxNode insertionPointNode, CancellationToken cancellationToken)
             {
-                var result = CreateMethodBody(insertionPointNode, cancellationToken);
+                var statements = CreateMethodBody(insertionPointNode, cancellationToken);
+                statements = WrapInCheckStatementIfNeeded(statements);
 
                 var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: ImmutableArray<AttributeData>.Empty,
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(),
                     parameters: CreateMethodParameters(),
-                    statements: result.Data.CastArray<SyntaxNode>(),
+                    statements: statements.CastArray<SyntaxNode>(),
                     methodKind: this.LocalFunction ? MethodKind.LocalFunction : MethodKind.Ordinary);
 
                 return MethodDefinitionAnnotation.AddAnnotationToSymbol(
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 SyntaxKind.OutKeyword : SyntaxKind.None;
             }
 
-            private OperationStatus<ImmutableArray<StatementSyntax>> CreateMethodBody(
+            private ImmutableArray<StatementSyntax> CreateMethodBody(
                 SyntaxNode insertionPoint, CancellationToken cancellationToken)
             {
                 var statements = GetInitialStatementsForMethodDefinitions();
@@ -286,9 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 statements = AppendReturnStatementIfNeeded(statements);
                 statements = CleanupCode(statements);
 
-                // set output so that we can use it in negative preview
-                var wrapped = WrapInCheckStatementIfNeeded(statements);
-                return CheckActiveStatements(statements).With(wrapped);
+                return statements;
             }
 
             private ImmutableArray<StatementSyntax> WrapInCheckStatementIfNeeded(ImmutableArray<StatementSyntax> statements)
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return statements;
             }
 
-            private static OperationStatus CheckActiveStatements(IEnumerable<StatementSyntax> statements)
+            private static OperationStatus CheckActiveStatements(ImmutableArray<StatementSyntax> statements)
             {
                 var count = statements.Count();
                 if (count == 0)
