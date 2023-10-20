@@ -8,16 +8,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -131,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var options = new ExtractMethodGenerationOptions()
             {
                 CodeGenerationOptions = CodeGenerationOptions.GetDefault(document.Project.Services),
+                CodeCleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services),
                 ExtractOptions = new() { DoNotPutOutOrRefOnStruct = dontPutOutOrRefOnStruct }
             };
 
@@ -145,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             // extract method
             var extractor = new CSharpMethodExtractor((CSharpSelectionResult)selectedCode, options, localFunction: false);
-            var result = await extractor.ExtractMethodAsync(CancellationToken.None);
+            var result = extractor.ExtractMethod(CancellationToken.None);
             Assert.NotNull(result);
 
             // If the test expects us to succeed, validate that we did.  If it expects us to fail, ensure we either
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                     return null;
             }
 
-            var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);
+            var (doc, _) = await result.GetDocumentAsync(CancellationToken.None);
             return doc == null
                 ? null
                 : await doc.GetSyntaxRootAsync();
