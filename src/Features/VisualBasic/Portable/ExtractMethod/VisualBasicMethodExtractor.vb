@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
-        Inherits MethodExtractor
+        Inherits MethodExtractor(Of VisualBasicSelectionResult, ExecutableStatementSyntax)
 
         Public Sub New(result As VisualBasicSelectionResult, options As ExtractMethodGenerationOptions)
             MyBase.New(result, options, localFunction:=False)
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicCodeGenerator.Create(Me.OriginalSelectionResult, analyzerResult, DirectCast(Me.Options.CodeGenerationOptions, VisualBasicCodeGenerationOptions))
         End Function
 
-        Protected Overrides Function Analyze(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult
+        Protected Overrides Function Analyze(selectionResult As VisualBasicSelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult
             Return VisualBasicAnalyzer.AnalyzeResult(selectionResult, cancellationToken)
         End Function
 
@@ -59,11 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return enclosingTopLevelNode
         End Function
 
-        Protected Overrides Async Function PreserveTriviaAsync(selectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
+        Protected Overrides Async Function PreserveTriviaAsync(selectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
             Return Await VisualBasicTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Async Function ExpandAsync(selection As SelectionResult, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
+        Protected Overrides Async Function ExpandAsync(selection As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
             Dim lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors(Of ExpressionSyntax)().LastOrDefault()
             If lastExpression Is Nothing Then
                 Return selection.SemanticDocument
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, DirectCast(options, VisualBasicCodeGenerationOptions), cancellationToken)
         End Function
 

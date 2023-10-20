@@ -135,14 +135,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);
 
-            var selectedCode = await validator.GetValidSelectionAsync(CancellationToken.None);
-            if (!succeed && selectedCode.Status.Failed())
+            var (selectedCode, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
+            if (!succeed && status.Failed())
                 return null;
 
-            Assert.True(selectedCode.ContainsValidContext);
+            Assert.NotNull(selectedCode);
 
             // extract method
-            var extractor = new CSharpMethodExtractor((CSharpSelectionResult)selectedCode, options, localFunction: false);
+            var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction: false);
             var result = extractor.ExtractMethod(CancellationToken.None);
             Assert.NotNull(result);
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), ExtractMethodOptions.Default, localFunction: false);
-            var result = await validator.GetValidSelectionAsync(CancellationToken.None);
+            var (result, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
 
             if (expectedFail)
             {

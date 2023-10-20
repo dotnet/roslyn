@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Friend Class VisualBasicSelectionValidator
-        Inherits SelectionValidator
+        Inherits SelectionValidator(Of VisualBasicSelectionResult, ExecutableStatementSyntax)
 
         Public Sub New(document As SemanticDocument,
                        textSpan As TextSpan,
@@ -21,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             MyBase.New(document, textSpan, options)
         End Sub
 
-        Public Overrides Async Function GetValidSelectionAsync(cancellationToken As CancellationToken) As Task(Of SelectionResult)
+        Public Overrides Async Function GetValidSelectionAsync(cancellationToken As CancellationToken) As Task(Of (VisualBasicSelectionResult, OperationStatus))
             If Not ContainsValidSelection Then
-                Return NullSelection
+                Return (Nothing, OperationStatus.FailedWithUnknownReason)
             End If
 
             Dim text = Me.SemanticDocument.Text
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, model, cancellationToken)
 
             If selectionInfo.Status.Failed() Then
-                Return New ErrorSelectionResult(selectionInfo.Status)
+                Return (Nothing, selectionInfo.Status)
             End If
 
             Dim controlFlowSpan = GetControlFlowSpan(selectionInfo)
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         .Status = .Status.With(OperationStatusFlag.Failed, VBFeaturesResources.can_t_determine_valid_range_of_statements_to_extract_out)
                     End With
 
-                    Return New ErrorSelectionResult(selectionInfo.Status)
+                    Return (Nothing, selectionInfo.Status)
                 End If
 
                 Dim isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange, cancellationToken)
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End If
 
-            Return Await VisualBasicSelectionResult.CreateResultAsync(
+            Dim result = Await VisualBasicSelectionResult.CreateResultAsync(
                 selectionInfo.Status,
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
@@ -73,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionInfo.LastTokenInFinalSpan,
                 SelectionChanged(selectionInfo),
                 cancellationToken).ConfigureAwait(False)
+            Return (result, result.Status)
         End Function
 
         Private Shared Function GetControlFlowSpan(selectionInfo As SelectionInfo) As TextSpan

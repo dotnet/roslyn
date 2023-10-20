@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 selectionInfo.LastTokenInFinalSpan,
                 selectionChanged,
                 cancellationToken).ConfigureAwait(false);
-            return (result, OperationStatus.Succeeded);
+            return (result, result.Status);
         }
 
         private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)

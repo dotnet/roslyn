@@ -104,12 +104,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
             Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), extractOptions)
 
-            Dim selectedCode = Await validator.GetValidSelectionAsync(CancellationToken.None)
-            If Not succeeded And selectedCode.Status.Failed() Then
+            Dim tuple = Await validator.GetValidSelectionAsync(CancellationToken.None)
+            Dim selectedCode = tuple.Item1
+            Dim status = tuple.Item2
+            If Not succeeded And status.Failed() Then
                 Return Nothing
             End If
-
-            Assert.True(selectedCode.ContainsValidContext)
 
             ' extract method
             Dim extractGenerationOptions = VBOptionsFactory.CreateExtractMethodGenerationOptions(
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 CodeCleanupOptions.GetDefault(document.Project.Services),
                 extractOptions)
 
-            Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
+            Dim extractor = New VisualBasicMethodExtractor(selectedCode, extractGenerationOptions)
             Dim result = extractor.ExtractMethod(CancellationToken.None)
             Assert.NotNull(result)
 
@@ -146,12 +146,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
 
                 Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
                 Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single(), ExtractMethodOptions.Default)
-                Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
-
+                Dim tuple = Await validator.GetValidSelectionAsync(CancellationToken.None)
+                Dim result = tuple.Item1
+                Dim status = tuple.Item2
                 If expectedFail Then
-                    Assert.True(result.Status.Failed() OrElse result.Status.Reasons.Length > 0, "Selection didn't fail as expected")
+                    Assert.True(status.Failed() OrElse status.Reasons.Length > 0, "Selection didn't fail as expected")
                 Else
-                    Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(result.Status), "Selection wasn't expected to fail")
+                    Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(status), "Selection wasn't expected to fail")
                 End If
 
                 If Microsoft.CodeAnalysis.ExtractMethod.Extensions.Succeeded(result.Status) AndAlso result.SelectionChanged Then
@@ -180,11 +181,13 @@ End Class</text>
                 For Each node In iterator
                     Try
                         Dim validator = New VisualBasicSelectionValidator(sdocument, node.Span, ExtractMethodOptions.Default)
-                        Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
+                        Dim tuple = Await validator.GetValidSelectionAsync(CancellationToken.None)
+                        Dim result = tuple.Item1
+                        Dim status = tuple.Item2
 
                         ' check the obvious case
                         If Not (TypeOf node Is ExpressionSyntax) AndAlso (Not node.UnderValidContext()) Then
-                            Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Failed(result.Status.Flag))
+                            Assert.True(Microsoft.CodeAnalysis.ExtractMethod.Extensions.Failed(status.Flag))
                         End If
                     Catch e1 As ArgumentException
                         ' catch and ignore unknown issue. currently control flow analysis engine doesn't support field initializer.

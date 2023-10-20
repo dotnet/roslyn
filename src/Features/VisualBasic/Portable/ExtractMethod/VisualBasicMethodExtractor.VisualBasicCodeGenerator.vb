@@ -21,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private ReadOnly _methodName As SyntaxToken
 
-            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
                 Dim generator = Create(selectionResult, analyzerResult, options)
                 Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
-            Public Shared Function Create(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
+            Public Shared Function Create(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
                 If selectionResult.SelectionInExpression Then
                     Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options)
                 End If
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
-            Protected Sub New(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+            Protected Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
                 MyBase.New(selectionResult, analyzerResult, options, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 

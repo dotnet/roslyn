@@ -16,11 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class ExpressionCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                Public Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
                     MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
 
-                Public Shared Function IsExtractMethodOnExpression(code As SelectionResult) As Boolean
+                Public Shared Function IsExtractMethodOnExpression(code As VisualBasicSelectionResult) As Boolean
                     Return code.SelectionInExpression
                 End Function
 

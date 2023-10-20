@@ -74,13 +74,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionChanged)
         End Sub
 
-        Public Overrides Function IsExtractMethodOnSingleStatement() As Boolean
-            Dim firstStatement = Me.GetFirstStatement()
-            Dim lastStatement = Me.GetLastStatement()
-
-            Return firstStatement Is lastStatement OrElse firstStatement.Span.Contains(lastStatement.Span)
-        End Function
-
         Public Overrides Function IsExtractMethodOnMultipleStatements() As Boolean
             Dim first = Me.GetFirstStatement()
             Dim last = Me.GetLastStatement()
@@ -258,14 +251,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             ' let's see whether this interface has coclass attribute
             Return info.ConvertedType.GetAttributes().Any(Function(c) c.AttributeClass.Equals(coclassSymbol))
-        End Function
-
-        Public Overloads Function GetFirstStatement() As ExecutableStatementSyntax
-            Return GetFirstStatement(Of ExecutableStatementSyntax)()
-        End Function
-
-        Public Overloads Function GetLastStatement() As ExecutableStatementSyntax
-            Return GetLastStatement(Of ExecutableStatementSyntax)()
         End Function
 
         Public Function GetFirstStatementUnderContainer() As ExecutableStatementSyntax
