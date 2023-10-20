@@ -1255,8 +1255,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim isOneWhenFalse = False
             If used AndAlso _ilEmitStyle <> ILEmitStyle.Debug AndAlso
                 (IsSimpleType(expr.Type.PrimitiveTypeCode) OrElse expr.Type.PrimitiveTypeCode = Cci.PrimitiveTypeCode.Char) AndAlso
-                HasIntegralValueZeroOrOne(expr.WhenTrue, isOneWhenTrue) AndAlso
-                HasIntegralValueZeroOrOne(expr.WhenFalse, isOneWhenFalse) AndAlso
+                expr.WhenTrue.ConstantValueOpt?.IsIntegralValueZeroOrOne(isOneWhenTrue) AndAlso
+                expr.WhenFalse.ConstantValueOpt?.IsIntegralValueZeroOrOne(isOneWhenFalse) AndAlso
                 isOneWhenTrue <> isOneWhenFalse AndAlso
                 TryEmitComparison(expr.Condition, sense:=isOneWhenTrue) Then
 
@@ -1323,25 +1323,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             _builder.MarkLabel(doneLabel)
         End Sub
-
-        Private Shared Function HasIntegralValueZeroOrOne(expr As BoundExpression, ByRef isOne As Boolean) As Boolean
-            If expr.IsConstant Then
-                Dim constantValue = expr.ConstantValueOpt
-                If constantValue.IsDefaultValue Then
-                    isOne = False
-                ElseIf constantValue.IsOne Then
-                    isOne = True
-                Else
-                    Return False
-                End If
-
-                Return constantValue.IsIntegral OrElse
-                       constantValue.IsBoolean OrElse
-                       constantValue.IsChar
-            End If
-
-            Return False
-        End Function
 
         ''' <summary>
         ''' Emit code for a null-coalescing operator.

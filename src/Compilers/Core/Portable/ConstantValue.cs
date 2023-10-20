@@ -840,6 +840,25 @@ namespace Microsoft.CodeAnalysis
             return this.Value?.ToString();
         }
 
+        internal bool IsIntegralValueZeroOrOne(out bool isOne)
+        {
+            if (IsDefaultValue)
+            {
+                isOne = false;
+            }
+            else if (IsOne)
+            {
+                isOne = true;
+            }
+            else
+            {
+                isOne = default;
+                return false;
+            }
+
+            return IsIntegral || IsBoolean || IsChar;
+        }
+
         // equal constants must have matching discriminators
         // derived types override this if equivalence is more than just discriminators match. 
         // singletons also override this since they only need a reference compare.

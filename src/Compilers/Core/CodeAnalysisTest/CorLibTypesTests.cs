@@ -134,6 +134,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void ConstantValueOneTest02()
+        {
+            Assert.True(ConstantValue.Create((byte)1).IsOne);
+            Assert.True(ConstantValue.Create((sbyte)1).IsOne);
+            Assert.True(ConstantValue.Create(true).IsOne);
+            Assert.True(ConstantValue.Create((double)1).IsOne);
+            Assert.True(ConstantValue.Create((float)1).IsOne);
+            Assert.True(ConstantValue.Create((decimal)1).IsOne);
+            Assert.True(ConstantValue.Create((short)1).IsOne);
+            Assert.True(ConstantValue.Create((ushort)1).IsOne);
+            Assert.True(ConstantValue.Create((int)1).IsOne);
+            Assert.True(ConstantValue.Create((uint)1).IsOne);
+            Assert.True(ConstantValue.Create((long)1).IsOne);
+            Assert.True(ConstantValue.Create((ulong)1).IsOne);
+            Assert.True(ConstantValue.Create((char)1).IsOne);
+        }
+
+        [Fact]
         public void ConstantValuePropertiesTest01()
         {
             Assert.Equal(ConstantValue.Bad, ConstantValue.Default(ConstantValueTypeDiscriminator.Bad));
