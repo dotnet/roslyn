@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -20,33 +19,18 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class SelectionValidator<
         TSelectionResult,
-        TStatementSyntax>
-        where TSelectionResult : SelectionResult<TStatementSyntax>
-        where TStatementSyntax : SyntaxNode
-    {
-        protected readonly SemanticDocument SemanticDocument;
-        protected readonly TextSpan OriginalSpan;
-        protected readonly ExtractMethodOptions Options;
-
-        protected SelectionValidator(
+        TStatementSyntax>(
             SemanticDocument document,
             TextSpan textSpan,
             ExtractMethodOptions options)
-        {
-            Contract.ThrowIfNull(document);
+        where TSelectionResult : SelectionResult<TStatementSyntax>
+        where TStatementSyntax : SyntaxNode
+    {
+        protected readonly SemanticDocument SemanticDocument = document;
+        protected readonly TextSpan OriginalSpan = textSpan;
+        protected readonly ExtractMethodOptions Options = options;
 
-            SemanticDocument = document;
-            OriginalSpan = textSpan;
-            Options = options;
-        }
-
-        public bool ContainsValidSelection
-        {
-            get
-            {
-                return !OriginalSpan.IsEmpty;
-            }
-        }
+        public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 
         public abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken);
         public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
