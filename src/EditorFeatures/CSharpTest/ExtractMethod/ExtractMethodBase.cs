@@ -157,6 +157,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             else
             {
                 Assert.True(!result.Succeeded || result.Reasons.Length > 0);
+
+                if (!result.Succeeded)
+                    return null;
             }
 
             var (doc, _) = await result.GetFormattedDocumentAsync(CodeCleanupOptions.GetDefault(document.Project.Services), CancellationToken.None);

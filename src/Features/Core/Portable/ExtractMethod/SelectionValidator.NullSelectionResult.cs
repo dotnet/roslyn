@@ -5,6 +5,8 @@
 #nullable disable
 
 using System;
+using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
@@ -23,17 +25,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
             }
 
+            public override bool IsExtractMethodOnMultipleStatements()
+                => throw ExceptionUtilities.Unreachable();
+
+            public override bool IsExtractMethodOnSingleStatement()
+                => throw ExceptionUtilities.Unreachable();
+
             protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
-                => throw new InvalidOperationException();
+                => throw ExceptionUtilities.Unreachable();
+
+            public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+                => throw ExceptionUtilities.Unreachable();
 
             public override bool ContainingScopeHasAsyncKeyword()
-                => throw new InvalidOperationException();
+                => throw ExceptionUtilities.Unreachable();
 
             public override SyntaxNode GetContainingScope()
-                => throw new InvalidOperationException();
+                => throw ExceptionUtilities.Unreachable();
 
             public override ITypeSymbol GetContainingScopeType()
-                => throw new InvalidOperationException();
+                => throw ExceptionUtilities.Unreachable();
         }
 
         protected class ErrorSelectionResult(OperationStatus status) : NullSelectionResult(status.MakeFail())

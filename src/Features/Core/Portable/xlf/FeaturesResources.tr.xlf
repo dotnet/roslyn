@@ -3835,11 +3835,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">Arabirim ayıklanamadı: Tür, arabirime çıkarılabilecek bir üye içermiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">Son ağaç oluşturulamıyor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
         <source>Parameters' type or return type cannot be an anonymous type : [{0}]</source>
         <target state="translated">Parametrelerin türü veya dönüş türü anonim tür olamaz: [{0}]</target>

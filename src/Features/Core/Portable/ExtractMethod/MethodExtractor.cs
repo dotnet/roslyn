@@ -11,9 +11,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -35,8 +36,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             LocalFunction = localFunction;
         }
 
-        protected abstract Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
-        protected abstract Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, CancellationToken cancellationToken);
+        protected abstract AnalyzerResult Analyze(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
@@ -45,25 +46,33 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
         protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
 
-        protected abstract Task<OperationStatus> CheckTypeAsync(Document document, SyntaxNode contextNode, Location location, ITypeSymbol type, CancellationToken cancellationToken);
+        protected abstract OperationStatus CheckType(SemanticModel semanticModel, SyntaxNode contextNode, Location location, ITypeSymbol type);
 
-        protected abstract Task<(Document document, SyntaxToken methodName, SyntaxNode methodDefinition)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(Document document, SyntaxToken methodName, SyntaxNode methodDefinition, CancellationToken cancellationToken);
+        protected abstract Task<(Document document, SyntaxToken methodName)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(Document document, SyntaxToken methodName, SyntaxNode methodDefinition, CancellationToken cancellationToken);
 
         public async Task<ExtractMethodResult> ExtractMethodAsync(CancellationToken cancellationToken)
         {
             var operationStatus = OriginalSelectionResult.Status;
 
-            var analyzeResult = await AnalyzeAsync(OriginalSelectionResult, LocalFunction, cancellationToken).ConfigureAwait(false);
+            var originalSemanticDocument = OriginalSelectionResult.SemanticDocument;
+            var analyzeResult = Analyze(OriginalSelectionResult, LocalFunction, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            operationStatus = await CheckVariableTypesAsync(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken).ConfigureAwait(false);
+            operationStatus = CheckVariableTypes(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken);
             if (operationStatus.Failed())
                 return new FailedExtractMethodResult(operationStatus);
 
-            var insertionPoint = await GetInsertionPointAsync(analyzeResult.SemanticDocument, cancellationToken).ConfigureAwait(false);
+            var insertionPointNode = GetInsertionPointNode(analyzeResult, cancellationToken);
+
+            if (!CanAddTo(originalSemanticDocument.Document, insertionPointNode, out var canAddStatus))
+                return new FailedExtractMethodResult(canAddStatus);
+
             cancellationToken.ThrowIfCancellationRequested();
 
-            var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(insertionPoint.SemanticDocument), cancellationToken).ConfigureAwait(false);
+            var (analyzedDocument, insertionPoint) = await GetAnnotatedDocumentAndInsertionPointAsync(
+                originalSemanticDocument, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
+
+            var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
@@ -71,15 +80,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var generatedCode = await GenerateCodeAsync(
                 insertionPoint.With(expandedDocument),
                 OriginalSelectionResult.With(expandedDocument),
-                analyzeResult.With(expandedDocument),
+                analyzeResult,
                 Options.CodeGenerationOptions,
                 cancellationToken).ConfigureAwait(false);
 
-            var applied = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
-            var afterTriviaRestored = applied.With(operationStatus);
+            var afterTriviaRestored = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentWithoutFinalFormatting = afterTriviaRestored.Data.Document;
+            var documentWithoutFinalFormatting = afterTriviaRestored.Document;
 
             cancellationToken.ThrowIfCancellationRequested();
             return await CreateExtractMethodResultAsync(
@@ -89,6 +97,66 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 generatedCode.MethodNameAnnotation,
                 generatedCode.MethodDefinitionAnnotation,
                 cancellationToken).ConfigureAwait(false);
+
+            bool CanAddTo(Document document, SyntaxNode insertionPointNode, out OperationStatus status)
+            {
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxKinds = syntaxFacts.SyntaxKinds;
+                var codeGenService = document.GetLanguageService<ICodeGenerationService>();
+
+                if (insertionPointNode is null)
+                {
+                    status = OperationStatus.NoValidLocationToInsertMethodCall;
+                    return false;
+                }
+
+                var destination = insertionPointNode;
+                if (!LocalFunction)
+                {
+                    var mappedPoint = insertionPointNode.RawKind == syntaxKinds.GlobalStatement
+                        ? insertionPointNode.Parent
+                        : insertionPointNode;
+                    destination = mappedPoint.Parent ?? mappedPoint;
+                }
+
+                if (!codeGenService.CanAddTo(destination, document.Project.Solution, cancellationToken))
+                {
+                    status = OperationStatus.OverlapsHiddenPosition;
+                    return false;
+                }
+
+                status = OperationStatus.Succeeded;
+                return true;
+            }
+        }
+
+        private static async Task<(SemanticDocument analyzedDocument, InsertionPoint insertionPoint)> GetAnnotatedDocumentAndInsertionPointAsync(
+            SemanticDocument document,
+            AnalyzerResult analyzeResult,
+            SyntaxNode insertionPointNode,
+            CancellationToken cancellationToken)
+        {
+            var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(analyzeResult.Variables.Length);
+            foreach (var variable in analyzeResult.Variables)
+                variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
+
+            var tokenMap = annotations.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
+
+            var insertionPointAnnotation = new SyntaxAnnotation();
+
+            var finalRoot = document.Root.ReplaceSyntax(
+                nodes: new[] { insertionPointNode },
+                // intentionally using 'n' (new) here.  We want to see any updated sub tokens that were updated in computeReplacementToken
+                computeReplacementNode: (o, n) => n.WithAdditionalAnnotations(insertionPointAnnotation),
+                tokens: tokenMap.Keys,
+                computeReplacementToken: (o, n) => o.WithAdditionalAnnotations(tokenMap[o]),
+                trivia: null,
+                computeReplacementTrivia: null);
+
+            var finalDocument = await document.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
+            var insertionPoint = new InsertionPoint(finalDocument, insertionPointAnnotation);
+
+            return (finalDocument, insertionPoint);
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
@@ -102,41 +170,41 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             var newRoot = semanticDocumentWithoutFinalFormatting.Root;
             var methodName = GetMethodNameAtInvocation(newRoot.GetAnnotatedNodesAndTokens(invocationAnnotation));
-            var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(methodAnnotation).FirstOrDefault().AsNode();
 
             if (LocalFunction && status.Succeeded())
             {
+                var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(methodAnnotation).FirstOrDefault().AsNode();
                 var result = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(semanticDocumentWithoutFinalFormatting.Document, methodName, methodDefinition, cancellationToken).ConfigureAwait(false);
-                return new SimpleExtractMethodResult(status, result.document, formattingRules, result.methodName, result.methodDefinition);
+                return new SimpleExtractMethodResult(status, result.document, formattingRules, result.methodName);
             }
 
-            return new SimpleExtractMethodResult(status, semanticDocumentWithoutFinalFormatting.Document, formattingRules, methodName, methodDefinition);
+            return new SimpleExtractMethodResult(status, semanticDocumentWithoutFinalFormatting.Document, formattingRules, methodName);
         }
 
-        private async Task<OperationStatus> CheckVariableTypesAsync(
+        private OperationStatus CheckVariableTypes(
             OperationStatus status,
             AnalyzerResult analyzeResult,
             CancellationToken cancellationToken)
         {
-            var document = analyzeResult.SemanticDocument;
+            var semanticModel = OriginalSelectionResult.SemanticDocument.SemanticModel;
 
             // sync selection result to same semantic data as analyzeResult
-            var firstToken = OriginalSelectionResult.With(document).GetFirstTokenInSelection();
+            var firstToken = OriginalSelectionResult.GetFirstTokenInSelection();
             var context = firstToken.Parent;
 
-            var result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status, cancellationToken).ConfigureAwait(false);
+            var result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status);
             if (!result.Item1)
             {
-                result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), result.Item2, cancellationToken).ConfigureAwait(false);
+                result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), result.Item2);
                 if (!result.Item1)
                 {
-                    result = await TryCheckVariableTypeAsync(document, context, analyzeResult.MethodParameters, result.Item2, cancellationToken).ConfigureAwait(false);
+                    result = TryCheckVariableType(semanticModel, context, analyzeResult.MethodParameters, result.Item2);
                     if (!result.Item1)
                     {
-                        result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), result.Item2, cancellationToken).ConfigureAwait(false);
+                        result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), result.Item2);
                         if (!result.Item1)
                         {
-                            result = await TryCheckVariableTypeAsync(document, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), result.Item2, cancellationToken).ConfigureAwait(false);
+                            result = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), result.Item2);
                             if (!result.Item1)
                             {
                                 return result.Item2;
@@ -148,13 +216,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             status = result.Item2;
 
-            var checkedStatus = await CheckTypeAsync(document.Document, context, context.GetLocation(), analyzeResult.ReturnType, cancellationToken).ConfigureAwait(false);
+            var checkedStatus = CheckType(semanticModel, context, context.GetLocation(), analyzeResult.ReturnType);
             return checkedStatus.With(status);
         }
 
-        private async Task<Tuple<bool, OperationStatus>> TryCheckVariableTypeAsync(
-            SemanticDocument document, SyntaxNode contextNode, IEnumerable<VariableInfo> variables,
-            OperationStatus status, CancellationToken cancellationToken)
+        private Tuple<bool, OperationStatus> TryCheckVariableType(
+            SemanticModel semanticModel,
+            SyntaxNode contextNode,
+            IEnumerable<VariableInfo> variables,
+            OperationStatus status)
         {
             if (status.Failed())
                 return Tuple.Create(false, status);
@@ -164,7 +234,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             foreach (var variable in variables)
             {
                 var originalType = variable.GetVariableType();
-                var result = await CheckTypeAsync(document.Document, contextNode, location, originalType, cancellationToken).ConfigureAwait(false);
+                var result = CheckType(semanticModel, contextNode, location, originalType);
                 if (result.Failed())
                 {
                     status = status.With(result);
