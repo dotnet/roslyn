@@ -21,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             MyBase.New(result, options, localFunction:=False)
         End Sub
 
-        Protected Overrides Function CreateCodeGenerator(insertionPointNode As SyntaxNode, analyzerResult As AnalyzerResult) As CodeGenerator
-            Return VisualBasicCodeGenerator.Create(insertionPointNode, Me.OriginalSelectionResult, analyzerResult, Me.Options.CodeGenerationOptions)
+        Protected Overrides Function CreateCodeGenerator(analyzerResult As AnalyzerResult) As CodeGenerator
+            Return VisualBasicCodeGenerator.Create(Me.OriginalSelectionResult, analyzerResult, DirectCast(Me.Options.CodeGenerationOptions, VisualBasicCodeGenerationOptions))
         End Function
 
         Protected Overrides Function Analyze(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult

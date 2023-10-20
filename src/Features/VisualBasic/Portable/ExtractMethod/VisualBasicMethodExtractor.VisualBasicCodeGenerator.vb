@@ -21,29 +21,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private ReadOnly _methodName As SyntaxToken
 
-            Public Shared Async Function GenerateResultAsync(insertionPointNode As SyntaxNode, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                Dim generator = Create(insertionPointNode, selectionResult, analyzerResult, options)
-                Return Await generator.GenerateAsync(cancellationToken).ConfigureAwait(False)
+            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+                Dim generator = Create(selectionResult, analyzerResult, options)
+                Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
-            Public Shared Function Create(insertionPointNode As SyntaxNode, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
+            Public Shared Function Create(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
                 If selectionResult.SelectionInExpression Then
-                    Return New ExpressionCodeGenerator(insertionPointNode, selectionResult, analyzerResult, options)
+                    Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options)
                 End If
 
                 If selectionResult.IsExtractMethodOnSingleStatement() Then
-                    Return New SingleStatementCodeGenerator(insertionPointNode, selectionResult, analyzerResult, options)
+                    Return New SingleStatementCodeGenerator(selectionResult, analyzerResult, options)
                 End If
 
                 If selectionResult.IsExtractMethodOnMultipleStatements() Then
-                    Return New MultipleStatementsCodeGenerator(insertionPointNode, selectionResult, analyzerResult, options)
+                    Return New MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options)
                 End If
 
                 Throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
-            Protected Sub New(insertionPointNode As SyntaxNode, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
-                MyBase.New(insertionPointNode, selectionResult, analyzerResult, options, localFunction:=False)
+            Protected Sub New(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                MyBase.New(selectionResult, analyzerResult, options, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
                 Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)

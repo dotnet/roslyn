@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
-        protected abstract CodeGenerator CreateCodeGenerator(SyntaxNode insertionPointNode, AnalyzerResult analyzerResult);
+        protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
         protected abstract Task<GeneratedCode> GenerateCodeAsync(
-            SyntaxNode insertionPointNode, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
+            InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return ExtractMethodResult.Fail(canAddStatus);
 
             cancellationToken.ThrowIfCancellationRequested();
-            var codeGenerator = this.CreateCodeGenerator(insertionPointNode, analyzeResult);
+            var codeGenerator = this.CreateCodeGenerator(analyzeResult);
 
-            var statements = codeGenerator.GetNewMethodStatements();
+            var statements = codeGenerator.GetNewMethodStatements(insertionPointNode);
             if (statements.Status.Failed())
                 return ExtractMethodResult.Fail(statements.Status);
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
 
                     var generatedCode = await GenerateCodeAsync(
-                        insertionPoint.With(expandedDocument).GetContext(),
+                        insertionPoint.With(expandedDocument),
                         OriginalSelectionResult.With(expandedDocument),
                         analyzeResult,
                         Options.CodeGenerationOptions,
