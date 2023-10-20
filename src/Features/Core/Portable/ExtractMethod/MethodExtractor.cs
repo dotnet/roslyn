@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             operationStatus = CheckVariableTypes(analyzeResult.Status.With(operationStatus), analyzeResult, cancellationToken);
             if (operationStatus.Failed())
-                return new FailedExtractMethodResult(operationStatus);
+                return ExtractMethodResult.Fail(operationStatus);
 
             var insertionPointNode = GetInsertionPointNode(analyzeResult, cancellationToken);
 
             if (!CanAddTo(originalSemanticDocument.Document, insertionPointNode, out var canAddStatus))
-                return new FailedExtractMethodResult(canAddStatus);
+                return ExtractMethodResult.Fail(canAddStatus);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -175,10 +175,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(methodAnnotation).FirstOrDefault().AsNode();
                 var result = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(semanticDocumentWithoutFinalFormatting.Document, methodName, methodDefinition, cancellationToken).ConfigureAwait(false);
-                return new SimpleExtractMethodResult(status, result.document, formattingRules, result.methodName);
+                return ExtractMethodResult.Success(status, result.document, formattingRules, result.methodName);
             }
 
-            return new SimpleExtractMethodResult(status, semanticDocumentWithoutFinalFormatting.Document, formattingRules, methodName);
+            return ExtractMethodResult.Success(status, semanticDocumentWithoutFinalFormatting.Document, formattingRules, methodName);
         }
 
         private OperationStatus CheckVariableTypes(

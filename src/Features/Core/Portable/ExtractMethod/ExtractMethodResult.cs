@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -15,7 +16,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract class ExtractMethodResult
+    internal sealed class ExtractMethodResult
     {
         /// <summary>
         /// True if the extract method operation succeeded.
@@ -50,8 +51,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             ImmutableArray<AbstractFormattingRule> formattingRules,
             SyntaxToken? invocationNameToken)
         {
-            Status = status;
-
             Succeeded = status.Succeeded();
 
             Reasons = reasons.NullToEmpty();
@@ -61,10 +60,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             InvocationNameToken = invocationNameToken;
         }
 
-        /// <summary>
-        /// internal status of result. more fine grained reason why it is failed. 
-        /// </summary>
-        internal OperationStatusFlag Status { get; }
+        public static ExtractMethodResult Fail(OperationStatus status)
+            => new(status.Flag, status.Reasons, null, ImmutableArray<AbstractFormattingRule>.Empty, invocationNameToken: null);
+
+        public static ExtractMethodResult Success(
+            OperationStatus status,
+            Document documentWithoutFinalFormatting,
+            ImmutableArray<AbstractFormattingRule> formattingRules,
+            SyntaxToken invocationNameToken)
+        {
+            return new(status.Flag, status.Reasons, documentWithoutFinalFormatting, formattingRules, invocationNameToken);
+        }
 
         public async Task<(Document document, SyntaxToken? invocationNameToken)> GetFormattedDocumentAsync(CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
         {
