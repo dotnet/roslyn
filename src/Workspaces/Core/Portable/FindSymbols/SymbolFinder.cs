@@ -285,13 +285,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     var semanticModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var linkedSymbol = semanticModel.GetDeclaredSymbol(linkedNode, cancellationToken);
+                    if (linkedSymbol is null)
+                        continue;
 
-                    if (linkedSymbol != null &&
-                        linkedSymbol.Kind == symbol.Kind &&
-                        linkedSymbol.Name == symbol.Name)
+                    if (linkedSymbol.Kind != symbol.Kind)
                     {
-                        linkedSymbols.Add(linkedSymbol);
+                        if (linkedSymbol is INamedTypeSymbol linkedNamedType &&
+                            symbol.IsConstructor())
+                        {
+                            // With primary constructors, the declaring node of the primary constructor is the type
+                            // declaration node itself.  So, see if we're in that situation, and try to find the
+                            // corresponding primary constructor in the linked file.
+                            linkedSymbol = linkedNamedType.Constructors.FirstOrDefault(
+                                c => c.DeclaringSyntaxReferences.Any(r => linkedNode.Equals(r.GetSyntax(cancellationToken))));
+                            if (linkedSymbol is null)
+                                continue;
+                        }
                     }
+
+                    if (linkedSymbol.Name == symbol.Name)
+                        linkedSymbols.Add(linkedSymbol);
                 }
             }
 
