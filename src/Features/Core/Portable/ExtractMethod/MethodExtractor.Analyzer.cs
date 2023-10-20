@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <summary>
             /// convert text span to node range for the flow analysis API
             /// </summary>
-            private (SyntaxNode, SyntaxNode) GetFlowAnalysisNodeRange()
+            private (TStatementSyntax, TStatementSyntax) GetFlowAnalysisNodeRange()
             {
                 var first = this.SelectionResult.GetFirstStatement();
                 var last = this.SelectionResult.GetLastStatement();
