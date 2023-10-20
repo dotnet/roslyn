@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItem"/> with the specified property.
         /// </summary>
         public CompletionItem AddProperty(string name, string value)
-            => With(properties: ImmutableArray.Create(new KeyValuePair<string, string>(name, value)));
+            => With(properties: GetProperties().Add(new KeyValuePair<string, string>(name, value)));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.
