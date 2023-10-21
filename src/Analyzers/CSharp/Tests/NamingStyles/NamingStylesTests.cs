@@ -222,7 +222,7 @@ $@"class C
         [InlineData("int [|m|];", "int M;", SymbolKind.Field, Accessibility.Private)]
         [InlineData("event System.EventHandler [|m|];", "event System.EventHandler M;", SymbolKind.Event, Accessibility.Private)]
         [InlineData("void Outer(int [|m|]) {}", "void Outer(int M) {}", SymbolKind.Parameter, Accessibility.Private)]
-        [InlineData("void Outer() { void Inner(int [|m|]) {} }", "void Outer() { void Inner(int M) {} }", SymbolKind.Parameter, Accessibility.NotApplicable)]
+        [InlineData("void OOOOOOuter() { void Inner(int [|m|]) {} }", "void Outer() { void Inner(int M) {} }", SymbolKind.Parameter, Accessibility.NotApplicable)]
         [InlineData("void Outer() { System.Action<int> action = [|m|] => {} }", "void Outer() { System.Action<int> action = M => {} }", SymbolKind.Parameter, Accessibility.NotApplicable)]
         [InlineData("void Outer() { System.Action<int> action = ([|m|]) => {} }", "void Outer() { System.Action<int> action = (M) => {} }", SymbolKind.Parameter, Accessibility.NotApplicable)]
         [InlineData("void Outer() { System.Action<int> action = (int [|m|]) => {} }", "void Outer() { System.Action<int> action = (int M) => {} }", SymbolKind.Parameter, Accessibility.NotApplicable)]

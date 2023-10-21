@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 return false;
             }
 
+            // Do nothing to trigger build
             // specified and common prefixes have been removed. Now see that the base name has correct capitalization
             var spanToCheck = TextSpan.FromBounds(0, name.Length - Suffix.Length);
             Debug.Assert(spanToCheck.Length > 0);
