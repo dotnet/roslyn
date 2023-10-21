@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private static bool TryGetNumericalLiteralSuffix(string tokenText, out int suffixLength)
         {
             // Walk left until the first digit and count the number of characters on the way.
-            // The lexer already did the heavy lifting of determining valid suffixes.
+            // The lexer ensures that the token only ends in valid suffixes; invalid suffix characters are part of a different token.
             suffixLength = 0;
             for (var i = tokenText.Length - 1; i >= 0 && !IsDigit(tokenText[i]); i--)
             {
