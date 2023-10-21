@@ -178,6 +178,8 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
         private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCaseWithNoUnderscores = (val, span) => !Substring(val, span).Contains("_") && s_firstCharIsLowerCase(val, span);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCaseWithNoUnderscores = (val, span) => !Substring(val, span).Contains("_") && s_firstCharIsUpperCase(val, span);
 
         private static readonly Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
         {
@@ -230,7 +232,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private bool CheckPascalCase(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
-                name, nameSpan, s_firstCharIsUpperCase,
+                name, nameSpan, s_firstCharIsUpperCaseWithNoUnderscores,
                 CompilerExtensionsResources.These_words_must_begin_with_upper_case_characters_colon_0, out reason);
 
         private bool CheckAllUpper(string name, TextSpan nameSpan, out string reason)
@@ -289,7 +291,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private bool CheckCamelCase(string name, TextSpan nameSpan, out string reason)
             => CheckFirstAndRestWords(
-                name, nameSpan, s_firstCharIsLowerCase, s_firstCharIsUpperCase,
+                name, nameSpan, s_firstCharIsLowerCaseWithNoUnderscores, s_firstCharIsUpperCaseWithNoUnderscores,
                 CompilerExtensionsResources.The_first_word_0_must_begin_with_a_lower_case_character,
                 CompilerExtensionsResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0,
                 out reason);
