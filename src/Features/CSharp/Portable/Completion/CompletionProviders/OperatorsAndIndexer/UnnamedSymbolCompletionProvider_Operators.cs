@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
 
+            builder.AddRange(OperatorProperties);
             builder.Add(new KeyValuePair<string, string>(OperatorName, opName));
 
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
