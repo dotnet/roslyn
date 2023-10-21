@@ -167,6 +167,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
             };
 
+            // Pass in the binlog (if any) to the ProjectCollection to ensure evaluation results are included in it.
+            //
+            // We do not need to include the _batchBuildLogger in the ProjectCollection - it just collects the
+            // DiagnosticLog from the build steps, but evaluation already separately reports the DiagnosticLog.
             var loggers = _msbuildLogger is not null
                 ? ImmutableArray.Create(_msbuildLogger)
                 : ImmutableArray<MSB.Framework.ILogger>.Empty;
@@ -175,6 +179,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
             {
+                // The loggers are not inherited from the project collection, so specify both the
+                // binlog logger and the _batchBuildLogger for the build steps.
                 Loggers = loggers.Add(_batchBuildLogger),
                 // If we have an additional logger and it's diagnostic, then we need to opt into task inputs globally, or otherwise
                 // it won't get any log events. This logic matches https://github.com/dotnet/msbuild/blob/fa6710d2720dcf1230a732a8858ffe71bcdbe110/src/Build/Instance/ProjectInstance.cs#L2365-L2371
