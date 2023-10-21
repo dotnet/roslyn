@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             SyntaxKind.Utf8MultiLineRawStringLiteralToken &&
                         token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
                     {
-                        ClassifyLiteralAndSuffix(token.Span, "u8", type);
+                        ClassifyLiteralAndSuffix(token.Span, type, "u8".Length);
                     }
                     else
                     {
@@ -262,9 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyLiteralAndSuffix(TextSpan tokenSpan, string suffix, string literalClassification)
+        private void ClassifyLiteralAndSuffix(TextSpan tokenSpan, string literalClassification, int suffixLength)
         {
-            var split = tokenSpan.End - suffix.Length;
+            var split = tokenSpan.End - suffixLength;
             AddClassification(TextSpan.FromBounds(tokenSpan.Start, split), literalClassification);
             AddClassification(TextSpan.FromBounds(split, tokenSpan.End), ClassificationTypeNames.Keyword);
         }
