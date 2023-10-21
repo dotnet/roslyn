@@ -104,6 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     {
                         ClassifyLiteralAndSuffix(token.Span, type, "u8".Length);
                     }
+                    else if (token.IsKind(SyntaxKind.NumericLiteralToken) &&
+                        TryGetNumericalLiteralSuffix(token.Text, out var suffixLength))
+                    {
+                        ClassifyLiteralAndSuffix(token.Span, type, suffixLength);
+                    }
                     else
                     {
                         AddClassification(span, type);
@@ -267,6 +272,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var split = tokenSpan.End - suffixLength;
             AddClassification(TextSpan.FromBounds(tokenSpan.Start, split), literalClassification);
             AddClassification(TextSpan.FromBounds(split, tokenSpan.End), ClassificationTypeNames.Keyword);
+        }
+
+        private static bool TryGetNumericalLiteralSuffix(string tokenText, out int suffixLength)
+        {
+            // Walk left until the first digit and count the number of characters on the way.
+            // The lexer already did the heavy lifting of determining valid suffixes.
+            suffixLength = 0;
+            for (var i = tokenText.Length - 1; i >= 0 && !IsDigit(tokenText[i]); i--)
+            {
+                suffixLength++;
+            }
+
+            return suffixLength > 0;
+
+            static bool IsDigit(char c) => c is >= '0' and <= '9';
         }
     }
 }
