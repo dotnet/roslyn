@@ -3007,7 +3007,7 @@ class C { }";
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
             var project = Assert.Single(solution.Projects);
-            Assert.Empty(project.DocumentIds);
+            Assert.Equal(2, project.DocumentIds.Count);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
