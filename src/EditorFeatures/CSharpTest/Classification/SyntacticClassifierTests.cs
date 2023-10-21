@@ -6608,5 +6608,52 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseCurly,
                 Punctuation.Semicolon);
         }
+
+        [Theory, CombinatorialData]
+        public async Task NumericalLiterals(TestHost testHost)
+        {
+            await TestInMethodAsync("""
+                _ = 1d + 2f + 3.14F + 5.6E10D;
+                _ = 3U + 4L + 5ul + 6Lu;
+                _ = 1m + 1M;
+                """,
+                testHost,
+                Identifier("_"),
+                Operators.Equals,
+                Number("1"),
+                Keyword("d"),
+                Operators.Plus,
+                Number("2"),
+                Keyword("f"),
+                Operators.Plus,
+                Number("3.14"),
+                Keyword("F"),
+                Operators.Plus,
+                Number("5.6E10"),
+                Keyword("D"),
+                Punctuation.Semicolon,
+                Identifier("_"),
+                Operators.Equals,
+                Number("3"),
+                Keyword("U"),
+                Operators.Plus,
+                Number("4"),
+                Keyword("L"),
+                Operators.Plus,
+                Number("5"),
+                Keyword("ul"),
+                Operators.Plus,
+                Number("6"),
+                Keyword("Lu"),
+                Punctuation.Semicolon,
+                Identifier("_"),
+                Operators.Equals,
+                Number("1"),
+                Keyword("m"),
+                Operators.Plus,
+                Number("1"),
+                Keyword("M"),
+                Punctuation.Semicolon);
+        }
     }
 }
