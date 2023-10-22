@@ -322,7 +322,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularPreview);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
         }
 
         [Fact]
@@ -338,7 +338,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularPreview);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
         }
 
         [Fact]
@@ -354,7 +354,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularPreview);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
         }
 
         [Fact]

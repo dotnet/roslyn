@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\u001b";
             var text = "'\\e'";
-            var token = LexToken(text, TestOptions.RegularPreview);
+            var token = LexToken(text, TestOptions.RegularNext);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
