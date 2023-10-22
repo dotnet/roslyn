@@ -5466,6 +5466,304 @@ DiagID1: 'Derived' is for evaluation purposes only and is subject to change or r
         End Sub
 
         <Fact>
+        Public Sub NullDiagnosticId()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental(Nothing)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+<System.Diagnostics.CodeAnalysis.Experimental(Nothing)>
+                                              ~~~~~~~
+BC42380: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingDiagnosticIdArgument()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental()>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30455: Argument not specified for parameter 'diagnosticId' of 'Public Overloads Sub New(diagnosticId As String)'.
+<System.Diagnostics.CodeAnalysis.Experimental()>
+                                 ~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IntegerDiagnosticIdArgument()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental(42)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30934: Conversion from 'Integer' to 'String' cannot occur in a constant expression used as an argument to an attribute.
+<System.Diagnostics.CodeAnalysis.Experimental(42)>
+                                              ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub MultipleArguments()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Overloads Sub New(diagnosticId As String)'.
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")>
+                                                        ~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub WhitespaceDiagnosticId()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental(" ")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+<System.Diagnostics.CodeAnalysis.Experimental(" ")>
+                                              ~~~
+BC42380: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub WhitespaceDiagnosticId_WithSuppression()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental(" ")>
+Class C
+End Class
+
+#Disable Warning BC42380
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            Assert.Equal(DirectCast(42380, ERRID), ERRID.WRN_Experimental)
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+<System.Diagnostics.CodeAnalysis.Experimental(" ")>
+                                              ~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SpacedDiagnosticId()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("Diag 01")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+<System.Diagnostics.CodeAnalysis.Experimental("Diag 01")>
+                                              ~~~~~~~~~
+Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SpacedDiagnosticId_WithSecondArgument()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Overloads Sub New(diagnosticId As String)'.
+<System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")>
+                                                         ~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SpacedDiagnosticId_Metadata()
+            Dim il = <![CDATA[
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .custom instance void System.Diagnostics.CodeAnalysis.ExperimentalAttribute::.ctor(string) = { string('Diag 01') }
+
+    .method public hidebysig static void M () cil managed
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.ExperimentalAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string diagnosticId ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+]]>
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilationWithCustomILSource(src, ilSource:=il)
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
         Public Sub MissingAssemblyAndModule()
 
             Dim missingSrc = <compilation>

@@ -1122,6 +1122,11 @@
         <target state="translated">Las conversiones de controlador de cadenas interpoladas que hacen referencia a la instancia que se está indizando no se puede usar en inicializadores de miembros de indizador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">"{0}" no es un modificador de tipo de valor devuelto de puntero de función válido. Los modificadores válidos son "ref" y "ref readonly".</target>

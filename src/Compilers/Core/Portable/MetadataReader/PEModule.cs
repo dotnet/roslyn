@@ -1227,6 +1227,12 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        internal ObsoleteAttributeData? TryDecodeExperimentalAttributeData(EntityHandle handle, IAttributeNamedArgumentDecoder decoder)
+        {
+            var info = FindTargetAttribute(handle, AttributeDescription.ExperimentalAttribute);
+            return info.HasValue ? TryExtractExperimentalDataFromAttribute(info, decoder) : null;
+        }
+
         private ObsoleteAttributeData? TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
         {
             Debug.Assert(attributeInfo.HasValue);
