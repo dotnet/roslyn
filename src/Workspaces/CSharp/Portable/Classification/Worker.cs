@@ -275,10 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool TryGetNumericLiteralSuffix(string tokenText, out int suffixLength)
         {
-            // Walk left for as long as we encounter valid suffixes (both integer and real) and count the number of characters on the way.
+            // Walk left for as long as we encounter valid suffixes (both integer and floating point) and count the number of characters on the way.
             // The lexer ensures that the token only ends in valid suffixes; invalid suffix characters are part of a different token.
 
-            // § 6.4.5.3: '0x' and '0b' mean it must be an integer literal, so we can disregard the real suffixes.
+            // § 6.4.5.3: '0x' and '0b' mean it must be an integer literal, so we can disregard the floating-point suffixes.
             var allowRealTypeSuffixes = !IsHexOrBinaryInteger(tokenText);
 
             suffixLength = 0;
