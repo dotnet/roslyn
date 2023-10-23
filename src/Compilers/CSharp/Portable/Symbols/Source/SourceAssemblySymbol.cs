@@ -201,6 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute
+            => GetSourceDecodedWellKnownAttributeData()?.HasImportedFromTypeLibAttribute == true;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute
+            => GetSourceDecodedWellKnownAttributeData()?.HasPrimaryInteropAssemblyAttribute == true;
+
         internal override Symbol GetSpecialTypeMember(SpecialMember member)
         {
             return _compilation.IsMemberMissing(member) ? null : base.GetSpecialTypeMember(member);
@@ -1918,6 +1924,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = GetSourceDecodedWellKnownAttributeData()?.GuidAttribute;
+            return guidString != null;
+        }
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -2492,7 +2504,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.GuidAttribute))
             {
-                attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
+                string guidString = attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().GuidAttribute = guidString;
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ImportedFromTypeLibAttribute))
+            {
+                if (attribute.CommonConstructorArguments.Length == 1)
+                {
+                    arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasImportedFromTypeLibAttribute = true;
+                }
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.PrimaryInteropAssemblyAttribute))
+            {
+                if (attribute.CommonConstructorArguments.Length == 2)
+                {
+                    arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasPrimaryInteropAssemblyAttribute = true;
+                }
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.CompilationRelaxationsAttribute))
             {

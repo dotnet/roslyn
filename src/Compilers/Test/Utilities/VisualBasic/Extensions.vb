@@ -323,7 +323,7 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Function Parameters(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
+    Friend Function ParameterSymbols(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
         Return DirectCast(this, MethodSymbol).Parameters
     End Function
 

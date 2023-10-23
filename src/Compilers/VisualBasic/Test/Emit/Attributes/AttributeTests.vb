@@ -4452,6 +4452,249 @@ End Class
             Assert.Equal("Target(Of )", typeInAttribute.ToTestDisplayString())
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_GenericTypeInParameter_Constructor()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class A
+    Inherits System.Attribute
+
+    Public Sub New(e As B(Of Integer).E)
+    End Sub
+End Class
+
+Public Class B(Of T)
+    Public Enum E
+        X
+    End Enum
+
+    Public Const C As E = CType(33, E)
+End Class
+
+<A(B(Of Integer).C)>
+Class C
+End Class
+    ]]></file>
+</compilation>
+
+            Dim verifier = CompileAndVerify(source, symbolValidator:=
+                Sub(m)
+                    Dim c = m.GlobalNamespace.GetTypeMember("C")
+                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+                    Assert.False(attr.HasErrors)
+                    Assert.Empty(attr.NamedArguments)
+                    Dim arg = attr.ConstructorArguments.Single()
+                    Assert.Equal(33, arg.Value)
+                    Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+                End Sub)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_GenericTypeInParameter_Property()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class A
+    Inherits System.Attribute
+
+    Public Property E As B(Of Integer).E
+End Class
+
+Public Class B(Of T)
+    Public Enum E
+        X
+    End Enum
+
+    Public Const C As E = CType(33, E)
+End Class
+
+<A(E:=B(Of Integer).C)>
+Class C
+End Class
+    ]]></file>
+</compilation>
+
+            Dim verifier = CompileAndVerify(source, symbolValidator:=
+                Sub(m)
+                    Dim c = m.GlobalNamespace.GetTypeMember("C")
+                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+                    Assert.False(attr.HasErrors)
+                    Assert.Empty(attr.ConstructorArguments)
+                    Dim arg = attr.NamedArguments.Single()
+                    Assert.Equal("E", arg.Key)
+                    Assert.Equal(33, arg.Value.Value)
+                    Assert.Equal("B(Of System.Int32).E", arg.Value.Type.ToTestDisplayString())
+                End Sub)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_Constructor()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public A(T t) { }
+}
+
+struct B<T>
+{
+    public enum E { }
+    public const E C = (E)33;
+}
+
+[A<B<int>.E>(B<int>.C)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_Property()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public T Prop { get; set; }
+}
+
+struct B<T>
+{
+    public enum E { }
+    public const E C = (E)33;
+}
+
+[A<B<int>.E>(Prop = B<int>.C)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.ConstructorArguments)
+            Dim arg = attr.NamedArguments.Single()
+            Assert.Equal("Prop", arg.Key)
+            Assert.Equal(33, arg.Value.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Value.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_NestedClass()
+            Dim source1 = <![CDATA[
+class A1<T>
+{
+    public class A2 : System.Attribute
+    {
+        public A2(T t) { }
+    }
+}
+
+struct B<T>
+{
+    public enum E { }
+    public const E C = (E)33;
+}
+
+[A1<B<int>.E>.A2(B<int>.C)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A2")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_Object()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public A(T t) { }
+}
+
+public enum E { }
+
+[A<object>(C.X)]
+public class C
+{
+    public const E X = (E)33;
+}
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("E", arg.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_Constant()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public A(T t) { }
+}
+
+[A<int>(33)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("System.Int32", arg.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_NestedGeneric()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public A(B<T>.E t) { }
+}
+
+struct B<T>
+{
+    public enum E { }
+    public const E C = (E)33;
+}
+
+[A<int>(B<int>.C)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+        End Sub
+
         <Fact, WorkItem(879792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879792")>
         Public Sub Bug879792()
             Dim source2 =
