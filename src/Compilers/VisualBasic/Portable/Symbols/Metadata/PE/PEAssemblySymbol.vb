@@ -159,6 +159,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, Nothing)
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, Nothing, Nothing)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Look up the assemblies to which the given metadata type Is forwarded.
         ''' </summary>

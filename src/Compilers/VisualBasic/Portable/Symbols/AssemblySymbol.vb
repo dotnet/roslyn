@@ -238,6 +238,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public MustOverride ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+
+        Public MustOverride ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+
         ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
         ''' compared case-sensitively.
