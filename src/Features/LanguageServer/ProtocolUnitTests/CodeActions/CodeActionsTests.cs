@@ -169,7 +169,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         };
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        Assert.Equal(2, results.Length);
+        Assert.Equal(3, results.Length);
         Assert.Equal("Make method synchronous", results[0].Title);
     }
 
@@ -201,11 +201,8 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         };
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        var resultsTitles = results.Select(r => r.Title).ToArray();
-        // Inline method refactoring provide nested code actions.
-        // Make sure it is correctly displayed.
-        Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline 'A()'"));
-        Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline and keep 'A()'"));
+        // Assert that nested code actions aren't enumerated.
+        Assert.Equal(6, results.Length);
     }
 
     private static async Task<VSInternalCodeAction[]> RunGetCodeActionsAsync(
