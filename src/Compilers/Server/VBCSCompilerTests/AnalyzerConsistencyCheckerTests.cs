@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Delta.dll"));
 
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, TestAnalyzerAssemblyLoader.LoadNotImplemented, Logger);
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new ThrowingLoader(), Logger);
 
             Assert.False(result);
         }
@@ -235,5 +235,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Assert.True(result);
         }
+    }
+
+    sealed file class ThrowingLoader : IAnalyzerAssemblyLoaderInternal
+    {
+        public void AddDependencyLocation(string fullPath) { }
+        public bool IsHostAssembly(Assembly assembly) => false;
+        public Assembly LoadFromPath(string fullPath) => throw new Exception();
     }
 }

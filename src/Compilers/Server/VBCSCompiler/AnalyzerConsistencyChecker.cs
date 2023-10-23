@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public static bool Check(
             string baseDirectory,
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
-            IAnalyzerAssemblyLoader loader,
+            IAnalyzerAssemblyLoaderInternal loader,
             ICompilerServerLogger logger) => Check(baseDirectory, analyzerReferences, loader, logger, out var _);
 
         public static bool Check(
             string baseDirectory,
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
-            IAnalyzerAssemblyLoader loader,
+            IAnalyzerAssemblyLoaderInternal loader,
             ICompilerServerLogger logger,
             [NotNullWhen(false)] out List<string>? errorMessages)
         {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private static bool CheckCore(
             string baseDirectory,
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
-            IAnalyzerAssemblyLoader loader,
+            IAnalyzerAssemblyLoaderInternal loader,
             ICompilerServerLogger logger,
             [NotNullWhen(false)] out List<string>? errorMessages)
         {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Do not perform consistency checks on assemblies that are owned by the host. These
                 // always loaded from paths and at versions controlled by the compiler host. It's 
                 // expected that the version the compilation specifies may get overriden.
-                if (loader is IAnalyzerAssemblyLoaderInternal internalLoader && internalLoader.IsHostAssembly(loadedAssembly))
+                if (loader.IsHostAssembly(loadedAssembly))
                 {
                     continue;
                 }

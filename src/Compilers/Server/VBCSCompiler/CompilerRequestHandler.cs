@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal sealed class CompilerServerHost : ICompilerServerHost
     {
-        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
+        public IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader { get; }
 
         public static Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider { get; } = (path, properties) => new CachingMetadataReference(path, properties);
 
