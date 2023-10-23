@@ -2989,7 +2989,7 @@ class C { }";
             var diagnostic = Assert.Single(workspace.Diagnostics);
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
-            Assert.Empty(proj.DocumentIds);
+            Assert.Equal(2, proj.DocumentIds.Count);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
