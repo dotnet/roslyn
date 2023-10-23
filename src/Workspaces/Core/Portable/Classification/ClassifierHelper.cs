@@ -184,6 +184,11 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
+        /// <summary>
+        /// Adds all semantic parts to final parts, and adds all portions of <paramref name="syntaxParts"/> that do not
+        /// overlap with any semantic parts as well.  All final parts will be non-empty.  Both <paramref
+        /// name="syntaxParts"/> and <paramref name="semanticParts"/> must be sorted.
+        /// </summary>
         private static void MergeParts(
             SegmentedList<ClassifiedSpan> syntaxParts,
             SegmentedList<ClassifiedSpan> semanticParts,
@@ -198,11 +203,7 @@ namespace Microsoft.CodeAnalysis.Classification
             finalParts.Sort(s_spanComparison);
         }
 
-        /// <summary>
-        /// Adds all semantic parts to final parts, and adds all portions of <paramref name="syntaxParts"/> that do not
-        /// overlap with any semantic parts as well.  All final parts will be non-empty.  Both <paramref
-        /// name="syntaxParts"/> and <paramref name="semanticParts"/> must be sorted.
-        /// </summary>
+        /// <inheritdoc cref="MergeParts(SegmentedList{ClassifiedSpan}, SegmentedList{ClassifiedSpan}, SegmentedList{ClassifiedSpan})"/>
         public static void MergeParts<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(
             SegmentedList<TClassifiedSpan> syntaxParts,
             SegmentedList<TClassifiedSpan> semanticParts,
