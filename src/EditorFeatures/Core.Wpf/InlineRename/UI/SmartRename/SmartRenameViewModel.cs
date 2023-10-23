@@ -27,6 +27,8 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    public event EventHandler<string?>? OnSelectedSuggestedNameChanged;
+
     public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
 
     public bool IsAvailable => _smartRenameSession?.IsAvailable ?? false;
@@ -43,7 +45,6 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     /// <summary>
     /// The last selected name when user click one of the suggestions. <see langword="null"/> if user hasn't clicked any suggestions.
-    /// It would trigger <see cref="PropertyChanged"/> when it get changed.
     /// </summary>
     public string? SelectedSuggestedName
     {
@@ -54,7 +55,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
             {
                 _threadingContext.ThrowIfNotOnUIThread();
                 _selectedSuggestedName = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedSuggestedName)));
+                OnSelectedSuggestedNameChanged?.Invoke(this, value);
             }
         }
     }
