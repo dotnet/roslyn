@@ -275,17 +275,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool TryGetNumericLiteralSuffix(string tokenText, out int suffixLength)
         {
-            // Walk left until the first digit and count the number of characters on the way.
+            // Walk left for as long as we encounter valid suffixes (both integer and real) and count the number of characters on the way.
             // The lexer ensures that the token only ends in valid suffixes; invalid suffix characters are part of a different token.
+
+            // § 6.4.5.3: '0x' and '0b' mean it must be an integer literal, so we can disregard the real suffixes.
+            var allowRealTypeSuffixes = !IsHexOrBinaryInteger(tokenText);
+
             suffixLength = 0;
-            for (var i = tokenText.Length - 1; i >= 0 && !IsDigit(tokenText[i]); i--)
+            for (var i = tokenText.Length - 1; i >= 0 && IsValidSuffixCharacter(tokenText[i], allowRealTypeSuffixes); i--)
             {
                 suffixLength++;
             }
 
             return suffixLength > 0;
 
-            static bool IsDigit(char c) => c is >= '0' and <= '9';
+            static bool IsHexOrBinaryInteger(string tokenText)
+            {
+                if (tokenText.Length < 2)
+                {
+                    return false;
+                }
+
+                return tokenText[0] is '0' && ToUppercase(tokenText[1]) is 'X' or 'B';
+            }
+
+            static bool IsValidSuffixCharacter(char c, bool allowRealTypeSuffixes)
+            {
+                return ToUppercase(c) switch
+                {
+                    // 'D' and 'F' require special handling: they're suffixes of real literals _and_ hexadecimal digits.
+                    'D' or 'F' or 'M' when allowRealTypeSuffixes => true,
+                    'L' or 'U' => true,
+                    _ => false
+                };
+            }
+
+            static char ToUppercase(char c) => (char)(c & ~0x20);
         }
     }
 }

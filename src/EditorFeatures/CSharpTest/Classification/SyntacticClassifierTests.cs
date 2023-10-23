@@ -6616,6 +6616,7 @@ static T I1.operator checked >>>(T a, T b)
                 _ = 1d + 2f + 3.14F + 5.6E10D;
                 _ = 3U + 4L + 5ul + 6Lu;
                 _ = 1m + 1M;
+                _ = 0x8fdul + 0XFUL + 0b10u + 0B11L;
                 """,
                 testHost,
                 Identifier("_"),
@@ -6653,6 +6654,20 @@ static T I1.operator checked >>>(T a, T b)
                 Operators.Plus,
                 Number("1"),
                 Keyword("M"),
+                Punctuation.Semicolon,
+                Identifier("_"),
+                Operators.Equals,
+                Number("0x8fd"),
+                Keyword("ul"),
+                Operators.Plus,
+                Number("0XF"),
+                Keyword("UL"),
+                Operators.Plus,
+                Number("0b10"),
+                Keyword("u"),
+                Operators.Plus,
+                Number("0B11"),
+                Keyword("L"),
                 Punctuation.Semicolon);
         }
     }
