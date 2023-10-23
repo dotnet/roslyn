@@ -85,7 +85,8 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
             // the syntactic state, and we do not want things like semantic classifications showing up over that.
 
             var totalTags = new SegmentedList<ITagSpan<IClassificationTag>>();
-            var embeddedClassificationTree = 
+
+            using var _ = ArrayBuilder<ITagSpan<IClassificationTag>>.GetInstance(out var stringLiterals);
 
             var syntacticSpans = syntacticTagger.GetTags(spans).GetEnumerator();
             var semanticSpans = semanticTagger.GetTags(spans).GetEnumerator();
@@ -106,17 +107,18 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
                 }
                 else
                 {
-                    // We're on a syntactic span before the next semantic onde.
+                    // We're on a syntactic span before the next semantic one.
 
-                    // If we have a string literal of some sort, see if there are embedded classifications within it.
-                    if (TryProcessSyntacticStringLiteral())
+                    // If it's a comment or excluded code, then we want to ignore every semantic classification that
+                    // potentially overlaps with it so that semantic classifications don't show up *on top of* them.  We
+                    // want commenting out code to feel like' it instantly snaps to that state.
+                    if (TryProcessCommentOrExcludedCode())
                         continue;
 
-                    // Otherwise, we've got a syntactic span starting before a semantic one.  If it's a comment or excluded
-                    // code, then we want to ignore every semantic classification that potentially overlaps with it so that
-                    // semantic classifications don't show up *on top of* them.  We want commenting out code to feel like'
-                    // it instantly snaps to that state.
-                    if (TryProcessCommentOrExcludedCode())
+                    // If we have a string literal of some sort add it to the list to be processed later. We'll want to
+                    // compute embedded classifications for them, and have those classifications override the string
+                    // literals.
+                    if (TryProcessSyntacticStringLiteral())
                         continue;
 
                     // Normal case.  Just add the syntactic span and continue.
@@ -136,13 +138,18 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
             while (currentSyntactic != null)
             {
                 // don't have to worry about comments/excluded code since there are no semantic tags we want to override.
-
                 if (TryProcessSyntacticStringLiteral())
                     continue;
 
                 totalTags.Add(currentSyntactic);
                 currentSyntactic = NextOrNull(syntacticSpans);
             }
+
+            // We've added almost all the syntactic and semantic tags (properly skipping any semantic tags that are
+            // overridden by comments or excluded code).  All that remains is adding back the string literals we
+            // skipped.  However, when we do so, we'll see if those string literals themselves should be overridden
+            // by any embedded classifications.
+
 
             return totalTags;
 
@@ -151,10 +158,7 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
                 if (currentSyntactic.Tag.ClassificationType.Classification is not ClassificationTypeNames.StringLiteral and not ClassificationTypeNames.VerbatimStringLiteral)
                     return false;
 
-                if (!TryMergeEmbeddedClassificationsWithStringLiteral())
-                    return false;
-
-                currentSyntactic = NextOrNull(syntacticSpans);
+                stringLiterals.Add(currentSyntactic);
                 return true;
             }
 
@@ -174,16 +178,16 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
                 return true;
             }
 
-            bool TryMergeEmbeddedClassificationsWithStringLiteral()
-            {
-                var embeddedClassifications = embeddedTagger.GetTags(new NormalizedSnapshotSpanCollection(currentSyntactic.Span));
+            //bool TryMergeEmbeddedClassificationsWithStringLiteral()
+            //{
+            //    var embeddedClassifications = embeddedTagger.GetTags(new NormalizedSnapshotSpanCollection(currentSyntactic.Span));
 
-                // If we had no embedded classifications, there's nothing we need to do.  Just process this string literal normally.
-                if (embeddedClassifications.Count == 0)
-                    return false;
+            //    // If we had no embedded classifications, there's nothing we need to do.  Just process this string literal normally.
+            //    if (embeddedClassifications.Count == 0)
+            //        return false;
 
 
-            }
+            //}
         }
 
         private static ITagSpan<IClassificationTag>? NextOrNull(IEnumerator<ITagSpan<IClassificationTag>> enumerator)
