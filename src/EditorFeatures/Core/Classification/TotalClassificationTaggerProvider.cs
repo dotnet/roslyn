@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 [Export(typeof(IViewTaggerProvider))]
 [TagType(typeof(IClassificationTag))]
-[ContentType(ContentTypeNames.RoslynContentType)]
+[Microsoft.VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
 internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
 {
     private readonly SyntacticClassificationTaggerProvider _syntacticTaggerProvider;
@@ -51,22 +51,19 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
 
     public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
     {
-        using var taggers = TemporaryArray<ITagger<T>?>.Empty;
+        var syntacticTagger = _syntacticTaggerProvider.CreateTagger<T>(buffer);
+        var semanticTagger = _semanticTaggerProvider.CreateTagger<T>(textView, buffer);
+        var embeddedTagger = _embeddedTaggerProvider.CreateTagger<T>(textView, buffer);
 
-        taggers.Add(_syntacticTaggerProvider.CreateTagger<T>(buffer));
-        taggers.Add(_semanticTaggerProvider.CreateTagger<T>(textView, buffer));
-        taggers.Add(_embeddedTaggerProvider.CreateTagger<T>(textView, buffer));
-
-        // If any child tagger failed to create, then we fail entirely.
-        if (taggers.Any(t => t is null))
+        if (syntacticTagger is null || semanticTagger is null || embeddedTagger is null)
         {
-            foreach (var tagger in taggers)
-                (tagger as IDisposable)?.Dispose();
-
+            (syntacticTagger as IDisposable)?.Dispose();
+            (semanticTagger as IDisposable)?.Dispose();
+            (embeddedTagger as IDisposable)?.Dispose();
             return null;
         }
 
-        var finalTagger = new TotalClassificationAggregateTagger<T>(taggers[0]!, taggers[1]!, taggers[2]!);
+        var finalTagger = new TotalClassificationAggregateTagger<T>(syntacticTagger, semanticTagger, embeddedTagger);
         return finalTagger;
     }
 
@@ -74,17 +71,49 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
         ITagger<TTag> syntacticTagger,
         ITagger<TTag> semanticTagger,
         ITagger<TTag> embeddedTagger)
-        : AbstractAggregateTagger<TTag>(taggers)
+        : AbstractAggregateTagger<TTag>(ImmutableArray.Create(syntacticTagger, semanticTagger, embeddedTagger))
         where TTag : ITag
     {
+        private static readonly Comparison<ITagSpan<TTag>> s_spanComparison = static (s1, s2) => s1.Span.Start - s2.Span.Start;
+
         public override IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             // First, get all the syntactic tags.  While they are generally overridden by semantic tags (since semantics
             // allows us to understand better what things like identifiers mean), they do take precedence for certain
             // tags like 'Comments' and 'Excluded Code'.  In those cases we want the classification to 'snap' instantly to
             // the syntactic state, and we do not want things like semantic classifications showing up over that.
-            using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var syntacticTagSpans);
-            syntacticTagSpans.AddRange()
+
+            var syntacticIntervalTree = SimpleIntervalTree.Create(TagSpanIntrospector.Instance, syntacticTagger.GetTags(spans));
+            var semanticIntervalTree = SimpleIntervalTree.Create(TagSpanIntrospector.Instance, semanticTagger.GetTags(spans));
+
+            using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var result);
+            
+            if (semanticIntervalTree.
+
+
+            using var _1 = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var syntacticTagSpans);
+            using var _2 = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var syntacticTagSpans);
+
+            syntacticTagSpans.AddRange(syntacticTagger.GetTags(spans));
+
+            syntacticTagSpans.Sort(s_spanComparison);
+
+
+        }
+
+        private readonly struct TagSpanIntrospector : IIntervalIntrospector<ITagSpan<TTag>>
+        {
+            public static readonly TagSpanIntrospector Instance = new();
+
+            private TagSpanIntrospector()
+            {
+            }
+
+            public int GetStart(ITagSpan<TTag> value)
+                => value.Span.Start;
+
+            public int GetLength(ITagSpan<TTag> value)
+                => value.Span.Length;
         }
     }
 }
