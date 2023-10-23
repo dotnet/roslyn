@@ -2267,5 +2267,55 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70483")]
+        public void NestedCatch_DuplicateLocal_NoAwaitInNestedCatch()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    static async Task Main()
+                    {
+                        try
+                        {
+                            await Task.Yield();
+                        }
+                        catch (Exception ex) when (true)
+                        {
+                            await Task.Yield();
+                        }
+                        catch (Exception ex) when (true)
+                        {
+                            try
+                            {
+                                await Task.Yield();
+                            }
+                            catch
+                            {
+                                Console.Write(ex);
+                            }
+                        }
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,26): warning CS0168: The variable 'ex' is declared but never used
+                //         catch (Exception ex) when (true)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "ex").WithArguments("ex").WithLocation(11, 26),
+                // (11,36): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         catch (Exception ex) when (true)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(11, 36),
+                // (15,36): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         catch (Exception ex) when (true)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(15, 36)
+            };
+
+            CompileAndVerify(source, options: TestOptions.DebugExe).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+        }
     }
 }
