@@ -223,7 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Do not use '{FullName}'. This is reserved for compiler usage.
                 arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.CompilerFeatureRequiredAttribute.FullName);
-                return;
+            }
+            else if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            {
+                if (!SyntaxFacts.IsValidIdentifier((string?)arguments.Attribute.CommonConstructorArguments[0].ValueInternal))
+                {
+                    var attrArgumentLocation = arguments.Attribute.GetAttributeArgumentSyntaxLocation(parameterIndex: 0, arguments.AttributeSyntaxOpt);
+                    arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
+                }
             }
 
             DecodeWellKnownAttributeImpl(ref arguments);
