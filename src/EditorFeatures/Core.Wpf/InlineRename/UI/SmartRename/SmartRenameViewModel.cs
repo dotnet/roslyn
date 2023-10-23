@@ -72,8 +72,8 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
         var listener = listenerProvider.GetListener(FeatureAttribute.SmartRename);
 
-        using var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
-        _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token);
+        var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
+        _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
     }
 
     private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
