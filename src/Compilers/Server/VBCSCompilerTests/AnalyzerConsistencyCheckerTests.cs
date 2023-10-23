@@ -74,28 +74,35 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             return file;
         }
 
+        /// <summary>
+        /// Must support loading a DLL without all of it's references being present. It is common for analyzer
+        /// assemblies to have missing references because customers often pair code fixers and analyzers into
+        /// the same assembly.Here Alpha depends on Gamma which is not included 
+        /// </summary>
         [Fact]
-        public void MissingReference()
+        public void LoadLibraryWithMissingReference()
         {
             var directory = Temp.CreateDirectory();
             _ = directory.CopyFile(TestFixture.Alpha);
+            var assemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
 
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference("Alpha.dll"));
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
-
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, assemblyLoader, Logger);
             Assert.True(result);
         }
 
         [Fact]
-        public void AllChecksPassed()
+        public void LoadLibraryAll()
         {
+            var directory = Temp.CreateDirectory();
+            var assemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Alpha.dll"),
                 new CommandLineAnalyzerReference("Beta.dll"),
                 new CommandLineAnalyzerReference("Gamma.dll"),
                 new CommandLineAnalyzerReference("Delta.dll"));
 
-            var result = AnalyzerConsistencyChecker.Check(Path.GetDirectoryName(TestFixture.Alpha)!, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
+            var result = AnalyzerConsistencyChecker.Check(Path.GetDirectoryName(TestFixture.Alpha)!, analyzerReferences, assemblyLoader, Logger);
             Assert.True(result);
         }
 
@@ -227,28 +234,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new DefaultAnalyzerAssemblyLoader(), Logger);
 
             Assert.True(result);
-        }
-
-        private sealed class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            private readonly Dictionary<string, Assembly> _assemblies = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
-
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                Assembly? assembly;
-                if (!_assemblies.TryGetValue(fullPath, out assembly))
-                {
-                    var bytes = File.ReadAllBytes(fullPath);
-                    assembly = Assembly.Load(bytes);
-                    _assemblies[fullPath] = assembly;
-                }
-
-                return assembly;
-            }
         }
     }
 }

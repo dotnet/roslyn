@@ -13,6 +13,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal interface IAnalyzerAssemblyLoaderInternal : IAnalyzerAssemblyLoader
+    {
+        /// <summary>
+        /// Is this an <see cref="Assembly"/> that the loader considers to be part of the hosting 
+        /// process. Either part of the compiler itself or the process hosting the compiler.
+        /// </summary>
+        bool IsHostAssembly(Assembly assembly);
+    }
+
     /// <summary>
     /// The base implementation for <see cref="IAnalyzerAssemblyLoader"/>. This type provides caching and tracking of inputs given
     /// to <see cref="AddDependencyLocation(string)"/>.
