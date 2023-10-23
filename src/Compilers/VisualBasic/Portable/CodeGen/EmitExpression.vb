@@ -1255,8 +1255,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim isOneWhenFalse = False
             If used AndAlso _ilEmitStyle <> ILEmitStyle.Debug AndAlso
                 (IsSimpleType(expr.Type.PrimitiveTypeCode) OrElse expr.Type.PrimitiveTypeCode = Cci.PrimitiveTypeCode.Char) AndAlso
-                expr.WhenTrue.ConstantValueOpt?.IsIntegralValueZeroOrOne(isOneWhenTrue) AndAlso
-                expr.WhenFalse.ConstantValueOpt?.IsIntegralValueZeroOrOne(isOneWhenFalse) AndAlso
+                If(expr.WhenTrue.ConstantValueOpt?.IsIntegralValueZeroOrOne(isOneWhenTrue), False) AndAlso
+                If(expr.WhenFalse.ConstantValueOpt?.IsIntegralValueZeroOrOne(isOneWhenFalse), False) AndAlso
                 isOneWhenTrue <> isOneWhenFalse AndAlso
                 TryEmitComparison(expr.Condition, sense:=isOneWhenTrue) Then
 
