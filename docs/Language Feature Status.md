@@ -14,7 +14,7 @@ efforts behind them.
 | [Params Span\<T> + Stackalloc any array type](https://github.com/dotnet/csharplang/issues/1757) | [params-span](https://github.com/dotnet/roslyn/tree/features/params-span) | [In Progress](https://github.com/dotnet/roslyn/issues/57049) | [cston](https://github.com/cston) | TBD |  | [jaredpar](https://github.com/jaredpar) |
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [In Progress](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) |  | [jcouv](https://github.com/jcouv) |
 | [Roles/Extensions](https://github.com/dotnet/csharplang/issues/5497) | [roles](https://github.com/dotnet/roslyn/tree/features/roles) | [In Progress](https://github.com/dotnet/roslyn/issues/66722) | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [jjonescz](https://github.com/jjonescz) |  | [MadsTorgersen](https://github.com/MadsTorgersen) |
-| [Escape character](https://github.com/dotnet/csharplang/issues/7400) | N/A | [In Progress](https://github.com/dotnet/roslyn/pull/70497) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |  | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
+| [Escape character](https://github.com/dotnet/csharplang/issues/7400) | N/A | [In Progress](https://github.com/dotnet/roslyn/pull/70497) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv) |  | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 
 # C# 12.0
 
