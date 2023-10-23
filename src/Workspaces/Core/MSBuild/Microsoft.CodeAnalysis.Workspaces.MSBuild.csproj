@@ -8,6 +8,12 @@
     <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
+    <IncludeContentInPack>true</IncludeContentInPack>
+
+    <!-- We are packing DLLs into the content directories of the NuGet package because that's what where the BuildHosts will go; NuGet warns we may not want that since they won't be referenced;
+         that is exactly what we do want here. -->
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for analyzing MSBuild projects and solutions. This should be used with at least one
       of the following packages to add the appropriate language support:
@@ -61,10 +67,14 @@
 
   <!--
     Deploy a net472 and net6.0 version of the BuildHost process which will be used depending on the type of project. We will use the deployed version even if
-    it matches the runtime of the caller of MSBuildWorkspace since we still need the separate process for dependency isolation and in the case of the .NET Core
+    it matches the runtime type of the caller of MSBuildWorkspace since we still need the separate process for dependency isolation and in the case of the .NET Core
     side, ensuring we potential rollforward to a runtime that supports the SDK version.
+
+    The NuGet packaging targets will package Content files, but the outer "pack" build assumes that the content files are just found in the project file directly and
+    gives us no way to say we need to run a target to produce them. The BeforeTargets="_GetPackageFiles" forces it to run in that case; ideally there'd be a "pack content depends on"
+    property that we could hook but we can't in this case.
   -->
-  <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+  <Target Name="DeployNetFrameworkBuildHost" BeforeTargets="_GetPackageFiles;AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true'">
     <ItemGroup>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
@@ -82,10 +92,15 @@
     </MSBuild>
 
     <ItemGroup>
+      <!-- We're setting both TargetPath and PackagePath here, the former when this is used in a regular build to deploy and the latter for
+           when this called during pack. By putting the PackagePath in any/any, we only have to deploy this once rather than per TFM.
+           Similarly, we set CopyToOutputDirectory for the regular build and PackageCopyToPutput for the packaging process. -->
       <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
                Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
                TargetPath="BuildHost-%(NetFrameworkBuildHostAssets.TargetFramework)\%(NetFrameworkBuildHostAssets.TargetPath)"
-               CopyToOutputDirectory="PreserveNewest" />
+               PackagePath="contentFiles\any\any\BuildHost-%(NetFrameworkBuildHostAssets.TargetFramework)\%(NetFrameworkBuildHostAssets.TargetPath)"
+               CopyToOutputDirectory="PreserveNewest"
+               PackageCopyToOutput="true" />
     </ItemGroup>
   </Target>
 </Project>
