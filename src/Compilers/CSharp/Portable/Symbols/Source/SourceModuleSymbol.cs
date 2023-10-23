@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var attrData in a.GetAttributes())
                     {
-                        if (attrData.IsTargetAttribute(a, AttributeDescription.GuidAttribute))
+                        if (attrData.IsTargetAttribute(AttributeDescription.GuidAttribute))
                         {
                             string guidString;
                             if (attrData.TryGetGuidAttributeValue(out guidString))
@@ -316,14 +316,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 hasGuidAttribute = true;
                             }
                         }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.ImportedFromTypeLibAttribute))
+                        else if (attrData.IsTargetAttribute(AttributeDescription.ImportedFromTypeLibAttribute))
                         {
                             if (attrData.CommonConstructorArguments.Length == 1)
                             {
                                 hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
                             }
                         }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.PrimaryInteropAssemblyAttribute))
+                        else if (attrData.IsTargetAttribute(AttributeDescription.PrimaryInteropAssemblyAttribute))
                         {
                             if (attrData.CommonConstructorArguments.Length == 2)
                             {
@@ -510,13 +510,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
                 if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
-                    CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                    ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_InvalidAttributeArgument, attribute.GetAttributeArgumentLocation(0), arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
@@ -527,11 +526,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExperimentalAttribute))
             {
                 arguments.GetOrCreateData<ModuleWellKnownAttributeData>().ExperimentalAttributeData = attribute.DecodeExperimentalAttribute();
             }

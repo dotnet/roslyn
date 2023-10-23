@@ -716,7 +716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Function GetGuidStringDefaultImplementation(<Out> ByRef guidString As String) As Boolean
             For Each attrData In GetAttributes()
-                If attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
+                If attrData.IsTargetAttribute(AttributeDescription.GuidAttribute) Then
                     If attrData.TryGetGuidAttributeValue(guidString) Then
                         Return True
                     End If
