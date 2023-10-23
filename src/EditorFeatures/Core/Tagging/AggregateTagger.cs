@@ -11,18 +11,16 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-/// <summary>
-/// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
-/// a single event source and source of tags.
-/// </summary>
-internal sealed class AggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers) : ITagger<TTag>, IDisposable
+internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers) : ITagger<TTag>, IDisposable
     where TTag : ITag
 {
-    private readonly ImmutableArray<ITagger<TTag>> _taggers = taggers;
+    protected readonly ImmutableArray<ITagger<TTag>> Taggers = taggers;
+
+    public abstract IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans);
 
     public void Dispose()
     {
-        foreach (var tagger in _taggers)
+        foreach (var tagger in this.Taggers)
             (tagger as IDisposable)?.Dispose();
     }
 
@@ -30,22 +28,31 @@ internal sealed class AggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> tagger
     {
         add
         {
-            foreach (var tagger in _taggers)
+            foreach (var tagger in this.Taggers)
                 tagger.TagsChanged += value;
         }
 
         remove
         {
-            foreach (var tagger in _taggers)
+            foreach (var tagger in this.Taggers)
                 tagger.TagsChanged -= value;
         }
     }
+}
 
-    public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+/// <summary>
+/// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
+/// a single event source and source of tags.
+/// </summary>
+internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers)
+    : AbstractAggregateTagger<TTag>(taggers)
+    where TTag : ITag
+{
+    public override IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
     {
         using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var result);
 
-        foreach (var tagger in _taggers)
+        foreach (var tagger in this.Taggers)
             result.AddRange(tagger.GetTags(spans));
 
         return result.ToImmutable();

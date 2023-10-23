@@ -113,7 +113,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
                 taggers.Add(innerTagger);
         }
 
-        var tagger = new AggregateTagger<TTag>(taggers.ToImmutableAndClear());
+        var tagger = new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();
