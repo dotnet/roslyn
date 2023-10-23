@@ -177,7 +177,6 @@ internal sealed class TotalClassificationTaggerProvider(
                 // now add that syntactic span.
                 totalTags.Add(currentSyntactic);
                 currentSyntactic = GetNextSyntacticSpan();
-
                 return true;
             }
 
