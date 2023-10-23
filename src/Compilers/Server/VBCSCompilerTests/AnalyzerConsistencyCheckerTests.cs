@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 [assembly: AssemblyFileVersion("{{version}}")]
                 """;
 
-            var sources = extraSource is null 
+            var sources = extraSource is null
                 ? new[] { CSharpTestSource.Parse(source) }
                 : new[] { CSharpTestSource.Parse(source), CSharpTestSource.Parse(extraSource) };
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
     }
 
-    sealed file class ThrowingLoader : IAnalyzerAssemblyLoaderInternal
+    file sealed class ThrowingLoader : IAnalyzerAssemblyLoaderInternal
     {
         public void AddDependencyLocation(string fullPath) { }
         public bool IsHostAssembly(Assembly assembly) => false;
