@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // We either calculate the tokens for the full document span, or the user 
             // can pass in a range from the full document if they wish.
-            ranges ??= new[] { ProtocolConversions.TextSpanToRange(root.FullSpan, text) };
+            ranges ??= [ProtocolConversions.TextSpanToRange(root.FullSpan, text)];
 
             foreach (var range in ranges)
             {

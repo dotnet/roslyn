@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private static readonly char[] s_descriptionSeparators = new char[] { '|' };
+        private static readonly char[] s_descriptionSeparators = ['|'];
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)
             => string.Join("|", description.SelectMany(d => new[] { d.Tag, d.Text }).Select(t => t.Escape('\\', s_descriptionSeparators)));

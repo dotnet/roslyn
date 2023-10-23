@@ -159,12 +159,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task WaitForRenameAsync(CancellationToken cancellationToken)
         {
             await WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
                     FeatureAttribute.InlineRenameFlyout,
-                },
+                ],
                 cancellationToken);
         }
 
