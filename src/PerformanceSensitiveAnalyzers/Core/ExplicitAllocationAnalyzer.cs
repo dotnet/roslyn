@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -89,6 +90,12 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
             if (context.Operation is IObjectCreationOperation or ITypeParameterObjectCreationOperation)
             {
+                if (context.Operation.Parent?.Kind == OperationKindEx.Attribute)
+                {
+                    // Don't report attribute usage as creating a new instance
+                    return;
+                }
+
                 if (context.Operation.Type?.IsReferenceType == true)
                 {
                     context.ReportDiagnostic(context.Operation.CreateDiagnostic(ObjectCreationRule, EmptyMessageArgs));
