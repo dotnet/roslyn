@@ -182,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 startPosition = span.TextSpan.End;
             }
         }
+
         private static void MergeParts(
             SegmentedList<ClassifiedSpan> syntaxParts,
             SegmentedList<ClassifiedSpan> semanticParts,
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// Adds all semantic parts to final parts, and adds all portions of <paramref name="syntaxParts"/> that do not
         /// overlap with any semantic parts as well.  All final parts will be non-empty.
         /// </summary>
-        private static void MergeParts<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(
+        public static void MergeParts<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(
             SegmentedList<TClassifiedSpan> syntaxParts,
             SegmentedList<TClassifiedSpan> semanticParts,
             SegmentedList<TClassifiedSpan> finalParts,

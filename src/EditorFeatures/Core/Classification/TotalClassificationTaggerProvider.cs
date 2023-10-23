@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -86,7 +87,7 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
 
             var totalTags = new SegmentedList<ITagSpan<IClassificationTag>>();
 
-            using var _ = ArrayBuilder<ITagSpan<IClassificationTag>>.GetInstance(out var stringLiterals);
+            using var _ = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var stringLiterals);
 
             var syntacticSpans = syntacticTagger.GetTags(spans).GetEnumerator();
             var semanticSpans = semanticTagger.GetTags(spans).GetEnumerator();
@@ -149,7 +150,7 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
             // overridden by comments or excluded code).  All that remains is adding back the string literals we
             // skipped.  However, when we do so, we'll see if those string literals themselves should be overridden
             // by any embedded classifications.
-
+            AddEmbeddedClassifications();
 
             return totalTags;
 
@@ -178,16 +179,24 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
                 return true;
             }
 
-            //bool TryMergeEmbeddedClassificationsWithStringLiteral()
-            //{
-            //    var embeddedClassifications = embeddedTagger.GetTags(new NormalizedSnapshotSpanCollection(currentSyntactic.Span));
+            void AddEmbeddedClassifications()
+            {
+                // nothing to do if we didn't run into any string literals.
+                if (stringLiterals.Count == 0)
+                    return;
 
-            //    // If we had no embedded classifications, there's nothing we need to do.  Just process this string literal normally.
-            //    if (embeddedClassifications.Count == 0)
-            //        return false;
+                // Only need to ask for the spans that overlapped the string literals.
+                var stringLiteralSpans = new NormalizedSnapshotSpanCollection(stringLiterals.Select(s => s.Span));
+                var embeddedClassifications = embeddedTagger.GetTags(stringLiteralSpans);
+
+                // Nothing to do if we got no embedded classifications back.
+                if (embeddedClassifications.Count == 0)
+                    return;
 
 
-            //}
+                embeddedClassifications.Sort(s_spanComparison);
+                ClassifierHelper.me
+            }
         }
 
         private static ITagSpan<IClassificationTag>? NextOrNull(IEnumerator<ITagSpan<IClassificationTag>> enumerator)
@@ -195,20 +204,5 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
 
         private static ITagSpan<IClassificationTag>? NextOrNull(SegmentedList<ITagSpan<IClassificationTag>>.Enumerator enumerator)
             => enumerator.MoveNext() ? enumerator.Current : null;
-
-        //private readonly struct TagSpanIntrospector : IIntervalIntrospector<ITagSpan<TTag>>
-        //{
-        //    public static readonly TagSpanIntrospector Instance = new();
-
-        //    private TagSpanIntrospector()
-        //    {
-        //    }
-
-        //    public int GetStart(ITagSpan<TTag> value)
-        //        => value.Span.Start;
-
-        //    public int GetLength(ITagSpan<TTag> value)
-        //        => value.Span.Length;
-        //}
     }
 }
