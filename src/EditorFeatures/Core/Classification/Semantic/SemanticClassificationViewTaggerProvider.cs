@@ -3,21 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
-using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
     /// <summary>
-    /// This is the tagger we use for view classification scenarios.  It is used for classifying code
-    /// in the editor.  We use a view tagger so that we can only classify what's in view, and not
-    /// the whole file.
+    /// This is the tagger we use for view classification scenarios.  It is used for classifying code in the editor.  We
+    /// use a view tagger so that we can only classify what's in view, and not the whole file.  Intentionally not
+    /// exported.  It is consumed by the <see cref="TotalClassificationTaggerProvider"/> instead.
     /// </summary>
     internal partial class SemanticClassificationViewTaggerProvider(
         IThreadingContext threadingContext,

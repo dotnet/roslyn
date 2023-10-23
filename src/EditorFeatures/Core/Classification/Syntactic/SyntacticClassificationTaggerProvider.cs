@@ -14,6 +14,9 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
+    /// <summary>
+    /// Intentionally not exported.  It is consumed by the <see cref="TotalClassificationTaggerProvider"/> instead.
+    /// </summary>
     internal partial class SyntacticClassificationTaggerProvider(
         IThreadingContext threadingContext,
         ClassificationTypeMap typeMap,
