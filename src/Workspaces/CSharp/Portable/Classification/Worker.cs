@@ -294,16 +294,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
             static bool IsValidSuffixCharacter(char c, bool allowRealTypeSuffixes)
             {
-                return ToUppercase(c) switch
+                return c switch
                 {
                     // 'D' and 'F' require special handling: they're suffixes of real literals _and_ hexadecimal digits.
-                    'D' or 'F' or 'M' when allowRealTypeSuffixes => true,
-                    'L' or 'U' => true,
+                    'D' or 'd' or 'F' or 'f' or 'M' or 'm' when allowRealTypeSuffixes => true,
+                    'L' or 'l' or 'U' or 'u' => true,
                     _ => false
                 };
             }
-
-            static char ToUppercase(char c) => (char)(c & ~0x20);
         }
     }
 }
