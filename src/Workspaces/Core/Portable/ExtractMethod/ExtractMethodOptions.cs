@@ -7,8 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
@@ -34,19 +34,22 @@ internal readonly record struct ExtractMethodOptions
 internal readonly record struct ExtractMethodGenerationOptions
 {
     [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
+    [DataMember] public required CodeCleanupOptions CodeCleanupOptions { get; init; }
     [DataMember] public ExtractMethodOptions ExtractOptions { get; init; } = ExtractMethodOptions.Default;
-    [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
-    [DataMember] public LineFormattingOptions LineFormattingOptions { get; init; } = LineFormattingOptions.Default;
 
     public static ExtractMethodGenerationOptions GetDefault(LanguageServices languageServices)
         => new()
         {
-            CodeGenerationOptions = CodeGenerationOptions.GetDefault(languageServices)
+            CodeGenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
+            CodeCleanupOptions = CodeCleanupOptions.GetDefault(languageServices),
         };
 
     public ExtractMethodGenerationOptions()
     {
     }
+
+    public AddImportPlacementOptions AddImportOptions => CodeCleanupOptions.AddImportOptions;
+    public LineFormattingOptions LineFormattingOptions => CodeCleanupOptions.FormattingOptions.LineFormatting;
 }
 
 internal static class ExtractMethodGenerationOptionsProviders
@@ -59,8 +62,7 @@ internal static class ExtractMethodGenerationOptionsProviders
         {
             CodeGenerationOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions.Value.CodeGenerationOptions, cancellationToken).ConfigureAwait(false),
             ExtractOptions = fallbackOptions.Value.ExtractOptions,
-            AddImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions.Value.AddImportOptions, cancellationToken).ConfigureAwait(false),
-            LineFormattingOptions = await document.GetLineFormattingOptionsAsync(fallbackOptions.Value.LineFormattingOptions, cancellationToken).ConfigureAwait(false),
+            CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions.Value.CodeCleanupOptions, cancellationToken).ConfigureAwait(false),
         };
     }
 

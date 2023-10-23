@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -19,10 +20,11 @@ internal interface ISolutionAssetProvider
     /// corresponding to the checksum index in <paramref name="checksums"/>.
     /// </summary>
     /// <param name="pipeWriter">The writer to write the assets into.  Implementations of this method must call<see
-    /// cref="PipeWriter.Complete"/> on it (in the event of failure or success).  Failing to do so will lead to
-    /// hangs on the code that reads from the corresponding <see cref="PipeReader"/> side of this.</param>
-    /// <param name="hintProject">Optional project id to scope the search for checksums down to.  This can save
-    /// substantially on performance by avoiding having to search the full solution tree to find matching items for
+    /// cref="PipeWriter.Complete"/> on it (in the event of failure or success).  Failing to do so will lead to hangs on
+    /// the code that reads from the corresponding <see cref="PipeReader"/> side of this.</param>
+    /// <param name="assetHint">Optional project and document ids to scope the search for checksums down to.  This can
+    /// save substantially on performance by avoiding having to search the full solution tree to find matching items for
     /// a particular checksum.</param>
-    ValueTask WriteAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken);
+    ValueTask WriteAssetsAsync(
+        PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken);
 }

@@ -6,8 +6,10 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.Extensions.Logging
@@ -146,6 +148,18 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
         Public Async Function GetAnnotatedRangeAsync(annotation As String) As Task(Of Graph.Range)
             Return (Await GetAnnotatedRangesAsync(annotation)).Single()
+        End Function
+
+        ''' <summary>
+        ''' Returns an LSP Range type for the text span annotated with the given name. This is distinct from returning an LSIF Range vertex, which is what <see cref="GetAnnotatedRangeAsync(String)"/> does.
+        ''' </summary>
+        Public Async Function GetAnnotatedLspRangeAsync(annotation As String) As Task(Of LSP.Range)
+            Dim annotatedDocument = _workspace.Documents.Single(Function(d) d.AnnotatedSpans.ContainsKey(annotation))
+            Dim annotatedSpan = annotatedDocument.AnnotatedSpans(annotation).Single()
+
+            Dim text = Await _workspace.CurrentSolution.GetRequiredDocument(annotatedDocument.Id).GetTextAsync()
+            Dim linePositionSpan = text.Lines.GetLinePositionSpan(annotatedSpan)
+            Return ProtocolConversions.LinePositionToRange(linePositionSpan)
         End Function
 
         Public Function GetFoldingRanges(document As Document) As LSP.FoldingRange()

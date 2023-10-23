@@ -2277,6 +2277,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_CollectionExpressionRefStructMayAllocate = 9208,
         WRN_CollectionExpressionRefStructSpreadMayAllocate = 9209,
+        ERR_CollectionExpressionImmutableArray = 9210,
+
+        ERR_InvalidExperimentalDiagID = 9211,
 
         #endregion
 

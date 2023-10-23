@@ -11,8 +11,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+#Disable Warning BC40000 ' Type or member is obsolete
 
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SerializationTests
 
         Private Sub RoundTrip(text As String, Optional expectRecursive As Boolean = True)
@@ -461,3 +462,5 @@ End Module
         End Sub
     End Class
 End Namespace
+
+#Enable Warning BC40000 ' Type or member is obsolete

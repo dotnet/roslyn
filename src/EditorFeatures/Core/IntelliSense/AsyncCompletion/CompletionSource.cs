@@ -156,19 +156,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService,
             CompletionOptions options)
         {
-            // The trigger reason guarantees that user wants a completion.
-            if (trigger.Reason is AsyncCompletionData.CompletionTriggerReason.Invoke or
-                AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
-            {
-                return true;
-            }
-
-            // Enter does not trigger completion.
-            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\n')
-            {
-                return false;
-            }
-
             //The user may be trying to invoke snippets through question-tab.
             // We may provide a completion after that.
             // Otherwise, tab should not be a completion trigger.

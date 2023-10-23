@@ -210,28 +210,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
-            // First see if the value is already in the cache, to avoid an allocation if possible.
-            if (ChecksumCache.TryGetValue(reference, out var cached))
+            return ChecksumCache.GetOrCreate(reference, static (reference, tuple) =>
             {
-                return cached;
-            }
+                var (services, cancellationToken) = tuple;
+                var serializer = services.GetRequiredService<ISerializerService>();
+                var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
-            // Break things up to the fast path above and this slow path where we allocate a closure.
-            return GetMetadataChecksumSlow(services, reference, cancellationToken);
-
-            static Checksum GetMetadataChecksumSlow(SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
-            {
-                return ChecksumCache.GetOrCreate(reference, _ =>
-                {
-                    var serializer = services.GetRequiredService<ISerializerService>();
-                    var checksum = serializer.CreateChecksum(reference, cancellationToken);
-
-                    // Include serialization format version in our checksum.  That way if the 
-                    // version ever changes, all persisted data won't match the current checksum
-                    // we expect, and we'll recompute things.
-                    return Checksum.Create(checksum, SerializationFormatChecksum);
-                });
-            }
+                // Include serialization format version in our checksum.  That way if the 
+                // version ever changes, all persisted data won't match the current checksum
+                // we expect, and we'll recompute things.
+                return Checksum.Create(checksum, SerializationFormatChecksum);
+            }, (services, cancellationToken));
         }
 
         private static string GetMetadataKeySuffix(PortableExecutableReference reference)

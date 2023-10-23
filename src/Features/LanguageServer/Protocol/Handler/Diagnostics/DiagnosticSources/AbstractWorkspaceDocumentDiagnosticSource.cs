@@ -18,8 +18,15 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
     public static AbstractWorkspaceDocumentDiagnosticSource CreateForCodeAnalysisDiagnostics(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(document, codeAnalysisService);
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) : AbstractWorkspaceDocumentDiagnosticSource(document)
+    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+        : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
+        /// <summary>
+        /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
+        /// </summary>
+        public override bool IsLiveSource()
+            => true;
+
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
@@ -45,8 +52,17 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
         }
     }
 
-    private sealed class CodeAnalysisDiagnosticSource(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) : AbstractWorkspaceDocumentDiagnosticSource(document)
+    private sealed class CodeAnalysisDiagnosticSource(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
+        : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
+        /// <summary>
+        /// This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
+        /// user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
+        /// that has been produced.
+        /// </summary>
+        public override bool IsLiveSource()
+            => false;
+
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,

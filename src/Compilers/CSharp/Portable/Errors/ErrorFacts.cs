@@ -2408,6 +2408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorGlobalNamespace:
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                case ErrorCode.ERR_CollectionExpressionImmutableArray:
+                case ErrorCode.ERR_InvalidExperimentalDiagID:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
