@@ -2714,7 +2714,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 visibilityTracker: null,
                 listenerProvider);
 
-            using var tagger = (IDisposable?)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
+            using var tagger = provider.CreateTagger(disposableView.TextView, extraBuffer);
             using (var edit = extraBuffer.CreateEdit())
             {
                 edit.Insert(0, "class A { }");
