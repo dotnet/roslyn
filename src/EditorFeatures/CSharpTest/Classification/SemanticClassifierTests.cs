@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -2691,40 +2693,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Method("nameof"));
         }
 
-        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
-        public async Task TestCreateWithBufferNotInWorkspace()
-        {
-            // don't crash
-            using var workspace = TestWorkspace.CreateCSharp("");
-            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
-
-            var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
-            var contentType = contentTypeService.GetDefaultContentType();
-            var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
-
-            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
-            using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-
-            var provider = new SemanticClassificationViewTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                workspace.GetService<ClassificationTypeMap>(),
-                globalOptions,
-                visibilityTracker: null,
-                listenerProvider);
-
-            using var tagger = provider.CreateTagger(disposableView.TextView, extraBuffer);
-            using (var edit = extraBuffer.CreateEdit())
-            {
-                edit.Insert(0, "class A { }");
-                edit.Apply();
-            }
-
-            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.ExpeditedWaitAsync();
-        }
-
         [Theory, CombinatorialData]
         public async Task Tuples(TestHost testHost)
         {
@@ -3934,6 +3902,118 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Method("M"),
                 Method("staticLocalFunction"),
                 Static("staticLocalFunction"));
+        }
+
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
+        public async Task TestCreateWithBufferNotInWorkspace()
+        {
+            // don't crash
+            using var workspace = TestWorkspace.CreateCSharp("");
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
+
+            var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
+            var contentType = contentTypeService.GetDefaultContentType();
+            var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
+
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
+            using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+            var provider = new SemanticClassificationViewTaggerProvider(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                globalOptions,
+                visibilityTracker: null,
+                listenerProvider);
+
+            using var tagger = provider.CreateTagger(disposableView.TextView, extraBuffer);
+            using (var edit = extraBuffer.CreateEdit())
+            {
+                edit.Insert(0, "class A { }");
+                edit.Apply();
+            }
+
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.ExpeditedWaitAsync();
+        }
+
+        [WpfFact]
+        public async Task TestTotalClassifier()
+        {
+            // don't crash
+            using var workspace = TestWorkspace.CreateCSharp("""
+                using System.Text.RegularExpressions;
+
+                class C
+                {
+                    // class D { }
+                    void M()
+                    {
+                        new Regex("(a)");
+                    }
+                }
+                """);
+            var document = workspace.Documents.First();
+
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+            var provider = new TotalClassificationTaggerProvider(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                globalOptions,
+                visibilityTracker: null,
+                listenerProvider);
+
+            var buffer = document.GetTextBuffer();
+            using var tagger = provider.CreateTagger(document.GetTextView(), buffer);
+
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.ExpeditedWaitAsync();
+
+            var allCode = buffer.CurrentSnapshot.GetText();
+            var tags = tagger!.GetTags(new NormalizedSnapshotSpanCollection(buffer.CurrentSnapshot.GetFullSpan()));
+
+            var actualOrdered = tags.OrderBy((t1, t2) => t1.Span.Span.Start - t2.Span.Span.Start);
+
+            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.Span.Span.Start, a.Span.Span.Length), a.Tag.ClassificationType.Classification));
+
+            AssertEx.Equal(new[]
+            {
+                Keyword("using"),
+                Namespace("System"),
+                Identifier("System"),
+                Operators.Dot,
+                Namespace("Text"),
+                Identifier("Text"),
+                Operators.Dot,
+                Namespace("RegularExpressions"),
+                Identifier("RegularExpressions"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("// class D { }"),
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("new"),
+                Class("Regex"),
+                Identifier("Regex"),
+                Punctuation.OpenParen,
+                String("\""),
+                Regex.Grouping("("),
+                Regex.Text("a"),
+                Regex.Grouping(")"),
+                String("\""),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+            }, actualFormatted);
         }
     }
 }

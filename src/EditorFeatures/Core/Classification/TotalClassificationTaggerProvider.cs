@@ -39,7 +39,19 @@ internal sealed class TotalClassificationTaggerProvider(
     private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
     private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
 
-    public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+    ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
+    {
+        var tagger = CreateTagger(textView, buffer);
+        if (tagger is not ITagger<T> typedTagger)
+        {
+            tagger?.Dispose();
+            return null;
+        }
+
+        return typedTagger;
+    }
+
+    public TotalClassificationAggregateTagger? CreateTagger(ITextView textView, ITextBuffer buffer)
     {
         var syntacticTagger = _syntacticTaggerProvider.CreateTagger(buffer);
         var semanticTagger = _semanticTaggerProvider.CreateTagger(textView, buffer);
@@ -53,17 +65,10 @@ internal sealed class TotalClassificationTaggerProvider(
             return null;
         }
 
-        var finalTagger = new TotalClassificationAggregateTagger(syntacticTagger, semanticTagger, embeddedTagger);
-        if (finalTagger is not ITagger<T> typedTagger)
-        {
-            finalTagger.Dispose();
-            return null;
-        }
-
-        return typedTagger;
+        return new TotalClassificationAggregateTagger(syntacticTagger, semanticTagger, embeddedTagger);
     }
 
-    private sealed class TotalClassificationAggregateTagger(
+    internal sealed class TotalClassificationAggregateTagger(
         SyntacticClassificationTaggerProvider.Tagger syntacticTagger,
         SimpleAggregateTagger<IClassificationTag> semanticTagger,
         SimpleAggregateTagger<IClassificationTag> embeddedTagger)
