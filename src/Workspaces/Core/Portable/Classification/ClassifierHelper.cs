@@ -211,9 +211,6 @@ namespace Microsoft.CodeAnalysis.Classification
             Func<TClassifiedSpan, TextSpan, TClassifiedSpan> createSpan)
             where TClassifiedSpanIntervalIntrospector : struct, IIntervalIntrospector<TClassifiedSpan>
         {
-            Debug.Assert(syntaxParts.IsSorted());
-            Debug.Assert(semanticParts.IsSorted());
-
             // Create an interval tree so we can easily determine which semantic parts intersect with the 
             // syntactic parts we're looking at.
             var semanticPartsTree = new SimpleIntervalTree<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(default, values: null);
