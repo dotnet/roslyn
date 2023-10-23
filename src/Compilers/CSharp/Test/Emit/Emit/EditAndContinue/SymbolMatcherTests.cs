@@ -1660,7 +1660,7 @@ class C
             var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
 
             AssertEx.SetEqual(new[]
-           {
+            {
                 "(3,2): <>f__AnonymousDelegate0<T1, T2, TResult>",
                 "(0,2): <>f__AnonymousDelegate1",
                 "(0,2): <>f__AnonymousDelegate2"
