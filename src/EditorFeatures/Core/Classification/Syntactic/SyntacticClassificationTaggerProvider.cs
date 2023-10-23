@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Classification
     [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     internal partial class SyntacticClassificationTaggerProvider(
         IThreadingContext threadingContext,
-        SyntacticClassificationTypeMap typeMap,
+        ClassificationTypeMap typeMap,
         IGlobalOptionService globalOptions,
         IAsynchronousOperationListenerProvider listenerProvider) : ITaggerProvider
     {
         private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
         private readonly IThreadingContext _threadingContext = threadingContext;
-        private readonly SyntacticClassificationTypeMap _typeMap = typeMap;
+        private readonly ClassificationTypeMap _typeMap = typeMap;
         private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new();
