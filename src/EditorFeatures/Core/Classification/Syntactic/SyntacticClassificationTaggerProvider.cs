@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -13,9 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -32,7 +27,19 @@ namespace Microsoft.CodeAnalysis.Classification
 
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new();
 
-        public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+        {
+            var tagger = CreateTagger(buffer);
+
+            if (tagger is ITagger<T> typedTagger)
+                return typedTagger;
+
+            // Oops, we can't actually return this tagger, so just clean up
+            tagger?.Dispose();
+            return null;
+        }
+
+        public Tagger? CreateTagger(ITextBuffer buffer)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             if (!_globalOptions.GetOption(SyntacticColorizerOptionsStorage.SyntacticColorizer))
@@ -47,13 +54,7 @@ namespace Microsoft.CodeAnalysis.Classification
             tagComputer.IncrementReferenceCount();
 
             var tagger = new Tagger(tagComputer);
-
-            if (tagger is ITagger<T> typedTagger)
-                return typedTagger;
-
-            // Oops, we can't actually return this tagger, so just clean up
-            tagger.Dispose();
-            return null;
+            return tagger;
         }
 
         private void DisconnectTagComputer(ITextBuffer buffer)

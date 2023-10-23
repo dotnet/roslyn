@@ -42,19 +42,19 @@ internal sealed class TotalClassificationTaggerProvider(
 
     public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
     {
-        var syntacticTagger = _syntacticTaggerProvider.CreateTagger<T>(buffer);
+        var syntacticTagger = _syntacticTaggerProvider.CreateTagger(buffer);
         var semanticTagger = _semanticTaggerProvider.CreateTagger(textView, buffer);
         var embeddedTagger = _embeddedTaggerProvider.CreateTagger(textView, buffer);
 
-        if (syntacticTagger is not ITagger<IClassificationTag> typedSyntacticTagger)
+        if (syntacticTagger is null || semanticTagger is null || embeddedTagger is null)
         {
-            (syntacticTagger as IDisposable)?.Dispose();
-            semanticTagger.Dispose();
-            embeddedTagger.Dispose();
+            syntacticTagger?.Dispose();
+            semanticTagger?.Dispose();
+            embeddedTagger?.Dispose();
             return null;
         }
 
-        var finalTagger = new TotalClassificationAggregateTagger(typedSyntacticTagger, semanticTagger, embeddedTagger);
+        var finalTagger = new TotalClassificationAggregateTagger(syntacticTagger, semanticTagger, embeddedTagger);
         if (finalTagger is not ITagger<T> typedTagger)
         {
             finalTagger.Dispose();
@@ -65,10 +65,10 @@ internal sealed class TotalClassificationTaggerProvider(
     }
 
     private sealed class TotalClassificationAggregateTagger(
-        ITagger<IClassificationTag> syntacticTagger,
+        SyntacticClassificationTaggerProvider.Tagger syntacticTagger,
         SimpleAggregateTagger<IClassificationTag> semanticTagger,
         SimpleAggregateTagger<IClassificationTag> embeddedTagger)
-        : AbstractAggregateTagger<IClassificationTag>(ImmutableArray.Create(syntacticTagger, semanticTagger, embeddedTagger))
+        : AbstractAggregateTagger<IClassificationTag>(ImmutableArray.Create<ITagger<IClassificationTag>>(syntacticTagger, semanticTagger, embeddedTagger))
     {
         private static readonly Comparison<ITagSpan<IClassificationTag>> s_spanComparison = static (s1, s2) => s1.Span.Start - s2.Span.Start;
 
@@ -199,13 +199,10 @@ internal sealed class TotalClassificationTaggerProvider(
                     static tag => tag.Span.Span.ToTextSpan(),
                     static (original, final) => new TagSpan<IClassificationTag>(new SnapshotSpan(original.Span.Snapshot, final.ToSpan()), original.Tag));
             }
+
+            static ITagSpan<IClassificationTag>? NextOrNull(SegmentedList<ITagSpan<IClassificationTag>>.Enumerator enumerator)
+                => enumerator.MoveNext() ? enumerator.Current : null;
         }
-
-        private static ITagSpan<IClassificationTag>? NextOrNull(IEnumerator<ITagSpan<IClassificationTag>> enumerator)
-            => enumerator.MoveNext() ? enumerator.Current : null;
-
-        private static ITagSpan<IClassificationTag>? NextOrNull(SegmentedList<ITagSpan<IClassificationTag>>.Enumerator enumerator)
-            => enumerator.MoveNext() ? enumerator.Current : null;
     }
 
     private readonly struct ClassificationTagSpanIntervalIntrospector : IIntervalIntrospector<ITagSpan<IClassificationTag>>
