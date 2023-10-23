@@ -279,10 +279,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // The lexer ensures that the token only ends in valid suffixes; invalid suffix characters are part of a different token.
 
             // § 6.4.5.3: '0x' and '0b' mean it must be an integer literal, so we can disregard the floating-point suffixes.
-            var allowRealTypeSuffixes = !IsHexOrBinaryInteger(tokenText);
+            var isDefinitelyIntegerLiteral = IsHexOrBinaryInteger(tokenText);
 
             suffixLength = 0;
-            for (var i = tokenText.Length - 1; i >= 0 && IsValidSuffixCharacter(tokenText[i], allowRealTypeSuffixes); i--)
+            for (var i = tokenText.Length - 1; i >= 0 && IsValidSuffixCharacter(tokenText[i], !isDefinitelyIntegerLiteral); i--)
             {
                 suffixLength++;
             }
