@@ -10,12 +10,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -26,25 +27,18 @@ namespace Microsoft.CodeAnalysis.Classification;
 [Export(typeof(IViewTaggerProvider))]
 [TagType(typeof(IClassificationTag))]
 [Microsoft.VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
-internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class TotalClassificationTaggerProvider(
+    IThreadingContext threadingContext,
+    ClassificationTypeMap typeMap,
+    IGlobalOptionService globalOptions,
+    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+    IAsynchronousOperationListenerProvider listenerProvider) : IViewTaggerProvider
 {
-    private readonly SyntacticClassificationTaggerProvider _syntacticTaggerProvider;
-    private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider;
-    private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider;
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public TotalClassificationTaggerProvider(
-        IThreadingContext threadingContext,
-        ClassificationTypeMap typeMap,
-        IGlobalOptionService globalOptions,
-        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider)
-    {
-        _syntacticTaggerProvider = new(threadingContext, typeMap, globalOptions, listenerProvider);
-        _semanticTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
-        _embeddedTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
-    }
+    private readonly SyntacticClassificationTaggerProvider _syntacticTaggerProvider = new(threadingContext, typeMap, globalOptions, listenerProvider);
+    private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
+    private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
 
     public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
     {
@@ -78,7 +72,7 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
     {
         private static readonly Comparison<ITagSpan<IClassificationTag>> s_spanComparison = static (s1, s2) => s1.Span.Start - s2.Span.Start;
 
-        public override IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        public override SegmentedList<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             // First, get all the syntactic tags.  While they are generally overridden by semantic tags (since semantics
             // allows us to understand better what things like identifiers mean), they do take precedence for certain
@@ -193,9 +187,20 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
                 if (embeddedClassifications.Count == 0)
                     return;
 
-
+                // ClassifierHelper.MergeParts requires these to be sorted.
+                stringLiterals.Sort(s_spanComparison);
                 embeddedClassifications.Sort(s_spanComparison);
-                ClassifierHelper.me
+
+                // Call into the helper to merge the string literals and embedded classifications into the final result.
+                // The helper will add all the embedded classifications first, then add string literal classifications
+                // in the the space between the embedded classifications that were originally classified as a string
+                // literal.
+                ClassifierHelper.MergeParts<ITagSpan<IClassificationTag>, ClassificationTagSpanIntervalIntrospector>(
+                    stringLiterals,
+                    embeddedClassifications,
+                    totalTags,
+                    static tag => tag.Span.Span.ToTextSpan(),
+                    static (original, final) => new TagSpan<IClassificationTag>(new SnapshotSpan(original.Span.Snapshot, final.ToSpan()), original.Tag));
             }
         }
 
@@ -204,5 +209,14 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
 
         private static ITagSpan<IClassificationTag>? NextOrNull(SegmentedList<ITagSpan<IClassificationTag>>.Enumerator enumerator)
             => enumerator.MoveNext() ? enumerator.Current : null;
+    }
+
+    private readonly struct ClassificationTagSpanIntervalIntrospector : IIntervalIntrospector<ITagSpan<IClassificationTag>>
+    {
+        public int GetStart(ITagSpan<IClassificationTag> value)
+            => value.Span.Start;
+
+        public int GetLength(ITagSpan<IClassificationTag> value)
+            => value.Span.Length;
     }
 }

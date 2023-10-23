@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -191,8 +192,7 @@ namespace Microsoft.CodeAnalysis.Classification
             MergeParts<ClassifiedSpan, ClassifiedSpanIntervalIntrospector>(
                 syntaxParts, semanticParts, finalParts,
                 static span => span.TextSpan,
-                static span => span.ClassificationType,
-                static (type, span) => new ClassifiedSpan(type, span));
+                static (original, final) => new ClassifiedSpan(original.ClassificationType, final));
 
             // now that we've added all semantic parts and syntactic-portions, sort the final result.
             finalParts.Sort(s_spanComparison);
@@ -200,17 +200,20 @@ namespace Microsoft.CodeAnalysis.Classification
 
         /// <summary>
         /// Adds all semantic parts to final parts, and adds all portions of <paramref name="syntaxParts"/> that do not
-        /// overlap with any semantic parts as well.  All final parts will be non-empty.
+        /// overlap with any semantic parts as well.  All final parts will be non-empty.  Both <paramref
+        /// name="syntaxParts"/> and <paramref name="semanticParts"/> must be sorted.
         /// </summary>
         public static void MergeParts<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(
             SegmentedList<TClassifiedSpan> syntaxParts,
             SegmentedList<TClassifiedSpan> semanticParts,
             SegmentedList<TClassifiedSpan> finalParts,
             Func<TClassifiedSpan, TextSpan> getSpan,
-            Func<TClassifiedSpan, string> getType,
-            Func<string, TextSpan, TClassifiedSpan> createSpan)
+            Func<TClassifiedSpan, TextSpan, TClassifiedSpan> createSpan)
             where TClassifiedSpanIntervalIntrospector : struct, IIntervalIntrospector<TClassifiedSpan>
         {
+            Debug.Assert(syntaxParts.IsSorted());
+            Debug.Assert(semanticParts.IsSorted());
+
             // Create an interval tree so we can easily determine which semantic parts intersect with the 
             // syntactic parts we're looking at.
             var semanticPartsTree = new SimpleIntervalTree<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(default, values: null);
@@ -231,7 +234,6 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 // ignore empty parts.
                 var syntacticPartSpan = getSpan(syntacticPart);
-                var syntacticPartType = getType(syntacticPart);
                 if (syntacticPartSpan.IsEmpty)
                     continue;
 
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 if (syntacticPartSpan.Start < firstSemanticPartSpan.Start)
                 {
-                    finalParts.Add(createSpan(syntacticPartType, TextSpan.FromBounds(
+                    finalParts.Add(createSpan(syntacticPart, TextSpan.FromBounds(
                         syntacticPartSpan.Start,
                         firstSemanticPartSpan.Start)));
                 }
@@ -280,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                     if (semanticPart1Span.End < semanticPart2Span.Start)
                     {
-                        finalParts.Add(createSpan(syntacticPartType, TextSpan.FromBounds(
+                        finalParts.Add(createSpan(syntacticPart, TextSpan.FromBounds(
                             semanticPart1Span.End,
                             semanticPart2Span.Start)));
                     }
@@ -288,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 if (lastSemanticPartSpan.End < syntacticPartSpan.End)
                 {
-                    finalParts.Add(createSpan(syntacticPartType, TextSpan.FromBounds(
+                    finalParts.Add(createSpan(syntacticPart, TextSpan.FromBounds(
                         lastSemanticPartSpan.End,
                         syntacticPartSpan.End)));
                 }
