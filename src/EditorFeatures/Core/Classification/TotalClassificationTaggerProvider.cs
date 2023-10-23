@@ -82,11 +82,17 @@ internal sealed class TotalClassificationTaggerProvider(
 
             using var _ = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var stringLiterals);
 
-            var syntacticSpans = syntacticTagger.GetTags(spans).GetEnumerator();
-            var semanticSpans = semanticTagger.GetTags(spans).GetEnumerator();
+            var syntacticSpans = syntacticTagger.GetTags(spans);
+            var semanticSpans = semanticTagger.GetTags(spans);
 
-            var currentSyntactic = NextOrNull(ref syntacticSpans);
-            var currentSemantic = NextOrNull(ref semanticSpans);
+            syntacticSpans.Sort(s_spanComparison);
+            semanticSpans.Sort(s_spanComparison);
+
+            var syntacticEnumerator = syntacticSpans.GetEnumerator();
+            var semanticEnumerator = semanticSpans.GetEnumerator();
+
+            var currentSyntactic = GetNextSyntacticSpan();
+            var currentSemantic = GetNextSemanticSpan();
 
             while (currentSyntactic != null && currentSemantic != null)
             {
@@ -94,7 +100,7 @@ internal sealed class TotalClassificationTaggerProvider(
                 if (currentSemantic.Span.Start <= currentSyntactic.Span.Start)
                 {
                     totalTags.Add(currentSemantic);
-                    currentSemantic = NextOrNull(ref semanticSpans);
+                    currentSemantic = GetNextSemanticSpan();
                 }
                 else
                 {
@@ -114,7 +120,7 @@ internal sealed class TotalClassificationTaggerProvider(
 
                     // Normal case.  Just add the syntactic span and continue.
                     totalTags.Add(currentSyntactic);
-                    currentSyntactic = NextOrNull(ref syntacticSpans);
+                    currentSyntactic = GetNextSyntacticSpan();
                 }
             }
 
@@ -122,7 +128,7 @@ internal sealed class TotalClassificationTaggerProvider(
             while (currentSemantic != null)
             {
                 totalTags.Add(currentSemantic);
-                currentSemantic = NextOrNull(ref semanticSpans);
+                currentSemantic = GetNextSemanticSpan();
             }
 
             // Add any remaining syntactic spans following the semantic ones.
@@ -133,7 +139,7 @@ internal sealed class TotalClassificationTaggerProvider(
                     continue;
 
                 totalTags.Add(currentSyntactic);
-                currentSyntactic = NextOrNull(ref syntacticSpans);
+                currentSyntactic = GetNextSyntacticSpan();
             }
 
             // We've added almost all the syntactic and semantic tags (properly skipping any semantic tags that are
@@ -150,7 +156,7 @@ internal sealed class TotalClassificationTaggerProvider(
                     return false;
 
                 stringLiterals.Add(currentSyntactic);
-                currentSyntactic = NextOrNull(ref syntacticSpans);
+                currentSyntactic = GetNextSyntacticSpan();
                 return true;
             }
 
@@ -161,11 +167,11 @@ internal sealed class TotalClassificationTaggerProvider(
 
                 // Keep skipping semantic tags that overlaps with this syntactic tag.
                 while (currentSemantic != null && currentSemantic.Span.OverlapsWith(currentSyntactic.Span.Span))
-                    currentSemantic = NextOrNull(ref semanticSpans);
+                    currentSemantic = GetNextSemanticSpan();
 
                 // now add that syntactic span.
                 totalTags.Add(currentSyntactic);
-                currentSyntactic = NextOrNull(ref syntacticSpans);
+                currentSyntactic = GetNextSyntacticSpan();
 
                 return true;
             }
@@ -200,8 +206,11 @@ internal sealed class TotalClassificationTaggerProvider(
                     static (original, final) => new TagSpan<IClassificationTag>(new SnapshotSpan(original.Span.Snapshot, final.ToSpan()), original.Tag));
             }
 
-            static ITagSpan<IClassificationTag>? NextOrNull(ref SegmentedList<ITagSpan<IClassificationTag>>.Enumerator enumerator)
-                => enumerator.MoveNext() ? enumerator.Current : null;
+            ITagSpan<IClassificationTag>? GetNextSyntacticSpan()
+                => syntacticEnumerator.MoveNext() ? syntacticEnumerator.Current : null;
+
+            ITagSpan<IClassificationTag>? GetNextSemanticSpan()
+                => semanticEnumerator.MoveNext() ? semanticEnumerator.Current : null;
         }
     }
 
