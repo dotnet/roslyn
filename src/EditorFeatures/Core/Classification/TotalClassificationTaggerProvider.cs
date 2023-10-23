@@ -86,9 +86,6 @@ internal sealed class TotalClassificationTaggerProvider(
             var syntacticSpans = syntacticTagger.GetTags(spans).GetEnumerator();
             var semanticSpans = semanticTagger.GetTags(spans).GetEnumerator();
 
-            //var syntacticIntervalTree = SimpleIntervalTree.Create(TagSpanIntrospector.Instance, syntacticTagger.GetTags(spans));
-            //var semanticIntervalTree = SimpleIntervalTree.Create(TagSpanIntrospector.Instance, semanticTagger.GetTags(spans));
-
             var currentSyntactic = NextOrNull(syntacticSpans);
             var currentSemantic = NextOrNull(semanticSpans);
 
