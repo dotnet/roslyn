@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -56,6 +57,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public abstract SyntaxNode GetContainingScope();
         public abstract ITypeSymbol GetContainingScopeType();
+        public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
+
+        public abstract bool IsExtractMethodOnSingleStatement();
+        public abstract bool IsExtractMethodOnMultipleStatements();
 
         public OperationStatus Status { get; }
         public TextSpan OriginalSpan { get; }

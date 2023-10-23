@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypedConstant[]? lazyConstructorArguments = null;
                 KeyValuePair<string, TypedConstant>[]? lazyNamedArguments = null;
 
-                if (!_decoder.GetCustomAttribute(_handle, out lazyConstructorArguments, out lazyNamedArguments))
+                if (!_decoder.GetCustomAttribute(_handle, AttributeConstructor, out lazyConstructorArguments, out lazyNamedArguments))
                 {
                     _lazyHasErrors = ThreeState.True;
                 }

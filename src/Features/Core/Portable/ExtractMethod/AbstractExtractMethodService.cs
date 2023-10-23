@@ -30,16 +30,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             var selectionResult = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
             if (!selectionResult.ContainsValidContext)
-            {
-                return new FailedExtractMethodResult(selectionResult.Status);
-            }
+                return ExtractMethodResult.Fail(selectionResult.Status);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // extract method
             var extractor = CreateMethodExtractor((TResult)selectionResult, options, localFunction);
-
-            return await extractor.ExtractMethodAsync(cancellationToken).ConfigureAwait(false);
+            return extractor.ExtractMethod(cancellationToken);
         }
     }
 }

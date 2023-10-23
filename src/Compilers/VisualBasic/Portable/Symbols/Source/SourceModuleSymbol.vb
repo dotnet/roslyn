@@ -775,43 +775,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Continue For
                 End If
 
-                Dim hasGuidAttribute = False
-                Dim hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = False
-
-                For Each attrData In assembly.GetAttributes()
-                    If attrData.IsTargetAttribute(assembly, AttributeDescription.GuidAttribute) Then
-                        If attrData.CommonConstructorArguments.Length = 1 Then
-                            Dim value = attrData.CommonConstructorArguments(0).ValueInternal
-                            If value Is Nothing OrElse TypeOf value Is String Then
-                                hasGuidAttribute = True
-                            End If
-                        End If
-
-                    ElseIf attrData.IsTargetAttribute(assembly, AttributeDescription.ImportedFromTypeLibAttribute) Then
-                        If attrData.CommonConstructorArguments.Length = 1 Then
-                            hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = True
-                        End If
-
-                    ElseIf attrData.IsTargetAttribute(assembly, AttributeDescription.PrimaryInteropAssemblyAttribute) Then
-                        If attrData.CommonConstructorArguments.Length = 2 Then
-                            hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = True
-                        End If
-
-                    End If
-
-                    If hasGuidAttribute AndAlso hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute Then
-                        Exit For
-                    End If
-                Next
-
-                If Not hasGuidAttribute Then
+                If Not assembly.GetGuidString(Nothing) Then
                     diagnostics.Add(ERRID.ERR_PIAHasNoAssemblyGuid1,
                                     NoLocation.Singleton,
                                     assembly,
                                     AttributeDescription.GuidAttribute.FullName)
                 End If
 
-                If Not hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute Then
+                If Not assembly.HasImportedFromTypeLibAttribute AndAlso Not assembly.HasPrimaryInteropAssemblyAttribute Then
                     diagnostics.Add(ERRID.ERR_PIAHasNoTypeLibAttribute1,
                                     NoLocation.Singleton,
                                     assembly,

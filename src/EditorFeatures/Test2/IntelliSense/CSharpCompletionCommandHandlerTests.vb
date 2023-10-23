@@ -12012,6 +12012,32 @@ void M()
             End Using
         End Function
 
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/razor/issues/9377")>
+        Public Async Function TriggerOnTypingShouldNotAffectExplicitInvoke() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.CSharp, False)
+
+                ' TriggerOnTyping should not block explicit trigger
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("M", "")
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("M")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
         Public Async Function AccessStaticMembersOffOfColorColor1(showCompletionInArgumentLists As Boolean) As Task

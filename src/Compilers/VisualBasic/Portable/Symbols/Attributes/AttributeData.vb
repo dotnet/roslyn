@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                       CType(ctorArgument.DecodeValue(Of Short)(SpecialType.System_Int16), Cci.TypeLibTypeFlags))
         End Function
 
-        Friend Sub DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
+        Friend Function DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag) As String
             Debug.Assert(Not Me.HasErrors)
 
             Dim guidString As String = Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)
@@ -500,8 +500,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Not Guid.TryParseExact(guidString, "D", guidVal) Then
                 Dim location As Location = GetFirstArgumentLocation(nodeOpt)
                 diagnostics.Add(ERRID.ERR_BadAttributeUuid2, location, Me.AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
+                guidString = String.Empty
             End If
-        End Sub
+
+            Return guidString
+        End Function
 
         Friend Function DecodeDefaultMemberAttribute() As String
             Debug.Assert(Not Me.HasErrors)

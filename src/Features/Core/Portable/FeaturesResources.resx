@@ -168,9 +168,6 @@
   <data name="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface" xml:space="preserve">
     <value>Could not extract interface: The type does not contain any member that can be extracted to an interface.</value>
   </data>
-  <data name="can_t_not_construct_final_tree" xml:space="preserve">
-    <value>can't not construct final tree</value>
-  </data>
   <data name="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket" xml:space="preserve">
     <value>Parameters' type or return type cannot be an anonymous type : [{0}]</value>
   </data>

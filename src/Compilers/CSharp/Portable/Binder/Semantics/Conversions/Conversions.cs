@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
 
             bool isCompatibleIEnumerableT(NamedTypeSymbol targetInterface, NamedTypeSymbol ienumerableType,
-                ImmutableArray<BoundExpression> elements, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                ImmutableArray<BoundNode> elements, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(ienumerableType.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
                 if (!ReferenceEquals(targetInterface.OriginalDefinition, ienumerableType))
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return elementsCanAllConvert(elements, targetElementType.Type, ref useSiteInfo);
             }
 
-            bool elementsCanAllConvert(ImmutableArray<BoundExpression> elements, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            bool elementsCanAllConvert(ImmutableArray<BoundNode> elements, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 foreach (var element in elements)
                 {
@@ -240,12 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            Conversion convertElement(BoundExpression element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 return element switch
                 {
                     BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                    _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
+                    _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
                 };
             }
         }
