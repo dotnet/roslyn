@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ' During the computation we can explicitly dismiss the session or we can return no items.
             ' Each of these conditions mean that there is no active completion.
-            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, $"AssertNoCompletionSession, session.IsDismissed:{ session.IsDismissed }, completionItems.Items.Count(): {completionItems.Items.Count()}")
+            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
         End Function
 
         Public Sub AssertNoCompletionSessionWithNoBlock()
