@@ -3941,7 +3941,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [WpfFact]
         public async Task TestTotalClassifier()
         {
-            // don't crash
             using var workspace = TestWorkspace.CreateCSharp("""
                 using System.Text.RegularExpressions;
 
