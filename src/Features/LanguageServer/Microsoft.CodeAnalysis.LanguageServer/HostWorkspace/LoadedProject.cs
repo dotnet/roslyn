@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
@@ -106,6 +107,7 @@ internal sealed class LoadedProject : IDisposable
         }
 
         _optionsProcessor.SetCommandLine(newProjectInfo.CommandLineArgs);
+        var commandLineArguments = _optionsProcessor.GetParsedCommandLineArguments();
 
         UpdateProjectSystemProjectCollection(
             newProjectInfo.Documents,
@@ -115,7 +117,18 @@ internal sealed class LoadedProject : IDisposable
             document => _projectSystemProject.RemoveSourceFile(document.FilePath),
             "Project {0} now has {1} source file(s).");
 
-        var metadataReferences = _optionsProcessor.GetParsedCommandLineArguments().MetadataReferences;
+        var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
+        var metadataReferences = commandLineArguments.MetadataReferences.Select(cr =>
+        {
+            // The relative path resolver calls File.Exists() to see if the path doesn't exist; it guarantees that generally the path returned
+            // is to an actual file on disk. And it needs to call File.Exists() in some cases if there are reference paths to have to search. But as a fallback
+            // we'll accept the resolved path since in the common case it's a file that just might not exist on disk yet.
+            var absolutePath =
+                relativePathResolver.ResolvePath(cr.Reference, baseFilePath: null) ??
+                FileUtilities.ResolveRelativePath(cr.Reference, commandLineArguments.BaseDirectory);
+
+            return absolutePath is not null ? new CommandLineReference(absolutePath, cr.Properties) : default;
+        }).Where(static cr => cr.Reference is not null).ToImmutableArray();
 
         UpdateProjectSystemProjectCollection(
             metadataReferences,
@@ -128,7 +141,12 @@ internal sealed class LoadedProject : IDisposable
         // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
         _mostRecentMetadataReferences = metadataReferences;
 
-        var analyzerReferences = _optionsProcessor.GetParsedCommandLineArguments().AnalyzerReferences;
+        var analyzerReferences = commandLineArguments.AnalyzerReferences.Select(cr =>
+        {
+            // Note that unlike regular references, we do not resolve these with the relative path resolver that searches reference paths
+            var absolutePath = FileUtilities.ResolveRelativePath(cr.FilePath, commandLineArguments.BaseDirectory);
+            return absolutePath is not null ? new CommandLineAnalyzerReference(absolutePath) : default;
+        }).Where(static cr => cr.FilePath is not null).ToImmutableArray();
 
         UpdateProjectSystemProjectCollection(
             analyzerReferences,
