@@ -866,23 +866,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
                 {
-                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, computeObsoleteAttributeData(), ObsoleteAttributeData.Uninitialized);
+                    var experimentalData = _module.TryDecodeExperimentalAttributeData(Token, new MetadataDecoder(this));
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized);
                 }
 
                 return _lazyObsoleteAttributeData;
-
-                ObsoleteAttributeData? computeObsoleteAttributeData()
-                {
-                    foreach (var attrData in GetAttributes())
-                    {
-                        if (attrData.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
-                        {
-                            return attrData.DecodeExperimentalAttribute();
-                        }
-                    }
-
-                    return null;
-                }
             }
         }
     }

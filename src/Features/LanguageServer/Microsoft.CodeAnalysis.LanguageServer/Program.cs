@@ -235,7 +235,10 @@ static (string clientPipe, string serverPipe) CreateNewPipeNames()
     const string WINDOWS_NODJS_PREFIX = @"\\.\pipe\";
     const string WINDOWS_DOTNET_PREFIX = @"\\.\";
 
-    var pipeName = Guid.NewGuid().ToString();
+    // The pipe name constructed by some systems is very long (due to temp path).
+    // Shorten the unique id for the pipe. 
+    var newGuid = Guid.NewGuid().ToString();
+    var pipeName = newGuid.Split('-')[0];
 
     return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         ? (WINDOWS_NODJS_PREFIX + pipeName, WINDOWS_DOTNET_PREFIX + pipeName)
