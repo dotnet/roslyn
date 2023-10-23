@@ -19,12 +19,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    [Export(typeof(ITaggerProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
-    [TagType(typeof(IClassificationTag))]
-    [method: ImportingConstructor]
-    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     internal partial class SyntacticClassificationTaggerProvider(
         IThreadingContext threadingContext,
         ClassificationTypeMap typeMap,

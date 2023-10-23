@@ -19,11 +19,6 @@ namespace Microsoft.CodeAnalysis.Classification
     /// in the editor.  We use a view tagger so that we can only classify what's in view, and not
     /// the whole file.
     /// </summary>
-    [Export(typeof(IViewTaggerProvider))]
-    [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [method: ImportingConstructor]
-    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     internal partial class SemanticClassificationViewTaggerProvider(
         IThreadingContext threadingContext,
         ClassificationTypeMap typeMap,

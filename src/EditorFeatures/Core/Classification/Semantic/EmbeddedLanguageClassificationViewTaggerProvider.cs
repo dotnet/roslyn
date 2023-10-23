@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.Classification
     /// <summary>
     /// This is the tagger we use for classifying the embedded language string literals currently visible in the editor view.
     /// </summary>
-    [Export(typeof(IViewTaggerProvider))]
-    [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [method: ImportingConstructor]
-    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     internal partial class EmbeddedLanguageClassificationViewTaggerProvider(
         IThreadingContext threadingContext,
         ClassificationTypeMap typeMap,
