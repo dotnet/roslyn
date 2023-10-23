@@ -3347,6 +3347,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: "(System.Object[]) [one, null], 3, (System.Object[]) [one, null, three], 5, ");
         }
 
+        [Fact]
+        public void Spread_String()
+        {
+            string source = """
+                class Program
+                {
+                    static char[] GetChars() => [.."abcd"];
+                    static void Main()
+                    {
+                        GetChars().Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: IncludeExpectedOutput("[a, b, c, d], "));
+            verifier.VerifyIL("Program.GetChars", """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                char[] V_1,
+                                System.CharEnumerator V_2,
+                                char V_3)
+                  IL_0000:  ldstr      "abcd"
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  stloc.0
+                  IL_0007:  dup
+                  IL_0008:  callvirt   "int string.Length.get"
+                  IL_000d:  newarr     "char"
+                  IL_0012:  stloc.1
+                  IL_0013:  callvirt   "System.CharEnumerator string.GetEnumerator()"
+                  IL_0018:  stloc.2
+                  .try
+                  {
+                    IL_0019:  br.s       IL_002a
+                    IL_001b:  ldloc.2
+                    IL_001c:  callvirt   "char System.CharEnumerator.Current.get"
+                    IL_0021:  stloc.3
+                    IL_0022:  ldloc.1
+                    IL_0023:  ldloc.0
+                    IL_0024:  ldloc.3
+                    IL_0025:  stelem.i2
+                    IL_0026:  ldloc.0
+                    IL_0027:  ldc.i4.1
+                    IL_0028:  add
+                    IL_0029:  stloc.0
+                    IL_002a:  ldloc.2
+                    IL_002b:  callvirt   "bool System.CharEnumerator.MoveNext()"
+                    IL_0030:  brtrue.s   IL_001b
+                    IL_0032:  leave.s    IL_003e
+                  }
+                  finally
+                  {
+                    IL_0034:  ldloc.2
+                    IL_0035:  brfalse.s  IL_003d
+                    IL_0037:  ldloc.2
+                    IL_0038:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003d:  endfinally
+                  }
+                  IL_003e:  ldloc.1
+                  IL_003f:  ret
+                }
+                """);
+        }
+
         [CombinatorialData]
         [Theory]
         public void Spread_RefEnumerable(bool useCompilationReference)
@@ -19443,6 +19509,100 @@ partial class Program
                     IL_0006:  newobj     "System.ReadOnlySpan<E>..ctor(void*, int)"
                     IL_000b:  call       "MyCollection<E> MyCollectionBuilder.Create<E>(System.ReadOnlySpan<E>)"
                     IL_0010:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ReadOnlySpan_Constant_01()
+        {
+            string source = """
+                using System;
+                class  Program
+                {
+                    static void Main()
+                    {
+                        const int x = 3;
+                        Report([1, 2, x]);
+                    }
+                    static void Report<T>(ReadOnlySpan<T> s)
+                    {
+                        s.ToArray().Report(includeType: true);
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: IncludeExpectedOutput("""
+                    (System.Int32[]) [1, 2, 3], 
+                    """));
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_000a:  call       "void Program.Report<int>(System.ReadOnlySpan<int>)"
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ReadOnlySpan_Constant_02()
+        {
+            string source = """
+                using System;
+                class  Program
+                {
+                    static void Main()
+                    {
+                        Report([null, null, "a" + "b"]);
+                    }
+                    static void Report<T>(ReadOnlySpan<T> s)
+                    {
+                        s.ToArray().Report(includeType: true);
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Fails,
+                expectedOutput: IncludeExpectedOutput("""
+                    (System.String[]) [null, null, ab], 
+                    """));
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray3<string> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray3<string>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<string>, string>(ref <>y__InlineArray3<string>, int)"
+                  IL_0010:  ldnull
+                  IL_0011:  stind.ref
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  ldc.i4.1
+                  IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray3<string>, string>(ref <>y__InlineArray3<string>, int)"
+                  IL_001a:  ldnull
+                  IL_001b:  stind.ref
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldc.i4.2
+                  IL_001f:  call       "InlineArrayElementRef<<>y__InlineArray3<string>, string>(ref <>y__InlineArray3<string>, int)"
+                  IL_0024:  ldstr      "ab"
+                  IL_0029:  stind.ref
+                  IL_002a:  ldloca.s   V_0
+                  IL_002c:  ldc.i4.3
+                  IL_002d:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<string>, string>(in <>y__InlineArray3<string>, int)"
+                  IL_0032:  call       "void Program.Report<string>(System.ReadOnlySpan<string>)"
+                  IL_0037:  ret
                 }
                 """);
         }

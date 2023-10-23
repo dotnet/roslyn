@@ -1847,10 +1847,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnsafeGetSpecialTypeMethod(syntax, member, compilation, diagnostics).AsMember(nullableType2);
         }
 
-        private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result)
+        private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result, bool isOptional = false)
         {
             var nullableType2 = (NamedTypeSymbol)nullableType;
-            if (TryGetSpecialTypeMethod(syntax, member, out result))
+            if (TryGetSpecialTypeMethod(syntax, member, out result, isOptional))
             {
                 result = result.AsMember(nullableType2);
                 return true;

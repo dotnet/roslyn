@@ -3835,11 +3835,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
         <target state="translated">No se pudo extraer la interfaz: el tipo no contiene ningún miembro que se pueda extraer a una interfaz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">no se puede construir el árbol final</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
         <source>Parameters' type or return type cannot be an anonymous type : [{0}]</source>
         <target state="translated">El tipo de los parámetros o el tipo de valor devuelto no puede ser un tipo anónimo: [{0}]</target>

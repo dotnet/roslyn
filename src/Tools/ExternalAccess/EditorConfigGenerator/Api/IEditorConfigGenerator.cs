@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-namespace Microsoft.CodeAnalysis.Symbols
+namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api
 {
-    internal interface IParameterSymbolInternal : ISymbolInternal
+    internal interface IEditorConfigGenerator
     {
-        ITypeSymbolInternal Type { get; }
+        public string? Generate(string language);
+
     }
 }

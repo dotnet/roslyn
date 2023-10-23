@@ -3835,11 +3835,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">无法提取接口:此类型不含任何可以提取到接口的成员。</target>
         <note />
       </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">不能构造最终树</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
         <source>Parameters' type or return type cannot be an anonymous type : [{0}]</source>
         <target state="translated">参数的类型或返回类型不能为匿名类型:[{0}]</target>
