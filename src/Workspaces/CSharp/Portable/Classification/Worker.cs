@@ -290,14 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return suffixLength > 0;
 
             static bool IsHexOrBinaryInteger(string tokenText)
-            {
-                if (tokenText.Length < 2)
-                {
-                    return false;
-                }
-
-                return tokenText[0] is '0' && ToUppercase(tokenText[1]) is 'X' or 'B';
-            }
+                => tokenText is ['0', 'b' or 'B' or 'x' or 'X', ..];
 
             static bool IsValidSuffixCharacter(char c, bool allowRealTypeSuffixes)
             {
