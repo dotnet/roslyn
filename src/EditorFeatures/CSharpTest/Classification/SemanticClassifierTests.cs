@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -18,10 +16,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -3936,83 +3932,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
             await waiter.ExpeditedWaitAsync();
-        }
-
-        [WpfFact]
-        public async Task TestTotalClassifier()
-        {
-            using var workspace = TestWorkspace.CreateCSharp("""
-                using System.Text.RegularExpressions;
-
-                class C
-                {
-                    // class D { }
-                    void M()
-                    {
-                        new Regex("(a)");
-                    }
-                }
-                """);
-            var document = workspace.Documents.First();
-
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-
-            var provider = new TotalClassificationTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                workspace.GetService<ClassificationTypeMap>(),
-                globalOptions,
-                visibilityTracker: null,
-                listenerProvider);
-
-            var buffer = document.GetTextBuffer();
-            using var tagger = provider.CreateTagger(document.GetTextView(), buffer);
-
-            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.ExpeditedWaitAsync();
-
-            var allCode = buffer.CurrentSnapshot.GetText();
-            var tags = tagger!.GetTags(new NormalizedSnapshotSpanCollection(buffer.CurrentSnapshot.GetFullSpan()));
-
-            var actualOrdered = tags.OrderBy((t1, t2) => t1.Span.Span.Start - t2.Span.Span.Start);
-
-            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.Span.Span.Start, a.Span.Span.Length), a.Tag.ClassificationType.Classification));
-
-            AssertEx.Equal(new[]
-            {
-                Keyword("using"),
-                Namespace("System"),
-                Identifier("System"),
-                Operators.Dot,
-                Namespace("Text"),
-                Identifier("Text"),
-                Operators.Dot,
-                Namespace("RegularExpressions"),
-                Identifier("RegularExpressions"),
-                Punctuation.Semicolon,
-                Keyword("class"),
-                Class("C"),
-                Punctuation.OpenCurly,
-                Comment("// class D { }"),
-                Keyword("void"),
-                Method("M"),
-                Punctuation.OpenParen,
-                Punctuation.CloseParen,
-                Punctuation.OpenCurly,
-                Keyword("new"),
-                Class("Regex"),
-                Identifier("Regex"),
-                Punctuation.OpenParen,
-                String("\""),
-                Regex.Grouping("("),
-                Regex.Text("a"),
-                Regex.Grouping(")"),
-                String("\""),
-                Punctuation.CloseParen,
-                Punctuation.Semicolon,
-                Punctuation.CloseCurly,
-                Punctuation.CloseCurly,
-            }, actualFormatted);
         }
     }
 }

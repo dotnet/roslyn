@@ -190,9 +190,13 @@ internal sealed class TotalClassificationTaggerProvider(
                 var stringLiteralSpans = new NormalizedSnapshotSpanCollection(stringLiterals.Select(s => s.Span));
                 var embeddedClassifications = embeddedTagger.GetTags(stringLiteralSpans);
 
-                // Nothing to do if we got no embedded classifications back.
+                // Nothing complex to do if we got no embedded classifications back.  Just add in all the string
+                // classifications, untouched.
                 if (embeddedClassifications.Count == 0)
+                {
+                    totalTags.AddRange(stringLiterals);
                     return;
+                }
 
                 // ClassifierHelper.MergeParts requires these to be sorted.
                 stringLiterals.Sort(s_spanComparison);
