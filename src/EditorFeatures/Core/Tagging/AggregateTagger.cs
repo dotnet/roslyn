@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -16,7 +16,10 @@ internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<ITagger<TTa
 {
     protected readonly ImmutableArray<ITagger<TTag>> Taggers = taggers;
 
-    public abstract IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans);
+    IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+        => GetTags(spans);
+
+    public abstract SegmentedList<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans);
 
     public void Dispose()
     {
@@ -48,13 +51,13 @@ internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> 
     : AbstractAggregateTagger<TTag>(taggers)
     where TTag : ITag
 {
-    public override IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+    public override SegmentedList<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
     {
-        using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var result);
+        var result = new SegmentedList<ITagSpan<TTag>>();
 
         foreach (var tagger in this.Taggers)
             result.AddRange(tagger.GetTags(spans));
 
-        return result.ToImmutable();
+        return result;
     }
 }

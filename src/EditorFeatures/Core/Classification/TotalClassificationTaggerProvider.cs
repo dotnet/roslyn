@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -47,20 +48,18 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
     public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
     {
         var syntacticTagger = _syntacticTaggerProvider.CreateTagger<T>(buffer);
-        var semanticTagger = _semanticTaggerProvider.CreateTagger<T>(textView, buffer);
-        var embeddedTagger = _embeddedTaggerProvider.CreateTagger<T>(textView, buffer);
+        var semanticTagger = _semanticTaggerProvider.CreateTagger(textView, buffer);
+        var embeddedTagger = _embeddedTaggerProvider.CreateTagger(textView, buffer);
 
-        if (syntacticTagger is not ITagger<IClassificationTag> typedSyntacticTagger ||
-            semanticTagger is not ITagger<IClassificationTag> typedSemanticTagger ||
-            embeddedTagger is not ITagger<IClassificationTag> typedEmbeddedTagger)
+        if (syntacticTagger is not ITagger<IClassificationTag> typedSyntacticTagger)
         {
             (syntacticTagger as IDisposable)?.Dispose();
-            (semanticTagger as IDisposable)?.Dispose();
-            (embeddedTagger as IDisposable)?.Dispose();
+            semanticTagger.Dispose();
+            embeddedTagger.Dispose();
             return null;
         }
 
-        var finalTagger = new TotalClassificationAggregateTagger(typedSyntacticTagger, typedSemanticTagger, typedEmbeddedTagger);
+        var finalTagger = new TotalClassificationAggregateTagger(typedSyntacticTagger, semanticTagger, embeddedTagger);
         if (finalTagger is not ITagger<T> typedTagger)
         {
             finalTagger.Dispose();
@@ -72,8 +71,8 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
 
     private sealed class TotalClassificationAggregateTagger(
         ITagger<IClassificationTag> syntacticTagger,
-        ITagger<IClassificationTag> semanticTagger,
-        ITagger<IClassificationTag> embeddedTagger)
+        SimpleAggregateTagger<IClassificationTag> semanticTagger,
+        SimpleAggregateTagger<IClassificationTag> embeddedTagger)
         : AbstractAggregateTagger<IClassificationTag>(ImmutableArray.Create(syntacticTagger, semanticTagger, embeddedTagger))
     {
         private static readonly Comparison<ITagSpan<IClassificationTag>> s_spanComparison = static (s1, s2) => s1.Span.Start - s2.Span.Start;
@@ -85,7 +84,7 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
             // tags like 'Comments' and 'Excluded Code'.  In those cases we want the classification to 'snap' instantly to
             // the syntactic state, and we do not want things like semantic classifications showing up over that.
 
-            using var _ = ArrayBuilder<ITagSpan<IClassificationTag>>.GetInstance(out var totalTags);
+            var totalTags = new SegmentedList<ITagSpan<IClassificationTag>>();
 
             var syntacticSpans = syntacticTagger.GetTags(spans).GetEnumerator();
             var semanticSpans = semanticTagger.GetTags(spans).GetEnumerator();
@@ -109,7 +108,10 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
                 if (currentSyntactic.Tag.ClassificationType.Classification is ClassificationTypeNames.StringLiteral or ClassificationTypeNames.VerbatimStringLiteral)
                 {
                     // If we have a string literal of some sort, see if there are embedded classifications within it.
-                    var embeddedClassifications = 
+                    var embeddedClassifications = embeddedTagger.GetTags(new NormalizedSnapshotSpanCollection(currentSyntactic.Span));
+                    MergeEmbeddedClassifications(currentSyntactic, embeddedClassifications, totalTags);
+                    currentSyntactic = NextOrNull(syntacticSpans);
+                    continue;
                 }
 
                 // Otherwise, we've got a syntactic span starting before a semantic one.  If it's a comment or excluded
@@ -128,72 +130,17 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
                 currentSyntactic = NextOrNull(syntacticSpans);
             }
 
+            while (currentSemantic != null)
+            {
+                totalTags.Add(currentSemantic);
+                currentSemantic = NextOrNull(semanticSpans);
+                continue;
+            }
 
-            //    if (currentSyntactic.Span.Start < currentSemantic.Span.Start)
-            //    {
-            //        totalTags.Add(currentSyntactic);
-            //        currentSyntactic = NextOrNull(syntacticSpans);
-            //    }
-            //    else if (currentSemantic)
-            //}
-            
+            while (currentSyntactic != null)
+            {
 
-
-            //if (semanticIntervalTree.
-
-
-            //using var _1 = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var syntacticTagSpans);
-            //using var _2 = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var syntacticTagSpans);
-
-            //syntacticTagSpans.AddRange(syntacticTagger.GetTags(spans));
-
-            //syntacticTagSpans.Sort(s_spanComparison);
-
-            //using var latestEnumerator = latestSpans.GetEnumerator();
-            //using var previousEnumerator = previousSpans.GetEnumerator();
-
-            //var latest = NextOrNull(latestEnumerator);
-            //var previous = NextOrNull(previousEnumerator);
-
-            //while (latest != null && previous != null)
-            //{
-            //    var latestSpan = latest.Span;
-            //    var previousSpan = previous.Span;
-
-            //    if (latestSpan.Start < previousSpan.Start)
-            //    {
-            //        added.Add(latestSpan);
-            //        latest = NextOrNull(latestEnumerator);
-            //    }
-            //    else if (previousSpan.Start < latestSpan.Start)
-            //    {
-            //        removed.Add(previousSpan);
-            //        previous = NextOrNull(previousEnumerator);
-            //    }
-            //    else
-            //    {
-            //        // If the starts are the same, but the ends are different, report the larger
-            //        // region to be conservative.
-            //        if (previousSpan.End > latestSpan.End)
-            //        {
-            //            removed.Add(previousSpan);
-            //            latest = NextOrNull(latestEnumerator);
-            //        }
-            //        else if (latestSpan.End > previousSpan.End)
-            //        {
-            //            added.Add(latestSpan);
-            //            previous = NextOrNull(previousEnumerator);
-            //        }
-            //        else
-            //        {
-            //            if (!_dataSource.TagEquals(latest.Tag, previous.Tag))
-            //                added.Add(latestSpan);
-
-            //            latest = NextOrNull(latestEnumerator);
-            //            previous = NextOrNull(previousEnumerator);
-            //        }
-            //    }
-            //}
+            }
 
             //while (latest != null)
             //{
@@ -206,24 +153,27 @@ internal sealed class TotalClassificationTaggerProvider : IViewTaggerProvider
             //    removed.Add(previous.Span);
             //    previous = NextOrNull(previousEnumerator);
             //}
-
-            static ITagSpan<IClassificationTag>? NextOrNull(IEnumerator<ITagSpan<IClassificationTag>> enumerator)
-                => enumerator.MoveNext() ? enumerator.Current : null;
         }
 
-        private readonly struct TagSpanIntrospector : IIntervalIntrospector<ITagSpan<TTag>>
-        {
-            public static readonly TagSpanIntrospector Instance = new();
+        //private readonly struct TagSpanIntrospector : IIntervalIntrospector<ITagSpan<TTag>>
+        //{
+        //    public static readonly TagSpanIntrospector Instance = new();
 
-            private TagSpanIntrospector()
-            {
-            }
+        //    private TagSpanIntrospector()
+        //    {
+        //    }
 
-            public int GetStart(ITagSpan<TTag> value)
-                => value.Span.Start;
+        //    public int GetStart(ITagSpan<TTag> value)
+        //        => value.Span.Start;
 
-            public int GetLength(ITagSpan<TTag> value)
-                => value.Span.Length;
-        }
+        //    public int GetLength(ITagSpan<TTag> value)
+        //        => value.Span.Length;
+        //}
     }
+
+    private static ITagSpan<IClassificationTag>? NextOrNull(IEnumerator<ITagSpan<IClassificationTag>> enumerator)
+        => enumerator.MoveNext() ? enumerator.Current : null;
+
+    private static ITagSpan<IClassificationTag>? NextOrNull(SegmentedList<ITagSpan<IClassificationTag>>.Enumerator enumerator)
+        => enumerator.MoveNext() ? enumerator.Current : null;
 }
