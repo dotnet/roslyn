@@ -9,7 +9,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Xml.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -178,6 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             SyntaxNode? initializer)
         {
+            // some constant types will also appear as readonly when read from metadata
+            modifiers = modifiers.IsConst ? modifiers.WithIsReadOnly(false) : modifiers;
+
             return SyntaxFactory.FieldDeclaration(
                 default,
                 AsModifierList(accessibility, modifiers, SyntaxKind.FieldDeclaration),
@@ -3195,13 +3197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
         {
             if (expression is TypeSyntax ||
-                expression.IsKind(SyntaxKind.ThisExpression) ||
-                expression.IsKind(SyntaxKind.BaseExpression) ||
-                expression.IsKind(SyntaxKind.ParenthesizedExpression) ||
-                expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                expression.IsKind(SyntaxKind.InvocationExpression) ||
-                expression.IsKind(SyntaxKind.ElementAccessExpression) ||
-                expression.IsKind(SyntaxKind.MemberBindingExpression))
+                expression.Kind()
+                    is SyntaxKind.ThisExpression
+                    or SyntaxKind.BaseExpression
+                    or SyntaxKind.ParenthesizedExpression
+                    or SyntaxKind.SimpleMemberAccessExpression
+                    or SyntaxKind.InvocationExpression
+                    or SyntaxKind.ElementAccessExpression
+                    or SyntaxKind.MemberBindingExpression)
             {
                 return expression;
             }
@@ -3609,18 +3612,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var parameters = parameterDeclarations?.Cast<ParameterSyntax>().ToList();
 
-            if (parameters != null && parameters.Count == 1 && IsSimpleLambdaParameter(parameters[0]))
-            {
-                return SyntaxFactory.SimpleLambdaExpression(parameters[0], (CSharpSyntaxNode)expression);
-            }
-            else
-            {
-                return SyntaxFactory.ParenthesizedLambdaExpression(AsParameterList(parameters), (CSharpSyntaxNode)expression);
-            }
+            return parameters is [var parameter] && IsSimpleLambdaParameter(parameter)
+                ? SyntaxFactory.SimpleLambdaExpression(parameter, (CSharpSyntaxNode)expression)
+                : SyntaxFactory.ParenthesizedLambdaExpression(AsParameterList(parameters), (CSharpSyntaxNode)expression);
         }
 
         private static bool IsSimpleLambdaParameter(SyntaxNode node)
-            => node is ParameterSyntax p && p.Type == null && p.Default == null && p.Modifiers.Count == 0;
+            => node is ParameterSyntax { Type: null, Default: null, Modifiers.Count: 0 };
 
         public override SyntaxNode VoidReturningLambdaExpression(IEnumerable<SyntaxNode>? lambdaParameters, SyntaxNode expression)
             => this.ValueReturningLambdaExpression(lambdaParameters, expression);

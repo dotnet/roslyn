@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
             => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
 
+        public static IEnumerable<SyntaxNode> DepthFirstTraversalNodes(this SyntaxNode node)
+            => SyntaxNodeOrTokenExtensions.DepthFirstTraversalNodes(node);
+
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)
         {
             var current = node.Parent;

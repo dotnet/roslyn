@@ -1224,9 +1224,9 @@ unsafe class C
                 // (17,15): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         p4(in s);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(17, 15),
-                // (18,16): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 9.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+                // (18,16): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 9.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         p5(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("1", "9.0", "preview").WithLocation(18, 16));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("1", "9.0", "12.0").WithLocation(18, 16));
         }
 
         [Fact]
@@ -1910,9 +1910,9 @@ unsafe class C
                 // (9,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
                 //         delegate*<ref readonly int, void> ptr3;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(9, 19),
-                // (9,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,23): error CS8773: Feature 'ref readonly parameters' is not available in C# 9.0. Please use language version 12.0 or greater.
                 //         delegate*<ref readonly int, void> ptr3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(9, 23),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(9, 23),
                 // (10,19): error CS1536: Invalid parameter type 'void'
                 //         delegate*<void, void> ptr4;
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(10, 19),

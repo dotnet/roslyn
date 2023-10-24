@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -209,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
                     return 8;
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
@@ -549,6 +549,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_HidingDifferentRefness:
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                     return 1;
                 default:
                     return 0;
@@ -611,6 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_SymbolDefinedInAssembly:
                 case ErrorCode.ERR_InterceptorArityNotCompatible:
                 case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -1797,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FeatureNotAvailableInVersion7_1:
                 case ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes:
                 case ErrorCode.ERR_CompilerAndLanguageVersion:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.ERR_TupleInferredNamesNotAvailable:
                 case ErrorCode.ERR_TypelessTupleInAs:
                 case ErrorCode.ERR_NoRefOutWhenRefOnly:
@@ -2394,6 +2399,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.ERR_OutAttrOnRefReadonlyParam:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_ByValArraySizeConstRequired:
+                case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.ERR_FeatureNotAvailableInVersion12:
+                case ErrorCode.ERR_CollectionExpressionEscape:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.ERR_ExpectedInterpolatedString:
+                case ErrorCode.ERR_InterceptorGlobalNamespace:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                case ErrorCode.ERR_CollectionExpressionImmutableArray:
+                case ErrorCode.ERR_InvalidExperimentalDiagID:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

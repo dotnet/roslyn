@@ -303,47 +303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!a.IsMissing && a.IsLinked)
                 {
-                    bool hasGuidAttribute = false;
-                    bool hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = false;
-
-                    foreach (var attrData in a.GetAttributes())
-                    {
-                        if (attrData.IsTargetAttribute(a, AttributeDescription.GuidAttribute))
-                        {
-                            string guidString;
-                            if (attrData.TryGetGuidAttributeValue(out guidString))
-                            {
-                                hasGuidAttribute = true;
-                            }
-                        }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.ImportedFromTypeLibAttribute))
-                        {
-                            if (attrData.CommonConstructorArguments.Length == 1)
-                            {
-                                hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
-                            }
-                        }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.PrimaryInteropAssemblyAttribute))
-                        {
-                            if (attrData.CommonConstructorArguments.Length == 2)
-                            {
-                                hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
-                            }
-                        }
-
-                        if (hasGuidAttribute && hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (!hasGuidAttribute)
+                    if (!a.GetGuidString(out _))
                     {
                         // ERRID_PIAHasNoAssemblyGuid1/ERR_NoPIAAssemblyMissingAttribute
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttribute, NoLocation.Singleton, a, AttributeDescription.GuidAttribute.FullName);
                     }
 
-                    if (!hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
+                    if (!a.HasImportedFromTypeLibAttribute && !a.HasPrimaryInteropAssemblyAttribute)
                     {
                         // ERRID_PIAHasNoTypeLibAttribute1/ERR_NoPIAAssemblyMissingAttributes
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttributes, NoLocation.Singleton, a,
@@ -531,6 +497,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            {
+                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().ExperimentalAttributeData = attribute.DecodeExperimentalAttribute();
+            }
         }
 
 #nullable enable
@@ -650,6 +620,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyUseUpdatedEscapeRules = value.ToThreeState();
                 }
                 return _lazyUseUpdatedEscapeRules == ThreeState.True;
+            }
+        }
+
+        /// <summary>
+        /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
+        /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                var attributesBag = _lazyCustomAttributesBag;
+                if (attributesBag != null && attributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var decodedData = (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+                    return decodedData?.ExperimentalAttributeData;
+                }
+
+                var attributesDeclarations = ((SourceAssemblySymbol)ContainingAssembly).GetAttributeDeclarations();
+                if (attributesDeclarations.IsEmpty)
+                {
+                    return null;
+                }
+
+                return ObsoleteAttributeData.Uninitialized;
             }
         }
     }

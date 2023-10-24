@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToString(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)
         {
-            // We have 4 possible lowering strategies, dependent on the contents of the string, in this order:
+            // We have 5 possible lowering strategies, dependent on the contents of the string, in this order:
             //  1. The string is a constant value. We can just use the final value.
             //  2. The string is composed of 4 or fewer components that are all strings, we can lower to a call to string.Concat without a
             //     params array. This is very efficient as the runtime can allocate a buffer for the string with exactly the correct length and
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We use the parameter refkind, rather than what the argument was actually passed with, because that will suppress duplicated errors
                 // about arguments being passed with the wrong RefKind. The user will have already gotten an error about mismatched RefKinds or it will
                 // be a place where refkinds are allowed to differ
-                argumentRefKindsBuilder.Add(refKind);
+                argumentRefKindsBuilder.Add(refKind == RefKind.RefReadOnlyParameter ? RefKind.In : refKind);
             }
 
             var interpolatedString = BindUnconvertedInterpolatedExpressionToHandlerType(

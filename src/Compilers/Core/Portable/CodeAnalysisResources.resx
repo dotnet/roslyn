@@ -401,19 +401,15 @@
 {2}: Localized exception message
 {3}: Localized detail message</comment>
   </data>
-  <data name="CompilerAnalyzerThrowsDescription" xml:space="preserve">
-    <value>Analyzer '{0}' threw the following exception:
-'{1}'.</value>
-  </data>
   <data name="AnalyzerDriverFailure" xml:space="preserve">
     <value>Analyzer Driver Failure</value>
   </data>
   <data name="AnalyzerDriverThrows" xml:space="preserve">
-    <value>Analyzer driver threw an exception of type '{0}' with message '{1}'.</value>
-  </data>
-  <data name="AnalyzerDriverThrowsDescription" xml:space="preserve">
-    <value>Analyzer driver threw the following exception:
-'{0}'.</value>
+    <value>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</value>
+    <comment>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</comment>
   </data>
   <data name="PEImageDoesntContainManagedMetadata" xml:space="preserve">
     <value>PE image doesn't contain managed metadata.</value>
@@ -747,9 +743,6 @@
     <value>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</value>
     <comment>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</comment>
   </data>
-  <data name="HintNameNotWithinCurrentDirectory" xml:space="preserve">
-    <value>The hintName '{0}' is not within the current directory.</value>
-  </data>
   <data name="MethodSymbolExpected" xml:space="preserve">
     <value>Method symbol expected</value>
   </data>
@@ -776,5 +769,8 @@
   </data>
   <data name="Nothing" xml:space="preserve">
     <value>Nothing</value>
+  </data>
+  <data name="SigningTempPathUnavailable" xml:space="preserve">
+    <value>The temporary path for legacy file signing is unavailable.</value>
   </data>
 </root>

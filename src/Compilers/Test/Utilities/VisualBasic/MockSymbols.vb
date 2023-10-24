@@ -747,6 +747,13 @@ Friend Class MockModuleSymbol
     Public Overrides Function GetMetadata() As ModuleMetadata
         Return Nothing
     End Function
+
+    Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
 End Class
 
 Friend Class MockAssemblySymbol
@@ -801,6 +808,18 @@ Friend Class MockAssemblySymbol
     Public Overrides ReadOnly Property NamespaceNames As ICollection(Of String)
         Get
             Return SpecializedCollections.EmptyCollection(Of String)()
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+        Get
+            Return False
         End Get
     End Property
 
@@ -861,4 +880,11 @@ Friend Class MockAssemblySymbol
     Public Overrides Function GetMetadata() As AssemblyMetadata
         Return Nothing
     End Function
+
+    Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
 End Class

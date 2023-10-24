@@ -120,11 +120,23 @@
   <data name="Aborted" xml:space="preserve">
     <value>Aborted!</value>
   </data>
+  <data name="Attaching_debugger_to_process_0" xml:space="preserve">
+    <value>Attaching debugger to process {0}</value>
+  </data>
   <data name="Building_project" xml:space="preserve">
     <value>Building project...</value>
   </data>
   <data name="Canceled" xml:space="preserve">
     <value>Canceled!</value>
+  </data>
+  <data name="Client_failed_to_attach_the_debugger" xml:space="preserve">
+    <value>Client failed to attach the debugger</value>
+  </data>
+  <data name="Debugger_attached" xml:space="preserve">
+    <value>Debugger attached</value>
+  </data>
+  <data name="Debugging_tests" xml:space="preserve">
+    <value>Debugging tests...</value>
   </data>
   <data name="Discovering_tests" xml:space="preserve">
     <value>Discovering tests...</value>
@@ -134,6 +146,9 @@
   </data>
   <data name="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4" xml:space="preserve">
     <value>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</value>
+  </data>
+  <data name="Failed_to_read_runsettings_file_at_0:1" xml:space="preserve">
+    <value>Failed to read .runsettings file at {0}:{1}</value>
   </data>
   <data name="Found_0_tests_in_1" xml:space="preserve">
     <value>Found {0} tests in {1}</value>
@@ -147,8 +162,20 @@
   <data name="Passed" xml:space="preserve">
     <value>Passed!</value>
   </data>
+  <data name="Projects_failed_to_load_because_Mono_could_not_be_found" xml:space="preserve">
+    <value>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</value>
+  </data>
+  <data name="Projects_failed_to_load_because_MSBuild_could_not_be_found" xml:space="preserve">
+    <value>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</value>
+  </data>
   <data name="Running_tests" xml:space="preserve">
     <value>Running tests...</value>
+  </data>
+  <data name="Runsettings_file_does_not_exist_at_0" xml:space="preserve">
+    <value>.runsettings file does not exist at {0}</value>
+  </data>
+  <data name="Show_csharp_logs" xml:space="preserve">
+    <value>Show C# logs</value>
   </data>
   <data name="Stack_Trace" xml:space="preserve">
     <value>Stack Trace</value>
@@ -167,5 +194,11 @@
   </data>
   <data name="Test_run_error" xml:space="preserve">
     <value>Test run error: {0}</value>
+  </data>
+  <data name="There_were_problems_loading_project_0_See_log_for_details" xml:space="preserve">
+    <value>There were problems loading project {0}. See log for details.</value>
+  </data>
+  <data name="Using_runsettings_file_at_0" xml:space="preserve">
+    <value>Using .runsettings file at {0}</value>
   </data>
 </root>

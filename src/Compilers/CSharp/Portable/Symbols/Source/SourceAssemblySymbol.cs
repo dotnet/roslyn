@@ -11,10 +11,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -202,6 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return lazyAssemblyIdentity;
             }
         }
+
+        internal override bool HasImportedFromTypeLibAttribute
+            => GetSourceDecodedWellKnownAttributeData()?.HasImportedFromTypeLibAttribute == true;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute
+            => GetSourceDecodedWellKnownAttributeData()?.HasPrimaryInteropAssemblyAttribute == true;
 
         internal override Symbol GetSpecialTypeMember(SpecialMember member)
         {
@@ -1382,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This affects only diagnostics.
                 for (int i = _modules.Length - 1; i > 0; i--)
                 {
-                    var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
+                    var peModuleSymbol = (PEModuleSymbol)_modules[i];
 
                     foreach (NamedTypeSymbol forwarded in peModuleSymbol.GetForwardedTypes())
                     {
@@ -1918,6 +1922,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CommonAssemblyWellKnownAttributeData assemblyData = this.GetSourceDecodedWellKnownAttributeData();
                 return assemblyData != null && assemblyData.HasReferenceAssemblyAttribute;
             }
+        }
+
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = GetSourceDecodedWellKnownAttributeData()?.GuidAttribute;
+            return guidString != null;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
@@ -2495,7 +2505,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
             {
-                attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
+                string guidString = attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().GuidAttribute = guidString;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ImportedFromTypeLibAttribute))
+            {
+                if (attribute.CommonConstructorArguments.Length == 1)
+                {
+                    arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasImportedFromTypeLibAttribute = true;
+                }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.PrimaryInteropAssemblyAttribute))
+            {
+                if (attribute.CommonConstructorArguments.Length == 2)
+                {
+                    arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasPrimaryInteropAssemblyAttribute = true;
+                }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CompilationRelaxationsAttribute))
             {
@@ -2552,6 +2577,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyAlgorithmIdAttributeSetting = algorithmId;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            {
+                var obsoleteData = attribute.DecodeExperimentalAttribute();
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().ExperimentalAttributeData = obsoleteData;
             }
         }
 
@@ -2858,6 +2888,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                // [assembly: Experimental] may have been specified in the assembly or one of the modules
+                var lazySourceAttributesBag = _lazySourceAttributesBag;
+                if (lazySourceAttributesBag != null && lazySourceAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonAssemblyWellKnownAttributeData)lazySourceAttributesBag.DecodedWellKnownAttributeData;
+                    if (data?.ExperimentalAttributeData is { } experimentalAttributeData)
+                    {
+                        return experimentalAttributeData;
+                    }
+                }
+
+                var lazyNetModuleAttributesBag = _lazyNetModuleAttributesBag;
+                if (lazyNetModuleAttributesBag != null && lazyNetModuleAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonAssemblyWellKnownAttributeData)lazyNetModuleAttributesBag.DecodedWellKnownAttributeData;
+                    return data?.ExperimentalAttributeData;
+                }
+
+                if (GetAttributeDeclarations().IsEmpty)
+                {
+                    return null;
+                }
+
+                return ObsoleteAttributeData.Uninitialized;
+            }
         }
 
 #nullable disable

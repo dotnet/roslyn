@@ -18,7 +18,6 @@ internal sealed class DotnetCliHelper
 
     private readonly ILogger _logger;
     private readonly Lazy<string> _dotnetExecutablePath;
-    private readonly AsyncLazy<string> _dotnetSdkFolder;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,17 +25,17 @@ internal sealed class DotnetCliHelper
     {
         _logger = loggerFactory.CreateLogger<DotnetCliHelper>();
         _dotnetExecutablePath = new Lazy<string>(() => GetDotNetPathOrDefault());
-        _dotnetSdkFolder = new AsyncLazy<string>(GetDotnetSdkFolderFromDotnetExecutableAsync, cacheResult: true);
     }
 
     /// <summary>
     /// The folder the dotnet executable is in could contain multiple SDK paths.
     /// In order to figure out which one is the right one, we need to run dotnet --info
+    /// from the project directory (in order to respect any global.json that might be present)
     /// which will output the correct SDK path.
     /// </summary>
-    private async Task<string> GetDotnetSdkFolderFromDotnetExecutableAsync(CancellationToken cancellationToken)
+    private async Task<string> GetDotnetSdkFolderFromDotnetExecutableAsync(string projectOutputDirectory, CancellationToken cancellationToken)
     {
-        using var process = Run("--info", workingDirectory: null, shouldLocalizeOutput: false);
+        using var process = Run("--info", workingDirectory: projectOutputDirectory, shouldLocalizeOutput: false);
 
         string? dotnetSdkFolderPath = null;
         process.OutputDataReceived += (_, e) =>
@@ -107,11 +106,12 @@ internal sealed class DotnetCliHelper
         return process;
     }
 
-    public async Task<string> GetVsTestConsolePathAsync(CancellationToken cancellationToken)
+    public async Task<string> GetVsTestConsolePathAsync(string projectOutputDirectory, CancellationToken cancellationToken)
     {
-        var dotnetSdkFolder = await _dotnetSdkFolder.GetValueAsync(cancellationToken);
+        var dotnetSdkFolder = await GetDotnetSdkFolderFromDotnetExecutableAsync(projectOutputDirectory, cancellationToken);
         var vstestConsole = Path.Combine(dotnetSdkFolder, "vstest.console.dll");
         Contract.ThrowIfFalse(File.Exists(vstestConsole), $"VSTestConsole was not found at {vstestConsole}");
+        _logger.LogDebug($"Using vstest console at {vstestConsole}");
         return vstestConsole;
     }
 

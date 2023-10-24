@@ -125,14 +125,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
 
-            public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
-            {
-                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
-                variables.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
-            }
+            public static void SortVariables(ArrayBuilder<VariableInfo> variables)
+                => variables.Sort(Compare);
 
-            private static int Compare(VariableInfo left, VariableInfo right, INamedTypeSymbol cancellationTokenType)
-                => VariableSymbol.Compare(left._variableSymbol, right._variableSymbol, cancellationTokenType);
+            private static int Compare(VariableInfo left, VariableInfo right)
+                => VariableSymbol.Compare(left._variableSymbol, right._variableSymbol);
         }
     }
 }

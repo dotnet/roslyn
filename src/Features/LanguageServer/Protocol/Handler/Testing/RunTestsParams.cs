@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 [DataContract]
 internal record RunTestsParams(
     [property: DataMember(Name = "textDocument")] TextDocumentIdentifier TextDocument,
-    [property: DataMember(Name = "range")] VisualStudio.LanguageServer.Protocol.Range Range
+    [property: DataMember(Name = "range")] VisualStudio.LanguageServer.Protocol.Range Range,
+    [property: DataMember(Name = "attachDebugger")] bool AttachDebugger,
+    [property: DataMember(Name = "runSettingsPath")] string? RunSettingsPath
 ) : IPartialResultParams<RunTestsPartialResult>
 {
     [DataMember(Name = Methods.PartialResultTokenName)]

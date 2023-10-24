@@ -33,18 +33,37 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
         }
 
+        [Obsolete]
         public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
+            => new EventHandlerWrapper(_service, action);
+
+        public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
             => new EventHandlerWrapper(_service, action);
 
         private sealed class EventHandlerWrapper : IDisposable
         {
             private readonly IDiagnosticService _service;
-            private readonly EventHandler<DiagnosticsUpdatedArgs> _handler;
+            private readonly EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> _handler;
 
+            [Obsolete]
             internal EventHandlerWrapper(IDiagnosticService service, Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
             {
                 _service = service;
-                _handler = (sender, args) => action(new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args));
+                _handler = (sender, argsCollection) =>
+                {
+                    foreach (var args in argsCollection)
+                        action(new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args));
+                };
+                _service.DiagnosticsUpdated += _handler;
+            }
+
+            internal EventHandlerWrapper(IDiagnosticService service, Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
+            {
+                _service = service;
+                _handler = (sender, argsCollection) =>
+                {
+                    action(ImmutableArray.CreateRange(argsCollection, static args => new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args)));
+                };
                 _service.DiagnosticsUpdated += _handler;
             }
 

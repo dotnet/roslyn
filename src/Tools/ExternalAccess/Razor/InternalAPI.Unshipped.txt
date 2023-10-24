@@ -18,7 +18,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentPropertiesService.Diag
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider.GetService<TService>() -> TService?
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider
-Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.GetDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo!>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.GetDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo?>!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.RemoveDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.Updated -> System.EventHandler<string!>!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerFactoryWrapper
@@ -168,6 +168,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.RazorTestAna
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.RazorTestWorkspaceRegistrationService() -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.Register(Microsoft.CodeAnalysis.Workspace! workspace) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorUri
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.CanHandle(string! methodName) -> bool
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.HandleNotificationAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task!>! sendNotification) -> System.Threading.Tasks.Task!
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.HandleRequestAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!>! sendRequest) -> System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!
@@ -411,6 +412,8 @@ static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.G
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenTypes(Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities! capabilities) -> System.Collections.Immutable.ImmutableArray<string!>
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.RoslynTokenTypes.get -> System.Collections.Immutable.ImmutableArray<string!>
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader() -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorUri.CreateAbsoluteUri(string! absolutePath) -> System.Uri!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorUri.CreateUri(this Microsoft.CodeAnalysis.TextDocument! document) -> System.Uri!
 static readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry.Empty -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry!
 ~override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.Equals(object obj) -> bool
 ~override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.ToString() -> string

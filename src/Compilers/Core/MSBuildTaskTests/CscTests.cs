@@ -214,6 +214,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void FeaturesInterceptorsPreview()
+        {
+            var csc = new Csc();
+            csc.InterceptorsPreviewNamespaces = "NS1.NS2;NS3.NS4";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void FeaturesEmpty()
         {
             foreach (var cur in new[] { "", null })

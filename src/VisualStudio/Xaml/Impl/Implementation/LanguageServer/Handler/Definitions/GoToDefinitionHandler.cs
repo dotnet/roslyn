@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             if (sourceDefinition.Span != null)
             {
                 // If the Span is not null, use the span.
-                var document = context.Solution?.GetDocuments(ProtocolConversions.GetUriFromFilePath(sourceDefinition.FilePath)).FirstOrDefault();
+                var document = context.Solution?.GetDocuments(ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath)).FirstOrDefault();
                 if (document != null)
                 {
                     return await ProtocolConversions.TextSpanToLocationAsync(

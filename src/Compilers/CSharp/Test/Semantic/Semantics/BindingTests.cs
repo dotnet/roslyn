@@ -3371,6 +3371,233 @@ static class Extension2
             Assert.False(symbols.Where(s => s.Name == "MathMax3").Any());
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_02()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal enum AnyEnum
+    {
+        Val
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_03()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal enum AnyEnum
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_04()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal class AnyEnum
+    {
+        static internal int Val;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27),
+                // (10,29): warning CS0649: Field 'AnyClass.AnyEnum.Val' is never assigned to, and will always have its default value 0
+                //         static internal int Val;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Val").WithArguments("MyNamespace.AnyClass.AnyEnum.Val", "0").WithLocation(10, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_05()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal class AnyEnum
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_06()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal struct AnyEnum
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_07()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal interface AnyEnum
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70027")]
+        public void UsingStatic_08()
+        {
+            var source =
+@"
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal delegate void AnyEnum();
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(2, 1),
+                // (2,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+                // using static MyNamespace.AnyClass.AnyEnum.Val;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(2, 43),
+                // (6,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+                // internal class AnyClass : AnyBaseClass
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(6, 27)
+                );
+        }
+
         [Fact, WorkItem(30726, "https://github.com/dotnet/roslyn/issues/30726")]
         public void UsingStaticGenericConstraint()
         {
@@ -3679,6 +3906,28 @@ class X
             var lambda = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single(s => s.Parameter.Identifier.Text == "x");
             var typeInfo = model.GetTypeInfo(lambda.Body);
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70007")]
+        public void CycleThroughAttribute()
+        {
+            var compilation = CreateCompilation(@"
+using System.Reflection;
+
+[assembly: AssemblyVersion(MainVersion.CurrentVersion)]
+
+public class MainVersion
+{
+    public const string Hauptversion = ""8"";
+    public const string Nebenversion = ""2"";
+    public const string Build = ""0"";
+    public const string Revision = ""1"";
+
+    public const string CurrentVersion = Hauptversion + ""."" + Nebenversion + ""."" + Build + ""."" + Revision;
+}
+");
+            CompileAndVerify(compilation).VerifyDiagnostics();
         }
     }
 }

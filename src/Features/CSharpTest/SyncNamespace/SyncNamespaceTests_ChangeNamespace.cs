@@ -1702,6 +1702,7 @@ namespace Foo
             var expectedSourceOriginal =
 @"namespace A.B.C
 {
+
     /// <summary>
     /// See <see cref=""Class1""/>
     /// </summary>
@@ -2333,6 +2334,37 @@ End Class</Document>
     End Sub
 End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
+        public async Task ChangeNamespace_DoesNotThrowInDuplicateProgramDeclaration()
+        {
+            var defaultNamespace = "A";
+
+            // No change namespace action because the folder name is not valid identifier
+            var (topLevelProgramFolder, topLevelProgramFilePath) = CreateDocumentFilePath(["3B", "C"], "Program.cs");
+            var (duplicateProgramFolder, duplicateProgramFilePath) = CreateDocumentFilePath([], "Program.cs");
+
+            var code =
+$$"""
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+        <Document Folders="{{duplicateProgramFolder}}" FilePath="{{duplicateProgramFolder}}"> 
+internal class [||]Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine("Hello, World!");
+    }
+}
+        </Document>
+        <Document Folders="{{topLevelProgramFolder}}" FilePath="{{topLevelProgramFilePath}}"> 
+Console.WriteLine("Hello Two");
+        </Document>
+    </Project>
+</Workspace>
+""";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
         }
     }
 }

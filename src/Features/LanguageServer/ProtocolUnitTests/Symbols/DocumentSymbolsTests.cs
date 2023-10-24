@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var request = new LSP.DocumentSymbolParams
             {
-                TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
+                TextDocument = CreateTextDocumentIdentifier(ProtocolConversions.CreateAbsoluteUri(document.FilePath))
             };
 
             return await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, TReturn>(LSP.Methods.TextDocumentDocumentSymbolName,

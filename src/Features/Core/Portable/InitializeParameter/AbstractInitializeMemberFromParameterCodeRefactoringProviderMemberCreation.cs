@@ -600,7 +600,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     else
                     {
                         var statementIndex = blockStatement!.Operations.IndexOf(statement);
-                        return statementIndex > 0 ? blockStatement.Operations[statementIndex - 1].Syntax : null;
+                        return statementIndex > 0 && blockStatement.Operations[statementIndex - 1] is { IsImplicit: false, Syntax: var priorSyntax }
+                            ? priorSyntax
+                            : null;
                     }
                 }
             }

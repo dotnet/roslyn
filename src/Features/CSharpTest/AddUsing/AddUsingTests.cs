@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1914,6 +1915,7 @@ class Program
 @"#define goo
 
 using System;
+
 /// Goo
 class Program
 {
@@ -2159,7 +2161,7 @@ class Program
 input,
 @"using System.Runtime.InteropServices;
 
-[ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
+[assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
@@ -2706,6 +2708,7 @@ interface MyNotifyPropertyChanged { }";
 
             var expectedText =
 @"using System.ComponentModel;
+
 /// <summary>
 /// This is just like <see cref='INotifyPropertyChanged'/>, but this one is mine.
 /// </summary>
@@ -2727,6 +2730,7 @@ interface MyNotifyPropertyChanged { }";
 
             var expectedText =
 @"using System.ComponentModel;
+
 /// <summary>
 /// This is just like <see cref='INotifyPropertyChanged.PropertyChanged'/>, but this one is mine.
 /// </summary>
@@ -3366,6 +3370,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
+
 #if DEBUG
 using System.Text;
 #endif
@@ -3394,7 +3399,6 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", testHost);
         }
 
@@ -3420,7 +3424,6 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", testHost);
         }
 
@@ -4567,6 +4570,7 @@ class C
 ",
 @"
 using System;
+
 /// Copyright 2016 - MyCompany 
 /// All Rights Reserved 
 class C
@@ -5440,7 +5444,6 @@ namespace B
 @"
 using System.Threading.Tasks;
 using B;
-
 namespace A
 {
     class C
@@ -5497,7 +5500,6 @@ namespace B
 @"
 using System.Threading.Tasks;
 using B;
-
 namespace A
 {
     class C
@@ -5598,7 +5600,6 @@ namespace B
 @"
 using System.Threading.Tasks;
 using B;
-
 namespace A
 {
     class C
@@ -6367,6 +6368,164 @@ class Program
             await TestMissingAsync(initialWorkspace, new TestParameters(
                 globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
                 testHost: testHost));
+        }
+
+        /// <summary>
+        /// Note that this test verifies the current end of line sequence in using directives is preserved regardless of
+        /// whether this matches the end_of_line value in .editorconfig or not.
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
+        public async Task TestAddUsingPreservesNewlines1(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
+        {
+            await TestInRegularAndScript1Async(
+                """
+                namespace ANamespace
+                {
+                    public class TheAType { }
+                }
+
+                namespace N
+                {
+                    class Class
+                    {
+                        [|TheAType|] a;
+                    }
+                }
+                """.ReplaceLineEndings(sourceNewLine),
+                """
+                using ANamespace;
+
+                namespace ANamespace
+                {
+                    public class TheAType { }
+                }
+
+                namespace N
+                {
+                    class Class
+                    {
+                        TheAType a;
+                    }
+                }
+                """.ReplaceLineEndings(sourceNewLine),
+                index: 0,
+                parameters: new TestParameters(options: Option(FormattingOptions2.NewLine, configuredNewLine), testHost: testHost));
+        }
+
+        /// <summary>
+        /// Note that this test verifies the current end of line sequence in using directives is preserved regardless of
+        /// whether this matches the end_of_line value in .editorconfig or not.
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
+        public async Task TestAddUsingPreservesNewlines2(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using BNamespace;
+
+                namespace ANamespace
+                {
+                    public class TheAType { }
+                }
+
+                namespace BNamespace
+                {
+                    public class TheBType { }
+                }
+
+                namespace N
+                {
+                    class Class
+                    {
+                        [|TheAType|] a;
+                        TheBType b;
+                    }
+                }
+                """.ReplaceLineEndings(sourceNewLine),
+                """
+                using ANamespace;
+                using BNamespace;
+
+                namespace ANamespace
+                {
+                    public class TheAType { }
+                }
+
+                namespace BNamespace
+                {
+                    public class TheBType { }
+                }
+
+                namespace N
+                {
+                    class Class
+                    {
+                        TheAType a;
+                        TheBType b;
+                    }
+                }
+                """.ReplaceLineEndings(sourceNewLine),
+                index: 0,
+                parameters: new TestParameters(options: Option(FormattingOptions2.NewLine, configuredNewLine), testHost: testHost));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
+        public async Task TestAddUsingPreservesNewlines3(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using ANamespace;
+
+                namespace ANamespace
+                {
+                    public class TheAType { }
+                }
+
+                namespace BNamespace
+                {
+                    public class TheBType { }
+                }
+
+                namespace N
+                {
+                    class Class
+                    {
+                        TheAType a;
+                        [|TheBType|] b;
+                    }
+                }
+                """.ReplaceLineEndings(sourceNewLine),
+                """
+                using ANamespace;
+                using BNamespace;
+
+                namespace ANamespace
+                {
+                    public class TheAType { }
+                }
+
+                namespace BNamespace
+                {
+                    public class TheBType { }
+                }
+
+                namespace N
+                {
+                    class Class
+                    {
+                        TheAType a;
+                        TheBType b;
+                    }
+                }
+                """.ReplaceLineEndings(sourceNewLine),
+                index: 0,
+                parameters: new TestParameters(options: Option(FormattingOptions2.NewLine, configuredNewLine), testHost: testHost));
         }
     }
 }

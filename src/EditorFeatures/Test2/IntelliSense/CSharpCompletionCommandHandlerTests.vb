@@ -11,9 +11,11 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
+Imports Microsoft.CodeAnalysis.CSharp.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -46,7 +48,7 @@ namespace NS
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("F")
                 Await state.AssertSelectedCompletionItem(displayText:="FC", isHardSelected:=True)
@@ -74,7 +76,7 @@ namespace NS
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("F")
                 Await state.AssertSelectedCompletionItem(displayText:="FC", isHardSelected:=True)
@@ -88,7 +90,7 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_DifferentFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
             Using State = New TestState(<Workspace>
-                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.Preview.ToDisplayString() %>>
+                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
                                                 <Document FilePath="a.cs">
 namespace NS
 {
@@ -122,7 +124,7 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_DifferentFile_NamespaceQualified(showCompletionInArgumentLists As Boolean) As Task
             Using State = New TestState(<Workspace>
-                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.Preview.ToDisplayString() %>>
+                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
                                                 <Document FilePath="a.cs">
 namespace NS
 {
@@ -170,7 +172,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
@@ -202,7 +204,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 ' This is the expected behavior until we implement support for list-patterns.
                 state.SendTypeChars("CP")
@@ -275,7 +277,7 @@ public class C3
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
@@ -311,7 +313,7 @@ public class C3
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="C3Field", isHardSelected:=False)
@@ -345,7 +347,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertNoCompletionSession()
@@ -372,7 +374,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("{ ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -411,7 +413,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 ' No second completion since already tested at top-level
                 state.SendTypeChars(", ")
@@ -440,7 +442,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(", ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -481,7 +483,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(", ")
                 Await state.AssertNoCompletionSession()
@@ -522,7 +524,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -561,7 +563,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=False)
@@ -773,7 +775,7 @@ class C
     }
 }
                               </Document>,
-                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=True)
@@ -9734,7 +9736,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" [ Co")
                 Await state.AssertSelectedCompletionItem(displayText:="Constant", isHardSelected:=True)
@@ -9782,7 +9784,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("..")
                 Await state.AssertNoCompletionSession()
@@ -9819,7 +9821,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".. va")
                 Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
@@ -9850,7 +9852,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("..")
                 Await state.AssertNoCompletionSession()
@@ -9879,7 +9881,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9898,7 +9900,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9917,7 +9919,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9938,7 +9940,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9959,7 +9961,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9979,7 +9981,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9999,7 +10001,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -10019,7 +10021,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -10039,7 +10041,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -10060,7 +10062,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10080,7 +10082,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10100,7 +10102,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10120,7 +10122,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10140,7 +10142,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -10161,7 +10163,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10184,7 +10186,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10207,7 +10209,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10230,7 +10232,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -11265,7 +11267,7 @@ class Program
     static bool TryParse(string s, out Program p) { }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("P")
                 Await state.AssertSelectedCompletionItem(displayText:="Program", isHardSelected:=True)
@@ -11291,7 +11293,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="TestField", displayTextSuffix:="")
@@ -11322,7 +11324,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
@@ -11354,7 +11356,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
@@ -11386,7 +11388,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
@@ -11418,7 +11420,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
@@ -11450,7 +11452,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
@@ -11482,7 +11484,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
@@ -11514,7 +11516,7 @@ class Program
 }
 ]]>
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsDoNotContainAny("first", "second")
@@ -11543,7 +11545,7 @@ public class C1
 }
 ]]>
                 </Document>,
-                languageVersion:=LanguageVersion.Preview)
+                languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("Property0", "Field0", "Event0")
@@ -11573,11 +11575,531 @@ public class C1
 }
 ]]>
                 </Document>,
-                languageVersion:=LanguageVersion.Preview)
+                languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("Property1", "Field1", "Event1")
                 Await state.AssertCompletionItemsDoNotContainAny("Property0", "Field0", "Event0")
+            End Using
+        End Function
+
+        <InlineData("""text""u8")>
+        <InlineData("""""""text""""""u8")>
+        <InlineData("""""""
+        text
+        """"""u8")>
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68704")>
+        Public Async Function TriggerCompletionAtEndOfUtf8StringLiteral(stringText As String) As Task
+            Dim workspaceDefinition =
+            <Workspace>
+                <Project Language="C#" AssemblyName="TestAssembly" CommonReferencesPortable="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        var channel = <%= stringText %>$$
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+                Dim cursorDocument = workspace.Documents.First(Function(d As TestHostDocument)
+                                                                   Return d.CursorPosition.HasValue
+                                                               End Function)
+                Dim cursorPosition = cursorDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                Dim completionService = document.GetRequiredLanguageService(Of CompletionService)()
+
+                ' This should not throw
+                Dim list = Await completionService.GetCompletionsAsync(
+                    document, caretPosition:=cursorPosition, CompletionOptions.Default, OptionSet.Empty, CompletionTrigger.Invoke)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = $$;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "_x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("_x", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public partial class C(int x)
+{
+    private int _x = x;
+}
+
+public partial class C
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("_x", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = x + 1;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "_x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters1_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = $$;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters2_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters3_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("X", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters4_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public partial class C(int x)
+{
+    private int X { get; } = x;
+}
+
+public partial class C
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("X", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters5_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = x + 1;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+}
+
+public class C(int x) : Base
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+
+    public Base(int x)
+    {
+        X = x;
+    }
+}
+
+public class C(int x) : Base(x + 1)
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+
+    public Base(int x)
+    {
+        X = x;
+    }
+}
+
+public class C(int x) : Base(x)
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+                Await state.AssertCompletionItemsContainAll("X")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestItemsSorted() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Program
+{
+    public static void Main()
+    {
+        $$
+    }
+}
+             ]]></Document>)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+
+                ' trigger completion with import completion enabled
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+
+                Dim completionItems = state.GetCompletionItems()
+                Dim manuallySortedItems = completionItems.ToList()
+                manuallySortedItems.Sort()
+
+                Assert.True(manuallySortedItems.SequenceEqual(completionItems))
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base(int x)
+{
+}
+
+public class C() : Base($$)
+{
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", ":")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public abstract class Base(int x)
+{
+}
+
+public class C() : Base($$)
+{
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", ":")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66305")>
+        Public Async Function TestScopedKeywordRecommender() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp11)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("scoped", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/razor/issues/9377")>
+        Public Async Function TriggerOnTypingShouldNotAffectExplicitInvoke() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.CSharp, False)
+
+                ' TriggerOnTyping should not block explicit trigger
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("M", "")
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("M")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
+        Public Async Function AccessStaticMembersOffOfColorColor1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+struct Cursor
+{
+    public static int StaticMember;
+    public int InstanceMember;
+}
+
+class BaseClass
+{
+    public Cursor Cursor { get; set; }
+}
+
+class Derived : BaseClass
+{
+    void Method()
+    {
+        Cursor.$$
+        Object o = new Object();
+    }
+}
+
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
+        Public Async Function AccessStaticMembersOffOfColorColor2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+struct Cursor
+{
+    public static int StaticMember;
+    public int InstanceMember;
+}
+
+class BaseClass
+{
+    public Cursor Cursor { get; set; }
+}
+
+class Derived : BaseClass
+{
+    void Method()
+    {
+        Cursor.$$
+    }
+}
+
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
             End Using
         End Function
     End Class

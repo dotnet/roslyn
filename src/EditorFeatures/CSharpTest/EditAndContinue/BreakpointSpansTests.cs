@@ -71,8 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
         private static void VerifyAllSpansInDeclaration<TDeclaration>(string markup)
             where TDeclaration : SyntaxNode
         {
-            MarkupTestFile.GetPositionAndSpans(markup,
-                out var source, out var position, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetPositionAndSpans(markup, out var source, out var position, out var expectedSpans);
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var root = tree.GetRoot();

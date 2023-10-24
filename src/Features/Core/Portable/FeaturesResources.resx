@@ -168,9 +168,6 @@
   <data name="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface" xml:space="preserve">
     <value>Could not extract interface: The type does not contain any member that can be extracted to an interface.</value>
   </data>
-  <data name="can_t_not_construct_final_tree" xml:space="preserve">
-    <value>can't not construct final tree</value>
-  </data>
   <data name="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket" xml:space="preserve">
     <value>Parameters' type or return type cannot be an anonymous type : [{0}]</value>
   </data>
@@ -381,6 +378,12 @@
   <data name="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application" xml:space="preserve">
     <value>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</value>
   </data>
+  <data name="Changing_attribute_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing attribute '{0}' requires restarting the application.</value>
+  </data>
+  <data name="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing attribute '{0}' requires restarting the application.</value>
+  </data>
   <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
     <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
   </data>
@@ -396,8 +399,8 @@
   <data name="Changing_the_return_type_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the return type of {0} requires restarting the application.</value>
   </data>
-  <data name="Changing_the_type_of_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Changing the type of {0} requires restarting the application.</value>
+  <data name="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</value>
@@ -2983,6 +2986,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Wrap_long_initializer" xml:space="preserve">
     <value>Wrap long initializer</value>
   </data>
+  <data name="Unwrap_collection" xml:space="preserve">
+    <value>Unwrap collection</value>
+  </data>
+  <data name="Wrap_collection" xml:space="preserve">
+    <value>Wrap collection</value>
+  </data>
+  <data name="Wrap_long_collection" xml:space="preserve">
+    <value>Wrap long collection</value>
+  </data>
   <data name="Indent_all_elements" xml:space="preserve">
     <value>Indent all elements</value>
   </data>
@@ -3185,5 +3197,56 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Run_Test" xml:space="preserve">
     <value>Run Test</value>
+  </data>
+  <data name="Debug_All_Tests" xml:space="preserve">
+    <value>Debug All Tests</value>
+  </data>
+  <data name="Debug_Test" xml:space="preserve">
+    <value>Debug Test</value>
+  </data>
+  <data name="Chosen_version_0" xml:space="preserve">
+    <value>Chosen version: '{0}'</value>
+  </data>
+  <data name="Could_not_find_by_name_0" xml:space="preserve">
+    <value>Could not find by name: '{0}'</value>
+  </data>
+  <data name="Decompilation_log" xml:space="preserve">
+    <value>Decompilation log</value>
+  </data>
+  <data name="Found_0_assemblies_for_1" xml:space="preserve">
+    <value>Found '{0}' assemblies for '{1}':</value>
+  </data>
+  <data name="Found_exact_match_0" xml:space="preserve">
+    <value>Found exact match: '{0}'</value>
+  </data>
+  <data name="Found_higher_version_match_0" xml:space="preserve">
+    <value>Found higher version match: '{0}'</value>
+  </data>
+  <data name="Found_single_assembly_0" xml:space="preserve">
+    <value>Found single assembly: '{0}'</value>
+  </data>
+  <data name="Load_from_0" xml:space="preserve">
+    <value>Load from: '{0}'</value>
+  </data>
+  <data name="Module_not_found" xml:space="preserve">
+    <value>Module not found!</value>
+  </data>
+  <data name="Resolve_0" xml:space="preserve">
+    <value>Resolve: '{0}'</value>
+  </data>
+  <data name="Resolve_module_0_of_1" xml:space="preserve">
+    <value>Resolve module: '{0}' of '{1}'</value>
+  </data>
+  <data name="WARN_Version_mismatch_Expected_0_Got_1" xml:space="preserve">
+    <value>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</value>
+  </data>
+  <data name="_0_items_in_cache" xml:space="preserve">
+    <value>'{0}' items in cache</value>
+  </data>
+  <data name="Convert_number" xml:space="preserve">
+    <value>Convert number</value>
+  </data>
+  <data name="Fix_All_0" xml:space="preserve">
+    <value>Fix All: '{0}'</value>
   </data>
 </root>

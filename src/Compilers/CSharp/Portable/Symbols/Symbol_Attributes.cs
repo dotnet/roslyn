@@ -223,7 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Do not use '{FullName}'. This is reserved for compiler usage.
                 arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.CompilerFeatureRequiredAttribute.FullName);
-                return;
+            }
+            else if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            {
+                if (!SyntaxFacts.IsValidIdentifier((string?)arguments.Attribute.CommonConstructorArguments[0].ValueInternal))
+                {
+                    var attrArgumentLocation = arguments.Attribute.GetAttributeArgumentSyntaxLocation(parameterIndex: 0, arguments.AttributeSyntaxOpt);
+                    arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
+                }
             }
 
             DecodeWellKnownAttributeImpl(ref arguments);
@@ -932,15 +939,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Ensure that attributes are bound and the ObsoleteState of this symbol is known.
+        /// Ensure that attributes are bound and the ObsoleteState/ExperimentalState of this symbol is known.
         /// </summary>
         internal void ForceCompleteObsoleteAttribute()
         {
-            if (this.ObsoleteState == ThreeState.Unknown)
+            if (this.ObsoleteKind == ObsoleteAttributeKind.Uninitialized)
             {
                 this.GetAttributes();
             }
             Debug.Assert(this.ObsoleteState != ThreeState.Unknown, "ObsoleteState should be true or false now.");
+            Debug.Assert(this.ExperimentalState != ThreeState.Unknown, "ExperimentalState should be true or false now.");
+
+            this.ContainingSymbol?.ForceCompleteObsoleteAttribute();
         }
     }
 }

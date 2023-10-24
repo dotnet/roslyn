@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         internal string? SdkDirectory { get; }
 
         /// <summary>
-        /// The temporary directory a compilation should use instead of <see cref="Path.GetTempPath"/>.  The latter
+        /// The temporary directory a compilation should use instead of Path.GetTempPath.  The latter
         /// relies on global state individual compilations should ignore.
         /// </summary>
         internal string? TempDirectory { get; }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
         /// The set of source file paths that are in the set of embedded paths.
         /// This is used to prevent reading source files that are embedded twice.
         /// </summary>
-        public Roslyn.Utilities.IReadOnlySet<string> EmbeddedSourcePaths { get; }
+        public IReadOnlySet<string> EmbeddedSourcePaths { get; }
 
         /// <summary>
         /// The <see cref="ICommonCompilerFileSystem"/> used to access the file system inside this instance.
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis
             OrderedSet<string> embeddedFiles,
             DiagnosticBag diagnostics);
 
-        private static Roslyn.Utilities.IReadOnlySet<string> GetEmbeddedSourcePaths(CommandLineArguments arguments)
+        private static IReadOnlySet<string> GetEmbeddedSourcePaths(CommandLineArguments arguments)
         {
             if (arguments.EmbeddedFiles.IsEmpty)
             {

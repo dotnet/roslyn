@@ -241,6 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override bool HasSetsRequiredMembersImpl => false;
         }
 
+        // Note that `in`/`ref readonly` parameters currently don't have `modreq(In)`
+        // even though the `Invoke` method is virtual. https://github.com/dotnet/roslyn/issues/69079
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;

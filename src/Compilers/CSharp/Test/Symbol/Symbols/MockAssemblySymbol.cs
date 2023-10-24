@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { throw new NotImplementedException(); }
         }
 
+        internal override TypeConversions TypeConversions
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override ImmutableArray<ModuleSymbol> Modules
         {
             get { return ImmutableArray.Create<ModuleSymbol>(); }
@@ -64,6 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             get { return false; }
         }
+
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
 
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
@@ -122,5 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             throw new NotImplementedException();
         }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => null;
     }
 }

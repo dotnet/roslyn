@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // Set both handlers to non-fatal Watson. Never fail-fast the VS process.
             // Any exception that is not recovered from shall be propagated.
             FaultReporter.InitializeFatalErrorHandlers();
-            FatalError.CopyHandlerTo(typeof(InteractiveHostFatalError).Assembly);
+            FatalError.CopyHandlersTo(typeof(InteractiveHostFatalError).Assembly);
 
             // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
             Action<Exception> fatalHandler = e => FaultReporter.ReportFault(e, VisualStudio.Telemetry.FaultSeverity.Critical, forceDump: false);

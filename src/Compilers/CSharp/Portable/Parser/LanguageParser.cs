@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
-    internal partial class LanguageParser : SyntaxParser
+    internal sealed partial class LanguageParser : SyntaxParser
     {
         // list pools - allocators for lists that are used to build sequences of nodes. The lists
         // can be reused (hence pooled) since the syntax factory methods don't keep references to
@@ -4528,22 +4528,11 @@ parse_member_name:;
 
             var type = this.ParseType();
 
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfFieldDeclaration;
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            try
-            {
-                this.ParseVariableDeclarators(type, VariableFlags.Fixed, variables, parentKind);
-
-                return _syntaxFactory.FieldDeclaration(
-                    attributes, modifiers.ToList(),
-                    _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
-                    this.EatToken(SyntaxKind.SemicolonToken));
-            }
-            finally
-            {
-                _termState = saveTerm;
-            }
+            return _syntaxFactory.FieldDeclaration(
+                attributes, modifiers.ToList(),
+                _syntaxFactory.VariableDeclaration(
+                    type, this.ParseFieldDeclarationVariableDeclarators(type, VariableFlags.Fixed, parentKind)),
+                this.EatToken(SyntaxKind.SemicolonToken));
         }
 
         private MemberDeclarationSyntax ParseEventDeclaration(
@@ -4670,31 +4659,20 @@ parse_member_name:;
             TypeSyntax type,
             SyntaxKind parentKind)
         {
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfFieldDeclaration;
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            try
-            {
-                this.ParseVariableDeclarators(type, flags: VariableFlags.LocalOrField, variables: variables, parentKind: parentKind);
+            var variables = this.ParseFieldDeclarationVariableDeclarators(type, flags: VariableFlags.LocalOrField, parentKind);
 
-                // Make 'scoped' part of the type when it is the last token in the modifiers list
-                if (modifiers is [.., SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword])
-                {
-                    type = _syntaxFactory.ScopedType(scopedKeyword, type);
-                    modifiers.RemoveLast();
-                }
-
-                var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                return _syntaxFactory.FieldDeclaration(
-                    attributes,
-                    modifiers.ToList(),
-                    _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
-                    semicolon);
-            }
-            finally
+            // Make 'scoped' part of the type when it is the last token in the modifiers list
+            if (modifiers is [.., SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword])
             {
-                _termState = saveTerm;
+                type = _syntaxFactory.ScopedType(scopedKeyword, type);
+                modifiers.RemoveLast();
             }
+
+            return _syntaxFactory.FieldDeclaration(
+                attributes,
+                modifiers.ToList(),
+                _syntaxFactory.VariableDeclaration(type, variables),
+                this.EatToken(SyntaxKind.SemicolonToken));
         }
 
         private EventFieldDeclarationSyntax ParseEventFieldDeclaration(
@@ -4717,30 +4695,19 @@ parse_member_name:;
             // abstract, we allow the attribute to specify that it belongs to a field.  Later, in the
             // semantic pass, we will disallow this.
 
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfFieldDeclaration;
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            try
+            var variables = this.ParseFieldDeclarationVariableDeclarators(type, flags: 0, parentKind);
+            if (this.CurrentToken.Kind == SyntaxKind.DotToken)
             {
-                this.ParseVariableDeclarators(type, flags: 0, variables: variables, parentKind: parentKind);
-
-                if (this.CurrentToken.Kind == SyntaxKind.DotToken)
-                {
-                    eventToken = this.AddError(eventToken, ErrorCode.ERR_ExplicitEventFieldImpl);  // Better error message for confusing event situation.
-                }
-
-                var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                return _syntaxFactory.EventFieldDeclaration(
-                    attributes,
-                    modifiers.ToList(),
-                    eventToken,
-                    _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
-                    semicolon);
+                // Better error message for confusing event situation.
+                eventToken = this.AddError(eventToken, ErrorCode.ERR_ExplicitEventFieldImpl);
             }
-            finally
-            {
-                _termState = saveTerm;
-            }
+
+            return _syntaxFactory.EventFieldDeclaration(
+                attributes,
+                modifiers.ToList(),
+                eventToken,
+                _syntaxFactory.VariableDeclaration(type, variables),
+                this.EatToken(SyntaxKind.SemicolonToken));
         }
 
         private bool IsEndOfFieldDeclaration()
@@ -4748,7 +4715,8 @@ parse_member_name:;
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
-        private void ParseVariableDeclarators(TypeSyntax type, VariableFlags flags, SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables, SyntaxKind parentKind)
+        private SeparatedSyntaxList<VariableDeclaratorSyntax> ParseFieldDeclarationVariableDeclarators(
+            TypeSyntax type, VariableFlags flags, SyntaxKind parentKind)
         {
             // Although we try parse variable declarations in contexts where they are not allowed (non-interactive top-level or a namespace) 
             // the reported errors should take into consideration whether or not one expects them in the current context.
@@ -4756,18 +4724,27 @@ parse_member_name:;
                 parentKind is not SyntaxKind.NamespaceDeclaration and not SyntaxKind.FileScopedNamespaceDeclaration &&
                 (parentKind != SyntaxKind.CompilationUnit || IsScript);
 
-            LocalFunctionStatementSyntax localFunction;
+            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
+
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfFieldDeclaration;
+
             ParseVariableDeclarators(
-                type: type,
-                flags: flags,
-                variables: variables,
-                variableDeclarationsExpected: variableDeclarationsExpected,
+                type,
+                flags,
+                variables,
+                variableDeclarationsExpected,
                 allowLocalFunctions: false,
+                // A field declaration doesn't have a `(...)` construct.  So no need to stop if we hit a close paren
+                // after a declarator.  Let normal error recovery kick in.
+                stopOnCloseParen: false,
                 attributes: default,
                 mods: default,
-                localFunction: out localFunction);
-
+                out var localFunction);
             Debug.Assert(localFunction == null);
+
+            _termState = saveTerm;
+            return _pool.ToListAndFree(variables);
         }
 
         private void ParseVariableDeclarators(
@@ -4776,6 +4753,7 @@ parse_member_name:;
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool variableDeclarationsExpected,
             bool allowLocalFunctions,
+            bool stopOnCloseParen,
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxList<SyntaxToken> mods,
             out LocalFunctionStatementSyntax localFunction)
@@ -4800,6 +4778,10 @@ parse_member_name:;
             while (true)
             {
                 if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                {
+                    break;
+                }
+                else if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                 {
                     break;
                 }
@@ -5214,13 +5196,12 @@ parse_member_name:;
             modifiers.Add(this.EatToken(SyntaxKind.ConstKeyword));
 
             var type = this.ParseType();
-
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            this.ParseVariableDeclarators(type, VariableFlags.Const, variables, parentKind);
             return _syntaxFactory.FieldDeclaration(
                 attributes,
                 modifiers.ToList(),
-                _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                _syntaxFactory.VariableDeclaration(
+                    type,
+                    this.ParseFieldDeclarationVariableDeclarators(type, VariableFlags.Const, parentKind)),
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -5824,7 +5805,7 @@ parse_member_name:;
                         // Note: we check if we got 'MustBeType' which triggers for predefined types,
                         // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
                         // of things that must be types (int*, void**, etc.).
-                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
                         result = ScanTypeFlags.GenericTypeOrMethod;
                         break;
 
@@ -5850,8 +5831,8 @@ parse_member_name:;
                     // }
 
                     case ScanTypeFlags.NullableType:
-                        // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
-                        isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                        // See above.  If we have `X<Y?,` or `X<Y?>` then this is definitely a type argument list.
+                        isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
                         if (isDefinitelyTypeArgumentList)
                         {
                             result = ScanTypeFlags.GenericTypeOrMethod;
@@ -5900,17 +5881,15 @@ parse_member_name:;
             }
 
             greaterThanToken = this.EatToken();
-            return result;
-        }
 
-        private bool DetermineIfDefinitelyTypeArgumentList(bool isDefinitelyTypeArgumentList)
-        {
-            if (!isDefinitelyTypeArgumentList)
+            // If we have `X<Y>)` then this would definitely be a type argument list.
+            isDefinitelyTypeArgumentList = isDefinitelyTypeArgumentList || this.CurrentToken.Kind is SyntaxKind.CloseParenToken;
+            if (isDefinitelyTypeArgumentList)
             {
-                isDefinitelyTypeArgumentList = this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
+                result = ScanTypeFlags.GenericTypeOrMethod;
             }
 
-            return isDefinitelyTypeArgumentList;
+            return result;
         }
 
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
@@ -8406,7 +8385,7 @@ done:;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFixedStatement;
-            var decl = ParseVariableDeclaration();
+            var decl = ParseParenthesizedVariableDeclaration();
             _termState = saveTerm;
 
             return _syntaxFactory.FixedStatement(
@@ -8778,7 +8757,7 @@ done:;
                         scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
                     }
 
-                    decl = ParseVariableDeclaration();
+                    decl = ParseParenthesizedVariableDeclaration();
 
                     var declType = decl.Type;
 
@@ -9421,7 +9400,7 @@ done:;
 
                 if (scopedKeyword != null)
                 {
-                    declaration = ParseVariableDeclaration();
+                    declaration = ParseParenthesizedVariableDeclaration();
                     declaration = declaration.Update(_syntaxFactory.ScopedType(scopedKeyword, declaration.Type), declaration.Variables);
                     return;
                 }
@@ -9455,14 +9434,14 @@ done:;
                         case SyntaxKind.CommaToken:
                         case SyntaxKind.CloseParenToken:
                             this.Reset(ref resetPoint);
-                            declaration = ParseVariableDeclaration();
+                            declaration = ParseParenthesizedVariableDeclaration();
                             break;
 
                         case SyntaxKind.EqualsToken:
                             // Parse it as a decl. If the next token is a : and only one variable was parsed,
                             // convert the whole thing to ?: expression.
                             this.Reset(ref resetPoint);
-                            declaration = ParseVariableDeclaration();
+                            declaration = ParseParenthesizedVariableDeclaration();
 
                             // We may have non-nullable types in error scenarios.
                             if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
@@ -9483,7 +9462,7 @@ done:;
             else if (IsUsingStatementVariableDeclaration(st))
             {
                 this.Reset(ref resetPoint);
-                declaration = ParseVariableDeclaration();
+                declaration = ParseParenthesizedVariableDeclaration();
             }
             else
             {
@@ -9569,10 +9548,13 @@ done:;
 
                 this.ParseLocalDeclaration(variables,
                     allowLocalFunctions: canParseAsLocalFunction,
-                    attributes: attributes,
-                    mods: mods.ToList(),
-                    type: out var type,
-                    localFunction: out var localFunction);
+                    // A local declaration doesn't have a `(...)` construct.  So no need to stop if we hit a close paren
+                    // after a declarator.  Let normal error recovery kick in.
+                    stopOnCloseParen: false,
+                    attributes,
+                    mods.ToList(),
+                    out var type,
+                    out var localFunction);
 
                 if (localFunction != null)
                 {
@@ -9729,15 +9711,22 @@ done:;
         }
 
         /// <summary>
-        /// Parse a local variable declaration.
+        /// Parse a local variable declaration for constructs where the variable declaration is enclosed in parentheses.
+        /// Specifically, only for the `fixed (...)` `for(...)` or `using (...)` statements.
         /// </summary>
-        /// <returns></returns>
-        private VariableDeclarationSyntax ParseVariableDeclaration()
+        private VariableDeclarationSyntax ParseParenthesizedVariableDeclaration()
         {
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            TypeSyntax type;
-            LocalFunctionStatementSyntax localFunction;
-            ParseLocalDeclaration(variables, false, attributes: default, mods: default, out type, out localFunction);
+            ParseLocalDeclaration(
+                variables,
+                allowLocalFunctions: false,
+                // Always stop on a close paren as the parent `fixed(...)/for(...)/using(...)` statement wants to
+                // consume it.
+                stopOnCloseParen: true,
+                attributes: default,
+                mods: default,
+                out var type,
+                out var localFunction);
             Debug.Assert(localFunction == null);
             return _syntaxFactory.VariableDeclaration(
                 type,
@@ -9747,6 +9736,7 @@ done:;
         private void ParseLocalDeclaration(
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool allowLocalFunctions,
+            bool stopOnCloseParen,
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxList<SyntaxToken> mods,
             out TypeSyntax type,
@@ -9767,10 +9757,11 @@ done:;
                 flags,
                 variables,
                 variableDeclarationsExpected: true,
-                allowLocalFunctions: allowLocalFunctions,
-                attributes: attributes,
-                mods: mods,
-                localFunction: out localFunction);
+                allowLocalFunctions,
+                stopOnCloseParen,
+                attributes,
+                mods,
+                out localFunction);
             _termState = saveTerm;
 
             if (allowLocalFunctions && localFunction == null && type is PredefinedTypeSyntax { Keyword.Kind: SyntaxKind.VoidKeyword })
@@ -9784,7 +9775,6 @@ done:;
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.SemicolonToken:
-                case SyntaxKind.CloseParenToken:
                 case SyntaxKind.ColonToken:
                     return true;
                 default:
@@ -11798,7 +11788,7 @@ done:;
 
             this.EatToken();
 
-            var type = this.ScanType(forPattern: forPattern);
+            var type = this.ScanType(forPattern);
             if (type == ScanTypeFlags.NotType)
             {
                 return false;
@@ -12838,8 +12828,6 @@ done:;
             {
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
-                // 'params' and 'readonly' are is not actually legal in a lambda, but we allow it for error recovery
-                // purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:

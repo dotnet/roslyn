@@ -204,6 +204,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseCompilerFeatureRequired, arguments.AttributeSyntaxOpt.Location)
             ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.RequiredMemberAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseRequiredMember, arguments.AttributeSyntaxOpt.Location)
+            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+                If Not SyntaxFacts.IsValidIdentifier(DirectCast(arguments.Attribute.CommonConstructorArguments(0).ValueInternal, String)) Then
+                    Dim attrArgumentLocation = VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_InvalidExperimentalDiagID, attrArgumentLocation)
+                End If
             End If
         End Sub
 
@@ -619,13 +624,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary>
-        ''' Ensure that attributes are bound and the ObsoleteState of this symbol is known.
+        ''' Ensure that attributes are bound and the ObsoleteState/ExperimentalState of this symbol is known.
         ''' </summary>
         Friend Sub ForceCompleteObsoleteAttribute()
-            If Me.ObsoleteState = ThreeState.Unknown Then
+            If Me.ObsoleteKind = ObsoleteAttributeKind.Uninitialized Then
                 Me.GetAttributes()
             End If
             Debug.Assert(Me.ObsoleteState <> ThreeState.Unknown, "ObsoleteState should be true or false now.")
+            Debug.Assert(Me.ExperimentalState <> ThreeState.Unknown, "ExperimentalState should be true or false now.")
+
+            Me.ContainingSymbol?.ForceCompleteObsoleteAttribute()
         End Sub
     End Class
 End Namespace

@@ -31,5 +31,11 @@ namespace Microsoft.CodeAnalysis
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return new SyntacticDocument(document, text, root);
         }
+
+        public ValueTask<SyntacticDocument> WithSyntaxRootAsync(SyntaxNode root, CancellationToken cancellationToken)
+        {
+            var newDocument = this.Document.WithSyntaxRoot(root);
+            return CreateAsync(newDocument, cancellationToken);
+        }
     }
 }

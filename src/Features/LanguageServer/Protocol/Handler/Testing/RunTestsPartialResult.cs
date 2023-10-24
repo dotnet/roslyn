@@ -13,4 +13,3 @@ internal record RunTestsPartialResult(
     [property: DataMember(Name = "message")] string Message,
     [property: DataMember(Name = "progress"), JsonProperty(NullValueHandling = NullValueHandling.Ignore)] TestProgress? Progress
 );
-

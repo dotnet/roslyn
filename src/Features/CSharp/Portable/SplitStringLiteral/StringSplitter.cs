@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
         {
             var token = document.Root.FindToken(position);
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken) ||
-                token.IsKind(SyntaxKind.Utf8StringLiteralToken))
+            if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken)
             {
                 return new SimpleStringSplitter(
                     document, position, token, indentationOptions, cancellationToken);
@@ -59,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
         private static InterpolatedStringExpressionSyntax? TryGetInterpolatedStringExpression(
             SyntaxToken token, int position)
         {
-            if (token.IsKind(SyntaxKind.InterpolatedStringTextToken) ||
-                token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
+            if (token.Kind() is SyntaxKind.InterpolatedStringTextToken or SyntaxKind.InterpolatedStringEndToken ||
                 IsInterpolationOpenBrace(token, position))
             {
                 return token.GetAncestor<InterpolatedStringExpressionSyntax>();

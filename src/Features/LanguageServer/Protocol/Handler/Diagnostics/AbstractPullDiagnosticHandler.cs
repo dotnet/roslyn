@@ -20,7 +20,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
+    internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>
+        : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
         where TDiagnosticsParams : IPartialResultParams<TReport>
     {
         public AbstractDocumentPullDiagnosticHandler(
@@ -49,6 +50,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
+        // internal for testing purposes
+        internal const int DocumentNonLocalDiagnosticIdentifier = 3;
 
         private readonly IDiagnosticsRefresher _diagnosticRefresher;
         protected readonly IGlobalOptionService GlobalOptions;
@@ -76,6 +79,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _diagnosticRefresher = diagnosticRefresher;
             GlobalOptions = globalOptions;
         }
+
+        protected virtual string? GetDiagnosticSourceIdentifier(TDiagnosticsParams diagnosticsParams) => null;
 
         /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Generate the right diagnostic tags for a particular diagnostic.
         /// </summary>
-        protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
+        protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource);
 
         protected abstract string? GetDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
 
@@ -127,7 +132,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
-            var handlerName = $"{this.GetType().Name}(category: {category})";
+            var sourceIdentifier = GetDiagnosticSourceIdentifier(diagnosticsParams) ?? "";
+            var handlerName = $"{this.GetType().Name}(category: {category}, source: {sourceIdentifier})";
             context.TraceInformation($"{handlerName} started getting diagnostics");
 
             var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
@@ -372,7 +378,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Location = new LSP.Location
                     {
                         Range = GetRange(l),
-                        Uri = ProtocolConversions.GetUriFromFilePath(l.UnmappedFileSpan.Path)
+                        Uri = ProtocolConversions.CreateAbsoluteUri(l.UnmappedFileSpan.Path)
                     },
                     Message = diagnostic.Message
                 }).ToArray();
@@ -391,16 +397,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // would get automatically serialized.
                 var diagnostic = new LSP.VSDiagnostic
                 {
-                    Source = "Roslyn",
                     Code = diagnosticData.Id,
                     CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
-                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-                    Tags = ConvertTags(diagnosticData),
+                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
+                    Tags = ConvertTags(diagnosticData, diagnosticSource.IsLiveSource()),
                     DiagnosticRank = ConvertRank(diagnosticData),
+                    Range = GetRange(diagnosticData.DataLocation)
                 };
-
-                diagnostic.Range = GetRange(diagnosticData.DataLocation);
 
                 if (capabilities.HasVisualStudioLspCapability())
                 {
@@ -501,13 +505,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return null;
         }
 
-        private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
+        private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, ClientCapabilities clientCapabilities)
             => severity switch
             {
                 // Hidden is translated in ConvertTags to pass along appropriate _ms tags
                 // that will hide the item in a client that knows about those tags.
                 DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-                DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Information,
+                // VSCode shows information diagnostics as blue squiggles, and hint diagnostics as 3 dots.  We prefer the latter rendering so we return hint diagnostics in vscode.
+                DiagnosticSeverity.Info => clientCapabilities.HasVisualStudioLspCapability() ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
                 DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
                 DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
                 _ => throw ExceptionUtilities.UnexpectedValue(severity),
@@ -517,7 +522,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// If you make change in this method, please also update the corresponding file in
         /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
         /// </summary>
-        protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
+        protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource, bool potentialDuplicate)
         {
             using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 
@@ -535,8 +540,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (diagnosticData.CustomTags.Contains(PullDiagnosticConstants.TaskItemCustomTag))
                 result.Add(VSDiagnosticTags.TaskItem);
 
+            // Let the host know that these errors represent potentially stale information from the past that should
+            // be superseded by fresher info.
             if (potentialDuplicate)
                 result.Add(VSDiagnosticTags.PotentialDuplicate);
+
+            // Mark this also as a build error.  That way an explicitly kicked off build from a source like CPS can
+            // override it.
+            if (!isLiveSource)
+                result.Add(VSDiagnosticTags.BuildError);
 
             result.Add(diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Build)
                 ? VSDiagnosticTags.BuildError

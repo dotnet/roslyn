@@ -17,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private Shared ReadOnly s_nonNoisySyntaxKindSet As HashSet(Of Integer) = New HashSet(Of Integer) From {SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia}
 
-            Public Shared Function AnalyzeResultAsync(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
+            Public Shared Function AnalyzeResult(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken) As AnalyzerResult
                 Dim analyzer = New VisualBasicAnalyzer(currentSelectionResult, cancellationToken)
-                Return analyzer.AnalyzeAsync()
+                Return analyzer.Analyze()
             End Function
 
             Public Sub New(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken)

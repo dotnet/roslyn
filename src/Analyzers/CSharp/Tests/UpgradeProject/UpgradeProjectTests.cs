@@ -1096,7 +1096,7 @@ class C
             await TestLanguageVersionUpgradedAsync(
 @"
 class Program[|()|];",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1106,7 +1106,7 @@ class Program[|()|];",
             await TestLanguageVersionUpgradedAsync(
 @"
 struct Program[|()|];",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1116,7 +1116,7 @@ struct Program[|()|];",
             await TestLanguageVersionUpgradedAsync(
 @"
 class Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1126,7 +1126,7 @@ class Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 struct Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1136,7 +1136,7 @@ struct Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 interface Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1146,7 +1146,7 @@ interface Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 enum Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1281,7 +1281,7 @@ enum Program[|;|]",
                     }
                 }
                 """,
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
     }

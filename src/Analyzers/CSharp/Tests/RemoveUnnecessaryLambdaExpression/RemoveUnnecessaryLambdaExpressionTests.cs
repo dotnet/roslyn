@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
         private static async Task TestInRegularAndScriptAsync(
             string testCode,
             string fixedCode,
-            LanguageVersion version = LanguageVersion.Preview,
+            LanguageVersion version = LanguageVersion.CSharp12,
             OutputKind? outputKind = null)
         {
             await new VerifyCS.Test
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
 
         private static Task TestMissingInRegularAndScriptAsync(
             string testCode,
-            LanguageVersion version = LanguageVersion.Preview,
+            LanguageVersion version = LanguageVersion.CSharp12,
             OutputKind? outputKind = null)
             => TestInRegularAndScriptAsync(testCode, testCode, version, outputKind);
 
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
             }.RunAsync();
         }

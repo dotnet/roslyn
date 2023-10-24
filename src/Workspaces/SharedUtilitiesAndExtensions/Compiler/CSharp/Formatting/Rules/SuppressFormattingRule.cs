@@ -208,8 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            if (node is AnonymousFunctionExpressionSyntax or
-                LocalFunctionStatementSyntax)
+            if (node is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list,
                     node.GetFirstToken(includeZeroWidth: true),
@@ -376,8 +375,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            if (node is CollectionExpressionSyntax collectionExpression)
+            {
+                AddSuppressAllOperationIfOnMultipleLine(list, collectionExpression.OpenBracketToken, collectionExpression.CloseBracketToken);
+                return;
+            }
+
             var initializer = GetInitializerNode(node);
-            if (initializer is { Parent: { } })
+            if (initializer?.Parent != null)
             {
                 AddInitializerSuppressOperations(list, initializer.Parent, initializer.Expressions);
                 return;

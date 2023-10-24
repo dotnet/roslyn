@@ -340,7 +340,7 @@ class BCD
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
             var project = testWorkspace.CurrentSolution.Projects.Single();
-            var newDocumentUri = ProtocolConversions.GetUriFromFilePath(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
+            var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
             var existingDocumentUri = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id).GetURI();
             var workspaceEdit = new WorkspaceEdit()
             {
@@ -414,6 +414,131 @@ class BCD
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
+                diagnostics: null,
+                edit: workspaceEdit);
+
+            AssertJsonEquals(expectedCodeAction, actualResolvedAction);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestMoveTypeToDifferentFileInDirectory(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class ABC
+{
+}
+class {|caret:BCD|} 
+{
+}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+            {
+                ClientCapabilities = new ClientCapabilities()
+                {
+                    Workspace = new WorkspaceClientCapabilities
+                    {
+                        WorkspaceEdit = new WorkspaceEditSetting
+                        {
+                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                        }
+                    }
+                },
+
+                DocumentFileContainingFolders = new[] { Path.Combine("dir1", "dir2", "dir3") },
+            });
+
+            var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 3, Character = 6 }, End = new Position { Line = 3, Character = 9 } },
+                diagnostics: null);
+
+            var testWorkspace = testLspServer.TestWorkspace;
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
+
+            var existingDocument = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id);
+            var existingDocumentUri = existingDocument.GetURI();
+
+            Assert.Contains(Path.Combine("dir1", "dir2", "dir3"), existingDocument.FilePath);
+            var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(
+                Path.Combine(Path.GetDirectoryName(existingDocument.FilePath), "BCD.cs"));
+            var workspaceEdit = new WorkspaceEdit()
+            {
+                DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+                {
+                    // Create file
+                    new CreateFile() { Uri = newDocumentUri },
+                    // Add content to file
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit()
+                            {
+                                Range = new LSP.Range
+                                {
+                                    Start = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0,
+                                    },
+                                    End = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0
+                                    }
+                                },
+                                NewText = @"class BCD
+{
+}"
+                            }
+                        }
+                    },
+                    // Remove the declaration from existing file
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit()
+                            {
+                                Range = new LSP.Range
+                                {
+                                    Start = new Position()
+                                    {
+                                        Line = 3,
+                                        Character = 0,
+                                    },
+                                    End = new Position()
+                                    {
+                                        Line = 5,
+                                        Character = 1
+                                    }
+                                },
+                                NewText = ""
+                            }
+                        }
+                    }
+                }
+            };
+
+            var expectedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 3, Character = 6 }, End = new Position { Line = 3, Character = 9 } },
                 diagnostics: null,
                 edit: workspaceEdit);
 

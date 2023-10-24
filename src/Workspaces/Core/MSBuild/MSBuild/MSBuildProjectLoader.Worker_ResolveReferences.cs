@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 private readonly ImmutableDictionary<string, HashSet<int>> _pathToIndicesMap;
 
                 /// <summary>
-                /// A set of indeces into <see cref="_metadataReferences"/> that are to be removed.
+                /// A set of indices into <see cref="_metadataReferences"/> that are to be removed.
                 /// </summary>
                 private readonly HashSet<int> _indicesToRemove;
 

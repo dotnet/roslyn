@@ -7398,10 +7398,9 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,15): error CS1593: Delegate 'Func<string>' does not take 1 arguments
+                // (6,17): error CS1593: Delegate 'Func<string>' does not take 1 arguments
                 //         param(a => a);
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "a => a").WithArguments("System.Func<string>", "1").WithLocation(6, 15)
-            );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<string>", "1").WithLocation(6, 17));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -11629,7 +11628,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(0, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -11682,7 +11685,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(0, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -11735,8 +11742,10 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
+                Assert.False(attr.HasErrors);
                 Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(0, arg.Value);
             });
             verifier.VerifyDiagnostics();
         }
@@ -11792,6 +11801,8 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.True(arg.IsNull);
             });
@@ -11824,6 +11835,8 @@ class C<T> {}
                 {
                     var c = module.GlobalNamespace.GetTypeMember("C");
                     var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                    Assert.False(attr.HasErrors);
+                    Assert.Empty(attr.NamedArguments);
                     var arg = attr.ConstructorArguments.Single();
                     Assert.True(arg.IsNull);
                 });
@@ -12057,7 +12070,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12190,7 +12207,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12218,7 +12239,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.True(arg.Values.IsEmpty);
+                Assert.Equal("B<delegate*<System.Void>[]>.E[]", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12244,11 +12269,23 @@ class C<T> {}
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                if (initializer == "()")
+                {
+                    var item = arg.Values.Single();
+                    Assert.Equal(0, item.Value);
+                }
+                else
+                {
+                    Assert.True(arg.Values.IsEmpty);
+                }
+                Assert.Equal("B<delegate*<System.Void>[]>.E[]", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }

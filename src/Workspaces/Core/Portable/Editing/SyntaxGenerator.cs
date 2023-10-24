@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -123,7 +124,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode FieldDeclaration(IFieldSymbol field)
         {
-            var initializer = field.HasConstantValue ? this.LiteralExpression(field.ConstantValue) : null;
+            // don't use field references in initializers for fields in certain special types -  since those might reference the field being declared.
+            var canUseFieldReference = !LiteralSpecialValues.HasSpecialValues(field.ContainingType.SpecialType);
+            var initializer = field.HasConstantValue ? this.LiteralExpression(field.ConstantValue, canUseFieldReference) : null;
             return FieldDeclaration(field, initializer);
         }
 
@@ -342,7 +345,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.RefKind,
                 isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
                 symbol.IsParams,
-                symbol.ScopedKind == ScopedKind.ScopedRef);
+                isScoped: symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
+                    or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue });
         }
 
         private protected abstract SyntaxNode TypeParameter(ITypeParameterSymbol typeParameter);
@@ -1797,7 +1801,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a literal expression. This is typically numeric primitives, strings or chars.
         /// </summary>
         public SyntaxNode LiteralExpression(object? value)
-            => GenerateExpression(type: null, value, canUseFieldReference: true);
+            => LiteralExpression(value, canUseFieldReference: true);
+
+        /// <summary>
+        /// Creates a literal expression. This is typically numeric primitives, strings or chars.
+        /// </summary>
+        private SyntaxNode LiteralExpression(object? value, bool canUseFieldReference)
+            => GenerateExpression(type: null, value, canUseFieldReference);
 
         /// <summary>
         /// Creates an expression for a typed constant.

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Workspace workspace,
             Solution originalSolution,
             ImmutableArray<CodeActionOperation> operations,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

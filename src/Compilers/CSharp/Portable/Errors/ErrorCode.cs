@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
-        WRN_Experimental = 8305,
+        WRN_WindowsExperimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
         ERR_TypelessTupleInAs = 8307,
 
@@ -2183,6 +2183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnexpectedParameterList = 9122,
         WRN_AddressOfInAsync = 9123,
         WRN_CapturedPrimaryConstructorParameterInFieldInitializer = 9124,
+        WRN_ByValArraySizeConstRequired = 9125,
 
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,
@@ -2264,6 +2265,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TargetDifferentRefness = 9198,
         ERR_OutAttrOnRefReadonlyParam = 9199,
         WRN_RefReadonlyParameterDefaultValue = 9200,
+        WRN_UseDefViolationRefField = 9201,
+
+        ERR_FeatureNotAvailableInVersion12 = 9202,
+        ERR_CollectionExpressionEscape = 9203,
+        WRN_Experimental = 9204,
+        ERR_ExpectedInterpolatedString = 9205,
+
+        ERR_InterceptorGlobalNamespace = 9206,
+        ERR_InterceptableMethodMustBeOrdinary = 9207,
+
+        WRN_CollectionExpressionRefStructMayAllocate = 9208,
+        WRN_CollectionExpressionRefStructSpreadMayAllocate = 9209,
+        ERR_CollectionExpressionImmutableArray = 9210,
+
+        ERR_InvalidExperimentalDiagID = 9211,
 
         #endregion
 

@@ -146,6 +146,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetNullableUnderlyingTypeWithAnnotations().Type;
         }
 
+        public static bool IsNullableType(this TypeSymbol? type, [NotNullWhen(true)] out TypeSymbol? underlyingType)
+        {
+            if (type is NamedTypeSymbol nt
+                && nt.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                underlyingType = nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                return true;
+            }
+
+            underlyingType = null;
+            return false;
+        }
+
         public static TypeWithAnnotations GetNullableUnderlyingTypeWithAnnotations(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
@@ -354,6 +367,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
         }
 
+        internal static bool IsArrayInterface(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+        {
+            if (type is NamedTypeSymbol
+                {
+                    OriginalDefinition.SpecialType:
+                        SpecialType.System_Collections_Generic_IEnumerable_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyList_T or
+                        SpecialType.System_Collections_Generic_ICollection_T or
+                        SpecialType.System_Collections_Generic_IList_T,
+                    TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
+                })
+            {
+                typeArgument = typeArg;
+                return true;
+            }
+            typeArgument = default;
+            return false;
+        }
+
         public static bool IsFunctionPointer(this TypeSymbol type)
         {
             return type.TypeKind == TypeKind.FunctionPointer;
@@ -369,6 +402,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     return false;
+            }
+        }
+
+        internal static ImmutableArray<NamedTypeSymbol> GetAllInterfacesOrEffectiveInterfaces(this TypeSymbol type)
+        {
+            switch (type.TypeKind)
+            {
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                    return type.AllInterfacesNoUseSiteDiagnostics;
+
+                case TypeKind.TypeParameter:
+                    {
+                        var typeParameter = (TypeParameterSymbol)type;
+                        return typeParameter.EffectiveBaseClassNoUseSiteDiagnostics.AllInterfacesNoUseSiteDiagnostics.Concat(typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics);
+                    }
+                default:
+                    return ImmutableArray<NamedTypeSymbol>.Empty;
             }
         }
 
@@ -2060,7 +2111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    IsContainedInNamespace(type, "System", "Numerics");
         }
 
-        private static bool IsWellKnownDiagnosticsCodeAnalysisTopLevelType(this TypeSymbol typeSymbol)
+        internal static bool IsWellKnownDiagnosticsCodeAnalysisTopLevelType(this TypeSymbol typeSymbol)
             => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Diagnostics", "CodeAnalysis");
 
         private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string? innerNS = null)

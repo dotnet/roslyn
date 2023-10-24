@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return FileIdentifier.Create(syntaxTree);
+                return FileIdentifier.Create(syntaxTree, DeclaringCompilation?.Options?.SourceReferenceResolver);
             }
         }
 
@@ -2233,7 +2233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckSpecialMemberErrors(BindingDiagnosticBag diagnostics)
         {
-            var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+            var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
             foreach (var member in this.GetMembersUnordered())
             {
                 member.AfterAddingTypeMembersChecks(conversions, diagnostics);
@@ -3385,7 +3385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in nonTypeMembersToCheck)
             {
-                if (member.IsAccessor() || member.IsIndexer())
+                if (member.IsAccessor())
                 {
                     continue;
                 }

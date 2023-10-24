@@ -609,4 +609,7 @@
     <value>static int Main</value>
     <comment>{Locked}</comment>
   </data>
+  <data name="Convert_to_regular_constructor" xml:space="preserve">
+    <value>Convert to regular constructor</value>
+  </data>
 </root>

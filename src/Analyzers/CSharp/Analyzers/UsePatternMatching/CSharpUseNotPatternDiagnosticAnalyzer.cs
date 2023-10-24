@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -46,19 +47,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp9)
                     return;
 
-                context.RegisterSyntaxNodeAction(n => SyntaxNodeAction(n), SyntaxKind.LogicalNotExpression);
+                var expressionOfTType = context.Compilation.ExpressionOfTType();
+                context.RegisterSyntaxNodeAction(n => SyntaxNodeAction(n, expressionOfTType), SyntaxKind.LogicalNotExpression);
             });
         }
 
-        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
+        private void SyntaxNodeAction(
+            SyntaxNodeAnalysisContext context,
+            INamedTypeSymbol? expressionOfTType)
         {
+            var cancellationToken = context.CancellationToken;
+
             // Bail immediately if the user has disabled this feature.
-            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferNotPattern;
+            var styleOption = context.GetCSharpAnalyzerOptions().PreferNotPattern;
             if (!styleOption.Value)
                 return;
 
             // Look for the form: !(...)
-            var node = syntaxContext.Node;
+            var node = context.Node;
             if (node is not PrefixUnaryExpressionSyntax(SyntaxKind.LogicalNotExpression)
                 {
                     Operand: ParenthesizedExpressionSyntax parenthesizedExpression
@@ -81,7 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (isKeywordLocation is null)
                 return;
 
-            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            if (node.IsInExpressionTree(context.SemanticModel, expressionOfTType, cancellationToken))
+                return;
+
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 isKeywordLocation,
                 styleOption.Notification.Severity,

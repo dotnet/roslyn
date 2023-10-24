@@ -2298,17 +2298,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,27): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static int M1(C x) => x.F[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(18, 27),
-                // (19,28): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[0]").WithArguments("inline arrays", "12.0").WithLocation(18, 27),
+                // (19,28): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static void M2(C x) => x.F[0] = 111;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(19, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[0]").WithArguments("inline arrays", "12.0").WithLocation(19, 28)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -5799,17 +5799,17 @@ class Program
   IL_000e:  ret
 }
 ");
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (18,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,27): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static int M1(C x) => x.F[^10];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[^10]").WithArguments("inline arrays").WithLocation(18, 27),
-                // (19,28): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[^10]").WithArguments("inline arrays", "12.0").WithLocation(18, 27),
+                // (19,28): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static void M2(C x) => x.F[^10] = 111;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[^10]").WithArguments("inline arrays").WithLocation(19, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[^10]").WithArguments("inline arrays", "12.0").WithLocation(19, 28)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -5965,17 +5965,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (20,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (20,27): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static int M1(C x) => x.F[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[0]").WithArguments("inline arrays").WithLocation(20, 27),
-                // (21,40): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[0]").WithArguments("inline arrays", "12.0").WithLocation(20, 27),
+                // (21,40): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static System.Span<int> M2(C x) => x.F[..5];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F[..5]").WithArguments("inline arrays").WithLocation(21, 40)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F[..5]").WithArguments("inline arrays", "12.0").WithLocation(21, 40)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -8121,17 +8121,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (12,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,9): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         c.F[0] = 111;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c.F[0]").WithArguments("inline arrays").WithLocation(12, 9),
-                // (16,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "c.F[0]").WithArguments("inline arrays", "12.0").WithLocation(12, 9),
+                // (16,30): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static int? M2(C c) => c?.F[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ".F[0]").WithArguments("inline arrays").WithLocation(16, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ".F[0]").WithArguments("inline arrays", "12.0").WithLocation(16, 30)
                 );
         }
 
@@ -12903,9 +12903,9 @@ public ref struct Buffer1Ref
 ");
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(7, 30),
                 // (25,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(25, 12),
@@ -13262,9 +13262,9 @@ public ref struct Buffer2Ref
                 // (7,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
                 //     public Buffer2()
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12),
-                // (10,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,13): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         _ = this[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "this[0]").WithArguments("inline arrays", "12.0").WithLocation(10, 13),
                 // (10,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         _ = this[0];
                 Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 13),
@@ -13328,12 +13328,12 @@ public struct Buffer1
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30),
-                // (19,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(7, 30),
+                // (19,13): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         _ = this[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(19, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "this[0]").WithArguments("inline arrays", "12.0").WithLocation(19, 13)
                 );
         }
 
@@ -13389,24 +13389,24 @@ public struct Buffer1
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30),
-                // (9,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(7, 30),
+                // (9,9): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         f[0] = 1; 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(9, 9),
-                // (11,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(9, 9),
+                // (11,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(11, 30),
-                // (15,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(11, 30),
+                // (15,30): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(15, 30),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "f[0]").WithArguments("inline arrays", "12.0").WithLocation(15, 30),
                 // (24,12): error CS0171: Field 'Buffer1._element0' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public Buffer1()
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Buffer1").WithArguments("Buffer1._element0", "11.0").WithLocation(24, 12),
-                // (26,13): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (26,13): error CS8936: Feature 'inline arrays' is not available in C# 10.0. Please use language version 12.0 or greater.
                 //         _ = this[0];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(26, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "this[0]").WithArguments("inline arrays", "12.0").WithLocation(26, 13),
                 // (26,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         _ = this[0];
                 Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(26, 13)
@@ -14976,17 +14976,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (18,48): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,48): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static System.ReadOnlySpan<int> M1(C x) => x.F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F").WithArguments("inline arrays").WithLocation(18, 48),
-                // (19,40): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F").WithArguments("inline arrays", "12.0").WithLocation(18, 48),
+                // (19,40): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     static System.Span<int> M2(C x) => x.F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x.F").WithArguments("inline arrays").WithLocation(19, 40)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x.F").WithArguments("inline arrays", "12.0").WithLocation(19, 40)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -16757,17 +16757,17 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (14,9): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,9): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         b[0] = 111;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "b[0]").WithArguments("inline arrays").WithLocation(14, 9),
-                // (15,34): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "b[0]").WithArguments("inline arrays", "12.0").WithLocation(14, 9),
+                // (15,34): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         System.Console.Write(((C)b).F);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "b").WithArguments("inline arrays").WithLocation(15, 34)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "b").WithArguments("inline arrays", "12.0").WithLocation(15, 34)
                 );
         }
 
@@ -18580,14 +18580,14 @@ class Program
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (6,27): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,27): error CS9058: Feature 'inline arrays' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         foreach (var y in x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("inline arrays").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("inline arrays", "12.0").WithLocation(6, 27)
                 );
         }
 

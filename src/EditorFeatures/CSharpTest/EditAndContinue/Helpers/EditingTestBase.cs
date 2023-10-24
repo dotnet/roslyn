@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -60,6 +61,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             => keyword switch
             {
                 "enum" => FeaturesResources.enum_,
+                "enum value" => FeaturesResources.enum_value,
                 "class" => FeaturesResources.class_,
                 "interface" => FeaturesResources.interface_,
                 "delegate" => FeaturesResources.delegate_,
@@ -69,11 +71,15 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "static constructor" => FeaturesResources.static_constructor,
                 "constructor" => FeaturesResources.constructor,
                 "field" => FeaturesResources.field,
+                "const field" => FeaturesResources.const_field,
                 "method" => FeaturesResources.method,
                 "property" => FeaturesResources.property_,
                 "property getter" => CSharpFeaturesResources.property_getter,
                 "property setter" => CSharpFeaturesResources.property_setter,
                 "auto-property" => FeaturesResources.auto_property,
+                "event" => FeaturesResources.event_,
+                "event field" => CSharpFeaturesResources.event_field,
+                "event accessor" => FeaturesResources.event_accessor,
                 "indexer" => CSharpFeaturesResources.indexer,
                 "indexer getter" => CSharpFeaturesResources.indexer_getter,
                 "indexer setter" => CSharpFeaturesResources.indexer_setter,
@@ -116,7 +122,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
             => SyntaxFactory.ParseSyntaxTree(
                 SourceMarkers.Clear(markedSource),
-                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
                 path: GetDocumentFilePath(documentIndex));
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)

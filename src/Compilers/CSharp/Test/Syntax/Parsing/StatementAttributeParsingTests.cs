@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -5593,9 +5594,6 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,9): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         [A]++i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(5, 9),
                 // (5,10): error CS0103: The name 'A' does not exist in the current context
                 //         [A]++i;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(5, 10),
@@ -6015,10 +6013,7 @@ class C
             EOF();
 
             CreateCompilationWithIndexAndRangeAndSpan(test).VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         [A]..b;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(6, 9),
-                // (6,9): error CS9500: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
+                // (6,9): error CS9174: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
                 //         [A]..b;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[A]").WithArguments("System.Index").WithLocation(6, 9),
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -6110,10 +6105,7 @@ class C
             EOF();
 
             CreateCompilationWithIndexAndRangeAndSpan(test).VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'collection expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         [A]..;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection expressions").WithLocation(6, 9),
-                // (6,9): error CS9500: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
+                // (6,9): error CS9174: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
                 //         [A]..;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[A]").WithArguments("System.Index").WithLocation(6, 9),
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
