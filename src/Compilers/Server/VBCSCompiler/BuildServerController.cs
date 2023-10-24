@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
-                FatalError.Handler = FailFast.Handler;
+                FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
                 var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive, cancellationToken);

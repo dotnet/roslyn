@@ -177,6 +177,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
+                        // A real build just finished.  Clear out any results from the last "run code analysis" command.
+                        this.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
                         ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
                     }
                 };

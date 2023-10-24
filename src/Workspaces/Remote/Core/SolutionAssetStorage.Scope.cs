@@ -44,7 +44,7 @@ internal partial class SolutionAssetStorage
         /// the storage.
         /// </summary>
         public async Task AddAssetsAsync(
-            ProjectId? hintProject,
+            AssetHint assetHint,
             ImmutableArray<Checksum> checksums,
             Dictionary<Checksum, object> assetMap,
             CancellationToken cancellationToken)
@@ -57,18 +57,18 @@ internal partial class SolutionAssetStorage
             var numberOfChecksumsToSearch = checksumsToFind.Count;
             Contract.ThrowIfTrue(checksumsToFind.Contains(Checksum.Null));
 
-            await FindAssetsAsync(hintProject, checksumsToFind, assetMap, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(assetHint, checksumsToFind, assetMap, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(checksumsToFind.Count > 0);
             Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
         }
 
         private async Task FindAssetsAsync(
-            ProjectId? hintProject, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
+            AssetHint assetHint, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
             var solutionState = this.Solution;
             if (solutionState.TryGetStateChecksums(out var stateChecksums))
-                await stateChecksums.FindAsync(solutionState, hintProject, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
 
             foreach (var projectId in solutionState.ProjectIds)
             {
@@ -76,7 +76,7 @@ internal partial class SolutionAssetStorage
                     break;
 
                 if (solutionState.TryGetStateChecksums(projectId, out var checksums))
-                    await checksums.FindAsync(solutionState, hintProject, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                    await checksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -96,7 +96,7 @@ internal partial class SolutionAssetStorage
                 using var checksumPool = Creator.CreateChecksumSet(checksum);
                 using var _ = Creator.CreateResultMap(out var resultPool);
 
-                await scope.FindAssetsAsync(hintProject: null, checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
+                await scope.FindAssetsAsync(AssetHint.None, checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfTrue(resultPool.Count != 1);
 
                 var (resultingChecksum, value) = resultPool.First();

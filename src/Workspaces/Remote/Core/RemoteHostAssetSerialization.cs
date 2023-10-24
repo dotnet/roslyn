@@ -64,11 +64,24 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async ValueTask<ImmutableArray<object>> ReadDataAsync(
+        public static ValueTask<ImmutableArray<object>> ReadDataAsync(
             PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-            return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+            // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
+            // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
+            // CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
+
+            static async ValueTask<ImmutableArray<object>> ReadDataSuppressedFlowAsync(
+                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+            {
+                using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
+                return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+            }
         }
 
         public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
