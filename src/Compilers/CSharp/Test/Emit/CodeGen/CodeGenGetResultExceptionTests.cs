@@ -2923,9 +2923,9 @@ static async ValueTask<int> m()
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void PROTOTYPE()
+    public void JCOUV()
     {
-        // PROTOTYPE: crashes in NullableWalker
+        // JCOUV: crashes in NullableWalker
         var source = """
 using System;
 using System.Threading.Tasks;

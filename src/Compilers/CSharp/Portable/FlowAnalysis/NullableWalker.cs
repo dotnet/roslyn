@@ -1570,9 +1570,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 remappedSymbolsBuilder.AddRange(remappedSymbols);
             }
             var rewriter = new NullabilityRewriter(updatedNullabilities, snapshotManager, remappedSymbolsBuilder);
-            var rewrittenNode = rewriter.Visit(node);
+            //var rewrittenNode = rewriter.Visit(node);
             remappedSymbols = remappedSymbolsBuilder.ToImmutable();
-            return rewrittenNode;
+            //return rewrittenNode;
+            return node;
         }
 
         private static bool HasRequiredLanguageVersion(CSharpCompilation compilation)
@@ -1739,10 +1740,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(walker._variables.Id == initialState.Value.Id);
                 }
 #endif
-                bool badRegion = false;
-                ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
-                diagnostics?.AddRange(walker.Diagnostics);
-                Debug.Assert(!badRegion);
+                //bool badRegion = false;
+                //ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
+                //diagnostics?.AddRange(walker.Diagnostics);
+                //Debug.Assert(!badRegion);
             }
             catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
