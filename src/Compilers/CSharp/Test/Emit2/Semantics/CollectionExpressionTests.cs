@@ -10657,12 +10657,13 @@ partial class Program
             var comp = CreateCompilation(new[] { src, s_collectionExtensions }, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"),
+                verify: Verification.Fails with { ILVerifyMessage = """
+                    [M]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+                    [M]: Field is not visible. { Offset = 0x0 }
+                    [M]: Unexpected type on the stack. { Offset = 0x6, Found = address of '<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
+                    """ });
 
-            // ILVerify:
-            // [M]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
-            // [M]: Field is not visible. { Offset = 0x0 }
-            // [M]: Unexpected type on the stack. { Offset = 0x6, Found = address of '[78cb4f30-abc1-41ca-b5d2-939830104c72]<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
             verifier.VerifyIL("Program.M", """
 {
   // Code size       22 (0x16)

@@ -20783,10 +20783,22 @@ namespace C
 }";
             var referenceD = CreateCompilation(codeD, assemblyName: "D").EmitToImageReference();
 
-            CompileAndVerify(
+            var verifier = CompileAndVerify(
                 source: codeA,
                 references: new MetadataReference[] { referenceB, referenceC2, referenceD },
-                expectedOutput: "obj is null");
+                expectedOutput: "obj is null",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unable to resolve token. { Offset = 0x1, Token = 167772167 }" });
+
+            verifier.VerifyIL("A.ClassA.Main", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       "string B.ClassB.MethodB(C.ClassC)"
+  IL_0006:  call       "void System.Console.WriteLine(string)"
+  IL_000b:  ret
+}
+""");
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]

@@ -4662,7 +4662,9 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp,
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[GetHashCode]: Unrecognized arguments for delegate .ctor. { Offset = 0x12 }" },
+                expectedOutput:
 $@"42
 {42.GetHashCode()}
 False

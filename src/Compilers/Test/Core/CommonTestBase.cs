@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static readonly Verification FailsILVerify = new() { Status = VerificationStatus.FailsILVerify };
         public static readonly Verification Fails = new() { Status = VerificationStatus.Fails };
         public static readonly Verification PassesOrFailFast = new() { Status = VerificationStatus.PassesOrFailFast };
+
+        public Verification WithILVerifyMessage(string message)
+            => new Verification() { Status = Status, ILVerifyMessage = message, PEVerifyMessage = PEVerifyMessage, IncludeTokensAndModuleIds = IncludeTokensAndModuleIds };
     }
 
 #nullable disable
