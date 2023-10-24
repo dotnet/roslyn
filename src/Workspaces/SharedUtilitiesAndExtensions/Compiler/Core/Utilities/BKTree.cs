@@ -124,6 +124,13 @@ namespace Roslyn.Utilities
                 result.Add(new string(_concatenatedLowerCaseWords, characterSpan.Start, characterSpan.Length));
             }
 
+            // The GetEditDistance call above serves two purposes:
+            // 1) To determine whether currentNode should be added to the result (handled above)
+            // 2) To determine whether children need to be searched (handled below)
+            //
+            // If there are no edges, we don't need the information to determine case 2. So, as a
+            // performance optimization, in that case we send in a threshold to GetEditDistance
+            // that indicates only the work necessary to determine case 1 need be performed.
             if (edgesExist)
             {
                 var min = editDistance - threshold;
