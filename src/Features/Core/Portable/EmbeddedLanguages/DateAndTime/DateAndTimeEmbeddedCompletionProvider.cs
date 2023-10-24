@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
                 var textChange = embeddedItem.Change.TextChange;
 
-                properties.Add(new KeyValuePair<string, string>(StartKey, textChange.Span.Start.ToString()));
-                properties.Add(new KeyValuePair<string, string>(LengthKey, textChange.Span.Length.ToString()));
-                properties.Add(new KeyValuePair<string, string>(NewTextKey, textChange.NewText!));
-                properties.Add(new KeyValuePair<string, string>(DescriptionKey, embeddedItem.FullDescription));
-                properties.Add(new KeyValuePair<string, string>(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
+                properties.Add(new(StartKey, textChange.Span.Start.ToString()));
+                properties.Add(new(LengthKey, textChange.Span.Length.ToString()));
+                properties.Add(new(NewTextKey, textChange.NewText!));
+                properties.Add(new(DescriptionKey, embeddedItem.FullDescription));
+                properties.Add(new(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
 
                 // Keep everything sorted in the order we just produced the items in.
                 var sortText = context.Items.Count.ToString("0000");

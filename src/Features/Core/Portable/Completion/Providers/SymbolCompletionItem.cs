@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 inlineDescription: null,
                 glyph: null,
                 supportedPlatforms,
-                properties != null ? properties.ToImmutableArray() : default,
+                properties.AsImmutableOrNull(),
                 tags,
                 isComplexTextEdit);
         }

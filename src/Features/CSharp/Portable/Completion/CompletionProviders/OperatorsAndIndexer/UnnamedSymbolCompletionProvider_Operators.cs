@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var displayText = GetOperatorText(opName);
 
-            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(OperatorProperties.Length + 1, out var builder);
 
             builder.AddRange(OperatorProperties);
             builder.Add(new KeyValuePair<string, string>(OperatorName, opName));

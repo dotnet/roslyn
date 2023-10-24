@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly string? _filterText;
         private string? _lazyEntireDisplayText;
-        private ImmutableDictionary<string, string>? _propertiesAsImmutableDictionary;
+        private ImmutableDictionary<string, string>? _lazyPropertiesAsImmutableDictionary;
         private readonly ImmutableArray<KeyValuePair<string, string>> _properties;
 
         /// <summary>
@@ -96,10 +96,10 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             get
             {
-                if (_propertiesAsImmutableDictionary is null)
-                    _propertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
+                if (_lazyPropertiesAsImmutableDictionary is null)
+                    _lazyPropertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
 
-                return _propertiesAsImmutableDictionary;
+                return _lazyPropertiesAsImmutableDictionary;
             }
         }
 
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal bool TryGetProperty(string name, [NotNullWhen(true)] out string? value)
         {
-            if (_propertiesAsImmutableDictionary is not null)
-                return _propertiesAsImmutableDictionary.TryGetValue(name, out value);
+            if (_lazyPropertiesAsImmutableDictionary is not null)
+                return _lazyPropertiesAsImmutableDictionary.TryGetValue(name, out value);
 
             foreach ((var propName, var propValue) in _properties)
             {
@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 return value;
 
             // Let ImmutableDictionary handle throwing
-            if (_propertiesAsImmutableDictionary is not null)
-                return _propertiesAsImmutableDictionary[name];
+            if (_lazyPropertiesAsImmutableDictionary is not null)
+                return _lazyPropertiesAsImmutableDictionary[name];
 
             throw new KeyNotFoundException($"Property {name} not found");
         }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 // Prefer to just keep an ImmutableArray, but performance on large property collections
                 //  (quite uncommon) dictate falling back to a non-linear lookup data structure.
-                _propertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
+                _lazyPropertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
             }
 
             if (!DisplayText.Equals(filterText ?? "", StringComparison.Ordinal))
@@ -267,10 +267,10 @@ namespace Microsoft.CodeAnalysis.Completion
             bool isComplexTextEdit = false)
         {
             var result = CreateInternal(
-                displayText, filterText, sortText, properties != null ? properties.ToImmutableArray() : default, tags, rules, displayTextPrefix,
+                displayText, filterText, sortText, properties.AsImmutableOrNull(), tags, rules, displayTextPrefix,
                 displayTextSuffix, inlineDescription, isComplexTextEdit);
 
-            result._propertiesAsImmutableDictionary = properties;
+            result._lazyPropertiesAsImmutableDictionary = properties;
 
             return result;
         }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
-                properties: properties != null ? properties.ToImmutableArray() : default,
+                properties: properties.AsImmutableOrNull(),
                 tags: tags,
                 rules: rules,
                 displayTextPrefix: null,
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 inlineDescription: null,
                 isComplexTextEdit: false);
 
-            result._propertiesAsImmutableDictionary = properties;
+            result._lazyPropertiesAsImmutableDictionary = properties;
 
             return result;
         }
@@ -447,9 +447,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
         {
-            var result = With(properties: properties != null ? properties.ToImmutableArray() : default);
+            var result = With(properties: properties.AsImmutableOrNull());
 
-            result._propertiesAsImmutableDictionary = properties;
+            result._lazyPropertiesAsImmutableDictionary = properties;
 
             return result;
         }

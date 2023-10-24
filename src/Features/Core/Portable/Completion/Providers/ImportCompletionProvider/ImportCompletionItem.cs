@@ -94,9 +94,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             Debug.Assert(!attributeItem.TryGetProperty(AttributeFullName, out var _));
 
+            var attributeItems = attributeItem.GetProperties();
+
             // Remember the full type name so we can get the symbol when description is displayed.
-            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
-            builder.AddRange(attributeItem.GetProperties());
+            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(attributeItems.Length + 1, out var builder);
+            builder.AddRange(attributeItems);
             builder.Add(new KeyValuePair<string, string>(AttributeFullName, attributeItem.DisplayText));
 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
@@ -216,8 +218,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item)
         {
-            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
-            builder.AddRange(item.GetProperties());
+            var itemProperties = item.GetProperties();
+
+            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(itemProperties.Length + 1, out var builder);
+            builder.AddRange(itemProperties);
             builder.Add(new KeyValuePair<string, string>(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey));
 
             return item.WithProperties(builder.ToImmutable());
