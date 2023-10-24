@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 }
                 else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax or InvocationExpressionSyntax)
                 {
-                    // if we have an InvocationExpressionSyntax `var x = Math.Round(1.1D);` there's no need to do any casting.
+                    // if we have an InvocationExpressionSyntax `var x = Math.Round(1.1D);` there's no need to do any casting as x is var and the method return type is known.
                     // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
                     // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
                     return expression;
