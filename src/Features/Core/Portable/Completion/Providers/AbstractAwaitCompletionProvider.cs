@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(CreateCompletionItem(
                     builder, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Asynchronously_waits_for_the_task_to_finish,
-                    isComplexTextEdit: makeContainerAsync));
+                    isComplexTextEdit: makeContainerAsync,
+                    appendConfigureAwait: false));
             }
             else
             {
@@ -122,7 +123,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(CreateCompletionItem(
                     builder, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Await_the_preceding_expression,
-                    isComplexTextEdit: true));
+                    isComplexTextEdit: true,
+                    appendConfigureAwait: false));
 
                 if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
                 {
@@ -131,17 +133,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     context.AddItem(CreateCompletionItem(
                         builder, _awaitfDisplayText, _awaitfFilterText,
                         string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
-                        isComplexTextEdit: true));
+                        isComplexTextEdit: true,
+                        appendConfigureAwait: true));
                 }
             }
 
             return;
 
             static CompletionItem CreateCompletionItem(
-                ArrayBuilder<KeyValuePair<string, string>> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit)
+                ArrayBuilder<KeyValuePair<string, string>> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit, bool appendConfigureAwait)
             {
-                var appendConfigureAwait = completionProperties.Any(static (kvp, value) => kvp.Key == value, AppendConfigureAwait);
-
                 var description = appendConfigureAwait
                     ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, tooltip))
                     : RecommendedKeyword.CreateDisplayParts(displayText, tooltip);
