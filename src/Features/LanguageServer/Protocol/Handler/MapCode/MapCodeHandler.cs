@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(MapCodeHandler)), Shared]
 [Method(WorkspaceMapCodeName)]
-internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCodeParams, LSP.WorkspaceEdit?>
+internal sealed class MapCodeHandler : ILspServiceRequestHandler<MapCodeParams, LSP.WorkspaceEdit?>
 {
     public const string WorkspaceMapCodeName = "workspace/mapCode";
 
@@ -52,12 +52,11 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
             if (mappingResult is not (Uri uri, TextEdit[] textEdits))
             {
                 // Failed the entire request if any of the sub-requests failed
-                context.TraceWarning("mapCode Request failed: a sub-request failed");
                 return null;
             }
 
-            if (!uriToEditsMap.TryAdd(uri, textEdits))
-                throw new ArgumentException($"mapCode sub-request for {uri} failed: multiple MapCodeMappings for the same document is not supported.");
+            // multiple MapCodeMappings for the same document is not supported.
+            uriToEditsMap.Add(uri, textEdits);
         }
 
         // return a combined WorkspaceEdit
@@ -88,8 +87,7 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
             if (context.Solution.GetDocument(textDocument) is not Document document)
                 throw new ArgumentException($"mapCode sub-request for {textDocument.Uri} failed: can't find this document in the workspace.");
 
-            var codeMapper = document.GetLanguageService<IMapCodeService>()
-                ?? throw new ArgumentException($"mapCode sub-request for {textDocument.Uri} failed: No IMapCodeService for this document.");
+            var codeMapper = document.GetRequiredLanguageService<IMapCodeService>();
 
             var focusLocations = await ConvertFocusLocationsToDocumentAndSpansAsync(
                 document,
@@ -97,30 +95,22 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
                 codeMapping.FocusLocations,
                 cancellationToken).ConfigureAwait(false);
 
-            var newDocument = await codeMapper.MapCodeAsync(
+            var textChanges = await codeMapper.MapCodeAsync(
                 document,
                 codeMapping.Contents.ToImmutableArrayOrEmpty(),
                 focusLocations,
-                formatMappedCode: false,
                 cancellationToken).ConfigureAwait(false);
 
-            if (newDocument is null)
+            if (textChanges is null)
             {
-                context.TraceWarning($"mapCode sub-request for {textDocument.Uri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
-                return null;
-            }
-
-            var textChanges = (await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
-            if (textChanges.IsEmpty)
-            {
-                context.TraceWarning($"mapCode sub-request for {textDocument.Uri} failed: 'IMapCodeService.MapCodeAsync' returns no change.");
+                context.TraceInformation($"mapCode sub-request for {textDocument.Uri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
                 return null;
             }
 
             var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textEdits = textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, oldText)).ToArray();
+            var textEdits = textChanges.Value.Select(change => ProtocolConversions.TextChangeToTextEdit(change, oldText)).ToArray();
 
-            return (newDocument.GetURI(), textEdits);
+            return (textDocument.Uri, textEdits);
         }
 
         async Task<ImmutableArray<(Document, TextSpan)>> ConvertFocusLocationsToDocumentAndSpansAsync(

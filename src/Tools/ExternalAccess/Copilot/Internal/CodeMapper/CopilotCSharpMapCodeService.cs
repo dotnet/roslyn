@@ -12,23 +12,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MapCode;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper;
+
+[ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp), Shared]
+internal sealed class CSharpMapCodeService : IMapCodeService
 {
-    [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp), Shared]
-    internal sealed class CopilotCSharpMapCodeService : IMapCodeService
+    private readonly ICSharpCopilotMapCodeService _service;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpMapCodeService(ICSharpCopilotMapCodeService service)
     {
-        private readonly ICopilotCSharpMapCodeService _service;
+        _service = service;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CopilotCSharpMapCodeService(ICopilotCSharpMapCodeService service)
-        {
-            _service = service;
-        }
-
-        public Task<Document?> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, bool formatMappedCode, CancellationToken cancellationToken)
-        {
-            return _service.MapCodeAsync(document, contents, focusLocations, formatMappedCode, cancellationToken);
-        }
+    public Task<ImmutableArray<TextChange>?> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, CancellationToken cancellationToken)
+    {
+        return _service.MapCodeAsync(document, contents, focusLocations, cancellationToken);
     }
 }

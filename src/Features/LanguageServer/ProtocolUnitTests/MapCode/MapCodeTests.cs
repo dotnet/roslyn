@@ -32,12 +32,12 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
         {
         }
 
-        public async Task<Document?> MapCodeAsync(
-            Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, bool formatMappedCode, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<TextChange>?> MapCodeAsync(
+            Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken);
             var newText = text.Replace(focusLocations.Single().Item2, contents.Single());
-            return document.WithText(newText);
+            return newText.GetTextChanges(text).ToImmutableArray();
         }
     }
 

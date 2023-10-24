@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 internal record MapCodeParams(
     // Set of code blocks, associated with documents and regions, to map.
     [property: DataMember(Name = "mappings")] MapCodeMapping[] Mappings,
-    // Changes that should be applied to the workspace by the mapper before performing
+    // Changes that should be applied to the workspace by the mapper before performing the mapping operation.
     [property: DataMember(Name = "updates")] WorkspaceEdit? Updates
 );
 
