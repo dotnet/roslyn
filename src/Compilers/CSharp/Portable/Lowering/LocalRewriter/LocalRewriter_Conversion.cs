@@ -58,10 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return objectCreation;
 
+                case ConversionKind.ImplicitNullable when node.Conversion.UnderlyingConversions[0].Kind is ConversionKind.CollectionExpression:
+                    var rewrittenCollection = RewriteCollectionExpressionConversion(node.Conversion.UnderlyingConversions[0], (BoundCollectionExpression)node.Operand);
+                    return ConvertToNullable(node.Syntax, node.Type, rewrittenCollection);
+
                 case ConversionKind.CollectionExpression:
-                    // Skip through target-typed collection expressions
-                    Debug.Assert(node.Type.Equals(node.Operand.Type, TypeCompareKind.AllIgnoreOptions));
-                    return VisitExpression(node.Operand)!;
+                    return RewriteCollectionExpressionConversion(node.Conversion, (BoundCollectionExpression)node.Operand);
             }
 
             var rewrittenType = VisitType(node.Type);

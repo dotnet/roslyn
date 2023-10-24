@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
         /// </summary>
-        private readonly Roslyn.Utilities.IReadOnlySet<Symbol> _hoistedVariables;
+        private readonly IReadOnlySet<Symbol> _hoistedVariables;
 
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals;
         private int _nextFreeHoistedLocalSlot;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return OriginalMethod.ContainingType; }
         }
 
-        internal Roslyn.Utilities.IReadOnlySet<Symbol> HoistedVariables
+        internal IReadOnlySet<Symbol> HoistedVariables
         {
             get
             {
@@ -206,22 +206,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 #nullable enable
-        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
-            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, out state, out resumeLabel);
+        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
+            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, awaitId, out state, out resumeLabel);
 
-        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax);
-            AddStateDebugInfo(awaitOrYieldReturnSyntax, stateNumber);
+            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax, awaitId);
+            AddStateDebugInfo(awaitOrYieldReturnSyntax, awaitId, stateNumber);
             AddState(stateNumber, out resumeLabel);
         }
 
-        protected void AddStateDebugInfo(SyntaxNode node, StateMachineState state)
+        protected void AddStateDebugInfo(SyntaxNode node, AwaitDebugId awaitId, StateMachineState state)
         {
             Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
-            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, state));
+            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, awaitId, state));
         }
 
         protected void AddState(StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)

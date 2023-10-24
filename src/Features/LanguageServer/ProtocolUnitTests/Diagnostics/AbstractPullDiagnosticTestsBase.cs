@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -303,27 +304,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             }
         }
 
-        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
-            => CreateTestLspServerAsync(markup, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics));
+        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, CompilerDiagnosticsScope? compilerDiagnosticsScope = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(markup, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, additionalAnalyzers: additionalAnalyzers));
 
-        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
-            => CreateTestLspServerAsync(markups, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics));
+        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, CompilerDiagnosticsScope? compilerDiagnosticsScope = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(markups, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, additionalAnalyzers: additionalAnalyzers));
 
-        private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
-            => CreateXmlTestLspServerAsync(xmlMarkup, mutatingLspWorkspace, initializationOptions: GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics));
+        private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, CompilerDiagnosticsScope? compilerDiagnosticsScope = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateXmlTestLspServerAsync(xmlMarkup, mutatingLspWorkspace, initializationOptions: GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, additionalAnalyzers: additionalAnalyzers));
 
         private protected static InitializationOptions GetInitializationOptions(
             BackgroundAnalysisScope analyzerDiagnosticsScope,
             CompilerDiagnosticsScope? compilerDiagnosticsScope,
             bool useVSDiagnostics,
             WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
-            string[]? sourceGeneratedMarkups = null)
+            string[]? sourceGeneratedMarkups = null,
+            IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
         {
             // If no explicit compiler diagnostics scope has been provided, match it with the provided analyzer diagnostics scope
             compilerDiagnosticsScope ??= analyzerDiagnosticsScope switch
             {
                 BackgroundAnalysisScope.None => CompilerDiagnosticsScope.None,
-                BackgroundAnalysisScope.ActiveFile => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics,
+                BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics,
                 BackgroundAnalysisScope.OpenFiles => CompilerDiagnosticsScope.OpenFiles,
                 BackgroundAnalysisScope.FullSolution => CompilerDiagnosticsScope.FullSolution,
                 _ => throw ExceptionUtilities.UnexpectedValue(analyzerDiagnosticsScope),
@@ -343,7 +345,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, true);
                 },
                 ServerKind = serverKind,
-                SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>()
+                SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>(),
+                AdditionalAnalyzers = additionalAnalyzers
             };
         }
 

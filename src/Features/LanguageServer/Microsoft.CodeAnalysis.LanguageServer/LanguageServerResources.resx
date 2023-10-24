@@ -147,6 +147,9 @@
   <data name="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4" xml:space="preserve">
     <value>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</value>
   </data>
+  <data name="Failed_to_read_runsettings_file_at_0:1" xml:space="preserve">
+    <value>Failed to read .runsettings file at {0}:{1}</value>
+  </data>
   <data name="Found_0_tests_in_1" xml:space="preserve">
     <value>Found {0} tests in {1}</value>
   </data>
@@ -159,8 +162,17 @@
   <data name="Passed" xml:space="preserve">
     <value>Passed!</value>
   </data>
+  <data name="Projects_failed_to_load_because_Mono_could_not_be_found" xml:space="preserve">
+    <value>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</value>
+  </data>
+  <data name="Projects_failed_to_load_because_MSBuild_could_not_be_found" xml:space="preserve">
+    <value>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</value>
+  </data>
   <data name="Running_tests" xml:space="preserve">
     <value>Running tests...</value>
+  </data>
+  <data name="Runsettings_file_does_not_exist_at_0" xml:space="preserve">
+    <value>.runsettings file does not exist at {0}</value>
   </data>
   <data name="Show_csharp_logs" xml:space="preserve">
     <value>Show C# logs</value>
@@ -186,10 +198,7 @@
   <data name="There_were_problems_loading_project_0_See_log_for_details" xml:space="preserve">
     <value>There were problems loading project {0}. See log for details.</value>
   </data>
-  <data name="There_were_problems_loading_solution_0_See_log_for_details" xml:space="preserve">
-    <value>There were errors loading solution {0}. See log for details.</value>
-  </data>
-  <data name="There_were_problems_loading_your_projects_See_log_for_details" xml:space="preserve">
-    <value>There were problems loading your projects. See log for details.</value>
+  <data name="Using_runsettings_file_at_0" xml:space="preserve">
+    <value>Using .runsettings file at {0}</value>
   </data>
 </root>

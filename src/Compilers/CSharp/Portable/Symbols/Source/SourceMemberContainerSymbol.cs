@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return FileIdentifier.Create(syntaxTree);
+                return FileIdentifier.Create(syntaxTree, DeclaringCompilation?.Options?.SourceReferenceResolver);
             }
         }
 
@@ -3385,7 +3385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in nonTypeMembersToCheck)
             {
-                if (member.IsAccessor() || member.IsIndexer())
+                if (member.IsAccessor())
                 {
                     continue;
                 }

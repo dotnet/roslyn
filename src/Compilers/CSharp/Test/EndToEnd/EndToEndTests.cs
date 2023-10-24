@@ -168,6 +168,85 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
             }
         }
 
+        // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
+        // the compiler can handle. 
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
+        public void OverflowOnFluentCall_ExtensionMethods()
+        {
+            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime) switch
+            {
+                (8, ExecutionConfiguration.Debug, false) => 750,
+                (8, ExecutionConfiguration.Release, false) => 750, // Should be ~3_400, but is flaky.
+                (4, ExecutionConfiguration.Debug, true) => 450,
+                (4, ExecutionConfiguration.Release, true) => 1_600,
+                (8, ExecutionConfiguration.Debug, true) => 1_100,
+                (8, ExecutionConfiguration.Release, true) => 3_300,
+                _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}")
+            };
+
+            // Un-comment the call below to figure out the new limits.
+            //testLimits();
+
+            try
+            {
+                tryCompileDeepFluentCalls(numberFluentCalls);
+            }
+            catch (Exception e)
+            {
+                testLimits(e);
+            }
+
+            void testLimits(Exception innerException = null)
+            {
+                for (int i = 0; i < int.MaxValue; i += 10)
+                {
+                    try
+                    {
+                        tryCompileDeepFluentCalls(i);
+                    }
+                    catch (Exception e)
+                    {
+                        if (innerException != null)
+                        {
+                            e = new AggregateException(e, innerException);
+                        }
+
+                        throw new Exception($"Depth: {i}, Bytes: {IntPtr.Size}, Config: {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}", e);
+                    }
+                }
+            }
+
+            void tryCompileDeepFluentCalls(int depth)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine("""
+                    static class E
+                    {
+                        public static C M(this C c, string x) { return c; }
+                    }
+                    class C
+                    {
+                        static C GetC() => new C();
+                        void M2()
+                        {
+                            GetC()
+                    """);
+                for (int i = 0; i < depth; i++)
+                {
+                    builder.AppendLine(""".M("test")""");
+                }
+                builder.AppendLine("""; } }""");
+
+                var source = builder.ToString();
+                RunInThread(() =>
+                {
+                    var options = TestOptions.DebugDll.WithConcurrentBuild(false);
+                    var compilation = CreateCompilation(source, options: options);
+                    compilation.VerifyEmitDiagnostics();
+                });
+            }
+        }
+
         [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
@@ -414,49 +493,37 @@ $@"        if (F({i}))
         [ConditionalFact(typeof(WindowsOrMacOSOnly), Reason = "https://github.com/dotnet/roslyn/issues/69210"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
         public void LongInitializerList()
         {
-            CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            int iterations = 0;
-            try
-            {
-                initializerTest(cts.Token, ref iterations);
-            }
-            catch (Exception e) when (e is OperationCanceledException or TaskCanceledException)
-            {
-                Assert.True(false, $"Test timed out while getting all semantic info for long initializer list. Got to {iterations} iterations.");
-            }
-
-            static void initializerTest(CancellationToken ct, ref int iterationReached)
-            {
-                var sb = new StringBuilder();
-                sb.AppendLine("""
+            var sb = new StringBuilder();
+            sb.AppendLine("""
                     _ = new System.Collections.Generic.Dictionary<string, string>
                     {
                     """);
 
-                for (int i = 0; i < 50000; i++)
-                {
-                    sb.AppendLine("""    { "a", "b" },""");
-                }
-
-                sb.AppendLine("};");
-
-                var comp = CreateCompilation(sb.ToString());
-                comp.VerifyEmitDiagnostics();
-
-                var tree = comp.SyntaxTrees[0];
-                var model = comp.GetSemanticModel(tree);
-
-                // If we regress perf here, this test will time out. The original condition here was a O(n^2) algorithm because the syntactic parent of each literal
-                // was being rebound on every call to GetTypeInfo.
-                iterationReached = 0;
-                foreach (var literal in tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>())
-                {
-                    ct.ThrowIfCancellationRequested();
-                    iterationReached++;
-                    var type = model.GetTypeInfo(literal).Type;
-                    Assert.Equal(SpecialType.System_String, type.SpecialType);
-                }
+            for (int i = 0; i < 100; i++)
+            {
+                sb.AppendLine("""    { "a", "b" },""");
             }
+
+            sb.AppendLine("};");
+
+            var comp = CreateCompilation(sb.ToString());
+            var counter = new MemberSemanticModel.MemberSemanticBindingCounter();
+            comp.TestOnlyCompilationData = counter;
+            comp.VerifyEmitDiagnostics();
+            Assert.Equal(0, counter.BindCount);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var literals = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(200, literals.Length);
+            foreach (var literal in literals)
+            {
+                var type = model.GetTypeInfo(literal).Type;
+                Assert.Equal(SpecialType.System_String, type.SpecialType);
+            }
+
+            Assert.Equal(1, counter.BindCount);
         }
 
         [Fact]
@@ -513,7 +580,7 @@ $@"        if (F({i}))
                     """, $"C{i}.cs"));
             }
 
-            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview"), expectedOutput: makeExpectedOutput());
+            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global"), expectedOutput: makeExpectedOutput());
             verifier.VerifyDiagnostics();
 
             string makeExpectedOutput()
@@ -525,6 +592,83 @@ $@"        if (F({i}))
                 }
                 return builder.ToString();
             }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69093")]
+        public void NestedLambdas(bool localFunctions)
+        {
+            const int overloads1Number = 20;
+            const int overloads2Number = 10;
+
+            /*
+                interface I0 { }
+                // ...
+                interface I9 { }
+            */
+            var builder1 = new StringBuilder();
+            var interfacesNumber = Math.Max(overloads1Number, overloads2Number);
+            for (int i = 0; i < interfacesNumber; i++)
+            {
+                builder1.AppendLine($$"""interface I{{i}} { }""");
+            }
+
+            /*
+                void M1(System.Action<I0> a) { }
+                // ...
+                void M1(System.Action<I9> a) { }
+            */
+            var builder2 = new StringBuilder();
+            for (int i = 0; i < overloads1Number; i++)
+            {
+                builder2.AppendLine($$"""void M1(System.Action<I{{i}}> a) { }""");
+            }
+
+            /*
+                void M2(I0 x, System.Func<string, I0> f) { }
+                // ...
+                void M2(I9 x, System.Func<string, I9> f) { }
+            */
+            for (int i = 0; i < overloads2Number; i++)
+            {
+                builder2.AppendLine($$"""void M2(I{{i}} x, System.Func<string, I{{i}}> f) { }""");
+            }
+
+            // Local functions should be similarly fast as lambdas.
+            var inner = localFunctions ? """
+                M2(x, L0);
+                static I0 L0(string arg) {
+                    arg = arg + "0";
+                    return default;
+                }
+                """ : """
+                M2(x, static I0 (string arg) => {
+                    arg = arg + "0";
+                    return default;
+                });
+                """;
+
+            var source = $$"""
+                {{builder1}}
+                class C
+                {
+                    {{builder2}}
+                    void Main()
+                    {
+                        M1(x =>
+                        {
+                            {{inner}}
+                        });
+                    }
+                }
+                """;
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                var data = new LambdaBindingData();
+                comp.TestOnlyCompilationData = data;
+                comp.VerifyDiagnostics();
+                Assert.Equal(localFunctions ? 20 : 40, data.LambdaBindingCount);
+            }, timeout: TimeSpan.FromSeconds(5));
         }
     }
 }

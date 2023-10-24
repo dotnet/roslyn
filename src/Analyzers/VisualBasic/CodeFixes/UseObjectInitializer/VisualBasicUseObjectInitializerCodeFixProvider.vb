@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseObjectInitializer), [Shared]>
-    Friend Class VisualBasicUseObjectInitializerCodeFixProvider
+    Friend NotInheritable Class VisualBasicUseObjectInitializerCodeFixProvider
         Inherits AbstractUseObjectInitializerCodeFixProvider(Of
             SyntaxKind,
             ExpressionSyntax,
@@ -20,12 +20,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             ObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             AssignmentStatementSyntax,
-            VariableDeclaratorSyntax)
+            LocalDeclarationStatementSyntax,
+            VariableDeclaratorSyntax,
+            VisualBasicUseNamedMemberInitializerAnalyzer)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function GetAnalyzer() As VisualBasicUseNamedMemberInitializerAnalyzer
+            Return VisualBasicUseNamedMemberInitializerAnalyzer.Allocate()
+        End Function
 
         Protected Overrides Function GetNewStatement(
                 statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,

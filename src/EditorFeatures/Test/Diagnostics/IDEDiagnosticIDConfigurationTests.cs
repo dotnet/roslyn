@@ -479,6 +479,9 @@ dotnet_diagnostic.IDE0303.severity = %value%
 # IDE0304
 dotnet_diagnostic.IDE0304.severity = %value%
 
+# IDE0305
+dotnet_diagnostic.IDE0305.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -891,6 +894,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE0302", "dotnet_style_prefer_collection_expression", "true"),
                 ("IDE0303", "dotnet_style_prefer_collection_expression", "true"),
                 ("IDE0304", "dotnet_style_prefer_collection_expression", "true"),
+                ("IDE0305", "dotnet_style_prefer_collection_expression", "true"),
                 ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
                 ("IDE1006", null, null),
                 ("IDE1007", null, null),

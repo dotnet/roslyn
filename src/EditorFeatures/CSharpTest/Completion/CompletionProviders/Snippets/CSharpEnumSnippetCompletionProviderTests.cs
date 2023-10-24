@@ -267,5 +267,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfTheory]
+        [InlineData("abstract")]
+        [InlineData("partial")]
+        [InlineData("sealed")]
+        [InlineData("static")]
+        [InlineData("ref")]
+        [InlineData("readonly")]
+        [InlineData("unsafe")]
+        public async Task NoEnumSnippetAfterInvalidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
     }
 }

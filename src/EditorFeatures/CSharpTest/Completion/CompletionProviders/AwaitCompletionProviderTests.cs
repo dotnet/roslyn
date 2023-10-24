@@ -63,35 +63,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact]
         public async Task TestNotInTypeContext()
         {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    $$
-}");
+            await VerifyAbsenceAsync("""
+                class Program
+                {
+                    $$
+                }
+                """);
         }
 
         [Fact]
         public async Task TestStatementInMethod()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-  void F()
-  {
-    $$  }
-}", LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("""
+                class C
+                {
+                  void F()
+                  {
+                    $$  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
         public async Task TestStatementInMethod_Async()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-  async Task F()
-  {
-    $$  }
-}", LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    $$  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
@@ -103,27 +106,27 @@ class C
         [Fact]
         public async Task TestExpressionInAsyncMethod()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-  async Task F()
-  {
-    var z = $$  }
-}
-", LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    var z = $$  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
         public async Task TestExpressionInNonAsyncMethodWithTaskReturn()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-  Task F()
-  {
-    var z = $$  }
-}
-", LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("""
+                class C
+                {
+                  Task F()
+                  {
+                    var z = $$  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
@@ -135,13 +138,14 @@ class C
         [Fact]
         public async Task TestUsingStatement()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-  async Task F()
-  {
-    using $$  }
-}", LanguageVersion.CSharp9);
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    using $$  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
@@ -161,13 +165,14 @@ class C
         [Fact]
         public async Task TestForeachStatement()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-  async Task F()
-  {
-    foreach $$  }
-}", LanguageVersion.CSharp9);
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    foreach $$  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
@@ -179,77 +184,86 @@ class C
         [Fact]
         public async Task TestNotInQuery()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-  async Task F()
-  {
-    var z = from a in ""char""
-          select $$  }
-    }
-", LanguageVersion.CSharp9);
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    var z = from a in "char"
+                          select $$  }
+                    }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
         public async Task TestNotInQuery_TopLevel()
         {
             await VerifyAbsenceAsync(
-@"var z = from a in ""char""
-          select $$", LanguageVersion.CSharp9);
+                """
+                var z = from a in "char"
+                          select $$
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInFinally()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-  async Task F()
-  {
-    try { }
-finally { $$ }  }
-}", LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    try { }
+                finally { $$ }  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInFinally_TopLevel()
         {
             await VerifyKeywordAsync(
-@"try { }
-finally { $$ }", LanguageVersion.CSharp9);
+                """
+                try { }
+                finally { $$ }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInCatch()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-  async Task F()
-  {
-    try { }
-catch { $$ }  }
-}", LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    try { }
+                catch { $$ }  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInCatch_TopLevel()
         {
             await VerifyKeywordAsync(
-@"try { }
-catch { $$ }", LanguageVersion.CSharp9);
+                """
+                try { }
+                catch { $$ }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
         public async Task TestNotInLock()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-  async Task F()
-  {
-    lock(this) { $$ }  }
-}", LanguageVersion.CSharp9);
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    lock(this) { $$ }  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
@@ -261,34 +275,38 @@ class C
         [Fact]
         public async Task TestInAsyncLambdaInCatch()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-  async Task F()
-  {
-    try { }
-catch { var z = async () => $$ }  }
-}", LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    try { }
+                catch { var z = async () => $$ }  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
         public async Task TestInAsyncLambdaInCatch_TopLevel()
         {
             await VerifyKeywordAsync(
-@"try { }
-catch { var z = async () => $$ }", LanguageVersion.CSharp9);
+                """
+                try { }
+                catch { var z = async () => $$ }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
         public async Task TestAwaitInLock()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-  async Task F()
-  {
-    lock($$  }
-}", LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("""
+                class C
+                {
+                  async Task F()
+                  {
+                    lock($$  }
+                }
+                """, LanguageVersion.CSharp9);
         }
 
         [Fact]
@@ -300,33 +318,33 @@ class C
         [Fact]
         public async Task TestDotAwaitSuggestAfterDotOnTask()
         {
-            await VerifyKeywordAsync(@"
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System.Threading.Tasks;
 
-class C
-{
-  async Task F(Task someTask)
-  {
-    someTask.$$
-  }
-}
-", dotAwait: true, dotAwaitf: true);
+                class C
+                {
+                  async Task F(Task someTask)
+                  {
+                    someTask.$$
+                  }
+                }
+                """, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
         public async Task TestDotAwaitSuggestAfterDotOnTaskOfT()
         {
-            await VerifyKeywordAsync(@"
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System.Threading.Tasks;
 
-class C
-{
-  async Task F(Task<int> someTask)
-  {
-    someTask.$$
-  }
-}
-", dotAwait: true, dotAwaitf: true);
+                class C
+                {
+                  async Task F(Task<int> someTask)
+                  {
+                    someTask.$$
+                  }
+                }
+                """, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -358,111 +376,116 @@ class C
         [Fact]
         public async Task TestDotAwaitSuggestAfterDotOnCustomAwaitable()
         {
-            await VerifyKeywordAsync(@"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
 
-public class DummyAwaiter: INotifyCompletion {
-    public bool IsCompleted => true;
-    public void OnCompleted(Action continuation) => continuation();
-    public void GetResult() {}
-}
+                public class DummyAwaiter: INotifyCompletion {
+                    public bool IsCompleted => true;
+                    public void OnCompleted(Action continuation) => continuation();
+                    public void GetResult() {}
+                }
 
-public class CustomAwaitable
-{
-    public DummyAwaiter GetAwaiter() => new DummyAwaiter();
-}
+                public class CustomAwaitable
+                {
+                    public DummyAwaiter GetAwaiter() => new DummyAwaiter();
+                }
 
-static class Program
-{
-    static async Task Main()
-    {
-        var awaitable = new CustomAwaitable();
-        awaitable.$$;
-    }
-}", dotAwait: true);
+                static class Program
+                {
+                    static async Task Main()
+                    {
+                        var awaitable = new CustomAwaitable();
+                        awaitable.$$;
+                    }
+                }
+                """, dotAwait: true);
         }
 
         [Fact]
         public async Task TestDotAwaitSuggestAfterDotOnCustomAwaitableButNotConfigureAwaitEvenIfPresent()
         {
-            await VerifyKeywordAsync(@"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
 
-public class DummyAwaiter: INotifyCompletion {
-    public bool IsCompleted => true;
-    public void OnCompleted(Action continuation) => continuation();
-    public void GetResult() {}
-}
+                public class DummyAwaiter: INotifyCompletion {
+                    public bool IsCompleted => true;
+                    public void OnCompleted(Action continuation) => continuation();
+                    public void GetResult() {}
+                }
 
-public class CustomAwaitable
-{
-    public DummyAwaiter GetAwaiter() => new DummyAwaiter();
-    public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext) => default;
-}
+                public class CustomAwaitable
+                {
+                    public DummyAwaiter GetAwaiter() => new DummyAwaiter();
+                    public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext) => default;
+                }
 
-static class Program
-{
-    static async Task Main()
-    {
-        var awaitable = new CustomAwaitable();
-        awaitable.$$;
-    }
-}", dotAwait: true, dotAwaitf: false);
+                static class Program
+                {
+                    static async Task Main()
+                    {
+                        var awaitable = new CustomAwaitable();
+                        awaitable.$$;
+                    }
+                }
+                """, dotAwait: true, dotAwaitf: false);
         }
 
         [Fact]
         public async Task TestDotAwaitSuggestAfterDotDot()
         {
-            await VerifyKeywordAsync(@"
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System.Threading.Tasks;
 
-static class Program
-{
-    static async Task Main(Task someTask)
-    {
-        someTask.$$.;
-    }
-}", dotAwait: true, dotAwaitf: true);
+                static class Program
+                {
+                    static async Task Main(Task someTask)
+                    {
+                        someTask.$$.;
+                    }
+                }
+                """, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
         public async Task TestDotAwaitSuggestAfterDotBeforeType()
         {
-            await VerifyKeywordAsync(@"
-using System;
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System;
+                using System.Threading.Tasks;
 
-static class Program
-{
-    static async Task Main(Task someTask)
-    {
-        someTask.$$
-        Int32 i = 0;
-    }
-}", dotAwait: true, dotAwaitf: true);
+                static class Program
+                {
+                    static async Task Main(Task someTask)
+                    {
+                        someTask.$$
+                        Int32 i = 0;
+                    }
+                }
+                """, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
         public async Task TestDotAwaitSuggestAfterDotBeforeAnotherAwait()
         {
-            await VerifyKeywordAsync(@"
-using System;
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System;
+                using System.Threading.Tasks;
 
-static class Program
-{
-    static async Task Main(Task someTask)
-    {
-        someTask.$$
-        await Test();
-    }
+                static class Program
+                {
+                    static async Task Main(Task someTask)
+                    {
+                        someTask.$$
+                        await Test();
+                    }
 
-    async Task Test() { }
-}", dotAwait: true, dotAwaitf: true);
+                    async Task Test() { }
+                }
+                """, dotAwait: true, dotAwaitf: true);
         }
 
         [Theory]
@@ -567,19 +590,20 @@ static class Program
             // * only for locals (e.g. IParameterSymbols are fine) which
             //   * are declared with var
             //   * The return type of the local function is used as first name in a MemberAccess in the declarator
-            await VerifyKeywordAsync(@"
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System.Threading.Tasks;
 
-static class Program
-{
-    static async Task Main()
-    {
-        var local = Task.CompletedTask;
-        local.a$$
+                static class Program
+                {
+                    static async Task Main()
+                    {
+                        var local = Task.CompletedTask;
+                        local.a$$
 
-        Task LocalFunction() => Task.CompletedTask;
-    }
-}");
+                        Task LocalFunction() => Task.CompletedTask;
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -610,181 +634,181 @@ static class Program
         [Fact]
         public async Task TestDotAwaitNotAfterDotOnTaskIfAlreadyAwaited()
         {
-            await VerifyAbsenceAsync(@"
-using System.Threading.Tasks;
+            await VerifyAbsenceAsync("""
+                using System.Threading.Tasks;
 
-class C
-{
-  async Task F(Task someTask)
-  {
-    await someTask.$$
-  }
-}
-");
+                class C
+                {
+                  async Task F(Task someTask)
+                  {
+                    await someTask.$$
+                  }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestDotAwaitNotAfterTaskType()
         {
-            await VerifyAbsenceAsync(@"
-using System.Threading.Tasks;
+            await VerifyAbsenceAsync("""
+                using System.Threading.Tasks;
 
-class C
-{
-  async Task F()
-  {
-    Task.$$
-  }
-}
-");
+                class C
+                {
+                  async Task F()
+                  {
+                    Task.$$
+                  }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestDotAwaitNotInLock()
         {
-            await VerifyAbsenceAsync(@"
-using System.Threading.Tasks;
+            await VerifyAbsenceAsync("""
+                using System.Threading.Tasks;
 
-class C
-{
-  async Task F(Task someTask)
-  {
-    lock(this) { someTask.$$ }
-  }
-}
-");
+                class C
+                {
+                  async Task F(Task someTask)
+                  {
+                    lock(this) { someTask.$$ }
+                  }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestDotAwaitNotInLock_TopLevel()
         {
-            await VerifyAbsenceAsync(@"
-using System.Threading.Tasks;
+            await VerifyAbsenceAsync("""
+                using System.Threading.Tasks;
 
-lock(this) { Task.CompletedTask.$$ }
-");
+                lock(this) { Task.CompletedTask.$$ }
+                """);
         }
 
         [Fact]
         public async Task TestDotAwaitQueryNotInSelect()
         {
-            await VerifyAbsenceAsync(@"
-using System.Linq;
-using System.Threading.Tasks;
+            await VerifyAbsenceAsync("""
+                using System.Linq;
+                using System.Threading.Tasks;
 
-class C
-{
-  async Task F()
-  {
-    var z = from t in new[] { Task.CompletedTask }
-            select t.$$
-  }
-}
-");
+                class C
+                {
+                  async Task F()
+                  {
+                    var z = from t in new[] { Task.CompletedTask }
+                            select t.$$
+                  }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestDotAwaitQueryInFirstFromClause()
         {
-            await VerifyKeywordAsync(@"
-using System.Linq;
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System.Linq;
+                using System.Threading.Tasks;
 
-class C
-{
-    async Task F()
-    {
-        var arrayTask2 = Task.FromResult(new int[0]);
-        var z = from t in arrayTask2.$$
-                select t;
-    }
-}
-", dotAwait: true, dotAwaitf: true);
+                class C
+                {
+                    async Task F()
+                    {
+                        var arrayTask2 = Task.FromResult(new int[0]);
+                        var z = from t in arrayTask2.$$
+                                select t;
+                    }
+                }
+                """, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
         public async Task TestDotAwaitQueryNotInSecondFromClause()
         {
-            await VerifyNoItemsExistAsync(@"
-using System.Linq;
-using System.Threading.Tasks;
+            await VerifyNoItemsExistAsync("""
+                using System.Linq;
+                using System.Threading.Tasks;
 
-class C
-{
-    async Task F()
-    {
-        var array1 = new int[0];
-        var arrayTask2 = Task.FromResult(new int[0]);
-        var z = from i1 in array1
-                from i2 in arrayTask2.$$
-                select i2;
-    }
-}
-");
+                class C
+                {
+                    async Task F()
+                    {
+                        var array1 = new int[0];
+                        var arrayTask2 = Task.FromResult(new int[0]);
+                        var z = from i1 in array1
+                                from i2 in arrayTask2.$$
+                                select i2;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestDotAwaitQueryNotInContinuation()
         {
-            await VerifyNoItemsExistAsync(@"
-using System.Linq;
-using System.Threading.Tasks;
+            await VerifyNoItemsExistAsync("""
+                using System.Linq;
+                using System.Threading.Tasks;
 
-class C
-{
-    async Task F()
-    {
-        var array1 = new int[0];
-        var arrayTask2 = Task.FromResult(new int[0]);
-        var z = from i1 in array1
-                select i1 into c
-                from i2 in arrayTask2.$$
-                select i2;
-    }
-}
-");
+                class C
+                {
+                    async Task F()
+                    {
+                        var array1 = new int[0];
+                        var arrayTask2 = Task.FromResult(new int[0]);
+                        var z = from i1 in array1
+                                select i1 into c
+                                from i2 in arrayTask2.$$
+                                select i2;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestDotAwaitQueryInJoinClause()
         {
-            await VerifyKeywordAsync(@"
-using System.Linq;
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System.Linq;
+                using System.Threading.Tasks;
 
-class C
-{
-    async Task F()
-    {
-        var array1 = new int[0];
-        var arrayTask2 = Task.FromResult(new int[0]);
-        var z = from i1 in array1
-                join i2 in arrayTask2.$$ on i1 equals i2
-                select i1;
-    }
-}
-", dotAwait: true, dotAwaitf: true);
+                class C
+                {
+                    async Task F()
+                    {
+                        var array1 = new int[0];
+                        var arrayTask2 = Task.FromResult(new int[0]);
+                        var z = from i1 in array1
+                                join i2 in arrayTask2.$$ on i1 equals i2
+                                select i1;
+                    }
+                }
+                """, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
         public async Task TestDotAwaitQueryInJoinIntoClause()
         {
-            await VerifyKeywordAsync(@"
-using System.Linq;
-using System.Threading.Tasks;
+            await VerifyKeywordAsync("""
+                using System.Linq;
+                using System.Threading.Tasks;
 
-class C
-{
-    async Task F()
-    {
-        var array1 = new int[0];
-        var arrayTask2 = Task.FromResult(new int[0]);
-        var z = from i1 in array1
-                join i2 in arrayTask2.$$ on i1 equals i2 into g
-                select g;
-    }
-}
-", dotAwait: true, dotAwaitf: true);
+                class C
+                {
+                    async Task F()
+                    {
+                        var array1 = new int[0];
+                        var arrayTask2 = Task.FromResult(new int[0]);
+                        var z = from i1 in array1
+                                join i2 in arrayTask2.$$ on i1 equals i2 into g
+                                select g;
+                    }
+                }
+                """, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -798,17 +822,17 @@ class C
             // Completion should not offer await, because the patterns above would change to much code.
             // This decision should be revised after https://github.com/dotnet/csharplang/issues/35 
             // is implemented.
-            await VerifyAbsenceAsync(@"
-using System.Threading.Tasks;
+            await VerifyAbsenceAsync("""
+                using System.Threading.Tasks;
 
-class C
-{
-  async Task F(Task someTask)
-  {
-    someTask?.$$
-  }
-}
-");
+                class C
+                {
+                  async Task F(Task someTask)
+                  {
+                    someTask?.$$
+                  }
+                }
+                """);
         }
 
         [Theory]

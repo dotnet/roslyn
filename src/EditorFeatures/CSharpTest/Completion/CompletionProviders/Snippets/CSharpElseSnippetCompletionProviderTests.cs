@@ -22,31 +22,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task InsertElseSnippetInMethodTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public void Method()
-    {
-        if (true)
-        {
-        }
-        $$
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        if (true)
+                        {
+                        }
+                        $$
+                    }
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"class Program
-{
-    public void Method()
-    {
-        if (true)
-        {
-        }
-        else
-        {
-            $$
-        }
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        if (true)
+                        {
+                        }
+                        else
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -54,13 +58,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task NoElseSnippetInMethodWithoutIfStatementTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public void Method()
-    {
-        $$
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
@@ -68,31 +74,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task InsertElseSnippetGlobalTest()
         {
             var markupBeforeCommit =
-@"if (true)
-{
-}
-$$
-class Program
-{
-    public async Task MethodAsync()
-    {
-    }
-}";
+                """
+                if (true)
+                {
+                }
+                $$
+                class Program
+                {
+                    public async Task MethodAsync()
+                    {
+                    }
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"if (true)
-{
-}
-else
-{
-    $$
-}
-class Program
-{
-    public async Task MethodAsync()
-    {
-    }
-}";
+                """
+                if (true)
+                {
+                }
+                else
+                {
+                    $$
+                }
+                class Program
+                {
+                    public async Task MethodAsync()
+                    {
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -100,20 +110,21 @@ class Program
         public async Task NoElseSnippetInBlockNamespaceTest()
         {
             var markupBeforeCommit =
-@"
-namespace Namespace
-{
-    if (true)
-    {
-    }
-    $$
-    class Program
-    {
-        public async Task MethodAsync()
-        {
-        }
-    }
-}";
+                """
+                namespace Namespace
+                {
+                    if (true)
+                    {
+                    }
+                    $$
+                    class Program
+                    {
+                        public async Task MethodAsync()
+                        {
+                        }
+                    }
+                }
+                """;
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
@@ -121,19 +132,19 @@ namespace Namespace
         public async Task NoElseSnippetInFileScopedNamespaceTest()
         {
             var markupBeforeCommit =
-@"
-namespace Namespace;
-if (true)
-{
-}
-$$
-class Program
-{
-    public async Task MethodAsync()
-    {
-    }
-}
-";
+                """
+                namespace Namespace;
+                if (true)
+                {
+                }
+                $$
+                class Program
+                {
+                    public async Task MethodAsync()
+                    {
+                    }
+                }
+                """;
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
@@ -141,31 +152,35 @@ class Program
         public async Task InsertElseSnippetInConstructorTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public Program()
-    {
-        if (true)
-        {
-        }
-        $$
-    }
-}";
+                """
+                class Program
+                {
+                    public Program()
+                    {
+                        if (true)
+                        {
+                        }
+                        $$
+                    }
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"class Program
-{
-    public Program()
-    {
-        if (true)
-        {
-        }
-        else
-        {
-            $$
-        }
-    }
-}";
+                """
+                class Program
+                {
+                    public Program()
+                    {
+                        if (true)
+                        {
+                        }
+                        else
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -173,41 +188,45 @@ class Program
         public async Task InsertElseSnippetInLocalFunctionTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public void Method()
-    {
-        var x = 5;
-        void LocalMethod()
-        {
-            if (true)
-            {
-                
-            }
-            $$
-        }
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        var x = 5;
+                        void LocalMethod()
+                        {
+                            if (true)
+                            {
+
+                            }
+                            $$
+                        }
+                    }
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"class Program
-{
-    public void Method()
-    {
-        var x = 5;
-        void LocalMethod()
-        {
-            if (true)
-            {
-                
-            }
-            else
-            {
-                $$
-            }
-        }
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        var x = 5;
+                        void LocalMethod()
+                        {
+                            if (true)
+                            {
+
+                            }
+                            else
+                            {
+                                $$
+                            }
+                        }
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -215,27 +234,31 @@ class Program
         public async Task InsertElseSnippetSingleLineIfWithBlockTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public void Method()
-    {
-        if (true) {}
-        $$
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        if (true) {}
+                        $$
+                    }
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"class Program
-{
-    public void Method()
-    {
-        if (true) {}
-        else
-        {
-            $$
-        }
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        if (true) {}
+                        else
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -243,29 +266,33 @@ class Program
         public async Task InsertElseSnippetSingleLineIfTest()
         {
             var markupBeforeCommit =
-@"using System;
-class Program
-{
-    public void Method()
-    {
-        if (true) Console.WriteLine(5);
-        $$
-    }
-}";
+                """
+                using System;
+                class Program
+                {
+                    public void Method()
+                    {
+                        if (true) Console.WriteLine(5);
+                        $$
+                    }
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"using System;
-class Program
-{
-    public void Method()
-    {
-        if (true) Console.WriteLine(5);
-        else
-        {
-            $$
-        }
-    }
-}";
+                """
+                using System;
+                class Program
+                {
+                    public void Method()
+                    {
+                        if (true) Console.WriteLine(5);
+                        else
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -273,37 +300,41 @@ class Program
         public async Task InsertElseSnippetNestedIfTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public void Method()
-    {
-        if (true)
-        {
-            if (true)
-            {
-            }
-        }   
-        $$
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                            {
+                            }
+                        }   
+                        $$
+                    }
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"class Program
-{
-    public void Method()
-    {
-        if (true)
-        {
-            if (true)
-            {
-            }
-        }
-        else
-        {
-            $$
-        }
-    }
-}";
+                """
+                class Program
+                {
+                    public void Method()
+                    {
+                        if (true)
+                        {
+                            if (true)
+                            {
+                            }
+                        }
+                        else
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
     }

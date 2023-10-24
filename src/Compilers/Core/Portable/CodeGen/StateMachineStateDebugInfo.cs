@@ -9,16 +9,11 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CodeGen;
 
-internal readonly struct StateMachineStateDebugInfo
+internal readonly struct StateMachineStateDebugInfo(int syntaxOffset, AwaitDebugId awaitId, StateMachineState stateNumber)
 {
-    public readonly int SyntaxOffset;
-    public readonly StateMachineState StateNumber;
-
-    public StateMachineStateDebugInfo(int syntaxOffset, StateMachineState stateNumber)
-    {
-        SyntaxOffset = syntaxOffset;
-        StateNumber = stateNumber;
-    }
+    public readonly int SyntaxOffset = syntaxOffset;
+    public readonly AwaitDebugId AwaitId = awaitId;
+    public readonly StateMachineState StateNumber = stateNumber;
 }
 
 /// <summary>

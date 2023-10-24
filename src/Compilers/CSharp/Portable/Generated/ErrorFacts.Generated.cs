@@ -174,7 +174,7 @@
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
@@ -334,6 +334,9 @@
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                     return true;
                 default:
                     return false;

@@ -176,6 +176,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
+                        // A real build just finished.  Clear out any results from the last "run code analysis" command.
+                        this.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
                         ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
                     }
                 };
@@ -312,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool TryApplyChanges(
             Microsoft.CodeAnalysis.Solution newSolution,
-            IProgressTracker progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker)
         {
             if (!_foregroundObject.IsForeground())
             {

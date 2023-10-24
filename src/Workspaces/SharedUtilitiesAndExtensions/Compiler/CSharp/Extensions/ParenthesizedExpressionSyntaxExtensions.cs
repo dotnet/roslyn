@@ -73,14 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     // We have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
                     // is not safe to remove. the latter is.
-                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
-                        {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
-                        })
-                    {
+                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type.IsSpanOrReadOnlySpan())
                         return !varDecl.Type.IsVar;
-                    }
                 }
 
                 return false;

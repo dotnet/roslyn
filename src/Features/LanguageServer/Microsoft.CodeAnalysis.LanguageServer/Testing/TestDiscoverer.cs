@@ -34,6 +34,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         LSP.Range range,
         Document document,
         string projectOutputPath,
+        string? runSettings,
         BufferedProgress<RunTestsPartialResult> progress,
         VsTestConsoleWrapper vsTestConsoleWrapper,
         CancellationToken cancellationToken)
@@ -56,8 +57,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         var stopwatch = SharedStopwatch.StartNew();
 
         // The async APIs for vs test are broken (current impl ends up just hanging), so we must use the sync API instead.
-        // TODO - run settings.  https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
-        var discoveryTask = Task.Run(() => vsTestConsoleWrapper.DiscoverTests(SpecializedCollections.SingletonEnumerable(projectOutputPath), discoverySettings: null, discoveryHandler), cancellationToken);
+        var discoveryTask = Task.Run(() => vsTestConsoleWrapper.DiscoverTests(SpecializedCollections.SingletonEnumerable(projectOutputPath), discoverySettings: runSettings, discoveryHandler), cancellationToken);
         cancellationToken.Register(() => vsTestConsoleWrapper.CancelDiscovery());
         await discoveryTask;
 

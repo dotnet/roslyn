@@ -25,7 +25,15 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         string Name { get; }
 
+        /// <summary>
+        /// Gets the name of a symbol as it appears in metadata.
+        /// </summary>
         string MetadataName { get; }
+
+        /// <summary>
+        /// Gets the metadata token associated with this symbol, or 0 if the symbol is not loaded from metadata.
+        /// </summary>
+        int MetadataToken { get; }
 
 #nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
         Compilation DeclaringCompilation { get; }
