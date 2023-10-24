@@ -266,9 +266,13 @@ namespace Microsoft.CodeAnalysis.Completion
             string? inlineDescription = null,
             bool isComplexTextEdit = false)
         {
-            return CreateInternal(
+            var result = CreateInternal(
                 displayText, filterText, sortText, properties != null ? properties.ToImmutableArray() : default, tags, rules, displayTextPrefix,
                 displayTextSuffix, inlineDescription, isComplexTextEdit);
+
+            result._propertiesAsImmutableDictionary = properties;
+
+            return result;
         }
 
         internal static CompletionItem CreateInternal(
@@ -319,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags,
             CompletionItemRules rules)
         {
-            return new CompletionItem(
+            var result = new CompletionItem(
                 span: span,
                 displayText: displayText,
                 filterText: filterText,
@@ -331,6 +335,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayTextSuffix: null,
                 inlineDescription: null,
                 isComplexTextEdit: false);
+
+            result._propertiesAsImmutableDictionary = properties;
+
+            return result;
         }
 
         private CompletionItem With(
@@ -438,7 +446,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItem"/> with the specified property changed.
         /// </summary>
         public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
-            => With(properties: properties != null ? properties.ToImmutableArray() : default);
+        {
+            var result = With(properties: properties != null ? properties.ToImmutableArray() : default);
+
+            result._propertiesAsImmutableDictionary = properties;
+
+            return result;
+        }
 
         internal CompletionItem WithProperties(ImmutableArray<KeyValuePair<string, string>> properties)
             => With(properties: properties);
