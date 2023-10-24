@@ -4080,10 +4080,6 @@ public class UseCollectionExpressionForArrayTests
         await new VerifyCS.Test
         {
             TestCode = $$"""
-                using System;
-                using System.Linq;
-                using System.Collections.Generic;
-                
                 class C
                 {
                     void M(bool b)
@@ -4093,28 +4089,57 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             FixedCode = $$"""
-                using System;
-                using System.Linq;
-                using System.Collections.Generic;
-                
                 class C
                 {
                     void M(bool b)
                     {
-                        var v = b ? ["a"] : [|[|new|][]|] { "b" };
+                        var v = b ? ["a"] : new[] { "b" };
                     }
                 }
                 """,
             BatchFixedCode = $$"""
-                using System;
-                using System.Linq;
-                using System.Collections.Generic;
-                
                 class C
                 {
                     void M(bool b)
                     {
-                        var v = b ? ["a"] : [|[|new|][]|] { "b" };
+                        var v = b ? new[] { "a" } : ["b"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFixAllConditionalExpression2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? [|[|new|] string[]|] { "a" } : [|[|new|] string[]|] { "b" };
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? ["a"] : new string[] { "b" };
+                    }
+                }
+                """,
+            BatchFixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? new string[] { "a" } : ["b"];
                     }
                 }
                 """,

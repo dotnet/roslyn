@@ -718,15 +718,14 @@ internal static class UseCollectionExpressionHelpers
                             Parent: VariableDeclaratorSyntax
                             {
                                 Identifier.ValueText: var variableName,
-                                Parent: VariableDeclaratorSyntax localVariableDeclarator,
                                 Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
-                            },
+                            } variableDeclarator,
                         })
                     {
                         return default;
                     }
 
-                    var localSymbol = semanticModel.GetRequiredDeclaredSymbol(localVariableDeclarator, cancellationToken);
+                    var localSymbol = semanticModel.GetRequiredDeclaredSymbol(variableDeclarator, cancellationToken);
 
                     var currentStatement = localDeclarationStatement.GetNextStatement();
                     for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
