@@ -24,14 +24,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class PrivateImplementationDetails : DefaultTypeDef, Cci.INamespaceTypeDefinition
     {
+        private const string TypeNamePrefix = "<PrivateImplementationDetails>";
+
         // Note: Dev11 uses the source method token as the prefix, rather than a fixed token
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
         internal const string SynthesizedReadOnlySpanHashFunctionName = "ComputeReadOnlySpanHash";
         internal const string SynthesizedSpanHashFunctionName = "ComputeSpanHash";
-
-        internal const string SynthesizedThrowIfNullFunctionName = "ThrowIfNull";
-        internal const string SynthesizedThrowFunctionName = "Throw";
 
         internal const string SynthesizedThrowSwitchExpressionExceptionFunctionName = "ThrowSwitchExpressionException";
         internal const string SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName = "ThrowSwitchExpressionExceptionParameterless";
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<string, Cci.IMethodDefinition> _synthesizedMethods =
             new ConcurrentDictionary<string, Cci.IMethodDefinition>();
 
-        // synthesized top-level types (for inline arrays currently)
+        // synthesized top-level types (for inline arrays and collection expression types currently)
         private ImmutableArray<Cci.INamespaceTypeDefinition> _orderedTopLevelTypes;
         private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedTopLevelTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
 
@@ -115,24 +114,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
-            var isNetModule = moduleBuilder.OutputKind == OutputKind.NetModule;
-            _name = GetClassName(moduleName, submissionSlotIndex, isNetModule);
-        }
+            _name = getClassName();
 
-        private static string GetClassName(string moduleName, int submissionSlotIndex, bool isNetModule)
-        {
-            // we include the module name in the name of the PrivateImplementationDetails class so that more than
-            // one of them can be included in an assembly as part of netmodules.    
-            var name = isNetModule ?
-                        $"<PrivateImplementationDetails><{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" :
-                        $"<PrivateImplementationDetails>";
-
-            if (submissionSlotIndex >= 0)
+            string getClassName()
             {
-                name += submissionSlotIndex.ToString();
-            }
+                // we include the module name in the name of the PrivateImplementationDetails class so that more than
+                // one of them can be included in an assembly as part of netmodules.    
+                var name = (moduleBuilder.OutputKind == OutputKind.NetModule) ?
+                    $"{TypeNamePrefix}<{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" : TypeNamePrefix;
 
-            return name;
+                if (submissionSlotIndex >= 0)
+                {
+                    name += submissionSlotIndex.ToString();
+                }
+
+                if (moduleBuilder.CurrentGenerationOrdinal > 0)
+                {
+                    name += "#" + moduleBuilder.CurrentGenerationOrdinal;
+                }
+
+                return name;
+            }
         }
 
         internal void Freeze()
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).AsImmutable();
         }
 
-        private bool IsFrozen => _frozen != 0;
+        internal bool IsFrozen => _frozen != 0;
 
         /// <summary>
         /// Gets a field that can be used to cache an array allocated to store data from a corresponding <see cref="CreateDataField"/> call.
@@ -316,6 +318,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(IsFrozen);
             return _orderedSynthesizedMethods;
+        }
+
+        public IEnumerable<Cci.IMethodDefinition> GetTopLevelTypeMethods(EmitContext context)
+        {
+            Debug.Assert(IsFrozen);
+            foreach (var type in _orderedTopLevelTypes)
+            {
+                foreach (var method in type.GetMethods(context))
+                {
+                    yield return method;
+                }
+            }
         }
 
         // Get method by name, if one exists. Otherwise return null.

@@ -87,22 +87,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         public async Task ShowSnippetsFromOtherContext()
         {
-            var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-class C
-{
-#if GOO
-    $$
-#endif
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2""  PreprocessorSymbols=""GOO"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
-    </Project>
-</Workspace>";
+            var markup = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                class C
+                {
+                #if GOO
+                    $$
+                #endif
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj2"  PreprocessorSymbols="GOO">
+                        <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
+                    </Project>
+                </Workspace>
+                """;
             await VerifyItemInLinkedFilesAsync(markup, MockSnippetInfoService.SnippetShortcut, null);
         }
 

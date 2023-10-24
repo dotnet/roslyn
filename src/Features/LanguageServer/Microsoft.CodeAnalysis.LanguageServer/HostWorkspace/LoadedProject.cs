@@ -5,9 +5,11 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -27,6 +29,7 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     private ProjectFileInfo? _mostRecentFileInfo;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = ImmutableArray<CommandLineReference>.Empty;
+    private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = ImmutableArray<CommandLineAnalyzerReference>.Empty;
 
     public LoadedProject(ProjectSystemProject projectSystemProject, SolutionServices solutionServices, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
@@ -72,7 +75,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo)
+    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -119,6 +122,17 @@ internal sealed class LoadedProject : IDisposable
         // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
         _mostRecentMetadataReferences = metadataReferences;
 
+        var analyzerReferences = _optionsProcessor.GetParsedCommandLineArguments().AnalyzerReferences.Distinct();
+
+        UpdateProjectSystemProjectCollection(
+            analyzerReferences,
+            _mostRecentAnalyzerReferences,
+            EqualityComparer<CommandLineAnalyzerReference>.Default, // CommandLineAnalyzerReference already implements equality
+            reference => _projectSystemProject.AddAnalyzerReference(reference.FilePath),
+            reference => _projectSystemProject.RemoveAnalyzerReference(reference.FilePath));
+
+        _mostRecentAnalyzerReferences = analyzerReferences;
+
         UpdateProjectSystemProjectCollection(
             newProjectInfo.AdditionalDocuments.Distinct(DocumentFileInfoComparer.Instance), // TODO: figure out why we have duplicates
             _mostRecentFileInfo?.AdditionalDocuments.Distinct(DocumentFileInfoComparer.Instance),
@@ -142,7 +156,9 @@ internal sealed class LoadedProject : IDisposable
 
         _mostRecentFileInfo = newProjectInfo;
 
-        return;
+        Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");
+        var outputKind = _projectSystemProject.CompilationOptions.OutputKind;
+        return (metadataReferences, outputKind);
 
         static void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem)
         {

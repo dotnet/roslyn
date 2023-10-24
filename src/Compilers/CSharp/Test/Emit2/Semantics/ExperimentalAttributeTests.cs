@@ -33,7 +33,7 @@ namespace System.Diagnostics.CodeAnalysis
 }
 """;
 
-    private const string DefaultHelpLinkUri = "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8305)";
+    private const string DefaultHelpLinkUri = "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS9204)";
 
     [Theory, CombinatorialData]
     public void Simple(bool inSource)
@@ -55,9 +55,9 @@ C.M();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -107,12 +107,12 @@ C.M();
         // Note: the assembly-level [Experimental] is equivalent to marking every type and member as experimental,
         // whereas a type-level [Experimental] is not equivalent to marking every nested type and member as experimental.
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1),
-            // 0.cs(1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         foreach (var diag in comp.GetDiagnostics())
@@ -172,12 +172,12 @@ C.M();
         Assert.Equal(ObsoleteAttributeKind.None, comp.GetTypeByMetadataName("C").ContainingModule.ObsoleteKind);
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1),
-            // 0.cs(1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         foreach (var diag in comp.GetDiagnostics())
@@ -218,9 +218,9 @@ C.M();
             // (1,1): error CS0619: 'C' is obsolete: 'error'
             // C.M();
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(1, 1),
-            // (1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -281,12 +281,12 @@ C.M();
         Assert.Equal(ObsoleteAttributeKind.Experimental, comp.GetTypeByMetadataName("C").ContainingAssembly.ObsoleteKind);
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1),
-            // 0.cs(1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         foreach (var diag in comp.GetDiagnostics())
@@ -322,9 +322,9 @@ C.M();
             // (1,1): error CS0619: 'C' is obsolete: 'error'
             // C.M();
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(1, 1),
-            // (1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -371,12 +371,12 @@ C.M();
 
         var comp = CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1),
-            // (1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -429,12 +429,12 @@ C.M();
         Assert.Equal(ObsoleteAttributeKind.None, comp.GetTypeByMetadataName("C").ContainingAssembly.ObsoleteKind);
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1),
-            // 0.cs(1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         foreach (var diag in comp.GetDiagnostics())
@@ -499,12 +499,12 @@ C.M();
         Assert.Equal(ObsoleteAttributeKind.Experimental, comp.GetTypeByMetadataName("C").ContainingAssembly.ObsoleteKind);
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagModule: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagModule: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagModule", "C").WithArguments("C").WithLocation(1, 1),
-            // 0.cs(1,1): warning DiagModule: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagModule", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagModule: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagModule", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagModule", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         foreach (var diag in comp.GetDiagnostics())
@@ -621,12 +621,12 @@ C.M();
         var comp = CreateCompilation(src, references: new[] { CreateCompilation(libSrc, references: new[] { attrRef }).EmitToImageReference(), attrRef });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagType: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagType: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagType", "C").WithArguments("C").WithLocation(1, 1),
-            // 0.cs(1,1): warning DiagMethod: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagType", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagMethod: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagMethod", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagMethod", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var c = comp.GetTypeByMetadataName("C");
@@ -691,15 +691,15 @@ C.Nested.M();
         var comp = CreateCompilation(src, references: new[] { CreateCompilation(libSrc, references: new[] { attrRef }).EmitToImageReference(), attrRef });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagType: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagType: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.Nested.M();
-            Diagnostic("DiagType", "C").WithArguments("C").WithLocation(1, 1),
-            // 0.cs(1,1): warning DiagAssembly: 'C.Nested' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagType", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagAssembly: 'C.Nested' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.Nested.M();
-            Diagnostic("DiagAssembly", "C.Nested").WithArguments("C.Nested").WithLocation(1, 1),
-            // 0.cs(1,1): warning DiagAssembly: 'C.Nested.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagAssembly", "C.Nested").WithArguments("C.Nested").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,1): error DiagAssembly: 'C.Nested.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.Nested.M();
-            Diagnostic("DiagAssembly", "C.Nested.M()").WithArguments("C.Nested.M()").WithLocation(1, 1)
+            Diagnostic("DiagAssembly", "C.Nested.M()").WithArguments("C.Nested.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -732,12 +732,12 @@ public class Derived : C
          : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // 0.cs(7,9): warning Diag: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(7,9): error Diag: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             //         base.M();
-            Diagnostic("Diag", "base.M()").WithArguments("C.M()").WithLocation(7, 9),
-            // 0.cs(8,9): warning Diag: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("Diag", "base.M()").WithArguments("C.M()").WithLocation(7, 9).WithWarningAsError(true),
+            // 0.cs(8,9): error Diag: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             //         M();
-            Diagnostic("Diag", "M()").WithArguments("C.M()").WithLocation(8, 9)
+            Diagnostic("Diag", "M()").WithArguments("C.M()").WithLocation(8, 9).WithWarningAsError(true)
             );
     }
 
@@ -779,9 +779,9 @@ public class DerivedDerived : Derived
          : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // 0.cs(17,9): warning Diag: 'Derived.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(17,9): error Diag: 'Derived.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             //         base.M(); // 1
-            Diagnostic("Diag", "base.M()").WithArguments("Derived.M()").WithLocation(17, 9)
+            Diagnostic("Diag", "base.M()").WithArguments("Derived.M()").WithLocation(17, 9).WithWarningAsError(true)
             );
     }
 
@@ -823,12 +823,12 @@ public class Derived : C { public override void M() { } }
 
         // CONSIDER narrowing the location on constructor initializer obsolete/experimental attributes
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning Diag: 'C.C()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error Diag: 'C.C()' is for evaluation purposes only and is subject to change or removal in future updates.
             // public class Derived : C { public override void M() { } }
-            Diagnostic("Diag", "public class Derived : C { public override void M() { } }").WithArguments("C.C()").WithLocation(1, 1),
-            // 0.cs(1,24): warning Diag: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("Diag", "public class Derived : C { public override void M() { } }").WithArguments("C.C()").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,24): error Diag: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // public class Derived : C { public override void M() { } }
-            Diagnostic("Diag", "C").WithArguments("C").WithLocation(1, 24)
+            Diagnostic("Diag", "C").WithArguments("C").WithLocation(1, 24).WithWarningAsError(true)
             );
     }
 
@@ -935,12 +935,12 @@ public class Derived : C { }
 
         var comp = CreateCompilation("_ = new Derived();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
         comp.VerifyDiagnostics(
-            // (1,5): warning DiagID1: 'Derived.Derived()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,5): error DiagID1: 'Derived.Derived()' is for evaluation purposes only and is subject to change or removal in future updates.
             // _ = new Derived();
-            Diagnostic("DiagID1", "new Derived()").WithArguments("Derived.Derived()").WithLocation(1, 5),
-            // (1,9): warning DiagID1: 'Derived' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagID1", "new Derived()").WithArguments("Derived.Derived()").WithLocation(1, 5).WithWarningAsError(true),
+            // (1,9): error DiagID1: 'Derived' is for evaluation purposes only and is subject to change or removal in future updates.
             // _ = new Derived();
-            Diagnostic("DiagID1", "Derived").WithArguments("Derived").WithLocation(1, 9)
+            Diagnostic("DiagID1", "Derived").WithArguments("Derived").WithLocation(1, 9).WithWarningAsError(true)
             );
 
         var derived = comp.GetTypeByMetadataName("Derived");
@@ -1000,12 +1000,12 @@ public class Derived : C { }
 
         var comp = CreateCompilation("_ = new Derived();", new[] { derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
         comp.VerifyDiagnostics(
-            // (1,5): warning DiagID1: 'Derived.Derived()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,5): error DiagID1: 'Derived.Derived()' is for evaluation purposes only and is subject to change or removal in future updates.
             // _ = new Derived();
-            Diagnostic("DiagID1", "new Derived()").WithArguments("Derived.Derived()").WithLocation(1, 5),
-            // (1,9): warning DiagID1: 'Derived' is for evaluation purposes only and is subject to change or removal in future updates.
+            Diagnostic("DiagID1", "new Derived()").WithArguments("Derived.Derived()").WithLocation(1, 5).WithWarningAsError(true),
+            // (1,9): error DiagID1: 'Derived' is for evaluation purposes only and is subject to change or removal in future updates.
             // _ = new Derived();
-            Diagnostic("DiagID1", "Derived").WithArguments("Derived").WithLocation(1, 9)
+            Diagnostic("DiagID1", "Derived").WithArguments("Derived").WithLocation(1, 9).WithWarningAsError(true)
             );
 
         var derived = comp.GetTypeByMetadataName("Derived");
@@ -1062,9 +1062,9 @@ S.M();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID1: 'S' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'S' is for evaluation purposes only and is subject to change or removal in future updates.
             // S.M();
-            Diagnostic("DiagID1", "S").WithArguments("S").WithLocation(1, 1)
+            Diagnostic("DiagID1", "S").WithArguments("S").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1091,9 +1091,9 @@ e.ToString();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'E' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'E' is for evaluation purposes only and is subject to change or removal in future updates.
             // E e = default;
-            Diagnostic("DiagID1", "E").WithArguments("E").WithLocation(1, 1)
+            Diagnostic("DiagID1", "E").WithArguments("E").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1122,9 +1122,9 @@ _ = new C();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,5): warning DiagID1: 'C.C()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,5): error DiagID1: 'C.C()' is for evaluation purposes only and is subject to change or removal in future updates.
             // _ = new C();
-            Diagnostic("DiagID1", "new C()").WithArguments("C.C()").WithLocation(1, 5)
+            Diagnostic("DiagID1", "new C()").WithArguments("C.C()").WithLocation(1, 5).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1153,9 +1153,9 @@ C.M();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1184,9 +1184,9 @@ _ = C.P;
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,5): warning DiagID1: 'C.P' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,5): error DiagID1: 'C.P' is for evaluation purposes only and is subject to change or removal in future updates.
             // _ = C.P;
-            Diagnostic("DiagID1", "C.P").WithArguments("C.P").WithLocation(1, 5)
+            Diagnostic("DiagID1", "C.P").WithArguments("C.P").WithLocation(1, 5).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1215,9 +1215,9 @@ _ = C.field;
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,5): warning DiagID1: 'C.field' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,5): error DiagID1: 'C.field' is for evaluation purposes only and is subject to change or removal in future updates.
             // _ = C.field;
-            Diagnostic("DiagID1", "C.field").WithArguments("C.field").WithLocation(1, 5)
+            Diagnostic("DiagID1", "C.field").WithArguments("C.field").WithLocation(1, 5).WithWarningAsError(true)
             );
     }
 
@@ -1246,9 +1246,9 @@ C.Event += () => { };
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID1: 'C.Event' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'C.Event' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.Event += () => { };
-            Diagnostic("DiagID1", "C.Event").WithArguments("C.Event").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C.Event").WithArguments("C.Event").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -1273,9 +1273,9 @@ i.M();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID1: 'I' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'I' is for evaluation purposes only and is subject to change or removal in future updates.
             // I i = null;
-            Diagnostic("DiagID1", "I").WithArguments("I").WithLocation(1, 1)
+            Diagnostic("DiagID1", "I").WithArguments("I").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -1297,9 +1297,9 @@ d();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID1: 'D' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'D' is for evaluation purposes only and is subject to change or removal in future updates.
             // D d = null;
-            Diagnostic("DiagID1", "D").WithArguments("D").WithLocation(1, 1)
+            Diagnostic("DiagID1", "D").WithArguments("D").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -1368,8 +1368,8 @@ c.ToString();
         comp.VerifyDiagnostics();
     }
 
-    [Theory, CombinatorialData]
-    public void NullDiagnosticId(bool inSource)
+    [Fact]
+    public void NullDiagnosticId()
     {
         var libSrc = """
 [System.Diagnostics.CodeAnalysis.Experimental(null)]
@@ -1382,19 +1382,82 @@ public class C
         var src = """
 C.M();
 """;
-        var comp = inSource
-            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
-            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+        var comp = CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning CS8305: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // 1.cs(1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental(null)]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, "null").WithLocation(1, 47)
             );
     }
 
-    [Theory, CombinatorialData]
-    public void DiagnosticIdWithTrailingNewline(bool inSource)
+    [Fact]
+    public void MissingDiagnosticIdArgument()
+    {
+        var src = """
+C.M();
+[System.Diagnostics.CodeAnalysis.Experimental()]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(2,2): error CS7036: There is no argument given that corresponds to the required parameter 'diagnosticId' of 'ExperimentalAttribute.ExperimentalAttribute(string)'
+            // [System.Diagnostics.CodeAnalysis.Experimental()]
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "System.Diagnostics.CodeAnalysis.Experimental()").WithArguments("diagnosticId", "System.Diagnostics.CodeAnalysis.ExperimentalAttribute.ExperimentalAttribute(string)").WithLocation(2, 2)
+            );
+    }
+
+    [Fact]
+    public void IntegerDiagnosticIdArgument()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(42)]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(3,47): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            // [System.Diagnostics.CodeAnalysis.Experimental(42)]
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(3, 47)
+            );
+    }
+
+    [Fact]
+    public void MultipleArguments()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(3,2): error CS1729: 'ExperimentalAttribute' does not contain a constructor that takes 2 arguments
+            // [System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")]
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"System.Diagnostics.CodeAnalysis.Experimental(""DiagID"", ""other"")").WithArguments("System.Diagnostics.CodeAnalysis.ExperimentalAttribute", "2").WithLocation(3, 2)
+            );
+    }
+
+    [Fact]
+    public void DiagnosticIdWithTrailingNewline()
     {
         var libSrc = """
 [System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
@@ -1407,47 +1470,70 @@ public class C
         var src = """
 C.M();
 """;
-        var comp = inSource
-            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
-            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+        var comp = CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning Diag
-            // : 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error Diag\n: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic("Diag\n", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("Diag\n", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // 1.cs(1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n""").WithLocation(1, 47)
             );
     }
 
-    [Theory, CombinatorialData]
-    public void DiagnosticIdWithNewline(bool inSource)
+    [Fact]
+    public void DiagnosticIdWithTrailingNewline_WithSuppression()
     {
-        var libSrc = """
+        var src = """
+#pragma warning disable CS9204
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
+public class C
+{
+    public static void M() { }
+}
+""";
+        Assert.Equal((ErrorCode)9204, ErrorCode.WRN_Experimental);
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(2,1): error Diag\n: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
+            // C.M();
+            Diagnostic("Diag\n", "C").WithArguments("C").WithLocation(2, 1).WithWarningAsError(true),
+            // 0.cs(4,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n""").WithLocation(4, 47)
+            );
+    }
+
+    [Fact]
+    public void DiagnosticIdWithNewline()
+    {
+        var src = """
+C.M();
+
 [System.Diagnostics.CodeAnalysis.Experimental("Diag\n01")]
 public class C
 {
     public static void M() { }
 }
 """;
-
-        var src = """
-C.M();
-""";
-        var comp = inSource
-            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
-            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning Diag
-            // 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error Diag\n01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic("Diag\n01", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("Diag\n01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // 0.cs(3,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n01")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n01""").WithLocation(3, 47)
             );
     }
 
     [Theory, CombinatorialData]
-    public void WhitespaceDiagnosticId(bool inSource,
-        [CombinatorialValues("\"\"", "\" \"", "\"\\n\"")] string whitespace)
+    public void WhitespaceDiagnosticId([CombinatorialValues("\"\"", "\" \"", "\"\\n\"")] string whitespace)
     {
         var libSrc = $$"""
 [System.Diagnostics.CodeAnalysis.Experimental({{whitespace}})]
@@ -1461,14 +1547,38 @@ public class C
 C.M();
 """;
 
-        var comp = inSource
-            ? CreateCompilation(new CSharpTestSource[] { (src, "0.cs"), libSrc, experimentalAttributeSrc })
-            : CreateCompilation((src, "0.cs"), references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+        var comp = CreateCompilation(new CSharpTestSource[] { (src, "0.cs"), libSrc, experimentalAttributeSrc });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning CS8305: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental(" ")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, whitespace).WithLocation(1, 47)
+            );
+    }
+
+    [Fact]
+    public void WhitespaceDiagnosticId_WithSuppression()
+    {
+        var src = """
+#pragma warning disable CS9204
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(" ")]
+public class C
+{
+    public static void M() { }
+}
+""";
+
+        var comp = CreateCompilation(new CSharpTestSource[] { (src, "0.cs"), experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(4,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental(" ")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @""" """).WithLocation(4, 47)
             );
     }
 
@@ -1486,9 +1596,88 @@ class C
 """;
         var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // 0.cs(3,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag 01")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag 01""").WithLocation(3, 47)
+            );
+    }
+
+    [Fact]
+    public void SpacedDiagnosticId_WithSecondArgument()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")]
+class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+        comp.VerifyDiagnostics(
+            // 0.cs(3,2): error CS1729: 'ExperimentalAttribute' does not contain a constructor that takes 2 arguments
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")]
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"System.Diagnostics.CodeAnalysis.Experimental(""Diag 01"", ""other"")").WithArguments("System.Diagnostics.CodeAnalysis.ExperimentalAttribute", "2").WithLocation(3, 2)
+            );
+    }
+
+    [Fact]
+    public void SpacedDiagnosticId_Metadata()
+    {
+        var il = """
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .custom instance void System.Diagnostics.CodeAnalysis.ExperimentalAttribute::.ctor(string) = { string('Diag 01') }
+
+    .method public hidebysig static void M () cil managed
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.ExperimentalAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string diagnosticId ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+""";
+        var comp = CreateCompilationWithIL("C.M();", il);
+        comp.VerifyDiagnostics(
+            // (1,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            // C.M();
+            Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
+            );
+
+        var src = """
+// Cannot be suppressed
+#pragma disable warning Diag 01
+C.M();
+""";
+        comp = CreateCompilationWithIL(src, il);
+        comp.VerifyDiagnostics(
+            // (2,9): warning CS1633: Unrecognized #pragma directive
+            // #pragma disable warning Diag 01
+            Diagnostic(ErrorCode.WRN_IllegalPragma, "disable").WithLocation(2, 9),
+            // (3,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            // C.M();
+            Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(3, 1).WithWarningAsError(true)
             );
     }
 
@@ -1518,9 +1707,9 @@ namespace System.Diagnostics.CodeAnalysis
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,1): warning CS8305: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -1614,9 +1803,9 @@ C.M();
 
         var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("DiagID", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1655,9 +1844,9 @@ C.M();
 
         var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("DiagID", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1696,9 +1885,9 @@ C.M();
 
         var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // (1,1): error DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("DiagID", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1722,9 +1911,9 @@ class C
 """;
         var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates. (https://example.org/DiagID1)
+            // 0.cs(1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates. (https://example.org/DiagID1)
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1748,9 +1937,9 @@ class C
 """;
         var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1779,9 +1968,9 @@ C.M();
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1805,9 +1994,9 @@ class C
 """;
         var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
             // C.M();
-            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1)
+            Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
             );
 
         var diag = comp.GetDiagnostics().Single();
@@ -1833,9 +2022,9 @@ namespace N
 """;
         var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'N.C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error DiagID1: 'N.C' is for evaluation purposes only and is subject to change or removal in future updates.
             // N.C.M();
-            Diagnostic("DiagID1", "N.C").WithArguments("N.C").WithLocation(1, 1)
+            Diagnostic("DiagID1", "N.C").WithArguments("N.C").WithLocation(1, 1).WithWarningAsError(true)
             );
     }
 
@@ -1890,9 +2079,9 @@ class D
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
         comp.VerifyDiagnostics(
-            // (6,9): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(6,9): error DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
             //         C.M();
-            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(6, 9)
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(6, 9).WithWarningAsError(true)
             );
     }
 
@@ -2076,9 +2265,9 @@ class D
         if (inSource)
         {
             comp.VerifyDiagnostics(
-                // 0.cs(3,12): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+                // 0.cs(3,12): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
                 //     void M(C c)
-                Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(3, 12)
+                Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(3, 12).WithWarningAsError(true)
                 );
         }
         else

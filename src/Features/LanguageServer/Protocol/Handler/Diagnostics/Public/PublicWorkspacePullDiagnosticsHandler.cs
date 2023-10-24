@@ -62,13 +62,11 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
     protected override string? GetDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
         => null;
 
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
-    {
-        return ConvertTags(diagnosticData, potentialDuplicate: false);
-    }
+    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
+        => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
 
     protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
-        => new WorkspaceDiagnosticPartialReport(new WorkspaceDiagnosticReport
+        => new(new WorkspaceDiagnosticReport
         {
             Items = new SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[]
             {
@@ -84,7 +82,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
         });
 
     protected override WorkspaceDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
-        => new WorkspaceDiagnosticPartialReport(new WorkspaceDiagnosticReport
+        => new(new WorkspaceDiagnosticReport
         {
             Items = new SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[]
             {
@@ -100,7 +98,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
         });
 
     protected override WorkspaceDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-        => new WorkspaceDiagnosticPartialReport(new WorkspaceDiagnosticReport
+        => new(new WorkspaceDiagnosticReport
         {
             Items = new SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[]
             {

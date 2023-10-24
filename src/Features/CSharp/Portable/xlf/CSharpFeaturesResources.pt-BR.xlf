@@ -152,6 +152,11 @@
         <target state="translated">Converter em cadeia de caracteres bruta</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="new">Convert to regular constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
         <target state="translated">Converter para cadeia de caracteres regular</target>
@@ -434,12 +439,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="new">top-level code</target>
+        <target state="translated">código de nível superior</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="new">top-level statement</target>
+        <target state="translated">instrução de nível superior</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

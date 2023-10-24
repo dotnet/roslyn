@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -892,6 +891,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                             Console.WriteLine("Only run if o is null");
                 #endif
                         }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
+        public async Task TestIfStatementWithPreprocessorBlock7()
+        {
+            await TestMissingAsync(
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                #if true
+                            o = "";
+                #endif
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
+        public async Task TestIfStatementWithPreprocessorBlock8()
+        {
+            await TestMissingAsync(
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                #if true
+                            o = "";
+                #else
+                            o = "";
+                #endif
                     }
                 }
                 """);

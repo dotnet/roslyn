@@ -244,8 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private ArrayInitializerStyle ShouldEmitBlockInitializer(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
-            if (!_module.SupportsPrivateImplClass)
+            if (_module.IsEncDelta)
             {
+                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
                 return ArrayInitializerStyle.Element;
             }
 
@@ -440,10 +442,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             avoidInPlace = false;
             SpecialType specialElementType = SpecialType.None;
 
-            if (!_module.SupportsPrivateImplClass)
+            if (_module.IsEncDelta)
             {
-                // The implementation stores blobs and possibly cached arrays on the private implementation class.
-                // If it's not supported, the optimizations can't be applied.
+                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
                 return false;
             }
 
@@ -693,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>Gets whether the element type of an array is appropriate for storing in a blob.</summary>
-        private static bool IsTypeAllowedInBlobWrapper(SpecialType type) => type is
+        internal static bool IsTypeAllowedInBlobWrapper(SpecialType type) => type is
             // 1 byte
             // For primitives that are a single byte in size, a span can point directly to a blob
             // containing the constant data.

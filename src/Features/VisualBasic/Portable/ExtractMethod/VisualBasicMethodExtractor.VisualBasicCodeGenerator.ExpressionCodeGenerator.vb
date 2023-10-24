@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class ExpressionCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
-                    MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
+                Public Sub New(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                    MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
 
                 Public Shared Function IsExtractMethodOnExpression(code As SelectionResult) As Boolean
@@ -89,22 +89,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     End If
 
                     Return ImmutableArray.Create(statement)
-                End Function
-
-                Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                    Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                    Return If(callSiteContainer, (GetCallSiteContainerFromExpression()))
-                End Function
-
-                Private Function GetCallSiteContainerFromExpression() As SyntaxNode
-                    Dim container = VBSelectionResult.InnermostStatementContainer()
-
-                    Contract.ThrowIfNull(container)
-                    Contract.ThrowIfFalse(container.IsStatementContainerNode() OrElse
-                                          TypeOf container Is TypeBlockSyntax OrElse
-                                          TypeOf container Is CompilationUnitSyntax)
-
-                    Return container
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax

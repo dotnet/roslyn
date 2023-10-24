@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -67,7 +66,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     protected abstract bool IncludeDiagnostic(DiagnosticData data);
 
     protected abstract bool TagEquals(TTag tag1, TTag tag2);
-    protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
+    protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
 
     /// <summary>
     /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.

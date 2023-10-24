@@ -188,30 +188,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdated(object sender, ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static e => GetDiagnosticUpdatedMessage(e), e, CancellationToken.None))
+                foreach (var e in argsCollection)
                 {
-                    if (_workspace != e.Workspace)
+                    using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static e => GetDiagnosticUpdatedMessage(e), e, CancellationToken.None))
                     {
-                        return;
-                    }
+                        if (_workspace != e.Workspace)
+                        {
+                            continue;
+                        }
 
-                    var diagnostics = e.Diagnostics;
-                    if (diagnostics.Length == 0)
-                    {
-                        OnDataRemoved(e);
-                        return;
-                    }
+                        var diagnostics = e.Diagnostics;
+                        if (diagnostics.Length == 0)
+                        {
+                            OnDataRemoved(e);
+                            continue;
+                        }
 
-                    var count = diagnostics.Where(ShouldInclude).Count();
-                    if (count <= 0)
-                    {
-                        OnDataRemoved(e);
-                        return;
-                    }
+                        var count = diagnostics.Where(ShouldInclude).Count();
+                        if (count <= 0)
+                        {
+                            OnDataRemoved(e);
+                            continue;
+                        }
 
-                    OnDataAddedOrChanged(e);
+                        OnDataAddedOrChanged(e);
+                    }
                 }
             }
 

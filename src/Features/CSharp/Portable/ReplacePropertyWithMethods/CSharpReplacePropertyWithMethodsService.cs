@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             return UseExpressionOrBlockBodyIfDesired(
                 languageVersion, methodDeclaration, expressionBodyPreference,
-                createReturnStatementForExpression: false);
+                createReturnStatementForExpression: false, cancellationToken);
 
             MethodDeclarationSyntax GetSetMethodWorker()
             {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             return UseExpressionOrBlockBodyIfDesired(
                 languageVersion, methodDeclaration, expressionBodyPreference,
-                createReturnStatementForExpression: true);
+                createReturnStatementForExpression: true, cancellationToken);
 
             MethodDeclarationSyntax GetGetMethodWorker()
             {
@@ -255,12 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             LanguageVersion languageVersion,
             MethodDeclarationSyntax methodDeclaration,
             ExpressionBodyPreference expressionBodyPreference,
-            bool createReturnStatementForExpression)
+            bool createReturnStatementForExpression,
+            CancellationToken cancellationToken)
         {
             if (methodDeclaration.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (methodDeclaration.Body.TryConvertToArrowExpressionBody(
-                        methodDeclaration.Kind(), languageVersion, expressionBodyPreference,
+                        methodDeclaration.Kind(), languageVersion, expressionBodyPreference, cancellationToken,
                         out var arrowExpression, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)

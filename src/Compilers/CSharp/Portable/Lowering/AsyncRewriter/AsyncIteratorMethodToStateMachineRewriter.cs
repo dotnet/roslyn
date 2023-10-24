@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol state,
             FieldSymbol builder,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  _promiseOfValueOrEnd.SetResult(true);
             //  return;
 
-            AddResumableState(_iteratorStateAllocator, node.Syntax, out var stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(_iteratorStateAllocator, node.Syntax, awaitId: default, out var stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();

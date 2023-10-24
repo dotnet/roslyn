@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
@@ -40,12 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly IVsService<IVsStatusbar> _statusbar;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache;
         private readonly IThreadingContext _threadingContext;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
 
         private IServiceProvider? _serviceProvider;
 
@@ -54,21 +53,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public VisualStudioDiagnosticAnalyzerService(
             VisualStudioWorkspace workspace,
             IVsService<SVsStatusbar, IVsStatusbar> statusbar,
-            IDiagnosticAnalyzerService diagnosticService,
+            DiagnosticAnalyzerInfoCache.SharedGlobalCache diagnosticAnalyzerInfoCache,
             IThreadingContext threadingContext,
             IVsHierarchyItemManager vsHierarchyItemManager,
             IAsynchronousOperationListenerProvider listenerProvider,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             IGlobalOptionService globalOptions)
         {
             _workspace = workspace;
             _statusbar = statusbar;
-            _diagnosticService = diagnosticService;
+            _diagnosticAnalyzerInfoCache = diagnosticAnalyzerInfoCache.AnalyzerInfoCache;
             _threadingContext = threadingContext;
             _vsHierarchyItemManager = vsHierarchyItemManager;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             _globalOptions = globalOptions;
+            _codeAnalysisService = workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
         }
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
@@ -93,12 +91,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
         {
             var currentSolution = _workspace.CurrentSolution;
-            var infoCache = _diagnosticService.AnalyzerInfoCache;
             var hostAnalyzers = currentSolution.State.Analyzers;
 
             if (hierarchy == null)
             {
-                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
+                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache));
             }
 
             // Analyzers are only supported for C# and VB currently.
@@ -111,11 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var project = projectsWithHierarchy.FirstOrDefault();
                 if (project == null)
                 {
-                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache));
                 }
                 else
                 {
-                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project));
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project));
                 }
             }
             else
@@ -125,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
                 foreach (var project in projectsWithHierarchy)
                 {
-                    var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project);
+                    var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project);
                     foreach (var (displayName, descriptors) in descriptorsPerReference)
                     {
                         if (descriptorsMap.TryGetValue(displayName, out var existingDescriptors))
@@ -154,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, scope: null);
 
         private void OnSetAnalysisScopeCurrentDocumentStatus(object sender, EventArgs e)
-            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.ActiveFile);
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics);
 
         private void OnSetAnalysisScopeOpenDocumentsStatus(object sender, EventArgs e)
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.OpenFiles);
@@ -195,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 command.Text = GetBackgroundAnalysisScope(_workspace.CurrentSolution, _globalOptions) switch
                 {
-                    BackgroundAnalysisScope.ActiveFile => ServicesVSResources.Default_Current_Document,
+                    BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => ServicesVSResources.Default_Current_Document,
                     BackgroundAnalysisScope.OpenFiles => ServicesVSResources.Default_Open_Documents,
                     BackgroundAnalysisScope.FullSolution => ServicesVSResources.Default_Entire_Solution,
                     BackgroundAnalysisScope.None => ServicesVSResources.Default_None,
@@ -235,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             => OnSetAnalysisScope(scope: null);
 
         private void OnSetAnalysisScopeCurrentDocument(object sender, EventArgs args)
-            => OnSetAnalysisScope(BackgroundAnalysisScope.ActiveFile);
+            => OnSetAnalysisScope(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics);
 
         private void OnSetAnalysisScopeOpenDocuments(object sender, EventArgs args)
             => OnSetAnalysisScope(BackgroundAnalysisScope.OpenFiles);
@@ -326,20 +323,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 otherProjectsForMultiTfmProject = ImmutableArray<Project>.Empty;
             }
 
-            bool isAnalysisDisabled;
-            if (project != null)
-            {
-                isAnalysisDisabled = _globalOptions.IsAnalysisDisabled(project.Language);
-            }
-            else
-            {
-                isAnalysisDisabled = true;
-                foreach (var language in solution.Projects.Select(p => p.Language).Distinct())
-                {
-                    isAnalysisDisabled = isAnalysisDisabled && _globalOptions.IsAnalysisDisabled(language);
-                }
-            }
-
             // Force complete analyzer execution in background.
             _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
@@ -354,59 +337,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 await TaskScheduler.Default;
 
-                var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
-                await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                var onAfterProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnAfterProjectAnalyzed : (Action<Project>)((Project _) => { });
+                await _codeAnalysisService.RunAnalysisAsync(solution, project?.Id, onAfterProjectAnalyzed, CancellationToken.None).ConfigureAwait(false);
 
                 foreach (var otherProject in otherProjectsForMultiTfmProject)
-                    await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
-
-                // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
-                // then ForceAnalyzeAsync will not cause analyzers to execute.
-                // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
-                HandleProjectsWithDisabledAnalysis();
+                    await _codeAnalysisService.RunAnalysisAsync(solution, otherProject.Id, onAfterProjectAnalyzed, CancellationToken.None).ConfigureAwait(false);
             });
-
-            return;
-
-            void HandleProjectsWithDisabledAnalysis()
-            {
-                RoslynDebug.Assert(solution != null);
-
-                // First clear all special host diagostics for all involved projects.
-                var projects = project != null ? otherProjectsForMultiTfmProject.Add(project) : solution.Projects;
-                foreach (var project in projects)
-                {
-                    _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(project.Id, key: this);
-                }
-
-                // Now compute the new host diagostics for all projects with disabled analysis.
-                var projectsWithDisabledAnalysis = isAnalysisDisabled
-                    ? projects.ToImmutableArray()
-                    : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
-                if (!projectsWithDisabledAnalysis.IsEmpty)
-                {
-                    // Compute diagnostics by overriding project's RunCodeAnalysis flag to true.
-                    var tasks = new System.Threading.Tasks.Task<ImmutableArray<DiagnosticData>>[projectsWithDisabledAnalysis.Length];
-                    for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
-                    {
-                        var project = projectsWithDisabledAnalysis[index];
-                        project = project.Solution.WithRunAnalyzers(project.Id, runAnalyzers: true).GetProject(project.Id)!;
-                        tasks[index] = Task.Run(
-                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id, documentId: null,
-                                        includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None));
-                    }
-
-                    Task.WhenAll(tasks).Wait();
-
-                    // Report new host diagnostics.
-                    for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
-                    {
-                        var project = projectsWithDisabledAnalysis[index];
-                        var diagnostics = tasks[index].Result;
-                        _hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(project.Id, key: this, diagnostics);
-                    }
-                }
-            }
         }
 
         private Project? GetProject(IVsHierarchy? hierarchy)
@@ -464,7 +400,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     dueTime: TimeSpan.FromSeconds(5), period: TimeSpan.FromSeconds(5));
             }
 
-            internal void OnProjectAnalyzed(Project _)
+            internal void OnAfterProjectAnalyzed(Project _)
             {
                 Interlocked.Increment(ref _analyzedProjectCount);
                 UpdateStatusCore();

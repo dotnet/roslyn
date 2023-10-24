@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             SemanticDocument document,
             SyntaxToken firstToken,
             SyntaxToken lastToken,
+            bool selectionChanged,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(status);
@@ -50,13 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new ExpressionResult(
                     status, originalSpan, finalSpan, options, selectionInExpression,
-                    newDocument, firstTokenAnnotation, lastTokenAnnotation);
+                    newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
             }
             else
             {
                 return new StatementResult(
                     status, originalSpan, finalSpan, options, selectionInExpression,
-                    newDocument, firstTokenAnnotation, lastTokenAnnotation);
+                    newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
             }
         }
 
@@ -68,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
-            SyntaxAnnotation lastTokenAnnotation)
+            SyntaxAnnotation lastTokenAnnotation,
+            bool selectionChanged)
             : base(status, originalSpan, finalSpan, options, selectionInExpression,
-                   document, firstTokenAnnotation, lastTokenAnnotation)
+                   document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
         {
         }
 
@@ -97,6 +99,64 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             // make sure the selection contains the lambda
             return firstToken.SpanStart <= current.GetFirstToken().SpanStart &&
                    current.GetLastToken().Span.End <= lastToken.Span.End;
+        }
+
+        public override bool IsExtractMethodOnSingleStatement()
+        {
+            var firstStatement = this.GetFirstStatement();
+            var lastStatement = this.GetLastStatement();
+
+            return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
+        }
+
+        public override bool IsExtractMethodOnMultipleStatements()
+        {
+            var first = this.GetFirstStatement();
+            var last = this.GetLastStatement();
+
+            if (first != last)
+            {
+                var firstUnderContainer = this.GetFirstStatementUnderContainer();
+                var lastUnderContainer = this.GetLastStatementUnderContainer();
+                Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
+                return true;
+            }
+
+            return false;
+        }
+
+        public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+        {
+            if (this.SelectionInExpression)
+            {
+                var container = this.GetInnermostStatementContainer();
+
+                Contract.ThrowIfNull(container);
+                Contract.ThrowIfFalse(container.IsStatementContainerNode() ||
+                                      container is TypeDeclarationSyntax ||
+                                      container is ConstructorDeclarationSyntax ||
+                                      container is CompilationUnitSyntax);
+
+                return container;
+            }
+
+            if (this.IsExtractMethodOnSingleStatement())
+            {
+                var firstStatement = this.GetFirstStatement();
+                return firstStatement.Parent;
+            }
+
+            if (this.IsExtractMethodOnMultipleStatements())
+            {
+                var firstStatement = this.GetFirstStatementUnderContainer();
+                var container = firstStatement.Parent;
+                if (container is GlobalStatementSyntax)
+                    return container.Parent;
+
+                return container;
+            }
+
+            throw ExceptionUtilities.Unreachable();
         }
 
         public StatementSyntax GetFirstStatement()

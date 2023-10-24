@@ -125,6 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_UseDefViolationThisSupportedVersion
                 or ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion
                 or ErrorCode.WRN_UnassignedThisSupportedVersion
+                or ErrorCode.WRN_CollectionExpressionRefStructMayAllocate
+                or ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate
             );
 
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
@@ -132,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasPragmaSuppression;
             return CSharpDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
                                                               true,
+                                                              diagnosticInfo.Code,
                                                               diagnosticInfo.MessageIdentifier,
                                                               diagnosticInfo.WarningLevel,
                                                               Location.None,

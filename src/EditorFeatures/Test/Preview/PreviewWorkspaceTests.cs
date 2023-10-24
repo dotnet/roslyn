@@ -134,43 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
-        [WpfFact, WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
-        public async Task TestPreviewDiagnostic()
-        {
-            var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
-            var exportProvider = (IMefHostExportProvider)hostServices;
-
-            var diagnosticService = (IDiagnosticUpdateSource)exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            RoslynDebug.AssertNotNull(diagnosticService);
-            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-
-            var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
-            diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
-
-            using var previewWorkspace = new PreviewWorkspace(hostServices);
-
-            var solution = previewWorkspace.CurrentSolution
-                .WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) })
-                .AddProject("project", "project.dll", LanguageNames.CSharp)
-                .AddDocument("document", "class { }")
-                .Project
-                .Solution;
-
-            Assert.True(previewWorkspace.TryApplyChanges(solution));
-
-            var document = previewWorkspace.CurrentSolution.Projects.First().Documents.Single();
-
-            previewWorkspace.OpenDocument(document.Id, (await document.GetTextAsync()).Container);
-            previewWorkspace.EnableSolutionCrawler();
-
-            // wait 20 seconds
-            taskSource.Task.Wait(20000);
-            Assert.True(taskSource.Task.IsCompleted);
-
-            var args = taskSource.Task.Result;
-            Assert.True(args.Diagnostics.Length > 0);
-        }
-
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
         [ConditionalFact(typeof(Bitness32))]
         public void TestPreviewWorkspaceDoesNotLeakSolution()

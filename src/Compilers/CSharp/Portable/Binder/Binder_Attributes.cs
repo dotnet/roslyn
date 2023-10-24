@@ -973,6 +973,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            private TypedConstant VisitArrayCollectionExpression(TypeSymbol type, BoundCollectionExpression collection, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            {
+                var typedConstantKind = type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
+                var elements = collection.Elements;
+                var builder = ArrayBuilder<TypedConstant>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    builder.Add(VisitCollectionExpressionElement(element, diagnostics, ref attrHasErrors, curArgumentHasErrors || element.HasAnyErrors));
+                }
+                return CreateTypedConstant(collection, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, arrayValue: builder.ToImmutableAndFree());
+            }
+
+            private TypedConstant VisitCollectionExpressionElement(BoundNode node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            {
+                if (node is BoundCollectionExpressionSpreadElement spread)
+                {
+                    Binder.Error(diagnostics, ErrorCode.ERR_BadAttributeArgument, node.Syntax);
+                    attrHasErrors = true;
+                    return new TypedConstant(spread.Expression.Type, TypedConstantKind.Error, value: null);
+                }
+                return VisitExpression((BoundExpression)node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
+            }
+
             private TypedConstant VisitConversion(BoundConversion node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 Debug.Assert(node.ConstantValueOpt == null);
@@ -988,6 +1011,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = node.Type;
                 var operand = node.Operand;
                 var operandType = operand.Type;
+
+                if (node.Conversion.IsCollectionExpression
+                    && node.Conversion.GetCollectionExpressionTypeKind(out _) == CollectionExpressionTypeKind.Array)
+                {
+                    Debug.Assert(type.IsSZArray());
+                    return VisitArrayCollectionExpression(type, (BoundCollectionExpression)operand, diagnostics, ref attrHasErrors, curArgumentHasErrors);
+                }
 
                 if ((object)type != null && operandType is object)
                 {

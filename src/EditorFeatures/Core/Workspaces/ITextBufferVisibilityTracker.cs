@@ -80,7 +80,12 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 if (service.IsVisible(subjectBuffer))
                     return;
 

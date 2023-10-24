@@ -31,11 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task TestTagsChangedForPortionThatChanged()
         {
             var code =
-@"class Program2
-{
-    string x = @""/// <summary>$$
-/// </summary>"";
-}";
+                """
+                class Program2
+                {
+                    string x = @"/// <summary>$$
+                /// </summary>";
+                }
+                """;
             using var workspace = TestWorkspace.CreateCSharp(code);
             var document = workspace.Documents.First();
             var subjectBuffer = document.GetTextBuffer();
@@ -74,7 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             checkpoint = new Checkpoint();
 
             // Now apply an edit that require us to reclassify more that just the current line
-            var snapshot = subjectBuffer.Insert(document.CursorPosition.Value, "\"");
+            var snapshot = subjectBuffer.Insert(document.CursorPosition.Value, """
+                "
+                """);
             expectedLength = snapshot.Length;
 
             // NOTE: TagsChanged is raised on the UI thread, so there is no race between

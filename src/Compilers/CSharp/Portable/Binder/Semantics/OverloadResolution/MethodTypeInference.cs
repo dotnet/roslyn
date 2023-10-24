@@ -639,7 +639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExactOrBoundsKind kind,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (target.Type is null)
+            TypeSymbol targetType = target.Type;
+            Debug.Assert(targetType is { });
+            if (targetType is null)
             {
                 return;
             }
@@ -649,15 +651,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, targetType.StrippedType(), out TypeWithAnnotations targetElementType))
             {
                 return;
             }
 
             foreach (var element in argument.Elements)
             {
-                MakeExplicitParameterTypeInferences(binder, element, targetElementType, kind, ref useSiteInfo);
+                if (element is BoundCollectionExpressionSpreadElement spread)
+                {
+                    MakeSpreadElementTypeInferences(spread, targetElementType, ref useSiteInfo);
+                }
+                else
+                {
+                    MakeExplicitParameterTypeInferences(binder, (BoundExpression)element, targetElementType, kind, ref useSiteInfo);
+                }
             }
+        }
+
+        private void MakeSpreadElementTypeInferences(
+            BoundCollectionExpressionSpreadElement argument,
+            TypeWithAnnotations target,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(target.Type is { });
+            if (target.Type is null)
+            {
+                return;
+            }
+
+            var enumeratorInfo = argument.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return;
+            }
+
+            LowerBoundInference(enumeratorInfo.ElementTypeWithAnnotations, target, ref useSiteInfo);
         }
 #nullable disable
 
@@ -854,7 +883,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                MakeOutputTypeInferences(binder, element, targetElementType, ref useSiteInfo);
+                if (element is BoundExpression expression)
+                {
+                    MakeOutputTypeInferences(binder, expression, targetElementType, ref useSiteInfo);
+                }
             }
         }
 
@@ -1801,7 +1833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (sourceSignature.GetCallingConventionModifiers(), targetSignature.GetCallingConventionModifiers()) switch
             {
                 (null, null) => true,
-                ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEquals(targetModifiers) => true,
+                ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEqualsWithoutIntermediateHashSet(targetModifiers) => true,
                 _ => false
             };
         }
@@ -3153,7 +3185,14 @@ OuterBreak:
 
         private static void GetAllCandidates(Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates, ArrayBuilder<TypeWithAnnotations> builder)
         {
-            builder.AddRange(candidates.Values);
+            // Not using builder.AddRange here because the dictionary values enumerator is a struct, and calling AddRange will have to box the enumerator.
+            // Instead, we increase the builder capacity, then loop over the values.
+            // Also, we don't access candidates.Values to avoid realizing the Dictionary's internal ValueCollection (it's created lazily when Values is accessed)
+            builder.EnsureCapacity(builder.Count + candidates.Count);
+            foreach (var (_, value) in candidates)
+            {
+                builder.Add(value);
+            }
         }
 
         private static void AddAllCandidates(

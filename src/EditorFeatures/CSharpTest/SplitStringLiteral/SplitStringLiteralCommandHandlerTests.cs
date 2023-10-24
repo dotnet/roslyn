@@ -100,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
             if (expectedOutputMarkup != null)
             {
-                MarkupTestFile.GetSpans(expectedOutputMarkup,
-                    out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
+                MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out var expectedSpans);
 
                 Assert.Equal(expectedOutput, textBuffer.CurrentSnapshot.AsText().ToString());
                 Assert.Equal(expectedSpans.Last().Start, view.Caret.Position.BufferPosition.Position);

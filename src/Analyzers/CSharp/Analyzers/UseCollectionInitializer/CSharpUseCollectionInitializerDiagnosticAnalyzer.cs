@@ -24,6 +24,7 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         MemberAccessExpressionSyntax,
         InvocationExpressionSyntax,
         ExpressionStatementSyntax,
+        LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
         CSharpUseCollectionInitializerAnalyzer>
 {
