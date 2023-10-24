@@ -118,7 +118,7 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
                 document,
                 codeMapping.Contents.ToImmutableArrayOrEmpty(),
                 focusLocations,
-                formatMappedCode: true,
+                formatMappedCode: false,
                 cancellationToken).ConfigureAwait(false);
 
             if (newDocument is null)
