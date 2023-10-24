@@ -152,6 +152,11 @@
         <target state="translated">Converter em cadeia de caracteres bruta</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="new">Convert to regular constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
         <target state="translated">Converter para cadeia de caracteres regular</target>

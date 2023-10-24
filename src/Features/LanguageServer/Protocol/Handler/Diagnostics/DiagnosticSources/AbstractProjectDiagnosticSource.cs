@@ -22,6 +22,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
     public static AbstractProjectDiagnosticSource CreateForCodeAnalysisDiagnostics(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(project, codeAnalysisService);
 
+    public abstract bool IsLiveSource();
     public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
 
     public ProjectOrDocumentId GetId() => new(Project.Id);
@@ -34,6 +35,12 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
 
     private sealed class FullSolutionAnalysisDiagnosticSource(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) : AbstractProjectDiagnosticSource(project)
     {
+        /// <summary>
+        /// This is a normal project source that represents live/fresh diagnostics that should supersede everything else.
+        /// </summary>
+        public override bool IsLiveSource()
+            => true;
+
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
@@ -50,6 +57,14 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
 
     private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) : AbstractProjectDiagnosticSource(project)
     {
+        /// <summary>
+        /// This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
+        /// user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
+        /// that has been produced.
+        /// </summary>
+        public override bool IsLiveSource()
+            => false;
+
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,

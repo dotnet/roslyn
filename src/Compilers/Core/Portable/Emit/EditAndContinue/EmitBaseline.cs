@@ -264,6 +264,10 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> EventMapAdded;
         internal readonly IReadOnlyDictionary<int, int> PropertyMapAdded;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImplsAdded;
+
+        /// <summary>
+        /// Maps a parent handle to a non-empty ordered array of row ids of custom attributes added since the initial baseline.
+        /// </summary>
         internal readonly IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> CustomAttributesAdded;
 
         internal readonly ImmutableArray<int> TableEntriesAdded;
@@ -438,6 +442,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(synthesizedTypes.AnonymousTypes.Count >= _synthesizedTypes.AnonymousTypes.Count);
             Debug.Assert(synthesizedTypes.AnonymousDelegates.Count >= _synthesizedTypes.AnonymousDelegates.Count);
             Debug.Assert(synthesizedTypes.AnonymousDelegatesWithIndexedNames.Count >= _synthesizedTypes.AnonymousDelegatesWithIndexedNames.Count);
+            Debug.Assert(customAttributesAdded.All(entry => !entry.Value.IsDefaultOrEmpty && entry.Value.IsSorted()));
 
             return new EmitBaseline(
                 InitialBaseline,

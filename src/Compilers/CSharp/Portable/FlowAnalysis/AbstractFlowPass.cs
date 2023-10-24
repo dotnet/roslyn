@@ -1981,11 +1981,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitCollectionExpression(ImmutableArray<BoundExpression> elements)
+        private void VisitCollectionExpression(ImmutableArray<BoundNode> elements)
         {
             foreach (var element in elements)
             {
-                VisitRvalue(element);
+                if (element is BoundExpression expression)
+                {
+                    VisitRvalue(expression);
+                }
+                else
+                {
+                    Visit(element);
+                }
             }
         }
 

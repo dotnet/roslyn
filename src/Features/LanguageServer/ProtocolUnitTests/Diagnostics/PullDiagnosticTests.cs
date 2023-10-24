@@ -993,6 +993,8 @@ class C
 
             Assert.Equal(3, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            // this should be considered a build-error, since it was produced by the last code-analysis run.
+            Assert.Contains(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags);
             Assert.Empty(results[1].Diagnostics);
             Assert.Empty(results[2].Diagnostics);
 
@@ -1006,6 +1008,8 @@ class C
             Assert.Equal(results.Length, results2.Length);
 
             Assert.Equal(results[0].Diagnostics, results2[0].Diagnostics);
+            // this should be considered a build-error, since it was produced by the last code-analysis run.
+            Assert.Contains(VSDiagnosticTags.BuildError, results2[0].Diagnostics.Single().Tags);
             Assert.Equal(results[1].Diagnostics, results2[1].Diagnostics);
             Assert.Equal(results[2].Diagnostics, results2[2].Diagnostics);
 
@@ -1037,6 +1041,8 @@ class C
 
             Assert.Equal(3, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            // this should *not* be considered a build-error, since it was produced by the live workspace results.
+            Assert.DoesNotContain(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags);
             Assert.Empty(results[1].Diagnostics);
             Assert.Empty(results[2].Diagnostics);
 
