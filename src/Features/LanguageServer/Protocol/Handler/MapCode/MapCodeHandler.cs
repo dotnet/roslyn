@@ -41,7 +41,7 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
         //TODO: handle request.Updates if not empty
         if (request.Updates is not null)
         {
-            context.TraceWarning("Request with additional workspace 'Update' is currently not supported");
+            context.TraceWarning("mapCode Request failed: additional workspace 'Update' is currently not supported");
             return null;
         }
 
@@ -55,7 +55,7 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
             {
                 if (!uriToEditsMap.TryAdd(uri, textEdits))
                 {
-                    context.TraceWarning($"Request with multiple MapCodeMappings for the same document is not supported: {uri}");
+                    context.TraceWarning($"mapCode sub-request for {uri} failed: multiple MapCodeMappings for the same document is not supported.");
                 }
             }
         }
@@ -85,20 +85,22 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
             var textDocument = codeMapping.TextDocument;
             if (textDocument == null)
             {
-                context.TraceError($"MapCodeMapping.TextDocument not expected to be null");
+                context.TraceWarning($"mapCode sub-request failed: MapCodeMapping.TextDocument not expected to be null");
                 return null;
             }
 
+            context.TraceInformation($"Handling mapCode sub-request for {textDocument.Uri}");
+
             if (context.Solution.GetDocument(textDocument) is not Document document)
             {
-                context.TraceWarning($"Can't find this document in the workspace, corresponding MapCodeMapping is ignored: {textDocument.Uri}");
+                context.TraceWarning($"mapCode sub-request for {textDocument.Uri} failed: can't find this document in the workspace, corresponding MapCodeMapping is ignored");
                 return null;
             }
 
             var codeMapper = document.GetLanguageService<IMapCodeService>();
             if (codeMapper == null)
             {
-                context.TraceWarning($"Failed to find IMapCodeService for '{textDocument.Uri}'.");
+                context.TraceWarning($"mapCode sub-request for {textDocument.Uri} failed: can't find IMapCodeService.");
                 return null;
             }
 
@@ -117,14 +119,14 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
 
             if (newDocument is null)
             {
-                context.TraceWarning($"'IMapCodeService.MapCodeAsync' failed for '{textDocument.Uri}'.");
+                context.TraceWarning($"mapCode sub-request for {textDocument.Uri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
                 return null;
             }
 
             var textChanges = (await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
             if (textChanges.IsEmpty)
             {
-                context.TraceWarning($"'IMapCodeService.MapCodeAsync' returns no change for '{textDocument.Uri}'.");
+                context.TraceWarning($"mapCode sub-request for {textDocument.Uri} failed: 'IMapCodeService.MapCodeAsync' returns no change.");
                 return null;
             }
 
