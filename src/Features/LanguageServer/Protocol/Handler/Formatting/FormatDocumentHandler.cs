@@ -31,6 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LSP.DocumentFormattingParams request,
             RequestContext context,
             CancellationToken cancellationToken)
-            => GetTextEditsAsync(context, request.Options, _globalOptions, cancellationToken);
+            => GetTextEditsAsync(context, request.Options, _globalOptions, range: null, cancellationToken);
     }
 }

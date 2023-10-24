@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -25,12 +27,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             RequestContext context,
             LSP.FormattingOptions options,
             IGlobalOptionService globalOptions,
-            CancellationToken cancellationToken,
-            LSP.Range? range = null)
+            LSP.Range? range,
+            CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            if (document is null)
+            if (context.Document is not { } document)
                 return null;
+
+            IList<TextChange>? textChanges = null;
+            if (range is null && globalOptions.GetOption(LspOptionsStorage.LspFormattingSortImports, document.Project.Language))
+            {
+                var organizeImports = document.GetRequiredLanguageService<IOrganizeImportsService>();
+                var organizeImportsOptions = await document.GetOrganizeImportsOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
+                var organizedDocument = await organizeImports.OrganizeImportsAsync(document, organizeImportsOptions, cancellationToken).ConfigureAwait(false);
+                textChanges = (await organizedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToList();
+                document = organizedDocument;
+            }
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -42,10 +53,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, globalOptions, cancellationToken).ConfigureAwait(false);
 
             var services = document.Project.Solution.Services;
-            var textChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, rules: null, cancellationToken);
+            var formattingTextChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, rules: null, cancellationToken);
+            if (textChanges is { Count: > 0 })
+            {
+                if (formattingTextChanges.Count > 0)
+                {
+                    // Translate the formatting changes as a follow-up operation to the organization operation
+                    var formattedDocument = document.WithText(text.WithChanges(formattingTextChanges));
+                    textChanges = (await formattedDocument.GetTextChangesAsync(context.Document, cancellationToken).ConfigureAwait(false)).ToList();
+                }
+                else
+                {
+                    // The only changes come from organizing imports
+                }
+            }
+            else
+            {
+                textChanges = formattingTextChanges;
+            }
 
             var edits = new ArrayBuilder<LSP.TextEdit>();
-            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
+            var originalText = await context.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalText)));
             return edits.ToArrayAndFree();
         }
 
