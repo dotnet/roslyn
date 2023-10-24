@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -46,7 +44,194 @@ void M()
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
-            Assert.Equal(expected, actualText);
+            AssertEx.EqualOrDiff(expected, actualText);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentWithOrganizeImports1Async(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using System.Collections;
+                using System;
+
+                class A{|caret:|}
+                {
+                }
+                """;
+            var expected =
+                """
+                using System;
+                using System.Collections;
+
+                class A
+                {
+                }
+                """;
+
+            var options = new InitializationOptions
+            {
+                OptionUpdater = globalOptions =>
+                {
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspFormattingSortImports, LanguageNames.CSharp, true);
+                },
+            };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
+            var actualText = ApplyTextEdits(results, documentText);
+            AssertEx.EqualOrDiff(expected, actualText);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentWithOrganizeImports2Async(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using   System.Collections;
+                using  System;
+
+                class A{|caret:|}
+                {
+                }
+                """;
+            var expected =
+                """
+                using System;
+                using System.Collections;
+
+                class A
+                {
+                }
+                """;
+
+            var options = new InitializationOptions
+            {
+                OptionUpdater = globalOptions =>
+                {
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspFormattingSortImports, LanguageNames.CSharp, true);
+                },
+            };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
+            var actualText = ApplyTextEdits(results, documentText);
+            AssertEx.EqualOrDiff(expected, actualText);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentWithOrganizeImports3Async(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using  System;
+                using   System.Collections;
+
+                class A{|caret:|}
+                {
+                }
+                """;
+            var expected =
+                """
+                using System;
+                using System.Collections;
+
+                class A
+                {
+                }
+                """;
+
+            var options = new InitializationOptions
+            {
+                OptionUpdater = globalOptions =>
+                {
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspFormattingSortImports, LanguageNames.CSharp, true);
+                },
+            };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
+            var actualText = ApplyTextEdits(results, documentText);
+            AssertEx.EqualOrDiff(expected, actualText);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentWithOrganizeImports4Async(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using System;
+                using System.Collections;
+
+                class  A{|caret:|}
+                {
+                }
+                """;
+            var expected =
+                """
+                using System;
+                using System.Collections;
+
+                class A
+                {
+                }
+                """;
+
+            var options = new InitializationOptions
+            {
+                OptionUpdater = globalOptions =>
+                {
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspFormattingSortImports, LanguageNames.CSharp, true);
+                },
+            };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
+            var actualText = ApplyTextEdits(results, documentText);
+            AssertEx.EqualOrDiff(expected, actualText);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentWithoutOrganizeImportsAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using System.Collections;
+                using System;
+
+                class A{|caret:|}
+                {
+                }
+                """;
+            var expected =
+                """
+                using System.Collections;
+                using System;
+
+                class A
+                {
+                }
+                """;
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
+            var actualText = ApplyTextEdits(results, documentText);
+            AssertEx.EqualOrDiff(expected, actualText);
         }
 
         [Theory, CombinatorialData]
@@ -74,7 +259,7 @@ void M()
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: false, tabSize: 4);
             var actualText = ApplyTextEdits(results, documentText);
-            Assert.Equal(expected, actualText);
+            AssertEx.EqualOrDiff(expected, actualText);
         }
 
         [Theory, CombinatorialData]
@@ -102,10 +287,10 @@ void M()
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: true, tabSize: 2);
             var actualText = ApplyTextEdits(results, documentText);
-            Assert.Equal(expected, actualText);
+            AssertEx.EqualOrDiff(expected, actualText);
         }
 
-        private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(
+        private static async Task<LSP.TextEdit[]?> RunFormatDocumentAsync(
             TestLspServer testLspServer,
             Uri uri,
             bool insertSpaces = true,

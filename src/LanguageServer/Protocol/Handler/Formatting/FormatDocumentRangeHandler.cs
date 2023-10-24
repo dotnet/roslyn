@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             DocumentRangeFormattingParams request,
             RequestContext context,
             CancellationToken cancellationToken)
-            => GetTextEditsAsync(context, request.Options, cancellationToken, range: request.Range);
+            => GetTextEditsAsync(context, request.Options, _globalOptions, cancellationToken, range: request.Range);
     }
 }
