@@ -42,10 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => token.ToString() == SyntaxFacts.GetText(kind);
 
         public static bool IsOpenBraceOrCommaOfObjectInitializer(this SyntaxToken token)
-        {
-            return (token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CommaToken)) &&
-                token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression);
-        }
+            => token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken &&
+               token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression);
 
         public static bool IsOpenBraceOfAccessorList(this SyntaxToken token)
             => token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);

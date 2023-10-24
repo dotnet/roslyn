@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to retrieve the same <see cref="Document"/> across versions of the
     /// workspace.
     /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [DataContract]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public sealed class DocumentId : IEquatable<DocumentId>, IObjectWritable
     {
         [DataMember(Order = 0)]
@@ -24,12 +24,15 @@ namespace Microsoft.CodeAnalysis
         [DataMember(Order = 1)]
         public Guid Id { get; }
         [DataMember(Order = 2)]
+        internal bool IsSourceGenerated { get; }
+        [DataMember(Order = 3)]
         private readonly string? _debugName;
 
-        private DocumentId(ProjectId projectId, Guid guid, string? debugName)
+        private DocumentId(ProjectId projectId, Guid guid, bool isSourceGenerated, string? debugName)
         {
             this.ProjectId = projectId;
             this.Id = guid;
+            this.IsSourceGenerated = isSourceGenerated;
             _debugName = debugName;
         }
 
@@ -39,28 +42,20 @@ namespace Microsoft.CodeAnalysis
         /// <param name="projectId">The project id this document id is relative to.</param>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static DocumentId CreateNewId(ProjectId projectId, string? debugName = null)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            return new DocumentId(projectId, Guid.NewGuid(), debugName);
-        }
+            => CreateFromSerialized(projectId, Guid.NewGuid(), isSourceGenerated: false, debugName);
 
         public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string? debugName = null)
+            => CreateFromSerialized(projectId, id, isSourceGenerated: false, debugName);
+
+        internal static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, bool isSourceGenerated, string? debugName)
         {
             if (projectId == null)
-            {
                 throw new ArgumentNullException(nameof(projectId));
-            }
 
             if (id == Guid.Empty)
-            {
                 throw new ArgumentException(nameof(id));
-            }
 
-            return new DocumentId(projectId, id, debugName);
+            return new DocumentId(projectId, id, isSourceGenerated, debugName);
         }
 
         internal string? DebugName => _debugName;
@@ -78,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Technically, we don't need to check project id.
             return
-                other is object &&
+                other is not null &&
                 this.Id == other.Id &&
                 this.ProjectId == other.ProjectId;
         }
@@ -97,19 +92,19 @@ namespace Microsoft.CodeAnalysis
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             ProjectId.WriteTo(writer);
-
             writer.WriteGuid(Id);
+            writer.WriteBoolean(IsSourceGenerated);
             writer.WriteString(DebugName);
         }
 
         internal static DocumentId ReadFrom(ObjectReader reader)
         {
             var projectId = ProjectId.ReadFrom(reader);
-
             var guid = reader.ReadGuid();
+            var isSourceGenerated = reader.ReadBoolean();
             var debugName = reader.ReadString();
 
-            return CreateFromSerialized(projectId, guid, debugName);
+            return CreateFromSerialized(projectId, guid, isSourceGenerated, debugName);
         }
     }
 }

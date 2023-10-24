@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 foreach (var ancestor in selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf())
                 {
-                    if (ancestor.IsKind(SyntaxKind.BaseConstructorInitializer) || ancestor.IsKind(SyntaxKind.ThisConstructorInitializer))
+                    if (ancestor.Kind() is SyntaxKind.BaseConstructorInitializer or SyntaxKind.ThisConstructorInitializer)
                     {
                         return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer));
                     }

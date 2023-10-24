@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 fallbackOptions, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, fallbackOptions,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null, fallbackOptions,
                 addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 CodeActionPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
                 CodeActionPriority.Low => LSP.VSInternalPriorityLevel.Low,
-                CodeActionPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
+                CodeActionPriority.Default => LSP.VSInternalPriorityLevel.Normal,
                 CodeActionPriority.High => LSP.VSInternalPriorityLevel.High,
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };

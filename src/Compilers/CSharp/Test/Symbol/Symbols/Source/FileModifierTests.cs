@@ -448,6 +448,234 @@ public class FileModifierTests : CSharpTestBase
         }
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalClass_Duplicate()
+    {
+        var source = @"
+public class D { }
+
+public partial class C
+{
+    public class D { }
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,14): error CS0101: The namespace '<global namespace>' already contains a definition for 'D'
+            // public class D { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "D").WithArguments("D", "<global namespace>").WithLocation(2, 14),
+            // 1.cs(6,18): error CS0102: The type 'C' already contains a definition for 'D'
+            //     public class D { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "D").WithArguments("C", "D").WithLocation(6, 18));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void FileLocalClass_Duplicate()
+    {
+        var source = @"
+file class D { }
+
+public partial class C
+{
+    file class D { } // 1
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+                    // 1.cs(6,16): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+                    //     file class D { } // 1
+                    Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 16),
+                    // 0.cs(6,16): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+                    //     file class D { } // 1
+                    Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 16));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalEnum_Duplicate()
+    {
+        var source = @"
+public enum E { }
+
+public partial class C
+{
+    public enum E { }
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,13): error CS0101: The namespace '<global namespace>' already contains a definition for 'E'
+            // public enum E { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "E").WithArguments("E", "<global namespace>").WithLocation(2, 13),
+            // 1.cs(6,17): error CS0102: The type 'C' already contains a definition for 'E'
+            //     public enum E { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(6, 17));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void MixedFileLocalClass_Duplicate()
+    {
+        var source1 = @"
+file class D { }
+
+public partial class C
+{
+    file class D { } // 1
+}
+";
+
+        var source2 = @"
+public class D { }
+
+public partial class C
+{
+    public class D { }
+}
+";
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,16): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file class D { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 16));
+
+        comp = CreateCompilation(new[] { source2, source1 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,16): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file class D { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 16));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void FileLocalEnum_Duplicate()
+    {
+        var source = @"
+file enum E { }
+
+public partial class C
+{
+    file enum E { } // 1
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(6,15): error CS9054: File-local type 'C.E' must be defined in a top level type; 'C.E' is a nested type.
+            //     file enum E { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "E").WithArguments("C.E").WithLocation(6, 15),
+            // 0.cs(6,15): error CS9054: File-local type 'C.E' must be defined in a top level type; 'C.E' is a nested type.
+            //     file enum E { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "E").WithArguments("C.E").WithLocation(6, 15));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void MixedFileLocalEnum_Duplicate()
+    {
+        var source1 = @"
+file enum E { }
+
+public partial class C
+{
+    file enum E { } // 1
+}
+";
+
+        var source2 = @"
+public enum E { }
+
+public partial class C
+{
+    public enum E { }
+}
+";
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,15): error CS9054: File-local type 'C.E' must be defined in a top level type; 'C.E' is a nested type.
+            //     file enum E { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "E").WithArguments("C.E").WithLocation(6, 15));
+
+        comp = CreateCompilation(new[] { source2, source1 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,15): error CS9054: File-local type 'C.E' must be defined in a top level type; 'C.E' is a nested type.
+            //     file enum E { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "E").WithArguments("C.E").WithLocation(6, 15));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalDelegate_Duplicate()
+    {
+        var source = @"
+public delegate void D();
+
+public partial class C
+{
+    public delegate void D();
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,22): error CS0101: The namespace '<global namespace>' already contains a definition for 'D'
+            // public delegate void D();
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "D").WithArguments("D", "<global namespace>").WithLocation(2, 22),
+            // 1.cs(6,26): error CS0102: The type 'C' already contains a definition for 'D'
+            //     public delegate void D();
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "D").WithArguments("C", "D").WithLocation(6, 26));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void MixedFileLocalDelegate_Duplicate()
+    {
+        var source1 = @"
+file delegate void D();
+
+public partial class C
+{
+    file delegate void D(); // 1
+}
+";
+
+        var source2 = @"
+public delegate void D();
+
+public partial class C
+{
+    public delegate void D();
+}
+";
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,24): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file delegate void D(); // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 24));
+
+        comp = CreateCompilation(new[] { source2, source1 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,24): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file delegate void D(); // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 24));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void FileLocalDelegate_Duplicate()
+    {
+        var source = @"
+file delegate void D();
+
+public partial class C
+{
+    file delegate void D(); // 1
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(6,24): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file delegate void D(); // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 24),
+            // 0.cs(6,24): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file delegate void D(); // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 24));
+    }
+
     [Fact]
     public void OtherFileUse()
     {
@@ -605,6 +833,8 @@ public class FileModifierTests : CSharpTestBase
         verify();
 
         comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        verify();
+
         void verify()
         {
             comp.VerifyDiagnostics();
@@ -685,6 +915,8 @@ public class FileModifierTests : CSharpTestBase
         verify();
 
         comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        verify();
+
         void verify()
         {
             comp.VerifyDiagnostics();
@@ -717,6 +949,8 @@ public class FileModifierTests : CSharpTestBase
         verify();
 
         comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        verify();
+
         void verify()
         {
             comp.VerifyEmitDiagnostics();
@@ -4133,8 +4367,8 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         var identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
 
         var referencingMetadataComp = CreateCompilation("", new[] { comp.ToMetadataReference() });
@@ -4142,8 +4376,8 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
 
         var referencingImageComp = CreateCompilation("", new[] { comp.EmitToImageReference() });
@@ -4151,8 +4385,8 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("C@<unknown>", type.ToTestDisplayString());
         identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.False(type.IsFileLocal);
     }
 
@@ -4202,8 +4436,8 @@ public class FileModifierTests : CSharpTestBase
         Assert.NotNull(identifier);
         AssertEx.Equal(
             new byte[] { 0xE3, 0xB0, 0xC4, 0x42, 0x98, 0xFC, 0x1C, 0x14, 0x9A, 0xFB, 0xF4, 0xC8, 0x99, 0x6F, 0xB9, 0x24, 0x27, 0xAE, 0x41, 0xE4, 0x64, 0x9B, 0x93, 0x4C, 0xA4, 0x95, 0x99, 0x1B, 0x78, 0x52, 0xB8, 0x55 },
-            identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+            identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
     }
 
@@ -4292,8 +4526,8 @@ public class FileModifierTests : CSharpTestBase
         Assert.IsType<RetargetingNamedTypeSymbol>(retargeted);
         Assert.False(retargeted.GetPublicSymbol().IsFileLocal);
 
-        var originalFileIdentifier = classC1.AssociatedFileIdentifier!.Value;
-        var retargetedFileIdentifier = retargeted.AssociatedFileIdentifier!.Value;
+        var originalFileIdentifier = classC1.AssociatedFileIdentifier!;
+        var retargetedFileIdentifier = retargeted.AssociatedFileIdentifier!;
         Assert.Equal(originalFileIdentifier.DisplayFilePath, retargetedFileIdentifier.DisplayFilePath);
         Assert.Equal((IEnumerable<byte>)originalFileIdentifier.FilePathChecksumOpt, (IEnumerable<byte>)retargetedFileIdentifier.FilePathChecksumOpt);
         Assert.Equal(originalFileIdentifier.EncoderFallbackErrorMessage, retargetedFileIdentifier.EncoderFallbackErrorMessage);
@@ -4769,5 +5003,117 @@ public class FileModifierTests : CSharpTestBase
 
         var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ShadowNamespace_01()
+    {
+        var source1 = """
+            namespace App.Widget
+            {
+                class Inner { }
+            }
+
+            """;
+
+        var source2 = """
+            namespace App
+            {
+                file class Widget { }
+            }
+
+            """;
+
+        var comp = CreateCompilation(new[] { (source1, "File1.cs"), (source2, "File2.cs") });
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(source1 + source2);
+        comp.VerifyDiagnostics(
+            // (7,16): error CS9071: The namespace 'App' already contains a definition for 'Widget' in this file.
+            //     file class Widget { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "Widget").WithArguments("Widget", "App").WithLocation(7, 16));
+
+        comp = CreateCompilation(source2 + source1);
+        comp.VerifyDiagnostics(
+            // (3,16): error CS9071: The namespace 'App' already contains a definition for 'Widget' in this file.
+            //     file class Widget { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "Widget").WithArguments("Widget", "App").WithLocation(3, 16));
+    }
+
+    [Theory, CombinatorialData]
+    public void ShadowNamespace_02(bool useMetadataReference)
+    {
+        var source1 = """
+            namespace App.Widget
+            {
+                public class Inner { }
+            }
+
+            """;
+
+        var source2 = """
+            namespace App
+            {
+                file class Widget { }
+            }
+
+            """;
+
+        var comp1 = CreateCompilation(new[] { (source1, "File1.cs") });
+        comp1.VerifyEmitDiagnostics();
+
+        var comp2 = CreateCompilation(new[] { (source2, "File2.cs") }, references: new[] { useMetadataReference ? comp1.ToMetadataReference() : comp1.EmitToImageReference() });
+        comp2.VerifyEmitDiagnostics();
+
+        comp2 = CreateCompilation(new[] { (source2, "File2.cs") });
+        comp2.VerifyEmitDiagnostics();
+
+        comp1 = CreateCompilation(new[] { (source1, "File1.cs") }, references: new[] { useMetadataReference ? comp2.ToMetadataReference() : comp2.EmitToImageReference() });
+        comp1.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ShadowNamespace_03()
+    {
+        var source1 = """
+            namespace App.Widget
+            {
+                class Inner { }
+            }
+
+            class C1
+            {
+                static void M1()
+                {
+                    new App.Widget(); // 1
+                    new App.Widget.Inner();
+                }
+            }
+            """;
+
+        var source2 = """
+            namespace App
+            {
+                file class Widget { }
+            }
+
+            class C2
+            {
+                static void M2()
+                {
+                    new App.Widget();
+                    new App.Widget.Inner(); // 2
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source1, "File1.cs"), (source2, "File2.cs") });
+        comp.VerifyDiagnostics(
+            // File1.cs(10,13): error CS0118: 'App.Widget' is a namespace but is used like a type
+            //         new App.Widget(); // 1
+            Diagnostic(ErrorCode.ERR_BadSKknown, "App.Widget").WithArguments("App.Widget", "namespace", "type").WithLocation(10, 13),
+            // File2.cs(11,24): error CS0426: The type name 'Inner' does not exist in the type 'Widget'
+            //         new App.Widget.Inner(); // 2
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Inner").WithArguments("Inner", "App.Widget").WithLocation(11, 24));
     }
 }

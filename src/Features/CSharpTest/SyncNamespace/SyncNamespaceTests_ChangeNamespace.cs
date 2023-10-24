@@ -1702,6 +1702,7 @@ namespace Foo
             var expectedSourceOriginal =
 @"namespace A.B.C
 {
+
     /// <summary>
     /// See <see cref=""Class1""/>
     /// </summary>

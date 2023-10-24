@@ -67,18 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
-            var elseClauseSyntax = (ElseClauseSyntax)caretTarget;
-            var blockStatement = (BlockSyntax)elseClauseSyntax.Statement;
-
-            var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
+            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ElseClauseSyntax>(
+                caretTarget,
+                static c => (BlockSyntax)c.Statement,
+                sourceText);
         }
 
         protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ElseClauseSyntax>(
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ElseClauseSyntax>(
                 document,
                 FindSnippetAnnotation,
                 static c => (BlockSyntax)c.Statement,

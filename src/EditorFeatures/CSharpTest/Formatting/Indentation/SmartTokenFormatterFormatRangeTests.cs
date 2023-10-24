@@ -2198,25 +2198,30 @@ int         nextLine            =           30          ;$$
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
         public async Task DisappearedTokens2()
         {
-            var code = @"class Class1
-{
-    void Goo()
-    {
-        Object o=new Object);$$
-    }
-}";
+            var code = """
+                class Class1
+                {
+                    void Goo()
+                    {
+                        Object o=new Object);$$
+                    }
+                }
+                """;
 
-            var expected = @"class Class1
-{
-    void Goo()
-    {
-        Object o=new Object);
-    }
-}";
+            var expected = """
+                class Class1
+                {
+                    void Goo()
+                    {
+                        Object o = new Object);
+                    }
+                }
+                """;
+
             await AutoFormatOnSemicolonAsync(
                 code,
                 expected,
-                SyntaxKind.SemicolonToken);
+                SyntaxKind.OpenBraceToken);
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]

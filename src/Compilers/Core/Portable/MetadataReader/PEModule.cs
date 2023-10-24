@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
 
+        private static readonly Dictionary<string, (int FirstIndex, int SecondIndex)> s_sharedEmptyForwardedTypes = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+        private static readonly Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> s_sharedEmptyCaseInsensitiveForwardedTypes = new Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>();
+
         /// <summary>
         /// This is a tuple for optimization purposes. In valid cases, we need to store
         /// only one assembly index per type. However, if we found more than one, we
@@ -53,6 +56,13 @@ namespace Microsoft.CodeAnalysis
         /// We use -1 in case there was no forward.
         /// </summary>
         private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
+
+        /// <summary>
+        /// Case-insensitive version of <see cref="_lazyForwardedTypesToAssemblyIndexMap"/>, only populated if case-insensitive search is
+        /// requested. We only keep the first instance of a type name, regardless of case, as this is only used for error recovery purposes
+        /// in VB.
+        /// </summary>
+        private Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
 
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
@@ -88,6 +98,7 @@ namespace Microsoft.CodeAnalysis
         private delegate bool AttributeValueExtractor<T>(out T value, ref BlobReader sigReader);
         private static readonly AttributeValueExtractor<string?> s_attributeStringValueExtractor = CrackStringInAttributeValue;
         private static readonly AttributeValueExtractor<StringAndInt> s_attributeStringAndIntValueExtractor = CrackStringAndIntInAttributeValue;
+        private static readonly AttributeValueExtractor<(string?, string?)> s_attributeStringAndStringValueExtractor = CrackStringAndStringInAttributeValue;
         private static readonly AttributeValueExtractor<bool> s_attributeBooleanValueExtractor = CrackBooleanInAttributeValue;
         private static readonly AttributeValueExtractor<byte> s_attributeByteValueExtractor = CrackByteInAttributeValue;
         private static readonly AttributeValueExtractor<short> s_attributeShortValueExtractor = CrackShortInAttributeValue;
@@ -1035,6 +1046,19 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.RequiredAttributeAttribute).HasValue;
         }
 
+        internal bool HasCollectionBuilderAttribute(EntityHandle token, out string builderTypeName, out string methodName)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.CollectionBuilderAttribute);
+            if (info.HasValue)
+            {
+                return TryExtractStringAndStringValueFromAttribute(info.Handle, out builderTypeName, out methodName);
+            }
+
+            builderTypeName = null;
+            methodName = null;
+            return false;
+        }
+
         internal bool HasAttribute(EntityHandle token, AttributeDescription description)
         {
             return FindTargetAttribute(token, description).HasValue;
@@ -1147,6 +1171,11 @@ namespace Microsoft.CodeAnalysis
         internal bool HasIsByRefLikeAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.IsByRefLikeAttribute).HasValue;
+        }
+
+        internal bool HasRequiresLocationAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.RequiresLocationAttribute).HasValue;
         }
 
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
@@ -1844,6 +1873,14 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
+        private bool TryExtractStringAndStringValueFromAttribute(CustomAttributeHandle handle, out string? string1Value, out string? string2Value)
+        {
+            (string?, string?) data;
+            var result = TryExtractValueFromAttribute(handle, out data, s_attributeStringAndStringValueExtractor);
+            (string1Value, string2Value) = data;
+            return result;
+        }
+
         private bool TryExtractBoolArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<bool> value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeBoolArrayValueExtractor);
@@ -2043,6 +2080,19 @@ namespace Microsoft.CodeAnalysis
             return
                 CrackStringInAttributeValue(out value.StringValue, ref sig) &&
                 CrackIntInAttributeValue(out value.IntValue, ref sig);
+        }
+
+        private static bool CrackStringAndStringInAttributeValue(out (string?, string?) value, ref BlobReader sig)
+        {
+            if (CrackStringInAttributeValue(out string? string1, ref sig) &&
+                CrackStringInAttributeValue(out string? string2, ref sig))
+            {
+                value = (string1, string2);
+                return true;
+            }
+
+            value = default;
+            return false;
         }
 
         internal static bool CrackStringInAttributeValue(out string? value, ref BlobReader sig)
@@ -3573,23 +3623,20 @@ namespace Microsoft.CodeAnalysis
 
             if (ignoreCase)
             {
-                // This linear search is not the optimal way to use a hashmap, but we should only use
-                // this functionality when computing diagnostics.  Note
-                // that we can't store the map case-insensitively, since real metadata name
-                // lookup has to remain case sensitive.
-                foreach (var pair in _lazyForwardedTypesToAssemblyIndexMap)
+                // We should only use this functionality when computing diagnostics, so we lazily construct
+                // a case-insensitive map when necessary. Note that we can't store the original map
+                // case-insensitively, since real metadata name lookup has to remain case sensitive.
+                ensureCaseInsensitiveDictionary();
+
+                if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out var value))
                 {
-                    if (string.Equals(pair.Key, fullName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        matchedName = pair.Key;
-                        return pair.Value;
-                    }
+                    matchedName = value.OriginalName;
+                    return (value.FirstIndex, value.SecondIndex);
                 }
             }
             else
             {
-                (int FirstIndex, int SecondIndex) assemblyIndices;
-                if (_lazyForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out assemblyIndices))
+                if (_lazyForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out (int FirstIndex, int SecondIndex) assemblyIndices))
                 {
                     matchedName = fullName;
                     return assemblyIndices;
@@ -3598,6 +3645,29 @@ namespace Microsoft.CodeAnalysis
 
             matchedName = null;
             return (FirstIndex: -1, SecondIndex: -1);
+
+            void ensureCaseInsensitiveDictionary()
+            {
+                if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap != null)
+                {
+                    return;
+                }
+
+                if (_lazyForwardedTypesToAssemblyIndexMap.Count == 0)
+                {
+                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = s_sharedEmptyCaseInsensitiveForwardedTypes;
+                    return;
+                }
+
+                var caseInsensitiveMap = new Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var (key, (firstIndex, secondIndex)) in _lazyForwardedTypesToAssemblyIndexMap)
+                {
+                    _ = caseInsensitiveMap.TryAdd(key, (key, firstIndex, secondIndex));
+                }
+
+                _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = caseInsensitiveMap;
+            }
         }
 
         internal IEnumerable<KeyValuePair<string, (int FirstIndex, int SecondIndex)>> GetForwardedTypes()
@@ -3606,11 +3676,13 @@ namespace Microsoft.CodeAnalysis
             return _lazyForwardedTypesToAssemblyIndexMap;
         }
 
+#nullable enable
+        [MemberNotNull(nameof(_lazyForwardedTypesToAssemblyIndexMap))]
         private void EnsureForwardTypeToAssemblyMap()
         {
             if (_lazyForwardedTypesToAssemblyIndexMap == null)
             {
-                var typesToAssemblyIndexMap = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+                Dictionary<string, (int FirstIndex, int SecondIndex)>? typesToAssemblyIndexMap = null;
 
                 try
                 {
@@ -3655,6 +3727,8 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
+                        typesToAssemblyIndexMap ??= new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+
                         (int FirstIndex, int SecondIndex) indices;
 
                         if (typesToAssemblyIndexMap.TryGetValue(name, out indices))
@@ -3677,9 +3751,17 @@ namespace Microsoft.CodeAnalysis
                 catch (BadImageFormatException)
                 { }
 
-                _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
+                if (typesToAssemblyIndexMap == null)
+                {
+                    _lazyForwardedTypesToAssemblyIndexMap = s_sharedEmptyForwardedTypes;
+                }
+                else
+                {
+                    _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
+                }
             }
         }
+#nullable disable
 
         internal IdentifierCollection TypeNames
         {

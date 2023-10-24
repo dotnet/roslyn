@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type is { })
                 {
-                    if (type.IsErrorType())
+                    if (type.ContainsErrorType())
                     {
                         inferredFromFunctionType = false;
                         return type;

@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 // Keep track of the exact reference count
                 if (referenceLocationDescriptors.HasValue)
                 {
-                    var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, isCapped: false, version: referenceLocationDescriptors.Value.projectVersion);
+                    var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, IsCapped: false, Version: referenceLocationDescriptors.Value.projectVersion);
                     if (newCount != _calculatedReferenceCount)
                     {
                         _calculatedReferenceCount = newCount;

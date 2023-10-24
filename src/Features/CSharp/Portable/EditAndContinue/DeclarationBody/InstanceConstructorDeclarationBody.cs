@@ -2,91 +2,100 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 
-internal abstract class InstanceConstructorDeclarationBody(ConstructorDeclarationSyntax constructor) : MemberBody
+internal abstract class InstanceConstructorDeclarationBody : MemberBody
 {
-    public ConstructorDeclarationSyntax Constructor
-        => constructor;
-
-    public SyntaxNode Body
-        => (SyntaxNode?)constructor.Body ?? constructor.ExpressionBody?.Expression!;
+    public abstract bool HasExplicitInitializer { get; }
+    public abstract TextSpan InitializerActiveStatementSpan { get; }
+    public abstract SyntaxNode InitializerActiveStatement { get; }
+    public abstract SyntaxNode? MatchRoot { get; }
 
     /// <summary>
-    /// Active statement node for the implicit or explicit constructor initializer.
-    /// Implicit initializer: [|public C()|] { }
-    /// Explicit initializer: public C() : [|base(expr)|] { }
+    /// Expression or block body.
     /// </summary>
-    public abstract SyntaxNode InitializerActiveStatement { get; }
-
-    public sealed override SyntaxNode EncompassingAncestor
-        => Constructor;
+    public abstract SyntaxNode? ExplicitBody { get; }
 
     public sealed override SyntaxTree SyntaxTree
-        => constructor.SyntaxTree;
+        => InitializerActiveStatement.SyntaxTree;
 
-    public override OneOrMany<SyntaxNode> RootNodes
-        => OneOrMany.Create<SyntaxNode>(Constructor);
+    public sealed override StateMachineInfo GetStateMachineInfo()
+        => StateMachineInfo.None;
 
     public sealed override SyntaxNode FindStatementAndPartner(TextSpan span, MemberBody? partnerDeclarationBody, out SyntaxNode? partnerStatement, out int statementPart)
     {
         var partnerCtorBody = (InstanceConstructorDeclarationBody?)partnerDeclarationBody;
 
-        if (span.Start == InitializerActiveStatement.SpanStart)
+        if (span == InitializerActiveStatementSpan)
         {
             statementPart = AbstractEditAndContinueAnalyzer.DefaultStatementPart;
             partnerStatement = partnerCtorBody?.InitializerActiveStatement;
             return InitializerActiveStatement;
         }
 
-        if (Constructor.Initializer?.Span.Contains(span.Start) == true)
+        if (HasExplicitInitializer && InitializerActiveStatementSpan.Contains(span))
         {
-            // Partner body does not have any non-trivial changes and thus the initializer is also present.
-            Debug.Assert(partnerCtorBody == null || partnerCtorBody?.Constructor.Initializer != null);
+            // If present, partner body does not have any non-trivial changes and thus the initializer is also present.
+            Debug.Assert(partnerCtorBody == null || partnerCtorBody.HasExplicitInitializer);
 
             return CSharpEditAndContinueAnalyzer.FindStatementAndPartner(
                 span,
-                body: Constructor.Initializer,
-                partnerBody: partnerCtorBody?.Constructor.Initializer,
+                body: InitializerActiveStatement,
+                partnerBody: partnerCtorBody?.InitializerActiveStatement,
                 out partnerStatement,
                 out statementPart);
         }
+
+        Debug.Assert(ExplicitBody != null);
+
+        // If present, partner body does not have any non-trivial changes and thus the explicit body is also present.
+        Debug.Assert(partnerCtorBody == null || partnerCtorBody.ExplicitBody != null);
 
         return CSharpEditAndContinueAnalyzer.FindStatementAndPartner(
                 span,
-                body: Body,
-                partnerBody: partnerCtorBody?.Body,
+                body: ExplicitBody,
+                partnerBody: partnerCtorBody?.ExplicitBody,
                 out partnerStatement,
                 out statementPart);
     }
 
-    public sealed override StateMachineInfo GetStateMachineInfo()
-        => new(IsAsync: false, IsIterator: false, HasSuspensionPoints: false);
-
-    public sealed override Match<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
-        => SyntaxComparer.Statement.ComputeMatch(Constructor, ((InstanceConstructorDeclarationBody)newBody).Constructor, knownMatches);
-
-    public sealed override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
+    public sealed override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, ref int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
     {
         var newCtorBody = (InstanceConstructorDeclarationBody)newBody;
 
-        if (oldStatement is (kind: SyntaxKind.ThisConstructorInitializer or SyntaxKind.BaseConstructorInitializer or SyntaxKind.ConstructorDeclaration))
+        if (oldStatement == InitializerActiveStatement)
         {
-            newStatement = newCtorBody.Constructor.Initializer ?? (SyntaxNode)newCtorBody.Constructor;
+            newStatement = newCtorBody.InitializerActiveStatement;
             return true;
         }
 
-        return CSharpEditAndContinueAnalyzer.TryMatchActiveStatement(Body, newCtorBody.Body, oldStatement, out newStatement);
+        if (ExplicitBody != null && newCtorBody.ExplicitBody != null &&
+            CSharpEditAndContinueAnalyzer.TryMatchActiveStatement(ExplicitBody, newCtorBody.ExplicitBody, oldStatement, out newStatement))
+        {
+            return true;
+        }
+
+        if (MatchRoot == null || newCtorBody.MatchRoot == null)
+        {
+            // General body mapping is not available, so we can't do better then
+            // mapping any active statement in this body to the initializer of the other body.
+            newStatement = newCtorBody.InitializerActiveStatement;
+            return true;
+        }
+
+        newStatement = null;
+        return false;
     }
+
+    public sealed override Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+        => MatchRoot is { } oldRoot && ((InstanceConstructorDeclarationBody)newBody).MatchRoot is { } newRoot
+            ? SyntaxComparer.Statement.ComputeMatch(oldRoot, newRoot, knownMatches)
+            : null;
 }

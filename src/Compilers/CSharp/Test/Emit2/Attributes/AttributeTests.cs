@@ -10600,7 +10600,7 @@ class C1 { }
                 // [Attr<int*[]>] // 1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
 
-            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [Attr<int*[]>] // 1

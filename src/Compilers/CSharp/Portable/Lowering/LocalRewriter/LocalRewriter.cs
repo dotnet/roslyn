@@ -33,6 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _inExpressionLambda;
 
         /// <summary>
+        /// Additional locals that will be added to the outermost block of the current method, lambda,
+        /// or local function. This is used for inline array temporaries where the scope of the
+        /// temporary must be at least as wide as the scope of references to that temporary.
+        /// </summary>
+        private ArrayBuilder<LocalSymbol>? _additionalLocals;
+
+        /// <summary>
         /// The original body of the current lambda or local function body, or null if not currently lowering a lambda.
         /// </summary>
         private BoundBlock? _currentLambdaBody;
@@ -305,9 +312,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = InstrumentationState.Instrumenter;
             var oldLambdaBody = _currentLambdaBody;
+            var oldAdditionalLocals = _additionalLocals;
             try
             {
                 _currentLambdaBody = node.Body;
+                _additionalLocals = null;
 
                 _factory.CurrentFunction = lambda;
                 if (lambda.IsDirectlyExcludedFromCodeCoverage)
@@ -322,6 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = oldContainingSymbol;
                 InstrumentationState.Instrumenter = oldInstrumenter;
                 _currentLambdaBody = oldLambdaBody;
+                _additionalLocals = oldAdditionalLocals;
             }
         }
 
@@ -368,9 +378,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldInstrumenter = InstrumentationState.Instrumenter;
             var oldDynamicFactory = _dynamicFactory;
             var oldLambdaBody = _currentLambdaBody;
+            var oldAdditionalLocals = _additionalLocals;
             try
             {
                 _currentLambdaBody = node.Body;
+                _additionalLocals = null;
                 _factory.CurrentFunction = localFunction;
 
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
@@ -394,6 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 InstrumentationState.Instrumenter = oldInstrumenter;
                 _dynamicFactory = oldDynamicFactory;
                 _currentLambdaBody = oldLambdaBody;
+                _additionalLocals = oldAdditionalLocals;
             }
         }
 
@@ -432,6 +445,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
             => PlaceholderReplacement(node);
+
+        public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
 
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
@@ -618,6 +636,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(operand, getTypeFromHandle, type);
         }
 
+        private BoundStatement? RewriteFieldOrPropertyInitializer(BoundStatement initializer)
+        {
+            // If _additionalLocals is null, this must be the outermost block of the current function.
+            // If so, create a collection where child statements can insert inline array temporaries,
+            // and add those temporaries to the generated block.
+            var previousLocals = _additionalLocals;
+            if (previousLocals is null)
+            {
+                _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            }
+
+            try
+            {
+                if (initializer.Kind == BoundKind.Block)
+                {
+                    var block = (BoundBlock)initializer;
+
+                    var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
+                    Debug.Assert(statement is { });
+                    var locals = block.Locals;
+                    if (previousLocals is null)
+                    {
+                        locals = locals.AddRange(_additionalLocals!);
+                    }
+                    return block.Update(locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement));
+                }
+                else
+                {
+                    var statement = RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true);
+                    if (statement is null || previousLocals is { } || _additionalLocals!.Count == 0)
+                    {
+                        return statement;
+                    }
+                    return new BoundBlock(
+                        statement.Syntax,
+                        _additionalLocals.ToImmutable(),
+                        ImmutableArray.Create(statement));
+                }
+            }
+            finally
+            {
+                if (previousLocals is null)
+                {
+                    _additionalLocals!.Free();
+                    _additionalLocals = previousLocals;
+                }
+            }
+        }
+
         public override BoundNode VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
         {
             ImmutableArray<BoundStatement> originalStatements = node.Statements;
@@ -626,18 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsFieldOrPropertyInitializer(initializer))
                 {
-                    if (initializer.Kind == BoundKind.Block)
-                    {
-                        var block = (BoundBlock)initializer;
-
-                        var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
-                        Debug.Assert(statement is { });
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement)));
-                    }
-                    else
-                    {
-                        statements.Add(RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true));
-                    }
+                    statements.Add(RewriteFieldOrPropertyInitializer(initializer));
                 }
                 else
                 {
@@ -930,6 +986,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
                     // A handler placeholder is the receiver of the interpolated string AppendLiteral
                     // or AppendFormatted calls, and should never be defensively copied.
+                    return true;
+
+                case BoundKind.CollectionExpressionSpreadExpressionPlaceholder:
+                    // Used for Length or Count properties only which are effectively readonly.
                     return true;
 
                 case BoundKind.EventAccess:

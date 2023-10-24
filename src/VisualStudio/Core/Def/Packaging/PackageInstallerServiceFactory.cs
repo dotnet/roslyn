@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public async Task<bool> TryInstallPackageAsync(
             Workspace workspace,
             DocumentId documentId,
-            string source,
+            string? source,
             string packageName,
             string? version,
             bool includePrerelease,
@@ -289,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private async Task<bool> TryInstallPackageAsync(
-            string source,
+            string? source,
             string packageName,
             string? version,
             bool includePrerelease,

@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken);
 
         void AddEmbeddedLanguageClassifications(
-            Project? project,
+            SolutionServices solutionServices,
+            Project project,
             SemanticModel semanticModel,
             TextSpan textSpan,
             ClassificationOptions options,

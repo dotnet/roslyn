@@ -1020,23 +1020,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Determines if this method is a valid target for UnmanagedCallersOnly, reporting an error in the given diagnostic
-        /// bag if it is not null. <paramref name="location"/> and <paramref name="diagnostics"/> should both be null, or 
+        /// bag if it is not null. <paramref name="node"/> and <paramref name="diagnostics"/> should both be null, or 
         /// neither should be null. If an error would be reported (whether or not diagnostics is null), true is returned.
         /// </summary>
-        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(Location? location, BindingDiagnosticBag? diagnostics)
+        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(SyntaxNode? node, BindingDiagnosticBag? diagnostics)
         {
-            Debug.Assert((location == null) == (diagnostics == null));
+            Debug.Assert((node == null) == (diagnostics == null));
 
             if (!IsStatic || IsAbstract || IsVirtual || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
             {
                 // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
-                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location!);
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, node!.Location);
                 return true;
             }
 
             if (isGenericMethod(this) || ContainingType.IsGenericType)
             {
-                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, location!);
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, node!.Location);
                 return true;
             }
 

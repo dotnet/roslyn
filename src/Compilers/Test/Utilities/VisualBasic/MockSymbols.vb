@@ -747,6 +747,13 @@ Friend Class MockModuleSymbol
     Public Overrides Function GetMetadata() As ModuleMetadata
         Return Nothing
     End Function
+
+    Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
 End Class
 
 Friend Class MockAssemblySymbol
@@ -861,4 +868,11 @@ Friend Class MockAssemblySymbol
     Public Overrides Function GetMetadata() As AssemblyMetadata
         Return Nothing
     End Function
+
+    Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
 End Class

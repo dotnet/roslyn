@@ -45,10 +45,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void InvalidLocation_String()
         {
-            var code = @"class C
-{
-    string s = ""$$
-}";
+            var code = """
+                class C
+                {
+                    string s = "$$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
@@ -56,11 +58,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact]
         public void InvalidLocation_String2()
         {
-            var code = @"class C
-{
-    string s = @""
-$$
-}";
+            var code = """
+                class C
+                {
+                    string s = @"
+                $$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
@@ -68,10 +72,12 @@ $$
         [WpfFact]
         public void InvalidLocation_Comment()
         {
-            var code = @"class C
-{
-    //$$
-}";
+            var code = """
+                class C
+                {
+                    //$$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
@@ -79,10 +85,12 @@ $$
         [WpfFact]
         public void InvalidLocation_Comment2()
         {
-            var code = @"class C
-{
-    /* $$
-}";
+            var code = """
+                class C
+                {
+                    /* $$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
@@ -90,10 +98,12 @@ $$
         [WpfFact]
         public void InvalidLocation_Comment3()
         {
-            var code = @"class C
-{
-    /// $$
-}";
+            var code = """
+                class C
+                {
+                    /// $$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
@@ -101,10 +111,12 @@ $$
         [WpfFact]
         public void InvalidLocation_Comment4()
         {
-            var code = @"class C
-{
-    /** $$
-}";
+            var code = """
+                class C
+                {
+                    /** $$
+                }
+                """;
             using var session = CreateSession(code);
             Assert.Null(session);
         }
@@ -112,13 +124,15 @@ $$
         [WpfFact]
         public void MultiLine_Comment()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        /* */$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        /* */$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
@@ -128,13 +142,15 @@ $$
         [WpfFact]
         public void MultiLine_DocComment()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        /** */$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        /** */$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
@@ -144,13 +160,15 @@ $$
         [WpfFact]
         public void String1()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        var s = """"$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = ""$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
@@ -160,13 +178,15 @@ $$
         [WpfFact]
         public void String2()
         {
-            var code = @"class C
-{
-    void Method()
-    {
-        var s = @""""$$
-    }
-}";
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = @""$$
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
@@ -176,8 +196,10 @@ $$
         [WpfFact]
         public void Attribute_OpenBracket()
         {
-            var code = @"$$
-class C { }";
+            var code = """
+                $$
+                class C { }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -188,8 +210,10 @@ class C { }";
         [WpfFact]
         public void Attribute_OpenBracket_Delete()
         {
-            var code = @"$$
-class C { }";
+            var code = """
+                $$
+                class C { }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -201,8 +225,10 @@ class C { }";
         [WpfFact]
         public void Attribute_OpenBracket_Tab()
         {
-            var code = @"$$
-class C { }";
+            var code = """
+                $$
+                class C { }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -214,8 +240,10 @@ class C { }";
         [WpfFact]
         public void Attribute_OpenBracket_CloseBracket()
         {
-            var code = @"$$
-class C { }";
+            var code = """
+                $$
+                class C { }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -227,10 +255,12 @@ class C { }";
         [WpfFact]
         public void Array_Multiple_Invalid()
         {
-            var code = @"class C 
-{
-    int [$$]
-}";
+            var code = """
+                class C 
+                {
+                    int [$$]
+                }
+                """;
 
             using var session = CreateSession(code);
             Assert.NotNull(session);
@@ -241,10 +271,12 @@ class C { }";
         [WpfFact]
         public void Array_Nested()
         {
-            var code = @"class C
-{
-    int [] i = new int [arr$$]
-}";
+            var code = """
+                class C
+                {
+                    int [] i = new int [arr$$]
+                }
+                """;
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
@@ -254,36 +286,36 @@ class C { }";
         [WpfFact]
         public void ListPattern()
         {
-            var code = @"
-class C
-{
-    void M(object o)
-    {
-        _ = o is$$
-    }
-}
-";
-            var expectedBeforeReturn = @"
-class C
-{
-    void M(object o)
-    {
-        _ = o is []
-    }
-}
-";
-            var expected = @"
-class C
-{
-    void M(object o)
-    {
-        _ = o is
-        [
+            var code = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        _ = o is$$
+                    }
+                }
+                """;
+            var expectedBeforeReturn = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        _ = o is []
+                    }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        _ = o is
+                        [
 
-        ]
-    }
-}
-";
+                        ]
+                    }
+                }
+                """;
             using var session = CreateSession(code);
             CheckStart(session.Session);
             CheckText(session.Session, expectedBeforeReturn);

@@ -42,60 +42,80 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             using var _1 = PooledDictionary<ISymbol, bool>.GetInstance(out var symbolToIsReassigned);
             using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var result);
-            using var _3 = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+            using var _3 = PooledDictionary<SyntaxTree, SemanticModel>.GetInstance(out var syntaxTreeToModel);
 
-            // Walk through all the nodes in the provided span.  Directly analyze local or parameter declaration.  And
-            // also analyze any identifiers which might be reference to locals or parameters.  Note that we might hit
-            // locals/parameters without any references in the span, or references that don't have the declarations in 
-            // the span
-            stack.Add(root.FindNode(span));
+            return Recurse();
 
-            // Use a stack so we don't blow out the stack with recursion.
-            while (stack.Count > 0)
+            ImmutableArray<TextSpan> Recurse()
             {
-                var current = stack.Last();
-                stack.RemoveLast();
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
 
-                if (current.Span.IntersectsWith(span))
+                // Walk through all the nodes in the provided span.  Directly analyze local or parameter declaration.  And
+                // also analyze any identifiers which might be reference to locals or parameters.  Note that we might hit
+                // locals/parameters without any references in the span, or references that don't have the declarations in 
+                // the span
+                stack.Add(root.FindNode(span));
+
+                var semanticModel = GetSemanticModel(root.SyntaxTree);
+
+                // Use a stack so we don't blow out the stack with recursion.
+                while (stack.Count > 0)
                 {
-                    ProcessNode(current);
+                    var current = stack.Last();
+                    stack.RemoveLast();
 
-                    foreach (var child in current.ChildNodesAndTokens())
+                    if (current.Span.IntersectsWith(span))
                     {
-                        if (child.IsNode)
-                            stack.Add(child.AsNode()!);
+                        ProcessNode(semanticModel, current);
+
+                        foreach (var child in current.ChildNodesAndTokens())
+                        {
+                            if (child.IsNode)
+                                stack.Add(child.AsNode()!);
+                        }
                     }
                 }
+
+                result.RemoveDuplicates();
+                return result.ToImmutable();
             }
 
-            result.RemoveDuplicates();
-            return result.ToImmutable();
+            SemanticModel GetSemanticModel(SyntaxTree syntaxTree)
+            {
+                if (!syntaxTreeToModel.TryGetValue(syntaxTree, out var model))
+                {
+                    model = compilation.GetSemanticModel(syntaxTree);
+                    syntaxTreeToModel.Add(syntaxTree, model);
+                }
 
-            void ProcessNode(SyntaxNode node)
+                return model;
+            }
+
+            void ProcessNode(SemanticModel semanticModel, SyntaxNode node)
             {
                 switch (node)
                 {
                     case TIdentifierNameSyntax identifier:
-                        ProcessIdentifier(identifier);
+                        ProcessIdentifier(semanticModel, identifier);
                         break;
                     case TParameterSyntax parameter:
-                        ProcessParameter(parameter);
+                        ProcessParameter(semanticModel, parameter);
                         break;
                     case TVariableSyntax variable:
-                        ProcessVariable(variable);
+                        ProcessVariable(semanticModel, variable);
                         break;
                     case TSingleVariableDesignationSyntax designation:
-                        ProcessSingleVariableDesignation(designation);
+                        ProcessSingleVariableDesignation(semanticModel, designation);
                         break;
                 }
             }
 
-            void ProcessIdentifier(TIdentifierNameSyntax identifier)
+            void ProcessIdentifier(SemanticModel semanticModel, TIdentifierNameSyntax identifier)
             {
                 // Don't bother even looking at identifiers that aren't standalone (i.e. they're not on the left of some
                 // expression).  These could not refer to locals or fields.
@@ -103,32 +123,32 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     return;
 
                 var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
-                if (IsSymbolReassigned(symbol))
+                if (IsSymbolReassigned(semanticModel, symbol))
                     result.Add(identifier.Span);
             }
 
-            void ProcessParameter(TParameterSyntax parameterSyntax)
+            void ProcessParameter(SemanticModel semanticModel, TParameterSyntax parameterSyntax)
             {
                 var parameter = semanticModel.GetDeclaredSymbol(parameterSyntax, cancellationToken) as IParameterSymbol;
-                if (IsSymbolReassigned(parameter))
+                if (IsSymbolReassigned(semanticModel, parameter))
                     result.Add(syntaxFacts.GetIdentifierOfParameter(parameterSyntax).Span);
             }
 
-            void ProcessVariable(TVariableSyntax variable)
+            void ProcessVariable(SemanticModel semanticModel, TVariableSyntax variable)
             {
                 var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken) as ILocalSymbol;
-                if (IsSymbolReassigned(local))
+                if (IsSymbolReassigned(semanticModel, local))
                     result.Add(GetIdentifierOfVariable(variable).Span);
             }
 
-            void ProcessSingleVariableDesignation(TSingleVariableDesignationSyntax designation)
+            void ProcessSingleVariableDesignation(SemanticModel semanticModel, TSingleVariableDesignationSyntax designation)
             {
                 var local = semanticModel.GetDeclaredSymbol(designation, cancellationToken) as ILocalSymbol;
-                if (IsSymbolReassigned(local))
+                if (IsSymbolReassigned(semanticModel, local))
                     result.Add(GetIdentifierOfSingleVariableDesignation(designation).Span);
             }
 
-            bool IsSymbolReassigned([NotNullWhen(true)] ISymbol? symbol)
+            bool IsSymbolReassigned(SemanticModel semanticModel, [NotNullWhen(true)] ISymbol? symbol)
             {
                 // Note: we don't need to test range variables, as they are never reassignable.
                 if (symbol is not IParameterSymbol and not ILocalSymbol)
@@ -136,18 +156,22 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
                 if (!symbolToIsReassigned.TryGetValue(symbol, out var reassignedResult))
                 {
-                    reassignedResult = symbol is IParameterSymbol parameter
-                        ? ComputeParameterIsAssigned(parameter)
-                        : ComputeLocalIsAssigned((ILocalSymbol)symbol);
+                    reassignedResult = symbol switch
+                    {
+                        IParameterSymbol parameter => ComputeParameterIsAssigned(semanticModel, parameter),
+                        ILocalSymbol local => ComputeLocalIsAssigned(semanticModel, local),
+                        _ => throw ExceptionUtilities.Unreachable(),
+                    };
+
                     symbolToIsReassigned[symbol] = reassignedResult;
                 }
 
                 return reassignedResult;
             }
 
-            bool ComputeParameterIsAssigned(IParameterSymbol parameter)
+            bool ComputeParameterIsAssigned(SemanticModel semanticModel, IParameterSymbol parameter)
             {
-                if (!TryGetParameterLocation(parameter, out var parameterLocation))
+                if (!TryGetParameterLocation(semanticModel, parameter, out var parameterLocation))
                     return false;
 
                 var methodOrProperty = parameter.ContainingSymbol;
@@ -162,22 +186,54 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (methodOrProperty.DeclaringSyntaxReferences.Length == 0)
                     return false;
 
-                // Be resilient to cases where the parameter might have multiple locations.  This
-                // should not normally happen, but we want to be resilient in case it occurs in
-                // error scenarios.
-                var methodOrPropertyDeclaration = methodOrProperty.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
-                if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
-                    return false;
+                if (parameter.IsPrimaryConstructor(cancellationToken))
+                {
+                    // A primary constructor parameter is analyzed across all parts of the type declaration it is
+                    // created in.
+                    var containingType = methodOrProperty.ContainingType;
+                    foreach (var group in containingType.DeclaringSyntaxReferences.GroupBy(r => r.SyntaxTree))
+                    {
+                        var otherSemanticModel = GetSemanticModel(group.Key);
 
-                // All parameters (except for 'out' parameters), come in definitely assigned.
-                return AnalyzePotentialMatches(
-                    parameter,
-                    parameterLocation,
-                    symbolIsDefinitelyAssigned: parameter.RefKind != RefKind.Out,
-                    GetMemberBlock(methodOrPropertyDeclaration));
+                        foreach (var syntaxReference in group)
+                        {
+                            var declaration = syntaxReference.GetSyntax(cancellationToken);
+
+                            // All parameters (except for 'out' parameters), come in definitely assigned.
+                            if (AnalyzePotentialMatches(
+                                    otherSemanticModel,
+                                    parameter,
+                                    parameterLocation,
+                                    symbolIsDefinitelyAssigned: parameter.RefKind != RefKind.Out,
+                                    declaration))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+                else
+                {
+                    // Be resilient to cases where the parameter might have multiple locations.  This
+                    // should not normally happen, but we want to be resilient in case it occurs in
+                    // error scenarios.
+                    var methodOrPropertyDeclaration = methodOrProperty.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
+                    if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
+                        return false;
+
+                    // All parameters (except for 'out' parameters), come in definitely assigned.
+                    return AnalyzePotentialMatches(
+                        semanticModel,
+                        parameter,
+                        parameterLocation,
+                        symbolIsDefinitelyAssigned: parameter.RefKind != RefKind.Out,
+                        GetMemberBlock(methodOrPropertyDeclaration));
+                }
             }
 
-            bool TryGetParameterLocation(IParameterSymbol parameter, out TextSpan location)
+            bool TryGetParameterLocation(SemanticModel semanticModel, IParameterSymbol parameter, out TextSpan location)
             {
                 // Be resilient to cases where the parameter might have multiple locations.  This
                 // should not normally happen, but we want to be resilient in case it occurs in
@@ -203,7 +259,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 return false;
             }
 
-            bool ComputeLocalIsAssigned(ILocalSymbol local)
+            bool ComputeLocalIsAssigned(SemanticModel semanticModel, ILocalSymbol local)
             {
                 if (local.DeclaringSyntaxReferences.Length == 0)
                     return false;
@@ -220,6 +276,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
                 // A local is definitely assigned during analysis if it had an initializer.
                 return AnalyzePotentialMatches(
+                    semanticModel,
                     local,
                     localDeclaration.Span,
                     symbolIsDefinitelyAssigned: HasInitializer(localDeclaration),
@@ -227,6 +284,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             }
 
             bool AnalyzePotentialMatches(
+                SemanticModel semanticModel,
                 ISymbol localOrParameter,
                 TextSpan localOrParameterDeclarationSpan,
                 bool symbolIsDefinitelyAssigned,

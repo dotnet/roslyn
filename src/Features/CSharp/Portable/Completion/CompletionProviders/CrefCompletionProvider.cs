@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                 RefKind.Ref => "ref ",
                                 RefKind.Out => "out ",
                                 RefKind.In => "in ",
+                                RefKind.RefReadOnlyParameter => "ref readonly ",
                                 _ => "",
                             });
                             builder.Append(p.Type.ToMinimalDisplayString(semanticModel, position, MinimalParameterTypeFormat));

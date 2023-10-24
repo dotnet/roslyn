@@ -85,11 +85,11 @@ stages:
     demands: ImageOverride -equals windows.vs2022preview.amd64
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.7') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.8') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.7
+        MirrorBranch: release/dev17.8
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -390,6 +390,8 @@ stages:
         enable: true
         params: >-
           -SourceToolsList @("policheck","credscan")
+          -ArtifactToolsList @("binskim")
+          -BinskimAdditionalRunConfigParams @("IgnorePdbLoadError < True","Recurse < True","SymbolsPath < SRV*https://msdl.microsoft.com/download/symbols")
           -TsaInstanceURL $(_TsaInstanceURL)
           -TsaProjectName $(_TsaProjectName)
           -TsaNotificationEmail $(_TsaNotificationEmail)

@@ -104,6 +104,9 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
             {
                 var requestedSpan = documentSpanToTag.SnapshotSpan;
 
+                // NOTE: We pass 'includeSuppressedDiagnostics: true' to ensure that IDE0079 (unnecessary suppressions)
+                // are flagged and faded in the editor. IDE0079 analyzer requires all source suppressed diagnostics to
+                // be provided to it to function correctly.
                 var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
                     document,
                     requestedSpan.Span.ToTextSpan(),
@@ -113,7 +116,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
 
                 foreach (var diagnosticData in diagnostics)
                 {
-                    if (_callback.IncludeDiagnostic(diagnosticData))
+                    if (_callback.IncludeDiagnostic(diagnosticData) && !diagnosticData.IsSuppressed)
                     {
                         var diagnosticSpans = _callback.GetLocationsToTag(diagnosticData)
                             .Select(loc => loc.UnmappedFileSpan.GetClampedTextSpan(sourceText).ToSnapshotSpan(snapshot));
@@ -121,7 +124,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
                             {
-                                var tagSpan = _callback.CreateTagSpan(workspace, isLiveUpdate: true, diagnosticSpan, diagnosticData);
+                                var tagSpan = _callback.CreateTagSpan(workspace, diagnosticSpan, diagnosticData);
                                 if (tagSpan != null)
                                     context.AddTag(tagSpan);
                             }

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ImplicitPointer:
                 case ObjectCreation:
                 case InlineArray:
-                case CollectionLiteral:
+                case CollectionExpression:
                     return true;
 
                 case ExplicitNumeric:

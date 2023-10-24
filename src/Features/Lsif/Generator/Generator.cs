@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var projectVertex = new Graph.LsifProject(
                 kind: GetLanguageKind(compilation.Language),
-                new Uri(projectPath),
+                ProtocolConversions.CreateAbsoluteUri(projectPath),
                 Path.GetFileNameWithoutExtension(projectPath),
                 _idFactory);
 
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document, cancellationToken);
 
-            var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
+            var documentVertex = new Graph.LsifDocument(uri, GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
@@ -399,11 +400,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
         }
 
-        private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(
+        private static async Task<(Uri uri, string? contentBase64Encoded)> GetUriAndContentAsync(
             Document document, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(document.FilePath);
+
             string? contentBase64Encoded = null;
-            var uri = document.FilePath ?? "";
+            Uri uri;
 
             if (document is SourceGeneratedDocument)
             {
@@ -415,7 +418,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 // There is a triple slash here, so the "host" portion of the URI is empty, similar to
                 // how file URIs work.
-                uri = "source-generated:///" + uri.Replace('\\', '/');
+                uri = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath);
+            }
+            else
+            {
+                uri = ProtocolConversions.CreateAbsoluteUri(document.FilePath);
             }
 
             return (uri, contentBase64Encoded);
@@ -437,7 +444,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 // Just get the pure-lsp semantic tokens here.
                 new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true },
                 document,
-                range: null,
+                ranges: null,
                 options: Classification.ClassificationOptions.Default,
                 cancellationToken: CancellationToken.None);
 

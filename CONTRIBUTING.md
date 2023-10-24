@@ -130,9 +130,13 @@ If you don't know what a pull request is read this article: <https://help.github
 
 When you are ready to proceed with making a change, get set up to build (either on [Windows](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md) or on [Unix](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Unix.md)) the code and familiarize yourself with our developer workflow. 
 
-### During pull request review
+### Reviewing pull requests
 
-A core contributor will review your pull request and provide feedback. To ensure that there is not a large backlog of inactive PRs, the pull request will be marked as stale after two weeks of no activity. After another two weeks, it will be reset to 'Draft' state.
+Our repository gets a high volume of pull requests and reviewing them all is a significant time commitment. Our team priorities often force us to focus on reviewing a subset of the active pull requests at a given time: the active set. Pull requests that are not in our active set will be placed in the [Backlog milestone](https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aopen+milestone%3ABacklog+). This is done to make it clear to both the roslyn team and contributors where our effort is focused.
+
+Contributors are free to work on pull requests in the Backlog milestone, solicit feedback, etc ... Our team does value these contributions and will provide guidance and reviews when possible. However our team will typically prioritize reviewing pull requests in the active set over those in Backlog. Further if a particular pull request gets stale it's likely our team will move it into Backlog until the contributor has time to re-engage with the change.
+
+Like issues, pull requests will move in and out of Backlog as priorities change. 
 
 ### Feedback
 

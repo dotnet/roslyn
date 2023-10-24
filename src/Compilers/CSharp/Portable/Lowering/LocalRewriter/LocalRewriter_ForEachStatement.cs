@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
+        private static readonly AwaitDebugId s_moveNextAsyncAwaitId = new AwaitDebugId(RelativeStateOrdinal: 0);
+        private static readonly AwaitDebugId s_disposeAsyncAwaitId = new AwaitDebugId(RelativeStateOrdinal: 1);
+
         /// <summary>
         /// This is the entry point for foreach-loop lowering.  It delegates to
         ///   RewriteEnumeratorForEachStatement
@@ -191,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundCall.Synthesized(
                         syntax: forEachSyntax,
                         receiverOpt: boundEnumeratorVar,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: enumeratorInfo.CurrentPropertyGetter)));
 
             // V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
@@ -207,14 +212,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
             BoundExpression rewrittenCondition = SynthesizeCall(
-                    methodArgumentInfo: enumeratorInfo.MoveNextInfo,
-                    syntax: forEachSyntax,
-                    receiver: boundEnumeratorVar,
-                    allowExtensionAndOptionalParameters: isAsync);
+                methodArgumentInfo: enumeratorInfo.MoveNextInfo,
+                syntax: forEachSyntax,
+                receiver: boundEnumeratorVar,
+                allowExtensionAndOptionalParameters: isAsync);
+
+            var disposalFinallyBlock = GetDisposalFinallyBlock(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, out var hasAsyncDisposal);
             if (isAsync)
             {
                 Debug.Assert(awaitableInfo is { GetResult: { } });
-                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, awaitableInfo, awaitableInfo.GetResult.ReturnType, used: true);
+
+                // We need to be sure that when the disposal isn't async we reserve an unused state machine state number for it,
+                // so that await foreach always produces 2 state machine states: one for MoveNextAsync and the other for DisposeAsync.
+                // Otherwise, EnC wouldn't be able to map states when the disposal changes from having async dispose to not, or vice versa.
+                var debugInfo = new BoundAwaitExpressionDebugInfo(s_moveNextAsyncAwaitId, ReservedStateMachineCount: (byte)(hasAsyncDisposal ? 0 : 1));
+
+                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, awaitableInfo, awaitableInfo.GetResult.ReturnType, debugInfo, used: true);
             }
 
             BoundStatement whileLoop = RewriteWhileStatement(
@@ -227,9 +240,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement result;
 
-            if (enumeratorInfo.NeedsDisposal)
+            if (disposalFinallyBlock != null)
             {
-                BoundStatement tryFinally = WrapWithTryFinallyDispose(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, whileLoop);
+                // try {
+                //     while (e.MoveNext()) {
+                //         V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
+                //         /* loop body */
+                //     }
+                // }
+                // finally {
+                //     /* dispose of e */
+                // }
+                BoundStatement tryFinally = new BoundTryStatement(
+                    forEachSyntax,
+                    tryBlock: new BoundBlock(forEachSyntax, locals: ImmutableArray<LocalSymbol>.Empty, statements: ImmutableArray.Create(whileLoop)),
+                    catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
+                    finallyBlockOpt: disposalFinallyBlock);
 
                 // E e = ((C)(x)).GetEnumerator();
                 // try {
@@ -274,14 +300,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - interface-based disposal (the enumerator type converts to IDisposable/IAsyncDisposable)
         /// - we need to do a runtime check for IDisposable
         /// </summary>
-        private BoundStatement WrapWithTryFinallyDispose(
+        /// <returns>Finally block, or null if none should be emitted.</returns>
+        private BoundBlock? GetDisposalFinallyBlock(
             CSharpSyntaxNode forEachSyntax,
             ForEachEnumeratorInfo enumeratorInfo,
             TypeSymbol enumeratorType,
             BoundLocal boundEnumeratorVar,
-            BoundStatement rewrittenBody)
+            out bool hasAsyncDisposal)
         {
-            Debug.Assert(enumeratorInfo.NeedsDisposal);
+            hasAsyncDisposal = false;
+
+            if (!enumeratorInfo.NeedsDisposal)
+            {
+                return null;
+            }
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
@@ -294,12 +326,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is a temporary workaround for https://github.com/dotnet/roslyn/issues/39948
                 if (disposeMethod is null)
                 {
-                    return rewrittenBody;
+                    return null;
                 }
 
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 Debug.Assert(_factory.CurrentFunction is { });
-                var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
+                var conversions = _factory.CurrentFunction.ContainingAssembly.CorLibrary.TypeConversions;
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
                 isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteInfo).IsImplicit;
@@ -312,7 +344,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                containingType: _factory.CurrentType,
                                                location: enumeratorInfo.Location);
 
-            BoundBlock finallyBlockOpt;
             if (isImplicit || !(enumeratorInfo.PatternDisposeInfo is null))
             {
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
@@ -343,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // await /* disposeCall */
                     disposeCallStatement = WrapWithAwait(forEachSyntax, disposeCall, disposeAwaitableInfoOpt);
                     _sawAwaitInExceptionHandler = true;
+                    hasAsyncDisposal = true;
                 }
                 else
                 {
@@ -372,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors: false);
                 }
 
-                finallyBlockOpt = new BoundBlock(forEachSyntax,
+                return new BoundBlock(forEachSyntax,
                     locals: ImmutableArray<LocalSymbol>.Empty,
                     statements: ImmutableArray.Create(alwaysOrMaybeDisposeStmt));
             }
@@ -407,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement disposableVarDecl = MakeLocalDeclaration(forEachSyntax, disposableVar, disposableVarInitValue);
 
                 // d.Dispose()
-                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, method: disposeMethod);
+                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method: disposeMethod);
                 BoundStatement disposeCallStatement = new BoundExpressionStatement(forEachSyntax, expression: disposeCall);
 
                 // if (d != null) d.Dispose();
@@ -428,27 +460,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // IDisposable d = e as IDisposable;
                 // if (d != null) d.Dispose();
-                finallyBlockOpt = new BoundBlock(forEachSyntax,
+                return new BoundBlock(forEachSyntax,
                     locals: ImmutableArray.Create(disposableVar),
                     statements: ImmutableArray.Create(disposableVarDecl, ifStmt));
             }
-
-            // try {
-            //     while (e.MoveNext()) {
-            //         V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
-            //         /* loop body */
-            //     }
-            // }
-            // finally {
-            //     /* dispose of e */
-            // }
-            BoundStatement tryFinally = new BoundTryStatement(forEachSyntax,
-                tryBlock: new BoundBlock(forEachSyntax,
-                    locals: ImmutableArray<LocalSymbol>.Empty,
-                    statements: ImmutableArray.Create<BoundStatement>(rewrittenBody)),
-                catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
-                finallyBlockOpt: finallyBlockOpt);
-            return tryFinally;
         }
 
         /// <summary>
@@ -458,7 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement WrapWithAwait(SyntaxNode forEachSyntax, BoundExpression disposeCall, BoundAwaitableInfo disposeAwaitableInfoOpt)
         {
             TypeSymbol awaitExpressionType = disposeAwaitableInfoOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
-            var awaitExpr = RewriteAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType, used: false);
+            var debugInfo = new BoundAwaitExpressionDebugInfo(s_disposeAsyncAwaitId, ReservedStateMachineCount: 0);
+            var awaitExpr = RewriteAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType, debugInfo, used: false);
             return new BoundExpressionStatement(forEachSyntax, awaitExpr);
         }
 
@@ -527,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Generate a call with literally zero arguments
             Debug.Assert(methodArgumentInfo.Arguments.IsEmpty);
-            return BoundCall.Synthesized(syntax, receiver, methodArgumentInfo.Method, arguments: ImmutableArray<BoundExpression>.Empty);
+            return BoundCall.Synthesized(syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, methodArgumentInfo.Method, arguments: ImmutableArray<BoundExpression>.Empty);
         }
 
         /// <summary>
@@ -665,6 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     return BoundCall.Synthesized(
                                                                syntax: node.Syntax,
                                                                receiverOpt: boundArrayVar,
+                                                               initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                                arg.indexerGet,
                                                                boundPositionVar);
                                                 },
@@ -673,6 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     return BoundCall.Synthesized(
                                                                syntax: node.Syntax,
                                                                receiverOpt: boundArrayVar,
+                                                               initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                                arg.lengthGet);
                                                 },
                                                 arg: (indexerGet, lengthGet));
@@ -1035,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetUpperBound(dimension)
-                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getUpperBoundMethod, dimensionArgument);
+                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getUpperBoundMethod, dimensionArgument);
 
                 // int q_dimension = a.GetUpperBound(dimension);
                 upperVarDecl[dimension] = MakeLocalDeclaration(forEachSyntax, upperVar[dimension], currentDimensionUpperBound);
@@ -1089,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetLowerBound(dimension)
-                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getLowerBoundMethod, dimensionArgument);
+                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getLowerBoundMethod, dimensionArgument);
 
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);

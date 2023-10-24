@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Syntax Analysis"
 
-        Friend Overrides Function TryFindMemberDeclaration(rootOpt As SyntaxNode, node As SyntaxNode, <Out> ByRef declarations As OneOrMany(Of SyntaxNode)) As Boolean
+        Friend Overrides Function TryFindMemberDeclaration(rootOpt As SyntaxNode, node As SyntaxNode, activeSpan As TextSpan, <Out> ByRef declarations As OneOrMany(Of SyntaxNode)) As Boolean
             Dim current = node
             While current IsNot rootOpt
                 Select Case current.Kind
@@ -97,20 +98,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' - <see cref="ArgumentListSyntax"/> for fields with array initializer, e.g. "Dim a(1) As Integer".
         ''' A null reference otherwise.
         ''' </returns>
-        Friend Overrides Function TryGetDeclarationBody(node As SyntaxNode) As MemberBody
+        Friend Overrides Function TryGetDeclarationBody(node As SyntaxNode, symbol As ISymbol) As MemberBody
             Return SyntaxUtilities.TryGetDeclarationBody(node)
         End Function
 
-        Friend Overrides Function IsDeclarationWithSharedBody(declaration As SyntaxNode) As Boolean
+        Friend Overrides Function IsDeclarationWithSharedBody(declaration As SyntaxNode, member As ISymbol) As Boolean
             If declaration.Kind = SyntaxKind.ModifiedIdentifier AndAlso declaration.Parent.Kind = SyntaxKind.VariableDeclarator Then
                 Dim variableDeclarator = CType(declaration.Parent, VariableDeclaratorSyntax)
                 Return variableDeclarator.Names.Count > 1 AndAlso variableDeclarator.Initializer IsNot Nothing OrElse SyntaxUtilities.HasAsNewClause(variableDeclarator)
             End If
 
-            Return False
-        End Function
-
-        Friend Overrides Function HasParameterClosureScope(member As ISymbol) As Boolean
             Return False
         End Function
 
@@ -127,37 +124,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    Where String.Equals(DirectCast(identifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
                          If(model.GetSymbolInfo(identifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
                    Select node
-        End Function
-
-        Protected Overrides Function GetEncompassingAncestorImpl(bodyOrMatchRoot As SyntaxNode) As SyntaxNode
-            ' AsNewClause is a match root for field/property As New initializer 
-            ' EqualsClause is a match root for field/property initializer
-            If bodyOrMatchRoot.IsKind(SyntaxKind.AsNewClause) OrElse bodyOrMatchRoot.IsKind(SyntaxKind.EqualsValue) Then
-                Debug.Assert(bodyOrMatchRoot.Parent.IsKind(SyntaxKind.VariableDeclarator) OrElse
-                             bodyOrMatchRoot.Parent.IsKind(SyntaxKind.PropertyStatement))
-                Return bodyOrMatchRoot.Parent
-            End If
-
-            ' ArgumentList is a match root for an array initialized field
-            If bodyOrMatchRoot.IsKind(SyntaxKind.ArgumentList) Then
-                Debug.Assert(bodyOrMatchRoot.Parent.IsKind(SyntaxKind.ModifiedIdentifier))
-                Return bodyOrMatchRoot.Parent
-            End If
-
-            ' The following active nodes are outside of the initializer body,
-            ' we need to return a node that encompasses them.
-            ' Dim [|a = <<Body>>|]
-            ' Dim [|a As Integer = <<Body>>|]
-            ' Dim [|a As <<Body>>|]
-            ' Dim [|a|], [|b|], [|c|] As <<Body>> 
-            ' Property [|P As Integer = <<Body>>|]
-            ' Property [|P As <<Body>>|]
-            If bodyOrMatchRoot.Parent.IsKind(SyntaxKind.AsNewClause) OrElse
-               bodyOrMatchRoot.Parent.IsKind(SyntaxKind.EqualsValue) Then
-                Return bodyOrMatchRoot.Parent.Parent
-            End If
-
-            Return bodyOrMatchRoot
         End Function
 
         Friend Shared Function FindStatementAndPartner(
@@ -221,8 +187,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LambdaUtilities.IsClosureScope(node)
         End Function
 
-        Protected Overrides Function FindEnclosingLambdaBody(root As SyntaxNode, node As SyntaxNode) As LambdaBody
-            While node IsNot root And node IsNot Nothing
+        Protected Overrides Function FindEnclosingLambdaBody(encompassingAncestor As SyntaxNode, node As SyntaxNode) As LambdaBody
+            While node IsNot encompassingAncestor And node IsNot Nothing
                 Dim body As SyntaxNode = Nothing
                 If LambdaUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
                     Return SyntaxUtilities.CreateLambdaBody(body)
@@ -358,12 +324,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    Not node.IsKind(SyntaxKind.SingleLineSubLambdaExpression)
         End Function
 
-        Protected Overrides Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, minLength:=0, span)
+        Protected Overrides Function TryGetEnclosingBreakpointSpan(token As SyntaxToken, <Out> ByRef span As TextSpan) As Boolean
+            Return BreakpointSpans.TryGetClosestBreakpointSpan(token.Parent, token.SpanStart, minLength:=token.Span.Length, span)
         End Function
 
         Protected Overrides Function TryGetActiveSpan(node As SyntaxNode, statementPart As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, minLength, span)
+            Return BreakpointSpans.TryGetClosestBreakpointSpan(node, node.SpanStart, minLength, span)
         End Function
 
         Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of ValueTuple(Of SyntaxNode, Integer))
@@ -495,6 +461,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax).Names.Count > 1
         End Function
 
+        Protected Overrides Function AreEquivalentImpl(oldToken As SyntaxToken, newToken As SyntaxToken) As Boolean
+            Return SyntaxFactory.AreEquivalent(oldToken, newToken)
+        End Function
+
         Friend Overrides Function IsInterfaceDeclaration(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.InterfaceBlock)
         End Function
@@ -506,27 +476,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Friend Overrides Function TryGetContainingTypeDeclaration(node As SyntaxNode) As SyntaxNode
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
-        End Function
-
-        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, editKind As EditKind, <Out> ByRef declaration As SyntaxNode) As Boolean
-            If node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) Then
-                Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList))
-                declaration = node.Parent.Parent
-                Return True
-            End If
-
-            ' We allow deleting event and property accessors, so don't associate them
-            If editKind <> EditKind.Delete AndAlso node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
-                declaration = node.Parent
-                Return True
-            End If
-
-            declaration = Nothing
-            Return False
-        End Function
-
-        Friend Overrides Function HasBackingField(propertyDeclaration As SyntaxNode) As Boolean
-            Return SyntaxUtilities.HasBackingField(propertyDeclaration)
         End Function
 
         Friend Overrides Function IsDeclarationWithInitializer(declaration As SyntaxNode) As Boolean
@@ -577,7 +526,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' is represented by its declaration statement.
         ''' </summary>
         Protected Overrides Function GetSymbolDeclarationSyntax(symbol As ISymbol, selector As Func(Of ImmutableArray(Of SyntaxReference), SyntaxReference), cancellationToken As CancellationToken) As SyntaxNode
-            Dim syntax = selector(symbol.DeclaringSyntaxReferences).GetSyntax(cancellationToken)
+            ' Invoke method of a delegate type doesn't have DeclaringSyntaxReferences
+            Dim syntaxRefs As ImmutableArray(Of SyntaxReference)
+
+            If symbol Is symbol.ContainingType?.DelegateInvokeMethod Then
+                syntaxRefs = symbol.ContainingType.DeclaringSyntaxReferences
+                If syntaxRefs.IsEmpty Then
+                    Dim parameter = DirectCast(symbol, IMethodSymbol).Parameters.First()
+                    Return parameter.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken).Parent.Parent
+                End If
+            Else
+                syntaxRefs = symbol.DeclaringSyntaxReferences
+            End If
+
+            Dim syntax = selector(syntaxRefs)?.GetSyntax(cancellationToken)
+            If syntax Is Nothing Then
+                Return Nothing
+            End If
+
             Dim parent = syntax.Parent
 
             Select Case syntax.Kind
@@ -733,75 +699,174 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    DirectCast(syntaxRefs.Single().GetSyntax(), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
         End Function
 
-        Protected Overrides Function GetSymbolEdits(
+        Protected Overrides Function GetEditedSymbols(
             editKind As EditKind,
             oldNode As SyntaxNode,
             newNode As SyntaxNode,
             oldModel As SemanticModel,
             newModel As SemanticModel,
-            editMap As IReadOnlyDictionary(Of SyntaxNode, EditKind),
-            cancellationToken As CancellationToken) As OneOrMany(Of (oldSymbol As ISymbol, newSymbol As ISymbol, editKind As EditKind))
+            cancellationToken As CancellationToken) As OneOrMany(Of (oldSymbol As ISymbol, newSymbol As ISymbol))
 
-            Dim oldSymbols As OneOrMany(Of ISymbol) = Nothing
-            Dim newSymbols As OneOrMany(Of ISymbol) = Nothing
+            Dim oldSymbols = OneOrMany(Of ISymbol).Empty
+            Dim newSymbols = OneOrMany(Of ISymbol).Empty
+
+            If oldNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
+               newNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
+                Return OneOrMany(Of (ISymbol, ISymbol)).Empty
+            End If
+
+            Debug.Assert(Not oldSymbols.IsEmpty OrElse Not newSymbols.IsEmpty)
+
+            If oldSymbols.Count <= 1 AndAlso newSymbols.Count <= 1 Then
+                Return OneOrMany.Create((oldSymbols.FirstOrDefault(), newSymbols.FirstOrDefault()))
+            End If
+
+            ' This only occurs when field identifiers are deleted/inserted/reordered from/to/within their variable declarator list,
+            ' or their shared initializer is updated. The particular inserted and deleted fields will be represented by separate edits,
+            ' but the AsNew clause of the declarator may have been updated as well, which needs to update the remaining (matching) fields.
+            Return OneOrMany.Create(PairSymbols(oldSymbols, newSymbols).ToImmutableArray())
+        End Function
+
+        Private Shared Iterator Function PairSymbols(
+            oldSymbols As OneOrMany(Of ISymbol),
+            newSymbols As OneOrMany(Of ISymbol)) As IEnumerable(Of (ISymbol, ISymbol))
+
+            For Each oldSymbol In oldSymbols
+                Dim newSymbol = newSymbols.FirstOrDefault(Function(s, o) CaseInsensitiveComparison.Equals(s.Name, o.Name), oldSymbol)
+                If newSymbol IsNot Nothing Then
+                    Yield (oldSymbol, newSymbol)
+                End If
+            Next
+        End Function
+
+        Protected Overrides Sub AddSymbolEdits(
+            ByRef result As TemporaryArray(Of (ISymbol, ISymbol, EditKind)),
+            editKind As EditKind,
+            oldNode As SyntaxNode,
+            oldSymbol As ISymbol,
+            newNode As SyntaxNode,
+            newSymbol As ISymbol,
+            oldModel As SemanticModel,
+            newModel As SemanticModel,
+            topMatch As Match(Of SyntaxNode),
+            editMap As IReadOnlyDictionary(Of SyntaxNode, EditKind),
+            symbolCache As SymbolInfoCache,
+            cancellationToken As CancellationToken)
+
+            Debug.Assert(oldSymbol IsNot Nothing OrElse newSymbol IsNot Nothing)
+
+            If oldNode.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) OrElse
+               oldNode.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso oldNode.IsParentKind(SyntaxKind.Parameter) OrElse
+               newNode.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) OrElse
+               newNode.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso newNode.IsParentKind(SyntaxKind.Parameter) Then
+
+                ' parameter list, member, Or type declaration
+                Dim oldContainingMemberOrType = GetParameterContainingMemberOrType(oldNode, newNode, oldModel, topMatch.ReverseMatches, cancellationToken)
+                Dim newContainingMemberOrType = GetParameterContainingMemberOrType(newNode, oldNode, newModel, topMatch.Matches, cancellationToken)
+
+                Dim matchingNewContainingMemberOrType = GetSemanticallyMatchingNewSymbol(oldContainingMemberOrType, newContainingMemberOrType, newModel, symbolCache, cancellationToken)
+
+                ' Any change to a constraint should be analyzed as an update of the type parameter
+                Dim isTypeConstraint = TypeOf oldNode Is TypeParameterConstraintClauseSyntax OrElse
+                                       TypeOf newNode Is TypeParameterConstraintClauseSyntax
+
+                ' If the signature of a property changed or its parameter has been renamed we need to update all its accessors
+                Dim oldPropertySymbol = TryCast(oldContainingMemberOrType, IPropertySymbol)
+                Dim newPropertySymbol = TryCast(newContainingMemberOrType, IPropertySymbol)
+
+                If oldPropertySymbol IsNot Nothing AndAlso
+                   newPropertySymbol IsNot Nothing AndAlso
+                   (IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol) OrElse
+                    oldSymbol IsNot Nothing AndAlso newSymbol IsNot Nothing AndAlso oldSymbol.Name <> newSymbol.Name) Then
+
+                    AddMemberUpdate(result, oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod, matchingNewContainingMemberOrType)
+                    AddMemberUpdate(result, oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod, matchingNewContainingMemberOrType)
+                End If
+
+                AddMemberUpdate(result, oldContainingMemberOrType, newContainingMemberOrType, matchingNewContainingMemberOrType)
+
+                If matchingNewContainingMemberOrType IsNot Nothing Then
+                    ' Map parameter to the corresponding semantically matching member.
+                    ' Since the signature of the member matches we can direcly map by parameter ordinal.
+                    If oldSymbol.Kind = SymbolKind.Parameter Then
+                        newSymbol = matchingNewContainingMemberOrType.GetParameters()(DirectCast(oldSymbol, IParameterSymbol).Ordinal)
+                    ElseIf oldSymbol.Kind = SymbolKind.TypeParameter Then
+                        newSymbol = matchingNewContainingMemberOrType.GetTypeParameters()(DirectCast(oldSymbol, ITypeParameterSymbol).Ordinal)
+                    End If
+                End If
+
+                result.Add((oldSymbol, newSymbol, If(isTypeConstraint, EditKind.Update, editKind)))
+
+                Return
+            End If
 
             Select Case editKind
                 Case EditKind.Reorder
-                    If TryCast(oldNode, ParameterSyntax) Is Nothing OrElse TryCast(newNode, ParameterSyntax) Is Nothing Then
-                        ' Other than parameters, we don't do any semantic checks for reordering
-                        ' And we don't need to report them to the compiler either.
-                        ' Consider: Currently Symbol ordering changes are Not reflected in metadata (Reflection will report original order).
-
-                        ' Consider Reordering of fields Is Not allowed since it changes the layout of the type.
-                        ' This ordering should however Not matter unless the type has explicit layout so we might want to allow it.
-                        ' We do Not check changes to the order if they occur across multiple documents (the containing type Is partial).
-                        Debug.Assert(Not IsDeclarationWithInitializer(oldNode) AndAlso Not IsDeclarationWithInitializer(newNode))
-                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                    If oldSymbol Is Nothing OrElse newSymbol Is Nothing Then
+                        Return
                     End If
 
-                    If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
-                       Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
-                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
-                    End If
-
-                    Return OneOrMany.Create((oldSymbols(0).ContainingSymbol, newSymbols(0).ContainingSymbol, EditKind.Update))
+                    result.Add((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update))
 
                 Case EditKind.Delete
-                    If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) Then
-                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
-                    End If
-
-                    Return oldSymbols.Select(Function(s) New ValueTuple(Of ISymbol, ISymbol, EditKind)(s, Nothing, editKind))
+                    result.Add((oldSymbol, Nothing, editKind))
 
                 Case EditKind.Insert
-                    If Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
-                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
-                    End If
-
-                    Return newSymbols.Select(Function(s) New ValueTuple(Of ISymbol, ISymbol, EditKind)(Nothing, s, editKind))
+                    result.Add((Nothing, newSymbol, editKind))
 
                 Case EditKind.Update
-                    If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
-                       Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
-                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
-                    End If
+                    ' Updates of a property/indexer/event node might affect its accessors.
+                    ' Return all affected symbols for these updates so that the changes in the accessor bodies get analyzed.
 
-                    If oldSymbols.Count = 1 AndAlso newSymbols.Count = 1 Then
-                        Return OneOrMany.Create((oldSymbols(0), newSymbols(0), editKind))
-                    End If
+                    Dim oldPropertySymbol = TryCast(oldSymbol, IPropertySymbol)
+                    Dim newPropertySymbol = TryCast(newSymbol, IPropertySymbol)
+                    If oldPropertySymbol IsNot Nothing AndAlso newPropertySymbol IsNot Nothing Then
+                        ' Note: a signature change does not affect the property itself.
+                        result.Add((oldPropertySymbol, newPropertySymbol, EditKind.Update))
 
-                    ' This only occurs when field identifiers are deleted/inserted/reordered from/to/within their variable declarator list,
-                    ' or their shared initializer is updated. The particular inserted and deleted fields will be represented by separate edits,
-                    ' but the AsNew clause of the declarator may have been updated as well, which needs to update the remaining (matching) fields.
-                    Dim builder = ArrayBuilder(Of (ISymbol, ISymbol, EditKind)).GetInstance()
-                    For Each oldSymbol In oldSymbols
-                        Dim newSymbol = newSymbols.FirstOrDefault(Function(s, o) CaseInsensitiveComparison.Equals(s.Name, o.Name), oldSymbol)
-                        If newSymbol IsNot Nothing Then
-                            builder.Add((oldSymbol, newSymbol, editKind))
+                        If oldPropertySymbol.GetMethod IsNot Nothing OrElse newPropertySymbol.GetMethod IsNot Nothing Then
+                            If IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol) Then
+                                result.Add((oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod, editKind))
+                            End If
                         End If
-                    Next
 
-                    Return OneOrMany.Create(builder.ToImmutableAndFree())
+                        If oldPropertySymbol.SetMethod IsNot Nothing OrElse newPropertySymbol.SetMethod IsNot Nothing Then
+                            If IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol) Then
+                                result.Add((oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod, editKind))
+                            End If
+                        End If
+
+                        Return
+                    End If
+
+                    Dim oldEventSymbol = TryCast(oldSymbol, IEventSymbol)
+                    Dim newEventSymbol = TryCast(newSymbol, IEventSymbol)
+                    If oldEventSymbol IsNot Nothing AndAlso newEventSymbol IsNot Nothing Then
+                        result.Add((oldEventSymbol, newEventSymbol, EditKind.Update))
+
+                        If oldEventSymbol.AddMethod IsNot Nothing OrElse newEventSymbol.AddMethod IsNot Nothing Then
+                            If IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
+                                result.Add((oldEventSymbol.AddMethod, newEventSymbol.AddMethod, editKind))
+                            End If
+                        End If
+
+                        If oldEventSymbol.RemoveMethod IsNot Nothing OrElse newEventSymbol.RemoveMethod IsNot Nothing Then
+                            If IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
+                                result.Add((oldEventSymbol.RemoveMethod, newEventSymbol.RemoveMethod, editKind))
+                            End If
+                        End If
+
+                        If oldEventSymbol.RaiseMethod IsNot Nothing OrElse newEventSymbol.RaiseMethod IsNot Nothing Then
+                            ' change in event type does not affect Raise method, but rename does
+                            If oldEventSymbol.Name <> newEventSymbol.Name Then
+                                result.Add((oldEventSymbol.RaiseMethod, newEventSymbol.RaiseMethod, editKind))
+                            End If
+                        End If
+
+                        Return
+                    End If
+
+                    result.Add((oldSymbol, newSymbol, editKind))
 
                 Case EditKind.Move
                     Contract.ThrowIfNull(oldNode)
@@ -810,16 +875,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                     Debug.Assert(oldNode.RawKind = newNode.RawKind)
                     If Not IsTypeDeclaration(oldNode) Then
-                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                        Return
                     End If
 
-                    Dim oldSymbol = GetDeclaredSymbol(oldModel, oldNode, cancellationToken)
-                    Dim newSymbol = GetDeclaredSymbol(newModel, newNode, cancellationToken)
-                    Return OneOrMany.Create((oldSymbol, newSymbol, editKind))
-            End Select
+                    result.Add((oldSymbol, newSymbol, editKind))
 
-            Throw ExceptionUtilities.UnexpectedValue(editKind)
-        End Function
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(editKind)
+            End Select
+        End Sub
 
         Private Function TryGetSyntaxNodesForEdit(
             editKind As EditKind,
@@ -867,20 +931,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Return False
             End If
 
-            ' Ignore partial method definition parts.
-            ' Partial method that does not have implementation part is not emitted to metadata.
-            ' Partial method without a definition part is a compilation error.
-            If symbol.Kind = SymbolKind.Method AndAlso CType(symbol, IMethodSymbol).IsPartialDefinition Then
-                Return False
-            End If
-
             symbols = OneOrMany.Create(symbol)
             Return True
+        End Function
+
+        Private Function GetParameterContainingMemberOrType(node As SyntaxNode, otherNode As SyntaxNode, model As SemanticModel, fromOtherMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode), cancellationToken As CancellationToken) As ISymbol
+            Debug.Assert(node Is Nothing OrElse
+                         node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) OrElse
+                         node.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso node.IsParentKind(SyntaxKind.Parameter) OrElse
+                         TypeOf node Is TypeParameterConstraintClauseSyntax)
+
+            ' parameter list, member, or type declaration
+            Dim declaration As SyntaxNode = Nothing
+            If node Is Nothing Then
+                fromOtherMap.TryGetValue(GetContainingDeclaration(otherNode), declaration)
+            Else
+                declaration = GetContainingDeclaration(node)
+            End If
+
+            Return If(declaration IsNot Nothing, GetDeclaredSymbol(model, declaration, cancellationToken), Nothing)
+        End Function
+
+        Private Shared Function GetContainingDeclaration(node As SyntaxNode) As SyntaxNode
+            Return If(node.IsKind(SyntaxKind.ModifiedIdentifier), node.Parent.Parent.Parent, node.Parent.Parent)
         End Function
 
         Friend Overrides ReadOnly Property IsLambda As Func(Of SyntaxNode, Boolean)
             Get
                 Return AddressOf LambdaUtilities.IsLambda
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsNotLambda As Func(Of SyntaxNode, Boolean)
+            Get
+                Return AddressOf LambdaUtilities.IsNotLambda
             End Get
         End Property
 
@@ -924,31 +1008,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.AggregateClause
                     Dim oldInfo = oldModel.GetAggregateClauseSymbolInfo(DirectCast(oldNode, AggregateClauseSyntax), cancellationToken)
                     Dim newInfo = newModel.GetAggregateClauseSymbolInfo(DirectCast(newNode, AggregateClauseSyntax), cancellationToken)
-                    Return MemberSignaturesEquivalent(oldInfo.Select1.Symbol, newInfo.Select1.Symbol) AndAlso
-                           MemberSignaturesEquivalent(oldInfo.Select2.Symbol, newInfo.Select2.Symbol)
+                    Return MemberOrDelegateSignaturesEquivalent(oldInfo.Select1.Symbol, newInfo.Select1.Symbol) AndAlso
+                           MemberOrDelegateSignaturesEquivalent(oldInfo.Select2.Symbol, newInfo.Select2.Symbol)
 
                 Case SyntaxKind.CollectionRangeVariable
                     Dim oldInfo = oldModel.GetCollectionRangeVariableSymbolInfo(DirectCast(oldNode, CollectionRangeVariableSyntax), cancellationToken)
                     Dim newInfo = newModel.GetCollectionRangeVariableSymbolInfo(DirectCast(newNode, CollectionRangeVariableSyntax), cancellationToken)
-                    Return MemberSignaturesEquivalent(oldInfo.AsClauseConversion.Symbol, newInfo.AsClauseConversion.Symbol) AndAlso
-                           MemberSignaturesEquivalent(oldInfo.SelectMany.Symbol, newInfo.SelectMany.Symbol) AndAlso
-                           MemberSignaturesEquivalent(oldInfo.ToQueryableCollectionConversion.Symbol, newInfo.ToQueryableCollectionConversion.Symbol)
+                    Return MemberOrDelegateSignaturesEquivalent(oldInfo.AsClauseConversion.Symbol, newInfo.AsClauseConversion.Symbol) AndAlso
+                           MemberOrDelegateSignaturesEquivalent(oldInfo.SelectMany.Symbol, newInfo.SelectMany.Symbol) AndAlso
+                           MemberOrDelegateSignaturesEquivalent(oldInfo.ToQueryableCollectionConversion.Symbol, newInfo.ToQueryableCollectionConversion.Symbol)
 
                 Case SyntaxKind.FunctionAggregation
                     Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, FunctionAggregationSyntax), cancellationToken)
                     Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, FunctionAggregationSyntax), cancellationToken)
-                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+                    Return MemberOrDelegateSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
 
                 Case SyntaxKind.ExpressionRangeVariable
                     Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, ExpressionRangeVariableSyntax), cancellationToken)
                     Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, ExpressionRangeVariableSyntax), cancellationToken)
-                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+                    Return MemberOrDelegateSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
 
                 Case SyntaxKind.AscendingOrdering,
                      SyntaxKind.DescendingOrdering
                     Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, OrderingSyntax), cancellationToken)
                     Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, OrderingSyntax), cancellationToken)
-                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+                    Return MemberOrDelegateSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
 
                 Case SyntaxKind.FromClause,
                      SyntaxKind.WhereClause,
@@ -962,7 +1046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.SelectClause
                     Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, QueryClauseSyntax), cancellationToken)
                     Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, QueryClauseSyntax), cancellationToken)
-                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+                    Return MemberOrDelegateSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
 
                 Case Else
                     Return True
@@ -997,7 +1081,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Shared Function TryGetDiagnosticSpanImpl(kind As SyntaxKind, node As SyntaxNode, editKind As EditKind) As TextSpan?
             Select Case kind
                 Case SyntaxKind.CompilationUnit
-                    Return New TextSpan()
+                    Dim unit = DirectCast(node, CompilationUnitSyntax)
+
+                    Dim globalNode = unit.ChildNodes().FirstOrDefault()
+                    If globalNode Is Nothing Then
+                        Return Nothing
+                    End If
+
+                    Return GetDiagnosticSpan(globalNode, editKind)
 
                 Case SyntaxKind.OptionStatement,
                      SyntaxKind.ImportsStatement
@@ -1344,6 +1435,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Select Case symbol.MethodKind
                 Case MethodKind.StaticConstructor
                     Return VBFeaturesResources.Shared_constructor
+                Case MethodKind.LambdaMethod
+                    Return VBFeaturesResources.Lambda
                 Case Else
                     Return MyBase.GetDisplayName(symbol)
             End Select
@@ -1628,15 +1721,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind)
-                ReportError(kind, {GetDisplayName(If(_newNode, _oldNode), EditKind.Update)})
-            End Sub
-
-            Private Sub ReportError(kind As RudeEditKind, args As String())
-                _diagnostics.Add(New RudeEditDiagnostic(kind, GetSpan(), If(_newNode, _oldNode), args))
-            End Sub
-
-            Private Sub ReportError(kind As RudeEditKind, spanNode As SyntaxNode, displayNode As SyntaxNode)
-                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpan(spanNode, _kind), displayNode, {GetDisplayName(displayNode, EditKind.Update)}))
+                _diagnostics.Add(New RudeEditDiagnostic(
+                    kind,
+                    span:=GetSpan(),
+                    node:=If(_newNode, _oldNode),
+                    arguments:={GetDisplayName(If(_newNode, _oldNode), EditKind.Update)}))
             End Sub
 
             Private Function GetSpan() As TextSpan
@@ -1855,30 +1944,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
                 End Select
             End Sub
-
-            Public Sub ClassifyMemberOrLambdaBodyRudeUpdates(newBody As DeclarationBody)
-                For Each root In newBody.RootNodes
-                    Dim lambdaBody = TryCast(newBody, LambdaBody)
-                    For Each topMostBodyNode In If(lambdaBody IsNot Nothing, lambdaBody.GetExpressionsAndStatements(), {root})
-                        For Each node In topMostBodyNode.DescendantNodesAndSelf(AddressOf LambdaUtilities.IsNotLambda)
-                            Select Case node.Kind()
-                                Case SyntaxKind.AggregateClause,
-                                     SyntaxKind.GroupByClause,
-                                     SyntaxKind.SimpleJoinClause,
-                                     SyntaxKind.GroupJoinClause
-                                    ReportError(RudeEditKind.ComplexQueryExpression, node, Me._newNode)
-                                    Return
-
-                                Case SyntaxKind.LocalDeclarationStatement
-                                    Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
-                                    If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
-                                        ReportError(RudeEditKind.UpdateStaticLocal)
-                                    End If
-                            End Select
-                        Next
-                    Next
-                Next
-            End Sub
 #End Region
         End Structure
 
@@ -1917,10 +1982,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             classifier.ClassifyEdit()
         End Sub
 
-        Friend Overrides Sub ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newDeclaration As SyntaxNode, newBody As DeclarationBody, span As TextSpan?)
-            Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newDeclaration, EditKind.Update, span:=span)
-            classifier.ClassifyMemberOrLambdaBodyRudeUpdates(newBody)
-        End Sub
+        Friend Overrides Function HasUnsupportedOperation(nodes As IEnumerable(Of SyntaxNode), <Out> ByRef unsupportedNode As SyntaxNode, <Out> ByRef rudeEdit As RudeEditKind) As Boolean
+            ' Disallow editing the body even if the change is only in trivia.
+            ' The compiler might not emit equivallent IL for these constructs (e.g. different names of backing fields for static locals).
+
+            For Each node In nodes
+                Select Case node.Kind()
+                    Case SyntaxKind.AggregateClause,
+                         SyntaxKind.GroupByClause,
+                         SyntaxKind.SimpleJoinClause,
+                         SyntaxKind.GroupJoinClause
+                        unsupportedNode = node
+                        rudeEdit = RudeEditKind.ComplexQueryExpression
+                        Return True
+
+                    Case SyntaxKind.LocalDeclarationStatement
+                        Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                        If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                            unsupportedNode = node
+                            rudeEdit = RudeEditKind.UpdateStaticLocal
+                            Return True
+                        End If
+                End Select
+            Next
+
+            unsupportedNode = Nothing
+            rudeEdit = RudeEditKind.None
+            Return False
+        End Function
 
 #End Region
 
@@ -2011,10 +2100,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Exception Handling Rude Edits"
 
-        Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
+        Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, root As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
             Dim result = New List(Of SyntaxNode)()
 
-            While node IsNot Nothing
+            While node IsNot root
                 Dim kind = node.Kind
 
                 Select Case kind
@@ -2040,6 +2129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Exit While
                 End If
 
+                Debug.Assert(node.Parent IsNot Nothing)
                 node = node.Parent
             End While
 
@@ -2127,7 +2217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
         End Function
 
-        Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
+        Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnosticContext As DiagnosticContext, oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
 
             If newNode.IsKind(SyntaxKind.AwaitExpression) AndAlso oldNode.IsKind(SyntaxKind.AwaitExpression) Then
@@ -2137,7 +2227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' If the old statement has spilled state and the new doesn't, the edit is ok. We'll just not use the spilled state.
                 If Not SyntaxFactory.AreEquivalent(oldContainingStatementPart, newContainingStatementPart) AndAlso
                    Not HasNoSpilledState(newNode, newContainingStatementPart) Then
-                    diagnostics.Add(New RudeEditDiagnostic(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span))
+                    diagnosticContext.Report(RudeEditKind.AwaitStatementUpdate, newContainingStatementPart.Span)
                 End If
             End If
         End Sub
@@ -2239,40 +2329,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #Region "Rude Edits around Active Statement"
 
         Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
-                                                                       match As Match(Of SyntaxNode),
+                                                                       forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
+                                                                       oldBody As DeclarationBody,
                                                                        newActiveStatement As SyntaxNode,
+                                                                       newBody As DeclarationBody,
                                                                        isNonLeaf As Boolean)
 
-            Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(match.NewRoot)
+            Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(newBody)
             If onErrorOrResumeStatement IsNot Nothing Then
                 AddAroundActiveStatementRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
             End If
 
-            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement)
+            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, forwardMap, oldActiveStatement, oldBody.EncompassingAncestor, newActiveStatement, newBody.EncompassingAncestor)
         End Sub
 
-        Private Shared Function FindOnErrorOrResumeStatement(newDeclarationOrBody As SyntaxNode) As SyntaxNode
-            For Each node In newDeclarationOrBody.DescendantNodes(AddressOf ChildrenCompiledInBody)
-                Select Case node.Kind
-                    Case SyntaxKind.OnErrorGoToLabelStatement,
+        Private Shared Function FindOnErrorOrResumeStatement(newBody As DeclarationBody) As SyntaxNode
+            For Each newRoot In newBody.RootNodes
+                For Each node In newRoot.DescendantNodes(AddressOf ChildrenCompiledInBody)
+                    Select Case node.Kind
+                        Case SyntaxKind.OnErrorGoToLabelStatement,
                          SyntaxKind.OnErrorGoToMinusOneStatement,
                          SyntaxKind.OnErrorGoToZeroStatement,
                          SyntaxKind.OnErrorResumeNextStatement,
                          SyntaxKind.ResumeStatement,
                          SyntaxKind.ResumeNextStatement,
                          SyntaxKind.ResumeLabelStatement
-                        Return node
-                End Select
+                            Return node
+                    End Select
+                Next
             Next
 
             Return Nothing
         End Function
 
         Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
-                                                                            match As Match(Of SyntaxNode),
+                                                                            forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
-                                                                            newActiveStatement As SyntaxNode)
+                                                                            oldEncompassingAncestor As SyntaxNode,
+                                                                            newActiveStatement As SyntaxNode,
+                                                                            newEncompassingAncestor As SyntaxNode)
 
             ' Rude Edits for Using/SyncLock/With/ForEach statements that are added/updated around an active statement.
             ' Although such changes are technically possible, they might lead to confusion since 
@@ -2283,19 +2379,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' 
             ' Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
-            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.SyncLockBlock), oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.SyncLockBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.WithBlock), oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.WithBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.WithStatement.Expression, n2.WithStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.UsingBlock), oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.UsingBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.ForEachBlock), oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.ForEachBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                                DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))

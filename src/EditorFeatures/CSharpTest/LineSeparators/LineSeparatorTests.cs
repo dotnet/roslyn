@@ -28,433 +28,492 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
         [Fact]
         public async Task TestEmptyClass()
         {
-            var file = @"class C
-{
-}";
+            var file = """
+                class C
+                {
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [Fact]
         public async Task TestClassWithOneMethod()
         {
-            var file = @"class C
-{
-    void M()
-    {
-    }
-}";
+            var file = """
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 1);
         }
 
         [Fact]
         public async Task TestClassWithTwoMethods()
         {
-            var file = @"class C
-{
-    void M()
-    {
-    }
+            var file = """
+                class C
+                {
+                    void M()
+                    {
+                    }
 
-    void N()
-    {
-    }
-}";
+                    void N()
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task TestClassWithTwoNonEmptyMethods()
         {
-            var file = @"class C
-{
-    void M()
-    {
-        N();
-    }
+            var file = """
+                class C
+                {
+                    void M()
+                    {
+                        N();
+                    }
 
-    void N()
-    {
-        M();
-    }
-}";
+                    void N()
+                    {
+                        M();
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 1, 4);
         }
 
         [Fact]
         public async Task TestClassWithMethodAndField()
         {
-            var file = @"class C
-{
-    void M()
-    {
-    }
+            var file = """
+                class C
+                {
+                    void M()
+                    {
+                    }
 
-    int field;
-}";
+                    int field;
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task TestEmptyNamespace()
         {
-            var file = @"namespace N
-{
-}";
+            var file = """
+                namespace N
+                {
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [Fact]
         public async Task TestNamespaceAndClass()
         {
-            var file = @"namespace N
-{
-    class C
-    {
-    }
-}";
+            var file = """
+                namespace N
+                {
+                    class C
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 1);
         }
 
         [Fact]
         public async Task TestNamespaceAndTwoClasses()
         {
-            var file = @"namespace N
-{
-    class C
-    {
-    }
+            var file = """
+                namespace N
+                {
+                    class C
+                    {
+                    }
 
-    class D
-    {
-    }
-}";
+                    class D
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task TestNamespaceAndTwoClassesAndDelegate()
         {
-            var file = @"namespace N
-{
-    class C
-    {
-    }
+            var file = """
+                namespace N
+                {
+                    class C
+                    {
+                    }
 
-    class D
-    {
-    }
+                    class D
+                    {
+                    }
 
-    delegate void Del();
-}";
+                    delegate void Del();
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 1, 3);
         }
 
         [Fact]
         public async Task TestNestedClass()
         {
-            var file = @"class C
-{
-    class N
-    {
-    }
-}";
+            var file = """
+                class C
+                {
+                    class N
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 1);
         }
 
         [Fact]
         public async Task TestTwoNestedClasses()
         {
-            var file = @"class C
-{
-    class N
-    {
-    }
+            var file = """
+                class C
+                {
+                    class N
+                    {
+                    }
 
-    class N2
-    {
-    }
-}";
+                    class N2
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task TestStruct()
         {
-            var file = @"struct S
-{
-}";
+            var file = """
+                struct S
+                {
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [Fact]
         public async Task TestInterface()
         {
-            var file = @"interface I
-{
-}";
+            var file = """
+                interface I
+                {
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [Fact]
         public async Task TestEnum()
         {
-            var file = @"enum E
-{
-}";
+            var file = """
+                enum E
+                {
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [Fact]
         public async Task TestProperty()
         {
-            var file = @"class C
-{
-    int Prop
-    {
-        get
-        {
-            return 0;
-        }
-        set
-        {
-        }
-    }
-}";
+            var file = """
+                class C
+                {
+                    int Prop
+                    {
+                        get
+                        {
+                            return 0;
+                        }
+                        set
+                        {
+                        }
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 4);
         }
 
         [Fact]
         public async Task TestPropertyAndField()
         {
-            var file = @"class C
-{
-    int Prop
-    {
-        get
-        {
-            return 0;
-        }
-        set
-        {
-        }
-    }
+            var file = """
+                class C
+                {
+                    int Prop
+                    {
+                        get
+                        {
+                            return 0;
+                        }
+                        set
+                        {
+                        }
+                    }
 
-    int field;
-}";
+                    int field;
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 3, 5);
         }
 
         [Fact]
         public async Task TestClassWithFieldAndMethod()
         {
-            var file = @"class C
-{
-    int field;
+            var file = """
+                class C
+                {
+                    int field;
 
-    void M()
-    {
-    }
-}";
+                    void M()
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task UsingDirective()
         {
-            var file = @"using System;
+            var file = """
+                using System;
 
-class C
-{
-}";
+                class C
+                {
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 1);
         }
 
         [Fact]
         public async Task UsingDirectiveInNamespace()
         {
-            var file = @"namespace N
-{
-    using System;
+            var file = """
+                namespace N
+                {
+                    using System;
 
-    class C
-    {
-    }
-}";
+                    class C
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task UsingDirectiveInFileScopedNamespace()
         {
-            var file = @"namespace N;
+            var file = """
+                namespace N;
 
-using System;
+                using System;
 
-class C
-{
-}
-";
+                class C
+                {
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 1);
         }
 
         [Fact]
         public async Task PropertyStyleEventDeclaration()
         {
-            var file = @"class C
-{
-    event EventHandler E
-    {
-        add { }
-        remove { }
-    }
+            var file = """
+                class C
+                {
+                    event EventHandler E
+                    {
+                        add { }
+                        remove { }
+                    }
 
-    int i;
-}";
+                    int i;
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 2, 4);
         }
 
         [Fact]
         public async Task IndexerDeclaration()
         {
-            var file = @"class C
-{
-    int this[int i]
-    {
-        get { return i; }
-        set { }
-    }
+            var file = """
+                class C
+                {
+                    int this[int i]
+                    {
+                        get { return i; }
+                        set { }
+                    }
 
-    int i;
-}";
+                    int i;
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 3, 5);
         }
 
         [Fact]
         public async Task Constructor()
         {
-            var file = @"class C
-{
-    C()
-    {
-    }
+            var file = """
+                class C
+                {
+                    C()
+                    {
+                    }
 
-    int i;
-}";
+                    int i;
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task Destructor()
         {
-            var file = @"class C
-{
-    ~C()
-    {
-    }
+            var file = """
+                class C
+                {
+                    ~C()
+                    {
+                    }
 
-    int i;
-}";
+                    int i;
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task Operator()
         {
-            var file = @"class C
-{
-    static C operator +(C lhs, C rhs)
-    {
-    }
+            var file = """
+                class C
+                {
+                    static C operator +(C lhs, C rhs)
+                    {
+                    }
 
-    int i;
-}";
+                    int i;
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task ConversionOperator()
         {
-            var file = @"class C
-{
-    static implicit operator C(int i)
-    {
-    }
+            var file = """
+                class C
+                {
+                    static implicit operator C(int i)
+                    {
+                    }
 
-    int i;
-}";
+                    int i;
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [Fact]
         public async Task Bug930292()
         {
-            var file = @"class Program
-{
-void A() { }
-void B() { }
-void C() { }
-void D() { }
-}
-";
+            var file = """
+                class Program
+                {
+                void A() { }
+                void B() { }
+                void C() { }
+                void D() { }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 4);
         }
 
         [Fact]
         public async Task Bug930289()
         {
-            var file = @"namespace Roslyn.Compilers.CSharp
-{
-internal struct ArrayElement<T>
-{
-internal T Value;
-internal ArrayElement(T value) { this.Value = value; }
-public static implicit operator ArrayElement<T>(T value) { return new ArrayElement<T>(value); }
-}
-}
-";
+            var file = """
+                namespace Roslyn.Compilers.CSharp
+                {
+                internal struct ArrayElement<T>
+                {
+                internal T Value;
+                internal ArrayElement(T value) { this.Value = value; }
+                public static implicit operator ArrayElement<T>(T value) { return new ArrayElement<T>(value); }
+                }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 6);
         }
 
         [Fact]
         public async Task TestConsoleApp()
         {
-            var file = @"using System;
-using System.Collections.Generic;
-using System.Linq;
+            var file = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}";
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """;
             await AssertTagsOnBracesOrSemicolonsAsync(file, 2, 4);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
         public async Task ExpressionBodiedProperty()
         {
-            await AssertTagsOnBracesOrSemicolonsAsync(@"class C
-{
-    int Prop => 3;
+            await AssertTagsOnBracesOrSemicolonsAsync("""
+                class C
+                {
+                    int Prop => 3;
 
-    void M()
-    {
-    }
-}", 0, 2);
+                    void M()
+                    {
+                    }
+                }
+                """, 0, 2);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
         public async Task ExpressionBodiedIndexer()
         {
-            await AssertTagsOnBracesOrSemicolonsAsync(@"class C
-{
-    int this[int i] => 3;
+            await AssertTagsOnBracesOrSemicolonsAsync("""
+                class C
+                {
+                    int this[int i] => 3;
 
-    void M()
-    {
-    }
-}", 0, 2);
+                    void M()
+                    {
+                    }
+                }
+                """, 0, 2);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
@@ -462,14 +521,16 @@ class Program
         {
             // This is not valid code, and parses all wrong, but just in case a user writes it.  Note
             // the 3 is because there is a skipped } in the event declaration.
-            await AssertTagsOnBracesOrSemicolonsAsync(@"class C
-{
-    event EventHandler MyEvent => 3;
+            await AssertTagsOnBracesOrSemicolonsAsync("""
+                class C
+                {
+                    event EventHandler MyEvent => 3;
 
-    void M()
-    {
-    }
-}", 3);
+                    void M()
+                    {
+                    }
+                }
+                """, 3);
         }
 
         #region Negative (incomplete) tests

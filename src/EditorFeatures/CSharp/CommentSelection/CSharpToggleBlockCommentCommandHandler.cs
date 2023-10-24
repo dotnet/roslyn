@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             // Only search for block comments intersecting the lines in the selections.
             return root.DescendantTrivia(linesContainingSelections)
-                .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                .Where(trivia => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia)
                 .SelectAsArray(blockCommentTrivia => blockCommentTrivia.Span);
         }
     }

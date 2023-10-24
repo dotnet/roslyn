@@ -326,6 +326,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 length = 0;
                 return false;
             }
+
+            internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+            {
+                builderType = null;
+                methodName = null;
+                return false;
+            }
         }
     }
 }

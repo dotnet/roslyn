@@ -1838,27 +1838,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 """, parameters: new TestParameters(globalOptions: options));
         }
 
-        [Fact]
-        public async Task TestInWithMethod_Parameters()
+        [Theory, CombinatorialData]
+        public async Task TestRefWithMethod_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
         {
             await TestInRegularAndScriptAsync(
-                """
+                $$"""
                 abstract class TestParent
                 {
-                    public abstract void Method(in int p);
+                    public abstract void Method({{modifier}} int p);
                 }
                 public class [|Test|] : TestParent
                 {
                 }
                 """,
-                """
+                $$"""
                 abstract class TestParent
                 {
-                    public abstract void Method(in int p);
+                    public abstract void Method({{modifier}} int p);
                 }
                 public class Test : TestParent
                 {
-                    public override void Method(in int p)
+                    public override void Method({{modifier}} int p)
                     {
                         throw new System.NotImplementedException();
                     }
@@ -1919,27 +1919,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 """);
         }
 
-        [Fact]
-        public async Task TestInWithIndexer_Parameters()
+        [Theory, CombinatorialData]
+        public async Task TestRefWithIndexer_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
         {
             await TestInRegularAndScriptAsync(
-                """
+                $$"""
                 abstract class TestParent
                 {
-                    public abstract int this[in int p] { set; }
+                    public abstract int this[{{modifier}} int p] { set; }
                 }
                 public class [|Test|] : TestParent
                 {
                 }
                 """,
-                """
+                $$"""
                 abstract class TestParent
                 {
-                    public abstract int this[in int p] { set; }
+                    public abstract int this[{{modifier}} int p] { set; }
                 }
                 public class Test : TestParent
                 {
-                    public override int this[in int p] { set => throw new System.NotImplementedException(); }
+                    public override int this[{{modifier}} int p] { set => throw new System.NotImplementedException(); }
                 }
                 """);
         }

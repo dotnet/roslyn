@@ -120,6 +120,9 @@
   <data name="CSharp" xml:space="preserve">
     <value>C#</value>
   </data>
+  <data name="CSharp_Interactive" xml:space="preserve">
+    <value>C# Interactive</value>
+  </data>
   <data name="Surround_With" xml:space="preserve">
     <value>Surround With</value>
   </data>
