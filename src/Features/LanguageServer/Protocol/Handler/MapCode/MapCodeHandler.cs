@@ -50,13 +50,17 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
         {
             var mappingResult = await MapCodeAsync(codeMapping).ConfigureAwait(false);
 
-            // Assume no two codeMappings target a common document.
-            if (mappingResult is (Uri uri, TextEdit[] textEdits))
+            if (mappingResult is not (Uri uri, TextEdit[] textEdits))
             {
-                if (!uriToEditsMap.TryAdd(uri, textEdits))
-                {
-                    context.TraceWarning($"mapCode sub-request for {uri} failed: multiple MapCodeMappings for the same document is not supported.");
-                }
+                // Failed the entire request if any of the sub-requests failed
+                context.TraceWarning("mapCode Request failed: a sub-request failed");
+                return null;
+            }
+
+            if (!uriToEditsMap.TryAdd(uri, textEdits))
+            {
+                context.TraceWarning($"mapCode sub-request for {uri} failed: multiple MapCodeMappings for the same document is not supported.");
+                return null;
             }
         }
 
