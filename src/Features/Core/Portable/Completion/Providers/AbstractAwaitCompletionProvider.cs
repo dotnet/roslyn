@@ -110,8 +110,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (isAwaitKeywordContext)
             {
                 builder.Add(new KeyValuePair<string, string>(AddAwaitAtCurrentPosition, string.Empty));
+                var properties = builder.ToImmutableAndClear();
+
                 context.AddItem(CreateCompletionItem(
-                    ref builder.AsRef(), _awaitKeyword, _awaitKeyword,
+                    properties, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Asynchronously_waits_for_the_task_to_finish,
                     isComplexTextEdit: makeContainerAsync,
                     appendConfigureAwait: false));
@@ -120,9 +122,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 Contract.ThrowIfTrue(dotAwaitContext == DotAwaitContext.None);
 
+                var properties = builder.ToImmutableAndClear();
+
                 // add the `await` option that will remove the dot and add `await` to the start of the expression.
                 context.AddItem(CreateCompletionItem(
-                    ref builder.AsRef(), _awaitKeyword, _awaitKeyword,
+                    properties, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Await_the_preceding_expression,
                     isComplexTextEdit: true,
                     appendConfigureAwait: false));
@@ -130,9 +134,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
                 {
                     // add the `awaitf` option to do the same, but also add .ConfigureAwait(false);
-                    builder.Add(new KeyValuePair<string, string>(AppendConfigureAwait, string.Empty));
+                    properties = properties.Add(new KeyValuePair<string, string>(AppendConfigureAwait, string.Empty));
                     context.AddItem(CreateCompletionItem(
-                        ref builder.AsRef(), _awaitfDisplayText, _awaitfFilterText,
+                        properties, _awaitfDisplayText, _awaitfFilterText,
                         string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
                         isComplexTextEdit: true,
                         appendConfigureAwait: true));
@@ -142,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return;
 
             static CompletionItem CreateCompletionItem(
-                ref TemporaryArray<KeyValuePair<string, string>> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit, bool appendConfigureAwait)
+                ImmutableArray<KeyValuePair<string, string>> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit, bool appendConfigureAwait)
             {
                 var description = appendConfigureAwait
                     ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, tooltip))
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     glyph: Glyph.Keyword,
                     description: description,
                     isComplexTextEdit: isComplexTextEdit,
-                    properties: completionProperties.ToImmutableAndClear());
+                    properties: completionProperties);
             }
         }
 
