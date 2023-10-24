@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
-        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
+        <target state="translated">“{0}”的此版本无法与集合表达式一起使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
