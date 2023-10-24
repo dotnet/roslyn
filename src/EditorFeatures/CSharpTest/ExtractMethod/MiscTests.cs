@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -116,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [WpfFact]
-        public void TestExtractMethodCommandHandlerErrorMessage()
+        public async Task TestExtractMethodCommandHandlerErrorMessage()
         {
             var markupCode = """
                 class A
@@ -134,11 +136,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             var callBackService = workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
             var called = false;
-            callBackService.NotificationCallback = (t, m, s) => called = true;
+            callBackService.NotificationCallback = (_, _, _) => called = true;
 
             var handler = workspace.ExportProvider.GetCommandHandler<ExtractMethodCommandHandler>(PredefinedCommandHandlerNames.ExtractMethod, ContentTypeNames.CSharpContentType);
 
             handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
+
+            var waiter = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.ExtractMethod);
+            await waiter.ExpeditedWaitAsync();
 
             Assert.True(called);
         }
