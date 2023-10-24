@@ -111,26 +111,28 @@ namespace Roslyn.Utilities
             // where edges exist as we need that edit distance to appropriately determine which edges to walk 
             // in the tree.
             var characterSpan = currentNode.WordSpan;
-            var edgesExist = currentNode.EdgeCount > 0;
 
+            // The GetEditDistance call below serves two purposes:
+            // 1) To determine whether currentNode should be added to the result
+            // 2) To determine whether children need to be searched
+            //
+            // If there are no edges, we don't need the information to determine case 2. So, as a
+            // performance optimization, in that case we send in a threshold to GetEditDistance
+            // that indicates only the work necessary to determine case 1 need be performed.
+            var edgesExist = currentNode.EdgeCount > 0;
             var editDistance = EditDistance.GetEditDistance(
                 _concatenatedLowerCaseWords.AsSpan(characterSpan.Start, characterSpan.Length),
                 queryCharacters.AsSpan(0, queryLength),
                 edgesExist ? int.MaxValue : threshold);
 
+            // Case 1
             if (editDistance <= threshold)
             {
                 // Found a match.
                 result.Add(new string(_concatenatedLowerCaseWords, characterSpan.Start, characterSpan.Length));
             }
 
-            // The GetEditDistance call above serves two purposes:
-            // 1) To determine whether currentNode should be added to the result (handled above)
-            // 2) To determine whether children need to be searched (handled below)
-            //
-            // If there are no edges, we don't need the information to determine case 2. So, as a
-            // performance optimization, in that case we send in a threshold to GetEditDistance
-            // that indicates only the work necessary to determine case 1 need be performed.
+            // Case 2
             if (edgesExist)
             {
                 var min = editDistance - threshold;
