@@ -1981,11 +1981,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitCollectionExpression(ImmutableArray<BoundExpression> elements)
+        private void VisitCollectionExpression(ImmutableArray<BoundNode> elements)
         {
             foreach (var element in elements)
             {
-                VisitRvalue(element);
+                if (element is BoundExpression expression)
+                {
+                    VisitRvalue(expression);
+                }
+                else
+                {
+                    Visit(element);
+                }
             }
         }
 
@@ -2764,8 +2771,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // foreach [await] ( var v in node.Expression ) { node.Body; node.ContinueLabel: } node.BreakLabel:
             VisitForEachExpression(node);
-            var breakState = this.State.Clone();
             LoopHead(node);
+            var breakState = this.State.Clone();
             VisitForEachIterationVariables(node);
             VisitStatement(node.Body);
             ResolveContinues(node.ContinueLabel);

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -52,12 +52,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var namedTypes = new MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)>(
                     project.Services.GetRequiredService<ISyntaxFactsService>().StringComparer);
 
+                var solutionKey = SolutionKey.ToSolutionKey(project.Solution);
+
+                var regularDocumentStates = project.State.DocumentStates;
+                var sourceGeneratorDocumentStates = await project.Solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+
+                var allStates =
+                    regularDocumentStates.States.Select(kvp => (kvp.Key, kvp.Value)).Concat(
+                    sourceGeneratorDocumentStates.States.Select(kvp => (kvp.Key, (DocumentState)kvp.Value)));
+
                 // Avoid realizing actual Document instances here.  We don't need them, and it can allocate a lot of
                 // memory as we do background indexing.
-                foreach (var (documentId, document) in project.State.DocumentStates.States)
+                foreach (var (documentId, document) in allStates)
                 {
                     var syntaxTreeIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(
-                        SolutionKey.ToSolutionKey(project.Solution), project.State, document, cancellationToken).ConfigureAwait(false);
+                        solutionKey, project.State, document, cancellationToken).ConfigureAwait(false);
                     foreach (var info in syntaxTreeIndex.DeclaredSymbolInfos)
                     {
                         switch (info.Kind)

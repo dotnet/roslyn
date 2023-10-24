@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MangleName => false;
 
         internal sealed override bool IsFileLocal => false;
-        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+        internal sealed override FileIdentifier AssociatedFileIdentifier => null;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
 

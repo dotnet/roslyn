@@ -446,8 +446,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildActionTelemetryTable",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrepareTests", "src\Tools\PrepareTests\PrepareTests.csproj", "{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.Cocoa", "src\EditorFeatures\Core.Cocoa\Microsoft.CodeAnalysis.EditorFeatures.Cocoa.csproj", "{67F44564-759B-4643-BD86-407B010B0B74}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Test.Utilities", "src\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj", "{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.XunitHook", "src\EditorFeatures\XunitHook\Microsoft.CodeAnalysis.XunitHook.csproj", "{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}"
@@ -546,6 +544,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.ServiceHub.Setup.arm64", "src\VisualStudio\Setup.ServiceHub\arm64\Roslyn.VisualStudio.ServiceHub.Setup.arm64.csproj", "{09E88382-0D7B-4A15-B1AF-0B89A5B67227}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK", "src\Tools\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj", "{A833B11C-5072-4A1F-A32B-2700433B0D3D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost", "src\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj", "{B1481D94-682E-46EC-ADBE-A16EB46FEEE9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator", "src\Tools\ExternalAccess\EditorConfigGenerator\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj", "{09AEDEE4-6358-47C9-8022-3BD37A518070}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1173,10 +1175,6 @@ Global
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{67F44564-759B-4643-BD86-407B010B0B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{67F44564-759B-4643-BD86-407B010B0B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{67F44564-759B-4643-BD86-407B010B0B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{67F44564-759B-4643-BD86-407B010B0B74}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1349,6 +1347,14 @@ Global
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1481D94-682E-46EC-ADBE-A16EB46FEEE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1481D94-682E-46EC-ADBE-A16EB46FEEE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1481D94-682E-46EC-ADBE-A16EB46FEEE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1481D94-682E-46EC-ADBE-A16EB46FEEE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09AEDEE4-6358-47C9-8022-3BD37A518070}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09AEDEE4-6358-47C9-8022-3BD37A518070}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09AEDEE4-6358-47C9-8022-3BD37A518070}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09AEDEE4-6358-47C9-8022-3BD37A518070}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1550,7 +1556,6 @@ Global
 		{8D22FC91-BDFE-4342-999B-D695E1C57E85} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{2801F82B-78CE-4BAE-B06F-537574751E2E} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
-		{67F44564-759B-4643-BD86-407B010B0B74} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{41ED1BFA-FDAD-4FE4-8118-DB23FB49B0B0} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
@@ -1598,6 +1603,8 @@ Global
 		{172F3A04-644B-492C-9632-B07B52A5C0C4} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{09E88382-0D7B-4A15-B1AF-0B89A5B67227} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{A833B11C-5072-4A1F-A32B-2700433B0D3D} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{B1481D94-682E-46EC-ADBE-A16EB46FEEE9} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
+		{09AEDEE4-6358-47C9-8022-3BD37A518070} = {8977A560-45C2-4EC2-A849-97335B382C74}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

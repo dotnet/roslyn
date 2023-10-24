@@ -79,7 +79,7 @@ Module Program
     End Function
 End Module";
 
-            MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
             VisualStudio.Editor.Verify.TextContains(expectedText);
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(InlineRenameDialog_OutOfProc.ValidRenameTag));
 
@@ -122,7 +122,7 @@ Module Program
     End Sub
 End Module";
 
-            MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
             Assert.Equal(expectedText, VisualStudio.Editor.GetText());
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(InlineRenameDialog_OutOfProc.ValidRenameTag));
         }

@@ -1180,6 +1180,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;
 
+        int IMethodSymbolInternal.ParameterCount => ParameterCount;
+
+        ImmutableArray<IParameterSymbolInternal> IMethodSymbolInternal.Parameters => Parameters.Cast<ParameterSymbol, IParameterSymbolInternal>();
+
         int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 
         IMethodSymbolInternal IMethodSymbolInternal.Construct(params ITypeSymbolInternal[] typeArguments)

@@ -436,5 +436,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.ParameterSymbol(this);
         }
+
+        #region IParameterSymbolInternal
+
+        ITypeSymbolInternal IParameterSymbolInternal.Type => Type;
+
+        #endregion
     }
 }

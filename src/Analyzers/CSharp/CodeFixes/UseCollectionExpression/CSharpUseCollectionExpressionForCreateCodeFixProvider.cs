@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static CSharpCollectionExpressionRewriter;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForCreate), Shared]
@@ -45,7 +46,7 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var unwrapArgument = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UnwrapArgument);
 
         // We want to replace `XXX.Create(...)` with the new collection expression.  To do this, we go through the
-        // following steps.  First, we replace `XXX.Create(a, b, c)` with `new(a, b, c)` (an dummy object creation
+        // following steps.  First, we replace `XXX.Create(a, b, c)` with `new(a, b, c)` (a dummy object creation
         // expression). We then call into our helper which replaces expressions with collection expressions.  The reason
         // for the dummy object creation expression is that it serves as an actual node the rewriting code can attach an
         // initializer to, by which it can figure out appropriate wrapping and indentation for the collection expression
@@ -67,7 +68,7 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider
         var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
         var matches = expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false));
 
-        var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+        var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
             fallbackOptions,
             dummyObjectCreation,

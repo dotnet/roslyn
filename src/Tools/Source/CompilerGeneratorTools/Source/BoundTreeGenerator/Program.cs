@@ -53,12 +53,48 @@ namespace BoundTreeGenerator
                 tree = (Tree)serializer.Deserialize(reader);
             }
 
+            if (!ValidateTree(tree))
+            {
+                Console.WriteLine("Validation failed. Stopping generation");
+                return 1;
+            }
+
             using (var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create), Encoding.UTF8))
             {
                 BoundNodeClassWriter.Write(outfile, tree, targetLanguage);
             }
 
             return 0;
+        }
+
+        private static bool ValidateTree(Tree tree)
+        {
+            bool success = true;
+            foreach (var type in tree.Types)
+            {
+                if (type is not AbstractNode node)
+                {
+                    continue;
+                }
+
+                // BoundConversion is the only node that can have a `Conversion` field
+                if (type.Name == "BoundConversion")
+                {
+                    continue;
+                }
+
+                foreach (var field in node.Fields)
+                {
+                    if (field.Type == "Conversion")
+                    {
+                        Console.WriteLine($"Error: {type.Name} has a field {field.Name} of type 'Conversion'. Types that are not BoundConversions" +
+                                                 " should represent conversions as actual BoundConversion nodes, with placeholders if necessary.");
+                        success = false;
+                    }
+                }
+            }
+
+            return success;
         }
     }
 }

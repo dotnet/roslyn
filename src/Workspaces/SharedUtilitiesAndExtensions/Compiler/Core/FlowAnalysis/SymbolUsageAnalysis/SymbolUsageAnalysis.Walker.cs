@@ -255,7 +255,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             }
 
             public override void VisitParameterReference(IParameterReferenceOperation operation)
-                => OnReferenceFound(operation.Parameter, operation);
+            {
+                if (operation.Parameter.IsPrimaryConstructor(_cancellationToken))
+                {
+                    // Bail out for primary constructor parameters.
+                    return;
+                }
+
+                OnReferenceFound(operation.Parameter, operation);
+            }
 
             public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
             {

@@ -170,9 +170,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// For example, UNC paths with invalid characters in server name.
         /// </exception>
         public static Uri CreateAbsoluteUri(string absolutePath)
+        {
+            var uriString = IsAscii(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath);
+            try
+            {
 #pragma warning disable RS0030 // Do not use banned APIs
-            => new(IsAscii(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath), UriKind.Absolute);
+                return new(uriString, UriKind.Absolute);
 #pragma warning restore
+
+            }
+            catch (UriFormatException e)
+            {
+                // The standard URI format exception does not include the failing path, however
+                // in pretty much all cases we need to know the URI string (and original string) in order to fix the issue.
+                throw new UriFormatException($"Failed create URI from '{uriString}'; original string: '{absolutePath}'", e);
+            }
+        }
 
         // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
         internal static string GetAbsoluteUriString(string absolutePath)
@@ -879,15 +892,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             static string GetStyledText(TaggedText taggedText, bool isInCodeBlock)
             {
-                var text = isInCodeBlock ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
+                var isCode = isInCodeBlock || taggedText.Style is TaggedTextStyle.Code;
+                var text = isCode ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
 
                 // For non-cref links, the URI is present in both the hint and target.
                 if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
                     return $"[{text}]({taggedText.NavigationHint})";
 
                 // Markdown ignores spaces at the start of lines outside of code blocks, 
-                // so to get indented lines we replace the spaces with these.
-                if (!isInCodeBlock)
+                // so we replace regular spaces with non-breaking spaces to ensure structural space is retained.
+                // We want to use regular spaces everywhere else to allow the client to wrap long text.
+                if (!isCode && taggedText.Tag is TextTags.Space or TextTags.ContainerStart)
                     text = text.Replace(" ", "&nbsp;");
 
                 return taggedText.Style switch

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -25,7 +23,10 @@ internal readonly struct UpdateExpressionState<
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
 {
-    private const string AddRangeName = nameof(List<int>.AddRange);
+    private static readonly ImmutableArray<(string name, bool isLinq)> s_multiAddNames = ImmutableArray.Create(
+        (nameof(List<int>.AddRange), isLinq: false),
+        (nameof(Enumerable.Concat), isLinq: true),
+        (nameof(Enumerable.Append), isLinq: true));
 
     public readonly SemanticModel SemanticModel;
     public readonly ISyntaxFacts SyntaxFacts;
@@ -38,7 +39,7 @@ internal readonly struct UpdateExpressionState<
     /// <summary>
     /// The statement containing <see cref="StartExpression"/>
     /// </summary>
-    public readonly TStatementSyntax ContainingStatement;
+    public readonly TStatementSyntax? ContainingStatement;
 
     /// <summary>
     /// The name of the value being mutated.  It is whatever the new object-creation or collection-builder is assigned to.
@@ -67,7 +68,9 @@ internal readonly struct UpdateExpressionState<
     }
 
     public IEnumerable<TStatementSyntax> GetSubsequentStatements()
-        => UseCollectionInitializerHelpers.GetSubsequentStatements(SyntaxFacts, ContainingStatement);
+        => ContainingStatement is null
+            ? SpecializedCollections.EmptyEnumerable<TStatementSyntax>()
+            : UseCollectionInitializerHelpers.GetSubsequentStatements(SyntaxFacts, ContainingStatement);
 
     /// <summary>
     /// <see langword="true"/> if this <paramref name="expression"/> is a reference to the object-creation value, or the
@@ -123,11 +126,12 @@ internal readonly struct UpdateExpressionState<
 
     public bool TryAnalyzeInvocationForCollectionExpression(
         TExpressionSyntax invocationExpression,
+        bool allowLinq,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
         out bool useSpread)
     {
-        // Look for a call to Add or AddRange
+        // Look for a call to Add taking 1 arg
         if (this.TryAnalyzeAddInvocation(
                 invocationExpression,
                 requiredArgumentName: null,
@@ -139,16 +143,25 @@ internal readonly struct UpdateExpressionState<
             return true;
         }
 
-        if (this.TryAnalyzeAddRangeInvocation(
-                invocationExpression,
-                requiredArgumentName: null,
-                cancellationToken,
-                out instance,
-                out useSpread))
+        // Then a call to AddRange/Concat/Append, taking 1-n args
+        foreach (var (multiAddName, isLinq) in s_multiAddNames)
         {
-            return true;
+            if (isLinq && !allowLinq)
+                continue;
+
+            if (this.TryAnalyzeMultiAddInvocation(
+                    invocationExpression,
+                    multiAddName,
+                    requiredArgumentName: null,
+                    cancellationToken,
+                    out instance,
+                    out useSpread))
+            {
+                return true;
+            }
         }
 
+        useSpread = false;
         return false;
     }
 
@@ -182,10 +195,14 @@ internal readonly struct UpdateExpressionState<
     }
 
     /// <summary>
-    /// Analyze an expression statement to see if it is a legal call of the form <c>val.AddRange(...)</c>.
+    /// Analyze an expression statement to see if it is a legal call similar to <c>val.AddRange(...)</c> or
+    /// <c>val.Concat(...)</c>.  This method properly handles cases where there are multiple args passed to a <c>params
+    /// T[]</c> method, or a single arg which might be passed to the same <c>params</c> method, or which may itself be
+    /// an entire collection being added.
     /// </summary>
-    public bool TryAnalyzeAddRangeInvocation(
+    private bool TryAnalyzeMultiAddInvocation(
         TExpressionSyntax invocationExpression,
+        string methodName,
         string? requiredArgumentName,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
@@ -194,7 +211,7 @@ internal readonly struct UpdateExpressionState<
         useSpread = false;
         if (!TryAnalyzeInvocation(
                 invocationExpression,
-                AddRangeName,
+                methodName,
                 requiredArgumentName,
                 cancellationToken,
                 out instance,
@@ -239,7 +256,8 @@ internal readonly struct UpdateExpressionState<
             if (arguments.Count != 1)
                 return false;
 
-            useSpread = true;
+            // Check for things like `Concat<T>(this IEnumerable<T> source, T value)`.  In that case, we wouldn't want to spread.
+            useSpread = method.GetOriginalUnreducedDefinition() is not IMethodSymbol { IsExtensionMethod: true, Parameters: [_, { Type: ITypeParameterSymbol }] };
         }
 
         return true;
@@ -247,7 +265,7 @@ internal readonly struct UpdateExpressionState<
 
     private bool TryAnalyzeInvocation(
         TExpressionSyntax invocationExpression,
-        string addName,
+        string methodName,
         string? requiredArgumentName,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
@@ -264,6 +282,16 @@ internal readonly struct UpdateExpressionState<
             return false;
 
         if (requiredArgumentName != null && arguments.Count != 1)
+            return false;
+
+        var memberAccess = this.SyntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+        if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
+            return false;
+
+        this.SyntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
+        this.SyntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
+
+        if (arity != 0 || !Equals(name, methodName))
             return false;
 
         foreach (var argument in arguments)
@@ -298,16 +326,6 @@ internal readonly struct UpdateExpressionState<
             }
         }
 
-        var memberAccess = this.SyntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-        if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
-            return false;
-
-        this.SyntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
-        this.SyntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
-
-        if (arity != 0 || !Equals(name, addName))
-            return false;
-
         instance = localInstance as TExpressionSyntax;
         return instance != null;
     }
@@ -340,7 +358,7 @@ internal readonly struct UpdateExpressionState<
             var expression = (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
 
             // Look for a call to Add or AddRange
-            if (@this.TryAnalyzeInvocationForCollectionExpression(expression, cancellationToken, out var instance, out var useSpread) &&
+            if (@this.TryAnalyzeInvocationForCollectionExpression(expression, allowLinq: false, cancellationToken, out var instance, out var useSpread) &&
                 @this.ValuePatternMatches(instance))
             {
                 return new Match<TStatementSyntax>(expressionStatement, useSpread);
@@ -406,7 +424,9 @@ internal readonly struct UpdateExpressionState<
                 if (whenFalse is null)
                 {
                     // add the form `.. x ? [y] : []` to the result
-                    return new Match<TStatementSyntax>(ifStatement, UseSpread: true);
+                    return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
+                        ? new Match<TStatementSyntax>(ifStatement, UseSpread: true)
+                        : null;
                 }
 
                 var whenFalseStatements = whenFalse.ToImmutableArray();
