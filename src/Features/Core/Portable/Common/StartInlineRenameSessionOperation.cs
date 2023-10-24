@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// <see cref="Document"/> and invoke rename at a given position using this operation.
     /// </summary>
 #pragma warning restore RS0030 // Do not used banned APIs
-    internal class StartInlineRenameSessionOperation(DocumentId documentId, int position) : CodeActionOperation
+    internal sealed class StartInlineRenameSessionOperation(DocumentId documentId, int position) : CodeActionOperation
     {
-        internal DocumentId DocumentId { get; } = documentId ?? throw new ArgumentNullException(nameof(documentId));
-        internal int Position { get; } = position;
+        public DocumentId DocumentId { get; } = documentId ?? throw new ArgumentNullException(nameof(documentId));
+        public int Position { get; } = position;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
