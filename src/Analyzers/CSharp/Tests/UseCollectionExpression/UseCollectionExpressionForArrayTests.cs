@@ -4073,4 +4073,74 @@ public class UseCollectionExpressionForArrayTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestFixAllConditionalExpression1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? [|[|new|][]|] { "a" } : [|[|new|][]|] { "b" };
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? ["a"] : [|[|new|][]|] { "b" };
+                    }
+                }
+                """,
+            BatchFixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? ["a"] : [|[|new|][]|] { "b" };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSelfReference()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        object[] r = new object[1];
+                        r[0] = r;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

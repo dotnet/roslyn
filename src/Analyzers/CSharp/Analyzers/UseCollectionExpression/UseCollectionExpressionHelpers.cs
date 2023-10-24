@@ -718,12 +718,15 @@ internal static class UseCollectionExpressionHelpers
                             Parent: VariableDeclaratorSyntax
                             {
                                 Identifier.ValueText: var variableName,
+                                Parent: VariableDeclaratorSyntax localVariableDeclarator,
                                 Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
                             },
                         })
                     {
                         return default;
                     }
+
+                    var localSymbol = semanticModel.GetRequiredDeclaredSymbol(localVariableDeclarator, cancellationToken);
 
                     var currentStatement = localDeclarationStatement.GetNextStatement();
                     for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
@@ -740,7 +743,7 @@ internal static class UseCollectionExpressionHelpers
                                         Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
                                         ArgumentList.Arguments: [var elementArgument],
                                     } elementAccess,
-                                }
+                                } assignmentExpression,
                             } expressionStatement)
                         {
                             return default;
@@ -753,6 +756,14 @@ internal static class UseCollectionExpressionHelpers
                         // The indexing value has to equal the corresponding location in the result.
                         if (semanticModel.GetConstantValue(elementArgument.Expression, cancellationToken).Value is not int indexValue ||
                             indexValue != currentIndex)
+                        {
+                            return default;
+                        }
+
+                        // If we have an array whose elements points back to the array itself, then we can't convert
+                        // this to a collection expression.
+                        if (assignmentExpression.Right.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().Any(
+                                i => localSymbol.Equals(semanticModel.GetSymbolInfo(i, cancellationToken).GetAnySymbol())))
                         {
                             return default;
                         }
