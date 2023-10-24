@@ -144,10 +144,13 @@ public class A { }";
                 "background_analysis.dotnet_compiler_diagnostics_scope",
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
+                "formatting.dotnet_formatting_sort_imports",
                 "projects.dotnet_binary_log_path",
             }.OrderBy(name => name);
 
-            Assert.Equal(expectedNames, actualNames);
+            AssertEx.EqualOrDiff(
+                string.Join(Environment.NewLine, expectedNames),
+                string.Join(Environment.NewLine, actualNames));
         }
 
         private static void VerifyValuesInServer(TestWorkspace workspace, List<string> expectedValues)

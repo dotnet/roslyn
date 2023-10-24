@@ -46,6 +46,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// <see langword="true"/> to sort imports as part of LSP's Format Document handler; otherwise, <see langword="false"/>.
         /// </summary>
-        public static readonly PerLanguageOption2<bool> LspFormattingSortImports = new("dotnet_formatting_sortImports", defaultValue: false, group: s_formattingOptionGroup);
+        public static readonly PerLanguageOption2<bool> LspFormattingSortImports = new("dotnet_formatting_sort_imports", defaultValue: false, group: s_formattingOptionGroup);
     }
 }
