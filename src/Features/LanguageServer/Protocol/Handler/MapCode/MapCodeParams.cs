@@ -15,9 +15,7 @@ internal record MapCodeParams(
     [property: DataMember(Name = "mappings")] MapCodeMapping[] Mappings,
     // Changes that should be applied to the workspace by the mapper before performing
     [property: DataMember(Name = "updates")] WorkspaceEdit? Updates
-)
-{
-}
+);
 
 [DataContract]
 internal record MapCodeMapping
@@ -30,6 +28,4 @@ internal record MapCodeMapping
     // related classes (in other documents), viewport, etc. Earlier items should be considered
     // higher priority.
     [property: DataMember(Name = "focusLocations")] Location[][]? FocusLocations
-)
-{
-}
+);

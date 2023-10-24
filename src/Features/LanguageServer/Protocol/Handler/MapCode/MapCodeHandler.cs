@@ -41,8 +41,7 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
         //TODO: handle request.Updates if not empty
         if (request.Updates is not null)
         {
-            context.TraceWarning("mapCode Request failed: additional workspace 'Update' is currently not supported");
-            return null;
+            throw new NotImplementedException("mapCode Request failed: additional workspace 'Update' is currently not supported");
         }
 
         using var _ = PooledDictionary<Uri, TextEdit[]>.GetInstance(out var uriToEditsMap);
@@ -58,10 +57,7 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
             }
 
             if (!uriToEditsMap.TryAdd(uri, textEdits))
-            {
-                context.TraceWarning($"mapCode sub-request for {uri} failed: multiple MapCodeMappings for the same document is not supported.");
-                return null;
-            }
+                throw new ArgumentException($"mapCode sub-request for {uri} failed: multiple MapCodeMappings for the same document is not supported.");
         }
 
         // return a combined WorkspaceEdit
@@ -86,27 +82,14 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
 
         async Task<(Uri, TextEdit[])?> MapCodeAsync(LSP.MapCodeMapping codeMapping)
         {
-            var textDocument = codeMapping.TextDocument;
-            if (textDocument == null)
-            {
-                context.TraceWarning($"mapCode sub-request failed: MapCodeMapping.TextDocument not expected to be null");
-                return null;
-            }
-
-            context.TraceInformation($"Handling mapCode sub-request for {textDocument.Uri}");
+            var textDocument = codeMapping.TextDocument
+                ?? throw new ArgumentException($"mapCode sub-request failed: MapCodeMapping.TextDocument not expected to be null.");
 
             if (context.Solution.GetDocument(textDocument) is not Document document)
-            {
-                context.TraceWarning($"mapCode sub-request for {textDocument.Uri} failed: can't find this document in the workspace, corresponding MapCodeMapping is ignored");
-                return null;
-            }
+                throw new ArgumentException($"mapCode sub-request for {textDocument.Uri} failed: can't find this document in the workspace.");
 
-            var codeMapper = document.GetLanguageService<IMapCodeService>();
-            if (codeMapper == null)
-            {
-                context.TraceWarning($"mapCode sub-request for {textDocument.Uri} failed: can't find IMapCodeService.");
-                return null;
-            }
+            var codeMapper = document.GetLanguageService<IMapCodeService>()
+                ?? throw new ArgumentException($"mapCode sub-request for {textDocument.Uri} failed: No IMapCodeService for this document.");
 
             var focusLocations = await ConvertFocusLocationsToDocumentAndSpansAsync(
                 document,
