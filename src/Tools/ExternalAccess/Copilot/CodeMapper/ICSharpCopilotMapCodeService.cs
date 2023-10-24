@@ -14,6 +14,6 @@ internal interface ICSharpCopilotMapCodeService
     Task<ImmutableArray<TextChange>?> MapCodeAsync(
         Document document,
         ImmutableArray<string> contents,
-        ImmutableArray<(Document, TextSpan)> focusLocations,
+        ImmutableArray<(Document document, TextSpan textSpan)> prioritizedFocusLocations,
         CancellationToken cancellationToken);
 }
