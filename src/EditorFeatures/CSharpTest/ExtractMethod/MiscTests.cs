@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -134,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             view.Selection.Select(new SnapshotSpan(
                 view.TextBuffer.CurrentSnapshot, testDocument.SelectedSpans[0].Start, testDocument.SelectedSpans[0].Length), isReversed: false);
 
-            var callBackService = workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
+            var callBackService = (INotificationServiceCallback)workspace.Services.GetRequiredService<INotificationService>();
             var called = false;
             callBackService.NotificationCallback = (_, _, _) => called = true;
 
