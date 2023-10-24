@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
@@ -301,6 +302,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
                 await navigationService.TryNavigateToPositionAsync(
                     this._threadingContext, workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
+                if (navigationOperation is VSTypeScriptInlineRenameOperation)
+                {
+                    var openDocument = workspace.CurrentSolution.GetRequiredDocument(navigationOperation.DocumentId);
+                    _renameService.StartInlineSession(openDocument, new TextSpan(navigationOperation.Position, 0), cancellationToken);
+                }
                 return;
             }
 
