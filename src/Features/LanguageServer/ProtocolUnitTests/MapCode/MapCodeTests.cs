@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeMapping;
 
 public class MapCodeTests : AbstractLanguageServerProtocolTests
 {
-    [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp, layer: ServiceLayer.Test), Shared]
+    [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp, layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
     private class TestMapCodeService : IMapCodeService
     {
         [ImportingConstructor]
@@ -34,7 +32,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
         {
         }
 
-        public async Task<Document> MapCodeAsync(
+        public async Task<Document?> MapCodeAsync(
             Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, bool formatMappedCode, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken);
@@ -96,18 +94,19 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(code, mutatingLspWorkspace, CreateClientCapabilities(supportDocumentChanges));
         var ranges = testLspServer.GetLocations("range").ToArray();
         var documentUri = ranges.Single().Uri;
-        var mapCodeParams = new LSP.MapCodeParams()
-        {
-            Mappings =
-            [
-                new MapCodeMapping()
-                {
-                    TextDocument = CreateTextDocumentIdentifier(documentUri),
-                    Contents = [codeBlock],
-                    FocusLocations = [ranges]
-                }
-            ]
-        };
+        var mapCodeParams = new LSP.MapCodeParams
+            (
+                Mappings:
+                [
+                    new MapCodeMapping
+                    (
+                        TextDocument: CreateTextDocumentIdentifier(documentUri),
+                        Contents:[codeBlock],
+                        FocusLocations:[ranges]
+                    )
+                ],
+                Updates: null
+            );
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
@@ -120,8 +119,8 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.Null(results.Changes);
             Assert.NotNull(results.DocumentChanges);
 
-            var textDocumentEdits = results.DocumentChanges.Value.First.Single();
-            Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument.Uri);
+            var textDocumentEdits = results.DocumentChanges!.Value.First.Single();
+            Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument!.Uri);
 
             edits = textDocumentEdits.Edits;
         }
@@ -130,13 +129,11 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.Changes);
             Assert.Null(results.DocumentChanges);
 
-            Assert.True(results.Changes.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri), out edits));
-
+            Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri), out edits));
         }
 
         var documentText = await document.GetTextAsync();
         var actualText = ApplyTextEdits(edits, documentText);
         Assert.Equal(expected, actualText);
-
     }
 }

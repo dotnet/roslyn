@@ -36,8 +36,14 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
 
     public async Task<WorkspaceEdit?> HandleRequestAsync(MapCodeParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        //TODO: handle request.Updates if not empty
         Contract.ThrowIfNull(context.Solution);
+
+        //TODO: handle request.Updates if not empty
+        if (request.Updates is not null)
+        {
+            context.TraceWarning("Request with additional workspace 'Update' is currently not supported");
+            return null;
+        }
 
         using var _ = PooledDictionary<Uri, TextEdit[]>.GetInstance(out var uriToEditsMap);
         foreach (var codeMapping in request.Mappings)
@@ -46,7 +52,12 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
 
             // Assume no two codeMappings target a common document.
             if (mappingResult is (Uri uri, TextEdit[] textEdits))
-                uriToEditsMap[uri] = textEdits;
+            {
+                if (!uriToEditsMap.TryAdd(uri, textEdits))
+                {
+                    context.TraceWarning($"Request with multiple MapCodeMappings for the same document is not supported: {uri}");
+                }
+            }
         }
 
         // return a combined WorkspaceEdit
@@ -73,14 +84,23 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
         {
             var textDocument = codeMapping.TextDocument;
             if (textDocument == null)
+            {
+                context.TraceError($"MapCodeMapping.TextDocument not expected to be null");
                 return null;
+            }
 
             if (context.Solution.GetDocument(textDocument) is not Document document)
+            {
+                context.TraceWarning($"Can't find this document in the workspace, corresponding MapCodeMapping is ignored: {textDocument.Uri}");
                 return null;
+            }
 
             var codeMapper = document.GetLanguageService<IMapCodeService>();
             if (codeMapper == null)
+            {
+                context.TraceWarning($"Failed to find IMapCodeService for '{textDocument.Uri}'.");
                 return null;
+            }
 
             var focusLocations = await ConvertFocusLocationsToDocumentAndSpansAsync(
                 document,
@@ -96,11 +116,17 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
                 cancellationToken).ConfigureAwait(false);
 
             if (newDocument is null)
+            {
+                context.TraceWarning($"'IMapCodeService.MapCodeAsync' failed for '{textDocument.Uri}'.");
                 return null;
+            }
 
             var textChanges = (await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
             if (textChanges.IsEmpty)
+            {
+                context.TraceWarning($"'IMapCodeService.MapCodeAsync' returns no change for '{textDocument.Uri}'.");
                 return null;
+            }
 
             var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textEdits = textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, oldText)).ToArray();
@@ -108,12 +134,13 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
             return (newDocument.GetURI(), textEdits);
         }
 
-        static async Task<ImmutableArray<(Document, TextSpan)>> ConvertFocusLocationsToDocumentAndSpansAsync(
+        async Task<ImmutableArray<(Document, TextSpan)>> ConvertFocusLocationsToDocumentAndSpansAsync(
             Document document, TextDocumentIdentifier textDocumentIdentifier, LSP.Location[][]? focusLocations, CancellationToken cancellationToken)
         {
             if (focusLocations is null)
                 return ImmutableArray<(Document, TextSpan)>.Empty;
 
+            var focusText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<(Document, TextSpan)>.GetInstance(out var builder);
             foreach (var locationsOfSamePriority in focusLocations)
             {
@@ -121,13 +148,12 @@ internal sealed partial class MapCodeHandler : ILspServiceRequestHandler<MapCode
                 {
                     // Ignore anything not in target document, which current code mapper doesn't handle anyway
                     if (!location.Uri.Equals(textDocumentIdentifier.Uri))
-                        continue;
-
-                    if (document.Project.Solution.GetDocument(textDocumentIdentifier) is Document focusDocument)
                     {
-                        var focusText = await focusDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        builder.Add((focusDocument, ProtocolConversions.RangeToTextSpan(location.Range, focusText)));
+                        context.TraceInformation($"A focus location in '{textDocumentIdentifier.Uri}' is skipped, only locations in corresponding MapCodeMapping.TextDocument is currently considered.");
+                        continue;
                     }
+
+                    builder.Add((document, ProtocolConversions.RangeToTextSpan(location.Range, focusText)));
                 }
             }
 
