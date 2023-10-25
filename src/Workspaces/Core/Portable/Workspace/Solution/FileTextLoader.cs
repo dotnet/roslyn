@@ -186,18 +186,7 @@ namespace Microsoft.CodeAnalysis
                     return TextAndVersion.Create(text, version, t.self.Path);
                 }, (self: this, prevLastWriteTime, options, cancellationToken)).ConfigureAwait(false);
 
-            // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
-            // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
-            // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
-            // and reload the file.
-            var newLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
-            if (!newLastWriteTime.Equals(prevLastWriteTime))
-            {
-                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, Path);
-                throw new IOException(message);
-            }
-
-            return textAndVersion;
+            return CheckForConcurrentFileWrites(prevLastWriteTime, textAndVersion);
         }
 
         /// <summary>
@@ -211,20 +200,25 @@ namespace Microsoft.CodeAnalysis
 
             ValidateFileLength(Path, fileLength);
 
-            TextAndVersion textAndVersion;
+            var textAndVersion = FileUtilities.RethrowExceptionsAsIOException(
+                static t =>
+                {
+                    // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
+                    using var stream = t.self.OpenFile(bufferSize: 4096, useAsync: false);
+                    var version = VersionStamp.Create(t.prevLastWriteTime);
+                    var text = t.self.CreateText(stream, t.options, t.cancellationToken);
+                    return TextAndVersion.Create(text, version, t.self.Path);
+                }, (self: this, prevLastWriteTime, options, cancellationToken));
 
-            // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
-            using (var stream = OpenFile(bufferSize: 4096, useAsync: false))
-            {
-                var version = VersionStamp.Create(prevLastWriteTime);
-                var text = CreateText(stream, options, cancellationToken);
-                textAndVersion = TextAndVersion.Create(text, version, Path);
-            }
+            return CheckForConcurrentFileWrites(prevLastWriteTime, textAndVersion);
+        }
 
-            // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
-            // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
-            // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
-            // and reload the file.
+        private TextAndVersion CheckForConcurrentFileWrites(DateTime prevLastWriteTime, TextAndVersion textAndVersion)
+        {
+            // Check if the file was definitely modified and closed while we were reading. In this case, we know the
+            // read we got was probably invalid, so throw an IOException which indicates to our caller that we should
+            // automatically attempt a re-read. If the file hasn't been closed yet and there's another writer, we will
+            // rely on file change notifications to notify us and reload the file.
             var newLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
