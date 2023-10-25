@@ -151,7 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return new MetadataLocation(_decoder.ModuleSymbol);
         }
 
-        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get
