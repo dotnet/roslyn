@@ -6,9 +6,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
@@ -494,6 +497,66 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 var projectRefId = projectReference.ProjectId;
                 Assert.Equal(projectRefFilePath, project.Solution.GetProject(projectRefId).FilePath);
             }
+        }
+
+        [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_LogsEvaluationAndBuild()
+        {
+            CreateFiles(GetNetCoreAppFiles());
+
+            var projectFilePath = GetSolutionFileName("Project.csproj");
+
+            DotNetRestore("Project.csproj");
+
+            using var workspace = CreateMSBuildWorkspace();
+
+            var loader = workspace.Services
+                .GetLanguageServices(LanguageNames.CSharp)
+                .GetRequiredService<IProjectFileLoader>();
+
+            var logger = new TestMSBuildLogger();
+            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
+            buildManager.StartBatchBuild();
+
+            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+            var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
+            buildManager.EndBatchBuild();
+
+            Assert.True(logger.WasInitialized);
+            var logLines = logger.GetLogLines();
+            Assert.StartsWith("Build started", logLines.First());
+            Assert.StartsWith("Evaluation started", logLines[1]);
+            Assert.Single(logLines.Where(line => line.StartsWith("Evaluation finished")));
+            Assert.StartsWith("Build succeeded", logLines.Last());
+        }
+
+        [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_LogsEvaluationOnly()
+        {
+            CreateFiles(GetNetCoreAppFiles());
+
+            var projectFilePath = GetSolutionFileName("Project.csproj");
+
+            DotNetRestore("Project.csproj");
+
+            using var workspace = CreateMSBuildWorkspace();
+
+            var loader = workspace.Services
+                .GetLanguageServices(LanguageNames.CSharp)
+                .GetRequiredService<IProjectFileLoader>();
+
+            var logger = new TestMSBuildLogger();
+            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
+            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+
+            Assert.True(logger.WasInitialized);
+            var logLines = logger.GetLogLines();
+            Assert.StartsWith("Evaluation started", logLines.First());
+            Assert.StartsWith("Evaluation finished", logLines.Last());
         }
     }
 }
