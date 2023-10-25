@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var attrData in @interface.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(@interface, AttributeDescription.ComEventInterfaceAttribute) &&
+                    if (attrData.IsTargetAttribute(AttributeDescription.ComEventInterfaceAttribute) &&
                         attrData.CommonConstructorArguments.Length == 2)
                     {
                         return RewriteNoPiaEventAssignmentOperator(node, rewrittenReceiverOpt, rewrittenArgument);

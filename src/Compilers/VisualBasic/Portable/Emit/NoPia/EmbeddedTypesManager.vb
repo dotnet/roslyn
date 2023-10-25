@@ -81,8 +81,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return lazyMethod
         End Function
 
-        Friend Overrides Function GetTargetAttributeSignatureIndex(underlyingSymbol As SymbolAdapter, attrData As VisualBasicAttributeData, description As AttributeDescription) As Integer
-            Return attrData.GetTargetAttributeSignatureIndex(underlyingSymbol.AdaptedSymbol, description)
+        Friend Overrides Function GetTargetAttributeSignatureIndex(attrData As VisualBasicAttributeData, description As AttributeDescription) As Integer
+            Return attrData.GetTargetAttributeSignatureIndex(description)
         End Function
 
         Friend Overrides Function CreateSynthesizedAttribute(constructor As WellKnownMember, attrData As VisualBasicAttributeData, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     ' When emitting a com event interface, we have to tweak the parameters: the spec requires that we use
                     ' the original source interface as both source interface and event provider. Otherwise, we'd have to embed
                     ' the event provider class too.
-                    Return New SynthesizedAttributeData(ctor,
+                    Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor,
                         ImmutableArray.Create(attrData.CommonConstructorArguments(0), attrData.CommonConstructorArguments(0)),
                         ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
 
@@ -105,12 +105,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     ' instantiatable. The attribute cannot refer directly to the coclass, however, because we can't embed
                     ' classes, and we can't emit a reference to the PIA. We don't actually need
                     ' the class name at runtime: we will instead emit a reference to System.Object, as a placeholder.
-                    Return New SynthesizedAttributeData(ctor,
+                    Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor,
                         ImmutableArray.Create(New TypedConstant(ctor.Parameters(0).Type, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
                         ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
 
                 Case Else
-                    Return New SynthesizedAttributeData(ctor, attrData.CommonConstructorArguments, attrData.CommonNamedArguments)
+                    Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor, attrData.CommonConstructorArguments, attrData.CommonNamedArguments)
 
             End Select
         End Function

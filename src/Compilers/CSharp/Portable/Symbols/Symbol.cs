@@ -1377,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var attrData in this.GetAttributes())
             {
-                if (attrData.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
+                if (attrData.IsTargetAttribute(AttributeDescription.GuidAttribute))
                 {
                     if (attrData.TryGetGuidAttributeValue(out guidString))
                     {
@@ -1464,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
@@ -1486,12 +1486,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
             else if ((reserved & ReservedAttributes.TupleElementNamesAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute))
             {
                 diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.NullableAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
@@ -1509,19 +1509,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
             else if ((reserved & ReservedAttributes.CaseSensitiveExtensionAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // ExtensionAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.RequiredMemberAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.RequiredMemberAttribute))
             {
                 // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.ScopedRefAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.ScopedRefAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.ScopedRefAttribute))
             {
                 // Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitScopedRef, arguments.AttributeSyntaxOpt.Location);
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool reportExplicitUseOfReservedAttribute(CSharpAttributeData attribute, in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, in AttributeDescription attributeDescription)
             {
-                if (attribute.IsTargetAttribute(this, attributeDescription))
+                if (attribute.IsTargetAttribute(attributeDescription))
                 {
                     // Do not use '{FullName}'. This is reserved for compiler usage.
                     diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
