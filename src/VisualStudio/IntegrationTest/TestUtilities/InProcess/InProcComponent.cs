@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -124,9 +125,33 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static void WaitForSystemIdle()
+        {
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+            CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+
+            // Work around GitHub Copilot creating output windows and stealing focus
+            JoinableTaskFactory.Run(async () =>
+            {
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var packageGuid = new Guid("{22818076-b98c-4525-b959-c9e12ff2433c}");
+                var shell = (IVsShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsShell));
+
+                if (ErrorHandler.Succeeded(shell.IsPackageInstalled(packageGuid, out var fInstalled)) && fInstalled != 0)
+                {
+                    shell.LoadPackage(packageGuid, out _);
+
+                    var tempFile = Path.Combine(Path.GetTempPath(), "GitHubCopilotWorkaround.txt");
+                    File.WriteAllText(tempFile, "");
+                    VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFile, VSConstants.LOGVIEWID.Code_guid, out _, out _, out var windowFrame, out var view);
+
+                    await Task.Delay(TimeSpan.FromSeconds(10));
+
+                    windowFrame.CloseFrame(grfSaveOptions: 0);
+                }
+            });
+        }
 
         // Ensure InProcComponents live forever
         public override object? InitializeLifetimeService() => null;

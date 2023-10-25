@@ -3074,6 +3074,56 @@ class C { }";
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_LogsEvaluationAndBuild()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            using var workspace = CreateMSBuildWorkspace();
+            var loader = workspace.Services
+                .GetLanguageServices(LanguageNames.CSharp)
+                .GetRequiredService<IProjectFileLoader>();
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            var logger = new TestMSBuildLogger();
+            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
+            buildManager.StartBatchBuild();
+
+            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+            var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
+            buildManager.EndBatchBuild();
+
+            Assert.True(logger.WasInitialized);
+            var logLines = logger.GetLogLines();
+            Assert.StartsWith("Build started", logLines.First());
+            Assert.StartsWith("Evaluation started", logLines[1]);
+            Assert.Single(logLines.Where(line => line.StartsWith("Evaluation finished")));
+            Assert.StartsWith("Build succeeded", logLines.Last());
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_LogsEvaluationOnly()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            using var workspace = CreateMSBuildWorkspace();
+            var loader = workspace.Services
+                .GetLanguageServices(LanguageNames.CSharp)
+                .GetRequiredService<IProjectFileLoader>();
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            var logger = new TestMSBuildLogger();
+            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
+            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+
+            Assert.True(logger.WasInitialized);
+            var logLines = logger.GetLogLines();
+            Assert.StartsWith("Evaluation started", logLines.First());
+            Assert.StartsWith("Evaluation finished", logLines.Last());
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/29122")]
         public async Task TestOpenSolution_ProjectReferencesWithUnconventionalOutputPaths()
         {
