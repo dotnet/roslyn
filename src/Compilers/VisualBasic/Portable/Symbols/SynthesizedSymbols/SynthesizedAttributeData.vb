@@ -108,6 +108,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Friend Overrides Function IsTargetAttribute(namespaceName As String, typeName As String, Optional ignoreCase As Boolean = False) As Boolean
             Return SourceAttributeData.IsTargetAttribute(AttributeClass, namespaceName, typeName, ignoreCase)
         End Function

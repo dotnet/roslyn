@@ -36,6 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        ByVal namedArgs As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)),
                        ByVal isConditionallyOmitted As Boolean,
                        ByVal hasErrors As Boolean)
+            Debug.Assert(compilation IsNot Nothing)
+            Debug.Assert(applicationNode IsNot Nothing)
             Debug.Assert(attrMethod IsNot Nothing OrElse hasErrors)
 
             Me._compilation = compilation
@@ -102,6 +104,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property HasErrors As Boolean
             Get
                 Return _hasErrors
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
+            Get
+                Return Nothing ' Binder reports errors
             End Get
         End Property
 
