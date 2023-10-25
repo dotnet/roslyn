@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -13,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static CompletionItem Create(string displayText, string beforeCaretText, string afterCaretText, CompletionItemRules rules)
         {
-            var props = ImmutableDictionary<string, string>.Empty
-                .Add(BeforeCaretText, beforeCaretText)
-                .Add(AfterCaretText, afterCaretText);
+            var props = ImmutableArray.Create(
+                new KeyValuePair<string, string>(BeforeCaretText, beforeCaretText),
+                new KeyValuePair<string, string>(AfterCaretText, afterCaretText));
 
             // Set isComplexTextEdit to be always true for simplicity, even
             // though we don't always need to make change outside the default
@@ -32,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static string GetBeforeCaretText(CompletionItem item)
-            => item.Properties[BeforeCaretText];
+            => item.GetProperty(BeforeCaretText);
 
         public static string? GetAfterCaretText(CompletionItem item)
-            => item.Properties[AfterCaretText];
+            => item.GetProperty(AfterCaretText);
     }
 }
