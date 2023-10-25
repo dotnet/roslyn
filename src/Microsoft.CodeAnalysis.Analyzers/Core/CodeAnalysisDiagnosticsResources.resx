@@ -572,7 +572,7 @@
     <value>Compiler extensions should be implemented in assemblies with compiler-provided references</value>
   </data>
   <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription" xml:space="preserve">
-    <value>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'GlobalStatementSyntax', 'IncompleteMemberSyntax' or a type inheriting from 'BaseFieldDeclarationSyntax' will always return 'null'.</value>
+    <value>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</value>
   </data>
   <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage" xml:space="preserve">
     <value>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</value>

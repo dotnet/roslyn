@@ -408,8 +408,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
-        <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'GlobalStatementSyntax', 'IncompleteMemberSyntax' or a type inheriting from 'BaseFieldDeclarationSyntax' will always return 'null'.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'GlobalStatementSyntax', 'IncompleteMemberSyntax' or a type inheriting from 'BaseFieldDeclarationSyntax' will always return 'null'.</target>
+        <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
+        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
