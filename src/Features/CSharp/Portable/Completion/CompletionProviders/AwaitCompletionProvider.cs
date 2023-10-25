@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
+        protected override SyntaxNode? GetAsyncSupportingDeclarationIgnoringSemantics(SyntaxToken token)
         {
             // In a case like
             //   someTask.$$
@@ -74,6 +74,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return parent.AncestorsAndSelf().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
+        }
+
+        protected override SyntaxNode? GetAsyncSupportingDeclaration(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            var functionSyntax = GetAsyncSupportingDeclarationIgnoringSemantics(token);
+            if (semanticModel.GetEnclosingSymbol(token.SpanStart, cancellationToken) is not IMethodSymbol declaredMethod)
+                return null;
+
+            // We don't automatically add async modifier to a non-awaitable-returning method,
+            // so user need to fix the error and make an explicit decision of whether
+            // to change return type to Task.
+            if (!declaredMethod.ReturnType.IsAwaitableNonDynamic(semanticModel, token.SpanStart))
+                return null;
+
+            return functionSyntax;
         }
 
         protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestStatementInMethod()
+        [WorkItem(55975, "https://github.com/dotnet/roslyn/issues/55975")]
+        public async Task TestStatementInMethodReturnsVoid()
         {
             await VerifyKeywordAsync("""
                 class C
@@ -82,6 +83,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     $$  }
                 }
                 """, LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestStatementInMethodReturnsTask()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+  Task F()
+  {
+    $$  }
+}", LanguageVersion.CSharp9);
         }
 
         [Fact]

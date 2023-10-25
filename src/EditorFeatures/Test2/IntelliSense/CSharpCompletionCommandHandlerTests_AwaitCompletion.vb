@@ -119,7 +119,7 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_AnonymousMethodExpression_Void() As Task
+        Public Async Function AwaitCompletionDoesNotAddAsync_AnonymousMethodExpression_Void() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -144,7 +144,7 @@ public class C
 {
     public void F()
     {
-        Action<int> a = static async delegate(int i) { await };
+        Action<int> a = static delegate(int i) { await };
     }
 }
 ", state.GetDocumentText())
@@ -187,7 +187,7 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_SimpleLambdaExpression_Void() As Task
+        Public Async Function AwaitCompletionDoesNotAddAsync_SimpleLambdaExpression_Void() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -212,7 +212,7 @@ public class C
 {
     public void F()
     {
-        Action<int> b = static async a => { await };
+        Action<int> b = static a => { await };
     }
 }
 ", state.GetDocumentText())
@@ -255,7 +255,7 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_ParenthesizedLambdaExpression_Void() As Task
+        Public Async Function AwaitCompletionDoesNotAddAsync_ParenthesizedLambdaExpression_Void() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -280,7 +280,7 @@ public class C
 {
     public void F()
     {
-        Action<int> c = static async (a) => { await };
+        Action<int> c = static (a) => { await };
     }
 }
 ", state.GetDocumentText())
@@ -368,7 +368,7 @@ public class C
 {
     public void F()
     {        
-        Task.Run(() => $$);
+        Func<Task<int>> a = () => $$;
     }
 }
 ]]>
@@ -385,7 +385,7 @@ public class C
 {
     public void F()
     {        
-        Task.Run(async () => await);
+        Func<Task<int>> a = async () => await;
     }
 }
 ", state.GetDocumentText())
@@ -428,7 +428,8 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionDoesNotAddAsync_NotTask() As Task
+        <WorkItem(55975, "https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function AwaitCompletionDoesNotAddAsync_Void() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Threading.Tasks;
@@ -451,7 +452,7 @@ using System.Threading.Tasks;
 
 public class C
 {
-    public static async void Main()
+    public static void Main()
     {
         await
     }
@@ -712,71 +713,72 @@ public class C
 
         <WpfTheory>
         <InlineData(
-            "await Task.Run(async () => Task.CompletedTask.$$",
-            "await Task.Run(async () => await Task.CompletedTask$$")>
+            "Func<Task> a = async () => Task.CompletedTask.$$",
+            "Func<Task> a = async () => await Task.CompletedTask$$")>
         <InlineData(
-            "await Task.Run(() => Task.CompletedTask.$$",
-            "await Task.Run(async () => await Task.CompletedTask$$")>
+            "Func<Task> a = () => Task.CompletedTask.$$",
+            "Func<Task> a = async () => await Task.CompletedTask$$")>
         <InlineData(
-            "await Task.Run(async () => Task.CompletedTask.aw$$",
-            "await Task.Run(async () => await Task.CompletedTask$$")>
+            "Func<Task> a = async () => Task.CompletedTask.aw$$",
+            "Func<Task> a = async () => await Task.CompletedTask$$")>
         <InlineData(
-            "await Task.Run(() => Task.CompletedTask.aw$$",
-            "await Task.Run(async () => await Task.CompletedTask$$")>
+            "Func<Task> a = () => Task.CompletedTask.aw$$",
+            "Func<Task> a = async () => await Task.CompletedTask$$")>
         <InlineData(
-            "await Task.Run(async () => someTask.$$",
-            "await Task.Run(async () => await someTask$$")>
+            "Func<Task> a = async () => someTask.$$",
+            "Func<Task> a = async () => await someTask$$")>
         <InlineData(
-            "await Task.Run(() => someTask.$$",
-            "await Task.Run(async () => await someTask$$")>
+            "Func<Task> a = () => someTask.$$",
+            "Func<Task> a = async () => await someTask$$")>
         <InlineData(
-            "await Task.Run(async () => someTask.$$);",
-            "await Task.Run(async () => await someTask$$);")>
+            "Func<Task> a = async () => someTask.$$;",
+            "Func<Task> a = async () => await someTask$$;")>
         <InlineData(
-            "await Task.Run(() => someTask.$$);",
-            "await Task.Run(async () => await someTask$$);")>
+            "Func<Task> a = () => someTask.$$;",
+            "Func<Task> a = async () => await someTask$$;")>
         <InlineData(
-            "await Task.Run(async () => someTask.aw$$);",
-            "await Task.Run(async () => await someTask$$);")>
+            "Func<Task> a = async () => someTask.aw$$;",
+            "Func<Task> a = async () => await someTask$$;")>
         <InlineData(
-            "await Task.Run(() => someTask.aw$$);",
-            "await Task.Run(async () => await someTask$$);")>
+            "Func<Task> a = () => someTask.aw$$;",
+            "Func<Task> a = async () => await someTask$$;")>
         <InlineData(
-            "await Task.Run(async () => {someTask.$$}",
-            "await Task.Run(async () => {await someTask$$}")>
+            "Func<Task> a = async () => {someTask.$$}",
+            "Func<Task> a = async () => {await someTask$$}")>
         <InlineData(
-            "await Task.Run(() => {someTask.$$}",
-            "await Task.Run(async () => {await someTask$$}")>
+            "Func<Task> a = () => {someTask.$$}",
+            "Func<Task> a = async () => {await someTask$$}")>
         <InlineData(
-            "await Task.Run(async () => {someTask.$$});",
-            "await Task.Run(async () => {await someTask$$});")>
+            "Func<Task> a = async () => {someTask.$$};",
+            "Func<Task> a = async () => {await someTask$$};")>
         <InlineData(
-            "await Task.Run(() => {someTask.$$});",
-            "await Task.Run(async () => {await someTask$$});")>
+            "Func<Task> a = () => {someTask.$$};",
+            "Func<Task> a = async () => {await someTask$$};")>
         <InlineData(
-            "await Task.Run(async () => someTask.   $$  );",
-            "await Task.Run(async () => await someTask$$  );")>
+            "Func<Task> a = async () => someTask.   $$  ;",
+            "Func<Task> a = async () => await someTask$$  ;")>
         <InlineData(
-            "await Task.Run(() => someTask.   $$  );",
-            "await Task.Run(async () => await someTask$$  );")>
+            "Func<Task> a = () => someTask.   $$  ;",
+            "Func<Task> a = async () => await someTask$$  ;")>
         <InlineData(
-            "await Task.Run(async () => someTask  .   $$    );",
-            "await Task.Run(async () => await someTask  $$    );")>
+            "Func<Task> a = async () => someTask  .   $$    ;",
+            "Func<Task> a = async () => await someTask  $$    ;")>
         <InlineData(
-            "await Task.Run(() => someTask  .   $$    );",
-            "await Task.Run(async () => await someTask  $$    );")>
+            "Func<Task> a = () => someTask  .   $$    ;",
+            "Func<Task> a = async () => await someTask  $$    ;")>
         <InlineData(
-            "await Task.Run(async () => someTask.$$.);",
-            "await Task.Run(async () => await someTask$$.);")>
+            "Func<Task> a = async () => someTask.$$.;",
+            "Func<Task> a = async () => await someTask$$.;")>
         <InlineData(
-            "await Task.Run(() => someTask.$$.);",
-            "await Task.Run(async () => await someTask$$.);")>
+            "Func<Task> a = () => someTask.$$.;",
+            "Func<Task> a = async () => await someTask$$.;")>
         <InlineData(
             "Task.Run(async () => await someTask).$$",
             "await Task.Run(async () => await someTask)$$")>
         Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionInLambdas(expression As String, committed As String) As Task
 
             Dim document As XElement = <Document>
+using System;
 using System.Threading.Tasks;
 
 static class Program
@@ -801,6 +803,7 @@ static class Program
                 Dim committedCursorPosition = committedAwait.IndexOf("$$")
                 committedAwait = committedAwait.Replace("$$", "")
                 Assert.Equal($"
+using System;
 using System.Threading.Tasks;
 
 static class Program
@@ -830,6 +833,7 @@ static class Program
                 Dim committedAwaitfBeforeCursor = committedAwaitf.Substring(0, committedCursorPosition)
                 Dim committedAwaitfAfterCursor = committedAwaitf.Substring(committedCursorPosition)
                 Assert.Equal($"
+using System;
 using System.Threading.Tasks;
 
 static class Program

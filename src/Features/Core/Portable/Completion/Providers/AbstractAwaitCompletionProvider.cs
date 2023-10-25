@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -59,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         protected abstract int GetSpanStart(SyntaxNode declaration);
 
-        protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
+        protected abstract SyntaxNode? GetAsyncSupportingDeclarationIgnoringSemantics(SyntaxToken token);
+        protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
 
         protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
         protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
 
             var token = syntaxContext.TargetToken;
-            var declaration = GetAsyncSupportingDeclaration(token);
+            var declaration = GetAsyncSupportingDeclarationIgnoringSemantics(token);
 
             var properties = ImmutableDictionary<string, string>.Empty
                 .Add(AwaitCompletionTargetTokenPosition, token.SpanStart.ToString());
@@ -174,16 +172,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var tokenPosition = int.Parse(properties[AwaitCompletionTargetTokenPosition]);
-                var declaration = GetAsyncSupportingDeclaration(root.FindToken(tokenPosition));
-                if (declaration is null)
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(tokenPosition, cancellationToken).ConfigureAwait(false);
+                var declaration = GetAsyncSupportingDeclaration(semanticModel, root.FindToken(tokenPosition), cancellationToken);
+                if (declaration is not null)
                 {
-                    // IsComplexTextEdit should only be true when GetAsyncSupportingDeclaration returns non-null.
-                    // This is ensured by the ShouldMakeContainerAsync overrides.
-                    Debug.Fail("Expected non-null value for declaration.");
-                    return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+                    builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
                 }
-
-                builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
+                else
+                {
+                    // A containing method was located, but it doesn't have an asynchronous return type. Continue
+                    // without adding the 'async' keyword.
+                }
             }
 
             if (properties.ContainsKey(AddAwaitAtCurrentPosition))
