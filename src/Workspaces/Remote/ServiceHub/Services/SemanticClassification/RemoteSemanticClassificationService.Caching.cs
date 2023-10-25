@@ -93,15 +93,20 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableSegmentedList<(Document document, ClassificationType type, ClassificationOptions options)> documents,
             CancellationToken cancellationToken)
         {
-            // Group all the requests by document (as we may have gotten many requests for the same document). Then,
-            // only process the last document from each group (we don't need to bother stale versions of a particular
-            // document).
-            var groups = documents.GroupBy(d => d.document.Id);
-            var tasks = groups.Select(g => Task.Run(() =>
+            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+            // First group by type.  That way we process the last semantic and last embedded-lang classifications per document.
+            foreach (var typeGroup in documents.GroupBy(t => t.type))
             {
-                var (document, type, options) = g.Last();
-                return CacheClassificationsAsync(document, type, options, cancellationToken);
-            }, cancellationToken));
+                // Then, group all those requests by document (as we may have gotten many requests for the same
+                // document). Then, only process the last document from each group (we don't need to bother stale
+                // versions of a particular document).
+                foreach (var group in typeGroup.GroupBy(d => d.document.Id))
+                {
+                    var (document, type, options) = group.Last();
+                    tasks.Add(CacheClassificationsAsync(document, type, options, cancellationToken));
+                }
+            }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
@@ -109,6 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static async Task CacheClassificationsAsync(
             Document document, ClassificationType type, ClassificationOptions options, CancellationToken cancellationToken)
         {
+            await Task.Yield();
             var solution = document.Project.Solution;
             var persistenceService = solution.Services.GetPersistentStorageService();
 
