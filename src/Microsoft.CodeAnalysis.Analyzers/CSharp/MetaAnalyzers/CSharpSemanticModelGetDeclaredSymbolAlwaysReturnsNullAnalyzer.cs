@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptor, FieldDiagnosticDescriptor);
+
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                     || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisModelExtensions, out var modelExtensions)
                     || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpSyntaxBaseFieldDeclarationSyntax, out var baseFieldDeclaration)
                     || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisSyntaxNode, out var syntaxNode)
-                    || (getDeclaredSymbolMethod = modelExtensions.GetMembers(nameof(ModelExtensions.GetDeclaredSymbol)).FirstOrDefault() as IMethodSymbol) is null)
+                    || (getDeclaredSymbolMethod = (IMethodSymbol?)modelExtensions.GetMembers(nameof(ModelExtensions.GetDeclaredSymbol)).FirstOrDefault(m => m is IMethodSymbol { Parameters.Length: >= 2 })) is null)
                 {
                     return;
                 }
@@ -69,29 +71,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             var invocation = (IInvocationOperation)context.Operation;
             if (SymbolEqualityComparer.Default.Equals(invocation.TargetMethod, getDeclaredSymbolMethod))
             {
-                var syntaxNodeDerivingType = invocation.Arguments[1].Value.WalkDownConversion().Type;
+                var syntaxNodeDerivingType = invocation.Arguments.GetArgumentForParameterAtIndex(1).Value.WalkDownConversion().Type;
                 if (syntaxNodeDerivingType is null || syntaxNodeDerivingType.Equals(syntaxNodeType))
                 {
                     return;
                 }
 
-                Diagnostic? diagnostic = null;
                 if (syntaxNodeDerivingType.DerivesFrom(baseFieldDeclarationType))
                 {
-                    diagnostic = invocation.CreateDiagnostic(FieldDiagnosticDescriptor, syntaxNodeDerivingType.Name);
+                    context.ReportDiagnostic(invocation.CreateDiagnostic(FieldDiagnosticDescriptor, syntaxNodeDerivingType.Name));
                 }
                 else if (allowedTypes.All(type => !syntaxNodeDerivingType.DerivesFrom(type, baseTypesOnly: true, checkTypeParameterConstraints: false)))
                 {
-                    diagnostic = invocation.CreateDiagnostic(DiagnosticDescriptor, syntaxNodeDerivingType.Name);
-                }
-
-                if (diagnostic is not null)
-                {
-                    context.ReportDiagnostic(diagnostic);
+                    context.ReportDiagnostic(invocation.CreateDiagnostic(DiagnosticDescriptor, syntaxNodeDerivingType.Name));
                 }
             }
         }
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptor, FieldDiagnosticDescriptor);
     }
 }
