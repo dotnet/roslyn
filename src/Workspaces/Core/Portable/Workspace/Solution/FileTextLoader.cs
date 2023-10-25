@@ -171,13 +171,15 @@ namespace Microsoft.CodeAnalysis
             // this logic. This is tracked by https://github.com/dotnet/corefx/issues/6007, at least in
             // corefx. We also open the file for reading with FileShare mode read/write/delete so that
             // we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, useAsync: true)))
+            using (var stream = OpenFile(bufferSize: 1))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
 
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
-                using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                using var readStream = await FileUtilities.RethrowExceptionsAsIOExceptionAsync(
+                    static t => SerializableBytes.CreateReadableStreamAsync(t.stream, cancellationToken: t.cancellationToken),
+                    (stream, cancellationToken)).ConfigureAwait(false);
                 var text = CreateText(readStream, options, cancellationToken);
                 textAndVersion = TextAndVersion.Create(text, version, Path);
             }
@@ -196,6 +198,13 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion;
         }
 
+        private Stream OpenFile(int bufferSize)
+        {
+            return FileUtilities.RethrowExceptionsAsIOException(
+                static t => new FileStream(t.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, t.bufferSize, useAsync: false),
+                (this.Path, bufferSize));
+        }
+
         /// <summary>
         /// Load a text and a version of the document.
         /// </summary>
@@ -210,7 +219,7 @@ namespace Microsoft.CodeAnalysis
             TextAndVersion textAndVersion;
 
             // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
+            using (var stream = OpenFile(bufferSize: 4096))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
                 var text = CreateText(stream, options, cancellationToken);
