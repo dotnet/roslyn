@@ -792,6 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 containingType: null,
                                 name: null,
                                 refKind: RefKind.None,
+                                isAsync2: false,
                                 isInitOnly: false,
                                 isStatic: false,
                                 returnType: default,

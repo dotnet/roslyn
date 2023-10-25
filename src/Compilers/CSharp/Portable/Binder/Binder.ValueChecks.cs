@@ -5509,6 +5509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             parameterRefKind
                                                             )),
                 resultRefKind,
+                isAsync2: false,
                 isInitOnly: false,
                 isStatic: true,
                 returnType: TypeWithAnnotations.Create(elementAccess.Type),
@@ -5549,6 +5550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             parameterRefKind
                                                             )),
                 RefKind.None,
+                isAsync2: false,
                 isInitOnly: false,
                 isStatic: true,
                 returnType: TypeWithAnnotations.Create(resultType),
