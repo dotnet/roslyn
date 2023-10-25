@@ -4,43 +4,52 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
     /// <summary>
     /// Represents a retargeting custom attribute
     /// </summary>
-    internal sealed class RetargetingAttributeData : SourceAttributeData
+    internal sealed class RetargetingAttributeData : CSharpAttributeData
     {
+        private readonly CSharpAttributeData _underlying;
+        private readonly NamedTypeSymbol _attributeClass;
+        private readonly MethodSymbol? _attributeConstructor;
+        private readonly ImmutableArray<TypedConstant> _constructorArguments;
+        private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
+
         internal RetargetingAttributeData(
-            SyntaxReference applicationNode,
+            CSharpAttributeData underlying,
             NamedTypeSymbol attributeClass,
-            MethodSymbol attributeConstructor,
+            MethodSymbol? attributeConstructor,
             ImmutableArray<TypedConstant> constructorArguments,
-            ImmutableArray<int> constructorArgumentsSourceIndices,
-            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments,
-            bool hasErrors,
-            bool isConditionallyOmitted)
-            : base(applicationNode, attributeClass, attributeConstructor, constructorArguments, constructorArgumentsSourceIndices, namedArguments, hasErrors, isConditionallyOmitted)
+            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments)
         {
+            Debug.Assert(underlying is SourceAttributeData or SynthesizedAttributeData);
+
+            _underlying = underlying;
+            _attributeClass = attributeClass;
+            _attributeConstructor = attributeConstructor;
+            _constructorArguments = constructorArguments;
+            _namedArguments = namedArguments;
         }
 
-        /// <summary>
-        /// Gets the retargeted System.Type type symbol.
-        /// </summary>
-        /// <param name="targetSymbol">Target symbol on which this attribute is applied.</param>
-        /// <returns>Retargeted System.Type type symbol.</returns>
-        internal override TypeSymbol GetSystemType(Symbol targetSymbol)
-        {
-            var retargetingAssembly = (RetargetingAssemblySymbol)(targetSymbol.Kind == SymbolKind.Assembly ? targetSymbol : targetSymbol.ContainingAssembly);
-            var underlyingAssembly = (SourceAssemblySymbol)retargetingAssembly.UnderlyingAssembly;
+        public override NamedTypeSymbol AttributeClass => _attributeClass;
+        public override MethodSymbol? AttributeConstructor => _attributeConstructor;
+        protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments => _constructorArguments;
+        protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _namedArguments;
 
-            // Get the System.Type from the underlying assembly's Compilation
-            TypeSymbol systemType = underlyingAssembly.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type);
+        public override SyntaxReference? ApplicationSyntaxReference => null;
 
-            // Retarget the type
-            var retargetingModule = (RetargetingModuleSymbol)retargetingAssembly.Modules[0];
-            return retargetingModule.RetargetingTranslator.Retarget(systemType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-        }
+        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
+        internal override bool HasErrors => _underlying.HasErrors || _attributeConstructor is null;
+
+        internal override bool IsConditionallyOmitted => _underlying.IsConditionallyOmitted;
+
+        internal override Location GetAttributeArgumentLocation(int parameterIndex) => _underlying.GetAttributeArgumentLocation(parameterIndex);
+        internal override int GetTargetAttributeSignatureIndex(AttributeDescription description) => _underlying.GetTargetAttributeSignatureIndex(description);
+        internal override bool IsTargetAttribute(string namespaceName, string typeName) => _underlying.IsTargetAttribute(namespaceName, typeName);
     }
 }

@@ -6,37 +6,28 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+
+[ExportWorkspaceService(typeof(IFixAllGetFixesService), ServiceLayer.Editor), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EditorFeaturesFixAllGetFixesService() : AbstractFixAllGetFixesService
 {
-    [ExportWorkspaceServiceFactory(typeof(IFixAllGetFixesService), ServiceLayer.Editor), Shared]
-    internal sealed class FixAllGetFixesService : AbstractFixAllGetFixesService, IWorkspaceServiceFactory
+    protected override Solution? GetChangedSolution(Workspace workspace, Solution currentSolution, Solution newSolution, string fixAllPreviewChangesTitle, string fixAllTopLevelHeader, Glyph glyph)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FixAllGetFixesService()
-        {
-        }
+        var previewService = workspace.Services.GetRequiredService<IPreviewDialogService>();
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => this;
+        var changedSolution = previewService.PreviewChanges(
+            string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
+            "vs.codefix.fixall",
+            fixAllTopLevelHeader,
+            fixAllPreviewChangesTitle,
+            glyph,
+            newSolution,
+            currentSolution);
 
-        protected override Solution? GetChangedSolution(Workspace workspace, Solution currentSolution, Solution? newSolution, string fixAllPreviewChangesTitle, string fixAllTopLevelHeader, Glyph glyph)
-        {
-            var previewService = workspace.Services.GetRequiredService<IPreviewDialogService>();
-
-            var changedSolution = previewService.PreviewChanges(
-                string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
-                "vs.codefix.fixall",
-                fixAllTopLevelHeader,
-                fixAllPreviewChangesTitle,
-                glyph,
-                newSolution,
-                currentSolution);
-
-            return changedSolution;
-        }
+        return changedSolution;
     }
 }

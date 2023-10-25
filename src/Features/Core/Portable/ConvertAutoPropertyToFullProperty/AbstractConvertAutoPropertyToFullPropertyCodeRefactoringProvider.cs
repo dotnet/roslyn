@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-
             Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Services);

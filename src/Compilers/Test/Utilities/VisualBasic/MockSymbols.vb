@@ -811,6 +811,18 @@ Friend Class MockAssemblySymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Friend Overrides Function GetNoPiaResolutionAssemblies() As ImmutableArray(Of AssemblySymbol)
         Return CType(Nothing, ImmutableArray(Of AssemblySymbol))
     End Function

@@ -71,9 +71,6 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    return Checksum.Null;
-
                 case WellKnownSynchronizationKind.CompilationOptions:
                 case WellKnownSynchronizationKind.ParseOptions:
                 case WellKnownSynchronizationKind.ProjectReference:
@@ -110,10 +107,6 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    // do nothing
-                    return;
-
                 case WellKnownSynchronizationKind.SolutionAttributes:
                     ((SolutionInfo.SolutionAttributes)value).WriteTo(writer);
                     return;
@@ -183,7 +176,7 @@ internal partial class SerializerService : ISerializerService
         }
     }
 
-    public T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
+    public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
         {
@@ -191,9 +184,6 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    return default;
-
                 case WellKnownSynchronizationKind.SolutionState:
                     return (T)(object)SolutionStateChecksums.Deserialize(reader);
 

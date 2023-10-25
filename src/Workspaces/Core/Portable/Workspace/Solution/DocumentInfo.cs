@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind,
             string? filePath,
             bool isGenerated,
-            bool designTimeOnly) : IChecksummedObject
+            bool designTimeOnly)
         {
             private Checksum? _lazyChecksum;
 

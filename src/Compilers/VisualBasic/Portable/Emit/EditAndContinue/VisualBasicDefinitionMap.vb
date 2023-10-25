@@ -27,9 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Sub New(edits As IEnumerable(Of SemanticEdit),
                        metadataDecoder As MetadataDecoder,
                        mapToMetadata As VisualBasicSymbolMatcher,
-                       mapToPrevious As VisualBasicSymbolMatcher)
+                       mapToPrevious As VisualBasicSymbolMatcher,
+                       baseline As EmitBaseline)
 
-            MyBase.New(edits)
+            MyBase.New(edits, baseline)
 
             Debug.Assert(metadataDecoder IsNot Nothing)
             Debug.Assert(mapToMetadata IsNot Nothing)
@@ -67,61 +68,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Return _mapToPrevious.TryGetAnonymousTypeName(template, name, index)
-        End Function
-
-        Friend Overrides Function TryGetTypeHandle(def As Cci.ITypeDefinition, <Out> ByRef handle As TypeDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PENamedTypeSymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function TryGetEventHandle(def As Cci.IEventDefinition, <Out> ByRef handle As EventDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PEEventSymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function TryGetFieldHandle(def As Cci.IFieldDefinition, <Out> ByRef handle As FieldDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PEFieldSymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function TryGetMethodHandle(def As Cci.IMethodDefinition, <Out> ByRef handle As MethodDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PEMethodSymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function TryGetPropertyHandle(def As Cci.IPropertyDefinition, <Out> ByRef handle As PropertyDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PEPropertySymbol)
-            If other IsNot Nothing Then
-                handle = other.Handle
-                Return True
-            Else
-                handle = Nothing
-                Return False
-            End If
         End Function
 
         Protected Overrides Function TryGetStateMachineType(methodHandle As MethodDefinitionHandle) As ITypeSymbolInternal

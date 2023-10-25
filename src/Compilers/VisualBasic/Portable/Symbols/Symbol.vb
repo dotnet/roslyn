@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the token for this symbol as it appears in metadata. Most of the time this Is 0,
         ''' as it Is when the symbol Is Not loaded from metadata.
         ''' </summary>
-        Public Overridable ReadOnly Property MetadataToken As Integer Implements ISymbol.MetadataToken
+        Public Overridable ReadOnly Property MetadataToken As Integer Implements ISymbol.MetadataToken, ISymbolInternal.MetadataToken
             Get
                 Return 0
             End Get
@@ -716,7 +716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Function GetGuidStringDefaultImplementation(<Out> ByRef guidString As String) As Boolean
             For Each attrData In GetAttributes()
-                If attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
+                If attrData.IsTargetAttribute(AttributeDescription.GuidAttribute) Then
                     If attrData.TryGetGuidAttributeValue(guidString) Then
                         Return True
                     End If

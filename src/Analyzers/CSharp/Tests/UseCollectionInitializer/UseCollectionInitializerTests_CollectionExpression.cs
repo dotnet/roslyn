@@ -928,6 +928,39 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70388")]
+    public async Task TestOnVariableDeclarator_AwaitForeach1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                async void M(IAsyncEnumerable<int> x)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    await foreach (var v in x)
+                        c.Add(v);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                async void M(IAsyncEnumerable<int> x)
+                {
+                    List<int> c = [1];
+                    await foreach (var v in x)
+                        c.Add(v);
+                }
+            }
+            """);
+    }
+
     [Fact]
     public async Task TestOnVariableDeclarator_AddRange1()
     {

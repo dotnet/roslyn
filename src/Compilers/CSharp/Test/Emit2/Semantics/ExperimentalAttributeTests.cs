@@ -1368,8 +1368,8 @@ c.ToString();
         comp.VerifyDiagnostics();
     }
 
-    [Theory, CombinatorialData]
-    public void NullDiagnosticId(bool inSource)
+    [Fact]
+    public void NullDiagnosticId()
     {
         var libSrc = """
 [System.Diagnostics.CodeAnalysis.Experimental(null)]
@@ -1382,19 +1382,82 @@ public class C
         var src = """
 C.M();
 """;
-        var comp = inSource
-            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
-            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+        var comp = CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
+            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // 1.cs(1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental(null)]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, "null").WithLocation(1, 47)
             );
     }
 
-    [Theory, CombinatorialData]
-    public void DiagnosticIdWithTrailingNewline(bool inSource)
+    [Fact]
+    public void MissingDiagnosticIdArgument()
+    {
+        var src = """
+C.M();
+[System.Diagnostics.CodeAnalysis.Experimental()]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(2,2): error CS7036: There is no argument given that corresponds to the required parameter 'diagnosticId' of 'ExperimentalAttribute.ExperimentalAttribute(string)'
+            // [System.Diagnostics.CodeAnalysis.Experimental()]
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "System.Diagnostics.CodeAnalysis.Experimental()").WithArguments("diagnosticId", "System.Diagnostics.CodeAnalysis.ExperimentalAttribute.ExperimentalAttribute(string)").WithLocation(2, 2)
+            );
+    }
+
+    [Fact]
+    public void IntegerDiagnosticIdArgument()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(42)]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(3,47): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            // [System.Diagnostics.CodeAnalysis.Experimental(42)]
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(3, 47)
+            );
+    }
+
+    [Fact]
+    public void MultipleArguments()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")]
+public class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(3,2): error CS1729: 'ExperimentalAttribute' does not contain a constructor that takes 2 arguments
+            // [System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")]
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"System.Diagnostics.CodeAnalysis.Experimental(""DiagID"", ""other"")").WithArguments("System.Diagnostics.CodeAnalysis.ExperimentalAttribute", "2").WithLocation(3, 2)
+            );
+    }
+
+    [Fact]
+    public void DiagnosticIdWithTrailingNewline()
     {
         var libSrc = """
 [System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
@@ -1407,45 +1470,70 @@ public class C
         var src = """
 C.M();
 """;
-        var comp = inSource
-            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
-            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+        var comp = CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): error Diag : 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error Diag\n: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic("Diag\n", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
+            Diagnostic("Diag\n", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // 1.cs(1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n""").WithLocation(1, 47)
             );
     }
 
-    [Theory, CombinatorialData]
-    public void DiagnosticIdWithNewline(bool inSource)
+    [Fact]
+    public void DiagnosticIdWithTrailingNewline_WithSuppression()
     {
-        var libSrc = """
+        var src = """
+#pragma warning disable CS9204
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
+public class C
+{
+    public static void M() { }
+}
+""";
+        Assert.Equal((ErrorCode)9204, ErrorCode.WRN_Experimental);
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(2,1): error Diag\n: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
+            // C.M();
+            Diagnostic("Diag\n", "C").WithArguments("C").WithLocation(2, 1).WithWarningAsError(true),
+            // 0.cs(4,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n""").WithLocation(4, 47)
+            );
+    }
+
+    [Fact]
+    public void DiagnosticIdWithNewline()
+    {
+        var src = """
+C.M();
+
 [System.Diagnostics.CodeAnalysis.Experimental("Diag\n01")]
 public class C
 {
     public static void M() { }
 }
 """;
-
-        var src = """
-C.M();
-""";
-        var comp = inSource
-            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
-            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error Diag\n01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic("Diag\n01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
+            Diagnostic("Diag\n01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // 0.cs(3,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag\n01")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag\n01""").WithLocation(3, 47)
             );
     }
 
     [Theory, CombinatorialData]
-    public void WhitespaceDiagnosticId(bool inSource,
-        [CombinatorialValues("\"\"", "\" \"", "\"\\n\"")] string whitespace)
+    public void WhitespaceDiagnosticId([CombinatorialValues("\"\"", "\" \"", "\"\\n\"")] string whitespace)
     {
         var libSrc = $$"""
 [System.Diagnostics.CodeAnalysis.Experimental({{whitespace}})]
@@ -1459,14 +1547,38 @@ public class C
 C.M();
 """;
 
-        var comp = inSource
-            ? CreateCompilation(new CSharpTestSource[] { (src, "0.cs"), libSrc, experimentalAttributeSrc })
-            : CreateCompilation((src, "0.cs"), references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+        var comp = CreateCompilation(new CSharpTestSource[] { (src, "0.cs"), libSrc, experimentalAttributeSrc });
 
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error CS9204: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
-            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
+            Diagnostic(ErrorCode.WRN_Experimental, "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // (1,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental(" ")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, whitespace).WithLocation(1, 47)
+            );
+    }
+
+    [Fact]
+    public void WhitespaceDiagnosticId_WithSuppression()
+    {
+        var src = """
+#pragma warning disable CS9204
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(" ")]
+public class C
+{
+    public static void M() { }
+}
+""";
+
+        var comp = CreateCompilation(new CSharpTestSource[] { (src, "0.cs"), experimentalAttributeSrc });
+
+        comp.VerifyDiagnostics(
+            // 0.cs(4,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental(" ")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @""" """).WithLocation(4, 47)
             );
     }
 
@@ -1484,9 +1596,88 @@ class C
 """;
         var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            // C.M();
+            Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true),
+            // 0.cs(3,47): error CS9208: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag 01")]
+            Diagnostic(ErrorCode.ERR_InvalidExperimentalDiagID, @"""Diag 01""").WithLocation(3, 47)
+            );
+    }
+
+    [Fact]
+    public void SpacedDiagnosticId_WithSecondArgument()
+    {
+        var src = """
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")]
+class C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
+        comp.VerifyDiagnostics(
+            // 0.cs(3,2): error CS1729: 'ExperimentalAttribute' does not contain a constructor that takes 2 arguments
+            // [System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")]
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"System.Diagnostics.CodeAnalysis.Experimental(""Diag 01"", ""other"")").WithArguments("System.Diagnostics.CodeAnalysis.ExperimentalAttribute", "2").WithLocation(3, 2)
+            );
+    }
+
+    [Fact]
+    public void SpacedDiagnosticId_Metadata()
+    {
+        var il = """
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .custom instance void System.Diagnostics.CodeAnalysis.ExperimentalAttribute::.ctor(string) = { string('Diag 01') }
+
+    .method public hidebysig static void M () cil managed
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.ExperimentalAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string diagnosticId ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+""";
+        var comp = CreateCompilationWithIL("C.M();", il);
+        comp.VerifyDiagnostics(
+            // (1,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             // C.M();
             Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(1, 1).WithWarningAsError(true)
+            );
+
+        var src = """
+// Cannot be suppressed
+#pragma disable warning Diag 01
+C.M();
+""";
+        comp = CreateCompilationWithIL(src, il);
+        comp.VerifyDiagnostics(
+            // (2,9): warning CS1633: Unrecognized #pragma directive
+            // #pragma disable warning Diag 01
+            Diagnostic(ErrorCode.WRN_IllegalPragma, "disable").WithLocation(2, 9),
+            // (3,1): error Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            // C.M();
+            Diagnostic("Diag 01", "C").WithArguments("C").WithLocation(3, 1).WithWarningAsError(true)
             );
     }
 
