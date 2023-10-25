@@ -15,13 +15,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
                     expectedNames.Add(Path.GetFileName(tree.FilePath));
                 }
 
-                var currentTestPrefix = $"{typeof(ResxGeneratorTests).Assembly.GetName().Name}.Resources.{ResourceName}.";
+                var currentTestPrefix = $"{Assembly.GetExecutingAssembly().GetName().Name}.Resources.{ResourceName}.";
                 foreach (var name in GetType().Assembly.GetManifestResourceNames())
                 {
                     if (!name.StartsWith(currentTestPrefix, StringComparison.Ordinal))
@@ -109,18 +109,18 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 
             public Test AddGeneratedSources()
             {
-                var expectedPrefix = $"{typeof(ResxGeneratorTests).Assembly.GetName().Name}.Resources.{ResourceName}.";
-                foreach (var resourceName in typeof(Test).Assembly.GetManifestResourceNames())
+                var expectedPrefix = $"{Assembly.GetExecutingAssembly().GetName().Name}.Resources.{ResourceName}.";
+                foreach (var resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
                 {
                     if (!resourceName.StartsWith(expectedPrefix, StringComparison.Ordinal))
                     {
                         continue;
                     }
 
-                    using var resourceStream = typeof(ResxGeneratorTests).Assembly.GetManifestResourceStream(resourceName) ?? throw new InvalidOperationException();
+                    using var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName) ?? throw new InvalidOperationException();
                     using var reader = new StreamReader(resourceStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true);
                     var name = resourceName.Substring(expectedPrefix.Length);
-                    TestState.GeneratedSources.Add((typeof(CSharpResxGenerator), name, SourceText.From(reader.ReadToEnd(), Encoding.UTF8, SourceHashAlgorithm.Sha256)));
+                    TestState.GeneratedSources.Add((typeof(TSourceGenerator), name, SourceText.From(reader.ReadToEnd(), Encoding.UTF8, SourceHashAlgorithm.Sha256)));
                 }
 
                 return this;

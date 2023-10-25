@@ -966,6 +966,7 @@ class D : C { }
             var bannedText = @"T:BannedAttribute";
 
             await VerifyCSharpAnalyzerAsync(source, bannedText,
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -987,6 +988,7 @@ class C
             var bannedText = @"T:BannedAttribute";
 
             await VerifyCSharpAnalyzerAsync(source, bannedText,
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1005,6 +1007,7 @@ class BannedAttribute : Attribute { }
             var bannedText = @"T:BannedAttribute";
 
             await VerifyCSharpAnalyzerAsync(source, bannedText,
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1023,6 +1026,7 @@ class BannedAttribute : Attribute { }
             var bannedText = @"T:BannedAttribute";
 
             await VerifyCSharpAnalyzerAsync(source, bannedText,
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1093,11 +1097,13 @@ class C
             await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText1,
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute.BannedAttribute()", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute.BannedAttribute()", ""));
 
             await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText2,
+                GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute.BannedAttribute(int)", ""),
                 GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute.BannedAttribute(int)", ""));
         }
 
@@ -1812,6 +1818,7 @@ End Class
             var bannedText = @"T:BannedAttribute";
 
             await VerifyBasicAnalyzerAsync(source, bannedText,
+                GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1834,6 +1841,7 @@ End Class
             var bannedText = @"T:BannedAttribute";
 
             await VerifyBasicAnalyzerAsync(source, bannedText,
+                GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1854,6 +1862,7 @@ End Class
             var bannedText = @"T:BannedAttribute";
 
             await VerifyBasicAnalyzerAsync(source, bannedText,
+                GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1874,6 +1883,7 @@ End Class
             var bannedText = @"T:BannedAttribute";
 
             await VerifyBasicAnalyzerAsync(source, bannedText,
+                GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1940,11 +1950,13 @@ End Class
             await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText1,
+                GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New()", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New()", ""));
 
             await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText2,
+                GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New(Banned As Integer)", ""),
                 GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New(Banned As Integer)", ""));
         }
 
