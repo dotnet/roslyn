@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
 
+        private FileStream OpenFile(int bufferSize, bool useAsync)
+            => FileUtilities.RethrowExceptionsAsIOException(
+                static t => new FileStream(t.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, t.bufferSize, t.useAsync),
+                (this.Path, bufferSize, useAsync));
+
         /// <summary>
         /// Load a text and a version of the document in the workspace.
         /// </summary>
@@ -171,7 +176,7 @@ namespace Microsoft.CodeAnalysis
             // this logic. This is tracked by https://github.com/dotnet/corefx/issues/6007, at least in
             // corefx. We also open the file for reading with FileShare mode read/write/delete so that
             // we do not lock this file.
-            using (var stream = OpenFile(bufferSize: 1))
+            using (var stream = OpenFile(bufferSize: 1, useAsync: true))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
 
@@ -198,13 +203,6 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion;
         }
 
-        private Stream OpenFile(int bufferSize)
-        {
-            return FileUtilities.RethrowExceptionsAsIOException(
-                static t => new FileStream(t.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, t.bufferSize, useAsync: false),
-                (this.Path, bufferSize));
-        }
-
         /// <summary>
         /// Load a text and a version of the document.
         /// </summary>
@@ -219,7 +217,7 @@ namespace Microsoft.CodeAnalysis
             TextAndVersion textAndVersion;
 
             // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
-            using (var stream = OpenFile(bufferSize: 4096))
+            using (var stream = OpenFile(bufferSize: 4096, useAsync: false))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
                 var text = CreateText(stream, options, cancellationToken);
