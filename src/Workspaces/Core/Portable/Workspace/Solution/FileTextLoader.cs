@@ -93,9 +93,7 @@ namespace Microsoft.CodeAnalysis
             => base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
 
         private FileStream OpenFile(int bufferSize, bool useAsync)
-            => FileUtilities.RethrowExceptionsAsIOException(
-                static t => new FileStream(t.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, t.bufferSize, t.useAsync),
-                (this.Path, bufferSize, useAsync));
+            => new(this.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize, useAsync);
 
         /// <summary>
         /// Load a text and a version of the document in the workspace.
@@ -107,8 +105,6 @@ namespace Microsoft.CodeAnalysis
             FileUtilities.GetFileLengthAndTimeStamp(Path, out var fileLength, out var prevLastWriteTime);
 
             ValidateFileLength(Path, fileLength);
-
-            TextAndVersion textAndVersion;
 
             // In many .NET Framework versions (specifically the 4.5.* series, but probably much earlier
             // and also later) there is this particularly interesting bit in FileStream.BeginReadAsync:
@@ -176,18 +172,19 @@ namespace Microsoft.CodeAnalysis
             // this logic. This is tracked by https://github.com/dotnet/corefx/issues/6007, at least in
             // corefx. We also open the file for reading with FileShare mode read/write/delete so that
             // we do not lock this file.
-            using (var stream = OpenFile(bufferSize: 1, useAsync: true))
-            {
-                var version = VersionStamp.Create(prevLastWriteTime);
 
-                // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
-                // but probably not for command line case where it doesn't use more sophisticated services.
-                using var readStream = await FileUtilities.RethrowExceptionsAsIOExceptionAsync(
-                    static t => SerializableBytes.CreateReadableStreamAsync(t.stream, cancellationToken: t.cancellationToken),
-                    (stream, cancellationToken)).ConfigureAwait(false);
-                var text = CreateText(readStream, options, cancellationToken);
-                textAndVersion = TextAndVersion.Create(text, version, Path);
-            }
+            var textAndVersion = await FileUtilities.RethrowExceptionsAsIOExceptionAsync(
+                async static t =>
+                {
+                    using var stream = t.self.OpenFile(bufferSize: 1, useAsync: true);
+                    var version = VersionStamp.Create(t.prevLastWriteTime);
+
+                    // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
+                    // but probably not for command line case where it doesn't use more sophisticated services.
+                    using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: t.cancellationToken).ConfigureAwait(false);
+                    var text = t.self.CreateText(readStream, t.options, t.cancellationToken);
+                    return TextAndVersion.Create(text, version, t.self.Path);
+                }, (self: this, prevLastWriteTime, options, cancellationToken)).ConfigureAwait(false);
 
             // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
