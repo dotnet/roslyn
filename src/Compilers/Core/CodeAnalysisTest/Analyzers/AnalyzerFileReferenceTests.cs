@@ -744,7 +744,7 @@ public class Generator : ISourceGenerator
         public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
     }
 
-    sealed file class ThrowingLoader : IAnalyzerAssemblyLoaderInternal
+    file sealed class ThrowingLoader : IAnalyzerAssemblyLoaderInternal
     {
         public void AddDependencyLocation(string fullPath) { }
         public bool IsHostAssembly(Assembly assembly) => false;
