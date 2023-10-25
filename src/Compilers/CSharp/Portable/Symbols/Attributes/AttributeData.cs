@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public new abstract SyntaxReference? ApplicationSyntaxReference { get; }
 
-        internal abstract override bool HasErrors { get; }
-
         internal abstract override bool IsConditionallyOmitted { get; }
 
         /// <summary>
