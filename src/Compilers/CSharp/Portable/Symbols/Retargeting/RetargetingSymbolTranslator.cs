@@ -1019,6 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         IndexedTypeParameterSymbol.TakeSymbols(method.Arity),
                         targetParams,
                         method.RefKind,
+                        method.IsAsync2,
                         method.IsInitOnly,
                         method.IsStatic,
                         translator.Retarget(method.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),

@@ -563,6 +563,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var isVoid1 = unsubstitutedReturnType1.IsVoidType();
             var isVoid2 = unsubstitutedReturnType2.IsVoidType();
 
+            bool isAsync2_1 = member1 is MethodSymbol ms1 && ms1.IsAsync2;
+            bool isAsync2_2 = member2 is MethodSymbol ms2 && ms2.IsAsync2;
+
+            if (isAsync2_1 != isAsync2_2)
+            {
+                if (!isAsync2_1)
+                {
+                    // non-async2 that returns Task is equivalent to async2 that returns void
+                    if (unsubstitutedReturnType1.Type.MetadataName == "Task" && isVoid2)
+                        return true;
+                }
+                else
+                {
+                    if (unsubstitutedReturnType2.Type.MetadataName == "Task" && isVoid1)
+                        return true;
+                }
+            }
+
             if (isVoid1 != isVoid2)
             {
                 return false;
@@ -579,6 +597,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var returnType1 = SubstituteType(typeMap1, unsubstitutedReturnType1);
             var returnType2 = SubstituteType(typeMap2, unsubstitutedReturnType2);
+
+            if (isAsync2_1 != isAsync2_2)
+            {
+                if (!isAsync2_1)
+                {
+                    // non-async2 that returns Task<T> is equivalent to async2 that returns T
+                    if (returnType1.Type.MetadataName == "Task`1")
+                        returnType1 = ((NamedTypeSymbol)returnType1.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                }
+                else
+                {
+                    if (returnType2.Type.MetadataName == "Task`1")
+                        returnType2 = ((NamedTypeSymbol)returnType2.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                }
+            }
+
+
             if (!returnType1.Equals(returnType2, typeComparison))
             {
                 return false;

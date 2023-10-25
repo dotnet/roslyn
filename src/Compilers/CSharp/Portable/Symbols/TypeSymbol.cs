@@ -1602,6 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.TypeParameters,
                     interfaceMethod.Parameters,
                     interfaceMethod.RefKind,
+                    interfaceMethod.IsAsync2,
                     interfaceMethod.IsInitOnly,
                     interfaceMethod.IsStatic,
                     interfaceMethod.ReturnTypeWithAnnotations,

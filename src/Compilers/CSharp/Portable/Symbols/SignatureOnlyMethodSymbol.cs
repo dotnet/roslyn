@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
+        private readonly bool _isAsync2;
         private readonly bool _isInitOnly;
         private readonly bool _isStatic;
         private readonly TypeWithAnnotations _returnType;
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
             RefKind refKind,
+            bool isAsync2,
             bool isInitOnly,
             bool isStatic,
             TypeWithAnnotations returnType,
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _callingConvention = callingConvention;
             _typeParameters = typeParameters;
             _refKind = refKind;
+            _isAsync2 = isAsync2;
             _isInitOnly = isInitOnly;
             _isStatic = isStatic;
             _returnType = returnType;
@@ -138,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAsync { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsAsync2 { get { throw ExceptionUtilities.Unreachable(); } }
+        internal override bool IsAsync2 { get { return _isAsync2; } }
 
         public override bool IsVirtual { get { throw ExceptionUtilities.Unreachable(); } }
 

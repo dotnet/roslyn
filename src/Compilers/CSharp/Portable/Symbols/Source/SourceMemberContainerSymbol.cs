@@ -4108,6 +4108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                                                               RefKind.Out
                                                                                                                               )),
                     RefKind.None,
+                    isAsync2: false,
                     isInitOnly: false,
                     isStatic: false,
                     TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Void)),
@@ -4155,6 +4156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                 RefKind.None
                                                                 )),
                     RefKind.None,
+                    isAsync2: false,
                     isInitOnly: false,
                     isStatic: false,
                     TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Void)),
@@ -4202,6 +4204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         isParams: false,
                         RefKind.None)),
                     RefKind.None,
+                    isAsync2: false,
                     isInitOnly: false,
                     isStatic: false,
                     returnType: TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Boolean)),
@@ -4257,6 +4260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<TypeParameterSymbol>.Empty,
                     ImmutableArray<ParameterSymbol>.Empty,
                     RefKind.None,
+                    isAsync2: false,
                     isInitOnly: false,
                     isStatic: false,
                     returnType: TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_String)),
@@ -4429,6 +4433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<TypeParameterSymbol>.Empty,
                     ImmutableArray<ParameterSymbol>.Empty,
                     RefKind.None,
+                    isAsync2: false,
                     isInitOnly: false,
                     isStatic: false,
                     TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Int32)),
@@ -4527,6 +4532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                 RefKind.None
                                                                 )),
                     RefKind.None,
+                    isAsync2: false,
                     isInitOnly: false,
                     isStatic: false,
                     TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Boolean)),
