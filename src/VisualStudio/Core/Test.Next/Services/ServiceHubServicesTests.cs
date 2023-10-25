@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: [code], openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files:[code], openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
 
@@ -71,7 +71,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: [code], openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files:[code], openDocuments: false);
 
             var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
 
@@ -124,7 +124,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var source = @"[System.ComponentModel.DesignerCategory(""Form"")] class Test { }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: [source], openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files:[source], openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
@@ -402,7 +402,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     return sourceTexts;
                 });
 
-            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() : [typeof(NoSyncWorkspaceConfigurationService)]);
+            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() :[typeof(NoSyncWorkspaceConfigurationService)]);
 
             DocumentId tempDocId;
 

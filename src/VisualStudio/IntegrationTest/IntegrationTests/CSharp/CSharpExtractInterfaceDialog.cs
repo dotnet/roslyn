@@ -93,7 +93,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             var selectedItems = ExtractInterfaceDialog.GetSelectedItems();
             Assert.Equal(
-                expected: ["M1()", "M2()"],
+                expected:["M1()", "M2()"],
                 actual: selectedItems);
 
             ExtractInterfaceDialog.ClickDeselectAll();
@@ -105,7 +105,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             selectedItems = ExtractInterfaceDialog.GetSelectedItems();
             Assert.Equal(
-                expected: ["M1()", "M2()"],
+                expected:["M1()", "M2()"],
                 actual: selectedItems);
 
             ExtractInterfaceDialog.ClickCancel();

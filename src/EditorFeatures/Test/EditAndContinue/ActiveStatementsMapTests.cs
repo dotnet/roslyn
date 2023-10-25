@@ -286,13 +286,13 @@ class C
 }";
             var unmappedActiveStatements = GetUnmappedActiveStatementsCSharp(
                 [source1],
-                flags: [ActiveStatementFlags.LeafFrame]);
+                flags:[ActiveStatementFlags.LeafFrame]);
 
             var debugInfos = ActiveStatementsDescription.GetActiveStatementDebugInfos(
                 unmappedActiveStatements,
-                methodRowIds: [1],
-                methodVersions: [1],
-                ilOffsets: [1]);
+                methodRowIds:[1],
+                methodVersions:[1],
+                ilOffsets:[1]);
 
             var exceptionRegions = unmappedActiveStatements[0].ExceptionRegions;
 
@@ -327,13 +327,13 @@ class C
 }";
             var unmappedActiveStatements = GetUnmappedActiveStatementsCSharp(
                 [source1],
-                flags: [ActiveStatementFlags.LeafFrame, ActiveStatementFlags.LeafFrame]);
+                flags:[ActiveStatementFlags.LeafFrame, ActiveStatementFlags.LeafFrame]);
 
             var debugInfos = ActiveStatementsDescription.GetActiveStatementDebugInfos(
                 unmappedActiveStatements,
-                methodRowIds: [1, 1],
-                methodVersions: [1, 1],
-                ilOffsets: [1, 10]);
+                methodRowIds:[1, 1],
+                methodVersions:[1, 1],
+                ilOffsets:[1, 10]);
 
             // Emulate move of both active statements by +1 line.
             var mapping1 = new NonRemappableRegion(oldSpan: unmappedActiveStatements[0].Statement.FileSpan, newSpan: unmappedActiveStatements[0].Statement.FileSpan.AddLineDelta(+1), isExceptionRegion: false);

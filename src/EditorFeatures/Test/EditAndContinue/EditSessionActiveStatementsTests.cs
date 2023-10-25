@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var activeStatements = GetActiveStatementDebugInfosCSharp(
                 markedSources,
-                methodRowIds: [1, 2, 3, 4, 5],
-                ilOffsets: [1, 1, 1, 2, 3],
-                modules: [module1, module1, module2, module2, module2]);
+                methodRowIds:[1, 2, 3, 4, 5],
+                ilOffsets:[1, 1, 1, 2, 3],
+                modules:[module1, module1, module2, module2, module2]);
 
             // add an extra active statement that has no location, it should be ignored:
             activeStatements = activeStatements.Add(
@@ -327,8 +327,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var baseActiveStatementInfos = GetActiveStatementDebugInfosCSharp(
                 new[] { baseSource },
-                modules: [module1, module1],
-                methodVersions: [1, 1],
+                modules:[module1, module1],
+                methodVersions:[1, 1],
                 flags:
                 [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, // F1
@@ -479,8 +479,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var sourceTextV3 = SourceText.From(markedSourceV3);
 
             var activeStatementsPreRemap = GetActiveStatementDebugInfosCSharp(new[] { markedSourceV1 },
-                modules: [module1, module1, module1, module1],
-                methodVersions: [2, 2, 1, 1], // method F3 and F4 were not remapped
+                modules:[module1, module1, module1, module1],
+                methodVersions:[2, 2, 1, 1], // method F3 and F4 were not remapped
                 flags:
                 [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, // F1
@@ -644,8 +644,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var activeStatements = GetActiveStatementDebugInfosCSharp(
                 markedSources,
-                methodRowIds: [1, 2],
-                ilOffsets: [1, 1],
+                methodRowIds:[1, 2],
+                ilOffsets:[1, 1],
                 flags:
                 [
                     ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.NonUserCode | ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.MethodUpToDate,

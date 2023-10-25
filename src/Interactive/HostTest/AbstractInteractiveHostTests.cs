@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     {
         private SynchronizedStringWriter _synchronizedOutput = null!;
         private SynchronizedStringWriter _synchronizedErrorOutput = null!;
-        private int[] _outputReadPosition = [0, 0];
+        private int[] _outputReadPosition =[0, 0];
 
         internal readonly InteractiveHost Host;
 

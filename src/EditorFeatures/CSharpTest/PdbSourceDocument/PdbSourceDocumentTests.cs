@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 #endif
                 }
                 """;
-            await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), preprocessorSymbols: ["SOME_DEFINED_CONSTANT"]);
+            await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), preprocessorSymbols:["SOME_DEFINED_CONSTANT"]);
         }
 
         [Theory]

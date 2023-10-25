@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         public void NestedArray()
         {
             var rootExpr = "new int[][] { new[] { 1, 2 }, new[] { 3 } }";
-            var value = CreateDkmClrValue(new int[][] { [1, 2], [3] });
+            var value = CreateDkmClrValue(new int[][] {[1, 2], [3] });
             var evalResult = FormatResult(rootExpr, value);
             Verify(evalResult,
                 EvalResult(rootExpr, "{int[2][]}", "int[][]", rootExpr, DkmEvaluationResultFlags.Expandable));

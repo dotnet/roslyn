@@ -303,7 +303,7 @@ $@"{exception.GetType()}: {exception.Message}
         public void Args_Interactive1()
         {
             var runner = CreateRunner(
-                args: ["-i"],
+                args:["-i"],
                 input: "1+1");
 
             runner.RunInteractive();
@@ -319,7 +319,7 @@ $@"{LogoAndHelpPrompt}
         public void Args_Interactive2()
         {
             var runner = CreateRunner(
-                args: ["/u:System", "/i", "--", "@arg1", "/arg2", "-arg3", "--arg4"],
+                args:["/u:System", "/i", "--", "@arg1", "/arg2", "-arg3", "--arg4"],
                 input: "foreach (var arg in Args) Print(arg);");
 
             runner.RunInteractive();
@@ -344,7 +344,7 @@ $@"{LogoAndHelpPrompt}
 --arg4");
 
             var runner = CreateRunner(
-                args: [$@"@""{rsp.Path}""", "/arg5", "--", "/arg7"],
+                args:[$@"@""{rsp.Path}""", "/arg5", "--", "/arg7"],
                 input: "1");
 
             runner.RunInteractive();
@@ -368,7 +368,7 @@ $@"""@arg1""
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
 
             var runner = CreateRunner(
-                args: [script.Path, "arg1", "arg2", "arg3"]);
+                args:[script.Path, "arg1", "arg2", "arg3"]);
 
             Assert.True(runner.RunInteractive() == 0, userMessage: runner.Console.Error.ToString());
 
@@ -385,7 +385,7 @@ $@"""@arg1""
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
 
             var runner = CreateRunner(
-                args: [script.Path, "@arg1", "@arg2", "@arg3"]);
+                args:[script.Path, "@arg1", "@arg2", "@arg3"]);
 
             Assert.True(runner.RunInteractive() == 0, userMessage: runner.Console.Error.ToString());
 
@@ -411,7 +411,7 @@ $@"""@arg1""
 --arg4");
 
             var runner = CreateRunner(
-                args: [$"@{rsp.Path}", "/arg5", "--", "/arg7"],
+                args:[$"@{rsp.Path}", "/arg5", "--", "/arg7"],
                 input: "foreach (var arg in Args) Print(arg);");
 
             Assert.True(runner.RunInteractive() == 0, userMessage: runner.Console.Error.ToString());
@@ -434,7 +434,7 @@ $@"""@arg1""
             var script = Temp.CreateFile(prefix: "@", extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
 
             var runner = CreateRunner(
-                args: ["--", script.Path, "@arg1", "@arg2", "@arg3"]);
+                args:["--", script.Path, "@arg1", "@arg2", "@arg3"]);
 
             runner.RunInteractive();
 
@@ -452,7 +452,7 @@ $@"""@arg1""
             var script = dir.CreateFile("--").WriteAllText("foreach (var arg in Args) Print(arg);");
 
             var runner = CreateRunner(
-                args: ["--", "--", "-", "--", "-"],
+                args:["--", "--", "-", "--", "-"],
                 workingDirectory: dir.Path);
 
             runner.RunInteractive();
@@ -560,7 +560,7 @@ $@"{LogoAndHelpPrompt}
                 var workingDirectory = PathUtilities.GetDirectoryName(directory.Path);
                 Assert.False(PathUtilities.IsAbsolute(scriptPath));
                 var runner = CreateRunner(
-                    args: [scriptPath],
+                    args:[scriptPath],
                     workingDirectory: workingDirectory);
                 runner.RunInteractive();
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("3", runner.Console.Out.ToString());

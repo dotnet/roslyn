@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private static readonly char[] s_dotSeparator = ['.'];
+        private static readonly char[] s_dotSeparator =['.'];
 
         /// <summary>
         /// The annotation used to track applicable container in each document to be fixed.

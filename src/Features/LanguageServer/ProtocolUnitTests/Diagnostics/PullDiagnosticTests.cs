@@ -1327,7 +1327,7 @@ class A {
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync(
                 markups: Array.Empty<string>(), mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: [markup1, markup2]));
+                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups:[markup1, markup2]));
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 

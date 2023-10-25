@@ -4273,7 +4273,7 @@ partial class C
             EditAndContinueValidation.VerifySemantics(
                 new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 [
-                    DocumentResults(diagnostics: [Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a")]),
+                    DocumentResults(diagnostics:[Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a")]),
                     DocumentResults(),
                 ]);
         }
@@ -8692,7 +8692,7 @@ interface I
 
             // lambdas are ok as they are emitted to a nested type
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: [TargetFramework.NetCoreApp],
+                targetFrameworks:[TargetFramework.NetCoreApp],
                 diagnostics:
                 [
                     Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1", CSharpFeaturesResources.local_function),
@@ -11202,7 +11202,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: [TargetFramework.Mscorlib40AndSystemCore],
+                targetFrameworks:[TargetFramework.Mscorlib40AndSystemCore],
                 diagnostics:
                 [
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
@@ -11237,7 +11237,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: [TargetFramework.Mscorlib40AndSystemCore],
+                targetFrameworks:[TargetFramework.Mscorlib40AndSystemCore],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -12148,7 +12148,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: [TargetFramework.MinimalAsync],
+                targetFrameworks:[TargetFramework.MinimalAsync],
                 diagnostics:
                 [
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static async Task<int> F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")
@@ -12184,7 +12184,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: [TargetFramework.MinimalAsync],
+                targetFrameworks:[TargetFramework.MinimalAsync],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -12224,7 +12224,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: [TargetFramework.MinimalAsync],
+                targetFrameworks:[TargetFramework.MinimalAsync],
                 diagnostics:
                 [
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "L", "System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute")

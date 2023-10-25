@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return results.ToImmutable();
             }
 
-            private static readonly char[] s_directorySplitChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+            private static readonly char[] s_directorySplitChars =[Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
             private static void GetDocumentNameAndFolders(string logicalPath, out string name, out ImmutableArray<string> folders)
             {

@@ -489,7 +489,7 @@ namespace N
             testState.Workspace.Documents.Single().GetTextBuffer().Insert(0, "/* hello */");
 
             testState.VerifyRoot(root, "N.C.Goo()", [string.Format(EditorFeaturesResources.Calls_To_0, "Goo"),]);
-            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: ["N.C.M()"]);
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers:["N.C.M()"]);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/57856")]

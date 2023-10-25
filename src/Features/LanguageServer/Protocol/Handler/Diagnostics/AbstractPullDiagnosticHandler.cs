@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
             else
             {
-                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) : [DiagnosticTag.Unnecessary];
+                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) :[DiagnosticTag.Unnecessary];
                 var diagnosticRelatedInformation = unnecessaryLocations.Value.Select(l => new DiagnosticRelatedInformation
                 {
                     Location = new LSP.Location

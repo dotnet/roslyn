@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectBId = solution.GetProjectsByName("B").Single().Id;
             dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { new ProjectReference(projectBId) });
 
-            VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults: ["B"]);
+            VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults:["B"]);
         }
 
         [Fact]

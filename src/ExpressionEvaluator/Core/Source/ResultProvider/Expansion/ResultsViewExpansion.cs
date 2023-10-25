@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 inspectionContext,
                 _proxyValue.Type,
                 customTypeInfo: null,
-                arguments: [fullName]);
+                arguments:[fullName]);
             return new EvalResult(
                 ExpansionKind.Default,
                 name,

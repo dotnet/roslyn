@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         [Fact]
         public void SimpleTests()
         {
-            string[] testValues = ["cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart"];
+            string[] testValues =["cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart"];
             var tree = BKTree.Create(testValues);
 
             var results1 = Find(tree, "wat", threshold: 1);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         [Fact]
         public void PermutationTests()
         {
-            string[] testValues = ["cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart"];
+            string[] testValues =["cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart"];
             TestTreeInvariants(testValues);
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         [Fact]
         public void Test2()
         {
-            string[] testValues = ["Leeds", "York", "Bristol", "Leicester", "Hull", "Durham"];
+            string[] testValues =["Leeds", "York", "Bristol", "Leicester", "Hull", "Durham"];
             var tree = BKTree.Create(testValues);
 
             var results = Find(tree, "hill", threshold: null);
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         [Fact]
         public void TestSpillover()
         {
-            string[] testValues = [
+            string[] testValues =[
                 /*root:*/ "Four",
                 /*d=1*/ "Fou", "For", "Fur", "Our", "FourA", "FouAr", "FoAur", "FAour", "AFour", "Tour",
                 /*d=2*/ "Fo", "Fu", "Fr", "or", "ur", "ou", "FourAb", "FouAbr", "FoAbur", "FAbour", "AbFour", "oFour", "Fuor", "Foru", "ours",

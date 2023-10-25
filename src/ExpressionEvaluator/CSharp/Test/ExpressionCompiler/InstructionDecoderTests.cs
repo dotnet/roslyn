@@ -255,7 +255,7 @@ class C
 
             Assert.Equal(
                 "C.M(1, 2)",
-                GetName(source, "C.M", DkmVariableInfoFlags.None, argumentValues: ["1", "2"]));
+                GetName(source, "C.M", DkmVariableInfoFlags.None, argumentValues:["1", "2"]));
 
             Assert.Equal(
                 "C.M(ref int, out int)",
@@ -299,13 +299,13 @@ class C
             var expected = "C.M(int x, int y)";
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: []));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues:[]));
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: ["1"]));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues:["1"]));
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: ["1", "2", "3"]));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues:["1", "2", "3"]));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134081")]

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {
             var itemDefaultArray = isPublicDefaultCommitChars
                 ? new string[] { CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.CommitCharactersPropertyName }
-                : [CompletionCapabilityHelper.EditRangePropertyName];
+                :[CompletionCapabilityHelper.EditRangePropertyName];
 
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {

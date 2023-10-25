@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     {
         public class Verifier : Verifier<InteractiveWindow_OutOfProc>
         {
-            private static readonly char[] LineSeparators = ['\r', '\n'];
+            private static readonly char[] LineSeparators =['\r', '\n'];
 
             public Verifier(InteractiveWindow_OutOfProc interactiveWindow, VisualStudioInstance instance)
                 : base(interactiveWindow, instance)

@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
                     newSetAccessor == null
-                        ? [newGetAccessor]
-                        : [newGetAccessor, newSetAccessor])
+                        ?[newGetAccessor]
+                        :[newGetAccessor, newSetAccessor])
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
 
