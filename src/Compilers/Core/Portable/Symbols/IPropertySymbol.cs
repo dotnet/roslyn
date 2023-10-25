@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         new IPropertySymbol OriginalDefinition { get; }
 
+        new ISymbol ContainingSymbol { get; }
+
         /// <summary>
         /// Returns the overridden property, or null.
         /// </summary>

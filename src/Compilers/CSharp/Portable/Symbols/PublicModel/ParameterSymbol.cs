@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         object IParameterSymbol.ExplicitDefaultValue => _underlying.ExplicitDefaultValue;
 
+        ISymbol IParameterSymbol.ContainingSymbol => _underlying.ContainingSymbol.GetPublicSymbol();
+
         #region ISymbol Members
 
         protected override void Accept(SymbolVisitor visitor)

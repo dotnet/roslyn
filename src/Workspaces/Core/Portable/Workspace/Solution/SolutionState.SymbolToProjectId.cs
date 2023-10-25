@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             return projectId;
         }
 
-        private ProjectId? GetOriginatingProjectIdWorker(ISymbol symbol)
+        private ProjectId? GetOriginatingProjectIdWorker(ISymbol? symbol)
         {
             InterlockedOperations.Initialize(ref _unrootedSymbolToProjectId, s_createTable);
 

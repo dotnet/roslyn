@@ -96,5 +96,7 @@ namespace Microsoft.CodeAnalysis
         /// source or metadata.
         /// </summary>
         new IParameterSymbol OriginalDefinition { get; }
+
+        new ISymbol ContainingSymbol { get; }
     }
 }
