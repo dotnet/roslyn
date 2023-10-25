@@ -93,8 +93,6 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableSegmentedList<(Document document, ClassificationType type, ClassificationOptions options)> documents,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
             // First group by type.  That way we process the last semantic and last embedded-lang classifications per document.
             foreach (var typeGroup in documents.GroupBy(t => t.type))
             {
@@ -104,17 +102,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var group in typeGroup.GroupBy(d => d.document.Id))
                 {
                     var (document, type, options) = group.Last();
-                    tasks.Add(CacheClassificationsAsync(document, type, options, cancellationToken));
+                    await CacheClassificationsAsync(
+                        document, type, options, cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task CacheClassificationsAsync(
             Document document, ClassificationType type, ClassificationOptions options, CancellationToken cancellationToken)
         {
-            await Task.Yield();
             var solution = document.Project.Solution;
             var persistenceService = solution.Services.GetPersistentStorageService();
 
