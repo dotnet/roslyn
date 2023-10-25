@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -58,7 +57,6 @@ namespace Microsoft.CodeAnalysis
             get { return false; }
         }
 
-        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal virtual bool HasErrors
         {
             get { return false; }

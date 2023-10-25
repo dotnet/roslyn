@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -40,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets a reference to the source for this application of the attribute. Returns null for applications of attributes on metadata Symbols.
         /// </summary>
         public new abstract SyntaxReference? ApplicationSyntaxReference { get; }
+
+        internal abstract override bool HasErrors { get; }
 
         internal abstract override bool IsConditionallyOmitted { get; }
 
