@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // prevent cascading diagnostics
                 Debug.Assert(hasErrors);
-                return new SourceAttributeData(boundAttribute.Syntax.GetReference(), attributeType, attributeConstructor, hasErrors);
+                return new SourceAttributeData(Compilation, (AttributeSyntax)boundAttribute.Syntax, attributeType, attributeConstructor, hasErrors);
             }
 
             // Validate attribute constructor parameters have valid attribute parameter type
@@ -323,7 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(boundAttribute.Syntax, useSiteInfo);
 
             return new SourceAttributeData(
-                boundAttribute.Syntax.GetReference(),
+                Compilation,
+                (AttributeSyntax)boundAttribute.Syntax,
                 attributeType,
                 attributeConstructor,
                 rewrittenArguments,

@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim [interface] = [event].ContainingType
 
                 For Each attrData In [interface].GetAttributes()
-                    If attrData.IsTargetAttribute([interface], AttributeDescription.ComEventInterfaceAttribute) AndAlso
+                    If attrData.IsTargetAttribute(AttributeDescription.ComEventInterfaceAttribute) AndAlso
                         attrData.CommonConstructorArguments.Length = 2 Then
                         expr = RewriteNoPiaAddRemoveHandler(node, receiver, [event], handler)
                         Exit For
