@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations => _taskType;
 
+        public override bool ReturnsVoid => false;
+
         internal override bool IsAsync2 => false;
 
         public override RefKind RefKind => RefKind.None;

@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool ReturnsVoid => UnderlyingMethod.ReturnsVoid;
+        public override bool ReturnsVoid => UnderlyingMethod.ReturnsVoid;
 
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => UnderlyingMethod.ReturnTypeFlowAnalysisAnnotations;
 
