@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
+        private readonly Dictionary<RequestHandlerMetadata, IMethodHandler> _handlerCache = new();
         private readonly IInitializeManager _initializeManager;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
 
@@ -47,8 +48,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <inheritdoc/>
         protected override IMethodHandler GetHandlerForRequest(IQueueItem<RequestContext> work)
         {
-            var handlers = _handlerProvider.GetMethodHandlers(work.MethodName, work.RequestType, work.ResponseType);
-            var defaultHandler = handlers.First(h => string.IsNullOrEmpty(h.Metadata)).Value;
+            var defaultHandlerMetadata = new RequestHandlerMetadata(work.MethodName, work.RequestType, work.ResponseType, LanguageNames.CSharp);
+            if (!_handlerCache.TryGetValue(defaultHandlerMetadata, out var defaultHandler))
+            {
+                defaultHandler = _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, LanguageNames.CSharp);
+                _handlerCache.Add(defaultHandlerMetadata, defaultHandler);
+            }
+
             var identifier = RoslynRequestExecutionQueue.GetTextDocumentIdentifier(work, defaultHandler);
             if (identifier is null)
             {
@@ -56,8 +62,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             var language = _lspWorkspaceManager.GetLanguageForUri(identifier.Uri);
+            var handlerMetadata = new RequestHandlerMetadata(work.MethodName, work.RequestType, work.ResponseType, language);
+            if (_handlerCache.TryGetValue(handlerMetadata, out var handler))
+            {
+                return handler;
+            }
 
-            return handlers.SingleOrDefault(h => string.Equals(h.Metadata, language, StringComparison.OrdinalIgnoreCase))?.Value ?? defaultHandler;
+            try
+            {
+                handler = _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, language);
+            }
+            catch
+            {
+                handler = defaultHandler;
+            }
+
+            _handlerCache.Add(handlerMetadata, handler);
+
+            return handler;
         }
 
         protected static TextDocumentIdentifier? GetTextDocumentIdentifier(IQueueItem<RequestContext> work, IMethodHandler handler)

@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using StreamJsonRpc;
@@ -93,7 +89,11 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
     protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
     {
-        foreach (var metadata in handlerProvider.GetRegisteredMethods())
+        // Get unique set of methods from the handler provider independent of any language.
+        foreach (var metadata in handlerProvider
+            .GetRegisteredMethods()
+            .Select(m => new RequestHandlerMetadata(m.MethodName, m.RequestType, m.ResponseType))
+            .Distinct())
         {
             // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
             // generic method info from the exported handler types.  This allows us to define multiple handlers for

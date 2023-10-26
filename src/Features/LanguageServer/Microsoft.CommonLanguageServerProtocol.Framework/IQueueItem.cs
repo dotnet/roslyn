@@ -20,12 +20,12 @@ public interface IQueueItem<TRequestContext>
     /// <param name="requestContext">the context created by <see cref="CreateRequestContextAsync(IMethodHandler, CancellationToken)"/></param>
     /// <param name="cancellationToken" />
     /// <returns>A <see cref="Task "/> which completes when the request has finished.</returns>
-    Task StartRequestAsync(IMethodHandler handler, TRequestContext requestContext, CancellationToken cancellationToken);
+    Task StartRequestAsync(TRequestContext requestContext, CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates the context that is sent to the handler for this queue item.
     /// Note - this method is always called serially inside the queue before
-    /// running the actual request in <see cref="StartRequestAsync(IMethodHandler, TRequestContext, CancellationToken)"/>
+    /// running the actual request in <see cref="StartRequestAsync(TRequestContext, CancellationToken)"/>
     /// Throwing in this method will cause the server to shutdown.
     /// </summary>
     Task<TRequestContext> CreateRequestContextAsync(IMethodHandler handler, CancellationToken cancellationToken);
@@ -36,7 +36,7 @@ public interface IQueueItem<TRequestContext>
     /// <typeparam name="TTextDocumentIdentifier">The type of the text document identifier.</typeparam>
     /// <param name="handler">The handler for the request.</param>
     /// <returns>The text document identifier.</returns>
-    TTextDocumentIdentifier GetTextDocumentIdentifier<TTextDocumentIdentifier>(IMethodHandler handler);
+    TTextDocumentIdentifier? GetTextDocumentIdentifier<TTextDocumentIdentifier>(IMethodHandler handler);
 
     ILspServices LspServices { get; }
 
@@ -54,4 +54,9 @@ public interface IQueueItem<TRequestContext>
     /// The type of the response.
     /// </summary>
     Type? ResponseType { get; }
+
+    /// <summary>
+    /// The handler which will run this operation. It is initialized during <see cref="CreateRequestContextAsync(IMethodHandler, CancellationToken)"/>.
+    /// </summary>
+    IMethodHandler? MethodHandler { get; }
 }

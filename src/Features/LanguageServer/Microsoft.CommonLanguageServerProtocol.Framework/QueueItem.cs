@@ -33,6 +33,8 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
 
     public string MethodName { get; }
 
+    public IMethodHandler? MethodHandler { get; private set; }
+
     public Type? RequestType => typeof(TRequest) == typeof(NoValue) ? null : typeof(TRequest);
 
     public Type? ResponseType => typeof(TResponse) == typeof(NoValue) ? null : typeof(TResponse);
@@ -74,8 +76,11 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     public async Task<TRequestContext> CreateRequestContextAsync(IMethodHandler handler, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        MethodHandler = handler;
+
         var requestContextFactory = LspServices.GetRequiredService<IRequestContextFactory<TRequestContext>>();
-        var context = await requestContextFactory.CreateRequestContextAsync(handler, this, _request, cancellationToken).ConfigureAwait(false);
+        var context = await requestContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
         return context;
     }
 
@@ -86,7 +91,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns>The result of the request.</returns>
-    public async Task StartRequestAsync(IMethodHandler handler, TRequestContext? context, CancellationToken cancellationToken)
+    public async Task StartRequestAsync(TRequestContext? context, CancellationToken cancellationToken)
     {
         _logger.LogStartContext($"{MethodName}");
         try
@@ -105,26 +110,26 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
                 _logger.LogWarning($"Could not get request context for {MethodName}");
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
-            else if (handler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
+            else if (MethodHandler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
             {
                 var result = await requestHandler.HandleRequestAsync(_request, context, cancellationToken).ConfigureAwait(false);
 
                 _completionSource.TrySetResult(result);
             }
-            else if (handler is IRequestHandler<TResponse, TRequestContext> parameterlessRequestHandler)
+            else if (MethodHandler is IRequestHandler<TResponse, TRequestContext> parameterlessRequestHandler)
             {
                 var result = await parameterlessRequestHandler.HandleRequestAsync(context, cancellationToken).ConfigureAwait(false);
 
                 _completionSource.TrySetResult(result);
             }
-            else if (handler is INotificationHandler<TRequest, TRequestContext> notificationHandler)
+            else if (MethodHandler is INotificationHandler<TRequest, TRequestContext> notificationHandler)
             {
                 await notificationHandler.HandleNotificationAsync(_request, context, cancellationToken).ConfigureAwait(false);
 
                 // We know that the return type of <see cref="INotificationHandler{TRequestType, RequestContextType}"/> will always be <see cref="VoidReturn" /> even if the compiler doesn't.
                 _completionSource.TrySetResult((TResponse)(object)NoValue.Instance);
             }
-            else if (handler is INotificationHandler<TRequestContext> parameterlessNotificationHandler)
+            else if (MethodHandler is INotificationHandler<TRequestContext> parameterlessNotificationHandler)
             {
                 await parameterlessNotificationHandler.HandleNotificationAsync(context, cancellationToken).ConfigureAwait(false);
 
@@ -133,7 +138,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
             }
             else
             {
-                throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {handler.GetType()}. ");
+                throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {MethodHandler.GetType()}. ");
             }
         }
         catch (OperationCanceledException ex)
@@ -161,13 +166,13 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         await _completionSource.Task.ConfigureAwait(false);
     }
 
-    public TTextDocumentIdentifier GetTextDocumentIdentifier<TTextDocumentIdentifier>(IMethodHandler handler)
+    public TTextDocumentIdentifier? GetTextDocumentIdentifier<TTextDocumentIdentifier>(IMethodHandler handler)
     {
         if (handler is ITextDocumentIdentifierHandler<TRequest, TTextDocumentIdentifier> requestHandler)
         {
             return requestHandler.GetTextDocumentIdentifier(_request);
         }
 
-        return default!;
+        return default;
     }
 }

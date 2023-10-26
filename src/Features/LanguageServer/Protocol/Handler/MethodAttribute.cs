@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [MetadataAttribute]
 internal class MethodAttribute : LanguageServerEndpointAttribute
 {
-    public MethodAttribute(string method, string? language = null) : base(method, language)
+    public MethodAttribute(string method) : base(method, LanguageNames.CSharp, LanguageNames.FSharp, LanguageNames.VisualBasic)
     {
     }
 }

@@ -67,12 +67,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly ILspLogger _logger;
     private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+    private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
     public LspWorkspaceManager(
         ILspLogger logger,
         LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        ILanguageInfoProvider languageInfoProvider,
         RequestTelemetryLogger requestTelemetryLogger)
     {
         _lspMiscellaneousFilesWorkspace = lspMiscellaneousFilesWorkspace;
@@ -80,6 +82,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _requestTelemetryLogger = requestTelemetryLogger;
 
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+        _languageInfoProvider = languageInfoProvider;
     }
 
     public EventHandler<EventArgs>? LspTextChanged;
@@ -407,23 +410,16 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #endregion
 
-    /// <summary>
-    /// Get the language id for the given URI either from what the LSP client told us.
-    /// </summary>
     internal string? GetLanguageForUri(Uri uri)
     {
+        string? languageId = null;
         if (_trackedDocuments.TryGetValue(uri, out var trackedDocument))
         {
-            return trackedDocument.LanguageId;
+            languageId = trackedDocument.LanguageId;
         }
 
-        // Only matters for XAML right now because the default (null) is C#/VB.
-        if (uri.IsFile && Path.GetExtension(uri.LocalPath).Equals(".xaml", StringComparison.OrdinalIgnoreCase))
-        {
-            return "xaml";
-        }
-
-        return null;
+        var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+        return _languageInfoProvider.GetLanguageInformation(documentFilePath, languageId)?.LanguageName;
     }
 
     /// <summary>

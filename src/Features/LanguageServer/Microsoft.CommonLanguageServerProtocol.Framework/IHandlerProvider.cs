@@ -14,5 +14,5 @@ public interface IHandlerProvider
 {
     ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods();
 
-    ImmutableArray<Lazy<IMethodHandler, string?>> GetMethodHandlers(string method, Type? requestType, Type? responseType);
+    IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string? language = null);
 }

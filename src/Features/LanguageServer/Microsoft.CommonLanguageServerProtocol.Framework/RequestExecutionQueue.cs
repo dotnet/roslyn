@@ -220,7 +220,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         Debug.Assert(!concurrentlyExecutingTasks.Any(), "The tasks should have all been drained before continuing");
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await WrapStartRequestTaskAsync(work.StartRequestAsync(handler, context, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
+                        await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
                     }
                     else
                     {
@@ -229,7 +229,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizability).
-                        var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(handler, context, cancellationToken), cancellationToken), rethrowExceptions: false);
+                        var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken), rethrowExceptions: false);
 
                         if (CancelInProgressWorkUponMutatingRequest)
                         {
@@ -282,14 +282,10 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     }
 
     /// <summary>
-    /// Choose the best method handler for the given request.
+    /// Choose the method handler for the given request. By default this uses the <see cref="IHandlerProvider"/>.
     /// </summary>
     protected virtual IMethodHandler GetHandlerForRequest(IQueueItem<TRequestContext> work)
-    {
-        var handlers = _handlerProvider.GetMethodHandlers(work.MethodName, work.RequestType, work.ResponseType);
-
-        return handlers.First(h => string.IsNullOrEmpty(h.Metadata)).Value;
-    }
+        => _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType);
 
     /// <summary>
     /// Provides an extensibility point to log or otherwise inspect errors thrown from non-mutating requests,

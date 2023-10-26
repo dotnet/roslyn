@@ -16,8 +16,8 @@ internal class TestHandlerWithLanguageProvider : IHandlerProvider
     public TestHandlerWithLanguageProvider(IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider, string? language)> providers)
         => _providers = providers;
 
-    public ImmutableArray<Lazy<IMethodHandler, string?>> GetMethodHandlers(string method, Type? requestType, Type? responseType)
-        => _providers.Where(p => p.metadata.MethodName == method).Select(p => new Lazy<IMethodHandler, string?>(() => p.provider, p.language)).ToImmutableArray();
+    public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string? language = null)
+        => _providers.Single(p => p.metadata.MethodName == method && p.metadata.Language == language).provider;
 
     public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
         => _providers.Select(p => p.metadata).ToImmutableArray();

@@ -150,11 +150,10 @@ public class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
     }
 }
 
-[LanguageServerEndpoint(Name, Language)]
+[LanguageServerEndpoint(Name)]
 internal class TestDefaultLanguageHandler : IRequestHandler<int, string, TestRequestContext>
 {
     public const string Name = "Language";
-    public const string? Language = null;
     public static readonly IMethodHandler Instance = new TestDefaultLanguageHandler();
 
     public bool MutatesSolutionState => true;
@@ -163,14 +162,14 @@ internal class TestDefaultLanguageHandler : IRequestHandler<int, string, TestReq
     public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType);
 
     public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
-        => Task.FromResult<string>(null);
+        => Task.FromResult(string.Empty);
 }
 
 [LanguageServerEndpoint(Name, Language)]
 internal class TestXamlLanguageHandler : IRequestHandler<int, string, TestRequestContext>
 {
     public const string Name = TestDefaultLanguageHandler.Name;
-    public const string? Language = "xaml";
+    public const string Language = "xaml";
     public static readonly IMethodHandler Instance = new TestXamlLanguageHandler();
 
     public bool MutatesSolutionState => true;

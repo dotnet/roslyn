@@ -18,13 +18,13 @@ public class LanguageServerEndpointAttribute : Attribute
     public string Method { get; }
 
     /// <summary>
-    /// Contains an optional language name that this <see cref="IMethodHandler"/> is specific to.
+    /// Contains any language names that this <see cref="IMethodHandler"/> is specific to.
     /// </summary>
-    public string? Language { get; }
+    public string[] Languages { get; }
 
-    public LanguageServerEndpointAttribute(string method, string? language = null)
+    public LanguageServerEndpointAttribute(string method, params string[] languages)
     {
         Method = method;
-        Language = language;
+        Languages = languages;
     }
 }

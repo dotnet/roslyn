@@ -20,7 +20,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         _lspServices = lspServices;
     }
 
-    public Task<RequestContext> CreateRequestContextAsync<TRequestParam>(IMethodHandler handler, IQueueItem<RequestContext> queueItem, TRequestParam requestParam, CancellationToken cancellationToken)
+    public Task<RequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<RequestContext> queueItem, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -33,6 +33,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         }
 
         TextDocumentIdentifier? textDocumentIdentifier;
+        var handler = queueItem.MethodHandler ?? throw new InvalidOperationException($"No handler available for method: {queueItem.MethodName}");
         var textDocumentIdentifierHandler = handler as ITextDocumentIdentifierHandler;
         if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier> tHandler)
         {
