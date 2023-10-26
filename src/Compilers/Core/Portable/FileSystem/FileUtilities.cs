@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
 {
@@ -304,17 +305,35 @@ namespace Roslyn.Utilities
             return RethrowExceptionsAsIOException(() => new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous));
         }
 
-        internal static T RethrowExceptionsAsIOException<T>(Func<T> operation)
+        public static T RethrowExceptionsAsIOException<T>(Func<T> operation)
+            => RethrowExceptionsAsIOException(
+                static operation => operation(),
+                operation);
+
+        public static T RethrowExceptionsAsIOException<T, TArg>(Func<TArg, T> operation, TArg arg)
         {
             try
             {
-                return operation();
+                return operation(arg);
             }
-            catch (IOException)
+            catch (Exception e) when (e is not IOException)
             {
-                throw;
+                throw new IOException(e.Message, e);
             }
-            catch (Exception e)
+        }
+
+        public static Task<T> RethrowExceptionsAsIOExceptionAsync<T>(Func<Task<T>> operation)
+            => RethrowExceptionsAsIOExceptionAsync(
+                static operation => operation(),
+                operation);
+
+        public static async Task<T> RethrowExceptionsAsIOExceptionAsync<T, TArg>(Func<TArg, Task<T>> operation, TArg arg)
+        {
+            try
+            {
+                return await operation(arg).ConfigureAwait(false);
+            }
+            catch (Exception e) when (e is not IOException)
             {
                 throw new IOException(e.Message, e);
             }
