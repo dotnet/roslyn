@@ -387,14 +387,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute As Boolean
             Get
                 Dim assemblyAttributes = GetAssemblyAttributes()
-                Return assemblyAttributes.IndexOfAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) >= 0
+                Return assemblyAttributes.IndexOfAttribute(AttributeDescription.CompilationRelaxationsAttribute) >= 0
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasAssemblyRuntimeCompatibilityAttribute As Boolean
             Get
                 Dim assemblyAttributes = GetAssemblyAttributes()
-                Return assemblyAttributes.IndexOfAttribute(Me, AttributeDescription.RuntimeCompatibilityAttribute) >= 0
+                Return assemblyAttributes.IndexOfAttribute(AttributeDescription.RuntimeCompatibilityAttribute) >= 0
             End Get
         End Property
 
