@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             foreach (var attrData in underlyingContainingType.GetAttributes())
             {
-                if (attrData.IsTargetAttribute(underlyingContainingType, AttributeDescription.ComEventInterfaceAttribute))
+                if (attrData.IsTargetAttribute(AttributeDescription.ComEventInterfaceAttribute))
                 {
                     bool foundMatch = false;
                     NamedTypeSymbol sourceInterface = null;

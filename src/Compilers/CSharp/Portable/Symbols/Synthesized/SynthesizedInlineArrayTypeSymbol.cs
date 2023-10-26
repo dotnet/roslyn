@@ -182,7 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddSynthesizedAttribute(
                 ref attributes,
-                new SynthesizedAttributeData(
+                SynthesizedAttributeData.Create(
+                    moduleBuilder.Compilation,
                     _inlineArrayAttributeConstructor,
                     arguments: ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, _arrayLength)),
                     namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty));
