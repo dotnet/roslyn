@@ -150,11 +150,17 @@
   <data name="Failed_to_read_runsettings_file_at_0:1" xml:space="preserve">
     <value>Failed to read .runsettings file at {0}:{1}</value>
   </data>
+  <data name="Failed_to_run_restore_see_output_for_details" xml:space="preserve">
+    <value>Failed to run restore, see output for details</value>
+  </data>
   <data name="Found_0_tests_in_1" xml:space="preserve">
     <value>Found {0} tests in {1}</value>
   </data>
   <data name="Message" xml:space="preserve">
     <value>Message</value>
+  </data>
+  <data name="Nothing_found_to_restore" xml:space="preserve">
+    <value>Nothing found to restore</value>
   </data>
   <data name="No_test_methods_found_in_requested_range" xml:space="preserve">
     <value>No test methods found in requested range</value>
@@ -167,6 +173,21 @@
   </data>
   <data name="Projects_failed_to_load_because_MSBuild_could_not_be_found" xml:space="preserve">
     <value>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Restore_complete" xml:space="preserve">
+    <value>Restore complete</value>
+  </data>
+  <data name="Restore_started" xml:space="preserve">
+    <value>Restore started</value>
+  </data>
+  <data name="Restoring_0" xml:space="preserve">
+    <value>Restoring {0}</value>
+  </data>
+  <data name="Running_dotnet_restore_on_0" xml:space="preserve">
+    <value>Running dotnet restore on {0}</value>
   </data>
   <data name="Running_tests" xml:space="preserve">
     <value>Running tests...</value>
