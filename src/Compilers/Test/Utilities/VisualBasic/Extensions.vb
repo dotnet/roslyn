@@ -147,7 +147,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttributes(this As Symbol, description As AttributeDescription) As IEnumerable(Of VisualBasicAttributeData)
-        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(this, description))
+        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(description))
     End Function
 
     <Extension>

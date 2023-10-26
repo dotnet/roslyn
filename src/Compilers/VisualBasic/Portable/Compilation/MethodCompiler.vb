@@ -851,7 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function GetDesignerInitializeComponentMethod(sourceTypeSymbol As SourceMemberContainerTypeSymbol) As MethodSymbol
 
-            If sourceTypeSymbol.TypeKind = TypeKind.Class AndAlso sourceTypeSymbol.GetAttributes().IndexOfAttribute(sourceTypeSymbol, AttributeDescription.DesignerGeneratedAttribute) > -1 Then
+            If sourceTypeSymbol.TypeKind = TypeKind.Class AndAlso sourceTypeSymbol.GetAttributes().IndexOfAttribute(AttributeDescription.DesignerGeneratedAttribute) > -1 Then
                 For Each member As Symbol In sourceTypeSymbol.GetMembers("InitializeComponent")
                     If member.Kind = SymbolKind.Method Then
                         Dim method = DirectCast(member, MethodSymbol)
