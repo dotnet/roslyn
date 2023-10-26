@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         private static void AssertChecksumCollectionEqual<TId>(
-            ChecksumsAndIds<TId> collection1, ChecksumsAndIds<TId> collection2) where TId : IObjectWritable
+            ChecksumsAndIds<TId> collection1, ChecksumsAndIds<TId> collection2)
         {
             AssertChecksumCollectionEqual(collection1.Checksums, collection2.Checksums);
             AssertEx.Equal(collection1.Ids, collection2.Ids);
