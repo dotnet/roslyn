@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             return false;
         }
 
-        internal abstract int GetTargetAttributeSignatureIndex(TSymbol underlyingSymbol, TAttributeData attrData, AttributeDescription description);
+        internal abstract int GetTargetAttributeSignatureIndex(TAttributeData attrData, AttributeDescription description);
 
-        internal bool IsTargetAttribute(TSymbol underlyingSymbol, TAttributeData attrData, AttributeDescription description)
+        internal bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description)
         {
-            return GetTargetAttributeSignatureIndex(underlyingSymbol, attrData, description) != -1;
+            return GetTargetAttributeSignatureIndex(attrData, description) != -1;
         }
 
         internal abstract TAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, TAttributeData attrData, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);

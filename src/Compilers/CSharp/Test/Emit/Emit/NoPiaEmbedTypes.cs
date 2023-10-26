@@ -2984,7 +2984,7 @@ class UsePia5 : ITest30
         }
 
         [Fact]
-        public void DispIdAttribute()
+        public void DispIdAttribute_01()
         {
             string pia = @"
 using System;
@@ -3047,6 +3047,88 @@ class UsePia5 : ITest30
             CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
             CompileAndVerify(compilation2, symbolValidator: metadataValidator);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70338")]
+        public void DispIdAttribute_02()
+        {
+            string dispId = @"
+namespace System.Runtime.InteropServices
+{
+    public class DispIdAttribute : System.Attribute
+    {
+        public DispIdAttribute (int dispId){}
+    }
+}
+";
+            var dispIdDefinition = CreateCompilation(dispId, options: TestOptions.ReleaseDll, assemblyName: "DispId").EmitToImageReference(aliases: ImmutableArray.Create("dispId"));
+
+            string pia = @"
+extern alias dispId;
+
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest30
+{
+    [dispId::System.Runtime.InteropServices.DispIdAttribute(124)]
+    void M1();
+}
+";
+
+            var piaCompilation = CreateCompilation(pia, references: new[] { dispIdDefinition }, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+
+            CompileAndVerify(piaCompilation).VerifyDiagnostics();
+
+            string consumer = @"
+class UsePia
+{
+    public static void Main()
+    {
+    }
+}
+
+class UsePia5 : ITest30
+{
+    public void M1()
+    {
+    }
+} 
+";
+
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
+
+            var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+
+            System.Action<ModuleSymbol> metadataValidator =
+                delegate (ModuleSymbol module)
+                {
+                    ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+
+                    var itest30 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("ITest30").Single();
+
+                    var m1 = (PEMethodSymbol)itest30.GetMembers("M1").Single();
+
+                    var attr = m1.GetAttributes("System.Runtime.InteropServices", "DispIdAttribute").Single();
+                    Assert.Equal("System.Runtime.InteropServices.DispIdAttribute(124)", attr.ToString());
+                };
+
+            CompileAndVerify(compilation1.AddReferences(dispIdDefinition), symbolValidator: metadataValidator).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator).VerifyDiagnostics();
+
+            CompileAndVerify(compilation2.AddReferences(dispIdDefinition), symbolValidator: metadataValidator).VerifyDiagnostics();
+
+            // https://github.com/dotnet/roslyn/issues/70338: Going to start failing after https://github.com/dotnet/roslyn/pull/70151 is merged
+            //CompileAndVerify(compilation2, symbolValidator: metadataValidator).VerifyDiagnostics();
         }
 
         [Fact]

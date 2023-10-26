@@ -10,9 +10,6 @@ dotnet_diagnostic.CA2009.severity = warning
 # CA2012: Use ValueTasks correctly
 dotnet_diagnostic.CA2012.severity = warning
 
-# IDE0055: Fix formatting
-dotnet_diagnostic.IDE0055.severity = warning
-
 # IDE0073: File header
 dotnet_diagnostic.IDE0073.severity = warning
 

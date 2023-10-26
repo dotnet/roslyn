@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -88,7 +89,7 @@ internal sealed class LanguageServerProjectSystem
     {
         using (await _gate.DisposableWaitAsync())
         {
-            _logger.LogInformation($"Loading {solutionFilePath}...");
+            _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
             _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
 
             // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
@@ -175,7 +176,7 @@ internal sealed class LanguageServerProjectSystem
         }
         finally
         {
-            _logger.LogInformation($"Completed (re)load of all projects in {stopwatch.Elapsed}");
+            _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
         }
     }
 
@@ -192,7 +193,7 @@ internal sealed class LanguageServerProjectSystem
         return binaryLogPath;
     }
 
-    private async Task<(LSP.MessageType? failureType, BuildHostProcessKind? preferredKind)> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    private async Task<(LSP.MessageType? FailureType, BuildHostProcessKind? PreferredKind)> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         BuildHostProcessKind? preferredBuildHostKind = null;
 
@@ -205,6 +206,14 @@ internal sealed class LanguageServerProjectSystem
             if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
             {
                 var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, cancellationToken);
+                var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
+                if (diagnosticLogItems.Any(item => item.Kind is WorkspaceDiagnosticKind.Failure))
+                {
+                    _ = LogDiagnostics(projectPath, diagnosticLogItems);
+                    // We have total failures in evaluation, no point in continuing.
+                    return (LSP.MessageType.Error, preferredBuildHostKind);
+                }
+
                 var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
 
                 // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
@@ -225,7 +234,7 @@ internal sealed class LanguageServerProjectSystem
 
                     if (existingProject != null)
                     {
-                        projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
+                        projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
                     }
                     else
                     {
@@ -242,36 +251,43 @@ internal sealed class LanguageServerProjectSystem
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad);
                         existingProjects.Add(loadedProject);
 
-                        projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
+                        projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
                     }
                 }
 
                 await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
-
-                var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
-                if (diagnosticLogItems.Any())
+                diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
+                var errorLevel = LogDiagnostics(projectPath, diagnosticLogItems);
+                if (errorLevel == null)
                 {
-                    foreach (var logItem in diagnosticLogItems)
-                    {
-                        var projectName = Path.GetFileName(projectPath);
-                        _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
-                    }
+                    _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
+                }
 
-                    return (diagnosticLogItems.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning, preferredBuildHostKind);
-                }
-                else
-                {
-                    _logger.LogInformation($"Successfully completed load of {projectPath}");
-                    return (null, null);
-                }
+                return (errorLevel, preferredBuildHostKind);
             }
 
             return (null, null);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Exception thrown while loading {projectToLoad.Path}");
+            _logger.LogError(e, string.Format(LanguageServerResources.Exception_thrown_while_loading_0, projectToLoad.Path));
             return (LSP.MessageType.Error, preferredBuildHostKind);
+        }
+
+        LSP.MessageType? LogDiagnostics(string projectPath, ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
+        {
+            if (diagnosticLogItems.IsEmpty)
+            {
+                return null;
+            }
+
+            foreach (var logItem in diagnosticLogItems)
+            {
+                var projectName = Path.GetFileName(projectPath);
+                _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+            }
+
+            return diagnosticLogItems.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
         }
     }
 }

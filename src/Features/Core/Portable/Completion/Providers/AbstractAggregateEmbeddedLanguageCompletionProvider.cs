@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (_languageProviders.IsDefault)
                 throw ExceptionUtilities.Unreachable();
 
-            return _languageProviders.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
+            return _languageProviders.Single(lang => lang.CompletionProvider?.Name == item.GetProperty(EmbeddedProviderName));
         }
     }
 }

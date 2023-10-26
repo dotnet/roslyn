@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                if (TypeManager.IsTargetAttribute(UnderlyingMethod, attrData, AttributeDescription.LCIDConversionAttribute))
+                if (TypeManager.IsTargetAttribute(attrData, AttributeDescription.LCIDConversionAttribute))
                 {
                     if (attrData.CommonConstructorArguments.Length == 1)
                     {

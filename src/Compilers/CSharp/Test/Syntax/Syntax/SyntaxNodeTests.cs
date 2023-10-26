@@ -1252,7 +1252,7 @@ using goo.bar;
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
             List<SyntaxToken> list = new List<SyntaxToken>();
-            SyntaxToken token = ((SyntaxToken)((SyntaxTree)syntaxTree).GetCompilationUnitRoot().EndOfFileToken).GetPreviousToken(includeZeroWidth: true);
+            SyntaxToken token = syntaxTree.GetCompilationUnitRoot().EndOfFileToken.GetPreviousToken(includeZeroWidth: true);
             while (token.RawKind != 0)
             {
                 list.Add(token);
