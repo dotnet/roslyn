@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             private bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description)
             {
-                return TypeManager.IsTargetAttribute(UnderlyingParameter, attrData, description);
+                return TypeManager.IsTargetAttribute(attrData, description);
             }
 
             private ImmutableArray<TAttributeData> GetAttributes(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     }
                     else
                     {
-                        int signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingParameter, attrData, AttributeDescription.DecimalConstantAttribute);
+                        int signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(attrData, AttributeDescription.DecimalConstantAttribute);
                         if (signatureIndex != -1)
                         {
                             Debug.Assert(signatureIndex == 0 || signatureIndex == 1);

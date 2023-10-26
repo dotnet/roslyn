@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 if (PathResolver != null)
                 {
-                    string resolvedPath = PathResolver.ResolvePath(reference, baseFilePath);
+                    string? resolvedPath = PathResolver.ResolvePath(reference, baseFilePath);
                     if (resolvedPath != null)
                     {
                         return ImmutableArray.Create(_fileReferenceProvider(resolvedPath, properties));
