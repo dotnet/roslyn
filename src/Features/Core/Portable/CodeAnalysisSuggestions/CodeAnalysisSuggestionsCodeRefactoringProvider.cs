@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -49,14 +50,16 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
         if (codeFixService == null)
             return;
 
-        var actions = await GetCodeAnalysisSuggestionActionsAsync(ruleConfigData, document, codeFixService, cancellationToken).ConfigureAwait(false);
+        var (actions, totalViolations) = await GetCodeAnalysisSuggestionActionsAsync(ruleConfigData, document, codeFixService, cancellationToken).ConfigureAwait(false);
         actionsBuilder.AddRange(actions);
 
         if (actionsBuilder.Count > 0)
         {
+            Debug.Assert(totalViolations > 0);
+
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    FeaturesResources.Code_analysis_suggestions,
+                    string.Format(FeaturesResources.Code_analysis_improvements_0, totalViolations),
                     actionsBuilder.ToImmutable(),
                     isInlinable: false,
                     CodeActionPriority.Low),
@@ -64,7 +67,7 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
         }
     }
 
-    private static async Task<ImmutableArray<CodeAction>> GetCodeAnalysisSuggestionActionsAsync(
+    private static async Task<(ImmutableArray<CodeAction> Actions, int TotalViolations)> GetCodeAnalysisSuggestionActionsAsync(
         ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)> configData,
         Document document,
         ICodeFixService? codeFixService,
@@ -76,8 +79,10 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
         using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actionsBuilder);
         using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var nestedActionsBuilder);
         using var _3 = ArrayBuilder<CodeAction>.GetInstance(out var nestedNestedActionsBuilder);
+        var totalViolations = 0;
         foreach (var (category, diagnosticsById) in configData)
         {
+            var totalViolationsForCategory = 0;
             foreach (var kvp in diagnosticsById)
             {
                 var id = kvp.Key;
@@ -109,31 +114,52 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
                     diagnostic = Diagnostic.Create(diagnostic.Descriptor, location);
                 }
 
-                var totalInInCurrentProject = diagnostics.Where(dd => dd.ProjectId == document.Project.Id).Count();
-                var idCountText = totalInInCurrentProject > 0 ? $" (Found {totalInInCurrentProject} would-be violations in current project)" : string.Empty;
-
                 var nestedNestedAction = ConfigureSeverityLevelCodeFixProvider.CreateSeverityConfigurationCodeAction(diagnostic, document.Project);
                 nestedNestedActionsBuilder.Add(nestedNestedAction);
 
-                var title = $"{diagnostic.Id}: {diagnostic.Descriptor.Title}{idCountText}";
-                var nestedAction = CodeAction.Create(title, nestedNestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
-                nestedActionsBuilder.Add(nestedAction);
+                var totalInCurrentProject = diagnostics.Where(dd => dd.ProjectId == document.Project.Id).Count();
+                if (totalInCurrentProject > 0)
+                {
+                    // {0} ({1}): {2}
+                    var title = string.Format(FeaturesResources.Code_analysis_improvements_diagnostic_id_based_title,
+                        diagnostic.Id, totalInCurrentProject, diagnostic.Descriptor.Title);
+                    var nestedAction = CodeAction.Create(title, nestedNestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
+                    nestedActionsBuilder.Add(nestedAction);
+                    totalViolationsForCategory += totalInCurrentProject;
+                }
             }
 
             if (nestedActionsBuilder.Count == 0)
                 continue;
 
+            Debug.Assert(totalViolationsForCategory > 0);
+            totalViolations += totalViolationsForCategory;
+
             // Add code action to Configure severity for the entire 'Category'
             var categoryConfigurationAction = ConfigureSeverityLevelCodeFixProvider.CreateBulkSeverityConfigurationCodeAction(category, document.Project);
             nestedActionsBuilder.Add(categoryConfigurationAction);
 
-            var totalInThisCategoryInCurrentProject = diagnosticsById.SelectMany(ds => ds.Value).Where(dd => dd.ProjectId == document.Project.Id).Count();
-            var categoryCountText = totalInThisCategoryInCurrentProject > 0 ? $" (Found {totalInThisCategoryInCurrentProject} would-be violations in current project)" : string.Empty;
-            var action = CodeAction.Create($"'{category}' improvements{categoryCountText}", nestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
+            // {0} ({1})
+            var categoryBasedTitle = string.Format(FeaturesResources.Code_analysis_improvements_category_based_title,
+                category, totalViolationsForCategory);
+            var action = CodeAction.Create(categoryBasedTitle, nestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
             actionsBuilder.Add(action);
         }
 
-        return actionsBuilder.ToImmutable();
+        if (actionsBuilder.Count > 0)
+        {
+            var disablingAction = CodeAction.Create(FeaturesResources.Do_not_show_Code_analysis_improvements,
+                createChangedSolution: cancellationToken =>
+                {
+                    var globalOptions = document.Project.Solution.Services.ExportProvider.GetExports<IGlobalOptionService>().Single().Value;
+                    globalOptions.SetGlobalOption(CodeAnalysisSuggestionsOptionsStorage.ShowCodeAnalysisSuggestionsInLightbulb, false);
+                    return Task.FromResult(document.Project.Solution);
+                },
+                equivalenceKey: nameof(FeaturesResources.Do_not_show_Code_analysis_improvements));
+            actionsBuilder.Add(disablingAction);
+        }
+
+        return (actionsBuilder.ToImmutable(), totalViolations);
 
         static (DiagnosticData, Document?) GetPreferredDiagnosticAndDocument(ImmutableArray<DiagnosticData> diagnostics, Document document)
         {

@@ -44,7 +44,7 @@ internal class CodeAnalysisSuggestionsSuggestedActionCallback(IThreadingContext 
         AssertIsForeground();
 
         // If the user has disabled the feature, then we bail out immediately.
-        if (_globalOptions.GetOption(CodeAnalysisSuggestionsOptionsStorage.DisableFirstPartyAnalyzersSuggestions))
+        if (!_globalOptions.GetOption(CodeAnalysisSuggestionsOptionsStorage.ShowCodeAnalysisSuggestionsInLightbulb))
         {
             return;
         }

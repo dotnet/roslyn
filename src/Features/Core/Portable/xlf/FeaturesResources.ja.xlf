@@ -505,10 +505,24 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">選択されたバージョン: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_analysis_suggestions">
-        <source>Code analysis suggestions</source>
-        <target state="new">Code analysis suggestions</target>
+      <trans-unit id="Code_analysis_improvements_0">
+        <source>Code analysis improvements ({0})</source>
+        <target state="new">Code analysis improvements ({0})</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_improvements_category_based_title">
+        <source>{0} ({1})</source>
+        <target state="new">{0} ({1})</target>
+        <note>For example, if there are '5' potential 'Performance' improvements in the current project, the title would be:
+      Performance (5)
+    </note>
+      </trans-unit>
+      <trans-unit id="Code_analysis_improvements_diagnostic_id_based_title">
+        <source>{0} ({1}): {2}</source>
+        <target state="new">{0} ({1}): {2}</target>
+        <note>For example, if there are '5' CA1000 violations in the current project, the title would be:
+      CA1000 (5): Do not declare static members on generic types
+    </note>
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
         <source>Code snippet for '{0}'</source>
@@ -688,6 +702,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
         <target state="translated">このコードを変更しないでください。クリーンアップ コードを '{0}' メソッドに記述します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_show_Code_analysis_improvements">
+        <source>Do not show 'Code analysis improvements'</source>
+        <target state="new">Do not show 'Code analysis improvements'</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">

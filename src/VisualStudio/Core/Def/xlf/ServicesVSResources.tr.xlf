@@ -1387,6 +1387,11 @@
         <target state="translated">UI Satır İçini Göster</target>
         <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
+      <trans-unit id="Show_code_analysis_suggestions_in_lightbulb">
+        <source>Show 'Code analysis suggestions' in lightbulb</source>
+        <target state="new">Show 'Code analysis suggestions' in lightbulb</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Şunun için derleyici hatalarını ve uyarılarını göster:</target>

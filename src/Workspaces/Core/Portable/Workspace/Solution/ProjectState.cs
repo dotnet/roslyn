@@ -258,6 +258,9 @@ namespace Microsoft.CodeAnalysis
         public AnalyzerConfigData GetAnalyzerOptionsForPath(string path, CancellationToken cancellationToken)
             => _lazyAnalyzerConfigOptions.GetValue(cancellationToken).GetOptionsForSourcePath(path);
 
+        public AnalyzerConfigData GetGlobalAnalyzerConfigOptions()
+            => _lazyAnalyzerConfigOptions.GetValue(CancellationToken.None).GlobalConfigOptions;
+
         public AnalyzerConfigData? GetAnalyzerConfigOptions()
         {
             var extension = _projectInfo.Language switch

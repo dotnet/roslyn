@@ -348,6 +348,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Skip_analyzers_for_implicitly_triggered_builds As String =
             ServicesVSResources.Skip_analyzers_for_implicitly_triggered_builds
 
+        Public ReadOnly Property Option_Show_code_analysis_suggestions_in_lightbulb As String =
+            ServicesVSResources.Show_code_analysis_suggestions_in_lightbulb
+
         Public ReadOnly Property Show_inheritance_margin As String =
             ServicesVSResources.Show_inheritance_margin
 

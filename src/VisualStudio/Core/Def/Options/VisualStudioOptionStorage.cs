@@ -313,6 +313,7 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning restore
         {"dotnet_show_inheritance_margin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin")},
         {"dotnet_skip_analyzers_for_implicitly_triggered_builds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
+        {"dotnet_show_code_analysis_suggestions_in_lightbulb", new RoamingProfileStorage("TextEditor.ShowCodeAnalysisSuggestionsInLightbulb")},
         {"dotnet_indent_strings", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.StringIdentation")},
         {"dotnet_find_usage_definition_grouping_priority", new LocalUserProfileStorage(@"Roslyn\Internal\FindUsages", "DefinitionGroupingPriority")},
         {"csharp_format_on_return", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},

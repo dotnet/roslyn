@@ -53,11 +53,18 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
 
     public Task InitializeAsync(CancellationToken cancellationToken)
     {
-        foreach (var project in _workspace.CurrentSolution.Projects)
-            KickOffBackgroundComputation(project, cancellationToken);
-
+        RefreshDiagnostics(_workspace.CurrentSolution, cancellationToken);
         return Task.CompletedTask;
     }
+
+    private void RefreshDiagnostics(Solution solution, CancellationToken cancellationToken)
+    {
+        foreach (var project in solution.Projects)
+            KickOffBackgroundComputation(project, cancellationToken);
+    }
+
+    private void KickOffBackgroundComputation(Project project, CancellationToken cancellationToken)
+        => Task.Run(() => GetCodeAnalysisSuggestionsConfigDataAsync(project, forceCompute: true, cancellationToken), cancellationToken);
 
     private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
     {
@@ -66,8 +73,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
             case WorkspaceChangeKind.SolutionAdded:
             case WorkspaceChangeKind.SolutionChanged:
             case WorkspaceChangeKind.SolutionReloaded:
-                foreach (var project in e.NewSolution.Projects)
-                    KickOffBackgroundComputation(project, CancellationToken.None);
+                RefreshDiagnostics(e.NewSolution, CancellationToken.None);
                 break;
 
             case WorkspaceChangeKind.AdditionalDocumentAdded:
@@ -76,21 +82,10 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
             case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
             case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
             case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                KickOffBackgroundComputation(e.NewSolution.GetProject(e.ProjectId), CancellationToken.None);
+                if (e.NewSolution.GetProject(e.ProjectId) is { } project)
+                    KickOffBackgroundComputation(project, CancellationToken.None);
                 break;
         }
-    }
-
-    private void KickOffBackgroundComputation(Project? project, CancellationToken cancellationToken)
-    {
-        if (project == null)
-            return;
-
-        Task.Run(async () =>
-        {
-            // Add tasks for config data computation for all features here.
-            await GetCodeAnalysisSuggestionsConfigDataAsync(project, forceCompute: true, cancellationToken).ConfigureAwait(false);
-        }, cancellationToken);
     }
 
     public Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
@@ -135,7 +130,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
                 var orderedDiagnostics = diagnosticsForCategory.GroupBy(d => d.Id).OrderByDescending(group => group.Count());
                 foreach (var (id, diagnostics) in orderedDiagnostics)
                 {
-                    if (!IsIdAlreadyProcessedOrExplicitlyConfigured(id))
+                    if (ShouldIncludeId(id))
                     {
                         diagnosticsByIdBuilder.Add(id, diagnostics.ToImmutableArray());
                     }
@@ -154,7 +149,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
             {
                 foreach (var descriptor in descriptorsForCategory)
                 {
-                    if (!IsIdAlreadyProcessedOrExplicitlyConfigured(descriptor.Id))
+                    if (ShouldIncludeId(descriptor.Id))
                     {
                         var diagnostic = Diagnostic.Create(descriptor, Location.None);
                         var diagnosticData = DiagnosticData.Create(project.Solution, diagnostic, project);
@@ -177,6 +172,12 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
 
         static bool ShouldShowSuggestions(FirstPartyAnalyzerConfigSummary configSummary, bool codeQuality, IGlobalOptionService globalOptions)
         {
+            // We should show code analysis suggestions if either of the below conditions are met:
+            //      1. Current solution has at least '3' editorconfig entries escalating to Warning or Error severity.
+            //         Note that '3' is an atribrarily chosen count which can be adjusted in future.
+            //      2. Current user has met the candidacy requirements related to invoking code fixes for
+            //         code quality or code style diagnostics.
+
             var warningsAndErrorsCount = codeQuality
                 ? configSummary.CodeQualitySummary.WarningsAndErrorsCount
                 : configSummary.CodeStyleSummary.WarningsAndErrorsCount;
@@ -189,29 +190,31 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
             return globalOptions.GetOption(isCandidateOption);
         }
 
-        bool IsIdAlreadyProcessedOrExplicitlyConfigured(string id)
+        bool ShouldIncludeId(string id)
         {
-            if (!uniqueIds.Add(id))
+            // Only suggest diagnostics that are not explicitly configured in analyzer config files
+            if (enableCodeQuality
+                && ShouldIncludeIdForSummary(id, configSummary.CodeQualitySummary))
             {
                 return true;
             }
 
-            // Only suggest diagnostics that are not explicitly configured in analyzer config files
-            if (enableCodeQuality
-                && Regex.IsMatch(id, configSummary.CodeQualitySummary.DiagnosticIdPattern)
-                && !configSummary.CodeQualitySummary.ConfiguredDiagnosticIds.Contains(id))
-            {
-                return false;
-            }
-
             if (enableCodeStyle
-                && Regex.IsMatch(id, configSummary.CodeStyleSummary.DiagnosticIdPattern)
-                && !configSummary.CodeStyleSummary.ConfiguredDiagnosticIds.Contains(id))
+                && ShouldIncludeIdForSummary(id, configSummary.CodeStyleSummary))
             {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
+        }
+
+        bool ShouldIncludeIdForSummary(string id, AnalyzerConfigSummary summary)
+        {
+            if (!Regex.IsMatch(id, summary.DiagnosticIdPattern))
+                return false;
+
+            return uniqueIds!.Add(id)
+                && !summary.ConfiguredDiagnosticIds.Contains(id, StringComparer.OrdinalIgnoreCase);
         }
     }
 
@@ -277,6 +280,9 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
             return await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken).ConfigureAwait(false);
         }
 
+        // Otherwise, kick off background computation of diagnostics for current project snapshot,
+        // but do not wait for the computation and bail out from the current request with empty diagnostics.
+        KickOffBackgroundComputation(project, cancellationToken);
         return ImmutableArray<DiagnosticData>.Empty;
 
         static bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();

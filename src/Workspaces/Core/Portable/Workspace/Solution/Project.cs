@@ -790,6 +790,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal AnalyzerConfigData GetGlobalAnalyzerConfigOptions()
+            => _projectState.GetGlobalAnalyzerConfigOptions();
+
         internal AnalyzerConfigData? GetAnalyzerConfigOptions()
             => _projectState.GetAnalyzerConfigOptions();
 
