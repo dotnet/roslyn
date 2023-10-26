@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Dim generatedDiagnostics As Boolean = False
                                         Dim data As VisualBasicAttributeData = (New EarlyWellKnownAttributeBinder(Me, binder)).GetAttribute(attr, attributeType, generatedDiagnostics)
                                         If Not data.HasErrors AndAlso Not generatedDiagnostics AndAlso
-                                           data.IsTargetAttribute(Me, AttributeDescription.MyGroupCollectionAttribute) Then
+                                           data.IsTargetAttribute(AttributeDescription.MyGroupCollectionAttribute) Then
                                             ' Looks like we've found MyGroupCollectionAttribute
                                             If attributeData IsNot Nothing Then
                                                 ' Ambiguity, the attribute cannot be applied multiple times. Let's ignore all of them,

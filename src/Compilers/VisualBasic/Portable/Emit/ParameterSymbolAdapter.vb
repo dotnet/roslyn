@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property IsMetadataOptional As Boolean
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(Me, AttributeDescription.OptionalAttribute))
+                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(AttributeDescription.OptionalAttribute))
             End Get
         End Property
 
