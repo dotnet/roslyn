@@ -11562,7 +11562,7 @@ public class A
             Assert.Equal(expectedScope, parameter.EffectiveScope);
             Assert.Equal(expectedHasUnscopedRefAttribute, parameter.HasUnscopedRefAttribute);
 
-            var attribute = parameter.GetAttributes().FirstOrDefault(a => a.GetTargetAttributeSignatureIndex(parameter, AttributeDescription.ScopedRefAttribute) != -1);
+            var attribute = parameter.GetAttributes().FirstOrDefault(a => a.GetTargetAttributeSignatureIndex(AttributeDescription.ScopedRefAttribute) != -1);
             Assert.Null(attribute);
 
             VerifyParameterSymbol(parameter.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);

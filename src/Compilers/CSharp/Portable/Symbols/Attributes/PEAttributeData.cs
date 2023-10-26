@@ -134,17 +134,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Matches an attribute by metadata namespace, metadata type name and metadata signature. Does not load the
         /// type symbol for the attribute.
         /// </summary>
-        /// <param name="targetSymbol">Target symbol.</param>
         /// <param name="description">Attribute to match.</param>
         /// <returns>
         /// An index of the target constructor signature in
         /// signatures array, -1 if
         /// this is not the target attribute.
         /// </returns>
-        internal override int GetTargetAttributeSignatureIndex(Symbol targetSymbol, AttributeDescription description)
+        internal override int GetTargetAttributeSignatureIndex(AttributeDescription description)
         {
             // Matching an attribute by name should not load the attribute class.
             return _decoder.GetTargetAttributeSignatureIndex(_handle, description);
+        }
+
+        internal override Location GetAttributeArgumentLocation(int parameterIndex)
+        {
+            return new MetadataLocation(_decoder.ModuleSymbol);
         }
 
         [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
@@ -166,5 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _lazyHasErrors.Value();
             }
         }
+
+        internal override bool IsConditionallyOmitted => false;
     }
 }
