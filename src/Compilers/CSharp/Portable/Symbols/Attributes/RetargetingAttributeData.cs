@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public override SyntaxReference? ApplicationSyntaxReference => null;
 
+        [MemberNotNullWhen(false, nameof(AttributeConstructor))]
         internal override bool HasErrors => _underlying.HasErrors || _attributeConstructor is null;
 
         internal override bool IsConditionallyOmitted => _underlying.IsConditionallyOmitted;

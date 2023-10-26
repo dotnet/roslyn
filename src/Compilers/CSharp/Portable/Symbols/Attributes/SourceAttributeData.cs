@@ -184,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [MemberNotNullWhen(false, nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get

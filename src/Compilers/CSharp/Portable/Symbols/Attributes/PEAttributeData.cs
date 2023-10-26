@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Threading;
 
@@ -150,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return new MetadataLocation(_decoder.ModuleSymbol);
         }
 
+        [MemberNotNullWhen(false, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get
