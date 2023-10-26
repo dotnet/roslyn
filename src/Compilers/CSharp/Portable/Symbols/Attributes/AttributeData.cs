@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    _lazyIsSecurityAttribute = false.ToThreeState();
+                    _lazyIsSecurityAttribute = ThreeState.False;
                 }
             }
 
