@@ -37,7 +37,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("System");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/70582")]
+        [WpfFact]
         public void VerifyCommitCompletionOnTopLevel()
         {
             VisualStudio.InteractiveWindow.InsertCode("pub");
