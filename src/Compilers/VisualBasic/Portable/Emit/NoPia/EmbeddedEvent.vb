@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim underlyingContainingType = ContainingType.UnderlyingNamedType
 
             For Each attrData In underlyingContainingType.AdaptedNamedTypeSymbol.GetAttributes()
-                If attrData.IsTargetAttribute(underlyingContainingType.AdaptedNamedTypeSymbol, AttributeDescription.ComEventInterfaceAttribute) Then
+                If attrData.IsTargetAttribute(AttributeDescription.ComEventInterfaceAttribute) Then
                     Dim foundMatch = False
                     Dim sourceInterface As NamedTypeSymbol = Nothing
 
