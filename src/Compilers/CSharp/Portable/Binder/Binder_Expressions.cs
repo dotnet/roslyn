@@ -4737,14 +4737,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(syntax.Elements.Count);
+            var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
                 builder.Add(bindElement(element, diagnostics));
             }
             return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
-            BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
                 return syntax switch
                 {
@@ -4754,7 +4754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
-            BoundExpression bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
                 var expression = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 ForEachEnumeratorInfo.Builder builder;
@@ -5922,15 +5922,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal BoundExpression BindCollectionExpressionElementAddMethod(
-            BoundExpression element,
+        internal BoundNode BindCollectionExpressionElementAddMethod(
+            BoundNode element,
             Binder collectionInitializerAddMethodBinder,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             BindingDiagnosticBag diagnostics,
             out bool hasErrors)
         {
             var result = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                BindCollectionExpressionSpreadElementAddMethod(
+                (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
                     (SpreadElementSyntax)spreadElement.Syntax,
                     spreadElement,
                     collectionInitializerAddMethodBinder,
@@ -5938,7 +5938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics) :
                 BindCollectionInitializerElementAddMethod(
                     (ExpressionSyntax)element.Syntax,
-                    ImmutableArray.Create(element),
+                    ImmutableArray.Create((BoundExpression)element),
                     hasEnumerableInitializerType: true,
                     collectionInitializerAddMethodBinder,
                     diagnostics,

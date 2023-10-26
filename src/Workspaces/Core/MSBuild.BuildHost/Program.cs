@@ -58,6 +58,8 @@ internal static class Program
 
         logger.LogInformation("RPC channel started.");
 
+        logger.LogInformation($"BuildHost Runtime Version: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
+
         await jsonRpc.Completion.ConfigureAwait(false);
 
         logger.LogInformation("RPC channel closed; process exiting.");

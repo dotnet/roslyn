@@ -2614,7 +2614,7 @@ End Structure
         End Sub
 
         <Fact()>
-        Public Sub DispIdAttribute()
+        Public Sub DispIdAttribute_01()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[
 Imports System.Runtime.InteropServices
@@ -2659,6 +2659,70 @@ End Structure
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70338")>
+        Public Sub DispIdAttribute_02()
+
+            Dim dispId = <![CDATA[
+namespace System.Runtime.InteropServices
+{
+    public class DispIdAttribute : System.Attribute
+    {
+        public DispIdAttribute (int dispId){}
+    }
+}
+]]>
+            Dim dispIdDefinition = CreateCSharpCompilation(dispId, assemblyName:="DispId", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.DesktopLatestExtended, Nothing)).EmitToImageReference(aliases:=ImmutableArray.Create("dispId"))
+
+            Dim pia = <![CDATA[
+extern alias dispId;
+
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib("GeneralPIA.dll")]
+[assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")]
+
+[ComImport()]
+[Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58279")]
+public interface I
+{
+    [dispId::System.Runtime.InteropServices.DispIdAttribute(124)]
+    void M();
+}
+]]>
+
+            Dim piaCompilation = CreateCSharpCompilation(pia, assemblyName:="Pia", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.DesktopLatestExtended, {dispIdDefinition})).
+                EmitToImageReference(embedInteropTypes:=True)
+
+            Dim sources1 = <compilation name="1">
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Implements I
+    Private Sub M() Implements I.M
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M")
+                                                           Dim attr = method.GetAttributes("System.Runtime.InteropServices", "DispIdAttribute").Single()
+                                                           Assert.Equal("System.Runtime.InteropServices.DispIdAttribute(124)", attr.ToString())
+                                                       End Sub
+
+            Dim compilation1 = CreateCompilation(sources1, references:={piaCompilation}, targetFramework:=TargetFramework.DesktopLatestExtended)
+
+            Dim verifier = CompileAndVerify(compilation1.AddReferences(dispIdDefinition), symbolValidator:=validator)
+            AssertTheseDiagnostics(verifier, (<errors/>))
+
+            ' https://github.com/dotnet/roslyn/issues/70338: Going to start failing after https://github.com/dotnet/roslyn/pull/70151 is merged
+            'verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
+            'AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
         <Fact()>

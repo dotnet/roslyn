@@ -135,6 +135,20 @@ internal partial class CSharpRecommendationService
                 }
             }
 
+            if (IsConstantPatternContainerContext())
+            {
+                // We are building a pattern expression, and thus we can only access either constants, types or namespaces.
+                return node switch
+                {
+                    // x is (A.
+                    MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
+                        => GetSymbolsOffOfExpressionInConstantPattern(memberAccess.Expression),
+                    // x is A.
+                    QualifiedNameSyntax qualifiedName => GetSymbolsOffOfExpressionInConstantPattern(qualifiedName.Left),
+                    _ => default,
+                };
+            }
+
             return node switch
             {
                 MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
@@ -145,10 +159,52 @@ internal partial class CSharpRecommendationService
                 // This code should be executing only if the cursor is between two dots in a `..` token.
                 RangeExpressionSyntax rangeExpression => GetSymbolsOffOfRangeExpression(rangeExpression),
                 QualifiedNameSyntax qualifiedName => GetSymbolsOffOfName(qualifiedName.Left),
-                AliasQualifiedNameSyntax aliasName => GetSymbolsOffOffAlias(aliasName.Alias),
+                AliasQualifiedNameSyntax aliasName => GetSymbolsOffOfAlias(aliasName.Alias),
                 MemberBindingExpressionSyntax => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
                 _ => default,
             };
+
+            bool IsConstantPatternContainerContext()
+            {
+                if (node is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    for (var current = node; current != null; current = current.Parent)
+                    {
+                        if (current.Kind() == SyntaxKind.ConstantPattern)
+                            return true;
+
+                        if (current.Kind() == SyntaxKind.ParenthesizedExpression)
+                            continue;
+
+                        if (current.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                            continue;
+
+                        break;
+                    }
+                }
+                else if (node is QualifiedNameSyntax)
+                {
+                    var last = node;
+                    for (var current = node; current != null; last = current, current = current.Parent)
+                    {
+                        if (current is BinaryExpressionSyntax(SyntaxKind.IsExpression) binaryExpression &&
+                            binaryExpression.Right == last)
+                        {
+                            return true;
+                        }
+
+                        if (current.Kind() == SyntaxKind.QualifiedName)
+                            continue;
+
+                        if (current.Kind() == SyntaxKind.AliasQualifiedName)
+                            continue;
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private RecommendedSymbols GetSymbolsOffOfRangeExpression(RangeExpressionSyntax rangeExpression)
@@ -225,7 +281,7 @@ internal partial class CSharpRecommendationService
             return ImmutableArray<ISymbol>.CastUp(symbols);
         }
 
-        private RecommendedSymbols GetSymbolsOffOffAlias(IdentifierNameSyntax alias)
+        private RecommendedSymbols GetSymbolsOffOfAlias(IdentifierNameSyntax alias)
         {
             var aliasSymbol = _context.SemanticModel.GetAliasInfo(alias, _cancellationToken);
             if (aliasSymbol == null)
@@ -462,6 +518,26 @@ internal partial class CSharpRecommendationService
                     : symbols.WhereAsArray(s => s.IsNamespace()));
             }
 
+            return new RecommendedSymbols(symbols);
+        }
+
+        private RecommendedSymbols GetSymbolsOffOfExpressionInConstantPattern(ExpressionSyntax? originalExpression)
+        {
+            if (originalExpression is null)
+                return default;
+
+            var boundSymbol = _context.SemanticModel.GetSymbolInfo(originalExpression, _cancellationToken).Symbol;
+
+            if (boundSymbol is not INamespaceOrTypeSymbol namespaceOrType)
+                return default;
+
+            // The RHS of an `is` pattern may only include qualifications to
+            // - namespaces (from other namespaces or aliases),
+            // - types (from aliases, namespaces or other types),
+            // - constant fields (from types)
+            // Methods, proprties, events, non-constant fields etc. are excluded since they may not be present in the RHS of an `is` pattern
+            var symbols = namespaceOrType.GetMembers()
+                .WhereAsArray(s => s is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true });
             return new RecommendedSymbols(symbols);
         }
 

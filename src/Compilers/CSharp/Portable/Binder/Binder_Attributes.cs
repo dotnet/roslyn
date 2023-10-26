@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // prevent cascading diagnostics
                 Debug.Assert(hasErrors);
-                return new SourceAttributeData(boundAttribute.Syntax.GetReference(), attributeType, attributeConstructor, hasErrors);
+                return new SourceAttributeData(Compilation, (AttributeSyntax)boundAttribute.Syntax, attributeType, attributeConstructor, hasErrors);
             }
 
             // Validate attribute constructor parameters have valid attribute parameter type
@@ -323,7 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(boundAttribute.Syntax, useSiteInfo);
 
             return new SourceAttributeData(
-                boundAttribute.Syntax.GetReference(),
+                Compilation,
+                (AttributeSyntax)boundAttribute.Syntax,
                 attributeType,
                 attributeConstructor,
                 rewrittenArguments,
@@ -985,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateTypedConstant(collection, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, arrayValue: builder.ToImmutableAndFree());
             }
 
-            private TypedConstant VisitCollectionExpressionElement(BoundExpression node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            private TypedConstant VisitCollectionExpressionElement(BoundNode node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 if (node is BoundCollectionExpressionSpreadElement spread)
                 {
@@ -993,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     attrHasErrors = true;
                     return new TypedConstant(spread.Expression.Type, TypedConstantKind.Error, value: null);
                 }
-                return VisitExpression(node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
+                return VisitExpression((BoundExpression)node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
             }
 
             private TypedConstant VisitConversion(BoundConversion node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)

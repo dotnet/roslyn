@@ -2560,6 +2560,54 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Lambdas_Update_Capturing_For_EachFor_Using()
+            Dim src1 = "
+Imports System
+Imports System.IO
+
+Class C
+    Public Sub F()
+        For Each a As Integer In {1}
+        Next
+
+        Using b As New MemoryStream()
+        End Using
+
+        For c As Integer = 0 To 1
+        Next
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.IO
+
+Class C
+    Public Sub F()
+        For Each a As Integer In {1}
+            Dim x = New Action(Sub() Console.WriteLine(a))
+        Next
+
+        Using b As New MemoryStream()
+            Dim x = New Action(Sub() Console.WriteLine(b))
+        End Using
+
+        For c As Integer = 0 To 1
+            Dim x = New Action(Sub() Console.WriteLine(c))
+        Next
+    End Sub
+End Class
+
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a", "a"),
+                Diagnostic(RudeEditKind.CapturingVariable, "b", "b"),
+                Diagnostic(RudeEditKind.CapturingVariable, "c", "c"))
+        End Sub
+
+        <Fact>
         Public Sub Lambdas_Update_Capturing_IndexerGetterParameter2()
             Dim src1 = "
 Imports System

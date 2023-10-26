@@ -10621,6 +10621,140 @@ End Class")
             Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory)
         End Sub
 
+        <Fact>
+        Public Sub ExperimentalWithWhitespaceDiagnosticID_WarnForInvalidDiagID()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Public Class D
+    Public Sub M(c As C)
+    End Sub
+End Class
+
+<System.Diagnostics.CodeAnalysis.Experimental("" "")>
+Public Class C
+    Public Shared Sub M()
+    End Sub
+End Class
+
+Namespace System.Diagnostics.CodeAnalysis
+    Public NotInheritable Class ExperimentalAttribute
+        Inherits Attribute
+
+        Public Sub New(ByVal diagnosticId As String)
+        End Sub
+    End Class
+End Namespace
+")
+
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.BC37328.severity = warning")
+
+            Assert.Equal(DirectCast(37328, ERRID), ERRID.ERR_InvalidExperimentalDiagID)
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(1, exitCode)
+            Assert.Contains("error BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithValidDiagnosticID_WarnForDiagID()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Public Class D
+    Public Sub M(c As C)
+    End Sub
+End Class
+
+<System.Diagnostics.CodeAnalysis.Experimental(""DiagID"")>
+Public Class C
+    Public Shared Sub M()
+    End Sub
+End Class
+
+Namespace System.Diagnostics.CodeAnalysis
+    Public NotInheritable Class ExperimentalAttribute
+        Inherits Attribute
+
+        Public Sub New(ByVal diagnosticId As String)
+        End Sub
+    End Class
+End Namespace
+")
+
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.DiagID.severity = warning")
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Contains("warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithValidDiagnosticID_WarnForExperimental()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Public Class D
+    Public Sub M(c As C)
+    End Sub
+End Class
+
+<System.Diagnostics.CodeAnalysis.Experimental(""DiagID"")>
+Public Class C
+    Public Shared Sub M()
+    End Sub
+End Class
+
+Namespace System.Diagnostics.CodeAnalysis
+    Public NotInheritable Class ExperimentalAttribute
+        Inherits Attribute
+
+        Public Sub New(ByVal diagnosticId As String)
+        End Sub
+    End Class
+End Namespace
+")
+
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.BC42380.severity = warning")
+
+            Assert.Equal(DirectCast(42380, ERRID), ERRID.WRN_Experimental)
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            ' Note: the behavior differs from C# in that the editorconfig rule is applied
+            Assert.Contains("warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.", outWriter.ToString())
+        End Sub
+
         Private Function EmitGenerator(ByVal targetFramework As String) As String
             Dim targetFrameworkAttributeText As String = If(TypeOf targetFramework Is Object, $"<Assembly: System.Runtime.Versioning.TargetFramework(""{targetFramework}"")>", String.Empty)
             Dim generatorSource As String = $"

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
-                    if (TypeManager.IsTargetAttribute(UnderlyingSymbol, attrData, AttributeDescription.DispIdAttribute))
+                    if (TypeManager.IsTargetAttribute(attrData, AttributeDescription.DispIdAttribute))
                     {
                         if (attrData.CommonConstructorArguments.Length == 1)
                         {

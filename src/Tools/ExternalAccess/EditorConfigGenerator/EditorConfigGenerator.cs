@@ -3,27 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
+namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator
 {
-    [Export(typeof(EditorConfigGeneratorWrapper)), Shared]
-    internal sealed class EditorConfigGeneratorWrapper
+    [Export(typeof(IEditorConfigGenerator)), Shared]
+    internal sealed class EditorConfigGenerator : IEditorConfigGenerator
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly EditorConfigOptionsGenerator _editorConfigGenerator;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorConfigGeneratorWrapper(
-            IGlobalOptionService globalOptions,
+        public EditorConfigGenerator(IGlobalOptionService globalOptions,
             EditorConfigOptionsGenerator optionsGenerator)
         {
             _globalOptions = globalOptions;
