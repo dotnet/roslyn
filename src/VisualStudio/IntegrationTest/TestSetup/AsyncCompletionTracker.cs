@@ -5,10 +5,12 @@
 using System;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
@@ -48,7 +50,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
             e.CompletionSession.Dismissed += ReleaseToken;
             e.CompletionSession.ItemCommitted += ReleaseToken;
-            e.CompletionSession.ItemsUpdated += ReleaseToken;
+
+            _ = Task.Run(async () =>
+                {
+                    // AsyncCompletion might fires multiple ItemsUpdated events perf keystroke typed, which means
+                    // we could see the first ItemsUpdated event even though items don't change (but computation finished).
+                    // If test attempts to assert state after seeing first event it would cause flakiness. 
+                    // Use SelectedItemProvider from the UI thread to wait for all pending work to be completed.
+
+#pragma warning disable RS0030 // Do not used banned APIs
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+#pragma warning restore RS0030 // Do not used banned APIs
+
+                    var item = await ((ISelectedItemProvider)e.CompletionSession).GetSelectedItemAsync(GetSelectedItemOptions.WaitForContextAndComputation, CancellationToken.None);
+                    Interlocked.Exchange<IAsyncToken?>(ref token, null)?.Dispose();
+                });
 
             return;
 
