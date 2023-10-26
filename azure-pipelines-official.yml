@@ -154,13 +154,21 @@ stages:
         version: 3.1.28
         installationPath: '$(Build.SourcesDirectory)\.dotnet'
 
-    # Needed because the build fails the NuGet Tools restore without it
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk'
+    # Install .NET SDK. Cannot use task `UseDotNet@2` for nonpublic SDK previews.
+    - task: PowerShell@2
+      displayName: Restore
       inputs:
-        packageType: sdk
-        useGlobalJson: true
-        workingDirectory: '$(Build.SourcesDirectory)'
+        filePath: eng/build.ps1
+        arguments: -ci
+                   -restore
+
+    - task: PowerShell@2
+      displayName: Activate .NET
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "##vso[task.setvariable variable=DOTNET_ROOT;]$(Build.SourcesDirectory)\.dotnet"
+          Write-Host "##vso[task.setvariable variable=PATH;]$(Build.SourcesDirectory)\.dotnet;$env:PATH"
 
     # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
     - task: NuGetCommand@2
