@@ -1789,22 +1789,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)current != CurrentSymbol && current is MethodSymbol method)
                 {
-                    // Enclosing method parameters are definitely assigned
+                    // Enclosing method input parameters are definitely assigned
                     foreach (var parameter in method.Parameters)
                     {
-                        int slot = GetOrCreateSlot(parameter);
-                        if (slot > 0)
+                        if (parameter.RefKind != RefKind.Out)
                         {
-                            SetSlotAssigned(slot, ref topState);
+                            int slot = GetOrCreateSlot(parameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
                         }
                     }
 
                     if (method.TryGetThisParameter(out ParameterSymbol thisParameter) && thisParameter is not null)
                     {
-                        int slot = GetOrCreateSlot(thisParameter);
-                        if (slot > 0)
+                        if (thisParameter.RefKind != RefKind.Out)
                         {
-                            SetSlotAssigned(slot, ref topState);
+                            int slot = GetOrCreateSlot(thisParameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
                         }
                     }
                 }
