@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string AllowUnsafeBlocks = nameof(AllowUnsafeBlocks);
         public const string AppConfigForCompiler = nameof(AppConfigForCompiler);
         public const string BaseAddress = nameof(BaseAddress);
-        public const string BaseIntermediateOutputPath = nameof(BaseIntermediateOutputPath);
         public const string BuildProjectReferences = nameof(BuildProjectReferences);
         public const string BuildingInsideVisualStudio = nameof(BuildingInsideVisualStudio);
         public const string BuildingProject = nameof(BuildingProject);

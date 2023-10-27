@@ -29,7 +29,7 @@ internal sealed class LoadedProject : IDisposable
     /// The most recent version of the project design time build information; held onto so the next reload we can diff against this.
     /// </summary>
     private ProjectFileInfo? _mostRecentFileInfo;
-    private ProjectAssetsFileWatcher? _mostRecentProjectAssetsFileWatcher;
+    private IWatchedFile? _mostRecentProjectAssetsFileWatcher;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = ImmutableArray<CommandLineReference>.Empty;
     private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = ImmutableArray<CommandLineAnalyzerReference>.Empty;
 
@@ -222,7 +222,7 @@ internal sealed class LoadedProject : IDisposable
 
         void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo, IFileChangeContext fileChangeContext)
         {
-            if (_mostRecentProjectAssetsFileWatcher?.WatchedPath == currentProjectInfo.ProjectAssetsFilePath)
+            if (_mostRecentFileInfo?.ProjectAssetsFilePath == currentProjectInfo.ProjectAssetsFilePath)
             {
                 // The file path hasn't changed, just keep using the same watcher.
                 return;
@@ -231,11 +231,10 @@ internal sealed class LoadedProject : IDisposable
             // Dispose of the last once since we're changing the file we're watching.
             _mostRecentProjectAssetsFileWatcher?.Dispose();
 
-            ProjectAssetsFileWatcher? currentWatcher = null;
+            IWatchedFile? currentWatcher = null;
             if (currentProjectInfo.ProjectAssetsFilePath != null)
             {
-                var watcher = fileChangeContext.EnqueueWatchingFile(currentProjectInfo.ProjectAssetsFilePath);
-                currentWatcher = new ProjectAssetsFileWatcher(currentProjectInfo.ProjectAssetsFilePath, watcher);
+                currentWatcher = fileChangeContext.EnqueueWatchingFile(currentProjectInfo.ProjectAssetsFilePath);
             }
 
             _mostRecentProjectAssetsFileWatcher = currentWatcher;
@@ -264,14 +263,6 @@ internal sealed class LoadedProject : IDisposable
         public int GetHashCode(DocumentFileInfo obj)
         {
             return StringComparer.Ordinal.GetHashCode(obj.FilePath);
-        }
-    }
-
-    private record ProjectAssetsFileWatcher(string WatchedPath, IWatchedFile Watcher) : IDisposable
-    {
-        public void Dispose()
-        {
-            Watcher.Dispose();
         }
     }
 }
