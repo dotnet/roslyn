@@ -34,7 +34,6 @@ internal sealed partial class SyntacticClassificationTaggerProvider(
         // Oops, we can't actually return this tagger, so just clean up
         tagger?.Dispose();
         return null;
-
     }
 
     public Tagger? CreateTagger(ITextBuffer buffer)
