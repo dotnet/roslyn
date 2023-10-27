@@ -10,24 +10,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal static class Extensions
 {
-    public static bool Succeeded(this OperationStatus status)
-        => status.Flag.Succeeded();
-
-    public static bool Failed(this OperationStatus status)
-        => status.Flag.Failed();
-
-    public static bool Succeeded(this OperationStatusFlag flag)
-        => (flag & OperationStatusFlag.Succeeded) != 0;
-
-    public static bool Failed(this OperationStatusFlag flag)
-        => !flag.Succeeded();
-
-    public static bool HasMask(this OperationStatusFlag flag, OperationStatusFlag mask)
-        => (flag & mask) != 0x0;
-
-    public static OperationStatusFlag RemoveFlag(this OperationStatusFlag baseFlag, OperationStatusFlag flagToRemove)
-        => baseFlag & ~flagToRemove;
-
     public static ITypeSymbol? GetLambdaOrAnonymousMethodReturnType(this SemanticModel binding, SyntaxNode node)
     {
         var info = binding.GetSymbolInfo(node);

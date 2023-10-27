@@ -27,6 +27,11 @@
         <target state="translated">クライアントはデバッガーをアタッチできませんでした</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completed_reload_of_all_projects_in_0">
+        <source>Completed (re)load of all projects in {0}</source>
+        <target state="new">Completed (re)load of all projects in {0}</target>
+        <note>The placeholder is a time duration like 00:15</note>
+      </trans-unit>
       <trans-unit id="Debugger_attached">
         <source>Debugger attached</source>
         <target state="translated">デバッガーがアタッチされました</target>
@@ -40,6 +45,11 @@
       <trans-unit id="Discovering_tests">
         <source>Discovering tests...</source>
         <target state="new">Discovering tests...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exception_thrown_while_loading_0">
+        <source>Exception thrown while loading {0}</source>
+        <target state="new">Exception thrown while loading {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">
@@ -67,6 +77,11 @@
         <target state="translated">{1} で {0} テストが見つかりました</target>
         <note />
       </trans-unit>
+      <trans-unit id="Loading_0">
+        <source>Loading {0}...</source>
+        <target state="new">Loading {0}...</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>
         <target state="translated">メッセージ</target>
@@ -86,6 +101,11 @@
         <source>Passed!</source>
         <target state="new">Passed!</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
+        <source>Project {0} loaded by C# Dev Kit</source>
+        <target state="new">Project {0} loaded by C# Dev Kit</target>
+        <note>The placeholder is a name of a file</note>
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
         <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
@@ -150,6 +170,11 @@
       <trans-unit id="Starting_test_run">
         <source>Starting test run</source>
         <target state="translated">テストの実行を開始しています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Successfully_completed_load_of_0">
+        <source>Successfully completed load of {0}</source>
+        <target state="new">Successfully completed load of {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Summary">

@@ -28,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                        ByVal constructorArguments As ImmutableArray(Of TypedConstant),
                        ByVal namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)))
             Debug.Assert(TypeOf underlying Is SourceAttributeData OrElse TypeOf underlying Is SynthesizedAttributeData)
+            Debug.Assert(attributeClass IsNot Nothing OrElse underlying.HasErrors)
 
             _underlying = underlying
             Me._attributeClass = attributeClass
@@ -75,6 +76,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Friend Overrides ReadOnly Property HasErrors As Boolean
             Get
                 Return _underlying.HasErrors OrElse _attributeConstructor Is Nothing
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
+            Get
+                Debug.Assert(AttributeClass IsNot Nothing OrElse _underlying.HasErrors)
+
+                If _underlying.HasErrors Then
+                    Return _underlying.ErrorInfo
+                ElseIf HasErrors Then
+                    Debug.Assert(AttributeConstructor Is Nothing)
+
+                    Return If(AttributeClass.GetUseSiteInfo().DiagnosticInfo,
+                              ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, AttributeClass.MetadataName & "." & WellKnownMemberNames.InstanceConstructorName))
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 

@@ -7782,6 +7782,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefReadonlyParameters" xml:space="preserve">
     <value>ref readonly parameters</value>
   </data>
+  <data name="IDS_StringEscapeCharacter" xml:space="preserve">
+    <value>string escape character</value>
+  </data>
   <data name="WRN_OverridingDifferentRefness" xml:space="preserve">
     <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</value>
   </data>

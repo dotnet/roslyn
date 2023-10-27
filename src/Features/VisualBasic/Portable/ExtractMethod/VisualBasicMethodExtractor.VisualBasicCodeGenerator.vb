@@ -17,16 +17,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
         Partial Private MustInherit Class VisualBasicCodeGenerator
-            Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax, VisualBasicCodeGenerationOptions)
+            Inherits CodeGenerator(Of StatementSyntax, StatementSyntax, VisualBasicCodeGenerationOptions)
 
             Private ReadOnly _methodName As SyntaxToken
 
-            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
                 Dim generator = Create(selectionResult, analyzerResult, options)
                 Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
-            Public Shared Function Create(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
+            Public Shared Function Create(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
                 If selectionResult.SelectionInExpression Then
                     Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options)
                 End If
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
-            Protected Sub New(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+            Protected Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
                 MyBase.New(selectionResult, analyzerResult, options, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
@@ -53,18 +53,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return Task.FromResult(originalDocument)
             End Function
 
-            Private ReadOnly Property VBSelectionResult() As VisualBasicSelectionResult
-                Get
-                    Return CType(SelectionResult, VisualBasicSelectionResult)
-                End Get
-            End Property
-
             Protected Overrides Function ShouldLocalFunctionCaptureParameter(node As SyntaxNode) As Boolean
                 Return False
             End Function
 
-            Protected Overrides Function GenerateMethodDefinition(context As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol
-                Dim statements = CreateMethodBody(context, cancellationToken)
+            Protected Overrides Function GenerateMethodDefinition(insertionPointNode As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol
+                Dim statements = CreateMethodBody(insertionPointNode, cancellationToken)
 
                 Dim methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes:=ImmutableArray(Of AttributeData).Empty,
@@ -83,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(
-                    context As SyntaxNode,
+                    insertionPointNode As SyntaxNode,
                     container As SyntaxNode,
                     cancellationToken As CancellationToken) As Task(Of SyntaxNode)
                 Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken)
@@ -93,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Contract.ThrowIfFalse(firstStatementToRemove.Parent Is lastStatementToRemove.Parent)
 
                 Dim statementsToInsert = Await CreateStatementsToInsertAtCallSiteAsync(
-                    context, cancellationToken).ConfigureAwait(False)
+                    insertionPointNode, cancellationToken).ConfigureAwait(False)
 
                 Dim callSiteGenerator = New CallSiteContainerRewriter(
                     container,
@@ -106,9 +100,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Private Async Function CreateStatementsToInsertAtCallSiteAsync(
-                    context As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of StatementSyntax))
+                    insertionPointNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of StatementSyntax))
                 Dim semanticModel = SemanticDocument.SemanticModel
-                Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
+                Dim postProcessor = New PostProcessor(semanticModel, insertionPointNode.SpanStart)
 
                 Dim statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken)
                 statements = postProcessor.MergeDeclarationStatements(statements)
@@ -137,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.SeparatedList(typeVariables)
             End Function
 
-            Protected Function GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken As CancellationToken) As SyntaxNode
+            Protected Overrides Function GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken As CancellationToken) As SyntaxNode
                 Dim outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken)
                 If outmostVariable Is Nothing Then
                     Return Nothing
@@ -152,21 +146,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return declStatement.Parent
             End Function
 
-            Protected NotOverridable Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                Return If(callSiteContainer, Me.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken))
-            End Function
-
             Private Function CreateMethodModifiers() As DeclarationModifiers
                 Dim isShared = False
 
                 If Not Me.AnalyzerResult.UseInstanceMember AndAlso
-                   Not VBSelectionResult.IsUnderModuleBlock() AndAlso
-                   Not VBSelectionResult.ContainsInstanceExpression() Then
+                   Not Me.SelectionResult.IsUnderModuleBlock() AndAlso
+                   Not Me.SelectionResult.ContainsInstanceExpression() Then
                     isShared = True
                 End If
 
-                Dim isAsync = Me.VBSelectionResult.ShouldPutAsyncModifier()
+                Dim isAsync = Me.SelectionResult.ShouldPutAsyncModifier()
 
                 Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
             End Function
@@ -178,9 +167,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return status.With(statements.CastArray(Of SyntaxNode))
             End Function
 
-            Private Function CreateMethodBody(context As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
+            Private Function CreateMethodBody(insertionPointNode As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim statements = GetInitialStatementsForMethodDefinitions()
-                statements = SplitOrMoveDeclarationIntoMethodDefinition(context, statements, cancellationToken)
+                statements = SplitOrMoveDeclarationIntoMethodDefinition(insertionPointNode, statements, cancellationToken)
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken)
 
                 Dim emptyStatements = ImmutableArray(Of StatementSyntax).Empty
@@ -213,16 +202,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim localDeclStatement = TryCast(statement, LocalDeclarationStatementSyntax)
                     If localDeclStatement Is Nothing Then
                         'found one
-                        Return OperationStatus.Succeeded
+                        Return OperationStatus.SucceededStatus
                     End If
 
                     For Each variableDecl In localDeclStatement.Declarators
                         If variableDecl.Initializer IsNot Nothing Then
                             'found one
-                            Return OperationStatus.Succeeded
+                            Return OperationStatus.SucceededStatus
                         ElseIf TypeOf variableDecl.AsClause Is AsNewClauseSyntax Then
                             'found one
-                            Return OperationStatus.Succeeded
+                            Return OperationStatus.SucceededStatus
                         End If
                     Next
                 Next
@@ -263,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         ' trivia to the statement
 
                         ' TODO : think about a way to trivia attached to next token
-                        Dim emptyStatement As StatementSyntax = SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken).WithLeadingTrivia(SyntaxFactory.TriviaList(triviaList)))
+                        Dim emptyStatement = SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken).WithLeadingTrivia(SyntaxFactory.TriviaList(triviaList)))
                         declarationStatements.Add(emptyStatement)
 
                         triviaList.Clear()
@@ -271,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     ' return survived var decls
                     If variableDeclarators.Count > 0 Then
-                        Dim localStatement As StatementSyntax =
+                        Dim localStatement =
                             SyntaxFactory.LocalDeclarationStatement(
                                 declarationStatement.Modifiers,
                                 SyntaxFactory.SeparatedList(variableDeclarators)).WithPrependedLeadingTrivia(triviaList)
@@ -290,11 +279,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Private Function SplitOrMoveDeclarationIntoMethodDefinition(
-                    context As SyntaxNode,
+                    insertionPointNode As SyntaxNode,
                     statements As ImmutableArray(Of StatementSyntax),
                     cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
-                Dim semanticModel = CType(Me.SemanticDocument.SemanticModel, SemanticModel)
-                Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
+                Dim semanticModel = Me.SemanticDocument.SemanticModel
+                Dim postProcessor = New PostProcessor(semanticModel, insertionPointNode.SpanStart)
 
                 Dim declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken)
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements)
@@ -347,8 +336,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim invocation = SyntaxFactory.InvocationExpression(
                     methodName, SyntaxFactory.ArgumentList(arguments:=SyntaxFactory.SeparatedList(arguments)))
 
-                If Me.VBSelectionResult.ShouldPutAsyncModifier() Then
-                    If Me.VBSelectionResult.ShouldCallConfigureAwaitFalse() Then
+                If Me.SelectionResult.ShouldPutAsyncModifier() Then
+                    If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
                         If AnalyzerResult.ReturnType.GetMembers().Any(
                         Function(x)
                             Dim method = TryCast(x, IMethodSymbol)
