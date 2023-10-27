@@ -23,6 +23,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.DesignTools.Xaml" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis" Key="$(VisualStudioKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="DesignTools.Tests.Component.CodeAnalysis" Key="$(VisualStudioKey)" />
   </ItemGroup>
 
   <ItemGroup>
