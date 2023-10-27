@@ -148,6 +148,10 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 await classificationService.AddEmbeddedLanguageClassificationsAsync(document, fullSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
             }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(type);
+            }
 
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
