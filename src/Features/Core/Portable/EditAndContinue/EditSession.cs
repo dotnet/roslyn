@@ -794,10 +794,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
         {
+            var log = EditAndContinueService.Log;
+
             try
             {
-                var log = EditAndContinueService.Log;
-
                 log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
 
                 using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
@@ -1112,9 +1112,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return update;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (LogException(e) && FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable();
+            }
+
+            bool LogException(Exception e)
+            {
+                log.Write("Exception while emitting update: {0}", e.ToString());
+                return true;
             }
         }
 

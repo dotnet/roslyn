@@ -53,7 +53,7 @@ class C
                 {
                     DocumentResults(
                         active,
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
                 });
         }
 
@@ -95,26 +95,44 @@ class C
         public void Method_Body_Delete1()
         {
             var src1 = "class C { int M() { <AS:0>return 1;</AS:0> } }";
-            var src2 = "class C { <AS:0>extern int M();</AS:0> }";
+            var src2 = "class C { <AS:0>extern int M()</AS:0>; }";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "extern int M()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "extern int M()", GetResource("method")));
         }
 
         [Fact]
         public void Method_ExpressionBody_Delete1()
         {
             var src1 = "class C { int M() => <AS:0>1</AS:0>; }";
-            var src2 = "class C { <AS:0>extern int M();</AS:0> }";
+            var src2 = "class C { <AS:0>extern int M()</AS:0>; }";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "extern int M()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "extern int M()", GetResource("method")));
+        }
+
+        [Theory]
+        [InlineData("public override string ToString() => <AS:0>null</AS:0>;")]
+        [InlineData("public override int GetHashCode() => <AS:0>1</AS:0>;")]
+        [InlineData("public virtual bool Equals(C other) => <AS:0>true</AS:0>;")]
+        [InlineData("protected virtual bool PrintMembers(System.Text.StringBuilder builder) => <AS:0>true</AS:0>;")]
+        [InlineData("public void Deconstruct(out int X) <AS:0>{</AS:0> X = 1; }")]
+        [InlineData("protected C(C original) <AS:0>{</AS:0>}")]
+        public void Record_Method_Delete_ReplacingCustomWithSynthesized(string methodImpl)
+        {
+            var src1 = "record C(int X) { " + methodImpl + " }";
+            var src2 = "<AS:0>record C</AS:0>(int X) { }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]
@@ -595,7 +613,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "get", FeaturesResources.code));
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "{"));
         }
 
         [Fact]

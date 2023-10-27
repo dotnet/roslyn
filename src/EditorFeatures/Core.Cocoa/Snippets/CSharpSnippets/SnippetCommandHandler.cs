@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var token = syntaxTree.GetRoot(cancellationToken).FindToken(startPosition);
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(startPosition);
-            return !(trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || token.IsKind(SyntaxKind.StringLiteralToken));
+            return !(trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineCommentTrivia || token.IsKind(SyntaxKind.StringLiteralToken));
         }
     }
 }

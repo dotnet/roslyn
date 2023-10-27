@@ -171,6 +171,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_comments_and_preprocessor_regions}" />
                     <CheckBox x:Name="Collapse_regions_when_collapsing_to_definitions"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
+                    <CheckBox x:Name="Collapse_local_functions_when_collapsing_to_definitions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_local_functions_when_collapsing_to_definitions}" />
                 </StackPanel>
             </GroupBox>
             

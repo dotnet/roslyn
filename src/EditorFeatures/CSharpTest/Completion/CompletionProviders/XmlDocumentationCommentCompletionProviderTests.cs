@@ -1002,6 +1002,18 @@ public struct Goo<T>(string MyParameter);
 ", "param name=\"MyParameter\"", "typeparam name=\"T\"");
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69293")]
+        public async Task DelegateParamRef()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// $$
+/// <summary>
+public delegate void Goo<T>(string myParameter);
+", "paramref name=\"myParameter\"", "typeparamref name=\"T\"");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52738")]
         public async Task RecordParamRef()
         {

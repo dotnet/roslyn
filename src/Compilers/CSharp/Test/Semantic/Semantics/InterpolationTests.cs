@@ -987,28 +987,26 @@ class Program {
 }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,35): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (5,36): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         Console.WriteLine($"X = { x=>3 }.");
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x=>3").WithArguments("lambda expression", "object").WithLocation(5, 35),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(5, 36),
                 // (6,43): error CS0428: Cannot convert method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         Console.WriteLine($"X = { Program.Main }.");
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "object").WithLocation(6, 43),
                 // (7,35): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         Console.WriteLine($"X = { Program.Main(null) }.");
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35)
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35));
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,35): error CS8917: The delegate type could not be inferred.
+                // (5,36): error CS8917: The delegate type could not be inferred.
                 //         Console.WriteLine($"X = { x=>3 }.");
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x=>3").WithLocation(5, 35),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 36),
                 // (6,35): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         Console.WriteLine($"X = { Program.Main }.");
                 Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Program.Main").WithArguments("Main", "object").WithLocation(6, 35),
                 // (7,35): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         Console.WriteLine($"X = { Program.Main(null) }.");
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35)
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35));
         }
 
         [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
@@ -7962,7 +7960,7 @@ public partial struct CustomHandler
             }
         }
 
-        private void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(string mRef, string customHandlerRef, string expression, params DiagnosticDescription[] expectedDiagnostics)
+        private void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(CSharpParseOptions parseOptions, string mRef, string customHandlerRef, string expression, params DiagnosticDescription[] expectedDiagnostics)
         {
             var code = @"
 using System.Runtime.CompilerServices;
@@ -7982,7 +7980,7 @@ public partial struct CustomHandler
 ";
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: parseOptions);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
@@ -7996,7 +7994,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefNone(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "ref", "", expression,
                 // (5,9): error CS1615: Argument 3 may not be passed with the 'ref' keyword
                 // C.M(ref i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
@@ -8007,7 +8005,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefOut(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "out", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "ref", "out", expression,
                 // (5,9): error CS1620: Argument 3 must be passed with the 'out' keyword
                 // C.M(ref i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 9));
@@ -8018,10 +8016,81 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefIn(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "in", expression,
-                // (5,9): error CS1615: Argument 3 may not be passed with the 'ref' keyword
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(TestOptions.Regular11, "ref", "in", expression,
+                // 0.cs(5,9): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 // C.M(ref i, $"");
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("3", "11.0", "12.0").WithLocation(5, 9));
+        }
+
+        [Theory, CombinatorialData]
+        public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefIn_CSharp12(
+            [CombinatorialValues(@"$""text""", @"$""text"" + $""""")] string expression)
+        {
+            var code = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                int x = 10;
+                C.M(ref x, {{expression}});
+
+                public class C
+                {
+                    public static void M(ref int i, [InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c) => Console.WriteLine(c.ToString());
+                }
+
+                public partial struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, in int i) : this(literalLength, formattedCount) 
+                    {
+                        _builder.AppendLine("i:" + i.ToString());
+                    }
+                }
+                """;
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            var verifier = CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: """
+                i:10
+                literal:text
+                """);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  4
+                  .locals init (int V_0, //x
+                                int& V_1,
+                                CustomHandler V_2)
+                  IL_0000:  ldc.i4.s   10
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloca.s   V_0
+                  IL_0005:  stloc.1
+                  IL_0006:  ldloc.1
+                  IL_0007:  ldc.i4.4
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  ldloc.1
+                  IL_000a:  newobj     "CustomHandler..ctor(int, int, in int)"
+                  IL_000f:  stloc.2
+                  IL_0010:  ldloca.s   V_2
+                  IL_0012:  ldstr      "text"
+                  IL_0017:  call       "bool CustomHandler.AppendLiteral(string)"
+                  IL_001c:  pop
+                  IL_001d:  ldloc.2
+                  IL_001e:  call       "void C.M(ref int, CustomHandler)"
+                  IL_0023:  ret
+                }
+                """);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(0, cParam.InterpolatedStringHandlerArgumentIndexes.Single());
+                Assert.False(cParam.HasInterpolatedStringHandlerArgumentError);
+            }
         }
 
         [Theory]
@@ -8029,7 +8098,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InNone(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "in", "", expression,
                 // (5,8): error CS1615: Argument 3 may not be passed with the 'in' keyword
                 // C.M(in i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "in").WithLocation(5, 8));
@@ -8040,7 +8109,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InOut(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "out", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "in", "out", expression,
                 // (5,8): error CS1620: Argument 3 must be passed with the 'out' keyword
                 // C.M(in i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 8));
@@ -8051,7 +8120,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InRef(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "ref", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "in", "ref", expression,
                 // (5,8): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // C.M(in i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 8));
@@ -8062,7 +8131,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_OutNone(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("out", "", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "out", "", expression,
                 // (5,9): error CS1615: Argument 3 may not be passed with the 'out' keyword
                 // C.M(out i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "out").WithLocation(5, 9));
@@ -8073,7 +8142,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_OutRef(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("out", "ref", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "out", "ref", expression,
                 // (5,9): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // C.M(out i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
@@ -8084,7 +8153,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_NoneRef(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("", "ref", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "", "ref", expression,
                 // (5,6): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // C.M( i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 6));
@@ -8095,7 +8164,7 @@ public partial struct CustomHandler
         [InlineData(@"$"""" + $""""")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_NoneOut(string expression)
         {
-            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("", "out", expression,
+            InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes(null, "", "out", expression,
                 // (5,6): error CS1620: Argument 3 must be passed with the 'out' keyword
                 // C.M( i, $"");
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 6));
@@ -8421,7 +8490,8 @@ literal:literal
         [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_RefKindsMatch([CombinatorialValues("", ", out bool success")] string extraConstructorArg,
-            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression,
+            [CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 using System;
@@ -8436,7 +8506,7 @@ Console.WriteLine(o);
 
 public class C
 {
-    public static void M(in int i, ref string s, out object o, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"", ""o"")] CustomHandler c)
+    public static void M(" + modifier + @" int i, ref string s, out object o, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"", ""o"")] CustomHandler c)
     { 
         Console.WriteLine(s);
         o = ""o in M"";
@@ -8447,7 +8517,7 @@ public class C
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in int i, ref string s, out object o" + extraConstructorArg + @") : this(literalLength, formattedCount)
+    public CustomHandler(int literalLength, int formattedCount, " + modifier + @" int i, ref string s, out object o" + extraConstructorArg + @") : this(literalLength, formattedCount)
     {
         o = null;
         s = ""s in constructor"";
@@ -8468,7 +8538,14 @@ s in M
 o in M
 ");
 
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(modifier == "ref readonly"
+                ? new[]
+                {
+                    // 0.cs(8,5): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                    // C.M(i, ref s, out o, $"literal");
+                    Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(8, 5)
+                }
+                : DiagnosticDescription.None);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", (extraConstructorArg == "")
                 ? @"
@@ -8500,14 +8577,14 @@ o in M
   IL_0016:  ldloc.3
   IL_0017:  ldloc.s    V_4
   IL_0019:  ldloc.s    V_5
-  IL_001b:  newobj     ""CustomHandler..ctor(int, int, in int, ref string, out object)""
+  IL_001b:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" int, ref string, out object)""
   IL_0020:  stloc.s    V_6
   IL_0022:  ldloca.s   V_6
   IL_0024:  ldstr      ""literal""
   IL_0029:  call       ""bool CustomHandler.AppendLiteral(string)""
   IL_002e:  pop
   IL_002f:  ldloc.s    V_6
-  IL_0031:  call       ""void C.M(in int, ref string, out object, CustomHandler)""
+  IL_0031:  call       ""void C.M(" + modifier + @" int, ref string, out object, CustomHandler)""
   IL_0036:  ldloc.1
   IL_0037:  call       ""void System.Console.WriteLine(string)""
   IL_003c:  ldloc.2
@@ -8546,7 +8623,7 @@ o in M
   IL_0017:  ldloc.s    V_4
   IL_0019:  ldloc.s    V_5
   IL_001b:  ldloca.s   V_7
-  IL_001d:  newobj     ""CustomHandler..ctor(int, int, in int, ref string, out object, out bool)""
+  IL_001d:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" int, ref string, out object, out bool)""
   IL_0022:  stloc.s    V_6
   IL_0024:  ldloc.s    V_7
   IL_0026:  brfalse.s  IL_0036
@@ -8557,7 +8634,7 @@ o in M
   IL_0036:  ldc.i4.0
   IL_0037:  pop
   IL_0038:  ldloc.s    V_6
-  IL_003a:  call       ""void C.M(in int, ref string, out object, CustomHandler)""
+  IL_003a:  call       ""void C.M(" + modifier + @" int, ref string, out object, CustomHandler)""
   IL_003f:  ldloc.1
   IL_0040:  call       ""void System.Console.WriteLine(string)""
   IL_0045:  ldloc.2
@@ -14072,7 +14149,7 @@ AppendFormatted");
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldstr      ""literal""
   IL_0017:  call       ""void CustomHandler.AppendLiteral(dynamic)""
-  IL_001c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_001c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
   IL_0021:  brtrue.s   IL_0062
   IL_0023:  ldc.i4     0x100
   IL_0028:  ldstr      ""AppendFormatted""
@@ -14094,14 +14171,14 @@ AppendFormatted");
   IL_004d:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_0052:  stelem.ref
   IL_0053:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0058:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_005d:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
-  IL_0062:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
-  IL_0067:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Target""
-  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0058:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_005d:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0062:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0067:  ldfld      ""<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Target""
+  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
   IL_0071:  ldloca.s   V_1
   IL_0073:  ldloc.0
-  IL_0074:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
+  IL_0074:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
   IL_0079:  ldloc.1
   IL_007a:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
   IL_007f:  ret
@@ -14179,7 +14256,7 @@ AppendFormatted");
   IL_004c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Program.<>o__0.<>p__1""
   IL_0051:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target""
   IL_0056:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Program.<>o__0.<>p__1""
-  IL_005b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
+  IL_005b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
   IL_0060:  brtrue.s   IL_009d
   IL_0062:  ldc.i4.0
   IL_0063:  ldstr      ""AppendFormatted""
@@ -14201,14 +14278,14 @@ AppendFormatted");
   IL_0088:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_008d:  stelem.ref
   IL_008e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0093:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0098:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
-  IL_009d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
-  IL_00a2:  ldfld      ""<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Target""
-  IL_00a7:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
+  IL_0093:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0098:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
+  IL_009d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
+  IL_00a2:  ldfld      ""<>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>>.Target""
+  IL_00a7:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>> Program.<>o__0.<>p__0""
   IL_00ac:  ldloca.s   V_1
   IL_00ae:  ldloc.0
-  IL_00af:  callvirt   ""dynamic <>F{00000004}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
+  IL_00af:  callvirt   ""dynamic <>F{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
   IL_00b4:  callvirt   ""bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
   IL_00b9:  br.s       IL_00bc
   IL_00bb:  ldc.i4.0
@@ -15418,7 +15495,7 @@ class Program
                 readonly ref struct R
                 {
                     private readonly ref int _i;
-                    public R(ref int i) { _i = i; }
+                    public R(ref int i) { _i = ref i; }
                     public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
                         => this;
                 }
@@ -16683,6 +16760,25 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.St
 ");
         }
 
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/68834")]
+        public void ParenthesizedAdditiveExpression_06()
+        {
+            var src = """
+using System.Runtime.CompilerServices;
+DefaultInterpolatedStringHandler s1 = $"a" + $"b" + ($"c" + $"-");
+System.Console.Write(s1.ToString());
+
+DefaultInterpolatedStringHandler s2 = $"a" + ($"b" + $"c") + $"-";
+System.Console.Write(s2.ToString());
+
+DefaultInterpolatedStringHandler s3 = ($"a" + $"b") + $"c" + $"-";
+System.Console.Write(s3.ToString());
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: "abc-abc-abc-").VerifyDiagnostics();
+        }
+
         [Theory]
         [InlineData(@"$""{1}"", $""{2}""")]
         [InlineData(@"$""{1}"" + $"""", $""{2}"" + $""""")]
@@ -17485,8 +17581,8 @@ partial struct CustomHandler
 ");
         }
 
-        [Fact]
-        public void HandlerExtensionMethod_05()
+        [Theory, CombinatorialData]
+        public void HandlerExtensionMethod_05([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 using System;
@@ -17503,12 +17599,12 @@ public struct S1
 
 public static class S1Ext
 {
-    public static void M(in this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(c.ToString());
+    public static void M(" + modifier + @" this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(c.ToString());
 }
 
 partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in S1 s) : this(literalLength, formattedCount) => _builder.Append(""s.Field:"" + s.Field);
+    public CustomHandler(int literalLength, int formattedCount, " + modifier + @" S1 s) : this(literalLength, formattedCount) => _builder.Append(""s.Field:"" + s.Field);
 }
 ";
 
@@ -17528,8 +17624,8 @@ partial struct CustomHandler
   IL_000b:  ldc.i4.0
   IL_000c:  ldc.i4.0
   IL_000d:  ldloc.1
-  IL_000e:  newobj     ""CustomHandler..ctor(int, int, in S1)""
-  IL_0013:  call       ""void S1Ext.M(in S1, CustomHandler)""
+  IL_000e:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" S1)""
+  IL_0013:  call       ""void S1Ext.M(" + modifier + @" S1, CustomHandler)""
   IL_0018:  ret
 }
 ");
@@ -17576,7 +17672,7 @@ partial struct CustomHandler
 using System.Runtime.CompilerServices;
 
 var s = new S1();
-s.M($"""");
+s.M($""text"");
 
 public struct S1
 {
@@ -17586,21 +17682,51 @@ public struct S1
 
 public static class S1Ext
 {
-    public static void M(ref this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => throw null;
+    public static void M(ref this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => System.Console.WriteLine(c.ToString());
 }
 
 partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in S1 s) => throw null;
+    public CustomHandler(int literalLength, int formattedCount, in S1 s) : this(literalLength, formattedCount) { }
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (5,1): error CS1615: Argument 3 may not be passed with the 'ref' keyword
-                // s.M($"");
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("3", "ref").WithLocation(5, 1)
-            );
+                // 0.cs(5,1): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                // s.M($"text");
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("3", "11.0", "12.0").WithLocation(5, 1)
+                );
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
+                expectedOutput: "literal:text");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  4
+                  .locals init (S1 V_0, //s
+                                S1& V_1,
+                                CustomHandler V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "S1..ctor()"
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  stloc.1
+                  IL_000a:  ldloc.1
+                  IL_000b:  ldc.i4.4
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  ldloc.1
+                  IL_000e:  newobj     "CustomHandler..ctor(int, int, in S1)"
+                  IL_0013:  stloc.2
+                  IL_0014:  ldloca.s   V_2
+                  IL_0016:  ldstr      "text"
+                  IL_001b:  call       "void CustomHandler.AppendLiteral(string)"
+                  IL_0020:  ldloc.2
+                  IL_0021:  call       "void S1Ext.M(ref S1, CustomHandler)"
+                  IL_0026:  ret
+                }
+                """);
         }
 
         [Fact]

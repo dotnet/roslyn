@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<IClassificationService>();
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+            using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
             // We always return both syntactic and semantic classifications.  If there is a syntactic classifier running on the client
             // then the semantic token classifications will override them.
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
         {
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var updatedClassifiedSpans);
+            using var _ = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
             for (var spanIndex = 0; spanIndex < classifiedSpans.Length; spanIndex++)
             {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             static void ConvertToSingleLineSpan(
                 SourceText text,
                 ClassifiedSpan[] originalClassifiedSpans,
-                ArrayBuilder<ClassifiedSpan> updatedClassifiedSpans,
+                SegmentedList<ClassifiedSpan> updatedClassifiedSpans,
                 ref int spanIndex,
                 string classificationType,
                 int startLine,

@@ -3756,7 +3756,7 @@ class C { int Y => 1; }
             // Project4: Test2.cs (link from P1)
 
             using var _ = CreateWorkspace(out var solution, out var service);
-            solution = AddDefaultTestProject(solution, ActiveStatementsDescription.ClearTags(markedSources));
+            solution = AddDefaultTestProject(solution, SourceMarkers.Clear(markedSources));
 
             var documents = solution.Projects.Single().Documents;
             var doc1 = documents.First();
@@ -3873,7 +3873,7 @@ class C { int Y => 1; }
                 });
 
             using var _ = CreateWorkspace(out var solution, out var service);
-            solution = AddDefaultTestProject(solution, ActiveStatementsDescription.ClearTags(markedSources));
+            solution = AddDefaultTestProject(solution, SourceMarkers.Clear(markedSources));
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
@@ -3943,8 +3943,8 @@ class C
 }
 */
 ";
-            var source1 = ActiveStatementsDescription.ClearTags(markedSource1);
-            var source2 = ActiveStatementsDescription.ClearTags(markedSource2);
+            var source1 = SourceMarkers.Clear(markedSource1);
+            var source2 = SourceMarkers.Clear(markedSource2);
 
             var additionalFileSourceV1 = @"
        xxxxxxxxxxxxxxxxx
@@ -4034,8 +4034,8 @@ class C
     }
 }
 ";
-            var source1 = ActiveStatementsDescription.ClearTags(markedSource1);
-            var source2 = ActiveStatementsDescription.ClearTags(markedSource2);
+            var source1 = SourceMarkers.Clear(markedSource1);
+            var source2 = SourceMarkers.Clear(markedSource2);
 
             using var _ = CreateWorkspace(out var solution, out var service);
             (solution, var document) = AddDefaultTestProject(solution, source1);
@@ -4121,10 +4121,10 @@ class C
             var markedSourceV3 = Update(markedSourceV2, marker: "2");
             var markedSourceV4 = Update(markedSourceV3, marker: "3");
 
-            var moduleId = EmitAndLoadLibraryToDebuggee(ActiveStatementsDescription.ClearTags(markedSourceV1));
+            var moduleId = EmitAndLoadLibraryToDebuggee(SourceMarkers.Clear(markedSourceV1));
 
             using var _ = CreateWorkspace(out var solution, out var service);
-            (solution, var document) = AddDefaultTestProject(solution, ActiveStatementsDescription.ClearTags(markedSourceV1));
+            (solution, var document) = AddDefaultTestProject(solution, SourceMarkers.Clear(markedSourceV1));
             var documentId = document.Id;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -4142,7 +4142,7 @@ class C
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, // F
                 }));
 
-            solution = solution.WithDocumentText(documentId, CreateText(ActiveStatementsDescription.ClearTags(markedSourceV2)));
+            solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSourceV2)));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
@@ -4162,7 +4162,7 @@ class C
 
             // Hot Reload update F v2 -> v3
 
-            solution = solution.WithDocumentText(documentId, CreateText(ActiveStatementsDescription.ClearTags(markedSourceV3)));
+            solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSourceV3)));
 
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
@@ -4198,7 +4198,7 @@ class C
                 new ActiveStatementSpan(0, new LinePositionSpan(new(4,41), new(4,42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null),
             }, spans);
 
-            solution = solution.WithDocumentText(documentId, CreateText(ActiveStatementsDescription.ClearTags(markedSourceV4)));
+            solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSourceV4)));
 
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
@@ -4265,17 +4265,17 @@ class C
     }
 }";
 
-            var moduleId = EmitAndLoadLibraryToDebuggee(ActiveStatementsDescription.ClearTags(markedSource1));
+            var moduleId = EmitAndLoadLibraryToDebuggee(SourceMarkers.Clear(markedSource1));
 
             using var _ = CreateWorkspace(out var solution, out var service);
-            (solution, var document) = AddDefaultTestProject(solution, ActiveStatementsDescription.ClearTags(markedSource1));
+            (solution, var document) = AddDefaultTestProject(solution, SourceMarkers.Clear(markedSource1));
             var documentId = document.Id;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
             // Update to snapshot 2, but don't apply
 
-            solution = solution.WithDocumentText(documentId, CreateText(ActiveStatementsDescription.ClearTags(markedSource2)));
+            solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSource2)));
 
             // EnC update F v2 -> v3
 
@@ -4301,7 +4301,7 @@ class C
                 new ActiveStatementSpan(1, expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
             }, spans);
 
-            solution = solution.WithDocumentText(documentId, CreateText(ActiveStatementsDescription.ClearTags(markedSource3)));
+            solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSource3)));
 
             // check that the active statement is mapped correctly to snapshot v3:
             var expectedSpanG2 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
@@ -4367,17 +4367,17 @@ class C
     {
     }
 }";
-            var moduleId = EmitAndLoadLibraryToDebuggee(ActiveStatementsDescription.ClearTags(markedSource1));
+            var moduleId = EmitAndLoadLibraryToDebuggee(SourceMarkers.Clear(markedSource1));
 
             using var _ = CreateWorkspace(out var solution, out var service);
-            (solution, var document) = AddDefaultTestProject(solution, ActiveStatementsDescription.ClearTags(markedSource1));
+            (solution, var document) = AddDefaultTestProject(solution, SourceMarkers.Clear(markedSource1));
             var documentId = document.Id;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
             // Apply update: F v1 -> v2.
 
-            solution = solution.WithDocumentText(documentId, CreateText(ActiveStatementsDescription.ClearTags(markedSource2)));
+            solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSource2)));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);

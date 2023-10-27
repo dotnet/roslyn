@@ -81,6 +81,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
+        Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+
         Friend Sub New(assemblySymbol As PEAssemblySymbol, [module] As PEModule, importOptions As MetadataImportOptions, ordinal As Integer)
             Me.New(DirectCast(assemblySymbol, AssemblySymbol), [module], importOptions, ordinal)
             Debug.Assert(ordinal >= 0)
@@ -507,5 +509,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return MyBase.HasUnsupportedMetadata
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                If _lazyObsoleteAttributeData Is ObsoleteAttributeData.Uninitialized Then
+                    Interlocked.CompareExchange(_lazyObsoleteAttributeData, ComputeObsoleteAttributeData(), ObsoleteAttributeData.Uninitialized)
+                End If
+
+                Return _lazyObsoleteAttributeData
+            End Get
+        End Property
+
+        Private Function ComputeObsoleteAttributeData() As ObsoleteAttributeData
+            For Each attrData In GetAttributes()
+                If attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+                    Return attrData.DecodeExperimentalAttribute()
+                End If
+            Next
+
+            Return Nothing
+        End Function
+
     End Class
 End Namespace

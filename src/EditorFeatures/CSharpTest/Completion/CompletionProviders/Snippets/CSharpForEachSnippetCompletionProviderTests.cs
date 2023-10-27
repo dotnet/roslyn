@@ -248,29 +248,36 @@ static void Main(string[] args)
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact]
-        public async Task InsertInlineForEachSnippetForCorrectTypeTest()
+        [WpfTheory]
+        [InlineData("List<int>")]
+        [InlineData("int[]")]
+        [InlineData("IEnumerable<int>")]
+        [InlineData("ArrayList")]
+        [InlineData("IEnumerable")]
+        public async Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType)
         {
-            var markupBeforeCommit = """
+            var markupBeforeCommit = $$"""
                 using System.Collections.Generic;
+                using System.Collections;
 
                 class C
                 {
-                    void M(List<int> list)
+                    void M({{collectionType}} enumerable)
                     {
-                        list.$$
+                        enumerable.$$
                     }
                 }
                 """;
 
-            var expectedCodeAfterCommit = """
+            var expectedCodeAfterCommit = $$"""
                 using System.Collections.Generic;
+                using System.Collections;
                 
                 class C
                 {
-                    void M(List<int> list)
+                    void M({{collectionType}} enumerable)
                     {
-                        foreach (var item in list)
+                        foreach (var item in enumerable)
                         {
                             $$
                         }
@@ -423,6 +430,160 @@ static void Main(string[] args)
                 foreach (var item in new int[10])
                 {
                     $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("")]
+        [InlineData("async ")]
+        public async Task InsertForEachSnippetAfterSingleAwaitKeywordInMethodBodyTest(string asyncKeyword)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>class C
+                {
+                    {{asyncKeyword}}void M()
+                    {
+                        await $$
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class C
+                {
+                    {{asyncKeyword}}void M()
+                    {
+                        await foreach (var item in collection)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task InsertForEachSnippetAfterSingleAwaitKeywordInGlobalStatementTest()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>await $$</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                await foreach (var item in collection)
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task NoForEachStatementAfterAwaitKeywordWhenWontResultInStatementTest()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>var result = await $$</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("")]
+        [InlineData("async ")]
+        public async Task PreferAsyncEnumerableVariableInScopeForAwaitForEachTest(string asyncKeyword)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>using System.Collections.Generic;
+                
+                class C
+                {
+                    {{asyncKeyword}}void M()
+                    {
+                        IEnumerable&lt;int&gt; enumerable;
+                        IAsyncEnumerable&lt;int&gt; asyncEnumerable;
+                
+                        await $$
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    {{asyncKeyword}}void M()
+                    {
+                        IEnumerable<int> enumerable;
+                        IAsyncEnumerable<int> asyncEnumerable;
+                
+                        await foreach (var item in asyncEnumerable)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("")]
+        [InlineData("async ")]
+        public async Task InsertAwaitForEachSnippetForPostfixAsyncEnumerableTest(string asyncKeyword)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true">
+                        <Document>using System.Collections.Generic;
+                
+                class C
+                {
+                    {{asyncKeyword}}void M(IAsyncEnumerable&lt;int&gt; asyncEnumerable)
+                    {
+                        asyncEnumerable.$$
+                    }
+                }</Document>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    {{asyncKeyword}}void M(IAsyncEnumerable<int> asyncEnumerable)
+                    {
+                        await foreach (var item in asyncEnumerable)
+                        {
+                            $$
+                        }
+                    }
                 }
                 """;
 

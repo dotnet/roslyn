@@ -259,18 +259,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             }
         }
 
-        private class AnalyzerImpl
+        private class AnalyzerImpl(CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer analyzer)
         {
-            private readonly CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer _analyzer;
+            private readonly CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer _analyzer = analyzer;
 
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation.
             /// </summary>
             private readonly ConcurrentDictionary<SyntaxTree, SyntaxTreeState> _codeBlockIntervals
                 = new();
-
-            public AnalyzerImpl(CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer analyzer)
-                => _analyzer = analyzer;
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {

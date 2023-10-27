@@ -23,28 +23,20 @@ namespace Microsoft.CodeAnalysis.Classification
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [TagType(typeof(IClassificationTag))]
-    internal partial class SyntacticClassificationTaggerProvider : ITaggerProvider
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal partial class SyntacticClassificationTaggerProvider(
+        IThreadingContext threadingContext,
+        SyntacticClassificationTypeMap typeMap,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider) : ITaggerProvider
     {
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IThreadingContext _threadingContext;
-        private readonly SyntacticClassificationTypeMap _typeMap;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly SyntacticClassificationTypeMap _typeMap = typeMap;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new();
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public SyntacticClassificationTaggerProvider(
-            IThreadingContext threadingContext,
-            SyntacticClassificationTypeMap typeMap,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _threadingContext = threadingContext;
-            _typeMap = typeMap;
-            _globalOptions = globalOptions;
-            _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
-        }
 
         public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {

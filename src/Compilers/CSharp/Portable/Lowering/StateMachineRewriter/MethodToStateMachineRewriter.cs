@@ -614,13 +614,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
                     // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'in' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'in' or 'ref readonly' parameter)
                     //
                     //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
                     //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                     if (refKind != RefKind.None && refKind != RefKind.In)
                     {
+                        Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.Out);
                         Debug.Assert(call.Method.RefKind != RefKind.None);
                         F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
                     }
@@ -631,13 +632,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
                     // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'in' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'in' or 'ref readonly' parameter)
                     //
                     //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
                     //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                     if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                     {
+                        Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.In);
                         Debug.Assert(conditional.IsRef);
                         F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
                     }

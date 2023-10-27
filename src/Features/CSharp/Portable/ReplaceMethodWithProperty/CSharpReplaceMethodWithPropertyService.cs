@@ -283,16 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             return (TNode)rewriter.Visit(node);
         }
 
-        private class Rewriter : CSharpSyntaxRewriter
+        private class Rewriter(SemanticModel semanticModel, IParameterSymbol parameter) : CSharpSyntaxRewriter
         {
-            private readonly SemanticModel _semanticModel;
-            private readonly IParameterSymbol _parameter;
-
-            public Rewriter(SemanticModel semanticModel, IParameterSymbol parameter)
-            {
-                _semanticModel = semanticModel;
-                _parameter = parameter;
-            }
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly IParameterSymbol _parameter = parameter;
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {

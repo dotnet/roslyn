@@ -888,20 +888,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns an array of all <see cref="DiagnosticDescriptor"/>s for all <see cref="Analyzers"/> along
-        /// with a boolean value "HasAnyExternalSuppression" indicating if the diagnostic ID has any
-        /// external non-source suppression from editorconfig, ruleset, command line options, etc.,
-        /// which disables the descriptor for either part of the compilation or the entire compilation.
-        /// Note that this flag doesn't account for source suppressions from pragma directives,
-        /// SuppressMessageAttributes, DiagnosticSuppressors, etc. which suppresses individual instances
-        /// of reported diagnostics.
+        /// Returns an array of  <see cref="DiagnosticDescriptor"/>s for all <see cref="Analyzers"/>
+        /// along with <see cref="DiagnosticDescriptorErrorLoggerInfo"/> to be logged by the <see cref="ErrorLogger"/>.
         /// </summary>
-        public ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> GetAllDescriptors(CancellationToken cancellationToken)
+        public ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> GetAllDiagnosticDescriptorsWithInfo(CancellationToken cancellationToken, out double totalAnalyzerExecutionTime)
         {
             var uniqueDiagnosticIds = PooledHashSet<string>.GetInstance();
             var analyzersSuppressedForSomeTree = SuppressedAnalyzersForTreeMap.SelectMany(kvp => kvp.Value).ToImmutableHashSet();
+            totalAnalyzerExecutionTime = AnalyzerExecutionTimes.Sum(kvp => kvp.Value.TotalSeconds);
 
-            var builder = ArrayBuilder<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>.GetInstance();
+            var builder = ArrayBuilder<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)>.GetInstance();
             foreach (var analyzer in Analyzers)
             {
                 var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor, cancellationToken);
@@ -910,6 +906,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // or for one or more syntax trees via editorconfig.
                 bool isAnalyzerEverSuppressed = !UnsuppressedAnalyzers.Contains(analyzer) ||
                     analyzersSuppressedForSomeTree.Contains(analyzer);
+
+                double analyzerExecutionTime = 0;
+                if (AnalyzerExecutionTimes.TryGetValue(analyzer, out var analyzerExecutionTimeSpan))
+                {
+                    analyzerExecutionTime = analyzerExecutionTimeSpan.TotalSeconds;
+                }
+
+                var executionPercentage = (int)(analyzerExecutionTime * 100 / totalAnalyzerExecutionTime);
+
                 foreach (var descriptor in descriptors)
                 {
                     if (!uniqueDiagnosticIds.Add(descriptor.Id))
@@ -922,7 +927,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var isDiagnosticIdEverSuppressed = isAnalyzerEverSuppressed ||
                         SuppressedDiagnosticIdsForUnsuppressedAnalyzers.Contains(descriptor.Id);
 
-                    builder.Add((descriptor, isDiagnosticIdEverSuppressed));
+                    var info = new DiagnosticDescriptorErrorLoggerInfo(analyzerExecutionTime, executionPercentage, isDiagnosticIdEverSuppressed);
+                    builder.Add((descriptor, info));
                 }
             }
 
@@ -1620,7 +1626,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 await processContainerOnMemberCompletedAsync(symbol.ContainingNamespace, symbol, analyzer).ConfigureAwait(false);
-                await processContainerOnMemberCompletedAsync(symbol.ContainingType, symbol, analyzer).ConfigureAwait(false);
+
+                for (var type = symbol.ContainingType; type != null; type = type.ContainingType)
+                    await processContainerOnMemberCompletedAsync(type, symbol, analyzer).ConfigureAwait(false);
             }
 
             async Task processContainerOnMemberCompletedAsync(INamespaceOrTypeSymbol containerSymbol, ISymbol processedMemberSymbol, DiagnosticAnalyzer analyzer)

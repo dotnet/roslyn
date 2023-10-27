@@ -64,8 +64,7 @@ Any "ordinary method" (i.e. with `MethodKind.Ordinary`) can have its calls inter
 
 `[InterceptsLocation]` attributes included in source are emitted to the resulting assembly, just like other custom attributes.
 
-PROTOTYPE(ic): We may want to recognize `file class InterceptsLocationAttribute` as a valid declaration of the attribute, to allow generators to bring the attribute in without conflicting with other generators which may also be bringing the attribute in. See open question in [User opt-in](#user-opt-in).
-https://github.com/dotnet/roslyn/issues/67079 is a bug which causes file-local source declarations of well-known attributes to be generally treated as known. When that bug is fixed, we may want to single out `InterceptsLocationAttribute` as "recognized, even though they are file-local".
+File-local declarations of this type (`file class InterceptsLocationAttribute`) are valid and usages are recognized by the compiler when they are within the same file and compilation. A generator which needs to declare this attribute should use a file-local declaration to ensure it doesn't conflict with other generators that need to do the same thing.
 
 #### File paths
 
@@ -104,9 +103,31 @@ Interception can only occur for calls to ordinary member methods--not constructo
 
 ### Arity
 
-Interceptors cannot have type parameters or be declared in generic types at any level of nesting.
+Interceptors cannot be declared in generic types at any level of nesting.
 
-This limitation prevents interceptors from matching the signature of an interceptable call in cases where the interceptable call uses type parameters which are not in scope at the interceptor declaration. We can consider adjusting the rules to alleviate this limitation if compelling scenarios arise for it in the future.
+Interceptors must either be non-generic, or have arity equal to the sum of the arity of the original method's arity and containing type arities. For example:
+
+```cs
+Grandparent<int>.Parent<bool>.Original<string>(1, false, "a");
+
+class Grandparent<T1>
+{
+    class Parent<T2>
+    {
+        public static void Original<T3>(T1 t1, T2 t2, T3 t3) { }
+    }
+}
+
+class Interceptors
+{
+    [InterceptsLocation("Program.cs", 1, 33)]
+    public static void Interceptor<T1, T2, T3>(T1 t1, T2 t2, T3 t3) { }
+}
+```
+
+When an interceptor is generic, the type arguments from the original containing types and method are passed as type arguments to the interceptor, from outermost to innermost. In the above scenario, the interceptor receives `<int, bool, string>` as type arguments. If the interceptor type parameters have constraints which are violated by these type arguments, a compile-time error occurs.
+
+This substitution allows interceptors to use type parameters which aren't in scope at its declaration site.
 
 ```cs
 using System.Runtime.CompilerServices;
@@ -127,14 +148,15 @@ static class Program
 static class D
 {
     [InterceptsLocation("Program.cs", 12, 11)]
-    public static void Interceptor1(object s) => throw null!;
+    public static void Interceptor1<T2>(T2 t) => throw null!;
 }
 ```
 
 ### Signature matching
 
 When a call is intercepted, the interceptor and interceptable methods must meet the signature matching requirements detailed below:
-- When an interceptable instance method is compared to a classic extension method, we use the extension method in reduced form for comparison. The extension method parameter with the `this` modifier is compared to the instance method `this` parameter.
+- When an interceptable instance method is compared to a static interceptor method (including a classic extension method), we use the method as if it is an extension in reduced form for comparison. The first parameter of the static method is compared to the instance method `this` parameter.
+    - The implementation currently requires the interceptor to be an extension method for this comparison to work. We plan on addressing this before releasing .NET 8.
 - The returns and parameters, including the `this` parameter, must have the same ref kinds and types.
 - A warning is reported instead of an error if a type difference is found where the types are not distinct to the runtime. For example, `object` and `dynamic`.
 - No warning or error is reported for a *safe* nullability difference, such as when the interceptable method accepts a `string` parameter, and the interceptor accepts a `string?` parameter.
@@ -169,7 +191,12 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 
 ### User opt-in
 
-Interceptors will require a feature flag during the experimental phase. The flag can be enabled with `/features=InterceptorsPreview` on the command line or `<Features>InterceptorsPreview</Features>` in msbuild.
+To use interceptors, the user project must specify the property `<InterceptorsPreviewNamespaces>`. This is a list of namespaces which are allowed to contain interceptors.
+```xml
+<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Microsoft.AspNetCore.Http.Generated;MyLibrary.Generated</InterceptorsPreviewNamespaces>
+```
+
+It's expected that each entry in the `InterceptorsPreviewNamespaces` list roughly corresponds to one source generator. Well-behaved components are expected to not insert interceptors into namespaces they do not own.
 
 ### Implementation strategy
 

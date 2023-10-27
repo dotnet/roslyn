@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -17,6 +18,8 @@ Friend Class MockVisualBasicCompiler
     Private ReadOnly _additionalReferences As ImmutableArray(Of MetadataReference)
     Public Compilation As Compilation
     Public AnalyzerOptions As AnalyzerOptions
+    Public DescriptorsWithInfo As ImmutableArray(Of (Descriptor As DiagnosticDescriptor, Info As DiagnosticDescriptorErrorLoggerInfo))
+    Public TotalAnalyzerExecutionTime As Double
 
     Public Sub New(baseDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
         MyClass.New(Nothing, baseDirectory, args, analyzer)
@@ -85,5 +88,16 @@ Friend Class MockVisualBasicCompiler
         analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider) As AnalyzerOptions
         AnalyzerOptions = MyBase.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider)
         Return AnalyzerOptions
+    End Function
+
+    Protected Overrides Sub AddAnalyzerDescriptorsAndExecutionTime(errorLogger As ErrorLogger, descriptorsWithInfo As ImmutableArray(Of (Descriptor As DiagnosticDescriptor, Info As DiagnosticDescriptorErrorLoggerInfo)), totalAnalyzerExecutionTime As Double)
+        Me.DescriptorsWithInfo = descriptorsWithInfo
+        Me.TotalAnalyzerExecutionTime = totalAnalyzerExecutionTime
+
+        MyBase.AddAnalyzerDescriptorsAndExecutionTime(errorLogger, descriptorsWithInfo, totalAnalyzerExecutionTime)
+    End Sub
+
+    Public Function GetAnalyzerExecutionTimeFormattedString() As String
+        Return ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(TotalAnalyzerExecutionTime, Culture).Trim()
     End Function
 End Class

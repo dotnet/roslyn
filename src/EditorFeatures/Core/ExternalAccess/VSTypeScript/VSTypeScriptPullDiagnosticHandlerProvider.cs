@@ -13,27 +13,21 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [ExportLspServiceFactory(typeof(DocumentPullDiagnosticHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory : DocumentPullDiagnosticHandlerFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
+    IDiagnosticAnalyzerService analyzerService,
+    IDiagnosticsRefresher diagnosticsRefresher,
+    IGlobalOptionService globalOptions) : DocumentPullDiagnosticHandlerFactory(analyzerService, diagnosticsRefresher, globalOptions)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSTypeScriptDocumentPullDiagnosticHandlerFactory(
-        IDiagnosticAnalyzerService analyzerService,
-        IDiagnosticsRefresher diagnosticsRefresher,
-        IGlobalOptionService globalOptions) : base(analyzerService, diagnosticsRefresher, globalOptions)
-    {
-    }
 }
 
 [ExportLspServiceFactory(typeof(WorkspacePullDiagnosticHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal class VSTypeScriptWorkspacePullDiagnosticHandler : WorkspacePullDiagnosticHandlerFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VSTypeScriptWorkspacePullDiagnosticHandler(
+    IDiagnosticAnalyzerService analyzerService,
+    IDiagnosticsRefresher diagnosticsRefresher,
+    IGlobalOptionService globalOptions) : WorkspacePullDiagnosticHandlerFactory(analyzerService, diagnosticsRefresher, globalOptions)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSTypeScriptWorkspacePullDiagnosticHandler(
-        IDiagnosticAnalyzerService analyzerService,
-        IDiagnosticsRefresher diagnosticsRefresher,
-        IGlobalOptionService globalOptions) : base(analyzerService, diagnosticsRefresher, globalOptions)
-    {
-    }
 }

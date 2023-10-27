@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("24");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("25");
 
         /// <summary>
         /// Generalized function for loading/creating/persisting data.  Used as the common core code for serialization
@@ -154,7 +154,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            _spellChecker.WriteTo(writer);
+            if (!_spellChecker.HasValue)
+            {
+                writer.WriteBoolean(false);
+            }
+            else
+            {
+                writer.WriteBoolean(true);
+                SpellChecker.WriteTo(writer);
+            }
+
             return;
 
             // sortedNodes is an array of Node instances which is often sorted by Node.Name by the caller. This method
@@ -243,14 +252,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var spellChecker = SpellChecker.TryReadFrom(reader);
-                if (spellChecker is null)
-                    return null;
+                SpellChecker? spellChecker = null;
+
+                var spellCheckerPersisted = reader.ReadBoolean();
+                if (spellCheckerPersisted)
+                {
+                    spellChecker = SpellChecker.TryReadFrom(reader);
+                    if (spellChecker is null)
+                        return null;
+                }
 
                 var nodeArray = nodes.ToImmutableAndClear();
 
                 return new SymbolTreeInfo(
-                    checksum, nodeArray, spellChecker.Value, inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    checksum, nodeArray, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
             catch
             {

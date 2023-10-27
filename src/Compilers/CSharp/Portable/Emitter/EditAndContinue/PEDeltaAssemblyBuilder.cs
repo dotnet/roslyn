@@ -247,16 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return _previousDefinitions; }
         }
 
-        internal override bool SupportsPrivateImplClass
-        {
-            get
-            {
-                // Disable <PrivateImplementationDetails> in ENC since the
-                // CLR does not support adding non-private members.
-                return false;
-            }
-        }
-
         public IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMap()
         {
             var anonymousTypes = this.Compilation.AnonymousTypeManager.GetAnonymousTypeMap();
@@ -282,17 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
-        {
-            foreach (var typeDef in GetAnonymousTypeDefinitions(context))
-            {
-                yield return typeDef;
-            }
-
-            foreach (var typeDef in GetTopLevelTypeDefinitionsCore(context))
-            {
-                yield return typeDef;
-            }
-        }
+            => GetTopLevelTypeDefinitionsCore(context);
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
         {

@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 return new LSP.Location
                 {
-                    Uri = ProtocolConversions.GetUriFromFilePath(declarationFile.FilePath),
+                    Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
                     Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                 };
             }

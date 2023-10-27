@@ -498,17 +498,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
-        private readonly struct LocationForAffectedSymbol
+        private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
         {
-            public LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
-            {
-                ReferenceLocation = location;
-                IsReferenceToExtensionMethod = isReferenceToExtensionMethod;
-            }
+            public ReferenceLocation ReferenceLocation { get; } = location;
 
-            public ReferenceLocation ReferenceLocation { get; }
-
-            public bool IsReferenceToExtensionMethod { get; }
+            public bool IsReferenceToExtensionMethod { get; } = isReferenceToExtensionMethod;
 
             public Document Document => ReferenceLocation.Document;
         }

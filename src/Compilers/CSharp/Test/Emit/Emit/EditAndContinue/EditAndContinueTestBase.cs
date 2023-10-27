@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Metadata.Tools;
@@ -24,10 +25,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    using static EditAndContinueTestUtilities;
+
     public abstract class EditAndContinueTestBase : EmitMetadataTestBase
     {
         // PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
-        protected readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
+        internal static readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
 
         internal static readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EmptyLocalsProvider = handle => default(EditAndContinueMethodDebugInformation);
 
@@ -146,9 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return MetadataTokens.Handle(table, rowNumber);
         }
 
-        internal static bool IsDefinition(HandleKind kind)
-            => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference or HandleKind.TypeSpecification or HandleKind.MethodSpecification);
-
         /// <summary>
         /// Checks that the EncLog contains specified rows.
         /// Any default values in the expected <paramref name="rows"/> are ignored to facilitate conditional code.
@@ -260,43 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         public static MetadataAggregator GetAggregator(IList<MetadataReader> readers)
             => new MetadataAggregator(readers[0], readers.Skip(1).ToArray());
-
-        internal static string EncLogRowToString(EditAndContinueLogEntry row)
-        {
-            TableIndex tableIndex;
-            MetadataTokens.TryGetTableIndex(row.Handle.Kind, out tableIndex);
-
-            return string.Format(
-                "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
-                MetadataTokens.GetRowNumber(row.Handle),
-                tableIndex,
-                row.Operation);
-        }
-
-        internal static string EncMapRowToString(EntityHandle handle)
-        {
-            TableIndex tableIndex;
-            MetadataTokens.TryGetTableIndex(handle.Kind, out tableIndex);
-
-            return string.Format(
-                "Handle({0}, TableIndex.{1})",
-                MetadataTokens.GetRowNumber(handle),
-                tableIndex);
-        }
-
-        internal static string AttributeRowToString(CustomAttributeRow row)
-        {
-            TableIndex parentTableIndex, constructorTableIndex;
-            MetadataTokens.TryGetTableIndex(row.ParentToken.Kind, out parentTableIndex);
-            MetadataTokens.TryGetTableIndex(row.ConstructorToken.Kind, out constructorTableIndex);
-
-            return string.Format(
-                "new CustomAttributeRow(Handle({0}, TableIndex.{1}), Handle({2}, TableIndex.{3}))",
-                MetadataTokens.GetRowNumber(row.ParentToken),
-                parentTableIndex,
-                MetadataTokens.GetRowNumber(row.ConstructorToken),
-                constructorTableIndex);
-        }
 
         internal static void SaveImages(string outputDirectory, CompilationVerifier baseline, params CompilationDifference[] diffs)
         {

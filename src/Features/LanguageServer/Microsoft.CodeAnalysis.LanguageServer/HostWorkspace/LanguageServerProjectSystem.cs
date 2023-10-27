@@ -6,21 +6,23 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.Build.Locator;
+using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -34,14 +36,25 @@ internal sealed class LanguageServerProjectSystem
     /// This is just we don't have code simultaneously trying to load and unload solutions at once.
     /// </summary>
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-
     private bool _msbuildLoaded = false;
 
-    private readonly AsyncBatchingWorkQueue<string> _projectsToLoadAndReload;
+    /// <summary>
+    /// The suffix to use for the binary log name; incremented each time we have a new build. Should be incremented with <see cref="Interlocked.Increment(ref int)"/>.
+    /// </summary>
+    private int _binaryLogNumericSuffix;
+
+    /// <summary>
+    /// A GUID put into all binary log file names, so that way one session doesn't accidentally overwrite the logs from a prior session.
+    /// </summary>
+    private readonly Guid _binaryLogGuidSuffix = Guid.NewGuid();
+
+    private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToLoadAndReload;
 
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly ILogger _logger;
+    private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
@@ -56,28 +69,33 @@ internal sealed class LanguageServerProjectSystem
     public LanguageServerProjectSystem(
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
+        IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
-        IAsynchronousOperationListenerProvider listenerProvider)
+        IAsynchronousOperationListenerProvider listenerProvider,
+        ProjectLoadTelemetryReporter projectLoadTelemetry)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
+        _globalOptionService = globalOptionService;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
+        _projectLoadTelemetryReporter = projectLoadTelemetry;
 
         // TODO: remove the DiagnosticReporter that's coupled to the Workspace here
         _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(workspaceFactory.Workspace.Services.SolutionServices, new DiagnosticReporter(workspaceFactory.Workspace));
 
-        _projectsToLoadAndReload = new AsyncBatchingWorkQueue<string>(
+        _projectsToLoadAndReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
             LoadOrReloadProjectsAsync,
-            StringComparer.Ordinal,
+            ProjectToLoad.Comparer,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
     }
 
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
-        await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!);
-        await OpenSolutionCoreAsync(solutionFilePath);
+
+        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(solutionFilePath)!))
+            await OpenSolutionCoreAsync(solutionFilePath);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
@@ -96,8 +114,30 @@ internal sealed class LanguageServerProjectSystem
                     continue;
                 }
 
-                _projectsToLoadAndReload.AddWork(project.AbsolutePath);
+                _projectsToLoadAndReload.AddWork(new ProjectToLoad(project.AbsolutePath, project.ProjectGuid));
             }
+
+            // Wait for the in progress batch to complete and send a project initialized notification to the client.
+            await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
+            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        }
+    }
+
+    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths)
+    {
+        if (!projectFilePaths.Any())
+            return;
+
+        if (await TryEnsureMSBuildLoadedAsync(Path.GetDirectoryName(projectFilePaths.First())!))
+            await OpenProjectsCoreAsync(projectFilePaths);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)] // Don't inline; the caller needs to ensure MSBuild is loaded before we can use MSBuild types here
+    private async Task OpenProjectsCoreAsync(ImmutableArray<string> projectFilePaths)
+    {
+        using (await _gate.DisposableWaitAsync())
+        {
+            _projectsToLoadAndReload.AddWork(projectFilePaths.Select(p => new ProjectToLoad(p, ProjectGuid: null)));
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
             await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
@@ -130,28 +170,45 @@ internal sealed class LanguageServerProjectSystem
                 else
                 {
                     _logger.LogError($"Unable to find a MSBuild to use to load {workingDirectory}.");
+                    await ShowToastNotification.ShowToastNotificationAsync(LSP.MessageType.Error, LanguageServerResources.There_were_problems_loading_your_projects_See_log_for_details, CancellationToken.None, ShowToastNotification.ShowCSharpLogsCommand);
+
                     return false;
                 }
             }
         }
     }
 
-    private async ValueTask LoadOrReloadProjectsAsync(ImmutableSegmentedList<string> projectPathsToLoadOrReload, CancellationToken cancellationToken)
+    private async ValueTask LoadOrReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectPathsToLoadOrReload, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
 
         // TODO: support configuration switching
-        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty);
+        var projectBuildManager = new ProjectBuildManager(additionalGlobalProperties: ImmutableDictionary<string, string>.Empty, msbuildLogger: CreateMSBuildLogger());
 
         projectBuildManager.StartBatchBuild();
+
+        var displayedToast = 0;
 
         try
         {
             var tasks = new List<Task>();
 
-            foreach (var projectPathToLoadOrReload in projectPathsToLoadOrReload)
+            foreach (var projectToLoad in projectPathsToLoadOrReload)
             {
-                tasks.Add(Task.Run(() => LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, cancellationToken), cancellationToken));
+                tasks.Add(Task.Run(async () =>
+                {
+                    var errorKind = await LoadOrReloadProjectAsync(projectToLoad, projectBuildManager, cancellationToken);
+                    if (errorKind is LSP.MessageType.Error)
+                    {
+                        // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
+                        var shouldShowToast = Interlocked.CompareExchange(ref displayedToast, value: 1, comparand: 0) == 0;
+                        if (shouldShowToast)
+                        {
+                            var message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectToLoad.Path));
+                            await ShowToastNotification.ShowToastNotificationAsync(errorKind.Value, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+                        }
+                    }
+                }, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -164,10 +221,24 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    private async Task LoadOrReloadProjectAsync(string projectPath, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
+    private Build.Framework.ILogger? CreateMSBuildLogger()
+    {
+        if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.BinaryLogPath) is not string binaryLogDirectory)
+            return null;
+
+        var numericSuffix = Interlocked.Increment(ref _binaryLogNumericSuffix);
+        var binaryLogPath = Path.Combine(binaryLogDirectory, $"LanguageServerDesignTimeBuild-{_binaryLogGuidSuffix}-{numericSuffix}.binlog");
+
+        _logger.LogInformation($"Logging design-time builds to {binaryLogPath}");
+
+        return new BinaryLogger { Parameters = binaryLogPath, Verbosity = Build.Framework.LoggerVerbosity.Diagnostic };
+    }
+
+    private async Task<LSP.MessageType?> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, ProjectBuildManager projectBuildManager, CancellationToken cancellationToken)
     {
         try
         {
+            var projectPath = projectToLoad.Path;
             if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
             {
                 var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, cancellationToken);
@@ -175,6 +246,7 @@ internal sealed class LanguageServerProjectSystem
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
+                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind)> projectFileInfos = new();
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
                     // If we already have the project, just update it
@@ -182,7 +254,8 @@ internal sealed class LanguageServerProjectSystem
 
                     if (existingProject != null)
                     {
-                        await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
+
+                        projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                     else
                     {
@@ -196,29 +269,38 @@ internal sealed class LanguageServerProjectSystem
                             _workspaceFactory.ProjectSystemHostInfo);
 
                         var loadedProject = new LoadedProject(projectSystemProject, _workspaceFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
-                        loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectPath);
+                        loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad);
                         existingProjects.Add(loadedProject);
 
-                        await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
+                        projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                 }
+
+                await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
 
                 if (loadedFile.Log.Any())
                 {
                     foreach (var logItem in loadedFile.Log)
                     {
-                        _logger.LogWarning($"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                        var projectName = Path.GetFileName(projectPath);
+                        _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
                     }
+
+                    return loadedFile.Log.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
                 }
                 else
                 {
                     _logger.LogInformation($"Successfully completed load of {projectPath}");
+                    return null;
                 }
             }
+
+            return null;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Exception thrown while loading {projectPath}");
+            _logger.LogError(e, $"Exception thrown while loading {projectToLoad.Path}");
+            return LSP.MessageType.Error;
         }
     }
 }

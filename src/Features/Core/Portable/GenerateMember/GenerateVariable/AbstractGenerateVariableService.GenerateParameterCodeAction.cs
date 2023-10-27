@@ -12,20 +12,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private class GenerateParameterCodeAction : CodeAction
+        private class GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex) : CodeAction
         {
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly bool _includeOverridesAndImplementations;
-            private readonly int _parameterIndex;
-
-            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex)
-            {
-                _document = document;
-                _state = state;
-                _includeOverridesAndImplementations = includeOverridesAndImplementations;
-                _parameterIndex = parameterIndex;
-            }
+            private readonly Document _document = document;
+            private readonly State _state = state;
+            private readonly bool _includeOverridesAndImplementations = includeOverridesAndImplementations;
+            private readonly int _parameterIndex = parameterIndex;
 
             public override string Title
             {

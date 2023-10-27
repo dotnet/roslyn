@@ -13,34 +13,29 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// Active instruction identifier.
     /// It has the information necessary to track an active instruction within the debug session.
     /// </summary>
+    /// <remarks>
+    /// Creates an ActiveInstructionId.
+    /// </remarks>
+    /// <param name="method">Method which the instruction is scoped to.</param>
+    /// <param name="ilOffset">IL offset for the instruction.</param>
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal readonly struct ManagedInstructionId : IEquatable<ManagedInstructionId>
+    internal readonly struct ManagedInstructionId(
+        ManagedMethodId method,
+        int ilOffset) : IEquatable<ManagedInstructionId>
     {
-        /// <summary>
-        /// Creates an ActiveInstructionId.
-        /// </summary>
-        /// <param name="method">Method which the instruction is scoped to.</param>
-        /// <param name="ilOffset">IL offset for the instruction.</param>
-        public ManagedInstructionId(
-            ManagedMethodId method,
-            int ilOffset)
-        {
-            Method = method;
-            ILOffset = ilOffset;
-        }
 
         /// <summary>
         /// Method which the instruction is scoped to.
         /// </summary>
         [DataMember(Name = "method")]
-        public ManagedMethodId Method { get; }
+        public ManagedMethodId Method { get; } = method;
 
         /// <summary>
         /// The IL offset for the instruction.
         /// </summary>
         [DataMember(Name = "ilOffset")]
-        public int ILOffset { get; }
+        public int ILOffset { get; } = ilOffset;
 
         public bool Equals(ManagedInstructionId other)
         {

@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -89,7 +89,7 @@ Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(3, 5)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (3,5): error CS8861: Unexpected argument list.
                 // Base()
@@ -113,12 +113,12 @@ Base()
 ;";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ";").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -155,12 +155,12 @@ class Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -180,15 +180,15 @@ interface Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1),
                 // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
@@ -216,12 +216,12 @@ class Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -241,15 +241,15 @@ interface Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1),
                 // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
@@ -281,12 +281,12 @@ interface Base{}
                 // (3,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(3, 7),
-                // (4,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("primary constructors").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ";").WithArguments("primary constructors", "12.0").WithLocation(4, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (3,7): error CS8861: Unexpected argument list.
                 // : Base()
@@ -312,12 +312,12 @@ interface Base{}
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,1): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -334,7 +334,7 @@ interface Base{}
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -351,11 +351,46 @@ interface Base{}
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68782")]
+        public void BindIdentifier()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void Test()
+    {
+        foreach (ref read)
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'ref'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref read").WithArguments("ref").WithLocation(6, 18),
+                // (6,26): error CS1515: 'in' expected
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 26),
+                // (6,26): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ")").WithLocation(6, 26),
+                // (6,26): error CS1525: Invalid expression term ')'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 26),
+                // (6,27): error CS1525: Invalid expression term '}'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 27),
+                // (6,27): error CS1002: ; expected
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 27)
+                );
         }
 
         [Theory]
@@ -3103,7 +3138,7 @@ public class A : System.Attribute
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -3112,17 +3147,17 @@ public class A : System.Attribute
             if (declaration is "class" or "struct")
             {
                 comp.VerifyDiagnostics(
-                    // (9,5): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (9,5): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                     //     ();
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("primary constructors").WithLocation(9, 5)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(9, 5)
                     );
             }
             else
             {
                 comp.VerifyDiagnostics(
-                    // (7,2): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (7,2): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                     // [method: A]
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "method").WithArguments("primary constructors").WithLocation(7, 2)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "method").WithArguments("primary constructors", "12.0").WithLocation(7, 2)
                     );
             }
 
@@ -15828,6 +15863,44 @@ class C1(int p1)
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68796")]
+        public void ParameterCapturing_165_ColorColor_MemberAccess_InstanceAndStatic_MethodAndExtensionMethod_Generic()
+        {
+            var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+static class E
+{
+    public static void M1<T>(this T c, S1 x, int y = 0)
+    {
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
@@ -16441,6 +16514,68 @@ public partial struct S
             }
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67099")]
+        public void NullableWarningsForAssignment_01_NotCaptured()
+        {
+            var source = @"
+#nullable enable
+class C1(string p1, string p2)
+{
+    string? F1 = (p1 = null);
+    string F2 = p1;
+
+    string M1() => p2;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (5,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     string? F1 = (p1 = null);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 24),
+                // (6,17): warning CS8601: Possible null reference assignment.
+                //     string F2 = p1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p1").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67099")]
+        public void NullableWarningsForAssignment_02_Captured()
+        {
+            var source = @"
+#pragma warning disable CS9124 // Parameter 'string p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+#nullable enable
+class C1(string p1)
+{
+    string? F1 = (p1 = null);
+    string F2 = p1;
+
+    void M1()
+    {
+        p1 = null;
+    }
+
+    void M2()
+    {
+        p1.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     string? F1 = (p1 = null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 24),
+                // (7,17): warning CS8601: Possible null reference assignment.
+                //     string F2 = p1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p1").WithLocation(7, 17),
+                // (11,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         p1 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 14)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void RestrictedType_01([CombinatorialValues("class", "struct")] string declaration)
@@ -16716,6 +16851,1079 @@ public partial struct S
 
             var namedType2 = symbols2.OfType<INamedTypeSymbol>().Single();
             Assert.Equal(namedType1, namedType2);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_01_NoArgumentList()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        local();
+
+        void local()
+        {
+            string a = p1; 
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (15,24): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //             string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(15, 24)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_02_EmptyArgumentList()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base()
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_03_WithArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1, int p2) : Base(p2)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_04_WithArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_05_WithIdentityConvertedArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base((int)p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_06_WithNonIdentityConvertedArgument()
+        {
+            var source = @"
+class Base(long p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_07_NotFirstArgument()
+        {
+            var source = @"
+class Base(int p1, int p2)
+{
+    protected string p1 = (p1+p2).ToString();
+}
+
+class C1(int p1) : Base(0, p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_08_WithParamsArgument()
+        {
+            var source = @"
+class Base(params int[] p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_09_ColorColorResolvingToADifferentType()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(int Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public static string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(int Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("int Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_10_ColorColorResolvingToTheSameType()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public static string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,16): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 16)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_11_ColorColorResolvingToAValue()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(int Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(int Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("int Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_12_ColorColorResolvingToAValue()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,16): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 16),
+                // (11,20): warning CS9179: Primary constructor parameter 'Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Type1 Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_13_TypeVsParameter()
+        {
+            var source = @"
+class Base
+{
+    public class Type1
+    {
+        public static string M() => null;
+    }
+}
+
+class C1(Base.Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (10,21): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Base.Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(10, 21),
+                // (14,20): warning CS9179: Primary constructor parameter 'Base.Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Base.Type1 Type1").WithLocation(14, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_14_TypeVsParameter()
+        {
+            var source = @"
+class Base
+{
+    public class Type1
+    {
+        public string M() => null;
+    }
+}
+
+class C1(Base.Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (10,21): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Base.Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(10, 21),
+                // (14,20): warning CS9179: Primary constructor parameter 'Base.Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Base.Type1 Type1").WithLocation(14, 20),
+                // (14,20): error CS0120: An object reference is required for the non-static field, method, or property 'Base.Type1.M()'
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Type1.M").WithArguments("Base.Type1.M()").WithLocation(14, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_15_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+    protected string p1() => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         var a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_16_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1; 
+    }
+
+    protected string p1() => """";
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (6,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(6, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_17_MethodVsParameter_ShadowedByMemberFromTheSameType()
+        {
+            var source = @"
+class Base
+{
+    protected string p1(int x) => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1(1); 
+    }
+
+    protected string p1() => """";
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_18_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+    protected string p1() => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        int a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         int a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 17),
+                // (11,17): error CS0428: Cannot convert method group 'p1' to non-delegate type 'int'. Did you intend to invoke the method?
+                //         int a = p1; 
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "p1").WithArguments("p1", "int").WithLocation(11, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_19_MultipleReferences()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    void M1()
+    {
+        string a = p1; 
+    }
+
+    void M2()
+    {
+        string b = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20),
+                // (16,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string b = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(16, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_20_NoReferences()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_21_InStaticMethod()
+        {
+            var source = @"
+class Base
+{
+    protected static string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    static void M1()
+    {
+        string a = p1; 
+    }
+}
+
+class C2(string p2)
+{
+    static void M1()
+    {
+        string a = p2; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (15,17): warning CS9113: Parameter 'p2' is unread.
+                // class C2(string p2)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(15, 17),
+                // (19,20): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //         string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(19, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_22_InNestedType()
+        {
+            var source = @"
+class Base
+{
+    protected static string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    class Nested
+    {
+        void M()
+        {
+            string a = p1; 
+        }
+    }
+}
+
+class C2(string p2)
+{
+    class Nested
+    {
+        void M()
+        {
+            string a = p2; 
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (18,17): warning CS9113: Parameter 'p2' is unread.
+                // class C2(string p2)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(18, 17),
+                // (24,24): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //             string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(24, 24)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_23_InOtherConstructor()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    C1() : this(1)
+    {
+        string a = p1; 
+    }
+}
+
+class C2(string p2)
+{
+    C2() : this(""1"")
+    {
+        string a = p2; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20),
+                // (19,20): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //         string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(19, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_24_OrderOfDeclarations()
+        {
+            var source1 = @"
+partial class C1(int p1) : Base("""");
+";
+            var source2 = @"
+partial class C1
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var source3 = @"
+class Base(string p1)
+{
+    protected string p1 = p1;
+}
+";
+            var comp = CreateCompilation(source1 + source2 + source3, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 22),
+                // (8,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(8, 20)
+                );
+
+            comp = CreateCompilation(source2 + source1 + source3, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20),
+                // (10,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(10, 22)
+                );
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_25_OrderOfBinding()
+        {
+            var source1 = @"
+partial class C1(int p1) : Base("""");
+";
+            var source2 = @"
+partial class C1
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var source3 = @"
+class Base(string p1)
+{
+    protected string p1 = p1;
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.ReleaseDll);
+            var tree = comp.SyntaxTrees[1];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            model.GetDiagnostics().Verify(
+                // 1.cs(6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20)
+                );
+
+            comp.VerifyDiagnostics(
+                // 0.cs(2,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 22),
+                // 1.cs(6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20)
+                );
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_26_PropertyVsParameterInIndirectBase()
+        {
+            var source = @"
+class Base0
+{
+    protected string p1 => """";
+}
+
+class Base1 : Base0
+{
+}
+
+class C1(int p1) : Base1
+{
+    void M()
+    {
+        var a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base1
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(11, 14),
+                // (15,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         var a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(15, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_01()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref int R1;
+
+    public S1(ref int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(ref int x)
+{
+    public ref int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+{
+    public ref int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref int R5;
+
+    public S5(scoped ref int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped ref int x)
+{
+    public ref int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,25): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 25)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_02()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref readonly int R1;
+
+    public S1(ref int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref readonly int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(ref int x)
+{
+    public ref readonly int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+{
+    public ref readonly int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref readonly int R5;
+
+    public S5(scoped ref int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped ref int x)
+{
+    public ref readonly int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,34): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref readonly int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_03()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref readonly int R1;
+
+    public S1(in int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref readonly int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] in int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(in int x)
+{
+    public ref readonly int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] in int x)
+{
+    public ref readonly int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref readonly int R5;
+
+    public S5(scoped in int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped in int x)
+{
+    public ref readonly int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,34): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref readonly int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 34)
+                );
         }
     }
 }

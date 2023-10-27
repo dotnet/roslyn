@@ -11,31 +11,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
-        internal sealed class LocalSuppressMessageCodeAction : AbstractSuppressionCodeAction
+        internal sealed class LocalSuppressMessageCodeAction(
+            AbstractSuppressionCodeFixProvider fixer,
+            ISymbol targetSymbol,
+            INamedTypeSymbol suppressMessageAttribute,
+            SyntaxNode targetNode,
+            Document document,
+            Diagnostic diagnostic) : AbstractSuppressionCodeAction(fixer, FeaturesResources.in_Source_attribute)
         {
-            private readonly AbstractSuppressionCodeFixProvider _fixer;
-            private readonly ISymbol _targetSymbol;
-            private readonly INamedTypeSymbol _suppressMessageAttribute;
-            private readonly SyntaxNode _targetNode;
-            private readonly Document _document;
-            private readonly Diagnostic _diagnostic;
-
-            public LocalSuppressMessageCodeAction(
-                AbstractSuppressionCodeFixProvider fixer,
-                ISymbol targetSymbol,
-                INamedTypeSymbol suppressMessageAttribute,
-                SyntaxNode targetNode,
-                Document document,
-                Diagnostic diagnostic)
-                : base(fixer, FeaturesResources.in_Source_attribute)
-            {
-                _fixer = fixer;
-                _targetSymbol = targetSymbol;
-                _suppressMessageAttribute = suppressMessageAttribute;
-                _targetNode = targetNode;
-                _document = document;
-                _diagnostic = diagnostic;
-            }
+            private readonly AbstractSuppressionCodeFixProvider _fixer = fixer;
+            private readonly ISymbol _targetSymbol = targetSymbol;
+            private readonly INamedTypeSymbol _suppressMessageAttribute = suppressMessageAttribute;
+            private readonly SyntaxNode _targetNode = targetNode;
+            private readonly Document _document = document;
+            private readonly Diagnostic _diagnostic = diagnostic;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {

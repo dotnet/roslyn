@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -34,6 +35,9 @@ Class Test
     End Sub
 End Class");
             VisualStudio.ExecuteCommand("Edit.RemoveAndSort");
+            VisualStudio.Workspace.WaitForAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.OrganizeDocument);
             VisualStudio.Editor.Verify.TextContains(@"Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Class Test

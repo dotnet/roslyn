@@ -23,24 +23,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     // ILanguageClient requires MEF v1 and two can't be mixed exported in 1 class.
     [Export]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class AlwaysActiveLanguageClientEventListener : IEventListener<object>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class AlwaysActiveLanguageClientEventListener(
+        AlwaysActivateInProcLanguageClient languageClient,
+        Lazy<ILanguageClientBroker> languageClientBroker,
+        IAsynchronousOperationListenerProvider listenerProvider) : IEventListener<object>
     {
-        private readonly AlwaysActivateInProcLanguageClient _languageClient;
-        private readonly Lazy<ILanguageClientBroker> _languageClientBroker;
+        private readonly AlwaysActivateInProcLanguageClient _languageClient = languageClient;
+        private readonly Lazy<ILanguageClientBroker> _languageClientBroker = languageClientBroker;
 
-        private readonly IAsynchronousOperationListener _asynchronousOperationListener;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AlwaysActiveLanguageClientEventListener(
-            AlwaysActivateInProcLanguageClient languageClient,
-            Lazy<ILanguageClientBroker> languageClientBroker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _languageClient = languageClient;
-            _languageClientBroker = languageClientBroker;
-            _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
-        }
+        private readonly IAsynchronousOperationListener _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
 
         /// <summary>
         /// LSP clients do not necessarily know which language servers (and when) to activate as they are language
@@ -82,17 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// The implementation of <see cref="ILanguageClientMetadata"/> is not public, so have to re-implement.
         /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043922 tracking to remove this.
         /// </summary>
-        private class LanguageClientMetadata : ILanguageClientMetadata
+        private class LanguageClientMetadata(string[] contentTypes, string clientName = null) : ILanguageClientMetadata
         {
-            public LanguageClientMetadata(string[] contentTypes, string clientName = null)
-            {
-                this.ContentTypes = contentTypes;
-                this.ClientName = clientName;
-            }
+            public string ClientName { get; } = clientName;
 
-            public string ClientName { get; }
-
-            public IEnumerable<string> ContentTypes { get; }
+            public IEnumerable<string> ContentTypes { get; } = contentTypes;
         }
     }
 }

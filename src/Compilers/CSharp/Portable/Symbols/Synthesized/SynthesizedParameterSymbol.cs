@@ -176,9 +176,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
             }
 
-            if (this.RefKind == RefKind.RefReadOnly)
+            switch (this.RefKind)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+                case RefKind.In:
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+                    break;
+                case RefKind.RefReadOnlyParameter:
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRequiresLocationAttribute(this));
+                    break;
             }
 
             if (this.HasUnscopedRefAttribute && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
@@ -228,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        internal sealed override bool IsMetadataIn => RefKind == RefKind.In;
+        internal sealed override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
 
         internal sealed override bool IsMetadataOut => RefKind == RefKind.Out;
 
@@ -381,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get => _baseParameterForAttributes?.IsCallerMemberName ?? false;
         }
 
-        internal override bool IsMetadataIn => RefKind == RefKind.In || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
+        internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
 
         internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 

@@ -9,11 +9,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string AdditionalFiles = nameof(AdditionalFiles);
         public const string Analyzer = nameof(Analyzer);
         public const string Compile = nameof(Compile);
+        public const string Content = nameof(Content);
         public const string CscCommandLineArgs = nameof(CscCommandLineArgs);
         public const string DocFileItem = nameof(DocFileItem);
         public const string EditorConfigFiles = nameof(EditorConfigFiles);
         public const string Import = nameof(Import);
         public const string ProjectReference = nameof(ProjectReference);
+        public const string ProjectCapability = nameof(ProjectCapability);
         public const string Reference = nameof(Reference);
         public const string ReferencePath = nameof(ReferencePath);
         public const string VbcCommandLineArgs = nameof(VbcCommandLineArgs);

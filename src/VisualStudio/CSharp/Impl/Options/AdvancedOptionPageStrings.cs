@@ -255,6 +255,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Collapse_regions_when_collapsing_to_definitions
             => ServicesVSResources.Collapse_regions_when_collapsing_to_definitions;
 
+        public static string Option_Collapse_local_functions_when_collapsing_to_definitions
+            => ServicesVSResources.Collapse_local_functions_when_collapsing_to_definitions;
+
         public static string Option_Block_Structure_Guides
             => ServicesVSResources.Block_Structure_Guides;
 

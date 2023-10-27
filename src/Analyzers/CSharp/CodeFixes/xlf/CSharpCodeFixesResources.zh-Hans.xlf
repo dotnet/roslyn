@@ -192,6 +192,11 @@
         <target state="translated">使用 "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="new">Use collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">使用内插的逐字字符串</target>

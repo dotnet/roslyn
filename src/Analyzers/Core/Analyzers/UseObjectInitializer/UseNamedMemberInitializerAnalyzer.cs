@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TAssignmentStatementSyntax,
         TVariableDeclaratorSyntax> : AbstractObjectCreationExpressionAnalyzer<
             TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TVariableDeclaratorSyntax,
-            Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>
+            Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>, IDisposable
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -32,107 +33,85 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private static readonly ObjectPool<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>> s_pool
             = SharedPools.Default<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>>();
 
-        public static ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>? Analyze(
+        public static UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax> Allocate()
+            => s_pool.Allocate();
+
+        public void Dispose()
+        {
+            this.Clear();
+            s_pool.Free(this);
+        }
+
+        public ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
-            var analyzer = s_pool.Allocate();
-            analyzer.Initialize(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
-            try
-            {
-                return analyzer.AnalyzeWorker();
-            }
-            finally
-            {
-                analyzer.Clear();
-                s_pool.Free(analyzer);
-            }
+            var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+            if (state is null)
+                return default;
+
+            this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression: false);
+            return this.AnalyzeWorker(cancellationToken);
         }
 
-        protected override bool ShouldAnalyze()
+        protected override bool ShouldAnalyze(CancellationToken cancellationToken)
         {
             // Can't add member initializers if the object already has a collection initializer attached to it.
-            return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
+            return !this.SyntaxFacts.IsObjectCollectionInitializer(this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
         }
 
-        protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
+        protected override bool TryAddMatches(
+            ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches,
+            CancellationToken cancellationToken)
         {
-            // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
-            // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
-            var containingBlockOrCompilationUnit = _containingStatement.Parent;
-
-            // In case of top-level code parent of the statement will be GlobalStatementSyntax,
-            // so we need to get its parent in order to get CompilationUnitSyntax
-            if (_syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
-            {
-                containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent;
-            }
-
-            var foundStatement = false;
-
             using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
 
-            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
+            var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
-                foreach (var init in _syntaxFacts.GetInitializersOfObjectMemberInitializer(initializer))
+                foreach (var init in this.SyntaxFacts.GetInitializersOfObjectMemberInitializer(initializer))
                 {
-                    if (_syntaxFacts.IsNamedMemberInitializer(init))
+                    if (this.SyntaxFacts.IsNamedMemberInitializer(init))
                     {
-                        _syntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out _);
-                        seenNames.Add(_syntaxFacts.GetIdentifierOfIdentifierName(name).ValueText);
+                        this.SyntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out _);
+                        seenNames.Add(this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText);
                     }
                 }
             }
 
-            foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
+            foreach (var subsequentStatement in this.State.GetSubsequentStatements())
             {
-                if (child.IsToken)
-                    continue;
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var childNode = child.AsNode();
-                var extractedChild = _syntaxFacts.IsGlobalStatement(childNode) ? _syntaxFacts.GetStatementOfGlobalStatement(childNode) : childNode;
-
-                if (!foundStatement)
-                {
-                    if (extractedChild == _containingStatement)
-                    {
-                        foundStatement = true;
-                        continue;
-                    }
-
-                    continue;
-                }
-
-                if (extractedChild is not TAssignmentStatementSyntax statement)
+                if (subsequentStatement is not TAssignmentStatementSyntax statement)
                     break;
 
-                if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
+                if (!this.SyntaxFacts.IsSimpleAssignmentStatement(statement))
                     break;
 
-                _syntaxFacts.GetPartsOfAssignmentStatement(
+                this.SyntaxFacts.GetPartsOfAssignmentStatement(
                     statement, out var left, out var right);
 
                 var rightExpression = right as TExpressionSyntax;
                 var leftMemberAccess = left as TMemberAccessExpressionSyntax;
 
-                if (!_syntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
+                if (!this.SyntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
                     break;
 
-                var expression = (TExpressionSyntax)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
-                if (!ValuePatternMatches(expression))
+                var expression = (TExpressionSyntax)this.SyntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
+                if (!this.State.ValuePatternMatches(expression))
                     break;
 
-                var leftSymbol = _semanticModel.GetSymbolInfo(leftMemberAccess, _cancellationToken).GetAnySymbol();
+                var leftSymbol = this.SemanticModel.GetSymbolInfo(leftMemberAccess, cancellationToken).GetAnySymbol();
                 if (leftSymbol?.IsStatic == true)
                 {
                     // Static members cannot be initialized through an object initializer.
                     break;
                 }
 
-                var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
+                var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
                 if (type == null)
                     break;
 
@@ -155,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 // 
                 // In the second case we'd change semantics because we'd access the old value 
                 // before the new value got written.
-                if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(rightExpression))
+                if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(rightExpression, cancellationToken))
                     break;
 
                 // If we have code like "x.v = .Length.ToString()"
@@ -172,14 +151,16 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 //
                 // If we see an assignment to the same property/field, we can't convert it
                 // to an initializer.
-                var name = _syntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
-                var identifier = _syntaxFacts.GetIdentifierOfSimpleName(name);
+                var name = this.SyntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
+                var identifier = this.SyntaxFacts.GetIdentifierOfSimpleName(name);
                 if (!seenNames.Add(identifier.ValueText))
                     break;
 
                 matches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                     statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
             }
+
+            return true;
         }
 
         private static bool IsExplicitlyImplemented(
@@ -214,9 +195,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     }
                 }
 
-                if (_syntaxFacts.IsSimpleMemberAccessExpression(node))
+                if (this.SyntaxFacts.IsSimpleMemberAccessExpression(node))
                 {
-                    var expression = _syntaxFacts.GetExpressionOfMemberAccessExpression(
+                    var expression = this.SyntaxFacts.GetExpressionOfMemberAccessExpression(
                         node, allowImplicitTarget: true);
 
                     // If we're implicitly referencing some target that is before the 
@@ -236,27 +217,19 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TExpressionSyntax,
         TStatementSyntax,
         TMemberAccessExpressionSyntax,
-        TAssignmentStatementSyntax>
+        TAssignmentStatementSyntax>(
+        TAssignmentStatementSyntax statement,
+        TMemberAccessExpressionSyntax memberAccessExpression,
+        TExpressionSyntax initializer,
+        string memberName)
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TAssignmentStatementSyntax : TStatementSyntax
     {
-        public readonly TAssignmentStatementSyntax Statement;
-        public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
-        public readonly TExpressionSyntax Initializer;
-        public readonly string MemberName;
-
-        public Match(
-            TAssignmentStatementSyntax statement,
-            TMemberAccessExpressionSyntax memberAccessExpression,
-            TExpressionSyntax initializer,
-            string memberName)
-        {
-            Statement = statement;
-            MemberAccessExpression = memberAccessExpression;
-            Initializer = initializer;
-            MemberName = memberName;
-        }
+        public readonly TAssignmentStatementSyntax Statement = statement;
+        public readonly TMemberAccessExpressionSyntax MemberAccessExpression = memberAccessExpression;
+        public readonly TExpressionSyntax Initializer = initializer;
+        public readonly string MemberName = memberName;
     }
 }

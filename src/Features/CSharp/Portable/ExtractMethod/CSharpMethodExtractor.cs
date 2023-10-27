@@ -24,13 +24,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
-    internal partial class CSharpMethodExtractor : MethodExtractor
+    internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction) : MethodExtractor(result, options, localFunction)
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
-            : base(result, options, localFunction)
-        {
-        }
-
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
 

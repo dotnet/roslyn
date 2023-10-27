@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int GreaterThanToken => (int)SyntaxKind.GreaterThanToken;
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;
         public int LessThanToken => (int)SyntaxKind.LessThanToken;
+        public int LessThanSlashToken => (int)SyntaxKind.LessThanSlashToken;
         public int OpenBraceToken => (int)SyntaxKind.OpenBraceToken;
         public int? OpenBracketToken => (int)SyntaxKind.OpenBracketToken;
         public int OpenParenToken => (int)SyntaxKind.OpenParenToken;
@@ -88,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
         public int AwaitExpression => (int)SyntaxKind.AwaitExpression;
         public int BaseExpression => (int)SyntaxKind.BaseExpression;
+        public int CollectionInitializerExpression => (int)SyntaxKind.CollectionInitializerExpression;
         public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
         public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
         public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;

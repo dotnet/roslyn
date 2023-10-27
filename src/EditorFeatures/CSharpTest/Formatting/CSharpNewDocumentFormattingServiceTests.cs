@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -18,6 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class CSharpNewDocumentFormattingServiceTests : AbstractNewDocumentFormattingServiceTests
     {
+        public static IEnumerable<object[]> EndOfDocumentSequences
+        {
+            get
+            {
+                yield return new object[] { "" };
+                yield return new object[] { "\r\n" };
+            }
+        }
+
         protected override string Language => LanguageNames.CSharp;
         protected override TestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions)
             => TestWorkspace.CreateCSharp(testCode, parseOptions);
@@ -88,23 +98,23 @@ namespace Goo
                 parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
-        [Fact]
-        public async Task TestBlockScopedNamespaces()
+        [Theory]
+        [MemberData(nameof(EndOfDocumentSequences))]
+        public async Task TestBlockScopedNamespaces(string endOfDocumentSequence)
         {
-            await TestAsync(testCode: @"
+            await TestAsync(testCode: $@"
 namespace Goo;
 
 internal class C
-{
-}
-",
-            expected: @"
+{{
+}}{endOfDocumentSequence}",
+            expected: $@"
 namespace Goo
-{
+{{
     internal class C
-    {
-    }
-}",
+    {{
+    }}
+}}{endOfDocumentSequence}",
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Error) }

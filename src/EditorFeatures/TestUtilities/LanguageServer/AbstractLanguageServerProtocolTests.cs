@@ -67,14 +67,14 @@ namespace Roslyn.Test.Utilities
         internal class TestSpanMapper : ISpanMappingService
         {
             private static readonly LinePositionSpan s_mappedLinePosition = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 5));
-            private static readonly string s_mappedFilePath = "c:\\MappedFile.cs";
+            private static readonly string s_mappedFilePath = "c:\\MappedFile_\ue25b\ud86d\udeac.cs";
 
-            internal static readonly string GeneratedFileName = "GeneratedFile.cs";
+            internal static readonly string GeneratedFileName = "GeneratedFile_\ue25b\ud86d\udeac.cs";
 
             internal static readonly LSP.Location MappedFileLocation = new LSP.Location
             {
                 Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
-                Uri = new Uri(s_mappedFilePath)
+                Uri = ProtocolConversions.CreateAbsoluteUri(s_mappedFilePath)
             };
 
             /// <summary>
@@ -151,7 +151,7 @@ namespace Roslyn.Test.Utilities
 
         protected static int CompareLocations(LSP.Location l1, LSP.Location l2)
         {
-            var compareDocument = l1.Uri.OriginalString.CompareTo(l2.Uri.OriginalString);
+            var compareDocument = l1.Uri.AbsoluteUri.CompareTo(l2.Uri.AbsoluteUri);
             var compareRange = CompareRange(l1.Range, l2.Range);
             return compareDocument != 0 ? compareDocument : compareRange;
         }
@@ -321,7 +321,7 @@ namespace Roslyn.Test.Utilities
 
             var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, excludedTypes, extraExportedTypes);
 
-            workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
+            workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
 
             return CreateTestLspServerAsync(workspace, lspOptions);
         }
@@ -444,8 +444,10 @@ namespace Roslyn.Test.Utilities
                 var text = await document.GetTextAsync(CancellationToken.None);
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {
+                    Contract.ThrowIfNull(document.FilePath);
+
                     var locationsForName = locations.GetValueOrDefault(name, new List<LSP.Location>());
-                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, new Uri(document.FilePath))));
+                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, ProtocolConversions.CreateAbsoluteUri(document.FilePath))));
 
                     // Linked files will return duplicate annotated Locations for each document that links to the same file.
                     // Since the test output only cares about the actual file, make sure we de-dupe before returning.
@@ -582,6 +584,7 @@ namespace Roslyn.Test.Utilities
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
                     Capabilities = initializationOptions.ClientCapabilities,
+                    Locale = initializationOptions.Locale,
                 }, CancellationToken.None);
 
                 if (initializationOptions.CallInitialized)

@@ -84,17 +84,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
             => GetCallback(callbackId).SetSearchTitleAsync(title, cancellationToken);
     }
 
-    internal sealed class FindUsagesServerCallback
+    internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesContext context)
     {
-        private readonly Solution _solution;
-        private readonly IFindUsagesContext _context;
+        private readonly Solution _solution = solution;
+        private readonly IFindUsagesContext _context = context;
         private readonly Dictionary<int, DefinitionItem> _idToDefinition = new();
-
-        public FindUsagesServerCallback(Solution solution, IFindUsagesContext context)
-        {
-            _solution = solution;
-            _context = context;
-        }
 
         public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
             => _context.GetOptionsAsync(language, cancellationToken);
@@ -158,19 +152,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
     }
 
     [DataContract]
-    internal readonly struct SerializableDocumentSpan
+    internal readonly struct SerializableDocumentSpan(DocumentId documentId, TextSpan sourceSpan)
     {
         [DataMember(Order = 0)]
-        public readonly DocumentId DocumentId;
+        public readonly DocumentId DocumentId = documentId;
 
         [DataMember(Order = 1)]
-        public readonly TextSpan SourceSpan;
-
-        public SerializableDocumentSpan(DocumentId documentId, TextSpan sourceSpan)
-        {
-            DocumentId = documentId;
-            SourceSpan = sourceSpan;
-        }
+        public readonly TextSpan SourceSpan = sourceSpan;
 
         public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
             => new(documentSpan.Document.Id, documentSpan.SourceSpan);
@@ -185,56 +173,43 @@ namespace Microsoft.CodeAnalysis.FindUsages
     }
 
     [DataContract]
-    internal readonly struct SerializableDefinitionItem
+    internal readonly struct SerializableDefinitionItem(
+        int id,
+        ImmutableArray<string> tags,
+        ImmutableArray<TaggedText> displayParts,
+        ImmutableArray<TaggedText> nameDisplayParts,
+        ImmutableArray<TaggedText> originationParts,
+        ImmutableArray<SerializableDocumentSpan> sourceSpans,
+        ImmutableDictionary<string, string> properties,
+        ImmutableDictionary<string, string> displayableProperties,
+        bool displayIfNoReferences)
     {
         [DataMember(Order = 0)]
-        public readonly int Id;
+        public readonly int Id = id;
 
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<string> Tags;
+        public readonly ImmutableArray<string> Tags = tags;
 
         [DataMember(Order = 2)]
-        public readonly ImmutableArray<TaggedText> DisplayParts;
+        public readonly ImmutableArray<TaggedText> DisplayParts = displayParts;
 
         [DataMember(Order = 3)]
-        public readonly ImmutableArray<TaggedText> NameDisplayParts;
+        public readonly ImmutableArray<TaggedText> NameDisplayParts = nameDisplayParts;
 
         [DataMember(Order = 4)]
-        public readonly ImmutableArray<TaggedText> OriginationParts;
+        public readonly ImmutableArray<TaggedText> OriginationParts = originationParts;
 
         [DataMember(Order = 5)]
-        public readonly ImmutableArray<SerializableDocumentSpan> SourceSpans;
+        public readonly ImmutableArray<SerializableDocumentSpan> SourceSpans = sourceSpans;
 
         [DataMember(Order = 6)]
-        public readonly ImmutableDictionary<string, string> Properties;
+        public readonly ImmutableDictionary<string, string> Properties = properties;
 
         [DataMember(Order = 7)]
-        public readonly ImmutableDictionary<string, string> DisplayableProperties;
+        public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
 
         [DataMember(Order = 8)]
-        public readonly bool DisplayIfNoReferences;
-
-        public SerializableDefinitionItem(
-            int id,
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<TaggedText> originationParts,
-            ImmutableArray<SerializableDocumentSpan> sourceSpans,
-            ImmutableDictionary<string, string> properties,
-            ImmutableDictionary<string, string> displayableProperties,
-            bool displayIfNoReferences)
-        {
-            Id = id;
-            Tags = tags;
-            DisplayParts = displayParts;
-            NameDisplayParts = nameDisplayParts;
-            OriginationParts = originationParts;
-            SourceSpans = sourceSpans;
-            Properties = properties;
-            DisplayableProperties = displayableProperties;
-            DisplayIfNoReferences = displayIfNoReferences;
-        }
+        public readonly bool DisplayIfNoReferences = displayIfNoReferences;
 
         public static SerializableDefinitionItem Dehydrate(int id, DefinitionItem item)
             => new(id,
@@ -264,31 +239,23 @@ namespace Microsoft.CodeAnalysis.FindUsages
     }
 
     [DataContract]
-    internal readonly struct SerializableSourceReferenceItem
+    internal readonly struct SerializableSourceReferenceItem(
+        int definitionId,
+        SerializableDocumentSpan sourceSpan,
+        SymbolUsageInfo symbolUsageInfo,
+        ImmutableDictionary<string, string> additionalProperties)
     {
         [DataMember(Order = 0)]
-        public readonly int DefinitionId;
+        public readonly int DefinitionId = definitionId;
 
         [DataMember(Order = 1)]
-        public readonly SerializableDocumentSpan SourceSpan;
+        public readonly SerializableDocumentSpan SourceSpan = sourceSpan;
 
         [DataMember(Order = 2)]
-        public readonly SymbolUsageInfo SymbolUsageInfo;
+        public readonly SymbolUsageInfo SymbolUsageInfo = symbolUsageInfo;
 
         [DataMember(Order = 3)]
-        public readonly ImmutableDictionary<string, string> AdditionalProperties;
-
-        public SerializableSourceReferenceItem(
-            int definitionId,
-            SerializableDocumentSpan sourceSpan,
-            SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> additionalProperties)
-        {
-            DefinitionId = definitionId;
-            SourceSpan = sourceSpan;
-            SymbolUsageInfo = symbolUsageInfo;
-            AdditionalProperties = additionalProperties;
-        }
+        public readonly ImmutableDictionary<string, string> AdditionalProperties = additionalProperties;
 
         public static SerializableSourceReferenceItem Dehydrate(int definitionId, SourceReferenceItem item)
             => new(definitionId,

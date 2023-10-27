@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
 
+        /// <summary>
+        /// Whether completion can add import statement as part of committed change.
+        /// For example, adding import is not allowed in debugger view.
+        /// </summary>
+        public bool CanAddImportStatement { get; init; } = true;
+
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
         public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;

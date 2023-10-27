@@ -22,18 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     internal abstract class AbstractCSharpTypeSnippetProvider : AbstractTypeSnippetProvider
     {
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.NewKeyword,
-            SyntaxKind.PublicKeyword,
-            SyntaxKind.ProtectedKeyword,
-            SyntaxKind.InternalKeyword,
-            SyntaxKind.PrivateKeyword,
-            SyntaxKind.AbstractKeyword,
-            SyntaxKind.SealedKeyword,
-            SyntaxKind.StaticKeyword,
-            SyntaxKind.UnsafeKeyword
-        };
+        protected abstract ISet<SyntaxKind> ValidModifiers { get; }
 
         protected override async Task<bool> HasPrecedingAccessibilityModifiersAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -49,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return
                 syntaxContext.IsGlobalStatementContext ||
                 syntaxContext.IsTypeDeclarationContext(
-                    validModifiers: s_validModifiers,
+                    validModifiers: ValidModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
@@ -79,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = СSharpSnippetIndentationHelpers.GetBlockLikeIndentationString(document, originalTypeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
+            var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, originalTypeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
 
             var newTypeDeclaration = originalTypeDeclaration.WithCloseBraceToken(
                 originalTypeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));

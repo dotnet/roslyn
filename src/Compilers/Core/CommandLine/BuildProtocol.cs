@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public static BuildRequest Create(RequestLanguage language,
                                           IList<string> args,
                                           string workingDirectory,
-                                          string tempDirectory,
+                                          string? tempDirectory,
                                           string compilerHash,
                                           Guid? requestId = null,
                                           string? keepAlive = null,

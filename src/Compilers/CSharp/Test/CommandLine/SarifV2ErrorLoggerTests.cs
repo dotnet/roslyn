@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     {
         protected override string ErrorLogQualifier => ";version=2";
 
-        internal override string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd)
+        internal override string GetExpectedOutputForNoDiagnostics(MockCSharpCompiler cmd)
         {
             string expectedOutput =
 @"{{
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     }}
   ]
 }}";
-            return FormatOutputText(expectedOutput, cmd);
+            return FormatOutputText(expectedOutput, cmd, hasAnalyzers: false);
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289",
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             NoDiagnosticsImpl();
         }
 
-        internal override string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile)
+        internal override string GetExpectedOutputForSimpleCompilerDiagnostics(MockCSharpCompiler cmd, string sourceFile)
         {
             string expectedOutput =
 @"{{
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(
               expectedOutput,
               cmd,
+              hasAnalyzers: false,
               AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
         }
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsImpl();
         }
 
-        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile, params string[] suppressionKinds)
+        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(MockCSharpCompiler cmd, string sourceFile, params string[] suppressionKinds)
         {
             string expectedOutput =
 @"{{
@@ -258,6 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(
                 expectedOutput,
                 cmd,
+                hasAnalyzers: false,
                 AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
         }
 
@@ -277,6 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
   ""runs"": [
     {{
 {5},
+      ""properties"": {{
+        ""analyzerExecutionTime"": ""{7}""
+      }},
       ""tool"": {{
         ""driver"": {{
           ""name"": ""{0}"",
@@ -294,8 +300,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(
                 expectedOutput,
                 cmd,
+                hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture));
         }
 
         internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds)
@@ -307,6 +314,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
   ""runs"": [
     {{
 {5},
+      ""properties"": {{
+        ""analyzerExecutionTime"": ""{7}""
+      }},
       ""tool"": {{
         ""driver"": {{
           ""name"": ""{0}"",
@@ -324,8 +334,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(
                 expectedOutput,
                 cmd,
+                hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification, suppressionType),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(suppressionKinds));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", 
@@ -365,9 +376,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         private string FormatOutputText(
           string s,
-          CommonCompiler compiler,
+          MockCSharpCompiler compiler,
+          bool hasAnalyzers,
           params object[] additionalArguments)
         {
+            if (hasAnalyzers)
+            {
+                additionalArguments = additionalArguments.Append(compiler.GetAnalyzerExecutionTimeFormattedString());
+            }
+
             var arguments = new object[] {
                 compiler.GetToolName(),
                 compiler.GetCompilerVersion(),
@@ -414,6 +431,9 @@ class C
     {{
       ""results"": [
       ],
+      ""properties"": {{
+        ""analyzerExecutionTime"": ""{6}""
+      }},
       ""tool"": {{
         ""driver"": {{
           ""name"": ""{0}"",
@@ -431,7 +451,9 @@ class C
             var expectedOutput = FormatOutputText(
                 expectedOutputMarkup,
                 cmd,
+                hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(
+                    cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
                     suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }));
 
             Assert.Equal(expectedOutput, actualOutput);
@@ -487,6 +509,9 @@ dotnet_diagnostic.ID1.severity = none
   ""runs"": [
     {{
 {5},
+      ""properties"": {{
+        ""analyzerExecutionTime"": ""{7}""
+      }},
       ""tool"": {{
         ""driver"": {{
           ""name"": ""{0}"",
@@ -504,8 +529,9 @@ dotnet_diagnostic.ID1.severity = none
             var expectedOutput = FormatOutputText(
                 expectedOutputMarkup,
                 cmd,
+                hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, "Justification1", suppressionType: "SuppressMessageAttribute"),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(suppressionKinds1: new[] { "external", "inSource" }));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: new[] { "external", "inSource" }));
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -549,6 +575,9 @@ class C
   ""runs"": [
     {{
 {5},
+      ""properties"": {{
+        ""analyzerExecutionTime"": ""{7}""
+      }},
       ""tool"": {{
         ""driver"": {{
           ""name"": ""{0}"",
@@ -566,10 +595,11 @@ class C
             var expectedOutput = FormatOutputText(
                 expectedOutputMarkup,
                 cmd,
+                hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation,
                     null,
                     suppressionType: $"DiagnosticSuppressor {{ Suppression Id: {SuppressorForErrorLogTest.Descriptor1.Id}, Suppression Justification: {SuppressorForErrorLogTest.Descriptor1.Justification} }}"),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(suppressionKinds1: new[] { "inSource" }));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: new[] { "inSource" }));
 
             Assert.Equal(expectedOutput, actualOutput);
 

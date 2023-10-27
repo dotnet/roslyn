@@ -118,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+
+        private ObsoleteAttributeData? _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 #nullable disable
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
@@ -854,6 +856,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return foundAttributeType
                         ? RefSafetyRulesAttributeVersion.UnrecognizedAttribute
                         : RefSafetyRulesAttributeVersion.NoAttribute;
+                }
+            }
+        }
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
+                {
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, computeObsoleteAttributeData(), ObsoleteAttributeData.Uninitialized);
+                }
+
+                return _lazyObsoleteAttributeData;
+
+                ObsoleteAttributeData? computeObsoleteAttributeData()
+                {
+                    foreach (var attrData in GetAttributes())
+                    {
+                        if (attrData.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+                        {
+                            return attrData.DecodeExperimentalAttribute();
+                        }
+                    }
+
+                    return null;
                 }
             }
         }

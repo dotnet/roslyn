@@ -19,16 +19,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTestGenerator.Api;
 
 [Export]
 [Shared]
-internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor(IGlobalOptionService globalOptions)
 {
-    private readonly IGlobalOptionService _globalOptions;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public UnitTestGeneratorAddMissingImportsFeatureServiceAccessor(IGlobalOptionService globalOptions)
-    {
-        _globalOptions = globalOptions;
-    }
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     internal async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {

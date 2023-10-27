@@ -80,7 +80,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static bool MatchesLSPCompletionItem(LSP.CompletionItem lspCompletionItem, CompletionItem completionItem)
         {
-            return lspCompletionItem.Label == completionItem.GetEntireDisplayText();
+            // We want to make sure we are resolving the same unimported item in case we have multiple with same name
+            // but from different namespaces. However, VSCode doesn't include labelDetails in the resolve request, so we 
+            // compare SortText instead when it's set (which is when label != SortText)
+            return lspCompletionItem.Label == completionItem.GetEntireDisplayText()
+                && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
         }
 
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)

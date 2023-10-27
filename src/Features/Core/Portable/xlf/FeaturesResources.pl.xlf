@@ -360,6 +360,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Numer przechwytywania nie może być równy zeru</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
+        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
         <target state="translated">Przechwytywanie zmiennej "{0}", która nie została przechwycona wcześniej, wymaga ponownego uruchomienia aplikacji.</target>
@@ -370,9 +375,14 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zaprzestanie dostępu do przechwyconej zmiennej "{0}" w {1} wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
+        <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
+        <target state="new">Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
         <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="translated">Zaprzestanie przechwytywania zmiennej "{0}" wymaga ponownego uruchomienia aplikacji.</target>
+        <target state="new">Ceasing to capture variable '{0}' requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -423,6 +433,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Changing_a_field_to_an_event_or_vice_versa_requires_restarting_the_application">
         <source>Changing a field to an event or vice versa requires restarting the application.</source>
         <target state="translated">Zmiana pola na zdarzenie lub odwrotnie wymaga ponownego uruchomienia aplikacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
@@ -480,6 +495,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana widoczności elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Chosen_version_0">
+        <source>Chosen version: '{0}'</source>
+        <target state="new">Chosen version: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_snippet_for_0">
         <source>Code snippet for '{0}'</source>
         <target state="translated">Fragment kodu dla elementu „{0}”</target>
@@ -523,6 +543,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Containing_Type">
         <source>Containing Type</source>
         <target state="translated">Zawierający typ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_number">
+        <source>Convert number</source>
+        <target state="new">Convert number</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -570,6 +595,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Nie można odnaleźć pliku PDB na dysku, w trybie osadzonym lub na serwerze symboli.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_by_name_0">
+        <source>Could not find by name: '{0}'</source>
+        <target state="new">Could not find by name: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
         <target state="translated">Nie można odnaleźć implementacji symbolu „{0}”</target>
@@ -593,6 +623,21 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Utwórz i przypisz pozostałe jako właściwości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_All_Tests">
+        <source>Debug All Tests</source>
+        <target state="new">Debug All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_Test">
+        <source>Debug Test</source>
+        <target state="new">Debug Test</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompilation_log">
+        <source>Decompilation log</source>
+        <target state="new">Decompilation log</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiled">
@@ -750,6 +795,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Trwa formatowanie dokumentu...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_0_assemblies_for_1">
+        <source>Found '{0}' assemblies for '{1}':</source>
+        <target state="new">Found '{0}' assemblies for '{1}':</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_PDB_file_at_0">
         <source>Found PDB file at '{0}'</source>
         <target state="translated">Znaleziono plik PDB w lokalizacji „{0}”</target>
@@ -768,6 +818,21 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Found_embedded_PDB_file">
         <source>Found embedded PDB file.</source>
         <target state="translated">Znaleziono osadzony plik PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_exact_match_0">
+        <source>Found exact match: '{0}'</source>
+        <target state="new">Found exact match: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_higher_version_match_0">
+        <source>Found higher version match: '{0}'</source>
+        <target state="new">Found higher version match: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_single_assembly_0">
+        <source>Found single assembly: '{0}'</source>
+        <target state="new">Found single assembly: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
@@ -1045,6 +1110,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Odwróć warunkowe</target>
         <note />
       </trans-unit>
+      <trans-unit id="Load_from_0">
+        <source>Load from: '{0}'</source>
+        <target state="new">Load from: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Making a method an iterator requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Ustanawianie metody interatorem wymaga ponownego uruchomienia aplikacji, ponieważ nie jest to obsługiwane przez środowisko uruchomieniowe.</target>
@@ -1173,6 +1243,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
         <source>Modifying source with experimental language features enabled requires restarting the application.</source>
         <target state="translated">Modyfikowanie źródła z włączonymi funkcjami eksperymentalnymi języka wymaga ponownego uruchomienia aplikacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module_not_found">
+        <source>Module not found!</source>
+        <target state="new">Module not found!</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -2525,14 +2600,34 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">wymagane</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
+      <trans-unit id="Resolve_0">
+        <source>Resolve: '{0}'</source>
+        <target state="new">Resolve: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">Rozwiąż znaczniki konfliktów</target>
         <note />
       </trans-unit>
+      <trans-unit id="Resolve_module_0_of_1">
+        <source>Resolve module: '{0}' of '{1}'</source>
+        <target state="new">Resolve module: '{0}' of '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edycja reguły</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_All_Tests">
+        <source>Run All Tests</source>
+        <target state="new">Run All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Test">
+        <source>Run Test</source>
+        <target state="new">Run Test</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2905,6 +3000,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Wartość wymagana</target>
         <note />
       </trans-unit>
+      <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
+        <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
+        <target state="new">WARN: Version mismatch. Expected: '{0}', Got: '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Ostrzeżenie: Zmiana przestrzeni nazw może skutkować nieprawidłowym kodem i zmianą jego znaczenia.</target>
@@ -3083,6 +3183,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">Element „{0}” nie ma wartości null w tym miejscu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_items_in_cache">
+        <source>'{0}' items in cache</source>
+        <target state="new">'{0}' items in cache</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_literal_not_allowed">
@@ -3359,6 +3464,11 @@ Jeśli specyfikator formatu „H” zostanie użyty bez innych indywidualnych sp
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="translated">i aktualizowanie miejsc wywoływania bezpośrednio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="class_with_explicit_or_sequential_layout">
+        <source>class with explicit or sequential layout</source>
+        <target state="new">class with explicit or sequential layout</target>
         <note />
       </trans-unit>
       <trans-unit id="code">

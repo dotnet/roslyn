@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -21,6 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
     internal sealed class CSharpInterfaceSnippetProvider : AbstractCSharpTypeSnippetProvider
     {
+        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.FileKeyword,
+        };
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpInterfaceSnippetProvider()
@@ -30,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         public override string Identifier => "interface";
 
         public override string Description => FeaturesResources.interface_;
+
+        protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
 
         protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
         {

@@ -107,7 +107,7 @@ namespace BuildBoss
                     PathComparer.Equals(relativeFileName, "Icon.png") ||
                     PathComparer.Equals(relativeFileName, "Init.cmd") ||
                     PathComparer.Equals(relativeFileName, "VS.Tools.Roslyn.nuspec") ||
-                    PathComparer.Equals(relativeFileName, "csc.exe") ||
+                    PathComparer.Equals(relativeFileName, "vbc.exe") ||
                     relativeFileName.EndsWith(".resources.dll", PathComparison) ||
                     relativeFileName.EndsWith(".rels", PathComparison) ||
                     relativeFileName.EndsWith(".psmdcp", PathComparison),

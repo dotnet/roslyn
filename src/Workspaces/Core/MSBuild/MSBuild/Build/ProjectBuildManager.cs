@@ -168,7 +168,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             {
                 Loggers = _msbuildLogger is null
                     ? (new MSB.Framework.ILogger[] { _batchBuildLogger })
-                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger })
+                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger }),
+
+                // If we have an additional logger and it's diagnostic, then we need to opt into task inputs globally, or otherwise
+                // it won't get any log events. This logic matches https://github.com/dotnet/msbuild/blob/fa6710d2720dcf1230a732a8858ffe71bcdbe110/src/Build/Instance/ProjectInstance.cs#L2365-L2371
+                LogTaskInputs = _msbuildLogger is not null && _msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic
             };
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);

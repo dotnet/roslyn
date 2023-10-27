@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundCall.Synthesized(
                         syntax: forEachSyntax,
                         receiverOpt: boundEnumeratorVar,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: enumeratorInfo.CurrentPropertyGetter)));
 
             // V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
@@ -299,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 Debug.Assert(_factory.CurrentFunction is { });
-                var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
+                var conversions = _factory.CurrentFunction.ContainingAssembly.CorLibrary.TypeConversions;
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
                 isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteInfo).IsImplicit;
@@ -407,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement disposableVarDecl = MakeLocalDeclaration(forEachSyntax, disposableVar, disposableVarInitValue);
 
                 // d.Dispose()
-                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, method: disposeMethod);
+                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method: disposeMethod);
                 BoundStatement disposeCallStatement = new BoundExpressionStatement(forEachSyntax, expression: disposeCall);
 
                 // if (d != null) d.Dispose();
@@ -527,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Generate a call with literally zero arguments
             Debug.Assert(methodArgumentInfo.Arguments.IsEmpty);
-            return BoundCall.Synthesized(syntax, receiver, methodArgumentInfo.Method, arguments: ImmutableArray<BoundExpression>.Empty);
+            return BoundCall.Synthesized(syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, methodArgumentInfo.Method, arguments: ImmutableArray<BoundExpression>.Empty);
         }
 
         /// <summary>
@@ -665,6 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     return BoundCall.Synthesized(
                                                                syntax: node.Syntax,
                                                                receiverOpt: boundArrayVar,
+                                                               initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                                arg.indexerGet,
                                                                boundPositionVar);
                                                 },
@@ -673,6 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     return BoundCall.Synthesized(
                                                                syntax: node.Syntax,
                                                                receiverOpt: boundArrayVar,
+                                                               initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                                arg.lengthGet);
                                                 },
                                                 arg: (indexerGet, lengthGet));
@@ -1035,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetUpperBound(dimension)
-                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getUpperBoundMethod, dimensionArgument);
+                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getUpperBoundMethod, dimensionArgument);
 
                 // int q_dimension = a.GetUpperBound(dimension);
                 upperVarDecl[dimension] = MakeLocalDeclaration(forEachSyntax, upperVar[dimension], currentDimensionUpperBound);
@@ -1089,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetLowerBound(dimension)
-                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getLowerBoundMethod, dimensionArgument);
+                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getLowerBoundMethod, dimensionArgument);
 
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);

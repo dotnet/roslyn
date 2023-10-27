@@ -71,8 +71,8 @@ End If
             Dim m1 = MakeMethodBody(src1)
             Dim m2 = MakeMethodBody(src2)
 
-            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1, m2)}
-            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
+            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.RootNodes.First(), m2.RootNodes().First())}
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1391,12 +1391,14 @@ End Try
             Dim src1 = "Console.WriteLine(1   ) : Console.WriteLine( 1  )"
             Dim src2 = "Console.WriteLine(  1 ) : Console.WriteLine(   1)"
 
-            Dim m1 = DirectCast(MakeMethodBody(src1), MethodBlockSyntax)
-            Dim m2 = DirectCast(MakeMethodBody(src2), MethodBlockSyntax)
-            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.Statements(1), m2.Statements(0))}
+            Dim m1 = MakeMethodBody(src1)
+            Dim m2 = MakeMethodBody(src2)
+            Dim b1 = DirectCast(m1.RootNodes.First(), MethodBlockSyntax)
+            Dim b2 = DirectCast(m2.RootNodes.First(), MethodBlockSyntax)
+            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(b1.Statements(1), b2.Statements(0))}
 
             ' pre-matched:
-            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1410,7 +1412,7 @@ End Try
             expected.AssertEqual(actual)
 
             ' not pre-matched:
-            match = SyntaxComparer.Statement.ComputeMatch(m1, m2)
+            match = m1.ComputeSingleRootMatch(m2, knownMatches:=Nothing)
             actual = ToMatchingPairs(match)
 
             expected = New MatchingPairs From

@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
             GetExistingAccessors(AccessorListSyntax accessorListSyntax)
             => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
-                accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
-                                                                 a.IsKind(SyntaxKind.InitAccessorDeclaration)));
+                accessorListSyntax.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration));
 
         private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationContextInfo info,
             SyntaxNode accessor, SyntaxNode statement)

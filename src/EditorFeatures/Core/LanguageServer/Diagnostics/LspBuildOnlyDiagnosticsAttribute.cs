@@ -10,13 +10,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// <inheritdoc cref="ILspBuildOnlyDiagnostics"/>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class LspBuildOnlyDiagnosticsAttribute : ExportAttribute, ILspBuildOnlyDiagnosticsMetadata
+    internal class LspBuildOnlyDiagnosticsAttribute(params string[] buildOnlyDiagnostics) : ExportAttribute(typeof(ILspBuildOnlyDiagnostics)), ILspBuildOnlyDiagnosticsMetadata
     {
-        public string[] BuildOnlyDiagnostics { get; }
-
-        public LspBuildOnlyDiagnosticsAttribute(params string[] buildOnlyDiagnostics) : base(typeof(ILspBuildOnlyDiagnostics))
-        {
-            BuildOnlyDiagnostics = buildOnlyDiagnostics;
-        }
+        public string[] BuildOnlyDiagnostics { get; } = buildOnlyDiagnostics;
     }
 }

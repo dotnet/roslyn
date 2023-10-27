@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
-                ? CreateProjectFileInfo(project)
+                ? CreateProjectFileInfo(project, _loadedProject)
                 : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath, Log);
         }
 
-        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
+        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project, MSB.Evaluation.Project loadedProject)
         {
             var commandLineArgs = GetCommandLineArgs(project);
 
@@ -161,6 +161,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .Select(MakeNonSourceFileDocumentFileInfo)
                 .ToImmutableArray();
 
+            var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
+            var contentFileInfo = GetContentFiles(project);
+            var isSdkStyle = IsSdkStyleProject(loadedProject);
+
             return ProjectFileInfo.Create(
                 Language,
                 project.FullPath,
@@ -175,7 +179,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocs,
                 analyzerConfigDocs,
                 project.GetProjectReferences().ToImmutableArray(),
+                projectCapabilities,
+                contentFileInfo,
+                isSdkStyle,
                 Log);
+        }
+
+        private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
+        {
+            var contentFiles = project
+                .GetItems(ItemNames.Content)
+                .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
+            return contentFiles;
+        }
+
+        private static bool IsSdkStyleProject(MSB.Evaluation.Project loadedProject)
+        {
+            // To see if a project is an SDK style project we check for either of two things
+            //   1.  If it has a TargetFramework / TargetFrameworks property.  This isn't fully complete
+            //       as this property could come from a different props file
+            //   2.  If it imports an SDK.  This can be defined multiple ways in the project file, but
+            //       we can look at the resolved imports after evaluation to see if any are SDK based.
+            var hasTargetFrameworkProperty = loadedProject.Properties.Any(property => property.Name is "TargetFramework" or "TargetFrameworks");
+            var importsSdk = loadedProject.Imports.Any(import => import.SdkResult != null);
+            return hasTargetFrameworkProperty || importsSdk;
         }
 
         private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
@@ -207,7 +234,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isGenerated = IsDocumentGenerated(documentItem);
             var sourceCodeKind = GetSourceCodeKind(filePath);
 
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind);
+            var folders = GetRelativeFolders(documentItem);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind, folders);
         }
 
         private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
@@ -217,7 +245,24 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
 
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular);
+            var folders = GetRelativeFolders(documentItem);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
+        }
+
+        private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
+        {
+            var linkPath = documentItem.GetMetadata(MetadataNames.Link);
+            if (!RoslynString.IsNullOrEmpty(linkPath))
+            {
+                return PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+            }
+            else
+            {
+                var filePath = documentItem.ItemSpec;
+                var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
+                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                return folders;
+            }
         }
 
         /// <summary>

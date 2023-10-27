@@ -64,14 +64,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             });
         }
 
-        protected sealed class CompilationAnalyzer
+        protected sealed class CompilationAnalyzer(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
         {
-            private readonly SuppressMessageAttributeState _state;
-
-            public CompilationAnalyzer(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
-            {
-                _state = new SuppressMessageAttributeState(compilation, suppressMessageAttributeType);
-            }
+            private readonly SuppressMessageAttributeState _state = new SuppressMessageAttributeState(compilation, suppressMessageAttributeType);
 
             public void AnalyzeAssemblyOrModuleAttribute(SyntaxNode attributeSyntax, SemanticModel model, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
             {

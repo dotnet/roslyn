@@ -53,18 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 }
             }
 
-            private sealed class FixAllCodeAction : CodeAction.SolutionChangeAction
+            private sealed class FixAllCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution) : CodeAction.SolutionChangeAction(
+                CSharpFeaturesResources.Enable_nullable_reference_types_in_solution,
+                cancellationToken => createChangedSolution(CodeActionPurpose.Apply, cancellationToken),
+                nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_solution))
             {
-                private readonly Func<CodeActionPurpose, CancellationToken, Task<Solution>> _createChangedSolution;
-
-                public FixAllCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution)
-                : base(
-                    CSharpFeaturesResources.Enable_nullable_reference_types_in_solution,
-                    cancellationToken => createChangedSolution(CodeActionPurpose.Apply, cancellationToken),
-                    nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_solution))
-                {
-                    _createChangedSolution = createChangedSolution;
-                }
+                private readonly Func<CodeActionPurpose, CancellationToken, Task<Solution>> _createChangedSolution = createChangedSolution;
 
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
                 {

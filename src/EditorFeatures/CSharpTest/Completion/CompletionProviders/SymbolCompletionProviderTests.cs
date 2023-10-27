@@ -11531,7 +11531,8 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/53930")]
-        public async Task TestTypeParameterConstraintedToInterfaceWithStatics()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/64733")]
+        public async Task TestTypeParameterConstrainedToInterfaceWithStatics()
         {
             var source = @"
 interface I1
@@ -11556,7 +11557,7 @@ class Test
     }
 }
 ";
-            await VerifyItemExistsAsync(source, "M0");
+            await VerifyItemIsAbsentAsync(source, "M0");
             await VerifyItemExistsAsync(source, "M1");
             await VerifyItemExistsAsync(source, "M2");
             await VerifyItemExistsAsync(source, "M3");

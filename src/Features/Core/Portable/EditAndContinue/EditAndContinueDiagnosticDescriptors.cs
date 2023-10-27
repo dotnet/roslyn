@@ -150,6 +150,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.DeleteNotSupportedByRuntime, nameof(FeaturesResources.Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, nameof(FeaturesResources.Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.UpdatingGenericNotSupportedByRuntime, nameof(FeaturesResources.Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.CapturingPrimaryConstructorParameter, nameof(FeaturesResources.Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.NotCapturingPrimaryConstructorParameter, nameof(FeaturesResources.Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.ChangingAttribute, nameof(FeaturesResources.Changing_attribute_0_requires_restarting_the_application));
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_requires_restarting_the_application));

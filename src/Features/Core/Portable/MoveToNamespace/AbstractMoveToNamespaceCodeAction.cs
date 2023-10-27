@@ -15,21 +15,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
-    internal abstract partial class AbstractMoveToNamespaceCodeAction : CodeActionWithOptions
+    internal abstract partial class AbstractMoveToNamespaceCodeAction(
+        IMoveToNamespaceService moveToNamespaceService,
+        MoveToNamespaceAnalysisResult analysisResult,
+        CodeCleanupOptionsProvider cleanupOptions) : CodeActionWithOptions
     {
-        private readonly IMoveToNamespaceService _moveToNamespaceService;
-        private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
-        private readonly CodeCleanupOptionsProvider _cleanupOptions;
-
-        public AbstractMoveToNamespaceCodeAction(
-            IMoveToNamespaceService moveToNamespaceService,
-            MoveToNamespaceAnalysisResult analysisResult,
-            CodeCleanupOptionsProvider cleanupOptions)
-        {
-            _moveToNamespaceService = moveToNamespaceService;
-            _moveToNamespaceAnalysisResult = analysisResult;
-            _cleanupOptions = cleanupOptions;
-        }
+        private readonly IMoveToNamespaceService _moveToNamespaceService = moveToNamespaceService;
+        private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult = analysisResult;
+        private readonly CodeCleanupOptionsProvider _cleanupOptions = cleanupOptions;
 
         /// <summary>
         /// This code action does notify clients about the rename it performs.  However, this is an optional part of

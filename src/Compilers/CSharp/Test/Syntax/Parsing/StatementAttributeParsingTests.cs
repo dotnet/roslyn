@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -5593,9 +5594,6 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,9): error CS8652: The feature 'collection literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         [A]++i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("collection literals").WithLocation(5, 9),
                 // (5,10): error CS0103: The name 'A' does not exist in the current context
                 //         [A]++i;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(5, 10),
@@ -5983,20 +5981,20 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.AttributeList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Attribute);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
                                 N(SyntaxKind.RangeExpression);
                                 {
+                                    N(SyntaxKind.CollectionExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
                                     N(SyntaxKind.DotDotToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
@@ -6014,19 +6012,16 @@ class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (6,9): error CS7014: Attributes are not valid in this context.
+            CreateCompilationWithIndexAndRangeAndSpan(test).VerifyDiagnostics(
+                // (6,9): error CS9174: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
                 //         [A]..b;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
-                // (6,12): error CS0518: Predefined type 'System.Range' is not defined or imported
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[A]").WithArguments("System.Index").WithLocation(6, 9),
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [A]..b;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "..b").WithArguments("System.Range").WithLocation(6, 12),
-                // (6,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[A]..b").WithLocation(6, 9),
+                // (6,10): error CS0103: The name 'A' does not exist in the current context
                 //         [A]..b;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "..b").WithLocation(6, 12),
-                // (6,14): error CS0518: Predefined type 'System.Index' is not defined or imported
-                //         [A]..b;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "b").WithArguments("System.Index").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(6, 10));
         }
 
         [Fact]
@@ -6082,20 +6077,20 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.AttributeList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Attribute);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
                                 N(SyntaxKind.RangeExpression);
                                 {
+                                    N(SyntaxKind.CollectionExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
                                     N(SyntaxKind.DotDotToken);
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -6109,16 +6104,16 @@ class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (6,9): error CS7014: Attributes are not valid in this context.
+            CreateCompilationWithIndexAndRangeAndSpan(test).VerifyDiagnostics(
+                // (6,9): error CS9174: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
                 //         [A]..;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
-                // (6,12): error CS0518: Predefined type 'System.Range' is not defined or imported
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[A]").WithArguments("System.Index").WithLocation(6, 9),
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [A]..;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "..").WithArguments("System.Range").WithLocation(6, 12),
-                // (6,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[A]..").WithLocation(6, 9),
+                // (6,10): error CS0103: The name 'A' does not exist in the current context
                 //         [A]..;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "..").WithLocation(6, 12));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(6, 10));
         }
 
         [Fact]

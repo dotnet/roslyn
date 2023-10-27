@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using FileSystemWatcher = Microsoft.VisualStudio.LanguageServer.Protocol.FileSystemWatcher;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
@@ -33,7 +34,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
     public static bool SupportsLanguageServerHost(LanguageServerHost languageServerHost)
     {
         // We can only use the LSP client for doing file watching if we support dynamic registration for it
-        var clientCapabilitiesProvider = languageServerHost.GetRequiredLspService<IClientCapabilitiesProvider>();
+        var clientCapabilitiesProvider = languageServerHost.GetRequiredLspService<IInitializeManager>();
         return clientCapabilitiesProvider.GetClientCapabilities().Workspace?.DidChangeWatchedFiles?.DynamicRegistration ?? false;
     }
 
@@ -76,7 +77,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 {
                     GlobPattern = new RelativePattern
                     {
-                        BaseUri = ProtocolConversions.GetUriFromFilePath(d.Path),
+                        BaseUri = ProtocolConversions.CreateAbsoluteUri(d.Path),
                         Pattern = d.ExtensionFilter is not null ? "**/*" + d.ExtensionFilter : "**/*"
                     }
                 }).ToArray();
@@ -139,7 +140,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 // TODO: figure out how I just can do an absolute path watch
                 GlobPattern = new RelativePattern
                 {
-                    BaseUri = ProtocolConversions.GetUriFromFilePath(Path.GetDirectoryName(filePath)!),
+                    BaseUri = ProtocolConversions.CreateAbsoluteUri(Path.GetDirectoryName(filePath)!),
                     Pattern = Path.GetFileName(filePath)
                 }
             };

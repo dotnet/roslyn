@@ -13,13 +13,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
-    internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService? pasteTrackingService) : CodeRefactoringProvider
     {
-        private readonly IPasteTrackingService? _pasteTrackingService;
+        private readonly IPasteTrackingService? _pasteTrackingService = pasteTrackingService;
         protected abstract string CodeActionTitle { get; }
-
-        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService? pasteTrackingService)
-            => _pasteTrackingService = pasteTrackingService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

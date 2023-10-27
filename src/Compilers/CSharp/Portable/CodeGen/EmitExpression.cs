@@ -721,6 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 default:
+                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
                     // NOTE: passing "ReadOnlyStrict" here. 
                     //       we should not get an address of a copy if at all possible
                     var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
@@ -968,13 +969,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     argRefKind = argRefKindsOpt[i];
 
                     Debug.Assert(argRefKind == parameters[i].RefKind ||
-                            argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
+                            parameters[i].RefKind switch
+                            {
+                                RefKind.In => argRefKind == RefKindExtensions.StrictIn,
+                                RefKind.RefReadOnlyParameter => argRefKind is RefKind.In or RefKindExtensions.StrictIn,
+                                _ => false,
+                            },
                             "in Emit the argument RefKind must be compatible with the corresponding parameter");
                 }
                 else
                 {
+                    Debug.Assert(parameters[i].RefKind != RefKind.RefReadOnlyParameter,
+                        "LocalRewriter.GetEffectiveArgumentRefKinds should ensure 'ref readonly' parameters get an entry in 'argRefKindsOpt'.");
+
                     // otherwise fallback to the refKind of the parameter
-                    argRefKind = parameters[i].RefKind;
+                    argRefKind = parameters[i].RefKind switch
+                    {
+                        RefKind.RefReadOnlyParameter => RefKind.In, // should not happen, asserted above
+                        var refKind => refKind
+                    };
                 }
             }
             else
@@ -2961,7 +2974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // NOTE: passing "ReadOnlyStrict" here. 
                 //       we should not get an address of a copy if at all possible
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() is RefKind.RefReadOnly or RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() is RefKind.RefReadOnly or RefKindExtensions.StrictIn or RefKind.RefReadOnlyParameter ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.

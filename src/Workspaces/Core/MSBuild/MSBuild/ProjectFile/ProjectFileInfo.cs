@@ -94,6 +94,21 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ImmutableArray<ProjectFileReference> ProjectReferences { get; }
 
         /// <summary>
+        /// The msbuild project capabilities.
+        /// </summary>
+        public ImmutableArray<string> ProjectCapabilities { get; }
+
+        /// <summary>
+        /// The paths to content files included in the project.
+        /// </summary>
+        public ImmutableArray<string> ContentFilePaths { get; }
+
+        /// <summary>
+        /// Whether or not we believe this project is an SDK style project.
+        /// </summary>
+        public bool IsSdkStyle { get; }
+
+        /// <summary>
         /// The error message produced when a failure occurred attempting to get the info. 
         /// If a failure occurred some or all of the information may be inaccurate or incomplete.
         /// </summary>
@@ -119,6 +134,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
+            ImmutableArray<string> projectCapabilities,
+            ImmutableArray<string> contentFilePaths,
+            bool isSdkStyle,
             DiagnosticLog log)
         {
             RoslynDebug.Assert(filePath != null);
@@ -137,6 +155,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.AdditionalDocuments = additionalDocuments;
             this.AnalyzerConfigDocuments = analyzerConfigDocuments;
             this.ProjectReferences = projectReferences;
+            this.ProjectCapabilities = projectCapabilities;
+            this.ContentFilePaths = contentFilePaths;
+            this.IsSdkStyle = isSdkStyle;
             this.Log = log;
         }
 
@@ -154,6 +175,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
+            ImmutableArray<string> projectCapabilities,
+            ImmutableArray<string> contentFilePaths,
+            bool isSdkStyle,
             DiagnosticLog log)
             => new(
                 isEmpty: false,
@@ -170,6 +194,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocuments,
                 analyzerConfigDocuments,
                 projectReferences,
+                projectCapabilities,
+                contentFilePaths,
+                isSdkStyle,
                 log);
 
         public static ProjectFileInfo CreateEmpty(string language, string? filePath, DiagnosticLog log)
@@ -188,6 +215,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,
                 analyzerConfigDocuments: ImmutableArray<DocumentFileInfo>.Empty,
                 projectReferences: ImmutableArray<ProjectFileReference>.Empty,
+                projectCapabilities: ImmutableArray<string>.Empty,
+                contentFilePaths: ImmutableArray<string>.Empty,
+                isSdkStyle: false,
                 log);
     }
 }

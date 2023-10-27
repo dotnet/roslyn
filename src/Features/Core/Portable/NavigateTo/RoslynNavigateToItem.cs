@@ -23,59 +23,46 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     /// rehydrate everything needed quickly on either the host or remote side.
     /// </summary>
     [DataContract]
-    internal readonly struct RoslynNavigateToItem
+    internal readonly struct RoslynNavigateToItem(
+        bool isStale,
+        DocumentId documentId,
+        ImmutableArray<ProjectId> additionalMatchingProjects,
+        DeclaredSymbolInfo declaredSymbolInfo,
+        string kind,
+        NavigateToMatchKind matchKind,
+        bool isCaseSensitive,
+        ImmutableArray<TextSpan> nameMatchSpans,
+        ImmutableArray<PatternMatch> matches)
     {
         [DataMember(Order = 0)]
-        public readonly bool IsStale;
+        public readonly bool IsStale = isStale;
 
         [DataMember(Order = 1)]
-        public readonly DocumentId DocumentId;
+        public readonly DocumentId DocumentId = documentId;
 
         [DataMember(Order = 2)]
-        public readonly ImmutableArray<ProjectId> AdditionalMatchingProjects;
+        public readonly ImmutableArray<ProjectId> AdditionalMatchingProjects = additionalMatchingProjects;
 
         [DataMember(Order = 3)]
-        public readonly DeclaredSymbolInfo DeclaredSymbolInfo;
+        public readonly DeclaredSymbolInfo DeclaredSymbolInfo = declaredSymbolInfo;
 
         /// <summary>
         /// Will be one of the values from <see cref="NavigateToItemKind"/>.
         /// </summary>
         [DataMember(Order = 4)]
-        public readonly string Kind;
+        public readonly string Kind = kind;
 
         [DataMember(Order = 5)]
-        public readonly NavigateToMatchKind MatchKind;
+        public readonly NavigateToMatchKind MatchKind = matchKind;
 
         [DataMember(Order = 6)]
-        public readonly bool IsCaseSensitive;
+        public readonly bool IsCaseSensitive = isCaseSensitive;
 
         [DataMember(Order = 7)]
-        public readonly ImmutableArray<TextSpan> NameMatchSpans;
+        public readonly ImmutableArray<TextSpan> NameMatchSpans = nameMatchSpans;
 
         [DataMember(Order = 8)]
-        public readonly ImmutableArray<PatternMatch> Matches;
-
-        public RoslynNavigateToItem(
-            bool isStale,
-            DocumentId documentId,
-            ImmutableArray<ProjectId> additionalMatchingProjects,
-            DeclaredSymbolInfo declaredSymbolInfo,
-            string kind,
-            NavigateToMatchKind matchKind,
-            bool isCaseSensitive,
-            ImmutableArray<TextSpan> nameMatchSpans,
-            ImmutableArray<PatternMatch> matches)
-        {
-            IsStale = isStale;
-            DocumentId = documentId;
-            AdditionalMatchingProjects = additionalMatchingProjects;
-            DeclaredSymbolInfo = declaredSymbolInfo;
-            Kind = kind;
-            MatchKind = matchKind;
-            IsCaseSensitive = isCaseSensitive;
-            NameMatchSpans = nameMatchSpans;
-            Matches = matches;
-        }
+        public readonly ImmutableArray<PatternMatch> Matches = matches;
 
         public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(
             Solution solution, Document? activeDocument, CancellationToken cancellationToken)

@@ -89,11 +89,6 @@
         <target state="translated">L'elemento hintName '{0}' contiene un segmento non valido '{1}' alla posizione {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
       </trans-unit>
-      <trans-unit id="HintNameNotWithinCurrentDirectory">
-        <source>The hintName '{0}' is not within the current directory.</source>
-        <target state="translated">L'elemento '{0}' hintName non si trova nella directory corrente.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">L'elemento hintName '{0}' del file di origine aggiunto deve essere univoco all'interno di un generatore.</target>
@@ -213,6 +208,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Non è possibile usare la copia del modulo per creare i metadati di un assembly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SigningTempPathUnavailable">
+        <source>The temporary path for legacy file signing is unavailable.</source>
+        <target state="new">The temporary path for legacy file signing is unavailable.</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">

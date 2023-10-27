@@ -222,14 +222,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property SupportsPrivateImplClass As Boolean
-            Get
-                ' Disable <PrivateImplementationDetails> in ENC since the
-                ' CLR does Not support adding non-private members.
-                Return False
-            End Get
-        End Property
-
         Friend Overloads Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousTypeMap
             Dim anonymousTypes = Compilation.AnonymousTypeManager.GetAnonymousTypeMap()
             ' Should contain all entries in previous generation.
@@ -268,14 +260,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
 
-        Public Overrides Iterator Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            For Each typeDef In GetAnonymousTypeDefinitions(context)
-                Yield typeDef
-            Next
-
-            For Each typeDef In GetTopLevelTypeDefinitionsCore(context)
-                Yield typeDef
-            Next
+        Public Overrides Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            Return GetTopLevelTypeDefinitionsCore(context)
         End Function
 
         Public Overrides Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)

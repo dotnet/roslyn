@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CompletionList list, bool isIncomplete, long resultId,
             CancellationToken cancellationToken)
         {
+            var isSuggestionMode = list.SuggestionModeItem is not null;
             if (list.ItemsList.Count == 0)
             {
                 return new LSP.VSInternalCompletionList
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     Items = Array.Empty<LSP.CompletionItem>(),
                     // If we have a suggestion mode item, we just need to keep the list in suggestion mode.
                     // We don't need to return the fake suggestion mode item.
-                    SuggestionMode = list.SuggestionModeItem is not null,
+                    SuggestionMode = isSuggestionMode,
                     IsIncomplete = isIncomplete,
                 };
             }
@@ -132,18 +133,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 lspItem.Kind = GetCompletionKind(item.Tags, capabilityHelper.SupportedItemKinds);
                 lspItem.Preselect = item.Rules.MatchPriority == MatchPriority.Preselect;
 
-                if (!lspItem.Preselect &&
-                    !lspVSClientCapability &&
-                    typedText.Length == 0 &&
-                    item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                if (lspVSClientCapability)
                 {
-                    // VSCode does not have the concept of soft selection, the list is always hard selected.
-                    // In order to emulate soft selection behavior for things like argument completion, regex completion,
-                    // datetime completion, etc. we create a completion item without any specific commit characters.
-                    // This means only tab / enter will commit. VS supports soft selection, so we only do this for non-VS clients.
-                    //
-                    // Note this only applies when user hasn't actually typed anything and completion provider does not request the item
-                    // to be hard-selected. Otherwise, we set its commit characters as normal. This also means we'd need to set IsIncomplete to true
+                    lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache);
+                    return lspItem;
+                }
+
+                // VSCode does not have the concept of soft selection, the list is always hard selected.
+                // In order to emulate soft selection behavior for things like suggestion mode, argument completion, regex completion,
+                // datetime completion, etc. we create a completion item without any specific commit characters.
+                // This means only tab / enter will commit. VS supports soft selection, so we only do this for non-VS clients.
+                if (isSuggestionMode)
+                {
+                    lspItem.CommitCharacters = Array.Empty<string>();
+                }
+                else if (typedText.Length == 0 && item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                {
+                    // Note this also applies when user hasn't actually typed anything and completion provider does not request the item
+                    // to be hard-selected. Otherwise, we set its commit characters as normal. This means we'd need to set IsIncomplete to true
                     // to make sure the client will ask us again when user starts typing so we can provide items with proper commit characters.
                     lspItem.CommitCharacters = Array.Empty<string>();
                     isIncomplete = true;
@@ -388,7 +395,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CancellationToken cancellationToken)
         {
             Debug.Assert(selectedItem.Flags.IsExpanded());
-            selectedItem = ImportCompletionItem.MarkItemToAlwaysAddMissingImport(selectedItem);
             var completionChange = await completionService.GetChangeAsync(document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

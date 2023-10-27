@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     public abstract class SarifErrorLoggerTests : CommandLineTestBase
     {
         protected abstract string ErrorLogQualifier { get; }
-        internal abstract string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd);
-        internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile);
-        internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile, params string[] suppressionKinds);
+        internal abstract string GetExpectedOutputForNoDiagnostics(MockCSharpCompiler cmd);
+        internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(MockCSharpCompiler cmd, string sourceFile);
+        internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(MockCSharpCompiler cmd, string sourceFile, params string[] suppressionKinds);
         internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd);
         internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds);
 

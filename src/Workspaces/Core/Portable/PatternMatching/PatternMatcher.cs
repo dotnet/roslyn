@@ -125,22 +125,22 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private PatternMatch? MatchPatternChunk(
             string candidate,
-            in TextChunk patternChunk,
+            ref TextChunk patternChunk,
             bool punctuationStripped,
             bool fuzzyMatch)
         {
             return fuzzyMatch
-                ? FuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped)
+                ? FuzzyMatchPatternChunk(candidate, ref patternChunk, punctuationStripped)
                 : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
         }
 
         private static PatternMatch? FuzzyMatchPatternChunk(
             string candidate,
-            in TextChunk patternChunk,
+            ref TextChunk patternChunk,
             bool punctuationStripped)
         {
-            Contract.ThrowIfNull(patternChunk.SimilarityChecker);
-            if (patternChunk.SimilarityChecker.Value.AreSimilar(candidate))
+            Contract.ThrowIfTrue(patternChunk.SimilarityChecker.IsDefault);
+            if (patternChunk.SimilarityChecker.AreSimilar(candidate))
             {
                 return new PatternMatch(
                     PatternMatchKind.Fuzzy, punctuationStripped, isCaseSensitive: false, matchedSpan: null);
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
         private bool MatchPatternSegment(
             string candidate,
-            in PatternSegment segment,
+            ref PatternSegment segment,
             ref TemporaryArray<PatternMatch> matches,
             bool fuzzyMatch)
         {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             if (!ContainsSpaceOrAsterisk(segment.TotalTextChunk.Text))
             {
                 var match = MatchPatternChunk(
-                    candidate, segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
+                    candidate, ref segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
                 if (match != null)
                 {
                     matches.Add(match.Value);
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             if (subWordTextChunks.Length == 1)
             {
                 var result = MatchPatternChunk(
-                    candidate, subWordTextChunks[0], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                    candidate, ref subWordTextChunks[0], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                 if (result == null)
                 {
                     return false;
@@ -367,11 +367,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 using var tempMatches = TemporaryArray<PatternMatch>.Empty;
 
-                foreach (var subWordTextChunk in subWordTextChunks)
+                for (int i = 0, n = subWordTextChunks.Length; i < n; i++)
                 {
                     // Try to match the candidate with this word
                     var result = MatchPatternChunk(
-                        candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                        candidate, ref subWordTextChunks[i], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                     if (result == null)
                         return false;
 

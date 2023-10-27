@@ -8,17 +8,11 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 [DataContract]
-internal readonly struct ManagedHotReloadUpdates
+internal readonly struct ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate> updates, ImmutableArray<ManagedHotReloadDiagnostic> diagnostics)
 {
     [DataMember(Name = "updates")]
-    public ImmutableArray<ManagedHotReloadUpdate> Updates { get; }
+    public ImmutableArray<ManagedHotReloadUpdate> Updates { get; } = updates;
 
     [DataMember(Name = "diagnostics")]
-    public ImmutableArray<ManagedHotReloadDiagnostic> Diagnostics { get; }
-
-    public ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate> updates, ImmutableArray<ManagedHotReloadDiagnostic> diagnostics)
-    {
-        Updates = updates;
-        Diagnostics = diagnostics;
-    }
+    public ImmutableArray<ManagedHotReloadDiagnostic> Diagnostics { get; } = diagnostics;
 }

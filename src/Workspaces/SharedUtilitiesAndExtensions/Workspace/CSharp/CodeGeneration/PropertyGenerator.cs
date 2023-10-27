@@ -124,7 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 identifier: property.Name.ToIdentifierToken(),
                 accessorList: accessorList,
                 expressionBody: null,
-                initializer: initializer);
+                initializer: initializer,
+                semicolonToken: initializer is null ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
             propertyDeclaration = UseExpressionBodyIfDesired(info, propertyDeclaration);
 

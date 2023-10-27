@@ -283,5 +283,34 @@ public class MyClass
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfTheory]
+        [InlineData("abstract")]
+        [InlineData("sealed")]
+        [InlineData("static")]
+        [InlineData("unsafe")]
+        public async Task InsertClassSnippetAfterValidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            var expectedCodeAfterCommit = $$"""
+                {{modifier}} class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("ref")]
+        [InlineData("readonly")]
+        public async Task NoClassSnippetAfterInvalidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
     }
 }

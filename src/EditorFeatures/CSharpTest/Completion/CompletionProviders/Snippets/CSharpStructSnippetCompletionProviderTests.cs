@@ -294,5 +294,34 @@ public struct MyStruct
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfTheory]
+        [InlineData("ref")]
+        [InlineData("readonly")]
+        [InlineData("unsafe")]
+        public async Task InsertStructSnippetAfterValidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            var expectedCodeAfterCommit = $$"""
+                {{modifier}} struct MyStruct
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("abstract")]
+        [InlineData("sealed")]
+        [InlineData("static")]
+        public async Task NoStructSnippetAfterInvalidModifiersTest(string modifier)
+        {
+            var markupBeforeCommit = $"{modifier} $$";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
     }
 }

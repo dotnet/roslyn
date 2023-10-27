@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind;
                 return !IsParams && IsMetadataOptional &&
                        ((refKind = RefKind) == RefKind.None ||
-                        (refKind == RefKind.In) ||
+                        (refKind is RefKind.In or RefKind.RefReadOnlyParameter) ||
                         (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
             }
         }

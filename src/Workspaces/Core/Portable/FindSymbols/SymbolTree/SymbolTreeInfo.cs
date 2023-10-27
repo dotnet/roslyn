@@ -70,15 +70,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
-        private readonly SpellChecker _spellChecker;
+        private SpellChecker? _spellChecker;
+        private SpellChecker SpellChecker
+        {
+            get
+            {
+                _spellChecker ??= CreateSpellChecker(Checksum, _nodes);
+
+                return _spellChecker.Value;
+            }
+        }
 
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            SpellChecker spellChecker,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
-            : this(checksum, sortedNodes, spellChecker,
+            : this(checksum, sortedNodes,
+                   spellChecker: null,
                    CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap),
                    receiverTypeNameToExtensionMethodMap)
         {
@@ -87,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            SpellChecker spellChecker,
+            SpellChecker? spellChecker,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
@@ -104,7 +113,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var sortedNodes = SortNodes(unsortedNodes);
 
             return new SymbolTreeInfo(checksum, sortedNodes,
-                CreateSpellChecker(checksum, sortedNodes),
                 new OrderPreservingMultiDictionary<string, string>(),
                 new MultiDictionary<string, ExtensionMethodInfo>());
         }
@@ -173,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var similarNames = TemporaryArray<string>.Empty;
             using var result = TemporaryArray<ISymbol>.Empty;
 
-            _spellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
+            SpellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
 
             foreach (var similarName in similarNames)
             {
@@ -459,10 +467,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
             var sortedNodes = SortNodes(unsortedNodes);
-            var spellChecker = CreateSpellChecker(checksum, sortedNodes);
 
             return new SymbolTreeInfo(
-                checksum, sortedNodes, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                checksum, sortedNodes, inheritanceMap, receiverTypeNameToExtensionMethodMap);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

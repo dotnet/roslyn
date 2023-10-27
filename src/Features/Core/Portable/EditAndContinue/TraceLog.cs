@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// If DEBUG is defined, all entries written to <see cref="DebugWrite(string)"/> or
     /// <see cref="DebugWrite(string, Arg[])"/> are print to <see cref="Debug"/> output.
     /// </remarks>
-    internal sealed class TraceLog
+    internal sealed class TraceLog(int logSize, string id, string fileName)
     {
         internal readonly struct Arg
         {
@@ -99,31 +99,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        internal readonly struct Entry
+        internal readonly struct Entry(string format, Arg[]? args)
         {
-            public readonly string MessageFormat;
-            public readonly Arg[]? Args;
-
-            public Entry(string format, Arg[]? args)
-            {
-                MessageFormat = format;
-                Args = args;
-            }
+            public readonly string MessageFormat = format;
+            public readonly Arg[]? Args = args;
 
             internal string GetDebuggerDisplay()
                 => (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => a.GetDebuggerDisplay()).ToArray() ?? Array.Empty<object>());
         }
 
-        internal sealed class FileLogger
+        internal sealed class FileLogger(string logDirectory, TraceLog traceLog)
         {
-            private readonly string _logDirectory;
-            private readonly TraceLog _traceLog;
-
-            public FileLogger(string logDirectory, TraceLog traceLog)
-            {
-                _logDirectory = logDirectory;
-                _traceLog = traceLog;
-            }
+            private readonly string _logDirectory = logDirectory;
+            private readonly TraceLog _traceLog = traceLog;
 
             public void Append(Entry entry)
             {
@@ -227,19 +215,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private readonly Entry[] _log;
-        private readonly string _id;
-        private readonly string _fileName;
+        private readonly Entry[] _log = new Entry[logSize];
+        private readonly string _id = id;
+        private readonly string _fileName = fileName;
         private int _currentLine;
 
         public FileLogger? FileLog { get; private set; }
-
-        public TraceLog(int logSize, string id, string fileName)
-        {
-            _log = new Entry[logSize];
-            _id = id;
-            _fileName = fileName;
-        }
 
         public void SetLogDirectory(string? logDirectory)
         {
@@ -282,12 +263,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(TraceLog traceLog)
         {
-            private readonly TraceLog _traceLog;
-
-            public TestAccessor(TraceLog traceLog)
-                => _traceLog = traceLog;
+            private readonly TraceLog _traceLog = traceLog;
 
             internal Entry[] Entries => _traceLog._log;
         }

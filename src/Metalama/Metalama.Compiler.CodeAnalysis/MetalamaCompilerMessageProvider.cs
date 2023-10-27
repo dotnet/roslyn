@@ -171,6 +171,8 @@ namespace Metalama.Compiler
 
         public override int ERR_FunctionPointerTypesInAttributeNotSupported => throw new NotImplementedException();
 
+        public override int? WRN_ByValArraySizeConstRequired => throw new NotImplementedException();
+
         #endregion
 
         public override Diagnostic CreateDiagnostic(DiagnosticInfo info) => Diagnostic.Create(info);

@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver);
+            this.CheckAndCoerceArguments(methodResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: invokedAsExtensionMethod);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
@@ -1189,12 +1189,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
+            return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                         argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
 
 #nullable enable
+
+        internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
+            => ReceiverIsSubjectToCloning(receiver, property.GetMethod ?? property.SetMethod);
+
+        internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
+        {
+            if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
+            {
+                return ThreeState.False;
+            }
+
+            var valueKind = method.IsEffectivelyReadOnly
+                ? BindValueKind.RefersToLocation
+                : BindValueKind.RefersToLocation | BindValueKind.Assignable;
+            var result = !CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded);
+            return result.ToThreeState();
+        }
 
         private static SourceLocation GetCallerLocation(SyntaxNode syntax)
         {
@@ -1580,6 +1597,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (useType)
                     {
                         diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics);
+
+                        foreach (Diagnostic d in typeOrValue.Data.ValueDiagnostics.Diagnostics)
+                        {
+                            if (d.Code == (int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase &&
+                                !(d.Arguments is [ParameterSymbol shadowedParameter] && shadowedParameter.Type.Equals(typeOrValue.Data.ValueExpression.Type, TypeCompareKind.AllIgnoreOptions))) // If the type and the name match, we would resolve to the same type rather than a value at the end.
+                            {
+                                diagnostics.Add(d);
+                            }
+                        }
+
                         return typeOrValue.Data.TypeExpression;
                     }
                     else
@@ -1733,7 +1760,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
-            var discardedDiagnostics = DiagnosticBag.GetInstance();
             int argumentCount = analyzedArguments.Arguments.Count;
             ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
             newArguments.AddRange(analyzedArguments.Arguments);
@@ -1814,7 +1840,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            discardedDiagnostics.Free();
             return newArguments.ToImmutableAndFree();
 
             TypeSymbol getCorrespondingParameterType(int i)
@@ -2102,7 +2127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodsBuilder.Free();
 
             MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
-            CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver: null);
+            CheckAndCoerceArguments(methodResult, analyzedArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

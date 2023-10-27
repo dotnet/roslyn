@@ -1466,10 +1466,8 @@ oneMoreTime:
             LocalDefinition keyHash = null;
 
             // Condition is necessary, but not sufficient (e.g. might be missing a special or well-known member).
-            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, switchCaseLabels.Length))
+            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(switchCaseLabels.Length))
             {
-                Debug.Assert(_module.SupportsPrivateImplClass);
-
                 var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics.DiagnosticBag);
                 Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(
                     isSpanOrReadOnlySpan

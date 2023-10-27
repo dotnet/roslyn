@@ -73,38 +73,38 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             // If we have escaped quotes in the string, then this is a good option to bubble up as something to convert
             // to a raw string.  Otherwise, still offer this refactoring, but at low priority as the user may be
             // invoking this on lots of strings that they have no interest in converting.
-            var priority = AllEscapesAreQuotes(convertParams.Characters) ? CodeActionPriority.Medium : CodeActionPriority.Low;
+            var priority = AllEscapesAreQuotes(convertParams.Characters) ? CodeActionPriority.Default : CodeActionPriority.Low;
 
             var options = context.Options;
 
             if (convertParams.CanBeSingleLine)
             {
                 context.RegisterRefactoring(
-                    CodeAction.CreateWithPriority(
-                        priority,
+                    CodeAction.Create(
                         CSharpFeaturesResources.Convert_to_raw_string,
                         c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, options, c),
-                        s_kindToEquivalenceKeyMap[ConvertToRawKind.SingleLine]),
+                        s_kindToEquivalenceKeyMap[ConvertToRawKind.SingleLine],
+                        priority),
                     token.Span);
             }
             else
             {
                 context.RegisterRefactoring(
-                    CodeAction.CreateWithPriority(
-                        priority,
+                    CodeAction.Create(
                         CSharpFeaturesResources.Convert_to_raw_string,
                         c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, options, c),
-                        s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineIndented]),
+                        s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineIndented],
+                        priority),
                     token.Span);
 
                 if (convertParams.CanBeMultiLineWithoutLeadingWhiteSpaces)
                 {
                     context.RegisterRefactoring(
-                        CodeAction.CreateWithPriority(
-                            priority,
+                        CodeAction.Create(
                             CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
                             c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, options, c),
-                            s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineWithoutLeadingWhitespace]),
+                            s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineWithoutLeadingWhitespace],
+                            priority),
                         token.Span);
                 }
             }

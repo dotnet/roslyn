@@ -70,22 +70,13 @@ namespace Microsoft.CodeAnalysis.Wrapping
             return new Edit(leftLastToken, leftTrailingTrivia, rightFirstToken, rightLeadingTrivia);
         }
 
-        private sealed class InvalidEditException : Exception
+        private sealed class InvalidEditException(SyntaxToken left, SyntaxToken right) : Exception($"Left token had an end '{left.Span.End}' past the start of right token '{right.Span.Start}'")
         {
             // Used for analyzing dumps
 #pragma warning disable IDE0052 // Remove unread private members
-            private readonly SyntaxTree? _tree;
-            private readonly SyntaxToken _left;
-            private readonly SyntaxToken _right;
-#pragma warning restore IDE0052 // Remove unread private members
-
-            public InvalidEditException(SyntaxToken left, SyntaxToken right)
-                : base($"Left token had an end '{left.Span.End}' past the start of right token '{right.Span.Start}'")
-            {
-                _tree = left.SyntaxTree;
-                _left = left;
-                _right = right;
-            }
+            private readonly SyntaxTree? _tree = left.SyntaxTree;
+            private readonly SyntaxToken _left = left;
+            private readonly SyntaxToken _right = right;
         }
     }
 }

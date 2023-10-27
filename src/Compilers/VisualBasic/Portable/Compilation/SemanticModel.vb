@@ -3533,6 +3533,10 @@ _Default:
                         If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is TypeBlockSyntax Then
                             Return declaringSyntax.Parent
                         End If
+                    ElseIf TypeOf declaringSyntax Is EnumStatementSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is EnumBlockSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
                     End If
                 Case SymbolKind.Method
                     If TypeOf declaringSyntax Is MethodBaseSyntax Then

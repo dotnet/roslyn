@@ -15,7 +15,9 @@
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="DocumentOutline"
              Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
-             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
+             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}"
+             FontFamily="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"
+             FontSize="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -60,13 +62,9 @@
             <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Padding" Value="0, 5, 0, 0" />
-                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
-                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
             </Style>
 
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
-                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
-                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>

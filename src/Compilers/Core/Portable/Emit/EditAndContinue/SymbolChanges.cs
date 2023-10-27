@@ -209,6 +209,12 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var symbol = def.GetInternalSymbol();
 
+            if (symbol is ISynthesizedGlobalMethodSymbol synthesizedGlobalMethod)
+            {
+                // Global methods are not reused, we always generate a new one.
+                return SymbolChange.Added;
+            }
+
             if (symbol is ISynthesizedMethodBodyImplementationSymbol synthesizedSymbol)
             {
                 RoslynDebug.Assert(synthesizedSymbol.Method != null);

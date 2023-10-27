@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
                    isIterator: false,
                    (declarationModifiers, MakeFlags(
-                                                    MethodKind.Ordinary, RefKind.None, declarationModifiers, returnsVoid: false, isExpressionBodied: false,
-                                                    isExtensionMethod: false, isNullableAnalysisEnabled: false, isVarArg: false,
+                                                    MethodKind.Ordinary, RefKind.None, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
+                                                    isExpressionBodied: false, isExtensionMethod: false, isNullableAnalysisEnabled: false, isVarArg: false,
                                                     isExplicitInterfaceImplementation: false)))
         {
             _memberOffset = memberOffset;

@@ -272,6 +272,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
         System_Runtime_CompilerServices_IsReadOnlyAttribute,
+        System_Runtime_CompilerServices_RequiresLocationAttribute,
         System_Runtime_CompilerServices_IsByRefLikeAttribute,
         System_Runtime_InteropServices_InAttribute,
         System_ObsoleteAttribute,
@@ -598,6 +599,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
 
             "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+            "System.Runtime.CompilerServices.RequiresLocationAttribute",
             "System.Runtime.CompilerServices.IsByRefLikeAttribute",
             "System.Runtime.InteropServices.InAttribute",
             "System.ObsoleteAttribute",
