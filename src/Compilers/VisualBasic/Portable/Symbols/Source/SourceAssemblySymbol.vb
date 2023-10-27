@@ -341,6 +341,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' That is why we are iterating attributes backwards.
             For i As Integer = netModuleAttributesCount - 1 To 0 Step -1
                 Dim attribute As VisualBasicAttributeData = attributesFromNetModules(i)
+
+                Dim errorInfo As DiagnosticInfo = attribute.ErrorInfo
+                If errorInfo IsNot Nothing Then
+                    diagnostics.Add(errorInfo, NoLocation.Singleton)
+                End If
+
                 If Not attribute.HasErrors AndAlso ValidateAttributeUsageForNetModuleAttribute(attribute, netModuleNames(i), diagnostics, uniqueAttributes) Then
                     arguments.Attribute = attribute
                     arguments.Index = i
