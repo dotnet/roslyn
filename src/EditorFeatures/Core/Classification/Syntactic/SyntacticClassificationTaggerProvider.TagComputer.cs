@@ -358,17 +358,17 @@ namespace Microsoft.CodeAnalysis.Classification
                     return _lastProcessedData;
             }
 
-            public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+            public SegmentedList<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
                 using (Logger.LogBlock(FunctionId.Tagger_SyntacticClassification_TagComputer_GetTags, CancellationToken.None))
                 {
-                    return GetTagsWorker(spans) ?? SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
+                    return GetTagsWorker(spans) ?? [];
                 }
             }
 
-            private IEnumerable<ITagSpan<IClassificationTag>>? GetTagsWorker(NormalizedSnapshotSpanCollection spans)
+            private SegmentedList<ITagSpan<IClassificationTag>>? GetTagsWorker(NormalizedSnapshotSpanCollection spans)
             {
                 _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
                 if (spans.Count == 0 || _workspace == null)
