@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log);
 
-        public async Task<IProjectFile> LoadProjectFileAsync(string path, ProjectBuildManager buildManager, CancellationToken cancellationToken)
+        public async Task<ProjectFile> LoadProjectFileAsync(string path, ProjectBuildManager buildManager, CancellationToken cancellationToken)
         {
             if (path == null)
             {

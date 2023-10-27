@@ -18,7 +18,7 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal abstract class ProjectFile : IProjectFile
+    internal abstract class ProjectFile
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project? _loadedProject;
@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
         protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
+        /// <summary>
+        /// Gets project file information asynchronously. Note that this can produce multiple
+        /// instances of <see cref="ProjectFileInfo"/> if the project is multi-targeted: one for
+        /// each target framework.
+        /// </summary>
         public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
         {
             if (_loadedProject is null)

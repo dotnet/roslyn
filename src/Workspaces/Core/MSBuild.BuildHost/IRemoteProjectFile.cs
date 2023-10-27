@@ -16,7 +16,7 @@ using StreamJsonRpc;
 namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 
 /// <summary>
-/// A trimmed down interface of <see cref="IProjectFile"/> that is usable for RPC to the build host process and meets all the requirements of being an RPC marshable interface.
+/// A trimmed down interface of <see cref="ProjectFile"/> that is usable for RPC to the build host process and meets all the requirements of being an RPC marshable interface.
 /// </summary>
 #if !DOTNET_BUILD_FROM_SOURCE
 [RpcMarshalable]

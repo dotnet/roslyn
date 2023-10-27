@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 
 internal class RemoteProjectFile : IRemoteProjectFile
 {
-    private readonly IProjectFile _projectFile;
+    private readonly ProjectFile _projectFile;
 
-    public RemoteProjectFile(IProjectFile projectFile)
+    public RemoteProjectFile(ProjectFile projectFile)
     {
         _projectFile = projectFile;
     }
