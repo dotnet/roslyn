@@ -455,7 +455,7 @@ class C {
             await TestServices.EditorVerifier.CurrentLineTextAsync("    char c = '\u6666'$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory, CombinatorialData]
+        [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/70582"), CombinatorialData]
         public async Task Nested_AllKinds(bool showCompletionInArgumentLists)
         {
             await SetUpEditorAsync(@"
