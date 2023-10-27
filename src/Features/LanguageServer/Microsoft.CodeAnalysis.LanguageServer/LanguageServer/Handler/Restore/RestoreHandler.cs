@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServiceRequestHandler<RestoreParams, RestorePartialResult[]>
+internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServiceRequestHandler<RestoreParams, RestorePartialResult[]>
 {
-    internal const string MethodName = "workspace/restore";
+    internal const string MethodName = "workspace/_roslyn_restore";
 
     public bool MutatesSolutionState => false;
 

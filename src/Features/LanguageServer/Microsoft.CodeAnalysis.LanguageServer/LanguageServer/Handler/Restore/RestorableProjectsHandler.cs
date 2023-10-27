@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RestorableProjectsHandler(ProjectTargetFrameworkManager projectTargetFrameworkManager) : ILspServiceRequestHandler<string[]>
+internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager projectTargetFrameworkManager) : ILspServiceRequestHandler<string[]>
 {
-    internal const string MethodName = "workspace/restorableProjects";
+    internal const string MethodName = "workspace/_roslyn_restorableProjects";
 
     public bool MutatesSolutionState => false;
 
@@ -43,11 +43,11 @@ internal class RestorableProjectsHandler(ProjectTargetFrameworkManager projectTa
 
         // We may have multiple projects with the same file path in multi-targeting scenarios.
         // They'll all get restored together so we only want one result per project file.
-        var projects = projectsBuilder.Distinct().ToArray();
+        projectsBuilder.RemoveDuplicates();
 
         // Ensure the client gets a consistent ordering.
-        Array.Sort(projects, StringComparer.OrdinalIgnoreCase);
+        projectsBuilder.Sort(StringComparer.OrdinalIgnoreCase);
 
-        return Task.FromResult(projects.ToArray());
+        return Task.FromResult(projectsBuilder.ToArray());
     }
 }
