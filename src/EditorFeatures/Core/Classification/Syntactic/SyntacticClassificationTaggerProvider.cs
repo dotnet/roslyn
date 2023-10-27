@@ -2,54 +2,48 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
-[Export(typeof(ITaggerProvider))]
-[ContentType(ContentTypeNames.RoslynContentType)]
-[TextViewRole(PredefinedTextViewRoles.Document)]
-[TagType(typeof(IClassificationTag))]
-[method: ImportingConstructor]
-[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+/// <summary>
+/// Intentionally not exported.  It is consumed by the <see cref="TotalClassificationTaggerProvider"/> instead.
+/// </summary>
 internal sealed partial class SyntacticClassificationTaggerProvider(
     IThreadingContext threadingContext,
-    SyntacticClassificationTypeMap typeMap,
+    ClassificationTypeMap typeMap,
     IGlobalOptionService globalOptions,
     IAsynchronousOperationListenerProvider listenerProvider) : ITaggerProvider
 {
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly SyntacticClassificationTypeMap _typeMap = typeMap;
+    private readonly ClassificationTypeMap _typeMap = typeMap;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
+    ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+    {
+        var tagger = CreateTagger(buffer);
+        if (tagger is ITagger<T> typedTagger)
+            return typedTagger;
+
+        // Oops, we can't actually return this tagger, so just clean up
+        tagger?.Dispose();
+        return null;
+
+    }
+
+    public Tagger? CreateTagger(ITextBuffer buffer)
     {
         _threadingContext.ThrowIfNotOnUIThread();
         if (!_globalOptions.GetOption(SyntacticColorizerOptionsStorage.SyntacticColorizer))
             return null;
 
         // Note: creating the Tagger must not fail (or we will leak the TagComputer).
-        var tagger = new Tagger(TagComputer.GetOrCreate(this, (ITextBuffer2)buffer));
-
-        if (tagger is ITagger<T> typedTagger)
-            return typedTagger;
-
-        // Oops, we can't actually return this tagger, so just clean up
-        tagger.Dispose();
-        return null;
+        return new Tagger(TagComputer.GetOrCreate(this, (ITextBuffer2)buffer));
     }
 }

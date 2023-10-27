@@ -54,6 +54,12 @@ namespace Microsoft.CodeAnalysis
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
         }
 
+        public bool IsHostAssembly(Assembly assembly)
+        {
+            var alc = AssemblyLoadContext.GetLoadContext(assembly);
+            return alc == _compilerLoadContext || alc == AssemblyLoadContext.Default;
+        }
+
         private partial Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath)
         {
             DirectoryLoadContext? loadContext;
