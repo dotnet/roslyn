@@ -10,13 +10,21 @@ namespace Microsoft.CodeAnalysis
         {
             if (attrData.CommonConstructorArguments.Length == 1)
             {
-                object? value = attrData.CommonConstructorArguments[0].ValueInternal;
+                return attrData.CommonConstructorArguments[0].TryGetGuidAttributeValue(out guidString);
+            }
 
-                if (value == null || value is string)
-                {
-                    guidString = (string?)value;
-                    return true;
-                }
+            guidString = null;
+            return false;
+        }
+
+        public static bool TryGetGuidAttributeValue(this TypedConstant typedConstant, out string? guidString)
+        {
+            object? value = typedConstant.ValueInternal;
+
+            if (value == null || value is string)
+            {
+                guidString = (string?)value;
+                return true;
             }
 
             guidString = null;
