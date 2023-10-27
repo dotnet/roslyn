@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Classification
         ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
             Checksum solutionChecksum,
             DocumentId documentId,
-            TextSpan span,
+            ImmutableArray<TextSpan> textSpans,
             ClassificationType type,
             ClassificationOptions options,
             bool isFullyLoaded,
@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Classification
 
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref
-        /// name="textSpan"/>.  Will return an empty array not able to.
+        /// name="textSpans"/>.  Will return an empty array not able to.
         /// </summary>
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
         ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
             DocumentKey documentKey,
-            TextSpan textSpan,
+            ImmutableArray<TextSpan> textSpans,
             ClassificationType type,
             Checksum checksum,
             CancellationToken cancellationToken);

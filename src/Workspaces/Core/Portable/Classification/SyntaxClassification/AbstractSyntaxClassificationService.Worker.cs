@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -56,17 +55,20 @@ namespace Microsoft.CodeAnalysis.Classification
 
             internal static void Classify(
                 SemanticModel semanticModel,
-                TextSpan textSpan,
+                ImmutableArray<TextSpan> textSpans,
                 SegmentedList<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
                 CancellationToken cancellationToken)
             {
-                using var worker = new Worker(semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
+                foreach (var textSpan in textSpans)
+                {
+                    using var worker = new Worker(semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
 
-                worker._pendingNodes.Push(worker._syntaxTree.GetRoot(cancellationToken));
-                worker.ProcessNodes();
+                    worker._pendingNodes.Push(worker._syntaxTree.GetRoot(cancellationToken));
+                    worker.ProcessNodes();
+                }
             }
 
             public void Dispose()
