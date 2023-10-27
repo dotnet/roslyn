@@ -106,11 +106,8 @@ internal partial class SyntacticClassificationTaggerProvider
         {
             taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
-            if (!subjectBuffer.Properties.TryGetProperty(s_uniqueKey, out TagComputer tagComputer))
-            {
-                tagComputer = new TagComputer(taggerProvider, subjectBuffer, TaggerDelay.NearImmediate.ComputeTimeDelay());
-                subjectBuffer.Properties.AddProperty(s_uniqueKey, tagComputer);
-            }
+            var tagComputer = subjectBuffer.Properties.GetOrCreateSingletonProperty(
+                s_uniqueKey, () => new TagComputer(taggerProvider, subjectBuffer, TaggerDelay.NearImmediate.ComputeTimeDelay()));
 
             tagComputer.IncrementReferenceCount();
             return tagComputer;
