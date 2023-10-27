@@ -3106,7 +3106,7 @@ class C { }";
 
             var logger = new TestMSBuildLogger();
             var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
-            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+            await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
 
             Assert.True(logger.WasInitialized);
             var logLines = logger.GetLogLines();
