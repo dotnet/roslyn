@@ -2342,6 +2342,11 @@
         <target state="translated">işaretçi</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_StringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">'&amp;' işleci, zaman uyumsuz yöntemlerdeki parametrelerde veya yerel değişkenlerde kullanılmamalı.</target>

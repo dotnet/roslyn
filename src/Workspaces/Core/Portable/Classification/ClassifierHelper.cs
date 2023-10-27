@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -185,39 +186,58 @@ namespace Microsoft.CodeAnalysis.Classification
 
         /// <summary>
         /// Adds all semantic parts to final parts, and adds all portions of <paramref name="syntaxParts"/> that do not
-        /// overlap with any semantic parts as well.  All final parts will be non-empty.
+        /// overlap with any semantic parts as well.  All final parts will be non-empty.  Both <paramref
+        /// name="syntaxParts"/> and <paramref name="semanticParts"/> must be sorted.
         /// </summary>
         private static void MergeParts(
             SegmentedList<ClassifiedSpan> syntaxParts,
             SegmentedList<ClassifiedSpan> semanticParts,
             SegmentedList<ClassifiedSpan> finalParts)
         {
+            MergeParts<ClassifiedSpan, ClassifiedSpanIntervalIntrospector>(
+                syntaxParts, semanticParts, finalParts,
+                static span => span.TextSpan,
+                static (original, final) => new ClassifiedSpan(original.ClassificationType, final));
+
+            // now that we've added all semantic parts and syntactic-portions, sort the final result.
+            finalParts.Sort(s_spanComparison);
+        }
+
+        /// <inheritdoc cref="MergeParts(SegmentedList{ClassifiedSpan}, SegmentedList{ClassifiedSpan}, SegmentedList{ClassifiedSpan})"/>
+        public static void MergeParts<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(
+            SegmentedList<TClassifiedSpan> syntaxParts,
+            SegmentedList<TClassifiedSpan> semanticParts,
+            SegmentedList<TClassifiedSpan> finalParts,
+            Func<TClassifiedSpan, TextSpan> getSpan,
+            Func<TClassifiedSpan, TextSpan, TClassifiedSpan> createSpan)
+            where TClassifiedSpanIntervalIntrospector : struct, IIntervalIntrospector<TClassifiedSpan>
+        {
             // Create an interval tree so we can easily determine which semantic parts intersect with the 
             // syntactic parts we're looking at.
-            var semanticPartsTree = new SimpleIntervalTree<ClassifiedSpan, ClassifiedSpanIntervalIntrospector>(
-                ClassifiedSpanIntervalIntrospector.Instance, values: null);
+            var semanticPartsTree = new SimpleIntervalTree<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(default, values: null);
 
             // Add all the non-empty semantic parts to the tree.
             foreach (var part in semanticParts)
             {
-                if (!part.TextSpan.IsEmpty)
+                if (!getSpan(part).IsEmpty)
                 {
                     semanticPartsTree.AddIntervalInPlace(part);
                     finalParts.Add(part);
                 }
             }
 
-            using var tempBuffer = TemporaryArray<ClassifiedSpan>.Empty;
+            using var tempBuffer = TemporaryArray<TClassifiedSpan>.Empty;
 
             foreach (var syntacticPart in syntaxParts)
             {
                 // ignore empty parts.
-                if (syntacticPart.TextSpan.IsEmpty)
+                var syntacticPartSpan = getSpan(syntacticPart);
+                if (syntacticPartSpan.IsEmpty)
                     continue;
 
                 tempBuffer.Clear();
                 semanticPartsTree.FillWithIntervalsThatOverlapWith(
-                    syntacticPart.TextSpan.Start, syntacticPart.TextSpan.Length, ref tempBuffer.AsRef());
+                    syntacticPartSpan.Start, syntacticPartSpan.Length, ref tempBuffer.AsRef());
 
                 if (tempBuffer.Count == 0)
                 {
@@ -234,14 +254,17 @@ namespace Microsoft.CodeAnalysis.Classification
                 var firstSemanticPart = tempBuffer[0];
                 var lastSemanticPart = tempBuffer[tempBuffer.Count - 1];
 
-                Debug.Assert(firstSemanticPart.TextSpan.OverlapsWith(syntacticPart.TextSpan));
-                Debug.Assert(lastSemanticPart.TextSpan.OverlapsWith(syntacticPart.TextSpan));
+                var firstSemanticPartSpan = getSpan(firstSemanticPart);
+                var lastSemanticPartSpan = getSpan(lastSemanticPart);
 
-                if (syntacticPart.TextSpan.Start < firstSemanticPart.TextSpan.Start)
+                Debug.Assert(firstSemanticPartSpan.OverlapsWith(syntacticPartSpan));
+                Debug.Assert(lastSemanticPartSpan.OverlapsWith(syntacticPartSpan));
+
+                if (syntacticPartSpan.Start < firstSemanticPartSpan.Start)
                 {
-                    finalParts.Add(new ClassifiedSpan(syntacticPart.ClassificationType, TextSpan.FromBounds(
-                        syntacticPart.TextSpan.Start,
-                        firstSemanticPart.TextSpan.Start)));
+                    finalParts.Add(createSpan(syntacticPart, TextSpan.FromBounds(
+                        syntacticPartSpan.Start,
+                        firstSemanticPartSpan.Start)));
                 }
 
                 for (var i = 0; i < tempBuffer.Count - 1; i++)
@@ -249,27 +272,27 @@ namespace Microsoft.CodeAnalysis.Classification
                     var semanticPart1 = tempBuffer[i];
                     var semanticPart2 = tempBuffer[i + 1];
 
-                    Debug.Assert(semanticPart1.TextSpan.OverlapsWith(syntacticPart.TextSpan));
-                    Debug.Assert(semanticPart1.TextSpan.OverlapsWith(syntacticPart.TextSpan));
+                    var semanticPart1Span = getSpan(semanticPart1);
+                    var semanticPart2Span = getSpan(semanticPart2);
 
-                    if (semanticPart1.TextSpan.End < semanticPart2.TextSpan.Start)
+                    Debug.Assert(semanticPart1Span.OverlapsWith(syntacticPartSpan));
+                    Debug.Assert(semanticPart1Span.OverlapsWith(syntacticPartSpan));
+
+                    if (semanticPart1Span.End < semanticPart2Span.Start)
                     {
-                        finalParts.Add(new ClassifiedSpan(syntacticPart.ClassificationType, TextSpan.FromBounds(
-                            semanticPart1.TextSpan.End,
-                            semanticPart2.TextSpan.Start)));
+                        finalParts.Add(createSpan(syntacticPart, TextSpan.FromBounds(
+                            semanticPart1Span.End,
+                            semanticPart2Span.Start)));
                     }
                 }
 
-                if (lastSemanticPart.TextSpan.End < syntacticPart.TextSpan.End)
+                if (lastSemanticPartSpan.End < syntacticPartSpan.End)
                 {
-                    finalParts.Add(new ClassifiedSpan(syntacticPart.ClassificationType, TextSpan.FromBounds(
-                        lastSemanticPart.TextSpan.End,
-                        syntacticPart.TextSpan.End)));
+                    finalParts.Add(createSpan(syntacticPart, TextSpan.FromBounds(
+                        lastSemanticPartSpan.End,
+                        syntacticPartSpan.End)));
                 }
             }
-
-            // now that we've added all semantic parts and syntactic-portions, sort the final result.
-            finalParts.Sort(s_spanComparison);
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal partial class SyntacticClassificationTaggerProvider
     {
-        private class Tagger : ITagger<IClassificationTag>, IDisposable
+        internal sealed class Tagger : ITagger<IClassificationTag>, IDisposable
         {
             private TagComputer? _tagComputer;
 
@@ -23,7 +24,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
-            public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+            IEnumerable<ITagSpan<IClassificationTag>> ITagger<IClassificationTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+                => GetTags(spans);
+
+            public SegmentedList<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 if (_tagComputer == null)
                     throw new ObjectDisposedException(GetType().FullName);
