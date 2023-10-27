@@ -34,7 +34,7 @@ internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager pr
         using var _ = ArrayBuilder<string>.GetInstance(out var projectsBuilder);
         foreach (var project in context.Solution.Projects)
         {
-            // Restorable projects are dotnet core projects with file paths.
+            // To restore via the dotnet CLI, we must have a file path and it must be a .NET core project.
             if (project.FilePath != null && projectTargetFrameworkManager.IsDotnetCoreProject(project.Id))
             {
                 projectsBuilder.Add(project.FilePath);
