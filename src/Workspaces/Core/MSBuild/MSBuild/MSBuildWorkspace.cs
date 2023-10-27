@@ -442,39 +442,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             Debug.Assert(_applyChangesProjectFile != null);
 
-            var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
-            var filePath = project?.FilePath;
-            if (filePath is null)
+            var project = this.CurrentSolution.GetRequiredProject(info.Id.ProjectId);
+
+            var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
+            var fileName = Path.ChangeExtension(info.Name, extension);
+
+            var relativePath = (info.Folders != null && info.Folders.Count > 0)
+                ? Path.Combine(Path.Combine(info.Folders.ToArray()), fileName)
+                : fileName;
+
+            var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath)!);
+
+            var newDocumentInfo = info.WithName(fileName)
+                .WithFilePath(fullPath)
+                .WithTextLoader(new WorkspaceFileTextLoader(Services.SolutionServices, fullPath, text.Encoding));
+
+            // add document to project file
+            _applyChangesProjectFile.AddDocument(relativePath);
+
+            // add to solution
+            this.OnDocumentAdded(newDocumentInfo);
+
+            // save text to disk
+            if (text != null)
             {
-                return;
-            }
-
-            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(filePath, out _))
-            {
-                var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
-                var fileName = Path.ChangeExtension(info.Name, extension);
-
-                var relativePath = (info.Folders != null && info.Folders.Count > 0)
-                    ? Path.Combine(Path.Combine(info.Folders.ToArray()), fileName)
-                    : fileName;
-
-                var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(filePath)!);
-
-                var newDocumentInfo = info.WithName(fileName)
-                    .WithFilePath(fullPath)
-                    .WithTextLoader(new WorkspaceFileTextLoader(Services.SolutionServices, fullPath, text.Encoding));
-
-                // add document to project file
-                _applyChangesProjectFile.AddDocument(relativePath);
-
-                // add to solution
-                this.OnDocumentAdded(newDocumentInfo);
-
-                // save text to disk
-                if (text != null)
-                {
-                    this.SaveDocumentText(info.Id, fullPath, text, text.Encoding ?? Encoding.UTF8);
-                }
+                this.SaveDocumentText(info.Id, fullPath, text, text.Encoding ?? Encoding.UTF8);
             }
         }
 
