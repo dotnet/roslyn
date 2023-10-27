@@ -29,6 +29,7 @@ internal sealed class LoadedProject : IDisposable
     /// The most recent version of the project design time build information; held onto so the next reload we can diff against this.
     /// </summary>
     private ProjectFileInfo? _mostRecentFileInfo;
+    private ProjectAssetsFileWatcher? _mostRecentProjectAssetsFileWatcher;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = ImmutableArray<CommandLineReference>.Empty;
     private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = ImmutableArray<CommandLineAnalyzerReference>.Empty;
 
@@ -182,6 +183,8 @@ internal sealed class LoadedProject : IDisposable
             document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath),
             "Project {0} now has {1} dynamic file(s).");
 
+        WatchProjectAssetsFile(newProjectInfo, _fileChangeContext);
+
         _mostRecentFileInfo = newProjectInfo;
 
         Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");
@@ -216,6 +219,27 @@ internal sealed class LoadedProject : IDisposable
             if (newItems.Count != oldItemsCount)
                 logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count);
         }
+
+        void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo, IFileChangeContext fileChangeContext)
+        {
+            if (_mostRecentProjectAssetsFileWatcher?.WatchedPath == currentProjectInfo.ProjectAssetsFilePath)
+            {
+                // The file path hasn't changed, just keep using the same watcher.
+                return;
+            }
+
+            // Dispose of the last once since we're changing the file we're watching.
+            _mostRecentProjectAssetsFileWatcher?.Dispose();
+
+            ProjectAssetsFileWatcher? currentWatcher = null;
+            if (currentProjectInfo.ProjectAssetsFilePath != null)
+            {
+                var watcher = fileChangeContext.EnqueueWatchingFile(currentProjectInfo.ProjectAssetsFilePath);
+                currentWatcher = new ProjectAssetsFileWatcher(currentProjectInfo.ProjectAssetsFilePath, watcher);
+            }
+
+            _mostRecentProjectAssetsFileWatcher = currentWatcher;
+        }
     }
 
     private static bool TreatAsIsDynamicFile(DocumentFileInfo info)
@@ -240,6 +264,14 @@ internal sealed class LoadedProject : IDisposable
         public int GetHashCode(DocumentFileInfo obj)
         {
             return StringComparer.Ordinal.GetHashCode(obj.FilePath);
+        }
+    }
+
+    private record ProjectAssetsFileWatcher(string WatchedPath, IWatchedFile Watcher) : IDisposable
+    {
+        public void Dispose()
+        {
+            Watcher.Dispose();
         }
     }
 }

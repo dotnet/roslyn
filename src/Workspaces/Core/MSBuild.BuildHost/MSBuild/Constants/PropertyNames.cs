@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string AllowUnsafeBlocks = nameof(AllowUnsafeBlocks);
         public const string AppConfigForCompiler = nameof(AppConfigForCompiler);
         public const string BaseAddress = nameof(BaseAddress);
+        public const string BaseIntermediateOutputPath = nameof(BaseIntermediateOutputPath);
         public const string BuildProjectReferences = nameof(BuildProjectReferences);
         public const string BuildingInsideVisualStudio = nameof(BuildingInsideVisualStudio);
         public const string BuildingProject = nameof(BuildingProject);
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string PdbFile = nameof(PdbFile);
         public const string PlatformTarget = nameof(PlatformTarget);
         public const string Prefer32Bit = nameof(Prefer32Bit);
+        public const string ProjectAssetsFile = nameof(ProjectAssetsFile);
         public const string ProvideCommandLineArgs = nameof(ProvideCommandLineArgs);
         public const string RemoveIntegerChecks = nameof(RemoveIntegerChecks);
         public const string ResolvedCodeAnalysisRuleSet = nameof(ResolvedCodeAnalysisRuleSet);
