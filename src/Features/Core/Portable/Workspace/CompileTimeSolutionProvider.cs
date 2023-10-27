@@ -154,9 +154,12 @@ namespace Microsoft.CodeAnalysis.Host
 
                 if (projectsWithDesignTimeDocuments.Count > 0)
                 {
-                    // HACK: Pre-request all razor source generated documents to warm up the caches
-                    var asyncToken = _asyncListener.BeginAsyncOperation(nameof(CompileTimeSolutionProvider));
-                    _ = LoadSourceGeneratedDocumentsAsync(compileTimeSolution, projectsWithDesignTimeDocuments, CancellationToken.None).CompletesAsyncOperation(asyncToken);
+                    var options = designTimeSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+                    if (options.TriggerGeneratorsWhenDebugSessionStarts)
+                    {
+                        var asyncToken = _asyncListener.BeginAsyncOperation(nameof(CompileTimeSolutionProvider));
+                        _ = LoadSourceGeneratedDocumentsAsync(compileTimeSolution, projectsWithDesignTimeDocuments, CancellationToken.None).CompletesAsyncOperation(asyncToken);
+                    }
                 }
 
                 return compileTimeSolution;
