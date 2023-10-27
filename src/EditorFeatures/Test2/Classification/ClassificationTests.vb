@@ -269,23 +269,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     listenerProvider)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
-                Dim tagger = provider.CreateTagger(Of IClassificationTag)(
+                Using tagger = provider.CreateTagger(
                     workspace.Documents.First().GetTextView(),
                     buffer)
 
-                Using edit = buffer.CreateEdit()
-                    edit.Insert(0, " ")
-                    edit.Apply()
-                End Using
+                    Using edit = buffer.CreateEdit()
+                        edit.Insert(0, " ")
+                        edit.Apply()
+                    End Using
 
-                Using DirectCast(tagger, IDisposable)
                     Await listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync()
 
                     ' Note: we don't actually care what results we get back.  We're just
                     ' verifying that we don't crash because the SemanticViewTagger ends up
                     ' calling SyntaxTree/SemanticModel code.
                     tagger.GetTags(New NormalizedSnapshotSpanCollection(
-                        New SnapshotSpan(buffer.CurrentSnapshot, New Span(0, 1))))
+                            New SnapshotSpan(buffer.CurrentSnapshot, New Span(0, 1))))
                 End Using
             End Using
         End Function

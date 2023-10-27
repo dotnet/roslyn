@@ -194,6 +194,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
+            Get
+                If HasErrors Then
+
+                    If AttributeConstructor IsNot Nothing Then
+                        Return If(AttributeConstructor.GetUseSiteInfo().DiagnosticInfo,
+                                  ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
+
+                    ElseIf AttributeClass IsNot Nothing Then
+                        Return If(AttributeClass.GetUseSiteInfo().DiagnosticInfo,
+                                  ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, AttributeClass.MetadataName & "." & WellKnownMemberNames.InstanceConstructorName))
+                    Else
+                        Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty)
+                    End If
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsConditionallyOmitted As Boolean
             Get
                 Return False

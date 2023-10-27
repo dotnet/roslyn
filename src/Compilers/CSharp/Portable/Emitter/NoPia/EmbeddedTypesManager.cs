@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return attrData.GetTargetAttributeSignatureIndex(description);
         }
 
-        internal override CSharpAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, CSharpAttributeData attrData, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        internal override CSharpAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, ImmutableArray<TypedConstant> constructorArguments, ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             var ctor = GetWellKnownMethod(constructor, syntaxNodeOpt, diagnostics);
             if ((object)ctor == null)
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     // the original source interface as both source interface and event provider. Otherwise, we'd have to embed
                     // the event provider class too.
                     return SynthesizedAttributeData.Create(ModuleBeingBuilt.Compilation, ctor,
-                        ImmutableArray.Create<TypedConstant>(attrData.CommonConstructorArguments[0], attrData.CommonConstructorArguments[0]),
+                        ImmutableArray.Create<TypedConstant>(constructorArguments[0], constructorArguments[0]),
                         ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
 
                 case WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor:
@@ -149,8 +149,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                         ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
 
                 default:
-                    return SynthesizedAttributeData.Create(ModuleBeingBuilt.Compilation, ctor, attrData.CommonConstructorArguments, attrData.CommonNamedArguments);
+                    return SynthesizedAttributeData.Create(ModuleBeingBuilt.Compilation, ctor, constructorArguments, namedArguments);
             }
+        }
+
+        internal override bool TryGetAttributeArguments(CSharpAttributeData attrData, out ImmutableArray<TypedConstant> constructorArguments, out ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            bool result = !attrData.HasErrors;
+
+            constructorArguments = attrData.CommonConstructorArguments;
+            namedArguments = attrData.CommonNamedArguments;
+
+            DiagnosticInfo errorInfo = attrData.ErrorInfo;
+            if (errorInfo is not null)
+            {
+                diagnostics.Add(errorInfo, syntaxNodeOpt?.Location ?? NoLocation.Singleton);
+            }
+
+            return result;
         }
 
         internal string GetAssemblyGuidString(AssemblySymbol assembly)
