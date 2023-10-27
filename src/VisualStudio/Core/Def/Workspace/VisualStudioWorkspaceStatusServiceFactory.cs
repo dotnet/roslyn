@@ -162,13 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             private async ValueTask<IVsOperationProgressStageStatusForSolutionLoad?> GetProgressStageStatusAsync(CancellationToken cancellationToken)
-            {
-                // Workaround for lack of fast path in JoinAsync; avoid calling when already completed
-                // https://github.com/microsoft/vs-threading/pull/696
-                return _progressStageStatus.Task.IsCompleted
-                    ? await _progressStageStatus.Task.ConfigureAwait(false)
-                    : await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
-            }
+                => await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }
