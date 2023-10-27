@@ -11994,5 +11994,113 @@ public class C() : Base($$)
                 Await state.AssertCompletionItemsContain("x", ":")
             End Using
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66305")>
+        Public Async Function TestScopedKeywordRecommender() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp11)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("scoped", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/razor/issues/9377")>
+        Public Async Function TriggerOnTypingShouldNotAffectExplicitInvoke() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.CSharp, False)
+
+                ' TriggerOnTyping should not block explicit trigger
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("M", "")
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("M")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
+        Public Async Function AccessStaticMembersOffOfColorColor1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+struct Cursor
+{
+    public static int StaticMember;
+    public int InstanceMember;
+}
+
+class BaseClass
+{
+    public Cursor Cursor { get; set; }
+}
+
+class Derived : BaseClass
+{
+    void Method()
+    {
+        Cursor.$$
+        Object o = new Object();
+    }
+}
+
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
+        Public Async Function AccessStaticMembersOffOfColorColor2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+struct Cursor
+{
+    public static int StaticMember;
+    public int InstanceMember;
+}
+
+class BaseClass
+{
+    public Cursor Cursor { get; set; }
+}
+
+class Derived : BaseClass
+{
+    void Method()
+    {
+        Cursor.$$
+    }
+}
+
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
+            End Using
+        End Function
     End Class
 End Namespace

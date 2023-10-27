@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             document As SemanticDocument,
             firstToken As SyntaxToken,
             lastToken As SyntaxToken,
+            selectionChanged As Boolean,
             cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
 
             Contract.ThrowIfNull(document)
@@ -46,7 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionInExpression,
                 newDocument,
                 firstAnnotation,
-                lastAnnotation)
+                lastAnnotation,
+                selectionChanged)
         End Function
 
         Private Sub New(
@@ -57,7 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstTokenAnnotation As SyntaxAnnotation,
-            lastTokenAnnotation As SyntaxAnnotation)
+            lastTokenAnnotation As SyntaxAnnotation,
+            selectionChanged As Boolean)
 
             MyBase.New(
                 status,
@@ -67,8 +70,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionInExpression,
                 document,
                 firstTokenAnnotation,
-                lastTokenAnnotation)
+                lastTokenAnnotation,
+                selectionChanged)
         End Sub
+
+        Public Overrides Function IsExtractMethodOnSingleStatement() As Boolean
+            Dim firstStatement = Me.GetFirstStatement()
+            Dim lastStatement = Me.GetLastStatement()
+
+            Return firstStatement Is lastStatement OrElse firstStatement.Span.Contains(lastStatement.Span)
+        End Function
+
+        Public Overrides Function IsExtractMethodOnMultipleStatements() As Boolean
+            Dim first = Me.GetFirstStatement()
+            Dim last = Me.GetLastStatement()
+            If first IsNot last Then
+                Dim firstUnderContainer = Me.GetFirstStatementUnderContainer()
+                Dim lastUnderContainer = Me.GetLastStatementUnderContainer()
+                Contract.ThrowIfFalse(firstUnderContainer.Parent Is lastUnderContainer.Parent)
+                Return True
+            End If
+
+            Return False
+        End Function
 
         Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
             Dim current = token.Parent
@@ -89,6 +113,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             ' make sure selection contains the lambda
             Return firstToken.SpanStart <= current.GetFirstToken().SpanStart AndAlso
                    current.GetLastToken().Span.End <= lastToken.Span.End
+        End Function
+
+        Public Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
+            If Me.SelectionInExpression Then
+                Dim container = Me.InnermostStatementContainer()
+
+                Contract.ThrowIfNull(container)
+                Contract.ThrowIfFalse(container.IsStatementContainerNode() OrElse
+                                      TypeOf container Is TypeBlockSyntax OrElse
+                                      TypeOf container Is CompilationUnitSyntax)
+
+                Return container
+            ElseIf Me.IsExtractMethodOnSingleStatement() Then
+                Dim first = Me.GetFirstStatement()
+                Return first.Parent
+            ElseIf Me.IsExtractMethodOnMultipleStatements() Then
+                Return Me.GetFirstStatementUnderContainer().Parent
+            Else
+                Throw ExceptionUtilities.Unreachable()
+            End If
         End Function
 
         Public Overrides Function ContainingScopeHasAsyncKeyword() As Boolean

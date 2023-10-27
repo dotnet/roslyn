@@ -139,14 +139,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ImmutableArray<BoundExpression> arguments,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
             bool invokedAsExtensionMethod,
-            Location? interceptableLocation)
+            Syntax.SimpleNameSyntax? nameSyntax)
         {
+            var interceptableLocation = nameSyntax?.Location;
             if (this._compilation.TryGetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
             }
 
+            Debug.Assert(nameSyntax != null);
             Debug.Assert(interceptableLocation != null);
             Debug.Assert(interceptor.IsDefinition);
             Debug.Assert(!interceptor.ContainingType.IsGenericType);
@@ -176,6 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
+            }
+
+            if (method.MethodKind is not MethodKind.Ordinary)
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, attributeLocation, nameSyntax.Identifier.ValueText);
+                return;
             }
 
             var containingMethod = this._factory.CurrentFunction;
@@ -385,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps,
                     invokedAsExtensionMethod);
 
-                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
+                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
                 var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
                 if (Instrument)

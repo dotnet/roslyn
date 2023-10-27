@@ -3476,29 +3476,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/68786: Use inferInitialObjectState() to set the initial
             // state of the instance: see the call to InheritNullableStateOfTrackableStruct() in particular.
             int containerSlot = GetOrCreatePlaceholderSlot(node);
-            bool delayCompletionForType = false; // https://github.com/dotnet/roslyn/issues/68786: Should be true if the collection expression is target typed.
+            NullableFlowState resultState = NullableFlowState.NotNull;
 
-            // https://github.com/dotnet/roslyn/issues/68786: Set nullability of elements from the inferred target type nullability.
+            var collectionKind = ConversionsBase.GetCollectionExpressionTypeKind(this.compilation, node.Type, out var targetElementType);
+            if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
+            {
+                var createMethod = node.CollectionBuilderMethod;
+                if (createMethod is not null)
+                {
+                    var readOnlySpan = (NamedTypeSymbol)createMethod.Parameters[0].Type;
+                    targetElementType = readOnlySpan.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    var annotations = createMethod.GetFlowAnalysisAnnotations();
+                    resultState = ApplyUnconditionalAnnotations(createMethod.ReturnTypeWithAnnotations, annotations).ToTypeWithState().State;
+                }
+            }
+
             foreach (var element in node.Elements)
             {
                 switch (element)
                 {
                     case BoundCollectionElementInitializer initializer:
                         var collectionType = initializer.AddMethod.ContainingType;
-                        var completion = VisitCollectionElementInitializer(initializer, collectionType, delayCompletionForType);
-                        if (completion is { })
-                        {
-                            // https://github.com/dotnet/roslyn/issues/68786: Complete the analysis later.
-                            completion(containerSlot, collectionType);
-                        }
+
+                        var completion = VisitCollectionElementInitializer(initializer, collectionType,
+                            delayCompletionForType: false /* All collection expressions are target-typed */);
+
+                        Debug.Assert(completion is null);
+                        break;
+                    case BoundCollectionExpressionSpreadElement spread:
+                        // https://github.com/dotnet/roslyn/issues/68786: We should check the spread
+                        Visit(spread);
                         break;
                     default:
-                        VisitRvalue(element);
+                        _ = VisitOptionalImplicitConversion((BoundExpression)element, targetElementType, useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment);
+
                         break;
                 }
             }
 
-            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            SetResultType(node, TypeWithState.Create(node.Type, resultState));
             return null;
         }
 
@@ -3506,7 +3522,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var element in node.Elements)
             {
-                VisitRvalue(element);
+                if (element is BoundExpression expression)
+                {
+                    VisitRvalue(expression);
+                }
+                else
+                {
+                    Visit(element);
+                }
             }
 
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));

@@ -981,7 +981,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
         private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
-        private static readonly string s_razorSourceGeneratorMainAssemblyRootedFileName = PathUtilities.DirectorySeparatorStr + "Microsoft.NET.Sdk.Razor.SourceGenerators.dll";
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+            "Microsoft.NET.Sdk.Razor.SourceGenerators",
+            "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
+            "Microsoft.CodeAnalysis.Razor.Compiler");
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
+            assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
 
         private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
         {
@@ -996,7 +1001,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
                 if (!vsixRazorAnalyzers.IsEmpty)
                 {
-                    if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
+                    if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
+                        static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
                     {
                         return OneOrMany.Create(vsixRazorAnalyzers);
                     }

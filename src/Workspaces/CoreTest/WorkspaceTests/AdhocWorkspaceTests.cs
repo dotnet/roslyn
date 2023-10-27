@@ -9,11 +9,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -316,25 +313,6 @@ language: LanguageNames.CSharp);
                 doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
                 Assert.False(doc.TryGetText(out currentText));
             }
-        }
-
-        [Fact]
-        public void TestGenerateUniqueName()
-        {
-            var a = NameGenerator.GenerateUniqueName("ABC", "txt", _ => true);
-            Assert.True(a.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(a.EndsWith(".txt", StringComparison.Ordinal));
-            Assert.False(a.EndsWith("..txt", StringComparison.Ordinal));
-
-            var b = NameGenerator.GenerateUniqueName("ABC", ".txt", _ => true);
-            Assert.True(b.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(b.EndsWith(".txt", StringComparison.Ordinal));
-            Assert.False(b.EndsWith("..txt", StringComparison.Ordinal));
-
-            var c = NameGenerator.GenerateUniqueName("ABC", "\u0640.txt", _ => true);
-            Assert.True(c.StartsWith("ABC", StringComparison.Ordinal));
-            Assert.True(c.EndsWith(".\u0640.txt", StringComparison.Ordinal));
-            Assert.False(c.EndsWith("..txt", StringComparison.Ordinal));
         }
 
         [Fact]

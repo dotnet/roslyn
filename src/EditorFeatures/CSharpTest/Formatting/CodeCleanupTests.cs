@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
+                document, enabledDiagnostics, CodeAnalysisProgress.None, options, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
             Assert.Equal(expected, actual.ToString());
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), globalOptions.CreateProvider(), CancellationToken.None);
+                document, enabledDiagnostics, CodeAnalysisProgress.None, globalOptions.CreateProvider(), CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

@@ -15,11 +15,13 @@ internal sealed class CSharpUpdateExpressionSyntaxHelper : IUpdateExpressionSynt
 
     public void GetPartsOfForeachStatement(
         StatementSyntax statement,
+        out SyntaxToken awaitKeyword,
         out SyntaxToken identifier,
         out ExpressionSyntax expression,
         out IEnumerable<StatementSyntax> statements)
     {
         var foreachStatement = (ForEachStatementSyntax)statement;
+        awaitKeyword = foreachStatement.AwaitKeyword;
         identifier = foreachStatement.Identifier;
         expression = foreachStatement.Expression;
         statements = ExtractEmbeddedStatements(foreachStatement.Statement);

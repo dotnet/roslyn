@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -248,7 +249,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return true;
         }
 
-        private async Task ApplySuppressionFixAsync(IEnumerable<DiagnosticData>? diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+        private async Task ApplySuppressionFixAsync(
+            IEnumerable<DiagnosticData>? diagnosticsToFix,
+            Func<Project, bool> shouldFixInProject,
+            bool filterStaleDiagnostics,
+            bool isAddSuppression,
+            bool isSuppressionInSource,
+            bool onlyCompilerDiagnostics,
+            bool showPreviewChangesDialog)
         {
             try
             {
@@ -275,6 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 var cancellationToken = context.UserCancellationToken;
                 cancellationToken.ThrowIfCancellationRequested();
+
                 var documentDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(
                     diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, cancellationToken).ConfigureAwait(false);
 
@@ -303,6 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
                 var languageServices = projectDiagnosticsToFixMap.Select(p => p.Key.Services).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Services)).ToHashSet();
 
+                var progress = context.GetCodeAnalysisProgress();
                 foreach (var languageService in languageServices)
                 {
                     // Use the Fix multiple occurrences service to compute a bulk suppression fix for the specified document and project diagnostics,
@@ -330,6 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                 equivalenceKey,
                                 title,
                                 waitDialogMessage,
+                                progress,
                                 cancellationToken);
                             if (newSolution == null)
                             {
@@ -355,6 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                  equivalenceKey,
                                  title,
                                  waitDialogMessage,
+                                 progress,
                                  cancellationToken);
                             if (newSolution == null)
                             {
@@ -395,10 +407,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         _workspace,
                         originalSolution,
                         fromDocument: null,
-                        operations: operations,
-                        title: title,
-                        progressTracker: new UIThreadOperationContextProgressTracker(scope),
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                        operations,
+                        title,
+                        scope.GetCodeAnalysisProgress(),
+                        cancellationToken).ConfigureAwait(false);
 
                     // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
                     _ = Task.Run(() =>

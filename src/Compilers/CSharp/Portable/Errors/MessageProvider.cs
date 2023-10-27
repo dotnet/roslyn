@@ -125,6 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_UseDefViolationThisSupportedVersion
                 or ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion
                 or ErrorCode.WRN_UnassignedThisSupportedVersion
+                or ErrorCode.WRN_CollectionExpressionRefStructMayAllocate
+                or ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate
             );
 
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
@@ -267,8 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {
             var node = (AttributeSyntax)attributeSyntax;
-            CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(parameterIndex, node);
-            diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
+            diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, ((CSharpAttributeData)attribute).GetAttributeArgumentLocation(parameterIndex), node.GetErrorDisplayName());
         }
 
         protected override void ReportInvalidNamedArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName)
@@ -285,16 +286,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportMarshalUnmanagedTypeNotValidForFields(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
         {
-            var node = (AttributeSyntax)attributeSyntax;
-            CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(parameterIndex, node);
-            diagnostics.Add(ErrorCode.ERR_MarshalUnmanagedTypeNotValidForFields, attributeArgumentSyntax.Location, unmanagedTypeName);
+            diagnostics.Add(ErrorCode.ERR_MarshalUnmanagedTypeNotValidForFields, ((CSharpAttributeData)attribute).GetAttributeArgumentLocation(parameterIndex), unmanagedTypeName);
         }
 
         protected override void ReportMarshalUnmanagedTypeOnlyValidForFields(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
         {
-            var node = (AttributeSyntax)attributeSyntax;
-            CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(parameterIndex, node);
-            diagnostics.Add(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, attributeArgumentSyntax.Location, unmanagedTypeName);
+            diagnostics.Add(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, ((CSharpAttributeData)attribute).GetAttributeArgumentLocation(parameterIndex), unmanagedTypeName);
         }
 
         protected override void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName)

@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // prevent cascading diagnostics
                 Debug.Assert(hasErrors);
-                return new SourceAttributeData(boundAttribute.Syntax.GetReference(), attributeType, attributeConstructor, hasErrors);
+                return new SourceAttributeData(Compilation, (AttributeSyntax)boundAttribute.Syntax, attributeType, attributeConstructor, hasErrors);
             }
 
             // Validate attribute constructor parameters have valid attribute parameter type
@@ -323,7 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(boundAttribute.Syntax, useSiteInfo);
 
             return new SourceAttributeData(
-                boundAttribute.Syntax.GetReference(),
+                Compilation,
+                (AttributeSyntax)boundAttribute.Syntax,
                 attributeType,
                 attributeConstructor,
                 rewrittenArguments,
@@ -968,9 +969,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return VisitTypeOfExpression((BoundTypeOfOperator)node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
                     case BoundKind.ArrayCreation:
                         return VisitArrayCreation((BoundArrayCreation)node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
-                    case BoundKind.CollectionExpressionSpreadElement:
-                        Binder.Error(diagnostics, ErrorCode.ERR_BadAttributeArgument, node.Syntax);
-                        return CreateTypedConstant(node, TypedConstantKind.Error, diagnostics, ref attrHasErrors, curArgumentHasErrors);
                     default:
                         return CreateTypedConstant(node, TypedConstantKind.Error, diagnostics, ref attrHasErrors, curArgumentHasErrors);
                 }
@@ -979,8 +977,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             private TypedConstant VisitArrayCollectionExpression(TypeSymbol type, BoundCollectionExpression collection, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 var typedConstantKind = type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
-                ImmutableArray<TypedConstant> elements = VisitArguments(collection.Elements, diagnostics, ref attrHasErrors, curArgumentHasErrors);
-                return CreateTypedConstant(collection, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, arrayValue: elements);
+                var elements = collection.Elements;
+                var builder = ArrayBuilder<TypedConstant>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    builder.Add(VisitCollectionExpressionElement(element, diagnostics, ref attrHasErrors, curArgumentHasErrors || element.HasAnyErrors));
+                }
+                return CreateTypedConstant(collection, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, arrayValue: builder.ToImmutableAndFree());
+            }
+
+            private TypedConstant VisitCollectionExpressionElement(BoundNode node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            {
+                if (node is BoundCollectionExpressionSpreadElement spread)
+                {
+                    Binder.Error(diagnostics, ErrorCode.ERR_BadAttributeArgument, node.Syntax);
+                    attrHasErrors = true;
+                    return new TypedConstant(spread.Expression.Type, TypedConstantKind.Error, value: null);
+                }
+                return VisitExpression((BoundExpression)node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
             }
 
             private TypedConstant VisitConversion(BoundConversion node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)

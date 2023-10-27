@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -15,11 +16,28 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             private readonly ITextBuffer _subjectBuffer = subjectBuffer;
             private readonly IDiagnosticService _service = service;
 
-            private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdated(object? sender, ImmutableArray<DiagnosticsUpdatedArgs> e)
             {
-                var documentId = e.Workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
+                var textContainer = _subjectBuffer.AsTextContainer();
+                var anyChanged = false;
+                Workspace? lastWorkspace = null;
+                DocumentId? documentId = null;
+                foreach (var args in e)
+                {
+                    if (args.Workspace != lastWorkspace)
+                    {
+                        lastWorkspace = args.Workspace;
+                        documentId = args.Workspace.GetDocumentIdInCurrentContext(textContainer);
+                    }
 
-                if (documentId == e.DocumentId)
+                    if (args.DocumentId == documentId)
+                    {
+                        anyChanged = true;
+                        break;
+                    }
+                }
+
+                if (anyChanged)
                 {
                     this.RaiseChanged();
                 }

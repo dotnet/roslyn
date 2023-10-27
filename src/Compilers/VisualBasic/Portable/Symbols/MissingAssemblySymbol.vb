@@ -82,6 +82,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides Function GetHashCode() As Integer
             Return m_Identity.GetHashCode()
         End Function

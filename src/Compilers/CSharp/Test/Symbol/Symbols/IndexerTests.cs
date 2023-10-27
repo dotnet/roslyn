@@ -2127,7 +2127,7 @@ class Program
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").Indexers.Single();
             Assert.True(indexer.IsIndexer);
             Assert.Equal("A", indexer.MetadataName);
-            Assert.True(indexer.GetAttributes().Single().IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
+            Assert.True(indexer.GetAttributes().Single().IsTargetAttribute(AttributeDescription.IndexerNameAttribute));
 
             CompileAndVerify(compilation, symbolValidator: module =>
             {
