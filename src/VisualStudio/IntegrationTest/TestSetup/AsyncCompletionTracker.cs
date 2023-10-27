@@ -68,8 +68,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
             void ReleaseToken()
             {
-                Interlocked.Exchange<IAsyncToken?>(ref token, null)?.Dispose();
-                if (Interlocked.Exchange<CancellationTokenSource?>(ref cancellationSource, null) is CancellationTokenSource source)
+                Interlocked.Exchange(ref token, null)?.Dispose();
+                if (Interlocked.Exchange(ref cancellationSource, null) is { } source)
                 {
                     source.Cancel();
                     source.Dispose();
