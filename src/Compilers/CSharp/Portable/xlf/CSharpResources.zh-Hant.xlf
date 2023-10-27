@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
-        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
+        <target state="translated">此版本的 '{0}' 無法與集合運算式一起使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -2340,6 +2340,11 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">指標</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_StringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">

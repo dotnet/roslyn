@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors,
             bool isConditionallyOmitted)
         {
+            Debug.Assert(compilation is object);
+            Debug.Assert(applicationNode is object);
             Debug.Assert(!isConditionallyOmitted || attributeClass is object && attributeClass.IsConditional);
             Debug.Assert(!constructorArguments.IsDefault);
             Debug.Assert(!namedArguments.IsDefault);
@@ -192,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _hasErrors;
             }
         }
+
+        internal override DiagnosticInfo? ErrorInfo => null; // Binder reported errors
 
         protected internal sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
