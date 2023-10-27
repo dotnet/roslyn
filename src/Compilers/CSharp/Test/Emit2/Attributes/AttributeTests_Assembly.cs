@@ -1741,8 +1741,13 @@ class Program
 
             var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { TestMetadata.Net40.SystemCore });
             var appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
-            var diagnostics = appCompilation.GetDiagnostics();
-            Assert.False(diagnostics.Any());
+            appCompilation.VerifyDiagnostics(
+                // error CS0012: The type 'ExtensionAttribute' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+                );
+
+            appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef, TestMetadata.Net40.SystemCore }, options: TestOptions.ReleaseDll);
+            appCompilation.VerifyEmitDiagnostics();
         }
 
         [ConditionalFact(typeof(DesktopOnly)), WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")]
@@ -2298,14 +2303,10 @@ public class A1 : System.Attribute
 
             var comp2 = CreateCompilation("", references: new[] { moduleWithAttribute }, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(comp2, symbolValidator: (m) =>
-                                                     {
-                                                         var attrs = m.ContainingAssembly.GetAttributes();
-                                                         Assert.Equal(3, attrs.Length);
-                                                         AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs[0].ToString());
-                                                         AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)", attrs[1].ToString());
-                                                         AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs[2].ToString());
-                                                     }).VerifyDiagnostics();
+            comp2.VerifyEmitDiagnostics(
+                // error CS0012: The type 'A1' is defined in an assembly that is not referenced. You must add a reference to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A1", "A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                );
 
             string attribute2 = @"
 public class A1 : System.Attribute
@@ -2317,14 +2318,10 @@ public class A1 : System.Attribute
 
             var comp3 = CreateCompilation("", references: new[] { moduleWithAttribute, attributeDefinition2 }, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(comp3, symbolValidator: (m) =>
-                                                     {
-                                                         var attrs = m.ContainingAssembly.GetAttributes();
-                                                         Assert.Equal(3, attrs.Length);
-                                                         AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs[0].ToString());
-                                                         AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)", attrs[1].ToString());
-                                                         AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs[2].ToString());
-                                                     }).VerifyDiagnostics();
+            comp3.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'A1..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("A1", ".ctor").WithLocation(1, 1)
+                );
         }
 
         [Fact]
