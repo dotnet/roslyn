@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -5644,7 +5644,7 @@ class C
             using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var classifications = await GetSyntacticClassificationsAsync(document, new TextSpan(0, source.Length));
+            var classifications = await GetSyntacticClassificationsAsync(document, ImmutableArray.Create(new TextSpan(0, source.Length)));
             Assert.Equal(new[]
             {
                 new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(0, 3)),
@@ -5672,7 +5672,7 @@ class C
             using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var classifications = await GetSyntacticClassificationsAsync(document, new TextSpan(0, source.Length));
+            var classifications = await GetSyntacticClassificationsAsync(document, ImmutableArray.Create(new TextSpan(0, source.Length)));
             Assert.Equal(new[]
             {
                 new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(2, 3)),

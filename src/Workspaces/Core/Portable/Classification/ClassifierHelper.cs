@@ -42,9 +42,13 @@ namespace Microsoft.CodeAnalysis.Classification
         /// using an appropriate <see cref="IClassificationService"/> if that can be found.  <see
         /// cref="ImmutableArray{T}.IsDefault"/> will be returned if this fails.
         /// </summary>
+        /// <param name="document">the current document.</param>
+        /// <param name="spans">The non-intersecting portions of the document to get classified spans for.</param>
+        /// <param name="options">The options to use when getting classified spans.</param>
         /// <param name="includeAdditiveSpans">Whether or not 'additive' classification spans are included in the
         /// results or not.  'Additive' spans are things like 'this variable is static' or 'this variable is
         /// overwritten'.  i.e. they add additional information to a previous classification.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
