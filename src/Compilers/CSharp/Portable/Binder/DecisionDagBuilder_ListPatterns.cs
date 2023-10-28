@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatterns.Length - 1), lengthTemp)
                     : new BoundDagValueTest(syntax, ConstantValue.Create(subpatterns.Length), lengthTemp)));
 
-                int index = 0;
+                int index = 0, simpleSliceStartIndex = 0, simpleSliceEndIndex = 0;
+                BoundSlicePattern? simpleSlice = null;
                 foreach (BoundPattern subpattern in subpatterns)
                 {
                     if (subpattern is BoundSlicePattern slice)
@@ -55,17 +56,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (slice.Pattern is BoundPattern slicePattern)
                         {
-                            Debug.Assert(slice.IndexerAccess is not null);
-                            Debug.Assert(index <= 0);
-                            Debug.Assert(slice.ReceiverPlaceholder is not null);
-                            Debug.Assert(slice.ArgumentPlaceholder is not null);
+                            // We faced a slice pattern with a declaration pattern inside, e.g. `[<pattern>, ..var between, <pattern>]`
+                            // This pattern always evaluates to true, but causes slicing operation and even may allocate (e.g. when slicing an array)
+                            // Thus it makes sense to hold it and "evaluate" after all other patterns in the list matched
+                            if (slicePattern.Kind == BoundKind.DeclarationPattern)
+                            {
+                                Debug.Assert(simpleSlice is null);
+                                simpleSlice = slice;
+                                simpleSliceStartIndex = startIndex;
+                                simpleSliceEndIndex = index;
+                                continue;
+                            }
 
-                            var sliceEvaluation = new BoundDagSliceEvaluation(slicePattern.Syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index,
-                                slice.IndexerAccess, slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, input);
-
-                            tests.Add(new Tests.One(sliceEvaluation));
-                            var sliceTemp = new BoundDagTemp(slicePattern.Syntax, slicePattern.InputType, sliceEvaluation);
-                            tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
+                            addSlicePatternTests(slice, startIndex, index);
                         }
 
                         continue;
@@ -81,6 +84,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     tests.Add(new Tests.One(indexEvaluation));
                     var indexTemp = new BoundDagTemp(subpattern.Syntax, subpattern.InputType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
+                }
+
+                if (simpleSlice is not null)
+                {
+                    addSlicePatternTests(simpleSlice, simpleSliceStartIndex, simpleSliceEndIndex);
+                }
+
+                void addSlicePatternTests(BoundSlicePattern slice, int startIndex, int index)
+                {
+                    var slicePattern = slice.Pattern;
+                    Debug.Assert(slicePattern is not null);
+
+                    Debug.Assert(slice.IndexerAccess is not null);
+                    Debug.Assert(index <= 0);
+                    Debug.Assert(slice.ReceiverPlaceholder is not null);
+                    Debug.Assert(slice.ArgumentPlaceholder is not null);
+
+                    var sliceEvaluation = new BoundDagSliceEvaluation(slicePattern.Syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index,
+                    slice.IndexerAccess, slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, input);
+
+                    tests.Add(new Tests.One(sliceEvaluation));
+                    var sliceTemp = new BoundDagTemp(slicePattern.Syntax, slicePattern.InputType, sliceEvaluation);
+                    tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
                 }
             }
 
