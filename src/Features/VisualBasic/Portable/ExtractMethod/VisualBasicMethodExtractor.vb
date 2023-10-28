@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
-        Inherits MethodExtractor
+        Inherits MethodExtractor(Of VisualBasicSelectionResult, ExecutableStatementSyntax, ExpressionSyntax)
 
         Public Sub New(result As VisualBasicSelectionResult, options As ExtractMethodGenerationOptions)
             MyBase.New(result, options, localFunction:=False)
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicCodeGenerator.Create(Me.OriginalSelectionResult, analyzerResult, DirectCast(Me.Options.CodeGenerationOptions, VisualBasicCodeGenerationOptions))
         End Function
 
-        Protected Overrides Function Analyze(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult
+        Protected Overrides Function Analyze(selectionResult As VisualBasicSelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult
             Return VisualBasicAnalyzer.AnalyzeResult(selectionResult, cancellationToken)
         End Function
 
@@ -59,67 +59,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return enclosingTopLevelNode
         End Function
 
-        Protected Overrides Async Function PreserveTriviaAsync(selectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
+        Protected Overrides Async Function PreserveTriviaAsync(selectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
             Return Await VisualBasicTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Async Function ExpandAsync(selection As SelectionResult, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
-            Dim lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors(Of ExpressionSyntax)().LastOrDefault()
-            If lastExpression Is Nothing Then
-                Return selection.SemanticDocument
-            End If
-
-            Dim newStatement = Await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, Function(n) n IsNot selection.GetContainingScope(), expandParameter:=False, cancellationToken:=cancellationToken).ConfigureAwait(False)
-            Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, DirectCast(options, VisualBasicCodeGenerationOptions), cancellationToken)
         End Function
 
-        Protected Overrides Function GetCustomFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
-            Return ImmutableArray.Create(Of AbstractFormattingRule)(New FormattingRule())
+        Protected Overrides Function GetCustomFormattingRule(document As Document) As AbstractFormattingRule
+            Return FormattingRule.Instance
         End Function
 
         Protected Overrides Function GetInvocationNameToken(methodNames As IEnumerable(Of SyntaxToken)) As SyntaxToken?
             Return methodNames.FirstOrNull(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement)
         End Function
 
-        Protected Overrides Function CheckType(
-                semanticModel As SemanticModel,
-                contextNode As SyntaxNode,
-                location As Location,
-                type As ITypeSymbol) As OperationStatus
-            Contract.ThrowIfNull(type)
-
-            If type.SpecialType = SpecialType.System_Void Then
-                ' this can happen if there is no return value
-                Return OperationStatus.Succeeded
-            End If
-
-            If type.TypeKind = TypeKind.Error OrElse type.TypeKind = TypeKind.Unknown Then
-                Return OperationStatus.ErrorOrUnknownType
-            End If
-
-            ' if it is type parameter, make sure we are getting same type parameter
-            For Each typeParameter In TypeParameterCollector.Collect(type)
-                Dim typeName = SyntaxFactory.ParseTypeName(typeParameter.Name)
-                Dim symbolInfo = semanticModel.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
-                Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
-
-                If Not SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)) Then
-                    Return New OperationStatus(OperationStatusFlag.Succeeded,
-                        String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
-                            typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                            If(currentType Is Nothing, String.Empty, currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))))
-                End If
-            Next typeParameter
-
-            Return OperationStatus.Succeeded
+        Protected Overrides Function ParseTypeName(name As String) As SyntaxNode
+            Return SyntaxFactory.ParseTypeName(name)
         End Function
 
-        Private Class FormattingRule
+        Private NotInheritable Class FormattingRule
             Inherits CompatAbstractFormattingRule
+
+            Public Shared ReadOnly Instance As New FormattingRule()
+
+            Private Sub New()
+            End Sub
 
             Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
                 If Not previousToken.IsLastTokenOfStatement() Then
