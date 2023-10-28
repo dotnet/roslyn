@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override MethodSymbol UnderlyingMethod { get; }
 
-        public override Symbol? AssociatedSymbol => UnderlyingMethod;
+        public override Symbol? AssociatedSymbol => null;
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations => _taskType;
 
