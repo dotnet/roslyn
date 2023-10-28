@@ -25,4 +25,15 @@ internal interface IRemoteProjectFile : IDisposable
 {
     Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken);
     Task<ImmutableArray<DiagnosticLogItem>> GetDiagnosticLogItemsAsync(CancellationToken cancellationToken);
+
+    Task<string> GetDocumentExtensionAsync(SourceCodeKind sourceCodeKind, CancellationToken cancellationToken);
+    Task AddDocumentAsync(string filePath, string? logicalPath, CancellationToken cancellationToken);
+    Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken);
+    Task AddMetadataReferenceAsync(string metadataReferenceIdentity, MetadataReferenceProperties properties, string? hintPath, CancellationToken cancellationToken);
+    Task RemoveMetadataReferenceAsync(string shortAssemblyName, string fullAssemblyName, string filePath, CancellationToken cancellationToken);
+    Task AddProjectReferenceAsync(string projectName, ProjectFileReference reference, CancellationToken cancellationToken);
+    Task RemoveProjectReferenceAsync(string projectName, string projectFilePath, CancellationToken cancellationToken);
+    Task AddAnalyzerReferenceAsync(string fullPath, CancellationToken cancellationToken);
+    Task RemoveAnalyzerReferenceAsync(string fullPath, CancellationToken cancellationToken);
+    Task SaveAsync(CancellationToken cancellationToken);
 }
