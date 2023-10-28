@@ -6675,5 +6675,255 @@ class Test
 
         }
 
+        [Fact]
+        public void Async2_TaskT_Override()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        {
+        }
+    }
+}
+
+class Base
+{
+    public virtual async2 int M1()
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+
+class Derived1 : Base
+{
+    public override async Task<int> M1()
+    {
+        await Task.Yield();
+        return 2;
+    }
+}
+
+class Derived2 : Derived1
+{
+    public override async2 int M1()
+    {
+        await Task.Yield();
+        return 3;
+    }
+}
+
+class Base1
+{
+    public virtual async Task<int> M1()
+    {
+        await Task.Yield();
+        return 11;
+    }
+}
+
+class Derived11 : Base1
+{
+    public override async2 int M1()
+    {
+        await Task.Yield();
+        return 12;
+    }
+}
+
+class Derived12 : Derived11
+{
+    public override async Task<int> M1()
+    {
+        await Task.Yield();
+        return 13;
+    }
+}
+
+
+class Test
+{
+    public static void Main()
+    {
+        Base b = new Derived1();
+        Console.WriteLine(b.M1().Result);
+
+        b = new Derived2();
+        Console.WriteLine(b.M1().Result);
+
+        Derived1 d = new Derived2();
+        Console.WriteLine(d.M1().Result);
+
+
+        Base1 b1 = new Derived11();
+        Console.WriteLine(b1.M1().Result);
+
+        b1 = new Derived12();
+        Console.WriteLine(b1.M1().Result);
+
+        Derived11 d1 = new Derived12();
+        Console.WriteLine(d1.M1().Result);
+    }
+}";
+
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Fails);
+
+            c.VerifyTypeIL("Test", @"
+    .class private auto ansi beforefieldinit Test
+	extends [netstandard]System.Object
+{
+	// Methods
+	.method public hidebysig static 
+		void Main () cil managed 
+	{
+		// Method begins at RVA 0x21e0
+		// Code size 121 (0x79)
+		.maxstack 1
+		.entrypoint
+		IL_0000: newobj instance void Derived1::.ctor()
+		IL_0005: callvirt instance class [netstandard]System.Threading.Tasks.Task`1<int32> Base::M1()
+		IL_000a: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int32>::get_Result()
+		IL_000f: call void [netstandard]System.Console::WriteLine(int32)
+		IL_0014: newobj instance void Derived2::.ctor()
+		IL_0019: callvirt instance class [netstandard]System.Threading.Tasks.Task`1<int32> Base::M1()
+		IL_001e: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int32>::get_Result()
+		IL_0023: call void [netstandard]System.Console::WriteLine(int32)
+		IL_0028: newobj instance void Derived2::.ctor()
+		IL_002d: callvirt instance class [netstandard]System.Threading.Tasks.Task`1<int32> Derived1::M1()
+		IL_0032: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int32>::get_Result()
+		IL_0037: call void [netstandard]System.Console::WriteLine(int32)
+		IL_003c: newobj instance void Derived11::.ctor()
+		IL_0041: callvirt instance class [netstandard]System.Threading.Tasks.Task`1<int32> Base1::M1()
+		IL_0046: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int32>::get_Result()
+		IL_004b: call void [netstandard]System.Console::WriteLine(int32)
+		IL_0050: newobj instance void Derived12::.ctor()
+		IL_0055: callvirt instance class [netstandard]System.Threading.Tasks.Task`1<int32> Base1::M1()
+		IL_005a: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int32>::get_Result()
+		IL_005f: call void [netstandard]System.Console::WriteLine(int32)
+		IL_0064: newobj instance void Derived12::.ctor()
+		IL_0069: callvirt instance class [netstandard]System.Threading.Tasks.Task`1<int32> Base1::M1()
+		IL_006e: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int32>::get_Result()
+		IL_0073: call void [netstandard]System.Console::WriteLine(int32)
+		IL_0078: ret
+	} // end of method Test::Main
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x209a
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method Test::.ctor
+} // end of class Test
+
+");
+
+        }
+
+        [Fact]
+        public void Async2_TaskT_Implement()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        {
+        }
+    }
+}
+
+interface IBase1
+{
+    public async2 int M1();
+}
+
+class Derived1 : IBase1
+{
+    public async Task<int> M1()
+    {
+        await Task.Yield();
+        return 2;
+    }
+}
+
+interface IBase2
+{
+    public Task<int> M1();
+}
+
+class Derived2 : IBase2
+{
+    public async2 int M1()
+    {
+        await Task.Yield();
+        return 12;
+    }
+}
+
+
+class Test
+{
+    public static void Main()
+    {
+        IBase1 b1 = new Derived1();
+        Console.WriteLine(b1.M1().Result);
+
+        IBase2 b2 = new Derived2();
+        Console.WriteLine(b2.M1().Result);
+    }
+}";
+
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Fails);
+
+            c.VerifyTypeIL("Test", @"
+    .class private auto ansi beforefieldinit Test
+	extends [netstandard]System.Object
+{
+	// Methods
+	.method public hidebysig static 
+		void Main () cil managed 
+	{
+		// Method begins at RVA 0x20df
+		// Code size 41 (0x29)
+		.maxstack 8
+		.entrypoint
+		IL_0000: newobj instance void Derived1::.ctor()
+		IL_0005: callvirt instance class [netstandard]System.Threading.Tasks.Task`1<int32> IBase1::M1()
+		IL_000a: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int32>::get_Result()
+		IL_000f: call void [netstandard]System.Console::WriteLine(int32)
+		IL_0014: newobj instance void Derived2::.ctor()
+		IL_0019: callvirt instance class [netstandard]System.Threading.Tasks.Task`1<int32> IBase2::M1()
+		IL_001e: callvirt instance !0 class [netstandard]System.Threading.Tasks.Task`1<int32>::get_Result()
+		IL_0023: call void [netstandard]System.Console::WriteLine(int32)
+		IL_0028: ret
+	} // end of method Test::Main
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a3
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method Test::.ctor
+} // end of class Test
+");
+
+        }
+
     }
 }

@@ -604,15 +604,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // non-async2 that returns Task<T> is equivalent to async2 that returns T
                     if (returnType1.Type.MetadataName == "Task`1")
+                    {
                         returnType1 = ((NamedTypeSymbol)returnType1.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                        returnType2 = returnType2.WithModifiers(ImmutableArray<CustomModifier>.Empty);
+                    }
                 }
                 else
                 {
                     if (returnType2.Type.MetadataName == "Task`1")
+                    {
                         returnType2 = ((NamedTypeSymbol)returnType2.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                        returnType1 = returnType1.WithModifiers(ImmutableArray<CustomModifier>.Empty);
+                    }
                 }
             }
-
 
             if (!returnType1.Equals(returnType2, typeComparison))
             {
