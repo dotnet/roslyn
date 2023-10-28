@@ -9030,7 +9030,7 @@ public static class Extension
         var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics();
 
-        CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("C.M", """
+        CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyIL("C.M", """
             {
               // Code size       82 (0x52)
               .maxstack  4
@@ -9163,7 +9163,7 @@ public static class Extension
         var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics();
 
-        CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("C.M", """
+        CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyIL("C.M", """
             {
               // Code size       59 (0x3b)
               .maxstack  4
