@@ -9008,6 +9008,70 @@ public static class Extension
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_DeclarationPatternInBetween_String_CodeGen()
+    {
+        var source = """
+            class C
+            {
+                string M(string s)
+                {
+                    if (s is ['(', ..var between, ')'])
+                    {
+                        return between;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       55 (0x37)
+              .maxstack  4
+              .locals init (string V_0, //between
+                            int V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0035
+              IL_0003:  ldarg.1
+              IL_0004:  callvirt   "int string.Length.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.2
+              IL_000c:  blt.s      IL_0035
+              IL_000e:  ldarg.1
+              IL_000f:  ldc.i4.0
+              IL_0010:  callvirt   "char string.this[int].get"
+              IL_0015:  ldc.i4.s   40
+              IL_0017:  bne.un.s   IL_0035
+              IL_0019:  ldarg.1
+              IL_001a:  ldloc.1
+              IL_001b:  ldc.i4.1
+              IL_001c:  sub
+              IL_001d:  callvirt   "char string.this[int].get"
+              IL_0022:  ldc.i4.s   41
+              IL_0024:  bne.un.s   IL_0035
+              IL_0026:  ldarg.1
+              IL_0027:  ldc.i4.1
+              IL_0028:  ldloc.1
+              IL_0029:  ldc.i4.1
+              IL_002a:  sub
+              IL_002b:  ldc.i4.1
+              IL_002c:  sub
+              IL_002d:  callvirt   "string string.Substring(int, int)"
+              IL_0032:  stloc.0
+              IL_0033:  ldloc.0
+              IL_0034:  ret
+              IL_0035:  ldnull
+              IL_0036:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
     public void SlicePattern_DeclarationPatternInBetween_ReadOnlySpan_CodeGen()
     {
         var source = """
@@ -9136,6 +9200,63 @@ public static class Extension
               IL_0037:  ret
               IL_0038:  ldnull
               IL_0039:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_FirstDeclarationPattern_String_CodeGen()
+    {
+        var source = """
+            class C
+            {
+                string M(string s)
+                {
+                    if (s is [..var start, ')'])
+                    {
+                        return start;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       42 (0x2a)
+              .maxstack  4
+              .locals init (string V_0, //start
+                            int V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0028
+              IL_0003:  ldarg.1
+              IL_0004:  callvirt   "int string.Length.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.1
+              IL_000c:  blt.s      IL_0028
+              IL_000e:  ldarg.1
+              IL_000f:  ldloc.1
+              IL_0010:  ldc.i4.1
+              IL_0011:  sub
+              IL_0012:  callvirt   "char string.this[int].get"
+              IL_0017:  ldc.i4.s   41
+              IL_0019:  bne.un.s   IL_0028
+              IL_001b:  ldarg.1
+              IL_001c:  ldc.i4.0
+              IL_001d:  ldloc.1
+              IL_001e:  ldc.i4.1
+              IL_001f:  sub
+              IL_0020:  callvirt   "string string.Substring(int, int)"
+              IL_0025:  stloc.0
+              IL_0026:  ldloc.0
+              IL_0027:  ret
+              IL_0028:  ldnull
+              IL_0029:  ret
             }
             """);
     }
