@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -15,6 +17,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         protected const string ProjectName = "TestProj";
         protected const string SolutionName = "TestSolution";
+
+        static AbstractIntegrationTest()
+        {
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(new ThrowingTraceListener());
+        }
 
         protected AbstractIntegrationTest()
         {
