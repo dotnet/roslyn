@@ -30,12 +30,10 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioCodeAnalysisSuggestionsConfigService(
         VisualStudioWorkspace workspace,
-        IThreadingContext threadingContext,
         IGlobalOptionService globalOptions,
         IDiagnosticAnalyzerService diagnosticAnalyzerService)
     {
         _workspace = workspace;
-        _threadingContext = threadingContext;
         _globalOptions = globalOptions;
         _diagnosticAnalyzerService = diagnosticAnalyzerService;
         _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
@@ -43,10 +41,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
         workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
     }
 
-    private readonly ConcurrentDictionary<IReadOnlyList<AnalyzerReference>, Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>>> _diagnosticDescriptorCache = new();
-
     private readonly VisualStudioWorkspace _workspace;
-    private readonly IThreadingContext _threadingContext;
     private readonly IGlobalOptionService _globalOptions;
     private readonly IDocumentTrackingService _documentTrackingService;
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
@@ -97,78 +92,13 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
         if (summary == null)
             return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
 
-        var descriptorsByCategory = await GetAvailableDiagnosticDescriptorsByCategoryAsync(project, forceCompute).ConfigureAwait(false);
-        if (descriptorsByCategory.IsEmpty)
-            return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
-
-        var computedDiagnostics = await GetAvailableDiagnosticsAsync(project, forceCompute, cancellationToken).ConfigureAwait(false);
-        return GetCodeAnalysisSuggestionsByCategory(summary, project, descriptorsByCategory, computedDiagnostics, _globalOptions);
-    }
-
-    private static ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)> GetCodeAnalysisSuggestionsByCategory(
-        FirstPartyAnalyzerConfigSummary configSummary,
-        Project project,
-        ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> descriptorsByCategory,
-        ImmutableArray<DiagnosticData> computedDiagnostics,
-        IGlobalOptionService globalOptions)
-    {
-        const int MaxIdsToSuggestPerCategoryWhenNoComputedDiagnostics = 5;
-
-        var enableCodeQuality = ShouldShowSuggestions(configSummary, codeQuality: true, globalOptions);
-        var enableCodeStyle = ShouldShowSuggestions(configSummary, codeQuality: false, globalOptions);
+        var enableCodeQuality = ShouldShowSuggestions(summary, codeQuality: true, _globalOptions);
+        var enableCodeStyle = ShouldShowSuggestions(summary, codeQuality: false, _globalOptions);
         if (!enableCodeQuality && !enableCodeStyle)
             return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
 
-        using var _1 = ArrayBuilder<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.GetInstance(out var builder);
-        using var _2 = PooledDictionary<string, ImmutableArray<DiagnosticData>>.GetInstance(out var diagnosticsByIdBuilder);
-        using var _3 = PooledHashSet<string>.GetInstance(out var uniqueIds);
-
-        if (!computedDiagnostics.IsEmpty)
-        {
-            foreach (var (category, diagnosticsForCategory) in computedDiagnostics.GroupBy(d => d.Category).OrderBy(g => g.Key))
-            {
-                var orderedDiagnostics = diagnosticsForCategory.GroupBy(d => d.Id).OrderByDescending(group => group.Count());
-                foreach (var (id, diagnostics) in orderedDiagnostics)
-                {
-                    if (ShouldIncludeId(id))
-                    {
-                        diagnosticsByIdBuilder.Add(id, diagnostics.ToImmutableArray());
-                    }
-                }
-
-                if (diagnosticsByIdBuilder.Count > 0)
-                {
-                    builder.Add((category, diagnosticsByIdBuilder.ToImmutableDictionary()));
-                    diagnosticsByIdBuilder.Clear();
-                }
-            }
-        }
-        else
-        {
-            foreach (var (category, descriptorsForCategory) in descriptorsByCategory)
-            {
-                foreach (var descriptor in descriptorsForCategory)
-                {
-                    if (ShouldIncludeId(descriptor.Id))
-                    {
-                        var diagnostic = Diagnostic.Create(descriptor, Location.None);
-                        var diagnosticData = DiagnosticData.Create(project.Solution, diagnostic, project);
-                        diagnosticsByIdBuilder.Add(descriptor.Id, ImmutableArray.Create(diagnosticData));
-
-                        if (diagnosticsByIdBuilder.Count == MaxIdsToSuggestPerCategoryWhenNoComputedDiagnostics)
-                            break;
-                    }
-                }
-
-                if (diagnosticsByIdBuilder.Count > 0)
-                {
-                    builder.Add((category, diagnosticsByIdBuilder.ToImmutableDictionary()));
-                    diagnosticsByIdBuilder.Clear();
-                }
-            }
-        }
-
-        return builder.ToImmutable();
+        var computedDiagnostics = await GetAvailableDiagnosticsAsync(project, summary, enableCodeQuality, enableCodeStyle, forceCompute, cancellationToken).ConfigureAwait(false);
+        return GetCodeAnalysisSuggestionsByCategory(summary, computedDiagnostics, enableCodeQuality, enableCodeStyle);
 
         static bool ShouldShowSuggestions(FirstPartyAnalyzerConfigSummary configSummary, bool codeQuality, IGlobalOptionService globalOptions)
         {
@@ -189,75 +119,49 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
                 : CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeStyle;
             return globalOptions.GetOption(isCandidateOption);
         }
-
-        bool ShouldIncludeId(string id)
-        {
-            // Only suggest diagnostics that are not explicitly configured in analyzer config files
-            if (enableCodeQuality
-                && ShouldIncludeIdForSummary(id, configSummary.CodeQualitySummary))
-            {
-                return true;
-            }
-
-            if (enableCodeStyle
-                && ShouldIncludeIdForSummary(id, configSummary.CodeStyleSummary))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        bool ShouldIncludeIdForSummary(string id, AnalyzerConfigSummary summary)
-        {
-            if (!Regex.IsMatch(id, summary.DiagnosticIdPattern))
-                return false;
-
-            return uniqueIds!.Add(id)
-                && !summary.ConfiguredDiagnosticIds.Contains(id, StringComparer.OrdinalIgnoreCase);
-        }
     }
 
-    private async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetAvailableDiagnosticDescriptorsByCategoryAsync(Project project, bool forceCompute)
+    private static ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)> GetCodeAnalysisSuggestionsByCategory(
+        FirstPartyAnalyzerConfigSummary configSummary,
+        ImmutableArray<DiagnosticData> computedDiagnostics,
+        bool enableCodeQuality,
+        bool enableCodeStyle)
     {
-        if (!_diagnosticDescriptorCache.TryGetValue(project.AnalyzerReferences, out var task))
+        if (computedDiagnostics.IsEmpty)
+            return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
+
+        using var _1 = ArrayBuilder<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.GetInstance(out var builder);
+        using var _2 = PooledDictionary<string, ImmutableArray<DiagnosticData>>.GetInstance(out var diagnosticsByIdBuilder);
+        using var _3 = PooledHashSet<string>.GetInstance(out var uniqueIds);
+
+        foreach (var (category, diagnosticsForCategory) in computedDiagnostics.GroupBy(d => d.Category).OrderBy(g => g.Key))
         {
-            task = new Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>>(() => GetAllAvailableAnalyzerDescriptors(project), _threadingContext.DisposalToken);
-
-            var returnedTask = _diagnosticDescriptorCache.GetOrAdd(project.AnalyzerReferences, task);
-            if (returnedTask == task)
-                task.Start();
-
-            task = returnedTask;
-        }
-
-        if (task.IsCompleted || forceCompute)
-            return await task.ConfigureAwait(false);
-
-        return ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>.Empty;
-
-        ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetAllAvailableAnalyzerDescriptors(Project project)
-        {
-            // include host analyzers
-            var refToAnalyzersMap = project.Solution.State.Analyzers.CreateDiagnosticAnalyzersPerReference(project);
-            var analyzers = refToAnalyzersMap.SelectMany(kvp => kvp.Value);
-            var descriptors = analyzers.SelectMany(analyzer => analyzer.IsCompilerAnalyzer()
-                ? ImmutableArray<DiagnosticDescriptor>.Empty
-                : _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(analyzer));
-
-            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>(StringComparer.OrdinalIgnoreCase);
-            foreach (var descriptorGroup in descriptors.GroupBy(d => d.Category))
+            var orderedDiagnostics = diagnosticsForCategory.GroupBy(d => d.Id).OrderByDescending(group => group.Count());
+            foreach (var (id, diagnostics) in orderedDiagnostics)
             {
-                builder.Add(descriptorGroup.Key, descriptorGroup.OrderByDescending(d => d.Id).ToImmutableArray());
+                if (ShouldIncludeId(id, configSummary, enableCodeQuality, enableCodeStyle))
+                {
+                    diagnosticsByIdBuilder.Add(id, diagnostics.ToImmutableArray());
+                }
             }
 
-            return builder.ToImmutable();
-            ;
-
+            if (diagnosticsByIdBuilder.Count > 0)
+            {
+                builder.Add((category, diagnosticsByIdBuilder.ToImmutableDictionary()));
+                diagnosticsByIdBuilder.Clear();
+            }
         }
+
+        return builder.ToImmutable();
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetAvailableDiagnosticsAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DiagnosticData>> GetAvailableDiagnosticsAsync(
+        Project project,
+        FirstPartyAnalyzerConfigSummary summary,
+        bool enableCodeQuality,
+        bool enableCodeStyle,
+        bool forceCompute,
+        CancellationToken cancellationToken)
     {
         if (forceCompute)
         {
@@ -269,6 +173,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
         // Attempt to get cached project diagnostics.
         var cachedDiagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, project.Id,
             documentId: null, includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+        
         if (!cachedDiagnostics.IsEmpty)
             return cachedDiagnostics;
 
@@ -285,7 +190,41 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
         KickOffBackgroundComputation(project, cancellationToken);
         return ImmutableArray<DiagnosticData>.Empty;
 
-        static bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();
+        bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            if (analyzer.IsCompilerAnalyzer())
+                return false;
+
+            foreach (var descriptor in _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(analyzer))
+            {
+                if (ShouldIncludeId(descriptor.Id, summary, enableCodeQuality, enableCodeStyle))
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
+    private static bool ShouldIncludeId(string id, FirstPartyAnalyzerConfigSummary summary, bool enableCodeQuality, bool enableCodeStyle)
+    {
+        // Only suggest diagnostics that are not explicitly configured in analyzer config files
+        if (enableCodeQuality
+            && ShouldIncludeIdForSummary(id, summary.CodeQualitySummary))
+        {
+            return true;
+        }
+
+        if (enableCodeStyle
+            && ShouldIncludeIdForSummary(id, summary.CodeStyleSummary))
+        {
+            return true;
+        }
+
+        return false;
+
+        static bool ShouldIncludeIdForSummary(string id, AnalyzerConfigSummary summary)
+            => Regex.IsMatch(id, summary.DiagnosticIdPattern)
+               && !summary.ConfiguredDiagnosticIds.Contains(id, StringComparer.OrdinalIgnoreCase);
     }
 
     public void Dispose()
