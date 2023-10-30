@@ -4,9 +4,7 @@
     <TargetFramework>$(NetCurrent)</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
-    <!-- These unit tests fail when run agains MicrosoftCodeAnalysisVersionForTests (4.6.0-final.1).
-         https://github.com/dotnet/roslyn-analyzers/issues/6672. -->
-    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForBannedApiAnalyzersTests)</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForTests)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />
