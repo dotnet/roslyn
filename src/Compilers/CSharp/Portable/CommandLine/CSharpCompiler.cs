@@ -429,6 +429,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
 
+            if (!((CSharpParseOptions?)inputCompilation.SyntaxTrees.FirstOrDefault()?.Options)?.InterceptorsPreviewNamespaces.IsDefaultOrEmpty == true)
+            {
+                var diagnostic = Diagnostic.Create(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_InterceptorsNotSupported));
+
+                diagnostics.Add(diagnostic);
+
+                return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
+            }
+
             // Run transformers.
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
@@ -460,11 +469,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             transformerOptions ??= TransformerOptions.Default;
 
-            Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
+            Dictionary<SyntaxTree, (SyntaxTree NewTree, bool IsModified)> oldTreeToNewTrees = new();
             Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
             HashSet<SyntaxTree> addedTrees = new();
 
-            AnalyzerConfigOptionsProvider GetMappedAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider)
+            AnalyzerConfigOptionsProvider getMappedAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider)
                 => CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees(
                     optionsProvider,
                     oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree)));
@@ -483,9 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     SyntaxTree annotatedTree = tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(cancellationToken)), tree.Options);
 
-                    SyntaxTreeHistory.Update(tree, annotatedTree );
+                    SyntaxTreeHistory.Update(tree, annotatedTree);
                     annotatedInputCompilation = annotatedInputCompilation.ReplaceSyntaxTree(tree, annotatedTree);
-                    oldTreeToNewTrees[tree] = (annotatedTree,false);
+                    oldTreeToNewTrees[tree] = (annotatedTree, false);
                     newTreesToOldTrees[annotatedTree] = tree;
                 }
             }
@@ -498,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Map the options provider to the annotated syntax trees.
                 var mappedOptionProvider =
-                    GetMappedAnalyzerConfigOptionsProvider(sourceOnlyAnalyzersOptions.AnalyzerOptions
+                    getMappedAnalyzerConfigOptionsProvider(sourceOnlyAnalyzersOptions.AnalyzerOptions
                         .AnalyzerConfigOptionsProvider);
                 var mappedOptions = new AnalyzerOptions(sourceOnlyAnalyzersOptions.AnalyzerOptions.AdditionalFiles,
                     mappedOptionProvider);
@@ -513,7 +522,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Execute the transformers.
             var outputCompilation = annotatedInputCompilation;
-
 
             foreach (var transformer in transformers)
             {
@@ -533,10 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     addedResources.AddRange(context.AddedResources);
 
                     // Filter the diagnostics.
-                    foreach ( var transformerDiagnostic in transformerDiagnostics .AsEnumerableWithoutResolution() )
+                    foreach (var transformerDiagnostic in transformerDiagnostics.AsEnumerableWithoutResolution())
                     {
                         var filteredDiagnostic = outputCompilation.Options.FilterDiagnostic(transformerDiagnostic, cancellationToken);
-                        if ( filteredDiagnostic != null )
+                        if (filteredDiagnostic != null)
                         {
                             diagnostics.Add(filteredDiagnostic);
                         }
@@ -599,8 +607,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             outputCompilation = outputCompilation.AddSyntaxTrees(newTree!);
                         }
                     }
-
-
                 }
                 catch (Exception ex)
                 {
@@ -614,25 +620,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-
             var replacements = oldTreeToNewTrees
-                .Where( p => p.Value.IsModified )
+                .Where(p => p.Value.IsModified)
                 .Select(p => SyntaxTreeTransformation.ReplaceTree(p.Key, p.Value.NewTree))
-                .Concat(addedTrees.Select(t => SyntaxTreeTransformation.AddTree(t)))
+                .Concat(addedTrees.Select(SyntaxTreeTransformation.AddTree))
                 .ToImmutableArray();
 
-            foreach ( var resource in addedResources.Where( r => r.IncludeInRefAssembly ) )
+            foreach (var resource in addedResources.Where(r => r.IncludeInRefAssembly))
             {
                 AttachedProperties.Add(resource.Resource, RefAssemblyResourceMarker.Instance);
             }
 
             return new TransformersResult(
-                annotatedInputCompilation, 
+                annotatedInputCompilation,
                 outputCompilation,
-                 replacements, 
-                new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
-                addedResources.SelectAsArray( m => m.Resource),
-                GetMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider) );
+                 replacements,
+                new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()),
+                addedResources.SelectAsArray(m => m.Resource),
+                getMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider));
         }
         // </Metalama>
 
