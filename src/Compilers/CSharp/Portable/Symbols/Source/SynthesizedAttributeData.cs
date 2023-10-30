@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -76,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override MethodSymbol? AttributeConstructor => _original.AttributeConstructor;
             protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments => _original.CommonConstructorArguments;
             protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _original.CommonNamedArguments;
+
+            [MemberNotNullWhen(false, nameof(AttributeConstructor))]
             internal override bool HasErrors => _original.HasErrors;
             internal override bool IsConditionallyOmitted => _original.IsConditionallyOmitted;
 
