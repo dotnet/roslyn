@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 internal class CodeAnalysisSuggestionsSuggestedActionCallback(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
     : ForegroundThreadAffinitizedObject(threadingContext), ISuggestedActionCallback
 {
-    private static readonly ImmutableHashSet<string> s_codeQualityAnalyzerAssemblyNames = ImmutableHashSet.Create(
+    private static readonly ImmutableHashSet<string> s_codeQualityAnalyzerAndFixerAssemblyNames = ImmutableHashSet.Create(
         StringComparer.OrdinalIgnoreCase,
         "Microsoft.CodeAnalysis.NetAnalyzers",
         "Microsoft.CodeAnalysis.CSharp.NetAnalyzers",
         "Microsoft.CodeAnalysis.VisualBasic.NetAnalyzers");
 
-    private static readonly ImmutableHashSet<string> s_codeStyleAnalyzerAssemblyNames = ImmutableHashSet.Create(
+    private static readonly ImmutableHashSet<string> s_codeStyleAnalyzerAndFixerAssemblyNames = ImmutableHashSet.Create(
         StringComparer.OrdinalIgnoreCase,
         "Microsoft.CodeAnalysis.Features",
         "Microsoft.CodeAnalysis.CSharp.Features",
@@ -58,8 +58,8 @@ internal class CodeAnalysisSuggestionsSuggestedActionCallback(IThreadingContext 
         static void UpdateOptions(IGlobalOptionService options, string assemblyName, bool codeQuality)
         {
             var isFirstPartyFix = codeQuality
-                ? s_codeQualityAnalyzerAssemblyNames.Contains(assemblyName)
-                : s_codeStyleAnalyzerAssemblyNames.Contains(assemblyName);
+                ? s_codeQualityAnalyzerAndFixerAssemblyNames.Contains(assemblyName)
+                : s_codeStyleAnalyzerAndFixerAssemblyNames.Contains(assemblyName);
             if (!isFirstPartyFix)
                 return;
 
