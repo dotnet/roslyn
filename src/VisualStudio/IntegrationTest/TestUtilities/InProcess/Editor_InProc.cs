@@ -29,7 +29,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -248,9 +247,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var broker = GetComponentModelService<ISignatureHelpBroker>();
                 return broker.IsSignatureHelpActive(view);
             });
-
-        private string PrintSpan(SnapshotSpan span)
-                => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
 
         /// <remarks>
         /// This method does not wait for async operations before
@@ -569,20 +565,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             return caretBuffer;
-        }
-
-        public string[] GetOutliningSpans()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var manager = GetComponentModelService<IOutliningManagerService>().GetOutliningManager(view);
-                var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
-                var regions = manager.GetAllRegions(span);
-                return regions
-                    .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
-                    .Select(r => PrintSpan(r.Extent.GetSpan(view.TextSnapshot)))
-                    .ToArray();
-            });
         }
 
         /// <summary>

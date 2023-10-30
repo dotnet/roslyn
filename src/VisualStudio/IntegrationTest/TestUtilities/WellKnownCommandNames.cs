@@ -7,7 +7,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     public static class WellKnownCommandNames
     {
         public const string Build_BuildSolution = "Build.BuildSolution";
-        public const string Build_SolutionConfigurations = "Build.SolutionConfigurations";
 
         public const string Edit_GoToAll = "Edit.GoToAll";
         public const string Edit_GoToBase = "Edit.GoToBase";
