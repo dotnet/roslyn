@@ -992,7 +992,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             dte.Find.Target = EnvDTE.vsFindTarget.vsFindTargetCurrentDocument;
             dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
 
-            var originalPosition = await GetCaretPositionAsync(cancellationToken);
+            var originalPosition = (await GetCaretPositionAsync(cancellationToken)).BufferPosition.Position;
             view.Caret.MoveTo(new SnapshotPoint(view.GetBufferContainingCaret()!.CurrentSnapshot, 0));
 
             if (occurrence > 0)
@@ -1048,7 +1048,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public async Task<int> GetCaretPositionAsync(CancellationToken cancellationToken)
+        public async Task<CaretPosition> GetCaretPositionAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -1057,8 +1057,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var subjectBuffer = view.GetBufferContainingCaret();
             Assumes.Present(subjectBuffer);
 
-            var bufferPosition = view.Caret.Position.BufferPosition;
-            return bufferPosition.Position;
+            return view.Caret.Position;
         }
 
         public async Task GoToDefinitionAsync(CancellationToken cancellationToken)

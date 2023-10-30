@@ -38,7 +38,7 @@ End Module", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("Sub()", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
-            Assert.Equal(48, await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken));
+            Assert.Equal(48, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
         }
 
         [IdeFact]
@@ -60,7 +60,7 @@ End Module", HangMitigatingCancellationToken);
     End Sub
 End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Undo, HangMitigatingCancellationToken);
-            Assert.Equal(54, await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken));
+            Assert.Equal(54, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
         }
 
         [IdeFact]
@@ -82,9 +82,9 @@ End Module", HangMitigatingCancellationToken);
     Sub Main()
     End Sub
 End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-            Assert.Equal(18, await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken));
+            Assert.Equal(18, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Undo, HangMitigatingCancellationToken);
-            Assert.Equal(16, await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken));
+            Assert.Equal(16, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
         }
 
         [IdeFact]
@@ -119,7 +119,7 @@ End Module
     End Sub
 End Module
 ", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-            Assert.Equal(45, await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken));
+            Assert.Equal(45, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
         }
 
         [IdeFact]

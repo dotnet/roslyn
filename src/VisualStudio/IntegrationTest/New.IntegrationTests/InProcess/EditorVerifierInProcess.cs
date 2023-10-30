@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -73,7 +73,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
             var editorText = view.TextSnapshot.GetText();
-            var caretPosition = await TestServices.Editor.GetCaretPositionAsync(cancellationToken);
+            var caretPosition = (await TestServices.Editor.GetCaretPositionAsync(cancellationToken)).BufferPosition.Position;
             editorText = editorText.Insert(caretPosition, "$$");
             AssertEx.EqualOrDiff(expectedText, editorText);
         }
@@ -118,7 +118,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             var index = editorText.IndexOf(expectedTextWithoutCaret);
 
-            var caretPosition = await TestServices.Editor.GetCaretPositionAsync(cancellationToken);
+            var caretPosition = (await TestServices.Editor.GetCaretPositionAsync(cancellationToken)).BufferPosition.Position;
             Assert.Equal(caretStartIndex + index, caretPosition);
         }
 
@@ -243,7 +243,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         public async Task CaretPositionAsync(int expectedCaretPosition, CancellationToken cancellationToken)
         {
-            Assert.Equal(expectedCaretPosition, await TestServices.Editor.GetCaretPositionAsync(cancellationToken));
+            Assert.Equal(expectedCaretPosition, (await TestServices.Editor.GetCaretPositionAsync(cancellationToken)).BufferPosition.Position);
         }
 
         public async Task ErrorTagsAsync(
