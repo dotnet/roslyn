@@ -1155,6 +1155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
+        internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
+
         /// <summary>
         /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
         /// </summary>

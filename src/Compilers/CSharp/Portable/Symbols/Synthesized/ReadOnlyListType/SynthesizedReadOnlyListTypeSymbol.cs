@@ -731,6 +731,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
         internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => _interfaces;

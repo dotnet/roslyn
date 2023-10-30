@@ -387,6 +387,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             methodName = null;
             return false;
         }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
 #nullable disable
     }
 }
