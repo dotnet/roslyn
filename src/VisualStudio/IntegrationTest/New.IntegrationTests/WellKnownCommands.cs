@@ -18,6 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public static class Edit
         {
             public const VSConstants.VSStd97CmdID ClearAll = VSConstants.VSStd97CmdID.ClearPane;
+            public const VSConstants.VSStd97CmdID Undo = VSConstants.VSStd97CmdID.Undo;
 
             public static readonly CommandID GoToImplementation = new(Guids.RoslynGroupId, ID.RoslynCommands.GoToImplementation);
             public static readonly CommandID RemoveAndSort = new(VSConstants.CMDSETID.CSharpGroup_guid, 6419);
