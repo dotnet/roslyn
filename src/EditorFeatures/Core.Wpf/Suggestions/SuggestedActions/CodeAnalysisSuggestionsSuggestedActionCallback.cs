@@ -63,15 +63,16 @@ internal class CodeAnalysisSuggestionsSuggestedActionCallback(IThreadingContext 
             if (!isFirstPartyFix)
                 return;
 
-            // Candidates fill the following criteria:
-            //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
-            //     2: Have triggered a code quality/code style suggested action on 3 separate days.
+            // We want to track if the user has triggered a code quality/code style suggested action on 3 separate days.
+            // We have options 'HasMetCandidacyRequirementsForXXX' for code quality/code style to track if the user
+            // has already met this requirement, and hence is a candidate.
+            // If not, we account for the current suggestion action invocation and update the invocation count and datetime.
 
             // If the user has already met candidacy conditions, then we have nothing to update.
-            var isCandidateOption = codeQuality
+            var hasMetCandidacyOption = codeQuality
                 ? CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeQuality
                 : CodeAnalysisSuggestionsOptionsStorage.HasMetCandidacyRequirementsForCodeStyle;
-            if (options.GetOption(isCandidateOption))
+            if (options.GetOption(hasMetCandidacyOption))
                 return;
 
             // We store in UTC to avoid any timezone offset weirdness
@@ -80,6 +81,7 @@ internal class CodeAnalysisSuggestionsSuggestedActionCallback(IThreadingContext 
                 : CodeAnalysisSuggestionsOptionsStorage.LastDateTimeUsedCodeStyleFix;
             var lastTriggeredTimeBinary = options.GetOption(lastUsedDateTimeOption);
 
+            // Check if this is the first suggested action invoked on this day.
             var lastTriggeredTime = DateTime.FromBinary(lastTriggeredTimeBinary);
             var currentTime = DateTime.UtcNow;
             var span = currentTime - lastTriggeredTime;
@@ -88,6 +90,7 @@ internal class CodeAnalysisSuggestionsSuggestedActionCallback(IThreadingContext 
 
             options.SetGlobalOption(lastUsedDateTimeOption, currentTime.ToBinary());
 
+            // Update the invoked fix count.
             var usedCountOption = codeQuality
                 ? CodeAnalysisSuggestionsOptionsStorage.InvokedCodeQualityFixCount
                 : CodeAnalysisSuggestionsOptionsStorage.InvokedCodeStyleFixCount;
@@ -96,7 +99,7 @@ internal class CodeAnalysisSuggestionsSuggestedActionCallback(IThreadingContext 
 
             // Mark candidate if user has invoked the fix 3 times.
             if (usageCount >= 3)
-                options.SetGlobalOption(isCandidateOption, true);
+                options.SetGlobalOption(hasMetCandidacyOption, true);
         }
     }
 }

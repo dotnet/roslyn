@@ -39,9 +39,6 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
         var (document, span, cancellationToken) = context;
 
         var configService = document.Project.Solution.Services.GetRequiredService<ICodeAnalysisSuggestionsConfigService>();
-
-        using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actionsBuilder);
-
         var ruleConfigData = await configService.TryGetCodeAnalysisSuggestionsConfigDataAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (ruleConfigData.IsEmpty)
             return;
@@ -51,16 +48,14 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
             return;
 
         var (actions, totalViolations) = await GetCodeAnalysisSuggestionActionsAsync(ruleConfigData, document, codeFixService, cancellationToken).ConfigureAwait(false);
-        actionsBuilder.AddRange(actions);
-
-        if (actionsBuilder.Count > 0)
+        if (actions.Length > 0)
         {
             Debug.Assert(totalViolations > 0);
 
             context.RegisterRefactoring(
                 CodeAction.Create(
                     string.Format(FeaturesResources.Code_analysis_improvements_0, totalViolations),
-                    actionsBuilder.ToImmutable(),
+                    actions,
                     isInlinable: false,
                     CodeActionPriority.Low),
                 span);
@@ -70,7 +65,7 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
     private static async Task<(ImmutableArray<CodeAction> Actions, int TotalViolations)> GetCodeAnalysisSuggestionActionsAsync(
         ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)> configData,
         Document document,
-        ICodeFixService? codeFixService,
+        ICodeFixService codeFixService,
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -94,7 +89,7 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
                 if (SuppressionHelpers.IsNotConfigurableDiagnostic(diagnostic))
                     continue;
 
-                if (documentForFix != null && codeFixService != null)
+                if (documentForFix != null)
                 {
                     var codeFixCollection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(documentForFix, diagnostic.Location.SourceSpan, id, CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
                     if (codeFixCollection != null)

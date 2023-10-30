@@ -101,7 +101,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
         {
             // We should show code analysis suggestions if either of the below conditions are met:
             //      1. Current solution has at least '3' editorconfig entries escalating to Warning or Error severity.
-            //         Note that '3' is an atribrarily chosen count which can be adjusted in future.
+            //         Note that '3' is an arbitrarily chosen count which can be adjusted in future.
             //      2. Current user has met the candidacy requirements related to invoking code fixes for
             //         code quality or code style diagnostics.
 
