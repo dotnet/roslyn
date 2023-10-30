@@ -128,6 +128,16 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return bufferPosition.Snapshot.GetText();
         }
 
+        public async Task ReplaceTextAsync(string oldText, string newText, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            await SelectTextInCurrentDocumentAsync(oldText, cancellationToken);
+            var replacementSpan = new SnapshotSpan(view.TextSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
+            view.TextBuffer.Replace(replacementSpan, newText);
+        }
+
         public async Task<string> GetCurrentLineTextAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

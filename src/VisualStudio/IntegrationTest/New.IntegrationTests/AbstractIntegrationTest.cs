@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
+using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -25,6 +27,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             if (await TestServices.SolutionExplorer.IsSolutionOpenAsync(HangMitigatingCancellationToken))
             {
+                var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(HangMitigatingCancellationToken);
+                if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
+                {
+                    dte.Debugger.TerminateAll();
+                }
+
                 await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
             }
 
@@ -32,6 +40,23 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await TestServices.StateReset.ResetHostSettingsAsync(HangMitigatingCancellationToken);
 
             await TestServices.Workarounds.WaitForGitHubCoPilotAsync(HangMitigatingCancellationToken);
+        }
+
+        public override async Task DisposeAsync()
+        {
+            var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(HangMitigatingCancellationToken);
+            if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
+            {
+                dte.Debugger.TerminateAll();
+                await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                    [
+                        FeatureAttribute.Workspace,
+                        FeatureAttribute.EditAndContinue,
+                    ],
+                    HangMitigatingCancellationToken);
+            }
+
+            await base.DisposeAsync();
         }
     }
 }
