@@ -50,11 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             }
             else
             {
-                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out var spansFromTestFile);
-                if (spansFromTestFile.Any())
+                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out spans);
+                if (spans.Any())
                 {
                     allCode = rewrittenCode;
-                    spans = spansFromTestFile;
                 }
                 else
                 {
