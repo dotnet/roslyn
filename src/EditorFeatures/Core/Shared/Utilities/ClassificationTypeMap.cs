@@ -14,8 +14,17 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
+/// <summary>
+/// This type only exists for binary compat with TypeScript.  Once they move to EA for
+/// <see cref="ClassificationTypeMap"/>, then we can remove this.
+/// </summary>
+internal abstract class AbstractClassificationTypeMap : IClassificationTypeMap
+{
+    public abstract IClassificationType GetClassificationType(string name);
+}
+
 [Export]
-internal sealed class ClassificationTypeMap : IClassificationTypeMap
+internal sealed class ClassificationTypeMap : AbstractClassificationTypeMap
 {
     private readonly IClassificationTypeRegistryService _registryService;
     private readonly Dictionary<string, IClassificationType> _identityMap;
@@ -42,7 +51,7 @@ internal sealed class ClassificationTypeMap : IClassificationTypeMap
         }
     }
 
-    public IClassificationType GetClassificationType(string name)
+    public override IClassificationType GetClassificationType(string name)
     {
         var type = GetClassificationTypeWorker(name);
         if (type == null)
