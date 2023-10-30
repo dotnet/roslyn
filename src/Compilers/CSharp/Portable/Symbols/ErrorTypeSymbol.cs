@@ -432,6 +432,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
 
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override bool IsInterpolatedStringHandlerType => false;

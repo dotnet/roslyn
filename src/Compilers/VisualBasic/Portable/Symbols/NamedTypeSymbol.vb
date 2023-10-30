@@ -154,9 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the string might be null or an invalid guid representation. False, 
         ''' if there is no GuidAttribute with string argument.
         ''' </summary>
-        Friend Overridable Function GetGuidString(ByRef guidString As String) As Boolean
-            Return GetGuidStringDefaultImplementation(guidString)
-        End Function
+        Friend MustOverride Function GetGuidString(ByRef guidString As String) As Boolean
 
         ' Named types have the arity suffix added to the metadata name.
         Public Overrides ReadOnly Property MetadataName As String
