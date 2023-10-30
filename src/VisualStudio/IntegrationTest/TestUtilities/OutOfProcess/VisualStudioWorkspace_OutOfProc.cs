@@ -50,11 +50,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, value);
         }
 
-        public void SetEnableDecompilationOption(bool value)
-        {
-            SetGlobalOption(WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources, language: null, value);
-        }
-
         public void SetTriggerCompletionInArgumentLists(bool value)
             => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
 

@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     {
         CompletionOptions_ShowItemsFromUnimportedNamespaces,
         CompletionOptions_TriggerInArgumentLists,
-        MetadataAsSourceOptions_NavigateToDecompiledSources,
     }
 
     internal static class WellKnownGlobalOptions
@@ -29,7 +28,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces => CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
                 WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists => CompletionOptionsStorage.TriggerInArgumentLists,
-                WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources => MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
                 _ => throw ExceptionUtilities.Unreachable()
             };
 

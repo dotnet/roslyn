@@ -40,7 +40,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         /// <seealso cref="__VSFPROPID.VSFPROPID_GuidPersistenceSlot"/>
         private static readonly ImmutableHashSet<Guid> s_windowsToClose = ImmutableHashSet.Create(
             FindReferencesWindowInProcess.FindReferencesWindowGuid,
-            new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser));
+            new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser),
+            new Guid(ToolWindowGuids80.CodedefinitionWindow));
 
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
