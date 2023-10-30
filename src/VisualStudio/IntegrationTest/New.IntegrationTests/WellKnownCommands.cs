@@ -10,8 +10,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     internal static class WellKnownCommands
     {
+        public static class Debug
+        {
+            public const VSConstants.VSStd97CmdID Immediate = VSConstants.VSStd97CmdID.ImmediateWindow;
+        }
+
         public static class Edit
         {
+            public const VSConstants.VSStd97CmdID ClearAll = VSConstants.VSStd97CmdID.ClearPane;
+
             public static readonly CommandID GoToImplementation = new(Guids.RoslynGroupId, ID.RoslynCommands.GoToImplementation);
             public static readonly CommandID RemoveAndSort = new(VSConstants.CMDSETID.CSharpGroup_guid, 6419);
 
