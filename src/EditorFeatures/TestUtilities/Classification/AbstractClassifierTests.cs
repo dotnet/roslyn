@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 if (spansFromTestFile.Any())
                 {
                     allCode = rewrittenCode;
-                    spans = ImmutableArray.Create(spansFromTestFile.AsSpan());
+                    spans = spansFromTestFile;
                 }
                 else
                 {
