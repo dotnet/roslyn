@@ -5,7 +5,7 @@ namespace DownloadNetSdkAnalyzers;
 
 record NetSdkReleasesDocument(SortedDictionary<SemanticVersion, NetSdkRelease> Releases);
 
-record NetSdkRelease(string SdkZipUrl, Version RoslynVersion);
+record NetSdkRelease(string SdkZipUrl, SemanticVersion RoslynVersion);
 
 record ReleasesDocument(IList<Release> Releases);
 
