@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportStatelessXamlLspService(typeof(CodeLensResolveHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(CodeLensResolveHandler)), Shared]
 [XamlMethod(LSP.Methods.CodeLensResolveName)]
 internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler<LSP.CodeLens, LSP.CodeLens>
 {

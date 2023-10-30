@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             Document document,
             int position,
             CompletionCapabilityHelper capabilityHelper,
-            CompletionList list, bool isIncomplete, long resultId,
+            CompletionList list, bool isIncomplete, long resultId, long documentId,
             CancellationToken cancellationToken);
 
         Task<LSP.CompletionItem> ResolveAsync(

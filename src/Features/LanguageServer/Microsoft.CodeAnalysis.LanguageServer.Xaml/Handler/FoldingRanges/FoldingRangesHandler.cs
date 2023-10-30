@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(FoldingRangesHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(FoldingRangesHandler)), Shared]
     [XamlMethod(Methods.TextDocumentFoldingRangeName)]
     internal class FoldingRangesHandler : ILspServiceDocumentRequestHandler<FoldingRangeParams, FoldingRange[]>
     {

@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (completionListResult == null)
                 return null;
 
-            var (list, isIncomplete, resultId) = completionListResult.Value;
+            var (list, isIncomplete, resultId, documentId) = completionListResult.Value;
 
             var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
-            return await creationService.ConvertToLspCompletionListAsync(document, position, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
+            return await creationService.ConvertToLspCompletionListAsync(document, position, capabilityHelper, list, isIncomplete, resultId, documentId, cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        private async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId)?> GetFilteredCompletionListAsync(
+        private async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId, long DocumentId)?> GetFilteredCompletionListAsync(
             LSP.CompletionParams request,
             RequestContext context,
             SourceText sourceText,
@@ -88,19 +88,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
             var isTriggerForIncompleteCompletions = request.Context?.TriggerKind == LSP.CompletionTriggerKind.TriggerForIncompleteCompletions;
             var completionListCache = context.GetRequiredLspService<CompletionListCache>();
+            var documentCache = context.GetRequiredLspService<DocumentCache>();
 
-            (CompletionList List, long ResultId)? result;
+            (CompletionList List, long ResultId, long DocumentId)? result;
             if (isTriggerForIncompleteCompletions)
             {
                 // We don't have access to the original trigger, but we know the completion list is already present.
                 // It is safe to recompute with the invoked trigger as we will get all the items and filter down based on the current trigger.
                 var originalTrigger = new CompletionTrigger(CompletionTriggerKind.Invoke);
-                result = await CalculateListAsync(request, document, position, originalTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
+                result = await CalculateListAsync(request, document, position, originalTrigger, completionOptions, completionService, completionListCache, documentCache, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // This is a new completion request, clear out the last result Id for incomplete results.
-                result = await CalculateListAsync(request, document, position, completionTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
+                result = await CalculateListAsync(request, document, position, completionTrigger, completionOptions, completionService, completionListCache, documentCache, cancellationToken).ConfigureAwait(false);
             }
 
             if (result == null)
@@ -109,14 +110,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var resultId = result.Value.ResultId;
+            var documentId = result.Value.DocumentId;
 
             var completionListMaxSize = _globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
             var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionTrigger, sourceText);
 
-            return (completionList, isIncomplete, resultId);
+            return (completionList, isIncomplete, resultId, documentId);
         }
 
-        private static async Task<(CompletionList CompletionList, long ResultId)?> CalculateListAsync(
+        private static async Task<(CompletionList CompletionList, long ResultId, long DocumentId)?> CalculateListAsync(
             LSP.CompletionParams request,
             Document document,
             int position,
@@ -124,6 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CompletionOptions completionOptions,
             CompletionService completionService,
             CompletionListCache completionListCache,
+            DocumentCache documentCache,
             CancellationToken cancellationToken)
         {
             var completionList = await completionService.GetCompletionsAsync(document, position, completionOptions, document.Project.Solution.Options, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -134,9 +137,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // Cache the completion list so we can avoid recomputation in the resolve handler
-            var resultId = completionListCache.UpdateCache(new CompletionListCache.CacheEntry(request.TextDocument, completionList));
+            var resultId = completionListCache.UpdateCache(new CompletionListCache.CacheEntry(completionList));
+            var documentId = documentCache.UpdateCache(request.TextDocument);
 
-            return (completionList, resultId);
+            return (completionList, resultId, documentId);
         }
 
         private static (CompletionList CompletionList, bool IsIncomplete) FilterCompletionList(

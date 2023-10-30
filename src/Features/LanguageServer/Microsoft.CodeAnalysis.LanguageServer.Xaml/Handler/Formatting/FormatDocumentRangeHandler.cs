@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(FormatDocumentRangeHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(FormatDocumentRangeHandler)), Shared]
     [XamlMethod(Methods.TextDocumentRangeFormattingName)]
     internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]>
     {

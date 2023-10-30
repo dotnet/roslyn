@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportStatelessXamlLspService(typeof(HoverHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(HoverHandler)), Shared]
 [XamlMethod(Methods.TextDocumentHoverName)]
 internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocumentPositionParams, Hover?>
 {

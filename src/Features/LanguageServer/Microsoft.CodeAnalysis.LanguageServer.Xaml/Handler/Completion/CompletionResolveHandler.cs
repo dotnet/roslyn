@@ -2,51 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Xaml.Extensions;
-using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
 /// <summary>
 /// Handle a completion resolve request to add description.
 /// </summary>
-[ExportStatelessXamlLspService(typeof(CompletionResolveHandler)), Shared]
 [XamlMethod(Methods.TextDocumentCompletionResolveName)]
 internal class CompletionResolveHandler : ILspServiceRequestHandler<CompletionItem, CompletionItem>, ITextDocumentIdentifierHandler<CompletionItem, TextDocumentIdentifier?>
 {
     private readonly IGlobalOptionService _globalOptions;
+    private readonly DocumentCache _documentCache;
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CompletionResolveHandler(IGlobalOptionService globalOptions)
+    public CompletionResolveHandler(IGlobalOptionService globalOptions, DocumentCache documentCache)
     {
         _globalOptions = globalOptions;
+        _documentCache = documentCache;
     }
 
     public TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request)
-        => ProtocolConversions.GetTextDocument(request.Data);
+        => GetTextDocumentCacheEntry(request);
 
     public async Task<CompletionItem> HandleRequestAsync(CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
     {
@@ -67,6 +61,11 @@ internal class CompletionResolveHandler : ILspServiceRequestHandler<CompletionIt
         if (document is null)
         {
             return completionItem;
+        }
+
+        if (completionItem.Command?.CommandIdentifier is not null)
+        {
+            completionItem.Command.Arguments = completionItem.Command.Arguments?.Append(ProtocolConversions.DocumentToTextDocumentIdentifier(document));
         }
 
         var offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
@@ -92,5 +91,25 @@ internal class CompletionResolveHandler : ILspServiceRequestHandler<CompletionIt
         }
 
         return completionItem;
+    }
+
+    private TextDocumentIdentifier? GetTextDocumentCacheEntry(CompletionItem request)
+    {
+        Contract.ThrowIfNull(request.Data);
+        var resolveData = ((JToken)request.Data).ToObject<DocumentIdResolveData>();
+        if (resolveData?.DocumentId == null)
+        {
+            Contract.Fail("Document id should always be provided when resolving a completion item we returned.");
+            return null;
+        }
+
+        var document = _documentCache.GetCachedEntry(resolveData.DocumentId);
+        if (document == null)
+        {
+            // No cache for associated document id. Log some telemetry so we can understand how frequently this actually happens.
+            Logger.Log(FunctionId.LSP_DocumentIdCacheMiss, KeyValueLogMessage.NoProperty);
+        }
+
+        return document;
     }
 }

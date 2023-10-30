@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportStatelessXamlLspService(typeof(OnAutoInsertHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(OnAutoInsertHandler)), Shared]
 [XamlMethod(VSInternalMethods.OnAutoInsertName)]
 internal class OnAutoInsertHandler : ILspServiceDocumentRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
 {

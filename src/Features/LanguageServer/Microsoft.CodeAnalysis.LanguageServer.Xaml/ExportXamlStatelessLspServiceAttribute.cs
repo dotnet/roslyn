@@ -8,9 +8,9 @@ using System.Composition;
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml;
 
 [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
-internal sealed class ExportStatelessXamlLspServiceAttribute : ExportStatelessLspServiceAttribute
+internal sealed class ExportXamlStatelessLspServiceAttribute : ExportStatelessLspServiceAttribute
 {
-    public ExportStatelessXamlLspServiceAttribute(Type handlerType) : base(handlerType, ProtocolConstants.RoslynLspLanguagesContract)
+    public ExportXamlStatelessLspServiceAttribute(Type handlerType) : base(handlerType, ProtocolConstants.RoslynLspLanguagesContract)
     {
     }
 }

@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(FindAllReferencesHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [XamlMethod(LSP.Methods.TextDocumentReferencesName)]
     internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?>
     {

@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(DocumentHighlightsHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(DocumentHighlightsHandler)), Shared]
     [XamlMethod(Methods.TextDocumentDocumentHighlightName)]
     internal class DocumentHighlightsHandler : ILspServiceDocumentRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
     {

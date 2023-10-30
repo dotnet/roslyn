@@ -14,7 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(SemanticTokensRangeHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(SemanticTokensRangeHandler)), Shared]
     [XamlMethod(Methods.TextDocumentSemanticTokensRangeName)]
     internal class SemanticTokensRangeHandler : ILspServiceDocumentRequestHandler<SemanticTokensRangeParams, LSP.SemanticTokens>
     {

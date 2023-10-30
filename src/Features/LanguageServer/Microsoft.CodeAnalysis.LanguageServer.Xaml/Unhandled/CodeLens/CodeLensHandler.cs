@@ -12,7 +12,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportStatelessXamlLspService(typeof(CodeLensHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(CodeLensHandler)), Shared]
 [XamlMethod(LSP.Methods.TextDocumentCodeLensName)]
 internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]?>
 {

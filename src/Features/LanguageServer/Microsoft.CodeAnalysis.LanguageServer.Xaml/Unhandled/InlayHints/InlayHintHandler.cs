@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(InlayHintHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(InlayHintHandler)), Shared]
     [XamlMethod(Methods.TextDocumentInlayHintName)]
     internal sealed class InlayHintHandler : ILspServiceDocumentRequestHandler<InlayHintParams, LSP.InlayHint[]?>
     {

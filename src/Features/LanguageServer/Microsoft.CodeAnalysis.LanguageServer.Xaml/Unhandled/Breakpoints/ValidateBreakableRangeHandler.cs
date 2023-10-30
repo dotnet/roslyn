@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportStatelessXamlLspService(typeof(ValidateBreakableRangeHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
 [XamlMethod(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
 internal sealed class ValidateBreakableRangeHandler : ILspServiceDocumentRequestHandler<VSInternalValidateBreakableRangeParams, LSP.Range?>
 {

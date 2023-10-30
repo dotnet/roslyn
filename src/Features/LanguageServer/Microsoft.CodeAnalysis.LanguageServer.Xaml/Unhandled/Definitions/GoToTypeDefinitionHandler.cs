@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportStatelessXamlLspService(typeof(GoToTypeDefinitionHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(GoToTypeDefinitionHandler)), Shared]
 [XamlMethod(LSP.Methods.TextDocumentTypeDefinitionName)]
 internal class GoToTypeDefinitionHandler : ILspServiceDocumentRequestHandler<TextDocumentPositionParams, LSP.Location[]>
 {

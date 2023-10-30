@@ -27,19 +27,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>, ITextDocumentIdentifierHandler<LSP.CompletionItem, LSP.TextDocumentIdentifier?>
     {
         private readonly CompletionListCache _completionListCache;
+        private readonly DocumentCache _documentCache;
         private readonly IGlobalOptionService _globalOptions;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache)
+        public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache, DocumentCache documentCache)
         {
             _globalOptions = globalOptions;
             _completionListCache = completionListCache;
+            _documentCache = documentCache;
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
-            => ProtocolConversions.GetTextDocument(request.Data);
+            => GetTextDocumentCacheEntry(request);
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 await creationService.ResolveAsync(
                     completionItem,
                     selectedItem,
-                    cacheEntry.TextDocument,
+                    ProtocolConversions.DocumentToTextDocumentIdentifier(document),
                     document,
                     new CompletionCapabilityHelper(context.GetRequiredClientCapabilities()),
                     completionService,
@@ -87,6 +89,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
         }
 
+        private LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+            var resolveData = ((JToken)request.Data).ToObject<DocumentIdResolveData>();
+            if (resolveData?.DocumentId == null)
+            {
+                Contract.Fail("Document id should always be provided when resolving a completion item we returned.");
+                return null;
+            }
+
+            var document = _documentCache.GetCachedEntry(resolveData.DocumentId);
+            if (document == null)
+            {
+                // No cache for associated document id. Log some telemetry so we can understand how frequently this actually happens.
+                Logger.Log(FunctionId.LSP_DocumentIdCacheMiss, KeyValueLogMessage.NoProperty);
+            }
+
+            return document;
+        }
+
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
         {
             Contract.ThrowIfNull(request.Data);
@@ -97,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId.Value);
+            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId);
             if (cacheEntry == null)
             {
                 // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.

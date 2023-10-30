@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(RenameHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(RenameHandler)), Shared]
     [XamlMethod(LSP.Methods.TextDocumentRenameName)]
     internal class RenameHandler : ILspServiceDocumentRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {

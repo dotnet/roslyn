@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
     [XamlMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {

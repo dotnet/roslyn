@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 /// <summary>
 /// Handle a completion request.
 /// </summary>
-[ExportStatelessXamlLspService(typeof(CompletionHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(CompletionHandler)), Shared]
 [XamlMethod(Methods.TextDocumentCompletionName)]
 internal class CompletionHandler : ILspServiceDocumentRequestHandler<CompletionParams, CompletionList?>
 {
@@ -73,15 +73,17 @@ internal class CompletionHandler : ILspServiceDocumentRequestHandler<CompletionP
             return null;
         }
 
+        var documentCache = context.GetRequiredLspService<DocumentCache>();
+        var documentId = documentCache.UpdateCache(request.TextDocument);
         var commitCharactersCache = new Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>>();
         return new VSInternalCompletionList
         {
-            Items = completionResult.Completions.Select(c => CreateCompletionItem(c, text, request.Position, request.TextDocument, commitCharactersCache)).ToArray(),
+            Items = completionResult.Completions.Select(c => CreateCompletionItem(c, text, request.Position, documentId, commitCharactersCache)).ToArray(),
             SuggestionMode = false,
         };
     }
 
-    private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, SourceText text, Position position, TextDocumentIdentifier textDocument, Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>> commitCharactersCache)
+    private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, SourceText text, Position position, long documentId, Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>> commitCharactersCache)
     {
         var item = new VSInternalCompletionItem
         {
@@ -96,7 +98,7 @@ internal class CompletionHandler : ILspServiceDocumentRequestHandler<CompletionP
             Description = xamlCompletion.Description,
             Icon = xamlCompletion.Icon,
             InsertTextFormat = xamlCompletion.IsSnippet == true ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,
-            Data = new CompletionResolveData(position, textDocument)
+            Data = new CompletionResolveData(position, documentId)
         };
 
         if (xamlCompletion.Span.HasValue)
@@ -113,7 +115,7 @@ internal class CompletionHandler : ILspServiceDocumentRequestHandler<CompletionP
             item.Command = new Command()
             {
                 CommandIdentifier = StringConstants.CreateEventHandlerCommand,
-                Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
+                Arguments = new object[] { xamlCompletion.EventDescription },
                 Title = CreateEventHandlerCommandTitle
             };
         }

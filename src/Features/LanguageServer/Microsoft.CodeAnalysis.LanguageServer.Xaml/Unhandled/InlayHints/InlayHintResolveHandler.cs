@@ -15,7 +15,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(InlayHintResolveHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(InlayHintResolveHandler)), Shared]
     [XamlMethod(Methods.InlayHintResolveName)]
     internal sealed class InlayHintResolveHandler : ILspServiceDocumentRequestHandler<LSP.InlayHint, LSP.InlayHint>
     {

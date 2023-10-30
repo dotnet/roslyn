@@ -12,7 +12,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(FindImplementationsHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(FindImplementationsHandler)), Shared]
     [XamlMethod(LSP.Methods.TextDocumentImplementationName)]
     internal sealed class FindImplementationsHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {

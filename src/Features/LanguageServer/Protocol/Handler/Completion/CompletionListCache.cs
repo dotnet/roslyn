@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         {
         }
 
-        public record CacheEntry(LSP.TextDocumentIdentifier TextDocument, CompletionList CompletionList);
+        public record CacheEntry(CompletionList CompletionList);
     }
 }

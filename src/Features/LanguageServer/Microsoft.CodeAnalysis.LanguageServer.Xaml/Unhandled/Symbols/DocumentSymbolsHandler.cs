@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportStatelessXamlLspService(typeof(DocumentSymbolsHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
 [XamlMethod(Methods.TextDocumentDocumentSymbolName)]
 internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, object[]>
 {

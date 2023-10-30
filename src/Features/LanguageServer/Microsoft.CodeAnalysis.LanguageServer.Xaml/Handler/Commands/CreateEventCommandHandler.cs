@@ -15,13 +15,14 @@ using Microsoft.CodeAnalysis.ExternalAccess.Xaml.Commands;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
 /// <summary>
 /// Handle the command that adds an event handler method in code
 /// </summary>
-[ExportStatelessXamlLspService(typeof(CreateEventCommandHandler)), Shared]
+[ExportXamlStatelessLspService(typeof(CreateEventCommandHandler)), Shared]
 [Command(StringConstants.CreateEventHandlerCommand)]
 internal class CreateEventCommandHandler : AbstractExecuteWorkspaceCommandHandler
 {
@@ -38,7 +39,7 @@ internal class CreateEventCommandHandler : AbstractExecuteWorkspaceCommandHandle
     public override bool RequiresLSPSolution => true;
 
     public override TextDocumentIdentifier GetTextDocumentIdentifier(ExecuteCommandParams request)
-        => ((JToken)request.Arguments!.First()).ToObject<TextDocumentIdentifier>()!;
+        => ((JToken)request.Arguments!.Last()).ToObject<TextDocumentIdentifier>()!;
 
     public override async Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
     {
@@ -56,10 +57,10 @@ internal class CreateEventCommandHandler : AbstractExecuteWorkspaceCommandHandle
             return false;
         }
 
-        // request.Arguments has two argument for CreateEventHandlerCommand
-        // Arguments[0]: TextDocumentIdentifier
-        // Arguments[1]: XamlEventDescription
-        var eventDescription = ((JToken)request.Arguments[1]).ToObject<XamlEventDescription>();
+        // request.Arguments has two arguments for CreateEventHandlerCommand
+        // Arguments[0]: XamlEventDescription
+        // Arguments[1]: TextDocumentIdentifier
+        var eventDescription = ((JToken)request.Arguments.First()).ToObject<XamlEventDescription>();
         var arguments = eventDescription is not null ? new object[] { eventDescription } : null;
         return await commandService.ExecuteCommandAsync(document, request.Command, arguments, cancellationToken).ConfigureAwait(false);
     }

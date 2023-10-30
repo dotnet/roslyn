@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(SignatureHelpHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(SignatureHelpHandler)), Shared]
     [XamlMethod(LSP.Methods.TextDocumentSignatureHelpName)]
     internal class SignatureHelpHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {

@@ -12,7 +12,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportStatelessXamlLspService(typeof(FormatDocumentHandler)), Shared]
+    [ExportXamlStatelessLspService(typeof(FormatDocumentHandler)), Shared]
     [XamlMethod(LSP.Methods.TextDocumentFormattingName)]
     internal class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
