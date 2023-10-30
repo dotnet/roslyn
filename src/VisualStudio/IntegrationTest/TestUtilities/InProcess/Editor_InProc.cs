@@ -249,31 +249,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return broker.IsSignatureHelpActive(view);
             });
 
-        public string[] GetHighlightTags()
-           => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
-
         private string PrintSpan(SnapshotSpan span)
                 => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
-
-        private string[] GetTags<TTag>(Predicate<TTag>? filter = null)
-            where TTag : ITag
-        {
-            bool Filter(TTag tag)
-                => true;
-
-            filter ??= Filter;
-
-            return ExecuteOnActiveView(view =>
-            {
-                var viewTagAggregatorFactory = GetComponentModelService<IViewTagAggregatorFactoryService>();
-                var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
-                var tags = aggregator
-                  .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                  .Where(t => filter(t.Tag))
-                  .Cast<IMappingTagSpan<ITag>>();
-                return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
-            });
-        }
 
         /// <remarks>
         /// This method does not wait for async operations before

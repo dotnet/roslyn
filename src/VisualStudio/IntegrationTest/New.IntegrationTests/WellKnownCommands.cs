@@ -14,6 +14,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             public static readonly CommandID GoToImplementation = new(Guids.RoslynGroupId, ID.RoslynCommands.GoToImplementation);
             public static readonly CommandID RemoveAndSort = new(VSConstants.CMDSETID.CSharpGroup_guid, 6419);
+
+            // These were never added to VSConstants, but are defined in CommandHandlerServiceAdapter
+            public const VSConstants.VSStd2KCmdID NextHighlightedReference = (VSConstants.VSStd2KCmdID)2400;
+            public const VSConstants.VSStd2KCmdID PreviousHighlightedReference = (VSConstants.VSStd2KCmdID)2401;
         }
     }
 }

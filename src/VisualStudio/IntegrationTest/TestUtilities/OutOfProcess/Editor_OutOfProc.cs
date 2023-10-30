@@ -181,9 +181,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _editorInProc.SetUseSuggestionMode(value);
         }
 
-        public TextSpan[] GetKeywordHighlightTags()
-            => Deserialize(_editorInProc.GetHighlightTags());
-
         public TextSpan[] GetOutliningSpans()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Outlining);
