@@ -489,7 +489,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 return codeAction;
             }
 
-
             if (codeAction is FixAllCodeAction)
             {
                 if (string.Format(FeaturesResources.Fix_All_0, currentTitle) == goalTitle)
