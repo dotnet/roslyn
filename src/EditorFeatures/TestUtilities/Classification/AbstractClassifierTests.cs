@@ -50,12 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             }
             else
             {
-                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out var testSpans);
-                Assert.True(testSpans.Length < 2);
-                if (testSpans.Length == 1)
+                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out var spansFromTestFile);
+                if (spansFromTestFile.Any())
                 {
                     allCode = rewrittenCode;
-                    spans = ImmutableArray.Create(testSpans.Single());
+                    spans = ImmutableArray.Create(spansFromTestFile.AsSpan());
                 }
                 else
                 {
