@@ -406,7 +406,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
             _variables.Free();
-            Debug.Assert(_targetTypedAnalysisCompletionOpt is null or { Count: 0 });
+            // <Metalama> Commented out. Triggers on Metalama.Framework.Engine, see https://postsharp.tpondemand.com/entity/34064.
+            // Debug.Assert(_targetTypedAnalysisCompletionOpt is null or { Count: 0 });
+            // </Metalama<
             _targetTypedAnalysisCompletionOpt?.Free();
             base.Free();
         }
