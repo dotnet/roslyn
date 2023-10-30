@@ -8,8 +8,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     {
         public const string Build_BuildSolution = "Build.BuildSolution";
 
-        public const string Edit_GoToAll = "Edit.GoToAll";
-        public const string Edit_GoToBase = "Edit.GoToBase";
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
         public const string Edit_ToggleCompletionMode = "Edit.ToggleCompletionMode";
@@ -27,15 +25,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_Delete = "Edit.Delete";
         public const string Edit_LineUp = "Edit.LineUp";
         public const string Edit_LineDown = "Edit.LineDown";
-        public const string Edit_FormatDocument = "Edit.FormatDocument";
 
-        public const string File_OpenFile = "File.OpenFile";
         public const string File_SaveAll = "File.SaveAll";
 
         public const string InteractiveConsole_ClearScreen = "InteractiveConsole.ClearScreen";
         public const string InteractiveConsole_ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
 
-        public const string ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages = "ProjectandSolutionContextMenus.Solution.RestoreNuGetPackages";
         public const string ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject
             = "ProjectandSolutionContextMenus.Project.ResetC#InteractiveFromProject";
 
@@ -48,9 +43,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public const string Test_IntegrationTestService_Start = "Test.IntegrationTestService.Start";
         public const string Test_IntegrationTestService_Stop = "Test.IntegrationTestService.Stop";
-
-        public const string View_ErrorList = "View.ErrorList";
-        public const string View_ShowSmartTag = "View.ShowSmartTag";
-        public const string View_Output = "View.Output";
     }
 }
