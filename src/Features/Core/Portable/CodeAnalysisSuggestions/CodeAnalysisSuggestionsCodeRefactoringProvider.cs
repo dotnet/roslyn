@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions;
 
@@ -78,10 +79,8 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
         foreach (var (category, diagnosticsById) in configData)
         {
             var totalViolationsForCategory = 0;
-            foreach (var kvp in diagnosticsById)
+            foreach (var (id, diagnostics) in diagnosticsById)
             {
-                var id = kvp.Key;
-                var diagnostics = kvp.Value;
                 Debug.Assert(diagnostics.All(d => string.Equals(d.Category, category, StringComparison.OrdinalIgnoreCase)));
 
                 var (diagnosticData, documentForFix) = GetPreferredDiagnosticAndDocument(diagnostics, document);
