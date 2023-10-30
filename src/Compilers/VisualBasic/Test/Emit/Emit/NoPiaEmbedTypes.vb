@@ -2720,9 +2720,115 @@ End Structure
             Dim verifier = CompileAndVerify(compilation1.AddReferences(dispIdDefinition), symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
 
-            ' https://github.com/dotnet/roslyn/issues/70338: Going to start failing after https://github.com/dotnet/roslyn/pull/70151 is merged
-            'verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            'AssertTheseDiagnostics(verifier, (<errors/>))
+            compilation1.AssertTheseEmitDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'DispId, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'DispIdAttribute'. Add one to your project.
+</expected>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70338")>
+        Public Sub DispIdAttribute_03()
+
+            Dim empty = CreateCompilation("", targetFramework:=TargetFramework.DesktopLatestExtended).EmitToImageReference()
+
+            Dim pia = <compilation name="0">
+                          <file name="a.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+<Assembly: ImportedFromTypeLib("_.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58271")>
+Public Interface I
+    <DispId("124")>
+    Sub M()
+End Interface
+]]></file>
+                      </compilation>
+
+            Dim piaCompilation = CreateCompilation(pia, references:={empty}, targetFramework:=TargetFramework.DesktopLatestExtended)
+
+            piaCompilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30934: Conversion from 'String' to 'Integer' cannot occur in a constant expression used as an argument to an attribute.
+    <DispId("124")>
+            ~~~~~
+]]></expected>
+            )
+
+            Dim sources1 = <compilation name="1">
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Implements I
+    Private Sub M() Implements I.M
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M")
+                                                           Assert.Empty(method.GetAttributes())
+                                                       End Sub
+
+            Dim compilation1 = CreateCompilation(sources1, references:={piaCompilation.ToMetadataReference(embedInteropTypes:=True)}, targetFramework:=TargetFramework.DesktopLatestExtended)
+
+            CompileAndVerify(compilation1, symbolValidator:=validator)
+
+            CompileAndVerify(compilation1.AddReferences(empty), symbolValidator:=validator)
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70338")>
+        Public Sub DispIdAttribute_04()
+
+            Dim pia = <compilation name="0">
+                          <file name="a.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+<Assembly: ImportedFromTypeLib("_.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58271")>
+Public Interface I
+    <DispId(124, Something:=10)>
+    Sub M()
+End Interface
+]]></file>
+                      </compilation>
+
+            Dim piaCompilation = CreateCompilation(pia, targetFramework:=TargetFramework.DesktopLatestExtended)
+
+            piaCompilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30661: Field or property 'Something' is not found.
+    <DispId(124, Something:=10)>
+                 ~~~~~~~~~
+]]></expected>
+            )
+
+            Dim sources1 = <compilation name="1">
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Implements I
+    Private Sub M() Implements I.M
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M")
+                                                           Assert.Empty(method.GetAttributes())
+                                                       End Sub
+
+            Dim compilation1 = CreateCompilation(sources1, references:={piaCompilation.ToMetadataReference(embedInteropTypes:=True)}, targetFramework:=TargetFramework.DesktopLatestExtended)
+
+            CompileAndVerify(compilation1, symbolValidator:=validator)
         End Sub
 
         <Fact()>

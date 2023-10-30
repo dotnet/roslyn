@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments => _arguments;
             protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _namedArguments;
             internal override bool HasErrors => false;
+            internal override DiagnosticInfo? ErrorInfo => null;
             internal override bool IsConditionallyOmitted => false;
             internal override Location GetAttributeArgumentLocation(int parameterIndex) => NoLocation.Singleton;
 
@@ -80,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             [MemberNotNullWhen(false, nameof(AttributeConstructor))]
             internal override bool HasErrors => _original.HasErrors;
+            internal override DiagnosticInfo? ErrorInfo => _original.ErrorInfo;
             internal override bool IsConditionallyOmitted => _original.IsConditionallyOmitted;
 
             internal override Location GetAttributeArgumentLocation(int parameterIndex) => _original.GetAttributeArgumentLocation(parameterIndex);

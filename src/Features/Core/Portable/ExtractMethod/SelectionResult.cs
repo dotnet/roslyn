@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -16,17 +18,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     /// <summary>
     /// clean up this code when we do selection validator work.
     /// </summary>
-    internal abstract class SelectionResult
+    internal abstract class SelectionResult<TStatementSyntax>
+        where TStatementSyntax : SyntaxNode
     {
-        protected SelectionResult(OperationStatus status)
-        {
-            Contract.ThrowIfNull(status);
-
-            Status = status;
-        }
-
         protected SelectionResult(
-            OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
             ExtractMethodOptions options,
@@ -36,8 +31,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SyntaxAnnotation lastTokenAnnotation,
             bool selectionChanged)
         {
-            Status = status;
-
             OriginalSpan = originalSpan;
             FinalSpan = finalSpan;
 
@@ -51,7 +44,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SelectionChanged = selectionChanged;
         }
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
+
+        public abstract TStatementSyntax GetFirstStatementUnderContainer();
+        public abstract TStatementSyntax GetLastStatementUnderContainer();
 
         public abstract bool ContainingScopeHasAsyncKeyword();
 
@@ -59,10 +56,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public abstract ITypeSymbol GetContainingScopeType();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-        public abstract bool IsExtractMethodOnSingleStatement();
-        public abstract bool IsExtractMethodOnMultipleStatements();
-
-        public OperationStatus Status { get; }
         public TextSpan OriginalSpan { get; }
         public TextSpan FinalSpan { get; }
         public ExtractMethodOptions Options { get; }
@@ -72,25 +65,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public SyntaxAnnotation LastTokenAnnotation { get; }
         public bool SelectionChanged { get; }
 
-        public SelectionResult With(SemanticDocument document)
+        public SelectionResult<TStatementSyntax> With(SemanticDocument document)
         {
             if (SemanticDocument == document)
             {
                 return this;
             }
 
-            var clone = (SelectionResult)MemberwiseClone();
+            var clone = (SelectionResult<TStatementSyntax>)MemberwiseClone();
             clone.SemanticDocument = document;
 
             return clone;
-        }
-
-        public bool ContainsValidContext
-        {
-            get
-            {
-                return SemanticDocument != null;
-            }
         }
 
         public SyntaxToken GetFirstTokenInSelection()
@@ -105,20 +90,44 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return containingScope.GetAncestorOrThis<TNode>();
         }
 
-        protected T GetFirstStatement<T>() where T : SyntaxNode
+        public bool IsExtractMethodOnSingleStatement()
+        {
+            var firstStatement = this.GetFirstStatement();
+            var lastStatement = this.GetLastStatement();
+
+            return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
+        }
+
+        public bool IsExtractMethodOnMultipleStatements()
+        {
+            var first = this.GetFirstStatement();
+            var last = this.GetLastStatement();
+
+            if (first != last)
+            {
+                var firstUnderContainer = this.GetFirstStatementUnderContainer();
+                var lastUnderContainer = this.GetLastStatementUnderContainer();
+                Contract.ThrowIfFalse(this.SyntaxFacts.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
+                return true;
+            }
+
+            return false;
+        }
+
+        public TStatementSyntax GetFirstStatement()
         {
             Contract.ThrowIfTrue(SelectionInExpression);
 
             var token = GetFirstTokenInSelection();
-            return token.GetAncestor<T>();
+            return token.GetAncestor<TStatementSyntax>();
         }
 
-        protected T GetLastStatement<T>() where T : SyntaxNode
+        public TStatementSyntax GetLastStatement()
         {
             Contract.ThrowIfTrue(SelectionInExpression);
 
             var token = GetLastTokenInSelection();
-            return token.GetAncestor<T>();
+            return token.GetAncestor<TStatementSyntax>();
         }
 
         public bool ShouldPutAsyncModifier()
@@ -188,6 +197,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var expression = syntaxFacts.GetExpressionOfArgument(arguments[0]);
                 return syntaxFacts.IsFalseLiteralExpression(expression);
             }
+        }
+
+        /// <summary>
+        /// create a new root node from the given root after adding annotations to the tokens
+        /// 
+        /// tokens should belong to the given root
+        /// </summary>
+        protected static SyntaxNode AddAnnotations(SyntaxNode root, IEnumerable<(SyntaxToken, SyntaxAnnotation)> pairs)
+        {
+            Contract.ThrowIfNull(root);
+
+            var tokenMap = pairs.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
+            return root.ReplaceTokens(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
+        }
+
+        /// <summary>
+        /// create a new root node from the given root after adding annotations to the nodes
+        /// 
+        /// nodes should belong to the given root
+        /// </summary>
+        protected static SyntaxNode AddAnnotations(SyntaxNode root, IEnumerable<(SyntaxNode, SyntaxAnnotation)> pairs)
+        {
+            Contract.ThrowIfNull(root);
+
+            var tokenMap = pairs.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
+            return root.ReplaceNodes(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
         }
     }
 }

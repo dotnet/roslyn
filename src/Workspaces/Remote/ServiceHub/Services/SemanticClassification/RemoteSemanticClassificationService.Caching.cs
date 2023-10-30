@@ -93,17 +93,19 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableSegmentedList<(Document document, ClassificationType type, ClassificationOptions options)> documents,
             CancellationToken cancellationToken)
         {
-            // Group all the requests by document (as we may have gotten many requests for the same document). Then,
-            // only process the last document from each group (we don't need to bother stale versions of a particular
-            // document).
-            var groups = documents.GroupBy(d => d.document.Id);
-            var tasks = groups.Select(g => Task.Run(() =>
+            // First group by type.  That way we process the last semantic and last embedded-lang classifications per document.
+            foreach (var typeGroup in documents.GroupBy(t => t.type))
             {
-                var (document, type, options) = g.Last();
-                return CacheClassificationsAsync(document, type, options, cancellationToken);
-            }, cancellationToken));
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+                // Then, group all those requests by document (as we may have gotten many requests for the same
+                // document). Then, only process the last document from each group (we don't need to bother stale
+                // versions of a particular document).
+                foreach (var group in typeGroup.GroupBy(d => d.document.Id))
+                {
+                    var (document, type, options) = group.Last();
+                    await CacheClassificationsAsync(
+                        document, type, options, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
 
         private static async Task CacheClassificationsAsync(
@@ -136,7 +138,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Compute classifications for the full span.
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+
+            var fullSpan = new TextSpan(0, text.Length);
+            if (type == ClassificationType.Semantic)
+            {
+                await classificationService.AddSemanticClassificationsAsync(document, fullSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
+            else if (type == ClassificationType.EmbeddedLanguage)
+            {
+                await classificationService.AddEmbeddedLanguageClassificationsAsync(document, fullSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(type);
+            }
 
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))

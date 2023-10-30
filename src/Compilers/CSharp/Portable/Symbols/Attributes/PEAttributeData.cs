@@ -171,6 +171,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override DiagnosticInfo? ErrorInfo
+        {
+            get
+            {
+                if (HasErrors)
+                {
+                    switch (AttributeConstructor)
+                    {
+                        case { HasUseSiteError: true } attributeConstructor:
+                            return attributeConstructor.GetUseSiteInfo().DiagnosticInfo;
+
+                        case { }:
+                            return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty);
+
+                        default:
+                            switch (AttributeClass)
+                            {
+                                case { HasUseSiteError: true } attributeClass:
+                                    return attributeClass.GetUseSiteInfo().DiagnosticInfo;
+
+                                case { } attributeClass:
+                                    return new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, attributeClass, WellKnownMemberNames.InstanceConstructorName);
+
+                                default:
+                                    return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty);
+                            }
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         internal override bool IsConditionallyOmitted => false;
     }
 }
