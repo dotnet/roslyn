@@ -190,8 +190,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     foreach (var action in actionSet.Actions)
                     {
-                        var subAction = CollectNestedActions(request, codeActionKind, action, currentTitle);
-                        nestedCodeActions.AddRange(subAction);
+                        nestedCodeActions.AddRange(CollectNestedActions(request, codeActionKind, action, currentTitle));
                     }
                 }
             }
@@ -324,6 +323,103 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             return null;
         }
 
+        /*/// <summary>
+        /// Get, order, and filter code actions.
+        /// </summary>
+        /// <remarks>
+        /// Used by CodeActionResolveHandler and RunCodeActionHandler.
+        /// </remarks>
+        public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            Document document,
+            LSP.Range selection,
+            CodeActionOptionsProvider fallbackOptions,
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            string? fixAllScope,
+            CancellationToken cancellationToken)
+        {
+            var actionSets = await GetActionSetsAsync(
+                document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+            if (actionSets.IsDefaultOrEmpty)
+                return ImmutableArray<CodeAction>.Empty;
+
+            var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
+            foreach (var set in actionSets)
+            {
+                foreach (var suggestedAction in set.Actions)
+                {
+                    // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
+                    if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
+                    {
+                        continue;
+                    }
+
+                    if (fixAllScope != null)
+                    {
+                        codeActions.Add(GetFixAllActionsFromActionSet(suggestedAction, fixAllScope));
+                    }
+
+                    codeActions.AddRange(GetNestedActionsFromActionSet(suggestedAction, fixAllScope));
+                }
+            }
+
+            return codeActions.ToImmutable();
+        }
+
+        /// <summary>
+        /// Generates a code action with its nested actions properly set.
+        /// </summary>
+        private static ImmutableArray<CodeAction> GetNestedActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, string? fixAllScope, string currentTitle = "")
+        {
+            if (!string.IsNullOrEmpty(currentTitle))
+            {
+                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
+                currentTitle += '|';
+            }
+
+            var codeAction = suggestedAction.OriginalCodeAction;
+            currentTitle += codeAction.Title;
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
+            if (suggestedAction is UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
+            {
+                foreach (var actionSet in suggestedActionWithNestedActions.NestedActionSets)
+                {
+                    foreach (var action in actionSet.Actions)
+                    {
+                        nestedActions.AddRange(GetNestedActionsFromActionSet(action, fixAllScope, currentTitle));
+                    }
+                }
+            }
+
+            nestedActions.Add(CodeAction.Create(
+                currentTitle, ImmutableArray.Create(codeAction), codeAction.IsInlinable, codeAction.Priority));
+
+            if (fixAllScope != null)
+            {
+                if (suggestedAction is UnifiedCodeFixSuggestedAction { FixAllFlavors: not null } unifiedCodeFixSuggestedAction)
+                {
+                    var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
+                    nestedActions.Add(new FixAllCodeAction(string.Format(FeaturesResources.Fix_All_0, currentTitle), fixAllFlavor.FixAllState, showPreviewChangesDialog: false));
+                }
+            }
+
+            return nestedActions.ToImmutable();
+        }
+
+        private static CodeAction GetFixAllActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, string? fixAllScope)
+        {
+            var codeAction = suggestedAction.OriginalCodeAction;
+            if (suggestedAction is not UnifiedCodeFixSuggestedAction { FixAllFlavors: not null } unifiedCodeFixSuggestedAction)
+            {
+                return codeAction;
+            }
+
+            // Retrieves the fix all code action based on the scope that was selected. 
+            // Creates a FixAllCodeAction type so that we can get the correct operations for the selected scope.
+            var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
+            return new FixAllCodeAction(string.Format(FeaturesResources.Fix_All_0, codeAction.Title), fixAllFlavor.FixAllState, showPreviewChangesDialog: false);
+        }*/
+
         /// <summary>
         /// Get, order, and filter code actions.
         /// </summary>
@@ -355,7 +451,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         continue;
                     }
 
-                    codeActions.Add(GetNestedActionsFromActionSet(suggestedAction));
+                    codeActions.Add(GetNestedActionsFromActionSet(suggestedAction, fixAllScope));
 
                     if (fixAllScope != null)
                     {
@@ -370,7 +466,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// <summary>
         /// Generates a code action with its nested actions properly set.
         /// </summary>
-        private static CodeAction GetNestedActionsFromActionSet(IUnifiedSuggestedAction suggestedAction)
+        private static CodeAction GetNestedActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, string? fixAllScope)
         {
             var codeAction = suggestedAction.OriginalCodeAction;
             if (suggestedAction is not UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
@@ -383,7 +479,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 foreach (var action in actionSet.Actions)
                 {
-                    nestedActions.Add(GetNestedActionsFromActionSet(action));
+                    nestedActions.Add(GetNestedActionsFromActionSet(action, fixAllScope));
+                    if (fixAllScope != null)
+                    {
+                        nestedActions.Add(GetFixAllActionsFromActionSet(action, fixAllScope));
+                    }
                 }
             }
 
@@ -402,7 +502,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             // Retrieves the fix all code action based on the scope that was selected. 
             // Creates a FixAllCodeAction type so that we can get the correct operations for the selected scope.
             var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
-            return new FixAllCodeAction(string.Format(FeaturesResources.Fix_All_0, codeAction.Title), fixAllFlavor.FixAllState, showPreviewChangesDialog: false);
+            return new FixAllCodeAction(codeAction.Title, fixAllFlavor.FixAllState, showPreviewChangesDialog: false);
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
@@ -450,6 +550,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };
 
+        /*public static CodeAction? GetCodeActionToResolve(string distinctTitle, ImmutableArray<CodeAction> codeActions)
+        {
+            // Searching for the matching code action. We compare against the unique identifier
+            // (e.g. "Suppress or Configure issues|Configure IDExxxx|Warning") instead of the
+            // code action's title (e.g. "Warning") since there's a chance that multiple code
+            // actions may have the same title (e.g. there could be multiple code actions with
+            // the title "Warning" that appear in the code action menu if there are multiple
+            // diagnostics on the same line).
+            foreach (var codeAction in codeActions)
+            {
+                if (codeAction.Title == distinctTitle)
+                {
+                    return codeAction;
+                }
+            }
+
+            return null;
+        }*/
+
         public static CodeAction? GetCodeActionToResolve(string distinctTitle, ImmutableArray<CodeAction> codeActions)
         {
             // Searching for the matching code action. We compare against the unique identifier
@@ -484,6 +603,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             if (currentTitle == goalTitle)
             {
                 return codeAction;
+            }
+
+
+            if (codeAction is FixAllCodeAction)
+            {
+                if (string.Format(FeaturesResources.Fix_All_0, currentTitle) == goalTitle)
+                {
+                    return codeAction;
+                }
             }
 
             foreach (var nestedAction in codeAction.NestedCodeActions)

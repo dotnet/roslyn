@@ -55,6 +55,7 @@ internal sealed class CodeActionFixAllResolveHandler(
             cancellationToken).ConfigureAwait(false);
 
         var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
+
         Contract.ThrowIfNull(codeActionToResolve);
 
         var fixAllCodeAction = (FixAllCodeAction)codeActionToResolve;
