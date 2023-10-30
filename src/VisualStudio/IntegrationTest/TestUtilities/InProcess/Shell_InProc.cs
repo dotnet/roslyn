@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -11,11 +10,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     internal class Shell_InProc : InProcComponent
     {
         public static Shell_InProc Create() => new Shell_InProc();
-
-        public bool IsUIContextActive(Guid context)
-        {
-            return UIContext.FromUIContextGuid(context).IsActive;
-        }
 
         public Version GetVersion()
         {
