@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Classification
         private readonly ref struct Worker
         {
             private readonly SemanticModel _semanticModel;
-            private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
             private readonly SegmentedList<ClassifiedSpan> _list;
             private readonly CancellationToken _cancellationToken;
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 _getNodeClassifiers = getNodeClassifiers;
                 _getTokenClassifiers = getTokenClassifiers;
                 _semanticModel = semanticModel;
-                _syntaxTree = semanticModel.SyntaxTree;
                 _textSpan = textSpan;
                 _list = list;
                 _cancellationToken = cancellationToken;
@@ -62,11 +60,12 @@ namespace Microsoft.CodeAnalysis.Classification
                 ClassificationOptions options,
                 CancellationToken cancellationToken)
             {
+                var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
                 foreach (var textSpan in textSpans)
                 {
                     using var worker = new Worker(semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
 
-                    worker._pendingNodes.Push(worker._syntaxTree.GetRoot(cancellationToken));
+                    worker._pendingNodes.Push(root);
                     worker.ProcessNodes();
                 }
             }

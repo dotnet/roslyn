@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,9 +83,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // can pass in a range from the full document if they wish.
             ranges ??= new[] { ProtocolConversions.TextSpanToRange(root.FullSpan, text) };
             using var _ = ArrayBuilder<TextSpan>.GetInstance(ranges.Length, out var textSpans);
-            for (var i = 0; i < ranges.Length; i++)
+            foreach (var range in ranges)
             {
-                textSpans.Add(ProtocolConversions.RangeToTextSpan(ranges[i], text));
+                textSpans.Add(ProtocolConversions.RangeToTextSpan(range, text));
             }
 
             await GetClassifiedSpansForDocumentAsync(
