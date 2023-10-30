@@ -53,19 +53,19 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService
             const string CodeQualityPattern = "[cC][aA][0-9]{4}";
             const string CodeStylePattern = "[iI][dD][eE][0-9]{4}";
 
-            var codeQualityWarningsAndErrorsCount = 0;
-            var codeStyleWarningsAndErrorsCount = 0;
+            var codeQualityWarningAndErrorIdCount = 0;
+            var codeStyleWarningAndErrorIdCount = 0;
             using var _1 = PooledHashSet<string>.GetInstance(out var configuredCodeQualityIdsBuilder);
             using var _2 = PooledHashSet<string>.GetInstance(out var configuredCodeStyleIdsBuilder);
-            using var _3 = PooledHashSet<string>.GetInstance(out var uniqueWarnsAndErrors);
+            using var _3 = PooledHashSet<string>.GetInstance(out var uniqueWarningAndErrorIds);
             foreach (var (diagnosticId, severity) in GetAllOptionPairs(treeOptions, globalOptions))
             {
-                HandleEntry(diagnosticId, severity, uniqueWarnsAndErrors, configuredCodeQualityIdsBuilder, CodeQualityPattern, ref codeQualityWarningsAndErrorsCount);
-                HandleEntry(diagnosticId, severity, uniqueWarnsAndErrors, configuredCodeStyleIdsBuilder, CodeStylePattern, ref codeStyleWarningsAndErrorsCount);
+                HandleEntry(diagnosticId, severity, uniqueWarningAndErrorIds, configuredCodeQualityIdsBuilder, CodeQualityPattern, ref codeQualityWarningAndErrorIdCount);
+                HandleEntry(diagnosticId, severity, uniqueWarningAndErrorIds, configuredCodeStyleIdsBuilder, CodeStylePattern, ref codeStyleWarningAndErrorIdCount);
             }
 
-            var codeQualitySummary = new AnalyzerConfigSummary(codeQualityWarningsAndErrorsCount, configuredCodeQualityIdsBuilder.ToImmutableHashSet(), CodeQualityPattern);
-            var codeStyleSummary = new AnalyzerConfigSummary(codeStyleWarningsAndErrorsCount, configuredCodeStyleIdsBuilder.ToImmutableHashSet(), CodeStylePattern);
+            var codeQualitySummary = new AnalyzerConfigSummary(codeQualityWarningAndErrorIdCount, configuredCodeQualityIdsBuilder.ToImmutableHashSet(), CodeQualityPattern);
+            var codeStyleSummary = new AnalyzerConfigSummary(codeStyleWarningAndErrorIdCount, configuredCodeStyleIdsBuilder.ToImmutableHashSet(), CodeStylePattern);
             return new FirstPartyAnalyzerConfigSummary(codeQualitySummary, codeStyleSummary);
 
             static IEnumerable<(string DiagnosticId, ReportDiagnostic severity)> GetAllOptionPairs(TreeOptions treeOptions, TreeOptions globalOptions)
@@ -80,19 +80,19 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService
             static void HandleEntry(
                 string diagnosticId,
                 ReportDiagnostic severity,
-                PooledHashSet<string> uniqueWarnsAndErrors,
+                PooledHashSet<string> uniqueWarningAndErrorIds,
                 PooledHashSet<string> configuredIdsBuilder,
                 string pattern,
-                ref int warningsAndErrorsCount)
+                ref int warningAndErrorIdCount)
             {
                 if (!Regex.Match(diagnosticId, pattern).Success)
                     return;
 
                 configuredIdsBuilder.Add(diagnosticId);
                 if (severity is ReportDiagnostic.Warn or ReportDiagnostic.Error
-                    && uniqueWarnsAndErrors.Add(diagnosticId))
+                    && uniqueWarningAndErrorIds.Add(diagnosticId))
                 {
-                    warningsAndErrorsCount++;
+                    warningAndErrorIdCount++;
                 }
             }
         }
