@@ -13141,7 +13141,7 @@ class C
 [*.cs]
 dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerConfigString()}");
 
-            // Severity of 'CustomConfigurable' diagnostics should not be affected by editorconfig entries.
+            // Severity of 'CustomSeverityConfigurable' diagnostics should not be affected by editorconfig entries.
             if (customConfigurable)
                 analyzerConfigSeverity = DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity);
 
@@ -13238,7 +13238,7 @@ generated_code = auto");
             // This test verifies that analyzer execution is skipped at build time for the following:
             //   1. Analyzer reporting Hidden diagnostics
             //   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
-            // However, an analyzer that reports diagnostics with "CustomConfigurable" tag should never be skipped for execution.
+            // However, an analyzer that reports diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
             var analyzerShouldBeSkipped = (defaultSeverity == DiagnosticSeverity.Hidden ||
                 defaultSeverity == DiagnosticSeverity.Info && !errorlog) && !customConfigurable;
 
@@ -13276,7 +13276,7 @@ generated_code = auto");
             // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
             //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
             //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
-            // However, an analyzer reporting diagnostics with "CustomConfigurable" tag should never be skipped for execution.
+            // However, an analyzer reporting diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
             var analyzerShouldBeSkipped = (!isEnabledByDefault ||
                 defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info) && !customConfigurable;
 

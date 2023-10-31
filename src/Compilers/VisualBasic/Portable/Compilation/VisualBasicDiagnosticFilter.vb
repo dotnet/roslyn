@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim isCustomConfigured = False
-            If AnalyzerManager.HasCustomConfigurableTag(customTags) Then
+            If AnalyzerManager.HasCustomSeverityConfigurableTag(customTags) Then
                 ' 3. Custom severity configuration applied by the analyzer.
                 '    See https://github.com/dotnet/roslyn/issues/52991 for details.
                 isCustomConfigured = True
