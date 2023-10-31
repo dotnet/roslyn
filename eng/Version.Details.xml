@@ -32,10 +32,9 @@
       <Sha>0ebe09a5ce6665a5fe1df1c644d4f77189c4deba</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="1.0.0-beta.23502.1" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
-      <Uri>https://github.com/dotnet/xliff-tasks</Uri>
-      <Sha>0f36b29fb7374379609c3ee6a0b70caf457d8a0e</Sha>
-      <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="9.0.0-beta.23531.1">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>0ebe09a5ce6665a5fe1df1c644d4f77189c4deba</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
       <Uri>https://github.com/dotnet/symreader</Uri>
