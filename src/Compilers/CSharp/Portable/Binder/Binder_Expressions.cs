@@ -5391,6 +5391,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexer = (BoundImplicitIndexerAccess)boundMember;
+                    MessageID.IDS_ImplicitIndexInitializer.CheckFeatureAvailability(diagnostics, implicitIndexer.Syntax);
+
+                    hasErrors |= isRhsNestedInitializer
+                        && !CheckNestedObjectInitializerPropertySymbol(GetPropertySymbol(implicitIndexer, out _, out _), leftSyntax, diagnostics, hasErrors, ref resultKind);
+
+                    return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
+
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
 

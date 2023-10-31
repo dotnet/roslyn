@@ -276,8 +276,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? rewrittenLeft = null;
 
-            // Do not lower pointer access yet, we'll do it later.
-            if (assignment.Left.Kind != BoundKind.PointerElementAccess)
+            // Do not lower pointer or implicit indexer access yet, we'll do them later.
+            BoundKind leftKind = assignment.Left.Kind;
+            if (leftKind != BoundKind.PointerElementAccess && leftKind != BoundKind.ImplicitIndexerAccess)
             {
                 rewrittenLeft = assignment.Left is BoundObjectInitializerMember member ? VisitObjectInitializerMember(member, ref rewrittenReceiver, result, ref temps) : VisitExpression(assignment.Left);
             }
@@ -442,6 +443,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         break;
                     }
+
+                case BoundKind.ImplicitIndexerAccess:
+                    rewrittenAccess = VisitImplicitIndexerAccess((BoundImplicitIndexerAccess)assignment.Left, isLeftOfAssignment: !isRhsNestedInitializer);
+
+                    if (!isRhsNestedInitializer)
+                    {
+                        var rewrittenRight = VisitExpression(assignment.Right);
+                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, assignment.Type, used: false));
+                        return;
+                    }
+
+                    break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue((rewrittenLeft ?? assignment.Left).Kind);

@@ -4236,5 +4236,968 @@ class S
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer()
+        {
+            string source = """
+M(new Buffer10());
+M2();
+M3();
+
+class C
+{
+    public Buffer10 F = new Buffer10();
+}
+
+partial class Program
+{
+    static void M(Buffer10 b)
+    {
+        b[^1] = 1;
+    }
+
+    static Buffer10 M2() { return new Buffer10() { [^1] = 2 }; }
+    static C M3() => new C() { F = {[^1] = 3} };
+}
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length { get { System.Console.Write("Length "); return 10; } }
+    public int this[int x]
+    {
+        get => throw null;
+        set { System.Console.Write($"Index={x} Value={value}, "); }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "Length Index=9 Value=1, Length Index=9 Value=2, Length Index=9 Value=3,");
+            verifier.VerifyIL("Program.M2", """
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (Buffer10 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       "Buffer10..ctor()"
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  dup
+  IL_000a:  call       "int Buffer10.Length.get"
+  IL_000f:  ldc.i4.1
+  IL_0010:  sub
+  IL_0011:  ldc.i4.2
+  IL_0012:  call       "void Buffer10.this[int].set"
+  IL_0017:  ldloc.0
+  IL_0018:  ret
+}
+""");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Skip(2).First();
+            Assert.Equal("new Buffer10() { [^1] = 2 }", node.ToString());
+
+            comp.VerifyOperationTree(node, expectedOperationTree: """
+IObjectCreationOperation (Constructor: Buffer10..ctor()) (OperationKind.ObjectCreation, Type: Buffer10) (Syntax: 'new Buffer1 ...  [^1] = 2 }')
+Arguments(0)
+Initializer:
+  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Buffer10) (Syntax: '{ [^1] = 2 }')
+    Initializers(1):
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[^1] = 2')
+          Left:
+            IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: '[^1]')
+              Instance:
+                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Buffer10, IsImplicit) (Syntax: 'Buffer10')
+              Argument:
+                IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+                  Operand:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              LengthSymbol: System.Int32 Buffer10.Length { get; }
+              IndexerSymbol: System.Int32 Buffer10.this[System.Int32 x] { get; set; }
+          Right:
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+""");
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Buffer1 ...  [^1] = 2 }')
+              Value:
+                IObjectCreationOperation (Constructor: Buffer10..ctor()) (OperationKind.ObjectCreation, Type: Buffer10) (Syntax: 'new Buffer1 ...  [^1] = 2 }')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (2)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '^1')
+                  Value:
+                    IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[^1] = 2')
+                  Left:
+                    IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: '[^1]')
+                      Instance:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Buffer10, IsImplicit) (Syntax: 'new Buffer1 ...  [^1] = 2 }')
+                      Argument:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Index, IsImplicit) (Syntax: '^1')
+                      LengthSymbol: System.Int32 Buffer10.Length { get; }
+                      IndexerSymbol: System.Int32 Buffer10.this[System.Int32 x] { get; set; }
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (0)
+        Next (Return) Block[B4]
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Buffer10, IsImplicit) (Syntax: 'new Buffer1 ...  [^1] = 2 }')
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+""",
+                graph, symbol);
+
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (17,52): error CS8652: The feature 'implicit Index initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static Buffer10 M2() { return new Buffer10() { [^1] = 2 }; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^1]").WithArguments("implicit Index initializer").WithLocation(17, 52),
+                // (18,37): error CS8652: The feature 'implicit Index initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static C M3() => new C() { F = {[^1] = 3} };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^1]").WithArguments("implicit Index initializer").WithLocation(18, 37)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Array()
+        {
+            string source = """
+class C
+{
+    public static void Main()
+    {
+        var c = M();
+        System.Console.Write(c.F[^1]);
+    }
+
+    public static C M() => new C() { F = {[^1] = 42} };
+
+    public int[] F = new int[10];
+}
+""";
+            var comp = CreateCompilationWithIndex(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       20 (0x14)
+  .maxstack  4
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldfld      "int[] C.F"
+  IL_000b:  dup
+  IL_000c:  ldlen
+  IL_000d:  conv.i4
+  IL_000e:  ldc.i4.1
+  IL_000f:  sub
+  IL_0010:  ldc.i4.s   42
+  IL_0012:  stelem.i4
+  IL_0013:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Array_GetOffset()
+        {
+            string source = """
+class C
+{
+    public static void M(System.Index index)
+    {
+        _ = new C() { F = {[index] = 42} };
+    }
+
+    public int[] F = new int[10];
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (int[] V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  ldfld      "int[] C.F"
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  ldloc.0
+  IL_000f:  ldlen
+  IL_0010:  conv.i4
+  IL_0011:  call       "int System.Index.GetOffset(int)"
+  IL_0016:  ldc.i4.s   42
+  IL_0018:  stelem.i4
+  IL_0019:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Twice()
+        {
+            string source = """
+M();
+
+partial class Program
+{
+    static Buffer10 M() => new Buffer10() { [^1] = 1, [^2] = 2 };
+}
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length { get { System.Console.Write("Length "); return 10; } }
+    public int this[int x]
+    {
+        get => throw null;
+        set { System.Console.Write($"Value={value} "); }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "Length Value=1 Length Value=2");
+            // Note: we compute the Length multiple times
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (Buffer10 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       "Buffer10..ctor()"
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  dup
+  IL_000a:  call       "int Buffer10.Length.get"
+  IL_000f:  ldc.i4.1
+  IL_0010:  sub
+  IL_0011:  ldc.i4.1
+  IL_0012:  call       "void Buffer10.this[int].set"
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  dup
+  IL_001a:  call       "int Buffer10.Length.get"
+  IL_001f:  ldc.i4.2
+  IL_0020:  sub
+  IL_0021:  ldc.i4.2
+  IL_0022:  call       "void Buffer10.this[int].set"
+  IL_0027:  ldloc.0
+  IL_0028:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_EvaluationOrder()
+        {
+            string source = """
+_ = new Buffer10() { [FirstIndex()] = FirstValue(), [SecondIndex()] = SecondValue() };
+
+System.Index FirstIndex() { System.Console.Write("FirstIndex "); return ^1; }
+System.Index SecondIndex() { System.Console.Write("SecondIndex "); return ^2; }
+
+int FirstValue() { System.Console.Write("FirstValue "); return 1; }
+int SecondValue() { System.Console.Write("SecondValue "); return 2; }
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length { get { System.Console.Write("Length "); return 10; } }
+    public int this[int x]
+    {
+        get => throw null;
+        set { System.Console.Write($"Value={value}, "); }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FirstIndex Length FirstValue Value=1, SecondIndex Length SecondValue Value=2,");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_OptionalParameter()
+        {
+            string source = """
+Buffer10 b = default;
+b[^1] = 42; // 1
+
+_ = new Buffer10() { [^1] = 42 }; // 2
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length => throw null;
+    public int this[int x, int y = 0]
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                // b[^1] = 42; // 1
+                Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(2, 3),
+                // (4,23): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                // _ = new Buffer10() { [^1] = 42 }; // 2
+                Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(4, 23)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Unassigned()
+        {
+            string source = """
+class Program
+{
+    static Buffer10 M()
+    {
+        int i;
+        return new Buffer10() { [^1] = i }; // 1
+    }
+}
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length => throw null;
+    public int this[int x]
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (6,40): error CS0165: Use of unassigned local variable 'i'
+                //         return new Buffer10() { [^1] = i }; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(6, 40)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Nullability()
+        {
+            string source = """
+#nullable enable
+string? s = null;
+_ = new Buffer10() { [^1] = s }; // 1
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length => throw null!;
+    public string this[int x]
+    {
+        get => throw null!;
+        set => throw null!;
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (3,29): warning CS8601: Possible null reference assignment.
+                // _ = new Buffer10() { [^1] = s }; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(3, 29)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Readonly()
+        {
+            string source = """
+class C
+{
+    public Buffer10 F = new Buffer10();
+}
+
+class Program
+{
+    static void M(Buffer10 b)
+    {
+        b[^1] = 123;
+    }
+
+    static Buffer10 M2() => new Buffer10() { [^1] = 111 };
+    static C M3() => new C() { F = {[^1] = 111} };
+}
+
+struct Buffer10
+{
+    public int[] _array = new int[10];
+    public Buffer10() { }
+
+    public int Length => 10;
+    public int this[int x]
+    {
+        get => _array[x];
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
+                //         b[^1] = 123;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b[^1]").WithArguments("Buffer10.this[int]").WithLocation(10, 9),
+                // (13,46): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
+                //     static Buffer10 M2() => new Buffer10() { [^1] = 111 };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[^1]").WithArguments("Buffer10.this[int]").WithLocation(13, 46),
+                // (14,37): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
+                //     static C M3() => new C() { F = {[^1] = 111} };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[^1]").WithArguments("Buffer10.this[int]").WithLocation(14, 37)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_RefReturningIndexer()
+        {
+            string source = """
+class Program
+{
+    public static void Main()
+    {
+        int i = 42;
+        var b = new Buffer10() { [^1] = i };
+        System.Console.WriteLine(b[^1]);
+    }
+}
+
+class Buffer10
+{
+    public Buffer10() { }
+
+    public int field = 0;
+    public int Length => 10;
+    public ref int this[int x]
+    {
+        get { System.Console.Write($"Index={x} "); return ref field; }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Index=9 Index=9 42");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_RefReturningIndexer_ByRef()
+        {
+            string source = """
+int i = 42;
+_ = new Buffer10() { [1] = ref i }; // 1
+_ = new Buffer10() { [^1] = ref i }; // 2
+
+Buffer10 b = new Buffer10();
+b[1] = ref i; // 3
+b[^1] = ref i; // 4
+
+class Buffer10
+{
+    public Buffer10() { }
+
+    public int field = 0;
+    public int Length => 10;
+    public ref int this[int x]
+    {
+        get { System.Console.Write($"Index={x} "); return ref field; }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics(
+                // (2,22): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // _ = new Buffer10() { [1] = ref i }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[1]").WithLocation(2, 22),
+                // (3,22): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // _ = new Buffer10() { [^1] = ref i }; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[^1]").WithLocation(3, 22),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // b[1] = ref i; // 3
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "b[1]").WithLocation(6, 1),
+                // (7,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // b[^1] = ref i; // 4
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "b[^1]").WithLocation(7, 1)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Nested()
+        {
+            string source = """
+M();
+
+partial class Program
+{
+    public static Buffer10Container M()
+    {
+        return new Buffer10Container() { [^1] = { [^2] = 42 } };
+    }
+}
+
+class Buffer10Container
+{
+    public int Length { get { System.Console.Write("ContainerLength "); return 10; } }
+    public Buffer10 this[int x]
+    {
+        get { System.Console.Write($"ContainerIndex={x} "); return new Buffer10(); }
+    }
+}
+
+class Buffer10
+{
+    public int Length { get { System.Console.Write("Length "); return 10; } }
+    public int this[int x]
+    {
+        set { System.Console.Write($"Index={x} Value={value}"); }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ContainerLength ContainerIndex=9 Length Index=8 Value=42");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+            Assert.Equal("new Buffer10Container() { [^1] = { [^2] = 42 } }", node.ToString());
+
+            comp.VerifyOperationTree(node, expectedOperationTree: """
+IObjectCreationOperation (Constructor: Buffer10Container..ctor()) (OperationKind.ObjectCreation, Type: Buffer10Container) (Syntax: 'new Buffer1 ... 2] = 42 } }')
+Arguments(0)
+Initializer:
+  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Buffer10Container) (Syntax: '{ [^1] = { [^2] = 42 } }')
+    Initializers(1):
+        IMemberInitializerOperation (OperationKind.MemberInitializer, Type: Buffer10) (Syntax: '[^1] = { [^2] = 42 }')
+          InitializedMember:
+            IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: Buffer10) (Syntax: '[^1]')
+              Instance:
+                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Buffer10Container, IsImplicit) (Syntax: 'Buffer10Container')
+              Argument:
+                IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+                  Operand:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              LengthSymbol: System.Int32 Buffer10Container.Length { get; }
+              IndexerSymbol: Buffer10 Buffer10Container.this[System.Int32 x] { get; }
+          Initializer:
+            IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Buffer10) (Syntax: '{ [^2] = 42 }')
+              Initializers(1):
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[^2] = 42')
+                    Left:
+                      IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: '[^2]')
+                        Instance:
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Buffer10, IsImplicit) (Syntax: '[^1]')
+                        Argument:
+                          IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^2')
+                            Operand:
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                        LengthSymbol: System.Int32 Buffer10.Length { get; }
+                        IndexerSymbol: System.Int32 Buffer10.this[System.Int32 x] { set; }
+                    Right:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+""");
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Buffer1 ... 2] = 42 } }')
+              Value:
+                IObjectCreationOperation (Constructor: Buffer10Container..ctor()) (OperationKind.ObjectCreation, Type: Buffer10Container) (Syntax: 'new Buffer1 ... 2] = 42 } }')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '^1')
+                  Value:
+                    IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Next (Regular) Block[B3]
+                Entering: {R3}
+        .locals {R3}
+        {
+            CaptureIds: [2]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '^2')
+                      Value:
+                        IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^2')
+                          Operand:
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[^2] = 42')
+                      Left:
+                        IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: '[^2]')
+                          Instance:
+                            IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: Buffer10) (Syntax: '[^1]')
+                              Instance:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Buffer10Container, IsImplicit) (Syntax: 'new Buffer1 ... 2] = 42 } }')
+                              Argument:
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Index, IsImplicit) (Syntax: '^1')
+                              LengthSymbol: System.Int32 Buffer10Container.Length { get; }
+                              IndexerSymbol: Buffer10 Buffer10Container.this[System.Int32 x] { get; }
+                          Argument:
+                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Index, IsImplicit) (Syntax: '^2')
+                          LengthSymbol: System.Int32 Buffer10.Length { get; }
+                          IndexerSymbol: System.Int32 Buffer10.this[System.Int32 x] { set; }
+                      Right:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                Next (Regular) Block[B4]
+                    Leaving: {R3} {R2}
+        }
+    }
+    Block[B4] - Block
+        Predecessors: [B3]
+        Statements (0)
+        Next (Return) Block[B5]
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Buffer10Container, IsImplicit) (Syntax: 'new Buffer1 ... 2] = 42 } }')
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+""", graph, symbol);
+
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (7,42): error CS8652: The feature 'implicit Index initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return new Buffer10Container() { [^1] = { [^2] = 42 } };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^1]").WithArguments("implicit Index initializer").WithLocation(7, 42),
+                // (7,51): error CS8652: The feature 'implicit Index initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return new Buffer10Container() { [^1] = { [^2] = 42 } };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^2]").WithArguments("implicit Index initializer").WithLocation(7, 51)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Nested_Struct()
+        {
+            string source = """
+_ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
+_ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
+
+struct Buffer10Container
+{
+    public Buffer10Container() { }
+
+    public int Length { get { System.Console.Write("ContainerLength "); return 10; } }
+    public Buffer10 this[int x]
+    {
+        get => throw null;
+    }
+}
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length { get { System.Console.Write("Length "); return 10; } }
+    public int this[int x]
+    {
+        set => throw null;
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics(
+                // (1,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
+                // _ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(1, 31),
+                // (2,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
+                // _ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[^1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(2, 31)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Nested_Struct_WriteOnly()
+        {
+            string source = """
+_ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
+_ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
+
+struct Buffer10Container
+{
+    public Buffer10Container() { }
+
+    public int Length { get { System.Console.Write("ContainerLength "); return 10; } }
+    public Buffer10 this[int x]
+    {
+        set => throw null;
+    }
+}
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length { get { System.Console.Write("Length "); return 10; } }
+    public int this[int x]
+    {
+        set => throw null;
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics(
+                // (1,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
+                // _ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(1, 31),
+                // (2,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
+                // _ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[^1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(2, 31)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range()
+        {
+            string source = """
+Buffer10 b = default;
+b[..] = null; // 1
+
+_ = new Buffer10() { [..] = null }; // 2
+_ = new C() { F = { [..] = null } }; // 3
+
+struct Buffer10
+{
+    public Buffer10() { }
+    public int Length => throw null;
+    public int[] Slice(int start, int length) => throw null;
+}
+
+class C
+{
+    public Buffer10 F = new Buffer10();
+}
+""";
+            var comp = CreateCompilationWithIndexAndRange(source);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // b[..] = null; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "b[..]").WithLocation(2, 1),
+                // (4,22): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new Buffer10() { [..] = null }; // 2
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(4, 22),
+                // (5,21): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new C() { F = { [..] = null } }; // 3
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(5, 21)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_Indexed()
+        {
+            string source = """
+Buffer10 b = default;
+b[..][0] = 1;
+
+_ = new Buffer10() { [..][0] = 2 }; // 1
+
+struct Buffer10
+{
+    public Buffer10() { }
+    public int Length => throw null;
+    public int[] Slice(int start, int length) => throw null;
+}
+""";
+            var comp = CreateCompilationWithIndexAndRange(source);
+            comp.VerifyDiagnostics(
+                // (4,22): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new Buffer10() { [..][0] = 2 }; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(4, 22),
+                // (4,26): error CS1003: Syntax error, '=' expected
+                // _ = new Buffer10() { [..][0] = 2 }; // 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("=").WithLocation(4, 26),
+                // (4,26): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new Buffer10() { [..][0] = 2 }; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(4, 26)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_IndexCreation_FromEnd()
+        {
+            string source = """
+M();
+
+partial class Program
+{
+    public static Buffer10 M() => new Buffer10() { [new System.Index(1, fromEnd: true)] = 2 };
+}
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length => 10;
+    public int this[int x]
+    {
+        get => throw null;
+        set { System.Console.Write($"Index={x} Value={value} "); }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index=9 Value=2");
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (Buffer10 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       "Buffer10..ctor()"
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  dup
+  IL_000a:  call       "int Buffer10.Length.get"
+  IL_000f:  ldc.i4.1
+  IL_0010:  sub
+  IL_0011:  ldc.i4.2
+  IL_0012:  call       "void Buffer10.this[int].set"
+  IL_0017:  ldloc.0
+  IL_0018:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_IndexCreation_FromStart()
+        {
+            string source = """
+M();
+
+partial class Program
+{
+    static Buffer10 M() => new Buffer10() { [new System.Index(1, fromEnd: false)] = 2 };
+}
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length => 10;
+    public int this[int x]
+    {
+        get => throw null;
+        set { System.Console.Write($"Index={x} Value={value} "); }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index=1 Value=2");
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       18 (0x12)
+  .maxstack  3
+  .locals init (Buffer10 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       "Buffer10..ctor()"
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.2
+  IL_000b:  call       "void Buffer10.this[int].set"
+  IL_0010:  ldloc.0
+  IL_0011:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_IndexConversion()
+        {
+            string source = """
+M();
+
+partial class Program
+{
+    static Buffer10 M() => new Buffer10() { [2] = 2 };
+}
+
+class Buffer10
+{
+    public int this[System.Index x]
+    {
+        set { System.Console.Write($"Index={x} Value={value} "); }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index=2 Value=2");
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  4
+  .locals init (System.Index V_0)
+  IL_0000:  newobj     "Buffer10..ctor()"
+  IL_0005:  ldc.i4.2
+  IL_0006:  call       "System.Index System.Index.op_Implicit(int)"
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldc.i4.2
+  IL_000f:  callvirt   "void Buffer10.this[System.Index].set"
+  IL_0014:  ret
+}
+""");
+        }
     }
 }

@@ -2312,6 +2312,11 @@
         <target state="translated">定数文字列の ReadOnly/Span&lt;char&gt; に一致するパターン</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ImplicitIndexInitializer">
+        <source>implicit Index initializer</source>
+        <target state="new">implicit Index initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>

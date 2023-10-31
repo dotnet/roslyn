@@ -7998,7 +7998,7 @@ class Program
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ObjectInitializer_Index_02()
         {
             var src = @"
@@ -8034,15 +8034,13 @@ public struct Buffer10<T>
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            // This scenario fails due to https://github.com/dotnet/roslyn/issues/67533
             comp.VerifyDiagnostics(
-                // (14,37): error CS1913: Member '[^10]' cannot be initialized. It is not a field or property.
-                //     static C M2() => new C() { F = {[^10] = 111} };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[^10]").WithArguments("[^10]").WithLocation(14, 37),
                 // (22,14): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     public T this[int i]
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(22, 14)
                 );
+
+            CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Skipped);
         }
 
         [Fact]

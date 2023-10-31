@@ -6112,6 +6112,13 @@ oneMoreTime:
                         PushOperand(VisitRequired(arrayReference.ArrayReference));
                         return true;
 
+                    case OperationKind.ImplicitIndexerReference:
+                        var implicitIndexerReference = (IImplicitIndexerReferenceOperation)instance;
+                        PushOperand(VisitRequired(implicitIndexerReference.Argument));
+                        SpillEvalStack();
+                        PushOperand(VisitRequired(implicitIndexerReference.Instance));
+                        return true;
+
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicIndexer = (IDynamicIndexerAccessOperation)instance;
                         VisitAndPushArray(dynamicIndexer.Arguments);
@@ -6163,6 +6170,15 @@ oneMoreTime:
                         instance = PopOperand();
                         ImmutableArray<IOperation> indices = PopArray(arrayElementReference.Indices);
                         return new ArrayElementReferenceOperation(instance, indices, semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+
+                    case OperationKind.ImplicitIndexerReference:
+                        var indexerReference = (IImplicitIndexerReferenceOperation)originalTarget;
+                        instance = PopOperand();
+                        IOperation argument = PopOperand();
+
+                        return new ImplicitIndexerReferenceOperation(instance, argument, indexerReference.LengthSymbol, indexerReference.IndexerSymbol,
+                            semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicAccess = (DynamicIndexerAccessOperation)originalTarget;
                         instance = PopOperand();
