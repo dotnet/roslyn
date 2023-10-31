@@ -80,19 +80,19 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
         }
     }
 
-    public Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
+    public Task<ImmutableArray<(string Category, ImmutableDictionary<string, ImmutableArray<DiagnosticData>> DiagnosticsById)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
         => GetCodeAnalysisSuggestionsConfigDataAsync(project, forceCompute: false, cancellationToken);
 
-    private async Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> GetCodeAnalysisSuggestionsConfigDataAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<(string Category, ImmutableDictionary<string, ImmutableArray<DiagnosticData>> DiagnosticsById)>> GetCodeAnalysisSuggestionsConfigDataAsync(Project project, bool forceCompute, CancellationToken cancellationToken)
     {
         var summary = AnalyzerConfigSummaryHelper.GetAnalyzerConfigSummary(project, _globalOptions);
         if (summary == null)
-            return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
+            return ImmutableArray<(string Category, ImmutableDictionary<string, ImmutableArray<DiagnosticData>> DiagnosticsById)>.Empty;
 
         var enableCodeQuality = ShouldShowSuggestions(summary, codeQuality: true, _globalOptions);
         var enableCodeStyle = ShouldShowSuggestions(summary, codeQuality: false, _globalOptions);
         if (!enableCodeQuality && !enableCodeStyle)
-            return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
+            return ImmutableArray<(string Category, ImmutableDictionary<string, ImmutableArray<DiagnosticData>> DiagnosticsById)>.Empty;
 
         var computedDiagnostics = await GetAvailableDiagnosticsAsync(project, summary, enableCodeQuality, enableCodeStyle, forceCompute, cancellationToken).ConfigureAwait(false);
         return GetCodeAnalysisSuggestionsByCategory(summary, computedDiagnostics, enableCodeQuality, enableCodeStyle);
@@ -190,16 +190,16 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
                && !summary.ConfiguredDiagnosticIds.Contains(id, StringComparer.OrdinalIgnoreCase);
     }
 
-    private static ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)> GetCodeAnalysisSuggestionsByCategory(
+    private static ImmutableArray<(string Category, ImmutableDictionary<string, ImmutableArray<DiagnosticData>> DiagnosticsById)> GetCodeAnalysisSuggestionsByCategory(
         FirstPartyAnalyzerConfigSummary configSummary,
         ImmutableArray<DiagnosticData> computedDiagnostics,
         bool enableCodeQuality,
         bool enableCodeStyle)
     {
         if (computedDiagnostics.IsEmpty)
-            return ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty;
+            return ImmutableArray<(string Category, ImmutableDictionary<string, ImmutableArray<DiagnosticData>> DiagnosticsById)>.Empty;
 
-        using var _1 = ArrayBuilder<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.GetInstance(out var builder);
+        using var _1 = ArrayBuilder<(string Category, ImmutableDictionary<string, ImmutableArray<DiagnosticData>> DiagnosticsById)>.GetInstance(out var builder);
         using var _2 = PooledDictionary<string, ImmutableArray<DiagnosticData>>.GetInstance(out var diagnosticsByIdBuilder);
         using var _3 = PooledHashSet<string>.GetInstance(out var uniqueIds);
 
