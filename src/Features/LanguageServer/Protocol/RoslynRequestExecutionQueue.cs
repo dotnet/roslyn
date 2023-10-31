@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return handler;
         }
 
-        protected static TextDocumentIdentifier? GetTextDocumentIdentifier(IQueueItem<RequestContext> work, IMethodHandler handler)
+        private static TextDocumentIdentifier? GetTextDocumentIdentifier(IQueueItem<RequestContext> work, IMethodHandler handler)
         {
             var textIdentifier = work.GetTextDocumentIdentifier<TextDocumentIdentifier>(handler);
             if (textIdentifier != null)
