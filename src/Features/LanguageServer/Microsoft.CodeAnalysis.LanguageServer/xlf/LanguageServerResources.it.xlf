@@ -67,9 +67,9 @@
         <target state="translated">Non è stato possibile leggere il file con estensione runsettings in {0}:{1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_run_restore_see_output_for_details">
-        <source>Failed to run restore, see output for details</source>
-        <target state="new">Failed to run restore, see output for details</target>
+      <trans-unit id="Failed_to_run_restore_on_0">
+        <source>Failed to run restore on {0}</source>
+        <target state="new">Failed to run restore on {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_0_tests_in_1">
