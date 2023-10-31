@@ -293,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 methodName = null;
                 return false;
             }
+
             internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
             {
                 builderArgument = null;
