@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static implicit operator Arg(bool value) => new(value ? "true" : "false");
             public static implicit operator Arg(ProjectId value) => new(value.DebugName);
             public static implicit operator Arg(DocumentId value) => new(value.DebugName);
-            public static implicit operator Arg(Diagnostic value) => new(value);
+            public static implicit operator Arg(Diagnostic value) => new(value.ToString());
             public static implicit operator Arg(ProjectAnalysisSummary value) => new((int)value, s_ProjectAnalysisSummary);
             public static implicit operator Arg(RudeEditKind value) => new((int)value, s_RudeEditKind);
             public static implicit operator Arg(ModuleUpdateStatus value) => new((int)value, s_ModuleUpdateStatus);

@@ -321,6 +321,10 @@ tryAgain:
                         MarkReachableFromTry(reachableBlocks, block);
                         break;
 
+                    case BlockType.Filter:
+                        MarkReachableFromFilter(reachableBlocks, block);
+                        break;
+
                     default:
                         MarkReachableFromBranch(reachableBlocks, block);
                         break;
@@ -461,6 +465,15 @@ tryAgain:
                 }
             }
 
+            MarkReachableFromBranch(reachableBlocks, block);
+        }
+
+        private static void MarkReachableFromFilter(ArrayBuilder<BasicBlock> reachableBlocks, BasicBlock block)
+        {
+            Debug.Assert(block.EnclosingHandler.LastFilterConditionBlock.BranchCode == ILOpCode.Endfilter);
+
+            // End filter block should be preserved and is considered always reachable
+            PushReachableBlockToProcess(reachableBlocks, block.EnclosingHandler.LastFilterConditionBlock);
             MarkReachableFromBranch(reachableBlocks, block);
         }
 

@@ -7,12 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -590,6 +588,151 @@ class Bad : Bad
                 Handle(3, TableIndex.StandAloneSig));
         }
 
+        [Theory]
+        [InlineData("in")]
+        [InlineData("ref readonly")]
+        public void ModifyMethod_ParameterModifiers_Ref_In_RefReadonly(string newModifier)
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    class C
+                    {
+                        public int F(ref int x) => throw null;
+                        public int G(in int y, ref readonly int z) => throw null;
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: $$"""
+                    class C
+                    {
+                        public int F({{newModifier}} int x) => throw null;
+                        public int G(in int y, ref readonly int z) => throw null;
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(12, TableIndex.CustomAttribute)
+                        });
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ModifyMethod_ParameterModifiers_Ref_Out()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    class C
+                    {
+                        public int F(ref int x) => throw null;
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: $$"""
+                    class C
+                    {
+                        public int F(out int x) => throw null;
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param)
+                        });
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ModifyMethod_ParameterModifiers_RefReadOnly()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    class C
+                    {
+                        public int F(ref int x) => throw null;
+                        public int G(ref readonly int x) => throw null;
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: $$"""
+                    class C
+                    {
+                        public int F(ref readonly int x) => throw null;
+                        public int G(ref readonly int x) => throw null;
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(9, TableIndex.CustomAttribute)
+                        });
+                    })
+                .Verify();
+        }
+
         [CompilerTrait(CompilerFeature.Tuples)]
         [Fact]
         public void ModifyMethod_WithTuples()
@@ -658,75 +801,79 @@ class Bad : Bad
         [Fact]
         public void ModifyMethod_WithAttributes1()
         {
-            using var _ = new EditAndContinueTest(options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20)
+            var common = """
+            using System;
+            class A1 : Attribute { }
+            class A2 : Attribute { }
+            class A3 : Attribute { }
+            class A4 : Attribute { }
+            class A5 : Attribute { }
+            class A6 : Attribute { }
+            """;
+
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
                 .AddBaseline(
-                    source: @"
-class C
-{
-    static void Main() { }
-    [System.ComponentModel.Description(""The F method"")]
-    static string F() { return null; }
-}",
+                    source: common + """
+                    class C
+                    {
+                        [A1]
+                        static void F() { }
+                    }
+                    """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "C");
-                        g.VerifyMethodDefNames("Main", "F", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*DescriptionAttribute*/".ctor");
-                        g.VerifyTableSize(TableIndex.CustomAttribute, 4);
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+
+                            // F:
+                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(1, TableIndex.MethodDef))
+                        ]);
                     })
 
                 .AddGeneration(
-                    source: @"
-class C
-{
-    static void Main() { }
-    [System.ComponentModel.Description(""The F method"")]
-    static string F() { return string.Empty; }
-}",
+                    source: common + """
+                    class C
+                    {
+                        [A2]
+                        static void F() { }
+                    }
+                    """,
                     edits: new[] { Edit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("F");
-                        g.VerifyMemberRefNames( /*DescriptionAttribute*/".ctor", /*String.*/"Empty");
-                        g.VerifyTableSize(TableIndex.CustomAttribute, 1);
-                        g.VerifyEncLog(new[]
-                        {
-                            Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default) // Row 4, so updating existing CustomAttribute
-                        });
-                        g.VerifyEncMap(new[]
-                        {
-                            Handle(7, TableIndex.TypeRef),
-                            Handle(8, TableIndex.TypeRef),
-                            Handle(9, TableIndex.TypeRef),
-                            Handle(2, TableIndex.MethodDef),
-                            Handle(6, TableIndex.MemberRef),
-                            Handle(7, TableIndex.MemberRef),
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 4, so updating existing CustomAttribute
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(7, TableIndex.MethodDef),
                             Handle(4, TableIndex.CustomAttribute),
-                            Handle(2, TableIndex.StandAloneSig),
-                            Handle(2, TableIndex.AssemblyRef)
-                        });
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef))
+                        ]);
                     })
 
                 // Add attribute to method, and to class
                 .AddGeneration(
-                    source: @"
-[System.ComponentModel.Browsable(false)]
-class C
-{
-    static void Main() { }
-    [System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
-    static string F() { return string.Empty; }
-}",
-                    edits: new[] {
+                    source: common + """
+                    [A5]
+                    class C
+                    {
+                        [A3, A4]
+                        static void F() { }
+                    }
+                    """,
+                    edits: new[]
+                    {
                         Edit(SemanticEditKind.Update, c => c.GetMember("C")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))
                     },
@@ -734,99 +881,67 @@ class C
                     {
                         g.VerifyTypeDefNames("C");
                         g.VerifyMethodDefNames("F");
-                        g.VerifyMemberRefNames( /*DescriptionAttribute*/".ctor", /*BrowsableAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
-                        g.VerifyTableSize(TableIndex.CustomAttribute, 3);
-                        g.VerifyEncLog(new[] {
-                            Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Row 4, updating the existing custom attribute
-                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Row 5, adding a new CustomAttribute
-                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default) // Row 6 adding a new CustomAttribute
-                        });
-                        g.VerifyEncMap(new[] {
-                            Handle(10, TableIndex.TypeRef),
-                            Handle(11, TableIndex.TypeRef),
-                            Handle(12, TableIndex.TypeRef),
-                            Handle(13, TableIndex.TypeRef),
-                            Handle(14, TableIndex.TypeRef),
-                            Handle(2, TableIndex.TypeDef),
-                            Handle(2, TableIndex.MethodDef),
-                            Handle(8, TableIndex.MemberRef),
-                            Handle(9, TableIndex.MemberRef),
-                            Handle(10, TableIndex.MemberRef),
-                            Handle(11, TableIndex.MemberRef),
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // updating the existing custom attribute
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // adding a new CustomAttribute for method F
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // adding a new CustomAttribute for type C
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(8, TableIndex.TypeDef),
+                            Handle(7, TableIndex.MethodDef),
                             Handle(4, TableIndex.CustomAttribute),
                             Handle(5, TableIndex.CustomAttribute),
                             Handle(6, TableIndex.CustomAttribute),
-                            Handle(3, TableIndex.StandAloneSig),
-                            Handle(3, TableIndex.AssemblyRef)
-                        });
-                    })
+                        ]);
 
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(8, TableIndex.TypeDef), Handle(5, TableIndex.MethodDef)),
+                        ]);
+                    })
                 // Add attribute before existing attributes
                 .AddGeneration(
-                    source: @"
-[System.ComponentModel.Browsable(false)]
-class C
-{
-    static void Main() { }
-    [System.ComponentModel.Browsable(false), System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
-    static string F() { return string.Empty; }
-}",
-                    edits: new[] {
-                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))
-                    },
+                    source: common + """
+                    [A5]
+                    class C
+                    {
+                        [A6, A3, A4]
+                        static void F() { }
+                    }
+                    """,
+                    edits: new[] { Edit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("F");
-                        g.VerifyMemberRefNames( /*BrowsableAttribute*/".ctor", /*DescriptionAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
-                        g.VerifyTableSize(TableIndex.CustomAttribute, 3);
-                        g.VerifyEncLog(new[] {
-                            Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                            Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(15, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 4, updating the existing custom attribute
-                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 5, updating a row that was new in Generation 2
-                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)  // Row 7, adding a new CustomAttribute, and skipping row 6 which is not for the method being emitted
-                        });
-                        g.VerifyEncMap(new[] {
-                            Handle(15, TableIndex.TypeRef),
-                            Handle(16, TableIndex.TypeRef),
-                            Handle(17, TableIndex.TypeRef),
-                            Handle(18, TableIndex.TypeRef),
-                            Handle(19, TableIndex.TypeRef),
-                            Handle(2, TableIndex.MethodDef),
-                            Handle(12, TableIndex.MemberRef),
-                            Handle(13, TableIndex.MemberRef),
-                            Handle(14, TableIndex.MemberRef),
-                            Handle(15, TableIndex.MemberRef),
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // updating the existing custom attribute
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // updating a row that was new in Generation 2
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)  // adding a new CustomAttribute, and skipping row 6 which is not for the method being emitted
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(7, TableIndex.MethodDef),
                             Handle(4, TableIndex.CustomAttribute),
                             Handle(5, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
-                            Handle(4, TableIndex.StandAloneSig),
-                            Handle(4, TableIndex.AssemblyRef)
-                        });
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
+                        ]);
                     })
                 .Verify();
         }
@@ -834,127 +949,108 @@ class C
         [Fact]
         public void ModifyMethod_WithAttributes2()
         {
-            var source0 =
-@"[System.ComponentModel.Browsable(false)]
-class C
-{
-    static void Main() { }
-    [System.ComponentModel.Description(""The F method"")]
-    static string F() { return null; }
-}
-[System.ComponentModel.Browsable(false)]
-class D
-{
-    [System.ComponentModel.Description(""A"")]
-    static string A() { return null; }
-}
-";
-            var source1 =
-@"
-[System.ComponentModel.Browsable(false)]
-class C
-{
-    static void Main() { }
-    [System.ComponentModel.Description(""The F method""), System.ComponentModel.Browsable(false), System.ComponentModel.Category(""Methods"")]
-    static string F() { return null; }
-}
-[System.ComponentModel.Browsable(false)]
-class D
-{
-    [System.ComponentModel.Description(""A""), System.ComponentModel.Category(""Methods"")]
-    static string A() { return null; }
-}
-";
+            var common = """
+            using System;
+            class A1 : Attribute { }
+            class A2 : Attribute { }
+            class A3 : Attribute { }
+            class A4 : Attribute { }
+            class A5 : Attribute { }
+            class A6 : Attribute { }
+            class A7 : Attribute { }
+            """;
 
-            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20);
-            var compilation1 = compilation0.WithSource(source1);
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddBaseline(
+                    common + """
+                    [A1]
+                    class C
+                    {
+                        [A3]
+                        static void F() {}
+                    }
+                    [A2]
+                    class D
+                    {
+                        [A4]
+                        static void G() {}
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
 
-            var method0_1 = compilation0.GetMember<MethodSymbol>("C.F");
-            var method0_2 = compilation0.GetMember<MethodSymbol>("D.A");
+                            // F:
+                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
 
-            // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
-            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
-            var reader0 = md0.MetadataReader;
+                            // C:
+                            new CustomAttributeRow(Handle(9, TableIndex.TypeDef), Handle(1, TableIndex.MethodDef)),
 
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "D");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor", "A", ".ctor");
-            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*DescriptionAttribute*/".ctor", /*BrowsableAttribute*/".ctor");
+                            // G:
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
 
-            CheckAttributes(reader0,
-                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(5, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(2, TableIndex.TypeDef), Handle(4, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(3, TableIndex.TypeDef), Handle(4, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(4, TableIndex.MethodDef), Handle(5, TableIndex.MemberRef)));
+                            // D:
+                            new CustomAttributeRow(Handle(10, TableIndex.TypeDef), Handle(2, TableIndex.MethodDef))
+                        ]);
+                    })
+                .AddGeneration(
+                    common + """
+                    [A1]
+                    class C
+                    {
+                        [A3, A5, A6]
+                        static void F() {}
+                    }
+                    [A2]
+                    class D
+                    {
+                        [A4, A7]
+                        static void G() {}
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("D.G"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(8, TableIndex.MethodDef),
+                            Handle(10, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute)
+                        ]);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                md0,
-                EmptyLocalsProvider);
-            var method1_1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var method1_2 = compilation1.GetMember<MethodSymbol>("D.A");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // update existing row
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // update existing row
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // add new row
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // add new row
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),// add new row
+                        ]);
 
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, method0_1, method1_1),
-                    SemanticEdit.Create(SemanticEditKind.Update, method0_2, method1_2)));
-
-            // Verify delta metadata contains expected rows.
-            using var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-            var readers = new[] { reader0, reader1 };
-
-            EncValidation.VerifyModuleMvid(1, reader0, reader1);
-
-            CheckNames(readers, reader1.GetTypeDefNames());
-            CheckNames(readers, reader1.GetMethodDefNames(), "F", "A");
-            CheckNames(readers, reader1.GetMemberRefNames(), /*BrowsableAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*DescriptionAttribute*/".ctor");
-
-            CheckAttributes(reader1,
-                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(8, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(7, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(9, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(4, TableIndex.MethodDef), Handle(8, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(4, TableIndex.MethodDef), Handle(9, TableIndex.MemberRef)));
-
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),    // update existing row
-                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),    // add new row
-                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),    // add new row
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),    // update existing row
-                Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default));  // add new row
-
-            CheckEncMap(reader1,
-                Handle(8, TableIndex.TypeRef),
-                Handle(9, TableIndex.TypeRef),
-                Handle(10, TableIndex.TypeRef),
-                Handle(11, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
-                Handle(4, TableIndex.MethodDef),
-                Handle(7, TableIndex.MemberRef),
-                Handle(8, TableIndex.MemberRef),
-                Handle(9, TableIndex.MemberRef),
-                Handle(4, TableIndex.CustomAttribute),
-                Handle(7, TableIndex.CustomAttribute),
-                Handle(8, TableIndex.CustomAttribute),
-                Handle(9, TableIndex.CustomAttribute),
-                Handle(10, TableIndex.CustomAttribute),
-                Handle(2, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.AssemblyRef));
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),
+                        ]);
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -1241,6 +1337,428 @@ class D
                 Handle(4, TableIndex.CustomAttribute),
                 Handle(4, TableIndex.StandAloneSig),
                 Handle(4, TableIndex.AssemblyRef));
+        }
+
+        [Fact]
+        public void ModifyMethod_DeleteAttributes3()
+        {
+            var common = """
+                using System;
+                class A1 : Attribute { }
+                class A2 : Attribute { }
+                class A3 : Attribute { }
+                class A4 : Attribute { }
+                class A5 : Attribute { }
+                class A6 : Attribute { }
+                class A7 : Attribute { }
+                class A8 : Attribute { }
+                """;
+
+            using var _ = new EditAndContinueTest(verification: Verification.Skipped)
+                .AddBaseline(
+                    source: common + """
+                        class C
+                        {
+                            [A1, A2]void F() { }
+                            [A3]void G() { }
+                            [A5, A6]void H() { }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+
+                            // F:
+                            new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(1, TableIndex.MethodDef)), // Row 4
+                            new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // Row 5
+
+                            // G:
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // Row 6
+
+                            // H:
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // Row 7
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // Row 8
+                        ]);
+                    })
+                .AddGeneration(
+                    source: common + """
+                        class C
+                        {
+                            [A2]void F() { }
+                            [A4, A3]void G() { }
+                            [A7]void H() { }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.G")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.H")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(9, TableIndex.MethodDef),
+                            Handle(10, TableIndex.MethodDef),
+                            Handle(11, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // F [A2] delete
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
+                        ]);
+                    })
+                .AddGeneration(
+                    source: common + """
+                        class C
+                        {
+                            [A2]void F() { }
+                            void G() { }
+                            [A5, A6, A7, A8]void H() { }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.G")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.H")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(10, TableIndex.MethodDef),
+                            Handle(11, TableIndex.MethodDef),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(11, TableIndex.CustomAttribute),
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A4] delete
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // H [A5]
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // H [A6]
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)), // H [A7] add with RowId 10
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(8, TableIndex.MethodDef)), // H [A8] add with RowId 11
+                        ]);
+                    })
+                .AddGeneration(
+                    source: common + """
+                        class C
+                        {
+                            [A2]void F() { }
+                            void G() { }
+                            void H() { }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.H")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(11, TableIndex.MethodDef),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(11, TableIndex.CustomAttribute),
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A6] delete
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A7] delete
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A8] delete
+                        ]);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ModifyMethod_DeleteAttributes_Ordering()
+        {
+            var common = """
+                using System;
+                class A1 : Attribute { }
+                class A2 : Attribute { }
+                class A3 : Attribute { }
+                class A4 : Attribute { }
+                """;
+
+            using var _ = new EditAndContinueTest(verification: Verification.Skipped)
+                .AddBaseline(
+                    source: common + """
+                        class C
+                        {
+                            void F() { }
+                            void G() { }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+                        ]);
+                    })
+                .AddGeneration( // add attribute to G
+                    source: common + """
+                        class C
+                        {
+                            void F() { }
+                            [A1] void G() { }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.G")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(1, TableIndex.MethodDef)), // G: [A1] add RowId 4
+                        ]);
+                    })
+                .AddGeneration( // add attribute to F
+                    source: common + """
+                        class C
+                        {
+                            [A1] void F() { }
+                            [A2] void G() { }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(1, TableIndex.MethodDef)), // F: [A2] add RowId 5
+                        ]);
+                    })
+                .AddGeneration( // update attributes of both F and G
+                    source: common + """
+                        class C
+                        {
+                            [A3] void F() { }
+                            [A4] void G() { }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.G")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
+                            new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // G: [A2] -> [A4]
+                        ]);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ModifyMethod_DeleteAttributes_DeletePreviouslyAdded()
+        {
+            var common = """
+                using System;
+                class A1 : Attribute { }
+                class A2 : Attribute { }
+                class A3 : Attribute { }
+                """;
+
+            using var _ = new EditAndContinueTest(verification: Verification.Skipped)
+                .AddBaseline(
+                    source: common + """
+                        class C
+                        {
+                            [A1] void F() { }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+
+                            // F:
+                            new CustomAttributeRow(Handle(4, TableIndex.MethodDef), Handle(1, TableIndex.MethodDef)), // Row 4
+                        ]);
+                    })
+                .AddGeneration(
+                    source: common + """
+                        class C
+                        {
+                            [A2, A3] void F() { }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(4, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
+                            new CustomAttributeRow(Handle(4, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // F [A3] add RowId 5
+                        ]);
+                    })
+                .AddGeneration(
+                    source: common + """
+                        class C
+                        {
+                            void F() { }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                        ]);
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // F [A2] delete
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // F [A3] delete
+                        ]);
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -2309,54 +2827,73 @@ delegate void D([A]int x);
         [Fact]
         public void TypePropertyField_Attributes()
         {
+            var common = """
+            using System;
+            class A1 : Attribute { }
+            class A2 : Attribute { }
+            class A3 : Attribute { }
+            class A4 : Attribute { }
+            class A5 : Attribute { }
+            class A6 : Attribute { }
+            class A7 : Attribute { }
+            class A8 : Attribute { }
+            class A9 : Attribute { }
+            class A10 : Attribute { }
+            class A11 : Attribute { }
+            class A12 : Attribute { }
+            """;
+
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
-                    source: @"
-enum E
-{
-    A
-}
+                    source: common + """
+                    enum E
+                    {
+                        A
+                    }
 
-class C
-{
-    private int _x;
-    public int X { get; }
-}
+                    class C
+                    {
+                        private int _x;
+                        public int X { get; }
+                    }
 
-delegate int D(int x);
-",
+                    delegate int D(int x);
+                    """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "E", "C", "D");
-                        g.VerifyMethodDefNames("get_X", ".ctor", ".ctor", "Invoke", "BeginInvoke", "EndInvoke");
-                        g.VerifyPropertyDefNames("X");
-                        g.VerifyFieldDefNames("value__", "A", "_x", "<X>k__BackingField");
-                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(4, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(5, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(13, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)),
+                        ]);
                     })
 
                 .AddGeneration(
-                    source: @"
-using System.ComponentModel;
+                    source: common + """
 
-[Description(""E"")]
-enum E
-{
-    [Description(""A"")]
-    A
-}
+                    [A1]
+                    enum E
+                    {
+                        [A2]
+                        A
+                    }
 
-[Description(""C"")]
-class C
-{
-    [Description(""_x"")]
-    private int _x;
-    [Description(""X"")]
-    public int X { get; }
-}
+                    [A3]
+                    class C
+                    {
+                        [A4]
+                        private int _x;
+                        [A5]
+                        public int X { get; }
+                    }
 
-[Description(""D"")]
-delegate int D(int x);
-",
+                    [A6]
+                    delegate int D(int x);
+                    """,
                     edits: new[]
                     {
                         Edit(SemanticEditKind.Update, c => c.GetMember("E")),
@@ -2370,21 +2907,22 @@ delegate int D(int x);
                     {
                         g.VerifyTypeDefNames("E", "C", "D");
                         g.VerifyMethodDefNames();
-                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
-                        g.VerifyCustomAttributes(new[]
-                        {
-                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(7, TableIndex.MemberRef)), // C.X
-                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(7, TableIndex.MemberRef)),    // E.A
-                            new CustomAttributeRow(Handle(2, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef)),  // E
-                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(7, TableIndex.MemberRef)),    // C._x
-                            new CustomAttributeRow(Handle(3, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef)),  // C
-                            new CustomAttributeRow(Handle(4, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef))   // D
-                        });
-                        g.VerifyEncLogDefinitions(new[]
-                        {
-                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(1, TableIndex.MethodDef)), // E
+                            new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(3, TableIndex.MethodDef)), // C
+                            new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(6, TableIndex.MethodDef)), // D
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(2, TableIndex.MethodDef)),    // E.A
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(4, TableIndex.MethodDef)),    // _x
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(5, TableIndex.MethodDef))  // X
+                        ]);
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(14, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(16, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
@@ -2396,12 +2934,13 @@ delegate int D(int x);
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
-                        });
-                        g.VerifyEncMapDefinitions(new[]
-                        {
-                            Handle(2, TableIndex.TypeDef),
-                            Handle(3, TableIndex.TypeDef),
-                            Handle(4, TableIndex.TypeDef),
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(14, TableIndex.TypeDef),
+                            Handle(15, TableIndex.TypeDef),
+                            Handle(16, TableIndex.TypeDef),
                             Handle(2, TableIndex.Field),
                             Handle(3, TableIndex.Field),
                             Handle(2, TableIndex.Constant),
@@ -2413,32 +2952,29 @@ delegate int D(int x);
                             Handle(12, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.MethodSemantics)
-                        });
+                        ]);
                     })
-
                 .AddGeneration(
-                    source: @"
-using System.ComponentModel;
+                    source: common + """
+                    [A7]
+                    enum E
+                    {
+                        [A8]
+                        A
+                    }
 
-[Description(""E_2"")]
-enum E
-{
-    [Description(""A_2"")]
-    A
-}
+                    [A9]
+                    class C
+                    {
+                        [A10]
+                        private int _x;
+                        [A11]
+                        public int X { get; }
+                    }
 
-[Description(""C_2"")]
-class C
-{
-    [Description(""_x_2"")]
-    private int _x;
-    [Description(""X_2"")]
-    public int X { get; }
-}
-
-[Description(""D_2"")]
-delegate int D(int x);
-",
+                    [A12]
+                    delegate int D(int x);
+                    """,
                     edits: new[]
                     {
                         Edit(SemanticEditKind.Update, c => c.GetMember("E")),
@@ -2452,21 +2988,22 @@ delegate int D(int x);
                     {
                         g.VerifyTypeDefNames("E", "C", "D");
                         g.VerifyMethodDefNames();
-                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
-                        g.VerifyCustomAttributes(new[]
-                        {
-                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(8, TableIndex.MemberRef)), // C.X
-                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MemberRef)),    // E.A
-                            new CustomAttributeRow(Handle(2, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef)),  // E
-                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(8, TableIndex.MemberRef)),    // C._x
-                            new CustomAttributeRow(Handle(3, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef)),  // C
-                            new CustomAttributeRow(Handle(4, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef))   // D
-                        });
+
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(7, TableIndex.MethodDef)), // E
+                            new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(9, TableIndex.MethodDef)), // C
+                            new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(12, TableIndex.MethodDef)),// D
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)) // X
+                        ]);
+
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(16, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
@@ -2479,11 +3016,12 @@ delegate int D(int x);
                             Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
-                            Handle(2, TableIndex.TypeDef),
-                            Handle(3, TableIndex.TypeDef),
-                            Handle(4, TableIndex.TypeDef),
+                            Handle(14, TableIndex.TypeDef),
+                            Handle(15, TableIndex.TypeDef),
+                            Handle(16, TableIndex.TypeDef),
                             Handle(2, TableIndex.Field),
                             Handle(3, TableIndex.Field),
                             Handle(3, TableIndex.Constant),
@@ -2834,7 +3372,7 @@ namespace N
                 Row(3, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                 Row(4, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -2866,7 +3404,7 @@ namespace N
                 Handle(7, TableIndex.MemberRef),
                 Handle(8, TableIndex.MemberRef),
                 Handle(9, TableIndex.MemberRef),
-                Handle(6, TableIndex.CustomAttribute),
+                Handle(10, TableIndex.CustomAttribute),
                 Handle(11, TableIndex.CustomAttribute),
                 Handle(12, TableIndex.CustomAttribute),
                 Handle(13, TableIndex.CustomAttribute),
@@ -3007,7 +3545,7 @@ namespace N
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
-            CheckNames(readers, reader1.GetPropertyDefNames(), "P");
+            CheckNames(readers, reader1.GetPropertyDefNames());
             CheckNames(readers, reader1.GetMethodDefNames(), "get_P");
 
             CheckEncLog(reader1,
@@ -3015,22 +3553,22 @@ namespace N
                 Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(1, TableIndex.Property, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(7, TableIndex.TypeRef),
                 Handle(8, TableIndex.TypeRef),
                 Handle(1, TableIndex.MethodDef),
                 Handle(2, TableIndex.StandAloneSig),
-                Handle(1, TableIndex.Property),
-                Handle(2, TableIndex.MethodSemantics),
                 Handle(2, TableIndex.AssemblyRef));
         }
 
-        [Fact]
-        public void Property_Add()
+        /// <param name="explicitAccessorEdits">
+        /// Validate that explicitly listing property accessors in the edit list produces the same results as listing just the property.
+        /// </param>
+        [Theory]
+        [CombinatorialData]
+        public void Property_Add(bool explicitAccessorEdits)
         {
             var source0 = @"
 class C
@@ -3069,7 +3607,9 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, r1)));
+                explicitAccessorEdits
+                    ? ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, r1), SemanticEdit.Create(SemanticEditKind.Insert, null, r1.GetMethod))
+                    : ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, r1)));
 
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -3102,8 +3642,13 @@ class C
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, q2)));
+                explicitAccessorEdits
+                    ? ImmutableArray.Create(
+                        SemanticEdit.Create(SemanticEditKind.Insert, null, q2),
+                        SemanticEdit.Create(SemanticEditKind.Insert, null, q2.GetMethod),
+                        SemanticEdit.Create(SemanticEditKind.Insert, null, q2.SetMethod))
+                    : ImmutableArray.Create(
+                        SemanticEdit.Create(SemanticEditKind.Insert, null, q2)));
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
@@ -3163,7 +3708,6 @@ class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor", ".ctor");
                     })
 
                 .AddGeneration(
@@ -3175,33 +3719,31 @@ class C
                     edits: new[] {
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor", ".ctor");
+
+                        // Set the property name to "_deleted"
+                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
                             Handle(1, TableIndex.CustomAttribute),
-                            Handle(7, TableIndex.CustomAttribute),
-                            Handle(1, TableIndex.Property),
-                            Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics),
+                            Handle(7, TableIndex.CustomAttribute)
                         });
 
                         var expectedIL = """
@@ -3230,7 +3772,6 @@ class C
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor", ".ctor");
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -3239,8 +3780,8 @@ class C
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -3250,8 +3791,8 @@ class C
                             Handle(1, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
-                            Handle(5, TableIndex.MethodSemantics),
-                            Handle(6, TableIndex.MethodSemantics),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics),
                         });
 
                         var expectedIL = """
@@ -3293,7 +3834,6 @@ class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
                     })
 
                 .AddGeneration(
@@ -3302,32 +3842,30 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
+
+                        // Set the property name to "_deleted"
+                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
-                            Handle(1, TableIndex.Property),
-                            Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics),
                         });
 
                         var expectedIL = """
@@ -3369,8 +3907,8 @@ class C
                             Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -3383,8 +3921,8 @@ class C
                             Handle(6, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
-                            Handle(5, TableIndex.MethodSemantics),
-                            Handle(6, TableIndex.MethodSemantics)
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
                         });
 
                         var expectedIL = """
@@ -3426,7 +3964,6 @@ class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
                     })
 
                 .AddGeneration(
@@ -3436,31 +3973,28 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
+
+                        // Set the property name to "_deleted"
+                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
-                            Handle(1, TableIndex.Property),
-                            Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics),
                         });
 
                         var expectedIL = """
@@ -3482,8 +4016,11 @@ class C
                             public string P { get { return "2"; } set { } }
                         }
                         """,
-                    edits: new[] {
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.get_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.set_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
@@ -3497,8 +4034,8 @@ class C
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -3507,8 +4044,8 @@ class C
                             Handle(1, TableIndex.Param),
                             Handle(2, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Property),
-                            Handle(5, TableIndex.MethodSemantics),
-                            Handle(6, TableIndex.MethodSemantics),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics),
                         });
 
                         var expectedIL = """
@@ -3551,7 +4088,6 @@ class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
                     })
 
                 .AddGeneration(
@@ -3561,8 +4097,9 @@ class C
                             public string P { get { return "1"; } }
                         }
                         """,
-                    edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
@@ -3599,14 +4136,16 @@ class C
                             public string P { get { return "2"; } set { } }
                         }
                         """,
-                    edits: new[] {
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.get_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.set_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P");
-                        g.VerifyMemberRefNames();
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -3676,10 +4215,14 @@ class C
                             int P { get; set; }
                         }
                         """,
-                    edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.get_P").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_String)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.set_P").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.P").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_Int32)?.ISymbol),
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.get_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.set_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
@@ -3697,7 +4240,6 @@ class C
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
@@ -3711,8 +4253,6 @@ class C
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -3729,12 +4269,9 @@ class C
                             Handle(9, TableIndex.CustomAttribute),
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
-                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics),
-                            Handle(5, TableIndex.MethodSemantics),
-                            Handle(6, TableIndex.MethodSemantics)
+                            Handle(4, TableIndex.MethodSemantics)
                         });
 
                         var expectedIL = """
@@ -3772,9 +4309,12 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.get_P").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.set_P").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.P").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_String)?.ISymbol),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.get_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.set_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
@@ -3789,17 +4329,14 @@ class C
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -3814,11 +4351,8 @@ class C
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
-                            Handle(2, TableIndex.Property),
-                            Handle(7, TableIndex.MethodSemantics),
-                            Handle(8, TableIndex.MethodSemantics),
-                            Handle(9, TableIndex.MethodSemantics),
-                            Handle(10, TableIndex.MethodSemantics)
+                            Handle(5, TableIndex.MethodSemantics),
+                            Handle(6, TableIndex.MethodSemantics),
                         });
 
                         var expectedIL = """
@@ -3875,15 +4409,18 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.Q")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.Q")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")), // the compiler does not need this edit, but the IDE adds it for simplicity
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.set_Q")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P", "get_Q", "set_Q");
-                        g.VerifyDeletedMembers("C: {P, get_P, set_P}");
+                        g.VerifyDeletedMembers("C: {get_P, set_P, P}");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -3895,7 +4432,6 @@ class C
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
@@ -3909,8 +4445,6 @@ class C
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -3927,12 +4461,9 @@ class C
                             Handle(9, TableIndex.CustomAttribute),
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
-                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics),
-                            Handle(5, TableIndex.MethodSemantics),
-                            Handle(6, TableIndex.MethodSemantics)
                         });
 
                         var expectedIL = """
@@ -3970,15 +4501,18 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_Q"), newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_Q"), newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_Q"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_Q"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.Q"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.get_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.set_P")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P", "get_Q", "set_Q");
-                        g.VerifyDeletedMembers("C: {Q, get_Q, set_Q}");
+                        g.VerifyDeletedMembers("C: {get_Q, set_Q, Q}");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -3987,17 +4521,14 @@ class C
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -4012,11 +4543,8 @@ class C
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
-                            Handle(2, TableIndex.Property),
-                            Handle(7, TableIndex.MethodSemantics),
-                            Handle(8, TableIndex.MethodSemantics),
-                            Handle(9, TableIndex.MethodSemantics),
-                            Handle(10, TableIndex.MethodSemantics)
+                            Handle(5, TableIndex.MethodSemantics),
+                            Handle(6, TableIndex.MethodSemantics)
                         });
 
                         var expectedIL = """
@@ -4064,7 +4592,6 @@ class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("get_Item", "set_Item", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor");
                     })
 
                 .AddGeneration(
@@ -4074,24 +4601,25 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_Item"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_Item"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("get_Item", "set_Item");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
+                        g.VerifyDeletedMembers("C: {get_Item, set_Item, this[]}");
+
+                        // Set the property name to "_deleted"
+                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -4100,9 +4628,6 @@ class C
                             Handle(1, TableIndex.Param),
                             Handle(2, TableIndex.Param),
                             Handle(3, TableIndex.Param),
-                            Handle(1, TableIndex.Property),
-                            Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics),
                         });
 
                         var expectedIL = """
@@ -4144,8 +4669,10 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.this[]").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
@@ -4159,14 +4686,12 @@ class C
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -4175,10 +4700,8 @@ class C
                             Handle(1, TableIndex.Param),
                             Handle(2, TableIndex.Param),
                             Handle(2, TableIndex.StandAloneSig),
-                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
                             Handle(2, TableIndex.MethodSemantics),
-                            Handle(3, TableIndex.MethodSemantics)
                         });
 
                         var expectedIL = """
@@ -4211,8 +4734,10 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.this[]").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
@@ -4226,11 +4751,9 @@ class C
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -4240,9 +4763,7 @@ class C
                             Handle(2, TableIndex.Param),
                             Handle(3, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Property),
-                            Handle(2, TableIndex.Property),
-                            Handle(4, TableIndex.MethodSemantics),
-                            Handle(5, TableIndex.MethodSemantics)
+                            Handle(3, TableIndex.MethodSemantics),
                         });
 
                         var expectedIL = """
@@ -4266,6 +4787,128 @@ class C
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
                         g.VerifyIL(expectedIL);
+                    }).AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            int this[int x] { get { return 2; } }
+                            int this[string y] { get { return 3; } }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Insert, c => c.GetMembers<IPropertySymbol>("C.this[]").Single(p => p.Parameters is [{ Name: "y" }])),
+                        Edit(SemanticEditKind.Insert, c => c.GetMembers<IPropertySymbol>("C.this[]").Single(p => p.Parameters is [{ Name: "y" }]).GetMethod), // the compiler does not need this edit, but the IDE adds it for simplicity
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("get_Item");
+                        g.VerifyDeletedMembers("C: {this[], get_Item}");
+
+                        // existing property and getter are updated:
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(2, TableIndex.Param),
+                            Handle(4, TableIndex.StandAloneSig),
+                            Handle(2, TableIndex.Property),
+                            Handle(4, TableIndex.MethodSemantics)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              IL_0000:  nop
+                              IL_0001:  ldc.i4.3
+                              IL_0002:  stloc.0
+                              IL_0003:  br.s       IL_0005
+                              IL_0005:  ldloc.0
+                              IL_0006:  ret
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Indexer_ChangeParameterName()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            int this[int x] { get => 1; set { } }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("get_Item", "set_Item", ".ctor");
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            int this[int y] { get => 1; set { } }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        // Both accessors must be updated, the indexer itself does not:
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.set_Item")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("get_Item", "set_Item");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(3, TableIndex.Param),
+                        });
+
+                        g.VerifyIL("""
+                            {
+                              // Code size        2 (0x2)
+                              .maxstack  8
+                              IL_0000:  ldc.i4.1
+                              IL_0001:  ret
+                            }
+                            {
+                              // Code size        2 (0x2)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ret
+                            }
+                            """);
                     })
                 .Verify();
         }
@@ -4424,7 +5067,6 @@ class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor", "Combine", "CompareExchange", "Remove", ".ctor");
                     })
 
                 .AddGeneration(
@@ -4434,25 +5076,25 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("add_E", "remove_E");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor", ".ctor");
+
+                        // Set the property name to "_deleted"
+                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(1, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -4462,9 +5104,6 @@ class C
                             Handle(2, TableIndex.Param),
                             Handle(1, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
-                            Handle(1, TableIndex.Event),
-                            Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics)
                         });
 
                         var expectedIL = """
@@ -4497,7 +5136,6 @@ class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor", "Combine", "CompareExchange", "Remove", ".ctor");
                     })
 
                 .AddGeneration(
@@ -4508,19 +5146,20 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.F")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.F")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.add_F")),    // the compiler does not need this edit, but the IDE adds it for simplicity
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.remove_F")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("add_E", "remove_E", "add_F", "remove_F");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor", ".ctor", ".ctor", "Combine", "CompareExchange", "Remove");
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
                             Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
@@ -4545,8 +5184,6 @@ class C
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -4566,12 +5203,9 @@ class C
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
                             Handle(2, TableIndex.StandAloneSig),
-                            Handle(1, TableIndex.Event),
                             Handle(2, TableIndex.Event),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics),
-                            Handle(5, TableIndex.MethodSemantics),
-                            Handle(6, TableIndex.MethodSemantics)
                         });
 
                         var expectedIL = """
@@ -4643,20 +5277,21 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.add_F"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.remove_F"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.E")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.add_F"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.remove_F"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.E")),
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.add_E")),    // the compiler does not need this edit, but the IDE adds it for simplicity
+                        Edit(SemanticEditKind.Insert, c => c.GetMember("C.remove_E")), // the compiler does not need this edit, but the IDE adds it for simplicity
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("add_E", "remove_E", "add_F", "remove_F");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor", ".ctor", "Combine", "CompareExchange", "Remove", ".ctor");
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Event, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -4669,10 +5304,8 @@ class C
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
@@ -4690,11 +5323,8 @@ class C
                             Handle(11, TableIndex.CustomAttribute),
                             Handle(3, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Event),
-                            Handle(2, TableIndex.Event),
-                            Handle(7, TableIndex.MethodSemantics),
-                            Handle(8, TableIndex.MethodSemantics),
-                            Handle(9, TableIndex.MethodSemantics),
-                            Handle(10, TableIndex.MethodSemantics)
+                            Handle(5, TableIndex.MethodSemantics),
+                            Handle(6, TableIndex.MethodSemantics),
                         });
 
                         var expectedIL = """
@@ -6131,8 +6761,6 @@ interface I
             CheckEncLog(reader2,
                 Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.Event, EditAndContinueOperation.Default),
-                Row(3, TableIndex.Event, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -6145,22 +6773,12 @@ interface I
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(1, TableIndex.Property, EditAndContinueOperation.Default),
-                Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                 Row(3, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(4, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(5, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(6, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(7, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(8, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(12, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(13, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(14, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(15, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(16, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(17, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                Row(18, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+                Row(8, TableIndex.Param, EditAndContinueOperation.Default));
 
             diff2.VerifyIL(@"
 {
@@ -6336,14 +6954,14 @@ delegate void D();
 
             CheckAttributes(reader1,
                 new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
-                new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)),
-                new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
                 new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
                 new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
                 new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
                 new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
                 new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)));
+                new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)));
         }
 
         /// <summary>
@@ -11257,6 +11875,47 @@ testData: new CompilationTestData { SymWriterFactory = _ => new MockSymUnmanaged
             Assert.False(diff1.EmitResult.Success);
         }
 
+        [Fact]
+        public void TypeDefinitionDocumentInformation()
+        {
+            var sourceA0 = """
+                interface I {}
+                """;
+            var sourceB0 = """
+                class C
+                {
+                    static int Main() => 1;
+                }
+                """;
+
+            var sourceA1 = """
+                interface I {}
+                """;
+            var sourceB1 = """
+                class C
+                {
+                    static int Main() => 2;
+                }
+                """;
+
+            var compilation0 = CreateCompilation(new[] { sourceA0, sourceB0 }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(new[] { sourceA1, sourceB1 });
+
+            var bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var diff1 = compilation1.EmitDifference(
+                    EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                    ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation0.GetMember("C.Main"), compilation1.GetMember("C.Main"))));
+
+            Assert.True(diff1.EmitResult.Success);
+
+            using var provider = MetadataReaderProvider.FromPortablePdbStream(new MemoryStream(diff1.PdbDelta.ToArray()));
+            var pdbReader = provider.GetMetadataReader();
+
+            // No CDIs should be emitted, specifically not PortableCustomDebugInfoKinds.TypeDefinitionDocuments
+            Assert.Empty(pdbReader.CustomDebugInformation.Select(cdi => pdbReader.GetGuid(pdbReader.GetCustomDebugInformation(cdi).Kind)));
+        }
+
         [WorkItem(1058058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1058058")]
         [Fact]
         public void BlobContainsInvalidValues()
@@ -15257,7 +15916,7 @@ class C
                             Handle(6, TableIndex.CustomAttribute)
                         });
                         g.VerifyCustomAttributes(new[]
-{
+                        {
                             new CustomAttributeRow(Handle(1, TableIndex.Param), Handle(6, TableIndex.MemberRef)),
                             new CustomAttributeRow(Handle(2, TableIndex.Param), Handle(6, TableIndex.MemberRef)),
                             new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(6, TableIndex.MemberRef))
@@ -16135,8 +16794,8 @@ file class C
             var compilation1 = compilation0.WithSource(new[] { source1_gen1.Tree, source0_gen1.Tree });
 
             var c1_gen0 = compilation0.GetMember("C");
-            var c1_gen1 = ((NamedTypeSymbol)compilation1.GetMembers("C")[0]);
-            var c2_gen1 = ((NamedTypeSymbol)compilation1.GetMembers("C")[1]);
+            var c1_gen1 = (NamedTypeSymbol)compilation1.GetMembers("C")[0];
+            var c2_gen1 = (NamedTypeSymbol)compilation1.GetMembers("C")[1];
 
             var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
 
@@ -16159,7 +16818,6 @@ file class C
             var diff = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Delete, c1_gen0, null, syntaxMap: null, preserveLocalVariables: true),
                     SemanticEdit.Create(SemanticEditKind.Insert, null, c1_gen1, syntaxMap: null, preserveLocalVariables: true),
                     SemanticEdit.Create(SemanticEditKind.Insert, null, c2_gen1, syntaxMap: null, preserveLocalVariables: true)));
 
@@ -16249,8 +16907,6 @@ file class C
             var diff = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Delete, c1_gen0, null, syntaxMap: null, preserveLocalVariables: true),
-                    SemanticEdit.Create(SemanticEditKind.Delete, c2_gen0, null, syntaxMap: null, preserveLocalVariables: true),
                     SemanticEdit.Create(SemanticEditKind.Insert, null, c2_gen1, syntaxMap: null, preserveLocalVariables: true)));
 
             // There should be no diagnostics from rude edits
@@ -16920,7 +17576,7 @@ file class C
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69398")]
-        public void PrivateImplDetails_CollectionExpressions()
+        public void PrivateImplDetails_CollectionExpressions_InlineArrays()
         {
             var commonSource = """
                 using System;
@@ -16971,7 +17627,7 @@ file class C
                             "C",
                             "CollectionBuilderAttribute",
                             "<PrivateImplementationDetails>",
-                            "<>y__InlineArray3");
+                            "<>y__InlineArray3`1");
 
                         g.VerifyMethodDefNames(
                             ".ctor",
@@ -16999,7 +17655,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>y__InlineArray4#1");
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>y__InlineArray4#1`1");
                         g.VerifyMethodDefNames("F", "InlineArrayAsReadOnlySpan", "InlineArrayElementRef");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -17070,7 +17726,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>y__InlineArray4#2");
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>y__InlineArray4#2`1");
                         g.VerifyMethodDefNames("F", "InlineArrayAsReadOnlySpan", "InlineArrayElementRef");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -17127,6 +17783,170 @@ file class C
                             Handle(16, TableIndex.GenericParam),
                             Handle(17, TableIndex.GenericParam)
                         });
+                    })
+                .Verify();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        using System.Collections.Generic;
+                        class C
+                        {
+                            static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y];
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames(
+                            "<Module>",
+                            "C",
+                            "<PrivateImplementationDetails>",
+                            "<>z__ReadOnlyArray`1");
+
+                        g.VerifyMethodDefNames(
+                            "F",
+                            ".ctor",
+                            ".ctor",
+                            "System.Collections.IEnumerable.GetEnumerator",
+                            "System.Collections.ICollection.get_Count",
+                            "System.Collections.ICollection.get_IsSynchronized",
+                            "System.Collections.ICollection.get_SyncRoot",
+                            "System.Collections.ICollection.CopyTo",
+                            "System.Collections.IList.get_Item",
+                            "System.Collections.IList.set_Item",
+                            "System.Collections.IList.get_IsFixedSize",
+                            "System.Collections.IList.get_IsReadOnly",
+                            "System.Collections.IList.Add",
+                            "System.Collections.IList.Clear",
+                            "System.Collections.IList.Contains",
+                            "System.Collections.IList.IndexOf",
+                            "System.Collections.IList.Insert",
+                            "System.Collections.IList.Remove",
+                            "System.Collections.IList.RemoveAt",
+                            "System.Collections.Generic.IEnumerable<T>.GetEnumerator",
+                            "System.Collections.Generic.IReadOnlyCollection<T>.get_Count",
+                            "System.Collections.Generic.IReadOnlyList<T>.get_Item",
+                            "System.Collections.Generic.ICollection<T>.get_Count",
+                            "System.Collections.Generic.ICollection<T>.get_IsReadOnly",
+                            "System.Collections.Generic.ICollection<T>.Add",
+                            "System.Collections.Generic.ICollection<T>.Clear",
+                            "System.Collections.Generic.ICollection<T>.Contains",
+                            "System.Collections.Generic.ICollection<T>.CopyTo",
+                            "System.Collections.Generic.ICollection<T>.Remove",
+                            "System.Collections.Generic.IList<T>.get_Item",
+                            "System.Collections.Generic.IList<T>.set_Item",
+                            "System.Collections.Generic.IList<T>.IndexOf",
+                            "System.Collections.Generic.IList<T>.Insert",
+                            "System.Collections.Generic.IList<T>.RemoveAt");
+                    })
+
+                .AddGeneration(
+                    """
+                    using System.Collections.Generic;
+                    class C
+                    {
+                        static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y, default];
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>z__ReadOnlyArray#1`1");
+                        g.VerifyMethodDefNames(
+                            "F",
+                            ".ctor",
+                            "System.Collections.IEnumerable.GetEnumerator",
+                            "System.Collections.ICollection.get_Count",
+                            "System.Collections.ICollection.get_IsSynchronized",
+                            "System.Collections.ICollection.get_SyncRoot",
+                            "System.Collections.ICollection.CopyTo",
+                            "System.Collections.IList.get_Item",
+                            "System.Collections.IList.set_Item",
+                            "System.Collections.IList.get_IsFixedSize",
+                            "System.Collections.IList.get_IsReadOnly",
+                            "System.Collections.IList.Add",
+                            "System.Collections.IList.Clear",
+                            "System.Collections.IList.Contains",
+                            "System.Collections.IList.IndexOf",
+                            "System.Collections.IList.Insert",
+                            "System.Collections.IList.Remove",
+                            "System.Collections.IList.RemoveAt",
+                            "System.Collections.Generic.IEnumerable<T>.GetEnumerator",
+                            "System.Collections.Generic.IReadOnlyCollection<T>.get_Count",
+                            "System.Collections.Generic.IReadOnlyList<T>.get_Item",
+                            "System.Collections.Generic.ICollection<T>.get_Count",
+                            "System.Collections.Generic.ICollection<T>.get_IsReadOnly",
+                            "System.Collections.Generic.ICollection<T>.Add",
+                            "System.Collections.Generic.ICollection<T>.Clear",
+                            "System.Collections.Generic.ICollection<T>.Contains",
+                            "System.Collections.Generic.ICollection<T>.CopyTo",
+                            "System.Collections.Generic.ICollection<T>.Remove",
+                            "System.Collections.Generic.IList<T>.get_Item",
+                            "System.Collections.Generic.IList<T>.set_Item",
+                            "System.Collections.Generic.IList<T>.IndexOf",
+                            "System.Collections.Generic.IList<T>.Insert",
+                            "System.Collections.Generic.IList<T>.RemoveAt");
+
+                        // Many EncLog and EncMap entries added.
+                    })
+                .AddGeneration(
+                    """
+                    using System.Collections.Generic;
+                    class C
+                    {
+                        static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y, ..e];
+                    }
+                    """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>z__ReadOnlyList#2`1");
+                        g.VerifyMethodDefNames(
+                            "F",
+                            ".ctor",
+                            "System.Collections.IEnumerable.GetEnumerator",
+                            "System.Collections.ICollection.get_Count",
+                            "System.Collections.ICollection.get_IsSynchronized",
+                            "System.Collections.ICollection.get_SyncRoot",
+                            "System.Collections.ICollection.CopyTo",
+                            "System.Collections.IList.get_Item",
+                            "System.Collections.IList.set_Item",
+                            "System.Collections.IList.get_IsFixedSize",
+                            "System.Collections.IList.get_IsReadOnly",
+                            "System.Collections.IList.Add",
+                            "System.Collections.IList.Clear",
+                            "System.Collections.IList.Contains",
+                            "System.Collections.IList.IndexOf",
+                            "System.Collections.IList.Insert",
+                            "System.Collections.IList.Remove",
+                            "System.Collections.IList.RemoveAt",
+                            "System.Collections.Generic.IEnumerable<T>.GetEnumerator",
+                            "System.Collections.Generic.IReadOnlyCollection<T>.get_Count",
+                            "System.Collections.Generic.IReadOnlyList<T>.get_Item",
+                            "System.Collections.Generic.ICollection<T>.get_Count",
+                            "System.Collections.Generic.ICollection<T>.get_IsReadOnly",
+                            "System.Collections.Generic.ICollection<T>.Add",
+                            "System.Collections.Generic.ICollection<T>.Clear",
+                            "System.Collections.Generic.ICollection<T>.Contains",
+                            "System.Collections.Generic.ICollection<T>.CopyTo",
+                            "System.Collections.Generic.ICollection<T>.Remove",
+                            "System.Collections.Generic.IList<T>.get_Item",
+                            "System.Collections.Generic.IList<T>.set_Item",
+                            "System.Collections.Generic.IList<T>.IndexOf",
+                            "System.Collections.Generic.IList<T>.Insert",
+                            "System.Collections.Generic.IList<T>.RemoveAt");
+
+                        // Many EncLog and EncMap entries added.
                     })
                 .Verify();
         }

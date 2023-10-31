@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
         {
             Contract.ThrowIfTrue(_instance is not null);
 
-            FatalError.Handler = ReportFault;
-            FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
+            FatalError.ErrorReporterHandler handler = ReportFault;
+            FatalError.SetHandlers(handler, nonFatalHandler: handler);
+            FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
 
             if (reporter is not null && telemetryLevel is not null)
             {

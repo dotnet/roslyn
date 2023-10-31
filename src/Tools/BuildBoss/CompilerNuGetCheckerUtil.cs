@@ -336,7 +336,7 @@ namespace BuildBoss
                 foreach (var part in GetPartsInFolder(package, folderRelativeName))
                 {
                     var name = part.GetName();
-                    if (Path.GetExtension(name) != ".dll")
+                    if (Path.GetExtension(name) is not (".dll" or ".exe"))
                     {
                         continue;
                     }

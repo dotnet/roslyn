@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -432,7 +433,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = {|CS0826:{|CS0029:new[] { }|}|};
+                    string[] i = {|CS0826:new[] { }|};
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -619,6 +620,60 @@ public class UseCollectionExpressionForArrayTests
                     void M()
                     {
                         var c = (int[])[1];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedToComplexCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var c = {|CS0030:(int)new int[] { 1 }|};
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNaturalType1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var c = (object)new int[] { 1 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNaturalType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        object c = new int[] { 1 };
                     }
                 }
                 """,
@@ -1052,15 +1107,6 @@ public class UseCollectionExpressionForArrayTests
                     public XAttribute(int[] values) { }
                 }
                 """,
-            FixedState =
-                {
-                    // THis will tart working once https://github.com/dotnet/roslyn/issues/69133 is fixed.
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(1,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                        DiagnosticResult.CompilerError("CS0182").WithSpan(1, 4, 1, 13),
-                    }
-                },
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
@@ -2704,6 +2750,1422 @@ public class UseCollectionExpressionForArrayTests
             {
                 OutputKind = OutputKind.ConsoleApplication,
             },
+        }.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int[] i =
+                [|{|]
+                    1,
+                    2,
+                    3,
+                };
+                """.ReplaceLineEndings(endOfLine),
+            FixedCode = """
+                int[] i =
+                [
+                    1,
+                    2,
+                    3,
+                ];
+                """.ReplaceLineEndings(endOfLine),
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly = new object[][]
+    {
+        new [] { "[|[|new|] int[0]|]", "[]" },
+        new [] { "[|[|new|] int[]|] { }", "[]" },
+        new [] { "[|[|new|] int[]|] { 1, 2, 3 }", "[1, 2, 3]" },
+        new [] { "[|[|new|][]|] { 1, 2, 3 }", "[1, 2, 3]" },
+    };
+
+    [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
+    public async Task TestForSpanField(string expression, string expected)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                ref struct C
+                {
+                    private ReadOnlySpan<int> span = {{expression}};
+
+                    public C() { }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                ref struct C
+                {
+                    private ReadOnlySpan<int> span = {{expected}};
+                
+                    public C() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestForSpanField2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                ref struct C
+                {
+                    private static readonly int i = 0;
+                    private ReadOnlySpan<int> span = new int[] { i };
+
+                    public C() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
+    public async Task TestForSpanProperty1(string expression, string expected)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private ReadOnlySpan<int> Span => {{expression}};
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private ReadOnlySpan<int> Span => {{expected}};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
+    public async Task TestForSpanProperty2(string expression, string expected)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private ReadOnlySpan<int> Span { get => {{expression}}; }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private ReadOnlySpan<int> Span { get => {{expected}}; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
+    public async Task TestForSpanProperty3(string expression, string expected)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private ReadOnlySpan<int> Span { get { return {{expression}}; } }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private ReadOnlySpan<int> Span { get { return {{expected}}; } }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestForSpanProperty4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private static readonly int i = 1;
+                    private ReadOnlySpan<int> Span => new int[] { i };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
+    public async Task TestForMethodReturn(string expression, string expected)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private ReadOnlySpan<int> Span() => {{expression}};
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private ReadOnlySpan<int> Span() => {{expected}};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestForSpanMethodReturn2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    private static readonly int i = 1;
+                    private ReadOnlySpan<int> Span() => new int[] { i };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
+    public async Task TestForMethodLocal1(string expression, string expected)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<int> span = {{expression}};
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        ReadOnlySpan<int> span = {{expected}};
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
+    public async Task TestForArgument(string expression, string expected)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        X({{expression}});
+                    }
+
+                    void X(ReadOnlySpan<int> span) { }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        X({{expected}});
+                    }
+                
+                    void X(ReadOnlySpan<int> span) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> t;
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        ReadOnlySpan<int> t;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    int[] globalArray;
+
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> t = globalArray;
+                        return t;
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    int[] globalArray;
+
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        ReadOnlySpan<int> t = globalArray;
+                        return t;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> t = s;
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        ReadOnlySpan<int> t = s;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        X(s);
+                    }
+
+                    void X(ReadOnlySpan<int> span) { }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        X(s);
+                    }
+                
+                    void X(ReadOnlySpan<int> span) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        return X(s);
+                    }
+
+                    ReadOnlySpan<int> X(scoped ReadOnlySpan<int> span) => default;
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        return X(s);
+                    }
+                
+                    ReadOnlySpan<int> X(scoped ReadOnlySpan<int> span) => default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        s.Slice(0, 1);
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        s.Slice(0, 1);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan7_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    string M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        return s.ToString();
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    string M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        return s.ToString();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        return X(s.Slice(0, 1));
+                    }
+                
+                    ReadOnlySpan<int> X(scoped ReadOnlySpan<int> span) => default;
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        return X(s.Slice(0, 1));
+                    }
+                
+                    ReadOnlySpan<int> X(scoped ReadOnlySpan<int> span) => default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan9()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        return X(s[0..1]);
+                    }
+                
+                    ReadOnlySpan<int> X(scoped ReadOnlySpan<int> span) => default;
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        return X(s[0..1]);
+                    }
+                
+                    ReadOnlySpan<int> X(scoped ReadOnlySpan<int> span) => default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan9_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    int M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        return s[0];
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    int M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        return s[0];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan10()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    int M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        return s.Length;
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    int M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        return s.Length;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan11()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    int M(int i)
+                    {
+                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        return nameof(s).Length;
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    int M(int i)
+                    {
+                        ReadOnlySpan<int> s = [i];
+                        return nameof(s).Length;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan12()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> s = new[] { i };
+                        return s;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan13()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        return new[] { i };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan13_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                        => new[] { i };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        return X(new[] { i });
+                    }
+
+                    ReadOnlySpan<int> X(ReadOnlySpan<int> y) => y;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan14_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                        => X(new[] { i });
+
+                    ReadOnlySpan<int> X(ReadOnlySpan<int> y) => y;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan15()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        return X(new[] { i });
+                    }
+
+                    ReadOnlySpan<int> X(ReadOnlySpan<int> y) => default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan15_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                        => X(new[] { i });
+
+                    ReadOnlySpan<int> X(ReadOnlySpan<int> y) => default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan16()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = new[] { i };
+                        return span.Slice(0, 1);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan17()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = new[] { i };
+                        return span[0..1];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan18()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = new[] { i };
+                        ReadOnlySpan<int> t = span;
+                        return t;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan19()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = new[] { i };
+                        ReadOnlySpan<int> t = span;
+                        return t.Slice(0, 1);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan20()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = new[] { i };
+                        X(span, out var v);
+                        return v;
+                    }
+
+                    void X(ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = s;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan21()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = new[] { i };
+                        X(span, out var v);
+                        return v;
+                    }
+
+                    void X(ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan21_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = new[] { i };
+                        X(span, out var v);
+                        return v.Slice(0, 1);
+                    }
+
+                    void X(ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan22()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
+                        X(span, out var v);
+                        return v;
+                    }
+
+                    void X(scoped ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = [i];
+                        X(span, out var v);
+                        return v;
+                    }
+
+                    void X(scoped ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan23()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
+                        X(span, out var v);
+                    }
+
+                    void X(ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int i)
+                    {
+                        ReadOnlySpan<int> span = [i];
+                        X(span, out var v);
+                    }
+
+                    void X(ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalSpan24()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
+                        X(span, out var v);
+                        return v.Slice(0, 1);
+                    }
+
+                    void X(scoped ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    ReadOnlySpan<int> M(int i)
+                    {
+                        ReadOnlySpan<int> span = [i];
+                        X(span, out var v);
+                        return v.Slice(0, 1);
+                    }
+
+                    void X(scoped ReadOnlySpan<int> s, out ReadOnlySpan<int> t) => t = default;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFixAllConditionalExpression1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? [|[|new|][]|] { "a" } : [|[|new|][]|] { "b" };
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? ["a"] : new[] { "b" };
+                    }
+                }
+                """,
+            BatchFixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? new[] { "a" } : ["b"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFixAllConditionalExpression2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? [|[|new|] string[]|] { "a" } : [|[|new|] string[]|] { "b" };
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? ["a"] : new string[] { "b" };
+                    }
+                }
+                """,
+            BatchFixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var v = b ? new string[] { "a" } : ["b"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSelfReference()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(int i, int j)
+                    {
+                        object[] r = new object[1];
+                        r[0] = r;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 }

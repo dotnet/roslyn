@@ -159,6 +159,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, Nothing)
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, Nothing, Nothing)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Look up the assemblies to which the given metadata type Is forwarded.
         ''' </summary>
@@ -292,22 +304,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 If _lazyObsoleteAttributeData Is ObsoleteAttributeData.Uninitialized Then
-                    Interlocked.CompareExchange(_lazyObsoleteAttributeData, ComputeObsoleteAttributeData(), ObsoleteAttributeData.Uninitialized)
+                    Dim experimentalData = PrimaryModule.Module.TryDecodeExperimentalAttributeData(Assembly.Handle, New MetadataDecoder(PrimaryModule))
+                    Interlocked.CompareExchange(_lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized)
                 End If
 
                 Return _lazyObsoleteAttributeData
             End Get
         End Property
-
-        Private Function ComputeObsoleteAttributeData() As ObsoleteAttributeData
-            For Each attrData In GetAttributes()
-                If attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
-                    Return attrData.DecodeExperimentalAttribute()
-                End If
-            Next
-
-            Return Nothing
-        End Function
 
     End Class
 End Namespace

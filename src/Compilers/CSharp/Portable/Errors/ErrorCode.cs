@@ -2272,6 +2272,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_Experimental = 9204,
         ERR_ExpectedInterpolatedString = 9205,
 
+        ERR_InterceptorGlobalNamespace = 9206,
+        ERR_InterceptableMethodMustBeOrdinary = 9207,
+
+        WRN_CollectionExpressionRefStructMayAllocate = 9208,
+        WRN_CollectionExpressionRefStructSpreadMayAllocate = 9209,
+        ERR_CollectionExpressionImmutableArray = 9210,
+
+        ERR_InvalidExperimentalDiagID = 9211,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

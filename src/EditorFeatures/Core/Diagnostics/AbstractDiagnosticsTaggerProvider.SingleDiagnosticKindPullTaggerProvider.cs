@@ -124,7 +124,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
                             {
-                                var tagSpan = _callback.CreateTagSpan(workspace, isLiveUpdate: true, diagnosticSpan, diagnosticData);
+                                var tagSpan = _callback.CreateTagSpan(workspace, diagnosticSpan, diagnosticData);
                                 if (tagSpan != null)
                                     context.AddTag(tagSpan);
                             }

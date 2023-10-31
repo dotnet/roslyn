@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return objectCreation;
 
+                case ConversionKind.ImplicitNullable when node.Conversion.UnderlyingConversions[0].Kind is ConversionKind.CollectionExpression:
+                    var rewrittenCollection = RewriteCollectionExpressionConversion(node.Conversion.UnderlyingConversions[0], (BoundCollectionExpression)node.Operand);
+                    return ConvertToNullable(node.Syntax, node.Type, rewrittenCollection);
+
                 case ConversionKind.CollectionExpression:
                     return RewriteCollectionExpressionConversion(node.Conversion, (BoundCollectionExpression)node.Operand);
             }

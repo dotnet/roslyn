@@ -53,10 +53,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), new Dictionary<Checksum, object>() { { checksum, data } });
 
             var provider = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            var stored = await provider.GetAssetAsync<object>(checksum, CancellationToken.None);
+            var stored = await provider.GetAssetAsync<object>(assetHint: AssetHint.None, checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
-            var stored2 = await provider.GetAssetsAsync<object>(new HashSet<Checksum> { checksum }, CancellationToken.None);
+            var stored2 = await provider.GetAssetsAsync<object>(assetHint: AssetHint.None, new HashSet<Checksum> { checksum }, CancellationToken.None);
             Assert.Equal(1, stored2.Length);
 
             Assert.Equal(checksum, stored2[0].Item1);
@@ -83,7 +83,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
+            await service.SynchronizeAssetsAsync(assetHint: AssetHint.None, new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
             foreach (var kv in map)
             {
@@ -136,7 +136,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeProjectAssetsAsync(new HashSet<Checksum> { await project.State.GetChecksumAsync(CancellationToken.None) }, CancellationToken.None);
+            await service.SynchronizeProjectAssetsAsync(await project.State.GetStateChecksumsAsync(CancellationToken.None), CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }

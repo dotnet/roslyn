@@ -78,6 +78,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
@@ -118,6 +119,7 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Copilot" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp" />
@@ -125,6 +127,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />

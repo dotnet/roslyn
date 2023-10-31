@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Find the AsyncMethodBuilder attribute.
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.IsTargetAttribute(symbol, AttributeDescription.AsyncMethodBuilderAttribute)
+                if (attr.IsTargetAttribute(AttributeDescription.AsyncMethodBuilderAttribute)
                     && attr.CommonConstructorArguments.Length == 1
                     && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                 {

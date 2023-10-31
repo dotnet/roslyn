@@ -10,52 +10,37 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote.Testing
+namespace Microsoft.CodeAnalysis.Remote.Testing;
+
+/// <summary>
+/// provide asset from given map at the creation
+/// </summary>
+internal sealed class SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map) : IAssetSource
 {
-    /// <summary>
-    /// provide asset from given map at the creation
-    /// </summary>
-    internal sealed class SimpleAssetSource : IAssetSource
+    public ValueTask<ImmutableArray<object>> GetAssetsAsync(
+        Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
     {
-        private readonly ISerializerService _serializerService;
-        private readonly IReadOnlyDictionary<Checksum, object> _map;
+        var results = new List<object>();
 
-        public SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map)
+        foreach (var checksum in checksums)
         {
-            _serializerService = serializerService;
-            _map = map;
-        }
+            Contract.ThrowIfFalse(map.TryGetValue(checksum, out var data));
 
-        public ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(
-            Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
-        {
-            var results = new List<(Checksum, object)>();
+            using var stream = new MemoryStream();
+            using var context = new SolutionReplicationContext();
 
-            foreach (var checksum in checksums)
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
-                if (_map.TryGetValue(checksum, out var data))
-                {
-                    using var stream = new MemoryStream();
-                    using var context = new SolutionReplicationContext();
-
-                    using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
-                    {
-                        _serializerService.Serialize(data, writer, context, cancellationToken);
-                    }
-
-                    stream.Position = 0;
-                    using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
-                    var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
-                    Contract.ThrowIfTrue(asset is null);
-                    results.Add((checksum, asset));
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(checksum);
-                }
+                serializerService.Serialize(data, writer, context, cancellationToken);
             }
 
-            return ValueTaskFactory.FromResult(results.ToImmutableArray());
+            stream.Position = 0;
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
+            var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
+            Contract.ThrowIfNull(asset);
+            results.Add(asset);
         }
+
+        return ValueTaskFactory.FromResult(results.ToImmutableArray());
     }
 }

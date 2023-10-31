@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind,
             string? filePath,
             bool isGenerated,
-            bool designTimeOnly) : IChecksummedObject, IObjectWritable
+            bool designTimeOnly) : IObjectWritable
         {
             private Checksum? _lazyChecksum;
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis
                 return new DocumentAttributes(documentId, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }
 
-            Checksum IChecksummedObject.Checksum
+            public Checksum Checksum
                 => _lazyChecksum ??= Checksum.Create(this);
         }
     }

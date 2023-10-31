@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Workspace workspace,
             Solution originalSolution,
             ImmutableArray<CodeActionOperation> operations,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -302,6 +302,19 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 await navigationService.TryNavigateToPositionAsync(
                     this._threadingContext, workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
                 return;
+            }
+
+            var renameOperation = operations.OfType<StartInlineRenameSessionOperation>().FirstOrDefault();
+            if (renameOperation != null && workspace.CanOpenDocuments)
+            {
+                var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+                if (await navigationService.TryNavigateToPositionAsync(
+                        this._threadingContext, workspace, renameOperation.DocumentId, renameOperation.Position, cancellationToken).ConfigureAwait(true))
+                {
+                    var openDocument = workspace.CurrentSolution.GetRequiredDocument(renameOperation.DocumentId);
+                    _renameService.StartInlineSession(openDocument, new TextSpan(renameOperation.Position, 0), cancellationToken);
+                    return;
+                }
             }
 
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);

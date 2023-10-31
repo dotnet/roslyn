@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             IEnumerable<SemanticEdit> edits,
             MetadataDecoder metadataDecoder,
             CSharpSymbolMatcher mapToMetadata,
-            CSharpSymbolMatcher? mapToPrevious)
-            : base(edits)
+            CSharpSymbolMatcher? mapToPrevious,
+            EmitBaseline baseline)
+            : base(edits, baseline)
         {
             _metadataDecoder = metadataDecoder;
             _mapToMetadata = mapToMetadata;
@@ -55,66 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
             => _mapToPrevious.TryGetAnonymousTypeName(template, out name, out index);
-
-        internal override bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PENamedTypeSymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
-
-        internal override bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEEventSymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
-
-        internal override bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEFieldSymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
-
-        internal override bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEMethodSymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
-
-        internal override bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEPropertySymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
 
         protected override void GetStateMachineFieldMapFromMetadata(
             ITypeSymbolInternal stateMachineType,

@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     workspace.GetService<IGlobalOptionService>(),
                     AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
-                AsynchronousOperationListenerProvider.NullListener,
-                typeMap: null,
                 diffTimeout: TimeSpan.MaxValue);
 
             // Capture the expected value before the await, in case it changes.
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var checkpoint = new Checkpoint();
 
-            var typeMap = workspace.ExportProvider.GetExportedValue<SyntacticClassificationTypeMap>();
+            var typeMap = workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>();
 
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                 new SyntacticClassificationTaggerProvider(
@@ -111,8 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     workspace.GetService<IGlobalOptionService>(),
                     AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
-                AsynchronousOperationListenerProvider.NullListener,
-                typeMap,
                 diffTimeout: TimeSpan.MaxValue);
 
             // Capture the expected value before the await, in case it changes.

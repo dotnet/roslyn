@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
+using Microsoft.Extensions.Logging;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,10 +18,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [Method(RunTestsMethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration)
+internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";
+
+    private readonly ILogger _logger = loggerFactory.CreateLogger<RunTestsHandler>();
 
     public bool MutatesSolutionState => false;
 
@@ -59,11 +62,13 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             }
         });
 
-        var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, progress, vsTestConsoleWrapper, cancellationToken);
+        var runSettingsPath = request.RunSettingsPath;
+        var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, cancellationToken);
+        var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, runSettings, progress, vsTestConsoleWrapper, cancellationToken);
         if (!testCases.IsEmpty)
         {
             var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
-            await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, request.AttachDebugger, clientLanguageServerManager, cancellationToken);
+            await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, request.AttachDebugger, runSettings, clientLanguageServerManager, cancellationToken);
         }
 
         return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();
@@ -159,5 +164,34 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             Microsoft.Extensions.Logging.LogLevel.None => TraceLevel.Off,
             _ => throw new InvalidOperationException($"Unexpected log level {serverConfiguration.MinimumLogLevel}"),
         };
+    }
+
+    private async Task<string?> GetRunSettingsAsync(string? runSettingsPath, BufferedProgress<RunTestsPartialResult> progress, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(runSettingsPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var contents = await File.ReadAllTextAsync(runSettingsPath, cancellationToken);
+            var message = string.Format(LanguageServerResources.Using_runsettings_file_at_0, runSettingsPath);
+            progress.Report(new(LanguageServerResources.Discovering_tests, message, Progress: null));
+            _logger.LogTrace($".runsettings:{Environment.NewLine}{contents}");
+            return contents;
+        }
+        catch (FileNotFoundException)
+        {
+            var message = string.Format(LanguageServerResources.Runsettings_file_does_not_exist_at_0, runSettingsPath);
+            progress.Report(new(LanguageServerResources.Discovering_tests, message, Progress: null));
+        }
+        catch (Exception ex)
+        {
+            var message = string.Format(LanguageServerResources.Failed_to_read_runsettings_file_at_0_1, runSettingsPath, ex);
+            progress.Report(new(LanguageServerResources.Discovering_tests, message, Progress: null));
+        }
+
+        return null;
     }
 }
