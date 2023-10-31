@@ -498,24 +498,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return caretBuffer;
         }
 
-        /// <summary>
-        /// Gets the spans where a particular tag appears in the active text view.
-        /// </summary>
-        /// <returns>
-        /// Given a list of tag spans [s1, s2, ...], returns a decomposed array for serialization:
-        ///     [s1.Start, s1.Length, s2.Start, s2.Length, ...]
-        /// </returns>
-        public int[] GetTagSpans(string tagId)
-            => InvokeOnUIThread(cancellationToken =>
-            {
-                var view = GetActiveTextView();
-                var tagAggregatorFactory = GetComponentModel().GetService<IViewTagAggregatorFactoryService>();
-                var tagAggregator = tagAggregatorFactory.CreateTagAggregator<ITextMarkerTag>(view);
-                var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
-
-                return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
-            });
-
         public void WaitForEditorOperations(TimeSpan timeout)
         {
             var joinableTaskCollection = InvokeOnUIThread(cancellationToken =>

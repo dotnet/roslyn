@@ -30,5 +30,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
             public const VSConstants.VSStd2KCmdID NextHighlightedReference = (VSConstants.VSStd2KCmdID)2400;
             public const VSConstants.VSStd2KCmdID PreviousHighlightedReference = (VSConstants.VSStd2KCmdID)2401;
         }
+
+        public static class Refactor
+        {
+            public const VSConstants.VSStd2KCmdID ExtractMethod = VSConstants.VSStd2KCmdID.EXTRACTMETHOD;
+        }
     }
 }

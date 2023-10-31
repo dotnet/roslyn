@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -55,29 +50,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void MoveCaret(int position)
             => _editorInProc.MoveCaret(position);
-
-        public ImmutableArray<TextSpan> GetTagSpans(string tagId)
-        {
-            if (tagId == InlineRenameDialog_OutOfProc.ValidRenameTag)
-            {
-                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
-            }
-
-            var tagInfo = _editorInProc.GetTagSpans(tagId).ToList();
-
-            // The spans are returned in an array:
-            //    [s1.Start, s1.Length, s2.Start, s2.Length, ...]
-            // Reconstruct the spans from their component parts
-
-            var builder = ArrayBuilder<TextSpan>.GetInstance();
-
-            for (var i = 0; i < tagInfo.Count; i += 2)
-            {
-                builder.Add(new TextSpan(tagInfo[i], tagInfo[i + 1]));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
 
         public bool IsCompletionActive()
         {

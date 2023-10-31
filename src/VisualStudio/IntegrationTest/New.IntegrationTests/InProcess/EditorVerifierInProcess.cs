@@ -211,6 +211,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                         {
                             FeatureAttribute.Workspace,
                             FeatureAttribute.LightBulb,
+                            FeatureAttribute.Rename,
                         },
                         cancellationToken);
 
