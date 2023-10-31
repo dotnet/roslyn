@@ -22687,6 +22687,118 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImplementsIEnumerable()
+        {
+            string source = """
+                using System.Collections;
+                ref struct S : IEnumerable
+                {
+                    public void Add(params S[] x) => throw null;
+                    public IEnumerator GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static S F() => [[]];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,16): error CS8343: 'S': ref structs cannot implement interfaces
+                // ref struct S : IEnumerable
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable").WithArguments("S").WithLocation(2, 16),
+                // (4,28): error CS0611: Array elements cannot be of type 'S'
+                //     public void Add(params S[] x) => throw null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
+                // (9,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static S F() => [[]];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(9, 21));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImplementsIEnumerableT()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S<T> : IEnumerable<T>
+                {
+                    public void Add(T t) => throw null;
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static S<int> F() => [1, 2, 3];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,19): error CS8343: 'S<T>': ref structs cannot implement interfaces
+                // ref struct S<T> : IEnumerable<T>
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<T>").WithArguments("S<T>").WithLocation(3, 19),
+                // (11,26): error CS9203: A collection expression of type 'S<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static S<int> F() => [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("S<int>").WithLocation(11, 26));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImmutableArray()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Runtime.CompilerServices;
+                namespace System.Collections.Immutable
+                {
+                    [CollectionBuilder(typeof(ImmutableArray), "Create")]
+                    public ref struct ImmutableArray<T>
+                    {
+                        public IEnumerator<T> GetEnumerator() => null;
+                    }
+                    public static class ImmutableArray
+                    {
+                        public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items) => default;
+                    }
+                }
+                namespace System.Runtime.InteropServices
+                {
+                    public static class ImmutableCollectionsMarshal
+                    {
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                    }
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Immutable;
+                class Program
+                {
+                    static ImmutableArray<int> F() => [1, 2, 3];
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,31): warning CS0436: The type 'ImmutableArray' in '0.cs' conflicts with the imported type 'ImmutableArray' in 'System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in '0.cs'.
+                //     [CollectionBuilder(typeof(ImmutableArray), "Create")]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ImmutableArray").WithArguments("0.cs", "System.Collections.Immutable.ImmutableArray", "System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Collections.Immutable.ImmutableArray").WithLocation(7, 31),
+                // 0.cs(14,23): warning CS0436: The type 'ImmutableArray<T>' in '0.cs' conflicts with the imported type 'ImmutableArray<T>' in 'System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in '0.cs'.
+                //         public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items) => default;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ImmutableArray<T>").WithArguments("0.cs", "System.Collections.Immutable.ImmutableArray<T>", "System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(14, 23),
+                // 0.cs(21,23): warning CS0436: The type 'ImmutableArray<T>' in '0.cs' conflicts with the imported type 'ImmutableArray<T>' in 'System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in '0.cs'.
+                //         public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ImmutableArray<T>").WithArguments("0.cs", "System.Collections.Immutable.ImmutableArray<T>", "System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(21, 23),
+                // 1.cs(4,12): warning CS0436: The type 'ImmutableArray<T>' in '0.cs' conflicts with the imported type 'ImmutableArray<T>' in 'System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in '0.cs'.
+                //     static ImmutableArray<int> F() => [1, 2, 3];
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ImmutableArray<int>").WithArguments("0.cs", "System.Collections.Immutable.ImmutableArray<T>", "System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(4, 12),
+                // 1.cs(4,39): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static ImmutableArray<int> F() => [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(4, 39));
+        }
+
         [Fact]
         public void ElementNullability_ArrayCollection()
         {

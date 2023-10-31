@@ -4051,6 +4051,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                     return true;
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                case CollectionExpressionTypeKind.ImmutableArray:
+                    // Error conditions. Restrict the collection to local scope.
+                    return true;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
