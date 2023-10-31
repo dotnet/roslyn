@@ -389,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' This API is called only for added modules. Assembly level attributes from added modules are 
                 ' copied to the resulting assembly and that is done by using VisualBasicAttributeData for them.
                 ' Therefore, it is acceptable to implement this property by using the same VisualBasicAttributeData
-                ' objects rather that trying to avoid creating them and going to metadata directly.
+                ' objects rather than trying to avoid creating them and going to metadata directly.
                 Dim assemblyAttributes As ImmutableArray(Of VisualBasicAttributeData) = GetAssemblyAttributes()
                 Return assemblyAttributes.IndexOfAttribute(AttributeDescription.CompilationRelaxationsAttribute) >= 0
             End Get
@@ -400,7 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' This API is called only for added modules. Assembly level attributes from added modules are 
                 ' copied to the resulting assembly and that is done by using VisualBasicAttributeData for them.
                 ' Therefore, it is acceptable to implement this property by using the same VisualBasicAttributeData
-                ' objects rather that trying to avoid creating them and going to metadata directly.
+                ' objects rather than trying to avoid creating them and going to metadata directly.
                 Dim assemblyAttributes As ImmutableArray(Of VisualBasicAttributeData) = GetAssemblyAttributes()
                 Return assemblyAttributes.IndexOfAttribute(AttributeDescription.RuntimeCompatibilityAttribute) >= 0
             End Get
