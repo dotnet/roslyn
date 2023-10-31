@@ -3053,10 +3053,16 @@ class C { }";
 
             var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty);
             buildManager.StartBatchBuild();
-
-            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
-            var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
-            buildManager.EndBatchBuild();
+            ProjectFileInfo projectFileInfo;
+            try
+            {
+                var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+                projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
+            }
+            finally
+            {
+                buildManager.EndBatchBuild();
+            }
 
             var commandLineParser = workspace.Services
                 .GetLanguageServices(loader.Language)
@@ -3083,10 +3089,15 @@ class C { }";
             var logger = new TestMSBuildLogger();
             var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
             buildManager.StartBatchBuild();
-
-            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
-            var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
-            buildManager.EndBatchBuild();
+            try
+            {
+                var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+                var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
+            }
+            finally
+            {
+                buildManager.EndBatchBuild();
+            }
 
             Assert.True(logger.WasInitialized);
             var logLines = logger.GetLogLines();

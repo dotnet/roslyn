@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         {
             if (BatchBuildStarted)
             {
-                throw new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
+                throw new InvalidOperationException($"{nameof(ProjectBuildManager)}.{nameof(EndBatchBuild)} not called.");
             }
         }
 
