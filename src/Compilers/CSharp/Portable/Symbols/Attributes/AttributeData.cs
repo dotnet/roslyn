@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public new abstract SyntaxReference? ApplicationSyntaxReference { get; }
 
-        // Overridden to be able to apply MemberNotNull to the new members
-        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
+        [MemberNotNullWhen(false, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal abstract override bool HasErrors { get; }
 
         internal abstract DiagnosticInfo? ErrorInfo { get; }
