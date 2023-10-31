@@ -447,7 +447,7 @@ class C
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
-            var expectedMarkdown = @"Awaited task returns '`class System.String`'  
+            var expectedMarkdown = $@"{string.Format(FeaturesResources.Awaited_task_returns_0, "`class System.String`")}  
 ";
 
             var results = await RunGetHoverAsync(
