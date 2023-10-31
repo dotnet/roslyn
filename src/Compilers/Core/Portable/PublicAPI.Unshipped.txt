@@ -3,26 +3,10 @@
 *REMOVED*Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
 *REMOVED*Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
 *REMOVED*static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
+const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CustomSeverityConfigurable = "CustomSeverityConfigurable" -> string!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
-Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
-Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
-Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
-Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
-Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options = null) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
 static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
 Microsoft.CodeAnalysis.RefKind.RefReadOnlyParameter = 4 -> Microsoft.CodeAnalysis.RefKind
