@@ -15,9 +15,9 @@ using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MSBuild.Rpc;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The loaded project file that we are currently applying changes to. This is set in <see cref="ApplyProjectChanges(ProjectChanges)"/> if we're modifying a project that is going to require
         /// file changes; it's cleared once we're done with that project.
         /// </summary>
-        private IRemoteProjectFile? _applyChangesProjectFile;
+        private RemoteProjectFile? _applyChangesProjectFile;
 
         public override bool TryApplyChanges(Solution newSolution)
         {

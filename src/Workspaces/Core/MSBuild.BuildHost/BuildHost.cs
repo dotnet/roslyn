@@ -14,23 +14,25 @@ using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+using Microsoft.CodeAnalysis.MSBuild.Rpc;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 
-internal sealed class BuildHost : IBuildHost
+internal sealed class BuildHost
 {
     private readonly ILogger _logger;
     private readonly string? _binaryLogPath;
-
+    private readonly RpcServer _server;
     private readonly object _gate = new object();
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(ILoggerFactory loggerFactory, string? binaryLogPath)
+    public BuildHost(ILoggerFactory loggerFactory, string? binaryLogPath, RpcServer server)
     {
         _logger = loggerFactory.CreateLogger<BuildHost>();
         _binaryLogPath = binaryLogPath;
+        _server = server;
     }
 
     private bool TryEnsureMSBuildLoaded(string projectOrSolutionFilePath)
@@ -123,24 +125,24 @@ internal sealed class BuildHost : IBuildHost
         }
     }
 
-    public Task<bool> HasUsableMSBuildAsync(string projectOrSolutionFilePath, CancellationToken cancellationToken)
+    public bool HasUsableMSBuild(string projectOrSolutionFilePath)
     {
-        return Task.FromResult(TryEnsureMSBuildLoaded(projectOrSolutionFilePath));
+        return TryEnsureMSBuildLoaded(projectOrSolutionFilePath);
     }
 
     private void EnsureMSBuildLoaded(string projectFilePath)
     {
-        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuildAsync)} should have been called first to check.");
+        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
     }
 
-    public Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>> GetProjectsInSolutionAsync(string solutionFilePath, CancellationToken cancellationToken)
+    public ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolution(string solutionFilePath)
     {
         EnsureMSBuildLoaded(solutionFilePath);
-        return Task.FromResult(GetProjectsInSolution(solutionFilePath));
+        return GetProjectsInSolutionCore(solutionFilePath);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Do not inline this, since this uses MSBuild types which are being loaded by the caller
-    private static ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolution(string solutionFilePath)
+    private static ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolutionCore(string solutionFilePath)
     {
         // WARNING: do not use a lambda in this function, as it internally will be put in a class that contains other lambdas used in
         // TryEnsureMSBuildLoaded; on Mono this causes type load errors.
@@ -158,7 +160,10 @@ internal sealed class BuildHost : IBuildHost
         return builder.ToImmutable();
     }
 
-    public async Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
+    /// <summary>
+    /// Returns the target ID of the <see cref="ProjectFile"/> object created for this.
+    /// </summary>
+    public async Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
     {
         EnsureMSBuildLoaded(projectFilePath);
         CreateBuildManager();
@@ -171,7 +176,8 @@ internal sealed class BuildHost : IBuildHost
         };
 
         _logger.LogInformation($"Loading {projectFilePath}");
-        return new RemoteProjectFile(await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false));
+        var projectFile = await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false);
+        return _server.AddTarget(projectFile);
     }
 
     public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)
@@ -185,6 +191,8 @@ internal sealed class BuildHost : IBuildHost
     public Task ShutdownAsync()
     {
         _buildManager?.EndBatchBuild();
+
+        _server.Shutdown();
 
         return Task.CompletedTask;
     }

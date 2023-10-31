@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Log = log;
         }
 
+        public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => Log.ToImmutableArray();
+
         protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);

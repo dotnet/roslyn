@@ -12,10 +12,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.MSBuild.Rpc;
 using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -36,9 +36,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Returns the best <see cref="IBuildHost"/> to use for this project; if it picked a fallback option because the preferred kind was unavailable, that's returned too, otherwise null.
+    /// Returns the best <see cref="RemoteBuildHost"/> to use for this project; if it picked a fallback option because the preferred kind was unavailable, that's returned too, otherwise null.
     /// </summary>
-    public async Task<(IBuildHost, BuildHostProcessKind? PreferredKind)> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
+    public async Task<(RemoteBuildHost, BuildHostProcessKind? PreferredKind)> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
     {
         var neededBuildHostKind = GetKindForProject(projectFilePath);
         BuildHostProcessKind? preferredKind = null;
@@ -70,7 +70,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return (buildHost, preferredKind);
     }
 
-    public async Task<IBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
+    public async Task<RemoteBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -89,6 +89,13 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
                 buildHostProcess = new BuildHostProcess(process, _loggerFactory);
                 buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
+
+                // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
+                if (process.HasExited)
+                {
+                    await buildHostProcess.DisposeAsync().ConfigureAwait(false);
+                    throw new Exception($"BuildHost process exited with {process.ExitCode}");
+                }
                 _processes.Add(buildHostKind, buildHostProcess);
             }
 
@@ -273,7 +280,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private sealed class BuildHostProcess : IAsyncDisposable
     {
         private readonly Process _process;
-        private readonly JsonRpc _jsonRpc;
+        private readonly RpcClient _rpcClient;
 
         private int _disposed = 0;
 
@@ -288,11 +295,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             _process.ErrorDataReceived += Process_ErrorDataReceived;
 
-            var messageHandler = new HeaderDelimitedMessageHandler(sendingStream: _process.StandardInput.BaseStream, receivingStream: _process.StandardOutput.BaseStream, new JsonMessageFormatter());
-
-            _jsonRpc = new JsonRpc(messageHandler);
-            _jsonRpc.StartListening();
-            BuildHost = _jsonRpc.Attach<IBuildHost>();
+            _rpcClient = new RpcClient(sendingStream: _process.StandardInput.BaseStream, receivingStream: _process.StandardOutput.BaseStream);
+            _rpcClient.Start();
+            _rpcClient.Disconnected += Process_Exited;
+            BuildHost = new RemoteBuildHost(_rpcClient);
 
             // Call this last so our type is fully constructed before we start firing events
             _process.BeginErrorReadLine();
@@ -309,7 +315,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 LoggerForProcessMessages?.LogTrace($"Message from Process: {e.Data}");
         }
 
-        public IBuildHost BuildHost { get; }
+        public RemoteBuildHost BuildHost { get; }
         public ILogger? LoggerForProcessMessages { get; }
 
         public event EventHandler? Disconnected;
@@ -323,8 +329,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             // We will call Shutdown in a try/catch; if the process has gone bad it's possible the connection is no longer functioning.
             try
             {
-                await BuildHost.ShutdownAsync().ConfigureAwait(false);
-                _jsonRpc.Dispose();
+                await BuildHost.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
+
+                _rpcClient.Shutdown();
 
                 LoggerForProcessMessages?.LogTrace("Process gracefully shut down.");
             }
