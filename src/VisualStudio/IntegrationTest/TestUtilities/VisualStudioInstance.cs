@@ -48,7 +48,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
-        public LocalsWindow_OutOfProc LocalsWindow { get; set; }
         public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
         public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
 
@@ -124,7 +123,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ErrorList = new ErrorList_OutOfProc(this);
             ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
-            LocalsWindow = new LocalsWindow_OutOfProc(this);
             MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
             PickMembersDialog = new PickMembersDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);

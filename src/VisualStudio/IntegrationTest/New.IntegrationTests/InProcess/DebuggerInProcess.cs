@@ -108,8 +108,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             var debugger = await GetDebuggerAsync(cancellationToken);
             var entry = debugger.GetExpression(expressionText);
-            Assert.Equal(expectedType, entry.Type);
-            Assert.Equal(expectedValue, entry.Value);
+            Assert.Equal((expectedType, expectedValue), (entry.Type, entry.Value));
         }
 
         private static async Task WaitForRaiseDebuggerDteCommandAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)

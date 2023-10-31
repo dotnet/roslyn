@@ -25,6 +25,14 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             return (EnvDTE100.Debugger5)dte.Debugger;
         }
 
+        public async Task<int> GetCountAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var debugger = await GetDebuggerAsync(cancellationToken);
+            return debugger.CurrentStackFrame?.Locals.Count ?? 0;
+        }
+
         public async Task<(string type, string value)> GetEntryAsync(string[] entryNames, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
