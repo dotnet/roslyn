@@ -4,29 +4,32 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal interface IEmbeddedLanguageClassificationService : ILanguageService
+    internal static class EmbeddedLanguageClassificationServiceExtensions
     {
-        Task AddEmbeddedLanguageClassificationsAsync(
-            Document document,
-            ImmutableArray<TextSpan> textSpans,
-            ClassificationOptions options,
-            SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken);
-
-        void AddEmbeddedLanguageClassifications(
+        public static void AddEmbeddedLanguageClassifications(
+            this IEmbeddedLanguageClassificationService classificationService,
             SolutionServices solutionServices,
             Project project,
             SemanticModel semanticModel,
-            ImmutableArray<TextSpan> textSpans,
+            TextSpan textSpan,
             ClassificationOptions options,
             SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken)
+        {
+            classificationService.AddEmbeddedLanguageClassifications(
+                solutionServices,
+                project,
+                semanticModel,
+                ImmutableArray.Create(textSpan),
+                options,
+                result,
+                cancellationToken);
+        }
     }
 }
