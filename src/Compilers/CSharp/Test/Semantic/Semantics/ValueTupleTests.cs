@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
@@ -213,6 +214,38 @@ namespace System
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Item6));
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Item7));
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Rest));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation()
+        {
+            var source = """
+                #nullable enable
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        object? System.Runtime.CompilerServices.ITuple.this[int index] => throw null!;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (4,67): error CS0535: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' does not implement interface member 'IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest))'
+                //     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest))").WithLocation(4, 67),
+                // (14,17): error CS0540: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.ITuple.this[int]': containing type does not implement interface 'ITuple'
+                //         object? System.Runtime.CompilerServices.ITuple.this[int index] => throw null!;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.Runtime.CompilerServices.ITuple").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.System.Runtime.CompilerServices.ITuple.this[int]", "System.Runtime.CompilerServices.ITuple").WithLocation(14, 17));
         }
     }
 }

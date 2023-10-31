@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool includeNullability,
             ImmutableArray<bool> errorPositions,
             CSharpSyntaxNode? syntax = null,
-            BindingDiagnosticBag? diagnostics = null)
+            BindingDiagnosticBag? diagnostics = null,
+            ConsList<TypeSymbol>? basesBeingResolved = null)
         {
             Debug.Assert(!shouldCheckConstraints || syntax is object);
             Debug.Assert(elementNames.IsDefault || elementTypesWithAnnotations.Length == elementNames.Length);
@@ -52,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol underlyingType = getTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, diagnostics);
 
-            if (numElements >= ValueTupleRestPosition && diagnostics != null && !underlyingType.IsErrorType())
+            if (numElements >= ValueTupleRestPosition && diagnostics != null && !underlyingType.IsErrorType() &&
+                basesBeingResolved?.ContainsReference(underlyingType.OriginalDefinition) != true)
             {
                 WellKnownMember wellKnownTupleRest = GetTupleTypeMember(ValueTupleRestPosition, ValueTupleRestPosition);
                 _ = GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics, syntax);
