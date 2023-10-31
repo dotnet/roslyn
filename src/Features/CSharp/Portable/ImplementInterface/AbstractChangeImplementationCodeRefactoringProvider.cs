@@ -71,8 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // (like "GetEnumerator"), instead of the auto-generated names that the compiler makes
             // like: "System.IEnumerable.GetEnumerator"
             directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
+            var implementations = member.ExplicitOrImplicitInterfaceImplementations();
+            if (implementations.IsEmpty)
+                return;
 
-            var firstImplName = member.ExplicitOrImplicitInterfaceImplementations().First().Name;
+            var firstImplName = implementations.First().Name;
             var codeAction = CodeAction.Create(
                 string.Format(Implement_0, firstImplName),
                 cancellationToken => ChangeImplementationAsync(project, directlyImplementedMembers, cancellationToken),
