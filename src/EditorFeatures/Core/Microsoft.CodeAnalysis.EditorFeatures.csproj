@@ -103,7 +103,4 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="LanguageServer\Diagnostics\" />
-  </ItemGroup>
 </Project>

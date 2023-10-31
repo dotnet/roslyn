@@ -88,7 +88,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
                 taggers.Add(innerTagger);
         }
 
-        var tagger = new AggregateTagger<TTag>(taggers.ToImmutableAndClear());
+        var tagger = new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();

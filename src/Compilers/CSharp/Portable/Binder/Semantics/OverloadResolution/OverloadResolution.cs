@@ -2531,30 +2531,88 @@ outerDefault:
             if (!conv2.IsConditionalExpression && conv1.IsConditionalExpression)
                 return BetterResult.Right;
 
-            // C1 and C2 are collection expression conversions and the following hold:
-            // - T1 is a ref struct type with iteration type E1, and T2 is a non- ref struct type with iteration type E2, and
-            // - E1 is implicitly convertible to E2
+            // - E is a collection expression and one of the following holds: ...
             if (conv1.Kind == ConversionKind.CollectionExpression &&
-                conv2.Kind == ConversionKind.CollectionExpression &&
-                _binder.TryGetCollectionIterationType((Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)node.Syntax, t1, out TypeWithAnnotations e1) &&
-                _binder.TryGetCollectionIterationType((Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)node.Syntax, t2, out TypeWithAnnotations e2))
+                conv2.Kind == ConversionKind.CollectionExpression)
             {
-                switch (t1.IsRefLikeType, t2.IsRefLikeType)
+                if (IsBetterCollectionExpressionConversion(t1, conv1, t2, conv2, ref useSiteInfo))
                 {
-                    case (false, true):
-                        return Conversions.ClassifyImplicitConversionFromType(e2.Type, e1.Type, ref useSiteInfo).IsImplicit ?
-                            BetterResult.Right :
-                            BetterResult.Neither;
-                    case (true, false):
-                        return Conversions.ClassifyImplicitConversionFromType(e1.Type, e2.Type, ref useSiteInfo).IsImplicit ?
-                            BetterResult.Left :
-                            BetterResult.Neither;
+                    return BetterResult.Left;
                 }
+                if (IsBetterCollectionExpressionConversion(t2, conv2, t1, conv1, ref useSiteInfo))
+                {
+                    return BetterResult.Right;
+                }
+                return BetterResult.Neither;
             }
 
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
             //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
+        }
+
+        // Implements the rules for
+        // - E is a collection expression and one of the following holds: ...
+        private bool IsBetterCollectionExpressionConversion(TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            TypeSymbol elementType1;
+            var kind1 = conv1.GetCollectionExpressionTypeKind(out elementType1);
+            TypeSymbol elementType2;
+            var kind2 = conv2.GetCollectionExpressionTypeKind(out elementType2);
+
+            // - T1 is System.ReadOnlySpan<E1>, and T2 is System.Span<E2>, and an implicit conversion exists from E1 to E2
+            if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan &&
+                kind2 is CollectionExpressionTypeKind.Span &&
+                hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
+            {
+                return true;
+            }
+
+            // - T1 is System.ReadOnlySpan<E1> or System.Span<E1>, and T2 is an array_or_array_interface_or_string_type
+            //    with iteration type E2, and an implicit conversion exists from E1 to E2
+            if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span &&
+                IsSZArrayOrArrayInterfaceOrString(t2, out elementType2) &&
+                hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
+            {
+                return true;
+            }
+
+            // - T1 is not a span_type, and T2 is not a span_type, and an implicit conversion exists from T1 to T2
+            if (kind1 is not (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) &&
+                kind2 is not (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) &&
+                hasImplicitConversion(t1, t2, ref useSiteInfo))
+            {
+                return true;
+            }
+
+            return false;
+
+            bool hasImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) =>
+                Conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).IsImplicit;
+        }
+
+        private bool IsSZArrayOrArrayInterfaceOrString(TypeSymbol type, out TypeSymbol elementType)
+        {
+            if (type.SpecialType == SpecialType.System_String)
+            {
+                elementType = Compilation.GetSpecialType(SpecialType.System_Char);
+                return true;
+            }
+
+            if (type is ArrayTypeSymbol { IsSZArray: true } arrayType)
+            {
+                elementType = arrayType.ElementType;
+                return true;
+            }
+
+            if (type.IsArrayInterface(out TypeWithAnnotations typeArg))
+            {
+                elementType = typeArg.Type;
+                return true;
+            }
+
+            elementType = null;
+            return false;
         }
 
         private bool ExpressionMatchExactly(BoundExpression node, TypeSymbol t, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

@@ -106,13 +106,9 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
         ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches(SemanticModel semanticModel, ExpressionSyntax expression)
             => expression switch
             {
-                // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
-                // from within the initializer.
-                ImplicitArrayCreationExpressionSyntax
-                    => ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty,
+                ImplicitArrayCreationExpressionSyntax arrayCreation
+                    => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(semanticModel, arrayCreation, cancellationToken),
 
-                // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
-                // be added to the collection expression.
                 ArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(semanticModel, arrayCreation, cancellationToken),
 

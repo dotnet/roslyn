@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
+    internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
         private readonly Dictionary<RequestHandlerMetadata, IMethodHandler> _handlerCache = new();
         private readonly IInitializeManager _initializeManager;

@@ -397,7 +397,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private IEnumerable<ITagSpan<TTag>> GetNonIntersectingTagSpans(IEnumerable<SnapshotSpan> spansToInvalidate, TagSpanIntervalTree<TTag> oldTagTree)
             {
-                var snapshot = spansToInvalidate.First().Snapshot;
+                var firstSpanToInvalidate = spansToInvalidate.First();
+                var snapshot = firstSpanToInvalidate.Snapshot;
+
+                // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
+                //   full snapshot is being invalidated.
+                if (firstSpanToInvalidate.Length == snapshot.Length)
+                    return Array.Empty<ITagSpan<TTag>>();
 
                 return oldTagTree.GetSpans(snapshot).Except(
                     spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),

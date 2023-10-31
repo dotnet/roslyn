@@ -127,6 +127,11 @@
         <target state="translated">잠재적인 패턴 변수 선언으로 인해 자동 선택을 사용하지 않도록 설정했습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">'as' 식으로 변경</target>
@@ -150,6 +155,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">원시 문자열로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="new">Convert to regular constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -310,11 +320,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">this' 한정자 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">추출할 문의 유효한 범위를 결정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">

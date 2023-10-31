@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
     /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
     /// </summary>
-    internal class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
+    internal sealed class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
     {
         private readonly ILspServices _lspServices;
 

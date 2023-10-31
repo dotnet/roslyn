@@ -31,7 +31,10 @@
     <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.7.4-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.9.3-preview</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.9.35111-preview.1</MicrosoftVisualStudioShellPackagesVersion>
+    <!-- The version of MSBuild that we reference for things depending on MSBuildWorkspace -->
     <RefOnlyMicrosoftBuildPackagesVersion>16.10.0</RefOnlyMicrosoftBuildPackagesVersion>
+    <!-- The version of MSBuild that matches the version of MSBuild.StructuredLogger for apps using MSBuild as a regular API -->
+    <MicrosoftBuildPackagesVersion>17.5.0</MicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
          but not higher than our minimum dogfoodable Visual Studio version, or else
@@ -74,9 +77,14 @@
     <RefOnlyMicrosoftBuildRuntimeVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildRuntimeVersion>
     <RefOnlyMicrosoftBuildTasksCoreVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildTasksCoreVersion>
     <RefOnlyMicrosoftBuildUtilitiesCoreVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildUtilitiesCoreVersion>
+    <MicrosoftBuildVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildVersion>
+    <MicrosoftBuildFrameworkVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildFrameworkVersion>
+    <MicrosoftBuildRuntimeVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildRuntimeVersion>
+    <MicrosoftBuildTasksCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildUtilitiesCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildUtilitiesCoreVersion>
     <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <MicrosoftVisualStudioRpcContractsVersion>17.5.14-alpha</MicrosoftVisualStudioRpcContractsVersion>
-    <MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>8.0.0-preview.23465.2</MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>
+    <MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>7.0.0-preview.23525.7</MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
@@ -201,7 +209,7 @@
     <MicrosoftVisualStudioWorkspaceVSIntegrationVersion>17.1.11-preview-0002</MicrosoftVisualStudioWorkspaceVSIntegrationVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MicrosoftWin32RegistryVersion>5.0.0</MicrosoftWin32RegistryVersion>
-    <MSBuildStructuredLoggerVersion>2.1.790</MSBuildStructuredLoggerVersion>
+    <MSBuildStructuredLoggerVersion>2.1.858</MSBuildStructuredLoggerVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
