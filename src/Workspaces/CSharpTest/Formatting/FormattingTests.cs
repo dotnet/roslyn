@@ -2487,6 +2487,78 @@ goto Goo;
 }");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38245")]
+        public async Task FormatLabelAndGoto3()
+        {
+            await AssertFormatAsync(@"class C
+{
+    void M()
+    {
+        while (true)
+        {
+            if (true) goto Baz;
+
+        Baz:
+            goto Baz;
+        }
+
+        if (true)
+            goto Bar;
+
+    Goo:
+        for (; ; ) Console.WriteLine(""Goo"");
+    Bar:
+        goto Bar;
+    }
+}", @"class C
+{
+    void M()
+    {
+while (true)
+{
+if (true) goto Baz;
+
+Baz:
+goto Baz;
+}
+
+if (true)
+goto Bar;
+
+Goo:
+for(;;) Console.WriteLine(""Goo"");
+Bar:
+goto Bar;
+    }
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38245")]
+        public async Task FormatLabelAndGoto4()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.None }
+            };
+            await AssertFormatAsync(@"class C {
+    void M() {
+        if (true) goto Goo;
+
+    Goo:
+        goto Goo;
+    }
+}", @"class C
+{
+    void M()
+    {
+if (true) goto Goo;
+
+Goo:
+goto Goo;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
         [Fact]
         public async Task FormatNestedLabelAndGoto1_Bug2588()
         {

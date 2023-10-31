@@ -13,46 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal abstract class BaseFormattingRule : AbstractFormattingRule
     {
-        protected static void AddUnindentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            TextSpan textSpan,
-            IndentBlockOption option = IndentBlockOption.RelativePosition)
-        {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
-            list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, textSpan, indentationDelta: -1, option: option));
-        }
-
-        protected static void AddUnindentBlockOperation(
-            List<IndentBlockOperation> list,
-            SyntaxToken startToken,
-            SyntaxToken endToken,
-            bool includeTriviaAtEnd = false,
-            IndentBlockOption option = IndentBlockOption.RelativePosition)
-        {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
-            if (includeTriviaAtEnd)
-            {
-                list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: -1, option: option));
-            }
-            else
-            {
-                var startPosition = CommonFormattingHelpers.GetStartPositionOfSpan(startToken);
-                var endPosition = endToken.Span.End;
-
-                list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, TextSpan.FromBounds(startPosition, endPosition), indentationDelta: -1, option: option));
-            }
-        }
-
         protected static void AddAbsoluteZeroIndentBlockOperation(
             List<IndentBlockOperation> list,
             SyntaxToken startToken,

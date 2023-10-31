@@ -138,7 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (_options.LabelPositioning == LabelPositionOptions.OneLess)
                 {
-                    AddUnindentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
+                    if (node.Parent != null)
+                    {
+                        var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+                        var baseToken = node.Parent.GetFirstToken();
+
+                        SetAlignmentBlockOperation(list, baseToken, labeledStatement.Identifier, labeledStatement.ColonToken, option);
+                    }
                 }
                 else if (_options.LabelPositioning == LabelPositionOptions.LeftMost)
                 {
