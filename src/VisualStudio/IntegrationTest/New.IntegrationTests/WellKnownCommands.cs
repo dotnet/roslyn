@@ -19,6 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             public const VSConstants.VSStd97CmdID ClearAll = VSConstants.VSStd97CmdID.ClearPane;
             public const VSConstants.VSStd2KCmdID ListMembers = VSConstants.VSStd2KCmdID.SHOWMEMBERLIST;
+            public const VSConstants.VSStd2KCmdID ParameterInfo = VSConstants.VSStd2KCmdID.PARAMINFO;
             public const VSConstants.VSStd2KCmdID ToggleCompletionMode = VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode;
             public const VSConstants.VSStd97CmdID Undo = VSConstants.VSStd97CmdID.Undo;
 

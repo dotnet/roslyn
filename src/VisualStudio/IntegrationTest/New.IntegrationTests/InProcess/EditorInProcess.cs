@@ -742,6 +742,22 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return broker.IsCompletionActive(view);
         }
 
+        public async Task InvokeSignatureHelpAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.ParameterInfo, cancellationToken);
+            await WaitForSignatureHelpAsync(cancellationToken);
+        }
+
+        public async Task<bool> IsSignatureHelpActiveAsync(CancellationToken cancellationToken)
+        {
+            await WaitForSignatureHelpAsync(cancellationToken);
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var broker = await GetComponentModelServiceAsync<ISignatureHelpBroker>(cancellationToken);
+            return broker.IsSignatureHelpActive(view);
+        }
+
         public async Task<ImmutableArray<Completion>> GetCompletionItemsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

@@ -138,37 +138,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 }
             }
 
-            public void CurrentSignature(string content)
-            {
-                var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(content, currentSignature.Content);
-            }
-
-            public void CurrentParameter(
-                string name,
-                string documentation)
-            {
-                var currentParameter = _textViewWindow.GetCurrentSignature().CurrentParameter;
-                Contract.ThrowIfNull(currentParameter);
-
-                Assert.Equal(name, currentParameter.Name);
-                Assert.Equal(documentation, currentParameter.Documentation);
-            }
-
-            public void Parameters(
-                params (string name, string documentation)[] parameters)
-            {
-                var currentParameters = _textViewWindow.GetCurrentSignature().Parameters;
-                Contract.ThrowIfNull(currentParameters);
-
-                for (var i = 0; i < parameters.Length; i++)
-                {
-                    var (expectedName, expectedDocumentation) = parameters[i];
-                    Assert.Equal(expectedName, currentParameters[i].Name);
-                    Assert.Equal(expectedDocumentation, currentParameters[i].Documentation);
-                }
-            }
-
             public void Dialog(
                 string dialogName,
                 bool isOpen)

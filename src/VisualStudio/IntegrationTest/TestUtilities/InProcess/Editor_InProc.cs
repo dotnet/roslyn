@@ -208,35 +208,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.Caret.MoveTo(point);
             });
 
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public bool IsSignatureHelpActive()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
-                return broker.IsSignatureHelpActive(view);
-            });
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public Signature GetCurrentSignature()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-                }
-
-                return new Signature(sessions[0].SelectedSignature);
-            });
-
         public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
         {
             return JoinableTaskFactory.Run(async () =>

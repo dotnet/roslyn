@@ -85,24 +85,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.IsCompletionActive();
         }
 
-        public void InvokeSignatureHelp()
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_ParameterInfo);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
-        }
-
-        public bool IsSignatureHelpActive()
-        {
-            WaitForSignatureHelp();
-            return _editorInProc.IsSignatureHelpActive();
-        }
-
-        public Signature GetCurrentSignature()
-        {
-            WaitForSignatureHelp();
-            return _editorInProc.GetCurrentSignature();
-        }
-
         public void SelectTextInCurrentDocument(string text)
         {
             PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);

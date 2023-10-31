@@ -9,7 +9,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Build_BuildSolution = "Build.BuildSolution";
 
         public const string Edit_ListMembers = "Edit.ListMembers";
-        public const string Edit_ParameterInfo = "Edit.ParameterInfo";
         public const string Edit_ToggleCompletionMode = "Edit.ToggleCompletionMode";
         public const string Edit_Undo = "Edit.Undo";
         public const string Edit_Redo = "Edit.Redo";
