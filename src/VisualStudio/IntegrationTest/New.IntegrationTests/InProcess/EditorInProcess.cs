@@ -362,6 +362,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
+        public async Task<int> GetVisibleColumnCountAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            return (int)Math.Ceiling(view.ViewportWidth / Math.Max(view.FormattedLineSource.ColumnWidth, 1));
+        }
+
         public async Task ActivateAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -702,6 +710,24 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             broker.DismissAllSessions(view);
         }
 
+        public async Task<Completion> GetCurrentCompletionItemAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await WaitForCompletionSetAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var broker = await GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+            }
+
+            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+            return selectedCompletionSet.SelectionStatus.Completion;
+        }
+
         public async Task<bool> IsCompletionActiveAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -714,6 +740,27 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var broker = await TestServices.Shell.GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
             return broker.IsCompletionActive(view);
+        }
+
+        public async Task<ImmutableArray<Completion>> GetCompletionItemsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await WaitForCompletionSetAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            if (view is null)
+                return ImmutableArray<Completion>.Empty;
+
+            var broker = await GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+            }
+
+            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+            return selectedCompletionSet.Completions.ToImmutableArray();
         }
 
         public async Task ShowLightBulbAsync(CancellationToken cancellationToken)
@@ -1070,6 +1117,46 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return view.Caret.Position;
         }
 
+        public async Task<int> GetCaretColumnAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var startOfLine = view.Caret.ContainingTextViewLine.Start.Position;
+            var caretVirtualPosition = view.Caret.Position.VirtualBufferPosition;
+            return caretVirtualPosition.Position - startOfLine + caretVirtualPosition.VirtualSpaces;
+        }
+
+        public async Task<bool> IsCaretOnScreenAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var caret = view.Caret;
+
+            return caret.Left >= view.ViewportLeft
+                && caret.Right <= view.ViewportRight
+                && caret.Top >= view.ViewportTop
+                && caret.Bottom <= view.ViewportBottom;
+        }
+
+        public async Task<ISignature> GetCurrentSignatureAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+
+            await WaitForSignatureHelpAsync(cancellationToken);
+            var broker = await GetComponentModelServiceAsync<ISignatureHelpBroker>(cancellationToken);
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+            }
+
+            return sessions[0].SelectedSignature;
+        }
+
         public async Task GoToDefinitionAsync(CancellationToken cancellationToken)
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.GotoDefn, cancellationToken);
@@ -1147,6 +1234,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public Task FormatSelectionAsync(CancellationToken cancellationToken)
         {
             return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATSELECTION, cancellationToken);
+        }
+
+        private async Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
         }
 
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)

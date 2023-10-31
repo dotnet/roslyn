@@ -17,7 +17,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// </summary>
     public enum WellKnownGlobalOption
     {
-        CompletionOptions_ShowItemsFromUnimportedNamespaces,
         CompletionOptions_TriggerInArgumentLists,
     }
 
@@ -26,7 +25,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static IOption2 GetOption(this WellKnownGlobalOption option)
             => option switch
             {
-                WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces => CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
                 WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists => CompletionOptionsStorage.TriggerInArgumentLists,
                 _ => throw ExceptionUtilities.Unreachable()
             };

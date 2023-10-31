@@ -138,13 +138,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 }
             }
 
-            public void CurrentCompletionItem(
-                string expectedItem)
-            {
-                var currentItem = _textViewWindow.GetCurrentCompletionItem();
-                Assert.Equal(expectedItem, currentItem);
-            }
-
             public void CurrentSignature(string content)
             {
                 var currentSignature = _textViewWindow.GetCurrentSignature();

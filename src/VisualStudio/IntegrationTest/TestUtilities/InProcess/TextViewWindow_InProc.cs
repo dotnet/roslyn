@@ -48,25 +48,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
             });
 
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public string GetCurrentCompletionItem()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-                }
-
-                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-                return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
-            });
-
         public void ShowLightBulb()
         {
             InvokeOnUIThread(cancellationToken =>
@@ -142,14 +123,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
                 }
             });
-
-        public int GetVisibleColumnCount()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                return (int)Math.Ceiling(view.ViewportWidth / Math.Max(view.FormattedLineSource.ColumnWidth, 1));
-            });
-        }
 
         public void PlaceCaret(
             string marker,
@@ -229,16 +202,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var bufferPosition = view.Caret.Position.BufferPosition;
                 return bufferPosition.Position;
             });
-
-        public int GetCaretColumn()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var startOfLine = view.Caret.ContainingTextViewLine.Start.Position;
-                var caretVirtualPosition = view.Caret.Position.VirtualBufferPosition;
-                return caretVirtualPosition.Position - startOfLine + caretVirtualPosition.VirtualSpaces;
-            });
-        }
 
         protected T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
             => InvokeOnUIThread(cancellationToken =>

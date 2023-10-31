@@ -79,12 +79,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return builder.ToImmutableAndFree();
         }
 
-        public string GetCurrentCompletionItem()
-        {
-            WaitForCompletionSet();
-            return _editorInProc.GetCurrentCompletionItem();
-        }
-
         public bool IsCompletionActive()
         {
             WaitForCompletionSet();
@@ -114,9 +108,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
             PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
-
-        public bool IsCaretOnScreen()
-            => _editorInProc.IsCaretOnScreen();
 
         public void AddWinFormButton(string buttonName)
             => _editorInProc.AddWinFormButton(buttonName);

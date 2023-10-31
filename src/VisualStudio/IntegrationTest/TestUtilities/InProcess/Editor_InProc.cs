@@ -237,17 +237,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return new Signature(sessions[0].SelectedSignature);
             });
 
-        public bool IsCaretOnScreen()
-            => ExecuteOnActiveView(view =>
-            {
-                var caret = view.Caret;
-
-                return caret.Left >= view.ViewportLeft
-                    && caret.Right <= view.ViewportRight
-                    && caret.Top >= view.ViewportTop
-                    && caret.Bottom <= view.ViewportBottom;
-            });
-
         public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
         {
             return JoinableTaskFactory.Run(async () =>
