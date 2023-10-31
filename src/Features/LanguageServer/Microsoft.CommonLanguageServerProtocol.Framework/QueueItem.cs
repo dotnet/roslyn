@@ -110,6 +110,10 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
                 _logger.LogWarning($"Could not get request context for {MethodName}");
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
+            else if (MethodHandler is null)
+            {
+                throw new NotImplementedException($"No {nameof(IMethodHandler)} implementation for  {MethodName}.");
+            }
             else if (MethodHandler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
             {
                 var result = await requestHandler.HandleRequestAsync(_request, context, cancellationToken).ConfigureAwait(false);
@@ -138,7 +142,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
             }
             else
             {
-                throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {MethodHandler.GetType()}. ");
+                throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {MethodHandler.GetType()}.");
             }
         }
         catch (OperationCanceledException ex)

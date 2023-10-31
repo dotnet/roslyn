@@ -1303,14 +1303,10 @@ Microsoft.CodeAnalysis.Workspace.DocumentClosed -> System.EventHandler<Microsoft
 Microsoft.CodeAnalysis.Workspace.DocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.DocumentEventArgs>
 Microsoft.CodeAnalysis.Workspace.Kind.get -> string
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo documentInfo) -> void
-Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentClosed(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader reloader) -> void
-Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentOpened(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer, bool isCurrentContext = true) -> void
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentTextChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceText newText, Microsoft.CodeAnalysis.PreservationMode mode) -> void
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentTextLoaderChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader) -> void
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo documentInfo) -> void
-Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentClosed(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader reloader) -> void
-Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentOpened(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer, bool isCurrentContext = true) -> void
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentTextChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceText newText, Microsoft.CodeAnalysis.PreservationMode mode) -> void
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentTextLoaderChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader) -> void

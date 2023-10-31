@@ -116,7 +116,7 @@ internal class HandlerProvider : IHandlerProvider
         {
             if (!existingMethods.Add(methodName + language))
             {
-                throw new InvalidOperationException($"Method {methodName} was implemented more than once for {language}.");
+                throw new InvalidOperationException($"Method {methodName} was implemented more than once.");
             }
         }
 

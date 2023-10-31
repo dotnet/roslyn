@@ -11,9 +11,9 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 internal class TestHandlerWithLanguageProvider : IHandlerProvider
 {
-    private readonly IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider, string? language)> _providers;
+    private readonly IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider)> _providers;
 
-    public TestHandlerWithLanguageProvider(IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider, string? language)> providers)
+    public TestHandlerWithLanguageProvider(IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider)> providers)
         => _providers = providers;
 
     public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string? language = null)

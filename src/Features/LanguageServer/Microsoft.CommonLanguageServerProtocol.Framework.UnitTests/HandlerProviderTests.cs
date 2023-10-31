@@ -87,12 +87,12 @@ public class HandlerProviderTests
     {
         var handlerProvider = new TestHandlerWithLanguageProvider(providers: new[]
         {
-            (TestXamlLanguageHandler.Metadata, TestXamlLanguageHandler.Instance, TestXamlLanguageHandler.Language),
-            (TestDefaultLanguageHandler.Metadata, TestDefaultLanguageHandler.Instance, Language: null),
+            (TestXamlLanguageHandler.Metadata, TestXamlLanguageHandler.Instance),
+            (TestDefaultLanguageHandler.Metadata, TestDefaultLanguageHandler.Instance),
         });
 
         var defaultMethodHandler = handlerProvider.GetMethodHandler(TestDefaultLanguageHandler.Name, TestDefaultLanguageHandler.RequestType, TestDefaultLanguageHandler.ResponseType);
-        Assert.Equal(TestXamlLanguageHandler.Instance, defaultMethodHandler);
+        Assert.Equal(TestDefaultLanguageHandler.Instance, defaultMethodHandler);
 
         var xamlMethodHandler = handlerProvider.GetMethodHandler(TestDefaultLanguageHandler.Name, TestDefaultLanguageHandler.RequestType, TestDefaultLanguageHandler.ResponseType, TestXamlLanguageHandler.Language);
         Assert.Equal(TestXamlLanguageHandler.Instance, xamlMethodHandler);

@@ -175,7 +175,7 @@ internal class TestXamlLanguageHandler : IRequestHandler<int, string, TestReques
     public bool MutatesSolutionState => true;
     public static Type RequestType = typeof(int);
     public static Type ResponseType = typeof(string);
-    public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType);
+    public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType, Language);
 
     public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
         => Task.FromResult("xaml");

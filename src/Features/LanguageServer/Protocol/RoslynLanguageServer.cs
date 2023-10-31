@@ -106,7 +106,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             OnInitialized();
 
-            var capabilityRegistrationsProvider = GetLspServices().GetRequiredService<ICapabilityRegistrationsProvider>();
+            var capabilityRegistrationsProvider = GetLspServices().TryGetService(typeof(ICapabilityRegistrationsProvider)) as ICapabilityRegistrationsProvider;
+            if (capabilityRegistrationsProvider is null)
+            {
+                return;
+            }
+
             var registrations = capabilityRegistrationsProvider.GetRegistrations();
             if (registrations.Length == 0)
             {
