@@ -22746,9 +22746,50 @@ partial class Program
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
         [Fact]
-        public void RefStruct_ImmutableArray()
+        public void RefStruct_ImmutableArray_01()
         {
             string sourceA = """
+                #pragma warning disable 436
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                namespace System.Collections.Immutable
+                {
+                    public ref struct ImmutableArray<T>
+                    {
+                        public IEnumerator<T> GetEnumerator() => null;
+                    }
+                }
+                namespace System.Runtime.InteropServices
+                {
+                    public static class ImmutableCollectionsMarshal
+                    {
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                    }
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 436
+                using System.Collections.Immutable;
+                class Program
+                {
+                    static ImmutableArray<int> F1() => [1, 2, 3];
+                    static ImmutableArray<int> F2(int x, int y) => [x, y];
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(6,52): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static ImmutableArray<int> F2(int x, int y) => [x, y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(6, 52));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImmutableArray_02()
+        {
+            string sourceA = """
+                #pragma warning disable 436
                 using System;
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
@@ -22774,29 +22815,19 @@ partial class Program
                 }
                 """;
             string sourceB = """
+                #pragma warning disable 436
                 using System.Collections.Immutable;
                 class Program
                 {
-                    static ImmutableArray<int> F() => [1, 2, 3];
+                    static ImmutableArray<int> F1() => [1, 2, 3];
+                    static ImmutableArray<int> F2(int x, int y) => [x, y];
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(7,31): warning CS0436: The type 'ImmutableArray' in '0.cs' conflicts with the imported type 'ImmutableArray' in 'System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in '0.cs'.
-                //     [CollectionBuilder(typeof(ImmutableArray), "Create")]
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ImmutableArray").WithArguments("0.cs", "System.Collections.Immutable.ImmutableArray", "System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Collections.Immutable.ImmutableArray").WithLocation(7, 31),
-                // 0.cs(14,23): warning CS0436: The type 'ImmutableArray<T>' in '0.cs' conflicts with the imported type 'ImmutableArray<T>' in 'System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in '0.cs'.
-                //         public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items) => default;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ImmutableArray<T>").WithArguments("0.cs", "System.Collections.Immutable.ImmutableArray<T>", "System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(14, 23),
-                // 0.cs(21,23): warning CS0436: The type 'ImmutableArray<T>' in '0.cs' conflicts with the imported type 'ImmutableArray<T>' in 'System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in '0.cs'.
-                //         public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ImmutableArray<T>").WithArguments("0.cs", "System.Collections.Immutable.ImmutableArray<T>", "System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(21, 23),
-                // 1.cs(4,12): warning CS0436: The type 'ImmutableArray<T>' in '0.cs' conflicts with the imported type 'ImmutableArray<T>' in 'System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in '0.cs'.
-                //     static ImmutableArray<int> F() => [1, 2, 3];
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ImmutableArray<int>").WithArguments("0.cs", "System.Collections.Immutable.ImmutableArray<T>", "System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(4, 12),
-                // 1.cs(4,39): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
-                //     static ImmutableArray<int> F() => [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(4, 39));
+                // 1.cs(6,52): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static ImmutableArray<int> F2(int x, int y) => [x, y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(6, 52));
         }
 
         [Fact]
