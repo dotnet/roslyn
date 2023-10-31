@@ -374,6 +374,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
 
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal override bool HasInlineArrayAttribute(out int length)
         {
             length = 0;
