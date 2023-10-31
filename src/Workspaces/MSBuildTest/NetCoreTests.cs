@@ -34,22 +34,19 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private void RunDotNet(string arguments)
         {
-            Assert.NotNull(DotNetSdkMSBuildInstalled.SdkPath);
-
             var environmentVariables = new Dictionary<string, string>()
             {
                 ["NUGET_PACKAGES"] = _nugetCacheDir.Path
             };
 
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
-            var exePath = Path.Combine(DotNetSdkMSBuildInstalled.SdkPath, dotNetExeName);
 
             var restoreResult = ProcessUtilities.Run(
-                exePath, arguments,
+                dotNetExeName, arguments,
                 workingDirectory: SolutionDirectory.Path,
                 additionalEnvironmentVars: environmentVariables);
 
-            Assert.True(restoreResult.ExitCode == 0, $"{exePath} failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
+            Assert.True(restoreResult.ExitCode == 0, $"{dotNetExeName} failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
         }
 
         private void DotNetRestore(string solutionOrProjectFileName)

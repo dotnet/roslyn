@@ -27,31 +27,6 @@
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Xaml" Condition="$(TargetFramework) == 'net472'">
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <SuggestedBindingRedirects Include="Microsoft.Build, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <MaxVersion>15.1.0.0</MaxVersion>
-    </SuggestedBindingRedirects>
-    <SuggestedBindingRedirects Include="Microsoft.Build.Framework, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <MaxVersion>15.1.0.0</MaxVersion>
-    </SuggestedBindingRedirects>
-    <SuggestedBindingRedirects Include="Microsoft.Build.Utilities.Core, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <MaxVersion>15.1.0.0</MaxVersion>
-    </SuggestedBindingRedirects>
-    <SuggestedBindingRedirects Include="Microsoft.Build.Tasks.Core, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <MaxVersion>15.1.0.0</MaxVersion>
-    </SuggestedBindingRedirects>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\**\*.*" />
   </ItemGroup>
   <ItemGroup>
@@ -60,10 +35,4 @@
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-
-  <Target Name="_DoNotCopyMicrosoftBuildFramework" AfterTargets="ResolvePackageAssets">
-    <ItemGroup Condition="$(TargetFramework) == 'net472'">
-      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Build.Framework'" />
-    </ItemGroup>
-  </Target>
 </Project>
