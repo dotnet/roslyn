@@ -1254,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53969")]
         public async Task TestIncrementInExpressionContext()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData("switch($$) { }")]
         [InlineData("while(($$) > 0) { }")]
         [InlineData("_ = true ? $$ : 0;")]
@@ -1304,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData("return $$;")]
         [InlineData("return true ? $$ : 0;")]
         [InlineData("return ($$);")]
@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
-        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData(
             "/* Before */ i [|=|] i + 1; /* After */",
             "/* Before */ i++; /* After */")]
