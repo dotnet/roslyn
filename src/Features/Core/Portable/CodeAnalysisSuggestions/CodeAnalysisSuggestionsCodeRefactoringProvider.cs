@@ -90,7 +90,7 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
 
                 if (documentForFix != null)
                 {
-                    var codeFixCollection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(documentForFix, diagnostic.Location.SourceSpan, id, CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
+                    var codeFixCollection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(documentForFix, diagnostic.Location.SourceSpan, id, diagnostic.Severity, CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
                     if (codeFixCollection != null)
                     {
                         nestedNestedActionsBuilder.AddRange(codeFixCollection.Fixes.Select(f => f.Action));
