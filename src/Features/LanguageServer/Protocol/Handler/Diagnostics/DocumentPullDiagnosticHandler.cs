@@ -75,17 +75,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (category == PullDiagnosticCategories.Task)
                 return new(GetDiagnosticSources(diagnosticKind: default, nonLocalDocumentDiagnostics: false, taskList: true, context, GlobalOptions));
 
-            var diagnosticKind = category switch
+            DiagnosticKind? diagnosticKind;
+            if (category == PullDiagnosticCategories.DocumentCompilerSyntax)
             {
-                PullDiagnosticCategories.DocumentCompilerSyntax => DiagnosticKind.CompilerSyntax,
-                PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
-                PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSyntax,
-                PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
-                // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
-                null => DiagnosticKind.All,
-                // if it's a category we don't recognize, return nothing.
-                _ => (DiagnosticKind?)null,
-            };
+                diagnosticKind = DiagnosticKind.CompilerSyntax;
+            }
+            else
+            {
+                diagnosticKind = category switch
+                {
+                    PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
+                    PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSyntax,
+                    PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
+                    // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
+                    null => DiagnosticKind.All,
+                    // if it's a category we don't recognize, return nothing.
+                    _ => (DiagnosticKind?)null,
+                };
+            }
 
             if (diagnosticKind is null)
                 return new(ImmutableArray<IDiagnosticSource>.Empty);
