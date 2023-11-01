@@ -49,12 +49,17 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
     {
         foreach (var path in pathsToRestore)
         {
-            var arguments = $"restore \"{path}\"";
+            var arguments = new string[] { "restore", path };
             var workingDirectory = Path.GetDirectoryName(path);
             var stageName = string.Format(LanguageServerResources.Restoring_0, Path.GetFileName(path));
             ReportProgress(progress, stageName, string.Format(LanguageServerResources.Running_dotnet_restore_on_0, path));
 
             var process = dotnetCliHelper.Run(arguments, workingDirectory, shouldLocalizeOutput: true);
+
+            cancellationToken.Register(() =>
+            {
+                process?.Kill();
+            });
 
             process.OutputDataReceived += (sender, args) => ReportProgress(progress, stageName, args.Data);
             process.ErrorDataReceived += (sender, args) => ReportProgress(progress, stageName, args.Data);
@@ -65,7 +70,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
 
             if (process.ExitCode != 0)
             {
-                throw new InvalidOperationException(LanguageServerResources.Failed_to_run_restore_see_output_for_details);
+                ReportProgress(progress, stageName, string.Format(LanguageServerResources.Failed_to_run_restore_on_0, path));
             }
         }
 

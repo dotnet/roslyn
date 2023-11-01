@@ -478,5 +478,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return code;
         }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            return _underlyingMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
+        }
     }
 }

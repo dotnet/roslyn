@@ -10206,21 +10206,36 @@ End Class")
 
         <WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")>
         <Theory>
-        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
-        <InlineData(False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
-        <InlineData(False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Warning)>
-        <InlineData(False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Warning)>
-        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
         Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean,
+                                                                  useGlobalConfig As Boolean,
                                                                   defaultSeverity As DiagnosticSeverity,
                                                                   severityInConfigFile As DiagnosticSeverity?,
                                                                   customConfiguredSeverityByAnalyzer As DiagnosticSeverity?,
@@ -10238,9 +10253,17 @@ End Class")
 
             If severityInConfigFile.HasValue Then
                 Dim severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString()
-                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
+
+                Dim analyzerConfig As TempFile
+                If useGlobalConfig Then
+                    analyzerConfig = dir.CreateFile(".globalconfig").WriteAllText($"
+is_global = true
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
+                Else
+                    analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
 [*.vb]
 dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
+                End If
 
                 additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray()
             End If

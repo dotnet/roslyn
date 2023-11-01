@@ -137,6 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasDeclarativeSecurity { get; }
 
+        internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
+
 #nullable enable
         /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.
