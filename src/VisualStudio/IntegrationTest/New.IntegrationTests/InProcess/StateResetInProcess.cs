@@ -134,6 +134,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     // Don't loop forever if windows aren't closing.
                     break;
                 }
+
+                modalWindow = nextModalWindow;
             }
 
             // Close tool windows where desired (see s_windowsToClose)
