@@ -358,6 +358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             methodName = null;
             return false;
         }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
 #nullable disable
     }
 }

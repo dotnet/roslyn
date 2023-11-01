@@ -2502,6 +2502,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
         }
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = this.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.AsyncMethodBuilderAttribute);
+            return builderArgument is not null;
+        }
 #nullable disable
 
         /// <summary>
