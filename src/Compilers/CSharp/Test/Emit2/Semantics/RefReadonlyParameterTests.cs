@@ -6923,10 +6923,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 public static void M(this C c, {{modifier}} int x) { }
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
-            //     void M(ref readonly int x) { }
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (6,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
@@ -6951,13 +6948,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 public static void M(this C c, ref readonly int x) { }
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (6,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
-            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17),
-            // (11,40): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
-            //     public static void M(this C c, ref readonly int x) { }
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(11, 40));
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
 
         CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
     }
@@ -6983,13 +6977,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
-            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17),
-            // (10,40): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
-            //     public static void M(this C c, ref readonly int x) { }
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(10, 40));
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
 
         CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.

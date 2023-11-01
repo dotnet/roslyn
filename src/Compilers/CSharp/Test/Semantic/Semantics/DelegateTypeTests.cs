@@ -1416,7 +1416,7 @@ namespace N
             Assert.Null(symbolInfo.Symbol);
         }
 
-        public static IEnumerable<object?[]> GetExtensionMethodsDifferentScopeData_CSharp12()
+        public static IEnumerable<object?[]> GetExtensionMethodsDifferentScopeData_CSharp13()
         {
             yield return getData("internal static void F(this object x) { }", "internal static void F(this object x) { }", "this.F", "F", null, "A.F", "System.Action"); // hiding
             yield return getData("internal static void F(this object x) { }", "internal static void F(this object y) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter name
@@ -1453,8 +1453,8 @@ namespace N
         }
 
         [Theory]
-        [MemberData(nameof(GetExtensionMethodsDifferentScopeData_CSharp12))]
-        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp12(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedMethod, string? expectedType)
+        [MemberData(nameof(GetExtensionMethodsDifferentScopeData_CSharp13))]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedMethod, string? expectedType)
         {
             var source =
 $@"using N;
@@ -1505,7 +1505,7 @@ namespace N
         }
 
         [Fact]
-        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp12_2()
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_2()
         {
             var source = """
 using N;
@@ -1556,7 +1556,7 @@ namespace N
         }
 
         [Fact]
-        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp12_3()
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_3()
         {
             var source = """
 using N;
@@ -1607,7 +1607,7 @@ namespace N
         }
 
         [Fact]
-        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp12_4()
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_4()
         {
             var source = """
 using N;
@@ -1658,7 +1658,7 @@ namespace N
         }
 
         [Fact]
-        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp12_5()
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_5()
         {
             var source = """
 using N;
@@ -1709,7 +1709,7 @@ namespace N
         }
 
         [Fact]
-        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp12_6()
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_6()
         {
             var source = """
 using N;
@@ -1760,7 +1760,7 @@ namespace N
         }
 
         [Fact]
-        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp12_7()
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_7()
         {
             var source = """
 using N;
@@ -1811,7 +1811,7 @@ namespace N
         }
 
         [Fact]
-        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp12_8()
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_8()
         {
             var source = """
 using N;
@@ -1891,7 +1891,7 @@ public static class E
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (7,9): error CS8917: The delegate type could not be inferred.
                 // var z = new C().M;
@@ -1946,7 +1946,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (3,19): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(C)' and 'E2.M(C)'
                 // System.Action x = new C().M;
@@ -2011,7 +2011,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -2074,7 +2074,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8917: The delegate type could not be inferred.
                 // var z = new C().M;
@@ -2132,7 +2132,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
@@ -2172,7 +2172,7 @@ public static class E
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
@@ -2216,7 +2216,7 @@ public static class E
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
@@ -2257,7 +2257,7 @@ public static class E
     public static void M(this C c) { }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
                 // System.Action x = C.M;
@@ -2310,7 +2310,7 @@ public static class E
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (4,9): error CS8917: The delegate type could not be inferred.
                 // var z = new C().M;
@@ -2361,7 +2361,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8917: The delegate type could not be inferred.
                 // var z = new C().M;
@@ -2412,7 +2412,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8917: The delegate type could not be inferred.
                 // var z = new C().M;
@@ -2463,7 +2463,7 @@ public static class E
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (4,9): error CS8917: The delegate type could not be inferred.
                 // var z = new C().M<int, int>;
@@ -2517,7 +2517,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
@@ -2552,7 +2552,7 @@ public static class E
     public static void M<T, U>(this C c) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (1,19): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // System.Action x = new C().M;
@@ -2610,7 +2610,7 @@ public static class DExt
     public static void Del(this D d, System.Action<object> action) { System.Console.Write("ran11"); }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
             // ILVerify: Unrecognized arguments for delegate .ctor.
             CompileAndVerify(comp, expectedOutput: "ran11", verify: Verification.FailsILVerify);
@@ -3067,7 +3067,7 @@ class Program
         d = p.F2;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (14,15): error CS8917: The delegate type could not be inferred.
                 //         d = p.F2;
@@ -3164,7 +3164,7 @@ class Program
         d = E2.F1;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (22,15): error CS8917: The delegate type could not be inferred.
                 //         d = p.F1; // 1
