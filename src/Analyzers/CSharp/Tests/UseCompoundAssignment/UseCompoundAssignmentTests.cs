@@ -1361,5 +1361,217 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70651")]
+        public async Task TestIncrementWithUserDefinedOperators_IncrementOperatorNotDefined()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    int data;
+
+                    public C(int data)
+                    {
+                        this.data = data;
+                    }
+
+                    public static C operator +(C left, int right)
+                    {
+                        return new C(left.data + right);
+                    }
+
+                    void M()
+                    {
+                        var c = new C(0);
+                        c [|=|] c + 1;
+                    }
+                }
+                """, """
+                class C
+                {
+                    int data;
+                
+                    public C(int data)
+                    {
+                        this.data = data;
+                    }
+                
+                    public static C operator +(C left, int right)
+                    {
+                        return new C(left.data + right);
+                    }
+                
+                    void M()
+                    {
+                        var c = new C(0);
+                        c += 1;
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70651")]
+        public async Task TestIncrementWithUserDefinedOperators_IncrementOperatorDefined()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    int data;
+
+                    public C(int data)
+                    {
+                        this.data = data;
+                    }
+
+                    public static C operator +(C left, int right)
+                    {
+                        return new C(left.data + right);
+                    }
+
+                    public static C operator ++(C operand)
+                    {
+                        return new C(operand.data + 1);
+                    }
+
+                    void M()
+                    {
+                        var c = new C(0);
+                        c [|=|] c + 1;
+                    }
+                }
+                """, """
+                class C
+                {
+                    int data;
+                
+                    public C(int data)
+                    {
+                        this.data = data;
+                    }
+                
+                    public static C operator +(C left, int right)
+                    {
+                        return new C(left.data + right);
+                    }
+
+                    public static C operator ++(C operand)
+                    {
+                        return new C(operand.data + 1);
+                    }
+
+                    void M()
+                    {
+                        var c = new C(0);
+                        c++;
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70651")]
+        public async Task TestDecrementWithUserDefinedOperators_DecrementOperatorNotDefined()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    int data;
+
+                    public C(int data)
+                    {
+                        this.data = data;
+                    }
+
+                    public static C operator -(C left, int right)
+                    {
+                        return new C(left.data - right);
+                    }
+
+                    void M()
+                    {
+                        var c = new C(0);
+                        c [|=|] c - 1;
+                    }
+                }
+                """, """
+                class C
+                {
+                    int data;
+                
+                    public C(int data)
+                    {
+                        this.data = data;
+                    }
+                
+                    public static C operator -(C left, int right)
+                    {
+                        return new C(left.data - right);
+                    }
+                
+                    void M()
+                    {
+                        var c = new C(0);
+                        c -= 1;
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70651")]
+        public async Task TestDecrementWithUserDefinedOperators_DecrementOperatorDefined()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    int data;
+
+                    public C(int data)
+                    {
+                        this.data = data;
+                    }
+
+                    public static C operator -(C left, int right)
+                    {
+                        return new C(left.data - right);
+                    }
+
+                    public static C operator --(C operand)
+                    {
+                        return new C(operand.data - 1);
+                    }
+
+                    void M()
+                    {
+                        var c = new C(0);
+                        c [|=|] c - 1;
+                    }
+                }
+                """, """
+                class C
+                {
+                    int data;
+                
+                    public C(int data)
+                    {
+                        this.data = data;
+                    }
+                
+                    public static C operator -(C left, int right)
+                    {
+                        return new C(left.data - right);
+                    }
+
+                    public static C operator --(C operand)
+                    {
+                        return new C(operand.data - 1);
+                    }
+
+                    void M()
+                    {
+                        var c = new C(0);
+                        c--;
+                    }
+                }
+                """);
+        }
     }
 }
