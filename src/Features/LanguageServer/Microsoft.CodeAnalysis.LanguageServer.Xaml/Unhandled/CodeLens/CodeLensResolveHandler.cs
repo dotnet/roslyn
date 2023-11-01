@@ -35,12 +35,5 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
     {
         return Task.FromResult(request);
     }
-
-    private static CodeLensResolveData GetCodeLensResolveData(LSP.CodeLens codeLens)
-    {
-        var resolveData = (codeLens.Data as JToken)?.ToObject<CodeLensResolveData>();
-        Contract.ThrowIfNull(resolveData, "Missing data for code lens resolve request");
-        return resolveData;
-    }
 }
 

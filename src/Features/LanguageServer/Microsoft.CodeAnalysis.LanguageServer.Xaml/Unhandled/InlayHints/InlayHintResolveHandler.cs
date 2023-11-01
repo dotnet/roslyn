@@ -36,12 +36,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
         {
             return Task.FromResult(request);
         }
-
-        private static InlayHintResolveData GetInlayHintResolveData(LSP.InlayHint inlayHint)
-        {
-            var resolveData = (inlayHint.Data as JToken)?.ToObject<InlayHintResolveData>();
-            Contract.ThrowIfNull(resolveData, "Missing data for inlay hint resolve request");
-            return resolveData;
-        }
     }
 }

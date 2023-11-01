@@ -139,7 +139,7 @@ internal class GoToDefinitionHandler : ILspServiceDocumentRequestHandler<TextDoc
 
             return new LSP.Location
             {
-                Uri = new Uri(sourceDefinition.FilePath),
+                Uri = ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath),
                 Range = new LSP.Range() { Start = position, End = position }
             };
         }
@@ -178,7 +178,7 @@ internal class GoToDefinitionHandler : ILspServiceDocumentRequestHandler<TextDoc
                     var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     locations.Add(new LSP.Location
                     {
-                        Uri = new Uri(declarationFile.FilePath),
+                        Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
                         Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                     });
                 }
