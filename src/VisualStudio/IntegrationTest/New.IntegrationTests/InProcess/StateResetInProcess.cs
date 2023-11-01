@@ -111,6 +111,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         public async Task CloseActiveWindowsAsync(CancellationToken cancellationToken)
         {
+            await TestServices.AddParameterDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.ChangeSignatureDialog.CloseWindowAsync(cancellationToken);
             await TestServices.ExtractInterfaceDialog.CloseWindowAsync(cancellationToken);
 
             // Close any modal windows

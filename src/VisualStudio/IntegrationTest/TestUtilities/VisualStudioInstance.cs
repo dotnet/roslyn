@@ -30,10 +30,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
-        public AddParameterDialog_OutOfProc AddParameterDialog { get; }
-
-        public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
-
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
         public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
@@ -112,8 +108,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
-            AddParameterDialog = new AddParameterDialog_OutOfProc(this);
-            ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
@@ -198,7 +192,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
             ObjectBrowserWindow.CloseWindow();
-            ChangeSignatureDialog.CloseWindow();
             GenerateTypeDialog.CloseWindow();
             MoveToNamespaceDialog.CloseWindow();
             PickMembersDialog.CloseWindow();
