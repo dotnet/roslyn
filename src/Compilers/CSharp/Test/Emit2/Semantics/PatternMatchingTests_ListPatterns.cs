@@ -8939,15 +8939,17 @@ public static class Extension
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 1000 }").WithLocation(2, 7));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
-    public void SlicePattern_DeclarationPatternInBetween_Array_CodeGen()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string[]")]
+    public void SlicePattern_DeclarationPatternOfSameTypeInBetween_Array_CodeGen(string typeSpecifier)
     {
-        var source = """
+        var source = $$"""
             class C
             {
                 string[] M(string[] s)
                 {
-                    if (s is ["(", ..var between, ")"])
+                    if (s is ["(", ..{{typeSpecifier}} between, ")"])
                     {
                         return between;
                     }
@@ -9007,15 +9009,17 @@ public static class Extension
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
-    public void SlicePattern_DeclarationPatternInBetween_String_CodeGen()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string")]
+    public void SlicePattern_DeclarationPatternOfSameTypeInBetween_String_CodeGen(string typeSpecifier)
     {
-        var source = """
+        var source = $$"""
             class C
             {
                 string M(string s)
                 {
-                    if (s is ['(', ..var between, ')'])
+                    if (s is ['(', ..{{typeSpecifier}} between, ')'])
                     {
                         return between;
                     }
@@ -9071,17 +9075,19 @@ public static class Extension
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
-    public void SlicePattern_DeclarationPatternInBetween_ReadOnlySpan_CodeGen()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("ReadOnlySpan<string>")]
+    public void SlicePattern_DeclarationPatternOfSameTypeInBetween_ReadOnlySpan_CodeGen(string typeSpecifier)
     {
-        var source = """
+        var source = $$"""
             using System;
 
             class C
             {
                 ReadOnlySpan<string> M(ReadOnlySpan<string> s)
                 {
-                    if (s is ["(", ..var between, ")"])
+                    if (s is ["(", ..{{typeSpecifier}} between, ")"])
                     {
                         return between;
                     }
@@ -9142,15 +9148,17 @@ public static class Extension
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
-    public void SlicePattern_FirstDeclarationPattern_Array_CodeGen()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string[]")]
+    public void SlicePattern_FirstDeclarationPatternOfSameType_Array_CodeGen(string typeSpecifier)
     {
-        var source = """
+        var source = $$"""
             class C
             {
                 string[] M(string[] s)
                 {
-                    if (s is [..var start, ")"])
+                    if (s is [..{{typeSpecifier}} start, ")"])
                     {
                         return start;
                     }
@@ -9204,15 +9212,17 @@ public static class Extension
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
-    public void SlicePattern_FirstDeclarationPattern_String_CodeGen()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string")]
+    public void SlicePattern_FirstDeclarationPatternOfSameType_String_CodeGen(string typeSpecifier)
     {
-        var source = """
+        var source = $$"""
             class C
             {
                 string M(string s)
                 {
-                    if (s is [..var start, ')'])
+                    if (s is [..{{typeSpecifier}} start, ')'])
                     {
                         return start;
                     }
@@ -9261,17 +9271,19 @@ public static class Extension
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
-    public void SlicePattern_FirstDeclarationPattern_ReadOnlySpan_CodeGen()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("ReadOnlySpan<string>")]
+    public void SlicePattern_FirstDeclarationPatternOfSameType_ReadOnlySpan_CodeGen(string typeSpecifier)
     {
-        var source = """
+        var source = $$"""
             using System;
 
             class C
             {
                 ReadOnlySpan<string> M(ReadOnlySpan<string> s)
                 {
-                    if (s is [..var start, ")"])
+                    if (s is [..{{typeSpecifier}} start, ")"])
                     {
                         return start;
                     }
