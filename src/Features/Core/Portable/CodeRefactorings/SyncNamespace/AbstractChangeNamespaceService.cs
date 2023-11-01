@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 .ConfigureAwait(false);
             var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
-            var refLocationGroups = refLocationsInOtherDocuments.GroupBy(loc => loc.Document.Id);
+            var refLocationGroups = refLocationsInOtherDocuments.Where(loc => solutionWithChangedNamespace.ContainsDocument(loc.Document.Id)).GroupBy(loc => loc.Document.Id);
 
             var fixedDocuments = await Task.WhenAll(
                 refLocationGroups.Select(refInOneDocument =>
