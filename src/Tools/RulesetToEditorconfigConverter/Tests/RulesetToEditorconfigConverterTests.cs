@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
                 if (!Equals(expectedEditorconfigText, actualEditorConfigText))
                 {
                     // Dump the entire expected and actual lines for easy update to baseline.
-                    Assert.True(false, $"Expected:\r\n{expectedEditorconfigText}\r\n\r\nActual:\r\n{actualEditorConfigText}");
+                    Assert.Fail($"Expected:\r\n{expectedEditorconfigText}\r\n\r\nActual:\r\n{actualEditorConfigText}");
                 }
             }
             finally

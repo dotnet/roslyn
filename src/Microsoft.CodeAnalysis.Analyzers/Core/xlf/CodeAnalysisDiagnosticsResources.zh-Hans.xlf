@@ -407,6 +407,31 @@
         <target state="translated">请勿将已删除的分析器诊断 ID 添加到未提供的分析器版本中</target>
         <note />
       </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
+        <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
+        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
+        <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</source>
+        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage">
+        <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
+        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage">
+        <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
+        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
+        <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
+        <target state="new">This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersDescription">
         <source>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</source>
         <target state="translated">已将该符号标记为禁止在分析器中使用，并应改用备用符号。</target>
