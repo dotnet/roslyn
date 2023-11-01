@@ -79,6 +79,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         public override async Task DisposeAsync()
         {
+            await TestServices.StateReset.CloseActiveWindowsAsync(HangMitigatingCancellationToken);
+
             var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(HangMitigatingCancellationToken);
             if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
             {

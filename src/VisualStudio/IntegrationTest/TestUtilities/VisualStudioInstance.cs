@@ -44,8 +44,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public ErrorList_OutOfProc ErrorList { get; }
 
-        public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
-
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
         public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
@@ -121,7 +119,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Debugger = new Debugger_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
-            ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
             PickMembersDialog = new PickMembersDialog_OutOfProc(this);
@@ -203,7 +200,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ObjectBrowserWindow.CloseWindow();
             ChangeSignatureDialog.CloseWindow();
             GenerateTypeDialog.CloseWindow();
-            ExtractInterfaceDialog.CloseWindow();
             MoveToNamespaceDialog.CloseWindow();
             PickMembersDialog.CloseWindow();
             StartPage.CloseWindow();

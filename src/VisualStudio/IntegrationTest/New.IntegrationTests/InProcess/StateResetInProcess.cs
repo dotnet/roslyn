@@ -106,6 +106,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
             options.SetOptionValue(latencyGuardOptionKey, false);
 
+            await CloseActiveWindowsAsync(cancellationToken);
+        }
+
+        public async Task CloseActiveWindowsAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.ExtractInterfaceDialog.CloseWindowAsync(cancellationToken);
+
             // Close any modal windows
             var mainWindow = await TestServices.Shell.GetMainWindowAsync(cancellationToken);
             var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
