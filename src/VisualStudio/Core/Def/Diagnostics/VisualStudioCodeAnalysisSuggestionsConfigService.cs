@@ -136,7 +136,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService :
         // Attempt to get cached project diagnostics.
         var cachedDiagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, project.Id,
             documentId: null, includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
-        
+
         if (!cachedDiagnostics.IsEmpty)
             return cachedDiagnostics;
 
