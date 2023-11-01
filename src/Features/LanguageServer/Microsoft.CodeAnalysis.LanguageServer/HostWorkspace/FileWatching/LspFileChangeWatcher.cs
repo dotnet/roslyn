@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using Roslyn.Utilities;
 using FileSystemWatcher = Microsoft.VisualStudio.LanguageServer.Protocol.FileSystemWatcher;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
@@ -242,7 +243,15 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                     }
                 };
 
-                await _changeWatcher._clientLanguageServerManager.SendRequestAsync("client/unregisterCapability", unregistrationParams, CancellationToken.None);
+                try
+                {
+                    await _changeWatcher._clientLanguageServerManager.SendRequestAsync("client/unregisterCapability", unregistrationParams, CancellationToken.None);
+                }
+                catch (ConnectionLostException)
+                {
+                    // It is very possible we are disposing of this when we're shutting down and the pipe has closed.
+                    // There is no need to spam non fatal faults when this happens.
+                }
             }, CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap().ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
         }
     }
