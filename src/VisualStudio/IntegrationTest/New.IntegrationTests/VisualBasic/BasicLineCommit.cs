@@ -59,7 +59,7 @@ End Module", HangMitigatingCancellationToken);
 
     End Sub
 End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Undo, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
             Assert.Equal(54, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
         }
 
@@ -83,7 +83,7 @@ End Module", HangMitigatingCancellationToken);
     End Sub
 End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
             Assert.Equal(18, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Undo, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
             Assert.Equal(16, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
         }
 
@@ -113,7 +113,7 @@ End Module
 End Module
 ", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Undo, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module Module1
     Sub Main(x   As   Integer)
     End Sub
