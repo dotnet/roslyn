@@ -14,6 +14,7 @@
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\TestUtilities\DirectoryExtensions.cs" Link="DirectoryExtensions.cs" />
     <Compile Include="..\TestUtilities\Input\ButtonBaseExtensions.cs" Link="InProcess\ButtonBaseExtensions.cs" />
+    <Compile Include="..\TestUtilities\Input\ComboBoxExtensions.cs" Link="InProcess\ComboBoxExtensions.cs" />
     <Compile Include="..\TestUtilities\IntegrationHelper.cs" Link="IntegrationHelper.cs" />
     <Compile Include="..\TestUtilities\Interop\NativeMethods.cs" Link="NativeMethods.cs" />
     <Compile Include="..\TestUtilities\TestUtilities.cs" Link="TestUtilities.cs" />

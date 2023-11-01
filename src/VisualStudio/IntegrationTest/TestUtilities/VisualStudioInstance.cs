@@ -40,8 +40,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public ErrorList_OutOfProc ErrorList { get; }
 
-        public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
-
         public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
         public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
 
@@ -113,7 +111,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Debugger = new Debugger_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
-            GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
             PickMembersDialog = new PickMembersDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
@@ -192,7 +189,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
             ObjectBrowserWindow.CloseWindow();
-            GenerateTypeDialog.CloseWindow();
             MoveToNamespaceDialog.CloseWindow();
             PickMembersDialog.CloseWindow();
             StartPage.CloseWindow();
