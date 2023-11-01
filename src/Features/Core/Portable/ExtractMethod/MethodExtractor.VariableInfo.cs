@@ -13,12 +13,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         protected class VariableInfo(
             VariableSymbol variableSymbol,
             VariableStyle variableStyle,
-            bool useAsReturnValue = false)
+            bool useAsReturnValue = false) : IComparable<VariableInfo>
         {
             private readonly VariableSymbol _variableSymbol = variableSymbol;
             private readonly VariableStyle _variableStyle = variableStyle;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
             {
                 _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
             }
@@ -126,10 +126,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
 
             public static void SortVariables(ArrayBuilder<VariableInfo> variables)
-                => variables.Sort(Compare);
+                => variables.Sort();
 
-            private static int Compare(VariableInfo left, VariableInfo right)
-                => VariableSymbol.Compare(left._variableSymbol, right._variableSymbol);
+            public int CompareTo(VariableInfo other)
+                => VariableSymbol.Compare(this._variableSymbol, other._variableSymbol);
         }
     }
 }

@@ -1246,24 +1246,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.IndexerNameAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.IndexerNameAttribute))
             {
                 //NOTE: decoding was done by EarlyDecodeWellKnownAttribute.
                 ValidateIndexerNameAttribute(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SpecialNameAttribute))
             {
                 arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
                 arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<PropertyWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
@@ -1280,33 +1280,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 | ReservedAttributes.RequiredMemberAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DisallowNullAttribute))
             {
                 arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasDisallowNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.AllowNullAttribute))
             {
                 arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasAllowNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MaybeNullAttribute))
             {
                 arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasMaybeNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.NotNullAttribute))
             {
                 arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasNotNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MemberNotNullAttribute))
             {
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullAttribute<PropertyWellKnownAttributeData>(ContainingType, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullWhenAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MemberNotNullWhenAttribute))
             {
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<PropertyWellKnownAttributeData>(ContainingType, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
                 if (this.IsValidUnscopedRefAttributeTarget())
                 {
@@ -1389,10 +1389,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
         private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
-            => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(this, attributeDescription));
+            => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(attributeDescription));
 
         private ImmutableArray<SourceAttributeData> FindAttributes(AttributeDescription attributeDescription)
-            => GetAttributes().Where(a => a.IsTargetAttribute(this, attributeDescription)).Cast<SourceAttributeData>().ToImmutableArray();
+            => GetAttributes().Where(a => a.IsTargetAttribute(attributeDescription)).Cast<SourceAttributeData>().ToImmutableArray();
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {

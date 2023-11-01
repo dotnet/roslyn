@@ -1870,7 +1870,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // receiver is generic and method must come from the base or an interface or a generic constraint
                     // if the receiver is actually a value type it would need to be boxed.
                     // let .constrained sort this out. 
-                    callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
+                    callKind = receiverType.IsReferenceType &&
+                               (!IsRef(receiver) ||
+                                (!ReceiverIsKnownToReferToTempIfReferenceType(receiver) && !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))) ?
                                 CallKind.CallVirt :
                                 CallKind.ConstrainedCallVirt;
 
@@ -3682,8 +3684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Generate branchless IL for (b ? 1 : 0).
             if (used && _ilEmitStyle != ILEmitStyle.Debug &&
                 (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Boolean) &&
-                hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
-                hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
+                expr.Consequence.ConstantValueOpt?.IsIntegralValueZeroOrOne(out bool isConsequenceOne) == true &&
+                expr.Alternative.ConstantValueOpt?.IsIntegralValueZeroOrOne(out bool isAlternativeOne) == true &&
                 isConsequenceOne != isAlternativeOne &&
                 TryEmitComparison(expr.Condition, sense: isConsequenceOne))
             {
@@ -3759,33 +3761,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.MarkLabel(doneLabel);
-
-            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
-            {
-                if (expr.ConstantValueOpt is { } constantValue)
-                {
-                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var i })
-                    {
-                        isOne = i == 1;
-                        return true;
-                    }
-
-                    if (constantValue is { IsBoolean: true, BooleanValue: var b })
-                    {
-                        isOne = b;
-                        return true;
-                    }
-
-                    if (constantValue is { IsChar: true, CharValue: ((char)1 or (char)0) and var c })
-                    {
-                        isOne = c == 1;
-                        return true;
-                    }
-                }
-
-                isOne = false;
-                return false;
-            }
         }
 
         /// <summary>

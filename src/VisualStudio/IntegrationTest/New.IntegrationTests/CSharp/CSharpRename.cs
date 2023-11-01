@@ -364,7 +364,7 @@ class Program
 }", HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70511")]
         public async Task VerifyOverloadsUpdated()
         {
             var markup = @"

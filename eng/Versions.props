@@ -8,7 +8,7 @@
     <MajorVersion>4</MajorVersion>
     <MinorVersion>9</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -84,7 +84,7 @@
     <MicrosoftBuildUtilitiesCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildUtilitiesCoreVersion>
     <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <MicrosoftVisualStudioRpcContractsVersion>17.5.14-alpha</MicrosoftVisualStudioRpcContractsVersion>
-    <MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>8.0.0-preview.23465.2</MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>
+    <MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>7.0.0-preview.23525.7</MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
