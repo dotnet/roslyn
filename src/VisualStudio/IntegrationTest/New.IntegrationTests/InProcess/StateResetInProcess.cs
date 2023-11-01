@@ -114,6 +114,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await TestServices.AddParameterDialog.CloseWindowAsync(cancellationToken);
             await TestServices.ChangeSignatureDialog.CloseWindowAsync(cancellationToken);
             await TestServices.ExtractInterfaceDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.PickMembersDialog.CloseWindowAsync(cancellationToken);
 
             // Close any modal windows
             var mainWindow = await TestServices.Shell.GetMainWindowAsync(cancellationToken);
