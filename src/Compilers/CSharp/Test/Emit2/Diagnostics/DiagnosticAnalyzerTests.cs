@@ -4009,6 +4009,46 @@ public record A(int X, int Y);";
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
         }
 
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class PrimaryConstructorBaseTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MyDiagnostic";
+            internal const string Title = "MyDiagnostic";
+            internal const string MessageFormat = "MyDiagnostic";
+            internal const string Category = "Category";
+
+            internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzePrimaryConstructorBaseType, SyntaxKind.BaseList, SyntaxKind.PrimaryConstructorBaseType);
+            }
+
+            private static void AnalyzePrimaryConstructorBaseType(SyntaxNodeAnalysisContext context)
+            {
+                var diagnostic = CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation());
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70488")]
+        public void TestNoDuplicateCallbacksForPrimaryConstructorBaseType()
+        {
+            string source = @"#pragma warning disable CS9113 // warning CS9113: Parameter 'a' is unread.
+class Base(int a) { }
+
+class Derived(int a) : Base(a);";
+            var analyzers = new DiagnosticAnalyzer[] { new PrimaryConstructorBaseTypeAnalyzer() };
+
+            CreateCompilation(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                     Diagnostic("MyDiagnostic", @": Base(a)").WithLocation(4, 22),
+                     Diagnostic("MyDiagnostic", @"Base(a)").WithLocation(4, 24));
+        }
+
         [Theory, CombinatorialData]
         [WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
         [WorkItem(66085, "https://github.com/dotnet/roslyn/issues/66085")]
