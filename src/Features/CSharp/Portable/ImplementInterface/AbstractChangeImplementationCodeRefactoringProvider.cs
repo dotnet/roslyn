@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // member.  Interface member names are the expected names that people expect to see
             // (like "GetEnumerator"), instead of the auto-generated names that the compiler makes
             // like: "System.IEnumerable.GetEnumerator"
-            directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
             var implementations = member.ExplicitOrImplicitInterfaceImplementations();
             if (implementations.IsEmpty)
                 return;
 
+            directlyImplementedMembers.AddRange(member, implementations);
             var firstImplName = implementations.First().Name;
             var codeAction = CodeAction.Create(
                 string.Format(Implement_0, firstImplName),
