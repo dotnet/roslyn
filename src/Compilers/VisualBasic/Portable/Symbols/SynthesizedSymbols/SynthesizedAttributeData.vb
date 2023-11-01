@@ -14,21 +14,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Class to represent a synthesized attribute
     ''' </summary>
     Friend NotInheritable Class SynthesizedAttributeData
-        Inherits SourceAttributeData
+        Inherits VisualBasicAttributeData
 
-        Friend Sub New(wellKnownMember As MethodSymbol,
+        Private ReadOnly _compilation As VisualBasicCompilation
+        Private ReadOnly _attributeConstructor As MethodSymbol
+        Private ReadOnly _constructorArguments As ImmutableArray(Of TypedConstant)
+        Private ReadOnly _namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
+
+        Friend Sub New(compilation As VisualBasicCompilation,
+                       wellKnownMember As MethodSymbol,
                        arguments As ImmutableArray(Of TypedConstant),
                        namedArgs As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)))
 
-            MyBase.New(Nothing,
-                       wellKnownMember.ContainingType,
-                       wellKnownMember,
-                       arguments,
-                       namedArgs,
-                       isConditionallyOmitted:=False,
-                       hasErrors:=False)
-
             Debug.Assert(wellKnownMember IsNot Nothing AndAlso Not arguments.IsDefault)
+
+            Me._compilation = compilation
+            Me._attributeConstructor = wellKnownMember
+            Me._constructorArguments = arguments.NullToEmpty()
+            Me._namedArguments = namedArgs.NullToEmpty()
         End Sub
 
         ''' <summary>
@@ -36,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If the constructor has UseSiteErrors and the attribute is optional returns Nothing.
         ''' </summary>
         Friend Shared Function Create(
+            compilation As VisualBasicCompilation,
             constructorSymbol As MethodSymbol,
             constructor As WellKnownMember,
             Optional arguments As ImmutableArray(Of TypedConstant) = Nothing,
@@ -58,8 +62,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     namedArguments = ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty
                 End If
 
-                Return New SynthesizedAttributeData(constructorSymbol, arguments, namedArguments)
+                Return New SynthesizedAttributeData(compilation, constructorSymbol, arguments, namedArguments)
             End If
+        End Function
+
+        Public Overrides ReadOnly Property AttributeClass As NamedTypeSymbol
+            Get
+                Return _attributeConstructor.ContainingType
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AttributeConstructor As MethodSymbol
+            Get
+                Return _attributeConstructor
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ApplicationSyntaxReference As SyntaxReference
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property CommonConstructorArguments As ImmutableArray(Of TypedConstant)
+            Get
+                Return _constructorArguments
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property CommonNamedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
+            Get
+                Return _namedArguments
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsConditionallyOmitted As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasErrors As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Friend Overrides Function IsTargetAttribute(namespaceName As String, typeName As String, Optional ignoreCase As Boolean = False) As Boolean
+            Return SourceAttributeData.IsTargetAttribute(AttributeClass, namespaceName, typeName, ignoreCase)
+        End Function
+
+        Friend Overrides Function GetTargetAttributeSignatureIndex(description As AttributeDescription) As Integer
+            Return SourceAttributeData.GetTargetAttributeSignatureIndex(_compilation, AttributeClass, AttributeConstructor, description)
         End Function
     End Class
 End Namespace

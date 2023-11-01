@@ -3859,11 +3859,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
         <target state="translated">Nejde extrahovat rozhraní: Typ neobsahuje žádný člen, který by se dal extrahovat do rozhraní.</target>
         <note />
       </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">nejde konstruovat finální strom</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
         <source>Parameters' type or return type cannot be an anonymous type : [{0}]</source>
         <target state="translated">Typ nebo návratový typ parametrů nemůže být anonymní: [{0}].</target>

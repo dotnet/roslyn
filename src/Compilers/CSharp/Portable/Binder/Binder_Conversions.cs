@@ -558,6 +558,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = (ExpressionSyntax)node.Syntax;
+            if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
+            {
+                diagnostics.Add(node.HasSpreadElements(out _, out _)
+                    ? ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate
+                    : ErrorCode.WRN_CollectionExpressionRefStructMayAllocate,
+                    syntax, targetType);
+            }
+
             MethodSymbol? collectionBuilderMethod = null;
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
@@ -613,10 +621,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
                     }
                     break;
+
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    if (targetType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CollectionExpressionImmutableArray, syntax, targetType.OriginalDefinition);
+                        return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+                    }
+                    break;
             }
 
             var elements = node.Elements;
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
+            var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
 
@@ -645,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
                 foreach (var element in elements)
                 {
-                    BoundExpression convertedElement = BindCollectionExpressionElementAddMethod(
+                    BoundNode convertedElement = BindCollectionExpressionElementAddMethod(
                         element,
                         collectionInitializerAddMethodBinder,
                         implicitReceiver,
@@ -690,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics) :
                         CreateConversion(
                             element.Syntax,
-                            element,
+                            (BoundExpression)element,
                             elementConversion,
                             isCast: false,
                             conversionGroupOpt: null,
@@ -712,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.ToImmutableAndFree(),
                 targetType);
 
-            BoundExpression bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
+            BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
             {
                 var enumeratorInfo = element.EnumeratorInfoOpt;
                 Debug.Assert(enumeratorInfo is { });
@@ -758,10 +775,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var syntax = node.Syntax;
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Elements.Length);
+            var builder = ArrayBuilder<BoundNode>.GetInstance(node.Elements.Length);
             foreach (var element in node.Elements)
             {
-                builder.Add(BindToNaturalType(element, diagnostics, reportNoTargetType: !targetType.IsErrorType()));
+                var result = element is BoundExpression expression ?
+                    BindToNaturalType(expression, diagnostics, reportNoTargetType: !targetType.IsErrorType()) :
+                    element;
+                builder.Add(result);
             }
             return new BoundCollectionExpression(
                 syntax,
@@ -830,10 +850,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Conversion elementConversion = Conversions.ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo);
+                        Conversion elementConversion = Conversions.ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo);
                         if (!elementConversion.Exists)
                         {
-                            GenerateImplicitConversionError(diagnostics, element.Syntax, elementConversion, element, elementType);
+                            GenerateImplicitConversionError(diagnostics, element.Syntax, elementConversion, (BoundExpression)element, elementType);
                             reportedErrors = true;
                         }
                     }

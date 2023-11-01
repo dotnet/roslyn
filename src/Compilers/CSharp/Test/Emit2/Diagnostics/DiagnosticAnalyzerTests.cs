@@ -4227,5 +4227,29 @@ partial class B
                 }
             }
         }
+
+        [Theory]
+        // IDE scenario where no reported severities are filtered.
+        [InlineData(SeverityFilter.None, DiagnosticSeverity.Hidden)]
+        // Command line scenario where hidden and info severities are filtered.
+        [InlineData(SeverityFilter.Hidden | SeverityFilter.Info, DiagnosticSeverity.Warning)]
+        internal async Task TestMinimumReportedSeverity(SeverityFilter severityFilter, DiagnosticSeverity expectedMinimumReportedSeverity)
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"class C { }");
+            var compilation = CreateCompilation(new[] { tree });
+
+            var analyzer = new MinimumReportedSeverityAnalyzer();
+            var analyzersArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var analyzerManager = new AnalyzerManager(analyzersArray);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzersArray, AnalyzerOptions.Empty, analyzerManager, onAnalyzerException: null,
+                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
+
+            // Force complete compilation event queue and analyzer execution.
+            _ = newCompilation.GetDiagnostics(CancellationToken.None);
+            _ = await driver.GetDiagnosticsAsync(newCompilation, CancellationToken.None);
+
+            Assert.True(analyzer.AnalyzerInvoked);
+            Assert.Equal(expectedMinimumReportedSeverity, analyzer.MinimumReportedSeverity);
+        }
     }
 }

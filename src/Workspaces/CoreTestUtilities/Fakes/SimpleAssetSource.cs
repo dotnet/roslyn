@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing;
 internal sealed class SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map) : IAssetSource
 {
     public ValueTask<ImmutableArray<object>> GetAssetsAsync(
-        Checksum solutionChecksum, ProjectId? hintProject, ImmutableArray<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
+        Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
     {
         var results = new List<object>();
 

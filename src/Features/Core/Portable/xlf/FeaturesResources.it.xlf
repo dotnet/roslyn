@@ -3859,11 +3859,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
         <target state="translated">Non è possibile estrarre l'interfaccia: il tipo non contiene membri che possono essere estratti in un'interfaccia.</target>
         <note />
       </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">non è possibile costruire l'albero finale</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
         <source>Parameters' type or return type cannot be an anonymous type : [{0}]</source>
         <target state="translated">Il tipo o il tipo restituito dei parametri non può essere un tipo anonimo: [{0}]</target>

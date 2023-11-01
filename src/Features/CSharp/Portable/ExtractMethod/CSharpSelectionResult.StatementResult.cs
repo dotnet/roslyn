@@ -7,7 +7,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -17,14 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     internal partial class CSharpSelectionResult
     {
         private class StatementResult(
-            OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
             ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
-            SyntaxAnnotation lastTokenAnnotation) : CSharpSelectionResult(status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation)
+            SyntaxAnnotation lastTokenAnnotation,
+            bool selectionChanged) : CSharpSelectionResult(
+                originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
         {
             public override bool ContainingScopeHasAsyncKeyword()
             {

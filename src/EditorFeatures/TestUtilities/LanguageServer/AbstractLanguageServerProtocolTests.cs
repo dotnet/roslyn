@@ -668,6 +668,14 @@ namespace Roslyn.Test.Utilities
                 await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
             }
 
+            public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range Range, string Text)[] changes)
+            {
+                var didChangeParams = CreateDidChangeTextDocumentParams(
+                    documentUri,
+                    changes.ToImmutableArray());
+                return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
+            }
+
             public Task InsertTextAsync(Uri documentUri, params (int Line, int Column, string Text)[] changes)
             {
                 return ReplaceTextAsync(documentUri, changes.Select(change => (new LSP.Range
@@ -675,14 +683,6 @@ namespace Roslyn.Test.Utilities
                     Start = new LSP.Position { Line = change.Line, Character = change.Column },
                     End = new LSP.Position { Line = change.Line, Character = change.Column }
                 }, change.Text)).ToArray());
-            }
-
-            public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range Range, string Text)[] changes)
-            {
-                var didChangeParams = CreateDidChangeTextDocumentParams(
-                    documentUri,
-                    changes.Select(change => (change.Range, change.Text)).ToImmutableArray());
-                return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
             }
 
             public Task DeleteTextAsync(Uri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)
