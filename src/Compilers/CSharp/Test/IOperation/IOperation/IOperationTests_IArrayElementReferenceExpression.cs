@@ -520,10 +520,22 @@ class C
 
             string expectedOperationTree = @"
 ICollectionExpressionOperation (1 elements) (OperationKind.CollectionExpression, Type: ?, IsInvalid) (Syntax: '[0]')
-  CreateCollection:
-    null
+  CreateInstance:
+    IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Object>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Object>, IsInvalid, IsImplicit) (Syntax: '[0]')
+      Arguments(0)
+      Initializer:
+        null
+  ConvertToCollection:
+    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '[0]')
   Elements(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+      IInvocationOperation ( void System.Collections.Generic.List<System.Object>.Add(System.Object item)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '0')
+        Instance Receiver:
+          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Object>, IsInvalid, IsImplicit) (Syntax: '[0]')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {

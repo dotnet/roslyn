@@ -3664,16 +3664,22 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface ICollectionExpressionOperation : IOperation
     {
         /// <summary>
-        /// Method to construct the collection instance.
+        /// Construct the collection instance.
         /// <para>
-        ///   If the collection expression type is an array, span, or array interface, the operation is null.
         ///   If the collection type has a [CollectionBuilder] attribute, the operation is a call to the builder
         ///   method with an IInstanceReferenceOperation with ReferenceKind.ImplicitReceiver as the
         ///   span argument, and with the result converted to the collection type.
         ///   Otherwise, the operation is a call to the collection constructor.
         /// </para>
         /// </summary>
-        IOperation? CreateCollection { get; }
+        IOperation CreateInstance { get; }
+        /// <summary>
+        /// Convert instance to target collection type.
+        /// <para>
+        ///   The instance is an IInstanceReferenceOperation with ReferenceKind.ImplicitReceiver.
+        /// </para>
+        /// </summary>
+        IOperation ConvertToCollection { get; }
         /// <summary>
         /// Collection expression elements.
         /// <para>
@@ -10391,28 +10397,29 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CollectionExpressionOperation : Operation, ICollectionExpressionOperation
     {
-        internal CollectionExpressionOperation(CollectionExpressionTypeKind typeKind, ITypeSymbol? elementType, IOperation? createCollection, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CollectionExpressionOperation(IOperation createInstance, IOperation convertToCollection, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
-            TypeKind = typeKind;
-            ElementType = elementType;
-            CreateCollection = SetParentOperation(createCollection, this);
+            CreateInstance = SetParentOperation(createInstance, this);
+            ConvertToCollection = SetParentOperation(convertToCollection, this);
             Elements = SetParentOperation(elements, this);
             Type = type;
         }
-        public CollectionExpressionTypeKind TypeKind { get; }
-        public ITypeSymbol? ElementType { get; }
-        public IOperation? CreateCollection { get; }
+        public IOperation CreateInstance { get; }
+        public IOperation ConvertToCollection { get; }
         public ImmutableArray<IOperation> Elements { get; }
         internal override int ChildOperationsCount =>
-            (CreateCollection is null ? 0 : 1) +
+            (CreateInstance is null ? 0 : 1) +
+            (ConvertToCollection is null ? 0 : 1) +
             Elements.Length;
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
-                0 when CreateCollection != null
-                    => CreateCollection,
-                1 when index < Elements.Length
+                0 when CreateInstance != null
+                    => CreateInstance,
+                1 when ConvertToCollection != null
+                    => ConvertToCollection,
+                2 when index < Elements.Length
                     => Elements[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
@@ -10421,16 +10428,19 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case -1:
-                    if (CreateCollection != null) return (true, 0, 0);
+                    if (CreateInstance != null) return (true, 0, 0);
                     else goto case 0;
                 case 0:
-                    if (!Elements.IsEmpty) return (true, 1, 0);
+                    if (ConvertToCollection != null) return (true, 1, 0);
                     else goto case 1;
-                case 1 when previousIndex + 1 < Elements.Length:
-                    return (true, 1, previousIndex + 1);
                 case 1:
+                    if (!Elements.IsEmpty) return (true, 2, 0);
+                    else goto case 2;
+                case 2 when previousIndex + 1 < Elements.Length:
+                    return (true, 2, previousIndex + 1);
                 case 2:
-                    return (false, 2, 0);
+                case 3:
+                    return (false, 3, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
@@ -10440,12 +10450,15 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case int.MaxValue:
-                    if (!Elements.IsEmpty) return (true, 1, Elements.Length - 1);
+                    if (!Elements.IsEmpty) return (true, 2, Elements.Length - 1);
+                    else goto case 2;
+                case 2 when previousIndex > 0:
+                    return (true, 2, previousIndex - 1);
+                case 2:
+                    if (ConvertToCollection != null) return (true, 1, 0);
                     else goto case 1;
-                case 1 when previousIndex > 0:
-                    return (true, 1, previousIndex - 1);
                 case 1:
-                    if (CreateCollection != null) return (true, 0, 0);
+                    if (CreateInstance != null) return (true, 0, 0);
                     else goto case 0;
                 case 0:
                 case -1:
@@ -11147,7 +11160,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCollectionExpression(ICollectionExpressionOperation operation, object? argument)
         {
             var internalOperation = (CollectionExpressionOperation)operation;
-            return new CollectionExpressionOperation(internalOperation.TypeKind, internalOperation.ElementType, Visit(internalOperation.CreateCollection), VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new CollectionExpressionOperation(Visit(internalOperation.CreateInstance), Visit(internalOperation.ConvertToCollection), VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
         {

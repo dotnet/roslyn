@@ -488,7 +488,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.CollectionExpression, operation.Kind);
             var builder = ArrayBuilder<IOperation>.GetInstance();
-            builder.AddIfNotNull(operation.CreateCollection);
+            builder.AddIfNotNull(operation.CreateInstance);
+            builder.AddIfNotNull(operation.ConvertToCollection);
             builder.AddRange(operation.Elements);
             AssertEx.Equal(builder.ToImmutableAndFree(), operation.ChildOperations);
         }

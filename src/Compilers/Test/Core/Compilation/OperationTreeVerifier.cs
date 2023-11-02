@@ -1631,7 +1631,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" ({operation.Elements.Length} elements)");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.CreateCollection, "CreateCollection");
+            Visit(operation.CreateInstance, "CreateInstance");
+            Visit(operation.ConvertToCollection, "ConvertToCollection");
             VisitArray(operation.Elements, "Elements", logElementCount: true);
         }
 

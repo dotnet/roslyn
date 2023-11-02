@@ -3387,9 +3387,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICollectionExpressionOperation" Base="IOperation"  ChildrenOrder="CreateCollection,Elements" HasType="true">
-    <Property Name="TypeKind" Type="CollectionExpressionTypeKind" Internal="true" />
-    <Property Name="ElementType" Type="ITypeSymbol?" Internal="true" />
+  <Node Name="ICollectionExpressionOperation" Base="IOperation"  ChildrenOrder="CreateInstance,ConvertToCollection,Elements" HasType="true">
     <Comments>
       <summary>
         Represents a collection expression.
@@ -3399,16 +3397,27 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="CreateCollection" Type="IOperation?">
+    <!-- PROTOTYPE: Update summary with specifics for each target type. -->
+    <Property Name="CreateInstance" Type="IOperation">
       <Comments>
         <summary>
-          Method to construct the collection instance.
+          Construct the collection instance.
           <para>
-            If the collection expression type is an array, span, or array interface, the operation is null.
             If the collection type has a [CollectionBuilder] attribute, the operation is a call to the builder
             method with an IInstanceReferenceOperation with ReferenceKind.ImplicitReceiver as the
             span argument, and with the result converted to the collection type.
             Otherwise, the operation is a call to the collection constructor.
+          </para>
+        </summary>
+      </Comments>
+    </Property>
+    <!-- PROTOTYPE: Update summary with specifics for each target type. -->
+    <Property Name="ConvertToCollection" Type="IOperation">
+      <Comments>
+        <summary>
+          Convert instance to target collection type.
+          <para>
+            The instance is an IInstanceReferenceOperation with ReferenceKind.ImplicitReceiver.
           </para>
         </summary>
       </Comments>

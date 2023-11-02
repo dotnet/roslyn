@@ -6395,194 +6395,21 @@ oneMoreTime:
         {
             Debug.Assert(operation.Type is { });
 
-            CollectionExpressionTypeKind typeKind = ((CollectionExpressionOperation)operation).TypeKind;
-            switch (typeKind)
-            {
-                case CollectionExpressionTypeKind.None:
-                    return VisitNoneCollectionExpression(operation);
-                case CollectionExpressionTypeKind.Array:
-                    return VisitArrayCollectionExpression(operation, ((IArrayTypeSymbol)operation.Type).ElementType);
-                case CollectionExpressionTypeKind.Span:
-                    return VisitSpanCollectionExpression(operation);
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
-                case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    return VisitIEnumerableCollectionExpression(operation);
-                case CollectionExpressionTypeKind.CollectionBuilder:
-                    return VisitCollectionBuilderCollectionExpression(operation);
-                case CollectionExpressionTypeKind.ArrayInterface:
-                    return VisitArrayInterfaceCollectionExpression(operation);
-                case CollectionExpressionTypeKind.ImmutableArray:
-                    return VisitImmutableArrayCollectionExpression(operation);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(typeKind);
-            }
-        }
-
-        private IOperation VisitNoneCollectionExpression(ICollectionExpressionOperation operation)
-        {
             EvalStackFrame frame = PushStackFrame();
 
-            IOperation instance = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, constantValue: null, isImplicit: true);
-
-            // Push the instance on the stack, spill the stack,
-            // and get a reference to the captured instance.
-            PushOperand(instance);
-            SpillEvalStack();
-            instance = PopOperand();
-
-            AddCollectionExpressionElements(
-                instance,
-                operation.Elements,
-                addElement: e => e);
-
-            return PopStackFrame(frame, instance);
-        }
-
-        private IOperation VisitArrayCollectionExpression(ICollectionExpressionOperation operation, ITypeSymbol elementType)
-        {
-            Debug.Assert(operation.Type is { });
-
-            EvalStackFrame frame = PushStackFrame();
-
-            // PROTOTYPE: If there are no spreads, we should generate an ArrayInitializerOperation as in VisitArrayInitializer() above.
-
-            var instance = HandleCollectionExpressionAsList(operation, elementType);
-
-            // PROTOTYPE: Get substituted well-known members in CSharpOperationFactory and store on instance.
-            var listToArray = (IMethodSymbol)instance.Type!.GetMembers("ToArray").Single(); // PROTOTYPE: WellKnownMember.System_Collections_Generic_List_T__ToArray
-            instance = new InvocationOperation(
-                listToArray,
-                constrainedToType: null,
-                instance,
-                isVirtual: false,
-                ImmutableArray<IArgumentOperation>.Empty,
-                semanticModel: null,
-                operation.Syntax,
-                listToArray.ReturnType,
-                isImplicit: true);
-
-            return PopStackFrame(frame, instance);
-        }
-
-        private IOperation VisitSpanCollectionExpression(ICollectionExpressionOperation operation)
-        {
-            Debug.Assert(operation.Type is { });
-
-            EvalStackFrame frame = PushStackFrame();
-
-            // PROTOTYPE: Get substituted well-known members in CSharpOperationFactory and store on instance.
-            var collectionType = (INamedTypeSymbol)operation.Type;
-            var constructor = collectionType.InstanceConstructors.Single(c => c is { Parameters: [{ RefKind: RefKind.None, Type.TypeKind: TypeKind.Array }] }); // PROTOTYPE: WellKnownMember.System_{ReadOnly}Span_T__ctor_Array
-            var instance = VisitArrayCollectionExpression(operation, collectionType.TypeArguments[0]);
-            IArgumentOperation argument = new ArgumentOperation(
-                ArgumentKind.Explicit,
-                constructor.Parameters[0],
-                instance,
-                inConversion: OperationFactory.IdentityConversion,
-                outConversion: OperationFactory.IdentityConversion,
-                semanticModel: null,
-                operation.Syntax,
-                isImplicit: true);
-            instance = new ObjectCreationOperation(
-                constructor,
-                initializer: null,
-                ImmutableArray.Create(argument),
-                semanticModel: null,
-                operation.Syntax,
-                operation.Type,
-                constantValue: null,
-                isImplicit: true);
-
-            return PopStackFrame(frame, instance);
-        }
-
-        private IOperation VisitArrayInterfaceCollectionExpression(ICollectionExpressionOperation operation)
-        {
-            Debug.Assert(operation.Type is { });
-
-            EvalStackFrame frame = PushStackFrame();
-
-            // For CFG, the collection type is represented as List<T> even though the emitted
-            // code may use a synthesized type instead. (The collection type used should be
-            // considered an implementation detail, subject to change.)
-            var elementType = ((INamedTypeSymbol)operation.Type).TypeArguments[0];
-            var instance = HandleCollectionExpressionAsList(operation, elementType);
-            return PopStackFrame(frame, instance);
-        }
-
-        private IOperation VisitIEnumerableCollectionExpression(ICollectionExpressionOperation operation)
-        {
-            Debug.Assert(operation.Type is { });
-            Debug.Assert(operation.CreateCollection is { });
-
-            EvalStackFrame frame = PushStackFrame();
-
-            IOperation instance = VisitAndCapture(operation.CreateCollection);
-
-            // Push the instance on the stack, spill the stack,
-            // and get a reference to the captured instance.
-            PushOperand(instance);
-            SpillEvalStack();
-            instance = PopOperand();
-
-            AddCollectionExpressionElements(
-                instance,
-                operation.Elements,
-                addElement: e => e);
-
-            return PopStackFrame(frame, instance);
-        }
-
-        private IOperation VisitCollectionBuilderCollectionExpression(ICollectionExpressionOperation operation)
-        {
-            Debug.Assert(operation.Type is { });
-            Debug.Assert(operation.CreateCollection is { });
-
-            EvalStackFrame frame = PushStackFrame();
-
-            var elementType = ((CollectionExpressionOperation)operation).ElementType;
-            Debug.Assert(elementType is { });
-
-            var instance = VisitArrayCollectionExpression(operation, elementType);
+            IOperation instance = VisitAndCapture(operation.CreateInstance);
 
             var previousImplicitInstance = _currentImplicitInstance;
             _currentImplicitInstance = new ImplicitInstanceInfo(instance);
-            instance = Visit(operation.CreateCollection);
+
+            foreach (var element in operation.Elements)
+            {
+                AddCollectionExpressionElement(element);
+            }
+
+            instance = Visit(operation.ConvertToCollection)!;
+
             _currentImplicitInstance = previousImplicitInstance;
-
-            return PopStackFrame(frame, instance)!;
-        }
-
-        private IOperation VisitImmutableArrayCollectionExpression(ICollectionExpressionOperation operation)
-        {
-            Debug.Assert(operation.Type is { });
-
-            EvalStackFrame frame = PushStackFrame();
-
-            // PROTOTYPE: Get substituted well-known members in CSharpOperationFactory and store on instance.
-            var collectionType = (INamedTypeSymbol)operation.Type;
-            var elementType = collectionType.TypeArguments[0];
-            var asImmutableArray = ((IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T)!.GetISymbol()).Construct(elementType);
-            var instance = VisitArrayCollectionExpression(operation, elementType);
-            IArgumentOperation argument = new ArgumentOperation(
-                ArgumentKind.Explicit,
-                asImmutableArray.Parameters[0],
-                instance,
-                inConversion: OperationFactory.IdentityConversion,
-                outConversion: OperationFactory.IdentityConversion,
-                semanticModel: null,
-                operation.Syntax,
-                isImplicit: true);
-            instance = new InvocationOperation(
-                asImmutableArray,
-                constrainedToType: null,
-                instance: null,
-                isVirtual: false,
-                arguments: ImmutableArray.Create(argument),
-                semanticModel: null,
-                operation.Syntax,
-                asImmutableArray.ReturnType,
-                isImplicit: true);
 
             return PopStackFrame(frame, instance);
         }
@@ -6592,94 +6419,30 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable();
         }
 
-        private IOperation HandleCollectionExpressionAsList(ICollectionExpressionOperation operation, ITypeSymbol elementType)
+        private void AddCollectionExpressionElement(IOperation element)
         {
-            var syntax = operation.Syntax;
-            var collectionType = ((INamedTypeSymbol)_compilation.CommonGetWellKnownType(WellKnownType.System_Collections_Generic_List_T).GetITypeSymbol()).Construct(elementType);
-            // PROTOTYPE: Get substituted well-known members in CSharpOperationFactory and store on instance.
-            var constructor = collectionType.InstanceConstructors.Single(c => c.Parameters.Length == 0); // PROTOTYPE: WellKnownMember.System_Collections_Generic_List_T__ctor
-            IOperation instance = new ObjectCreationOperation(
-                constructor,
-                initializer: null,
-                arguments: ImmutableArray<IArgumentOperation>.Empty,
-                semanticModel: null,
-                syntax,
-                collectionType,
-                constantValue: null,
-                isImplicit: true);
+            // PROTOTYPE: What is _currentStatement used for, and is saving, setting, restoring _currentStatement necessary?
+            IOperation? saveCurrentStatement = _currentStatement;
+            _currentStatement = element;
 
-            // Push the instance on the stack, spill the stack,
-            // and get a reference to the captured instance.
-            PushOperand(instance);
-            SpillEvalStack();
-            instance = PopOperand();
+            EvalStackFrame frame = PushStackFrame();
 
-            if (operation.Elements.Length > 0)
+            IOperation? statement;
+            if (element is ISpreadOperation spreadElement)
             {
-                // PROTOTYPE: Get substituted well-known members in CSharpOperationFactory and store on instance.
-                var addMethod = (IMethodSymbol)collectionType.GetMembers("Add").Single(); // PROTOTYPE: WellKnownMember.System_Collections_Generic_List_T__Add
-                AddCollectionExpressionElements(
-                    instance,
-                    operation.Elements,
-                    addElement: e =>
-                    {
-                        IArgumentOperation argument = new ArgumentOperation(
-                            ArgumentKind.Explicit,
-                            addMethod.Parameters[0],
-                            OperationCloner.CloneOperation(e), // PROTOTYPE: Do we need to clone this? Isn't this the only reference?
-                            inConversion: OperationFactory.IdentityConversion,
-                            outConversion: OperationFactory.IdentityConversion,
-                            semanticModel: null,
-                            e.Syntax,
-                            isImplicit: true);
-                        return new InvocationOperation(
-                            addMethod,
-                            constrainedToType: null,
-                            instance: OperationCloner.CloneOperation(instance),
-                            isVirtual: false,
-                            arguments: ImmutableArray.Create(argument),
-                            semanticModel: null,
-                            e.Syntax,
-                            addMethod.ReturnType,
-                            isImplicit: true);
-                    });
+                statement = MakeCollectionExpressionSpreadElement((SpreadOperation)spreadElement);
             }
+            else
+            {
+                statement = VisitAndCapture(element);
+            }
+            AddStatement(statement);
+            PopStackFrameAndLeaveRegion(frame);
 
-            return instance;
+            _currentStatement = saveCurrentStatement;
         }
 
-        private void AddCollectionExpressionElements(IOperation instance, ImmutableArray<IOperation> elements, Func<IOperation, IOperation> addElement)
-        {
-            var previousImplicitInstance = _currentImplicitInstance;
-            _currentImplicitInstance = new ImplicitInstanceInfo(instance);
-
-            foreach (var element in elements)
-            {
-                // PROTOTYPE: What is _currentStatement used for, and is saving, setting, restoring _currentStatement necessary?
-                IOperation? saveCurrentStatement = _currentStatement;
-                _currentStatement = element;
-
-                EvalStackFrame frame = PushStackFrame();
-
-                IOperation? statement;
-                if (element is ISpreadOperation spreadElement)
-                {
-                    statement = MakeCollectionExpressionSpreadElement((SpreadOperation)spreadElement, addElement);
-                }
-                else
-                {
-                    statement = addElement(VisitAndCapture(element));
-                }
-                AddStatement(statement);
-                PopStackFrameAndLeaveRegion(frame);
-
-                _currentStatement = saveCurrentStatement;
-            }
-
-            _currentImplicitInstance = previousImplicitInstance;
-        }
-
-        private IOperation? MakeCollectionExpressionSpreadElement(SpreadOperation operation, Func<IOperation, IOperation> addElement)
+        private IOperation? MakeCollectionExpressionSpreadElement(SpreadOperation operation)
         {
             if (operation.IteratorBody is null)
             {
@@ -6696,7 +6459,7 @@ oneMoreTime:
                 () =>
                 {
                     EvalStackFrame frame = PushStackFrame();
-                    var statement = addElement(VisitAndCapture(operation.IteratorBody));
+                    var statement = VisitAndCapture(operation.IteratorBody);
                     Debug.Assert(statement is { });
                     AddStatement(statement);
                     PopStackFrameAndLeaveRegion(frame);

@@ -1230,137 +1230,199 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = expr.Syntax;
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
             bool isImplicit = expr.WasCompilerGenerated;
+            IOperation createInstance;
+            IOperation convertToCollection;
+            ImmutableArray<IOperation> elements;
 
-            // Binding special-cases List<T>, since that type is optimized later in lowering, and only includes
-            // the converted elements, but not the Add() calls. We need to generate the Add() calls here.
-            if (expr.CollectionTypeKind == CSharp.CollectionExpressionTypeKind.List)
+            // PROTOTYPE: Array, span, and builder cases should use an array initializer if there are no spreads.
+            switch (expr.CollectionTypeKind)
             {
-                Debug.Assert(expr.Type is { });
-                // PROTOTYPE: Test with missing List<T>..ctor().
-                var constructor = ((MethodSymbol)((CSharpCompilation)_semanticModel.Compilation).GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor)!).AsMember((NamedTypeSymbol)expr.Type).GetPublicSymbol();
-                if (constructor is null)
-                {
-                    // PROTOTYPE: ...
-                    throw ExceptionUtilities.UnexpectedValue(expr.CollectionCreation);
-                }
-                // PROTOTYPE: We're also getting the .ctor and creating an ObjectCreationOperation in
-                // ControlFlowGraphBuilder.HandleCollectionExpressionAsList. Can we share code with that case?
-                IOperation createCollection = new ObjectCreationOperation(
-                    constructor,
-                    initializer: null,
-                    arguments: ImmutableArray<IArgumentOperation>.Empty,
-                    _semanticModel,
-                    syntax,
-                    collectionType,
-                    constantValue: null,
-                    isImplicit: true);
-                // PROTOTYPE: Test with missing List<T>.Add().
-                var addMethod = ((MethodSymbol)((CSharpCompilation)_semanticModel.Compilation).GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add)!).AsMember((NamedTypeSymbol)expr.Type).GetPublicSymbol();
-                ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(
-                    element =>
-                    {
-                        if (element is BoundCollectionExpressionSpreadElement spread)
-                        {
-                            Debug.Assert(spread.IteratorBody is { });
-                            return CreateBoundCollectionExpressionSpreadElement(spread, createAddInvocation(((BoundExpressionStatement)spread.IteratorBody).Expression));
-                        }
-                        else
-                        {
-                            return createAddInvocation((BoundExpression)element);
-                        }
-                    });
-                return new CollectionExpressionOperation(
-                    CollectionExpressionTypeKind.ImplementsIEnumerableT,
-                    expr.ElementType.GetPublicSymbol(),
-                    createCollection,
-                    elements,
-                    _semanticModel,
-                    syntax,
-                    collectionType,
-                    isImplicit);
+                case CSharp.CollectionExpressionTypeKind.None:
+                    elements = CreateListFromCollectionExpressionElements(
+                        syntax,
+                        ((CSharpCompilation)_semanticModel.Compilation).GetSpecialType(SpecialType.System_Object),
+                        expr.Elements,
+                        out createInstance);
+                    break;
+                case CSharp.CollectionExpressionTypeKind.Array:
+                case CSharp.CollectionExpressionTypeKind.Span:
+                case CSharp.CollectionExpressionTypeKind.ReadOnlySpan:
+                case CSharp.CollectionExpressionTypeKind.List:
+                case CSharp.CollectionExpressionTypeKind.ArrayInterface:
+                case CSharp.CollectionExpressionTypeKind.ImmutableArray:
+                case CSharp.CollectionExpressionTypeKind.CollectionBuilder:
+                    Debug.Assert(expr.ElementType is { });
+                    elements = CreateListFromCollectionExpressionElements(syntax, expr.ElementType, expr.Elements, out createInstance);
+                    break;
+                case CSharp.CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                case CSharp.CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    Debug.Assert(expr.CollectionCreation is { });
+                    createInstance = Create(expr.CollectionCreation);
+                    elements = CreateFromArray<BoundNode, IOperation>(expr.Elements);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
+            }
 
-                // PROTOTYPE: Test when Add is missing.
-                IOperation createAddInvocation(BoundExpression convertedElement)
-                {
-                    // PROTOTYPE: We're also getting an Add method and creating an InvocationOperation in
-                    // ControlFlowGraphBuilder.HandleCollectionExpressionAsList. Can we share code with that case?
-                    IOperation e = Create(convertedElement);
-                    IArgumentOperation argument = new ArgumentOperation(
-                        ArgumentKind.Explicit,
-                        addMethod.Parameters[0],
-                        e,
-                        inConversion: OperationFactory.IdentityConversion,
-                        outConversion: OperationFactory.IdentityConversion,
+            switch (expr.CollectionTypeKind)
+            {
+                case CSharp.CollectionExpressionTypeKind.None:
+                case CSharp.CollectionExpressionTypeKind.Array:
+                case CSharp.CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                case CSharp.CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CSharp.CollectionExpressionTypeKind.List:
+                case CSharp.CollectionExpressionTypeKind.ArrayInterface:
+                    convertToCollection = new InstanceReferenceOperation(
+                        InstanceReferenceKind.ImplicitReceiver,
                         _semanticModel,
-                        e.Syntax,
+                        syntax,
+                        collectionType,
                         isImplicit: true);
-                    return new InvocationOperation(
-                        addMethod,
-                        constrainedToType: null,
-                        instance: new InstanceReferenceOperation(
-                            InstanceReferenceKind.ImplicitReceiver,
+                    break;
+                case CSharp.CollectionExpressionTypeKind.Span:
+                case CSharp.CollectionExpressionTypeKind.ReadOnlySpan:
+                    {
+                        Debug.Assert(collectionType is { });
+                        var constructor = ((INamedTypeSymbol)collectionType).InstanceConstructors.Single(c => c is { Parameters: [{ RefKind: RefKind.None, Type.TypeKind: TypeKind.Array }] }); // PROTOTYPE: WellKnownMember.System_{ReadOnly}Span_T__ctor_Array
+                        IArgumentOperation argument = new ArgumentOperation(
+                            ArgumentKind.Explicit,
+                            constructor.Parameters[0],
+                            new InstanceReferenceOperation(
+                                InstanceReferenceKind.ImplicitReceiver,
+                                _semanticModel,
+                                syntax,
+                                createInstance.Type,
+                                isImplicit: true),
+                            inConversion: OperationFactory.IdentityConversion,
+                            outConversion: OperationFactory.IdentityConversion,
                             _semanticModel,
                             syntax,
-                            collectionType,
-                            isImplicit: true),
-                        isVirtual: false,
-                        arguments: ImmutableArray.Create(argument),
-                        _semanticModel,
-                        e.Syntax,
-                        addMethod.ReturnType,
-                        isImplicit: true);
-                }
+                            isImplicit: true);
+                        convertToCollection = new ObjectCreationOperation(
+                            constructor,
+                            initializer: null,
+                            ImmutableArray.Create(argument),
+                            _semanticModel,
+                            syntax,
+                            constructor.ContainingType,
+                            constantValue: null,
+                            isImplicit: true);
+                    }
+                    break;
+                case CSharp.CollectionExpressionTypeKind.CollectionBuilder:
+                    Debug.Assert(expr.CollectionBuilderInvocationConversion is { });
+                    convertToCollection = Create(expr.CollectionBuilderInvocationConversion);
+                    break;
+                case CSharp.CollectionExpressionTypeKind.ImmutableArray:
+                    {
+                        Debug.Assert(expr.ElementType is { });
+                        var elementType = expr.ElementType;
+                        var asImmutableArray = ((MethodSymbol?)((CSharpCompilation)_semanticModel.Compilation).GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T)!).Construct(elementType).GetPublicSymbol();
+                        IArgumentOperation argument = new ArgumentOperation(
+                            ArgumentKind.Explicit,
+                            asImmutableArray.Parameters[0],
+                            new InstanceReferenceOperation(
+                                InstanceReferenceKind.ImplicitReceiver,
+                                _semanticModel,
+                                syntax,
+                                createInstance.Type,
+                                isImplicit: true),
+                            inConversion: OperationFactory.IdentityConversion,
+                            outConversion: OperationFactory.IdentityConversion,
+                            _semanticModel,
+                            syntax,
+                            isImplicit: true);
+                        convertToCollection = new InvocationOperation(
+                            asImmutableArray,
+                            constrainedToType: null,
+                            instance: null,
+                            isVirtual: false,
+                            arguments: ImmutableArray.Create(argument),
+                            _semanticModel,
+                            syntax,
+                            asImmutableArray.ReturnType,
+                            isImplicit: true);
+                    }
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
             }
-            else
+
+            return new CollectionExpressionOperation(
+                createInstance,
+                convertToCollection,
+                elements,
+                _semanticModel,
+                syntax,
+                collectionType,
+                isImplicit);
+        }
+
+        private ImmutableArray<IOperation> CreateListFromCollectionExpressionElements(SyntaxNode syntax, TypeSymbol elementType, ImmutableArray<BoundNode> elements, out IOperation createInstance)
+        {
+            var compilation = (CSharpCompilation)_semanticModel.Compilation;
+            // PROTOTYPE: Test with missing List<T>.
+            var listType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
+            // PROTOTYPE: Test with missing List<T>..ctor().
+            var constructor = ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor)!).AsMember(listType).GetPublicSymbol();
+            if (constructor is null)
             {
-                CollectionExpressionTypeKind typeKind = expr.CollectionTypeKind switch
+                // PROTOTYPE: ...
+                throw ExceptionUtilities.Unreachable();
+            }
+            createInstance = new ObjectCreationOperation(
+                constructor,
+                initializer: null,
+                arguments: ImmutableArray<IArgumentOperation>.Empty,
+                _semanticModel,
+                syntax,
+                constructor.ContainingType,
+                constantValue: null,
+                isImplicit: true);
+            var instanceType = createInstance.Type;
+            // PROTOTYPE: Test with missing List<T>.Add().
+            var addMethod = ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add)!).AsMember(listType).GetPublicSymbol();
+            return elements.SelectAsArray(
+                element =>
                 {
-                    CSharp.CollectionExpressionTypeKind.None => CollectionExpressionTypeKind.None,
-                    CSharp.CollectionExpressionTypeKind.Array => CollectionExpressionTypeKind.Array,
-                    CSharp.CollectionExpressionTypeKind.Span => CollectionExpressionTypeKind.Span,
-                    CSharp.CollectionExpressionTypeKind.ReadOnlySpan => CollectionExpressionTypeKind.Span,
-                    CSharp.CollectionExpressionTypeKind.CollectionBuilder => CollectionExpressionTypeKind.CollectionBuilder,
-                    CSharp.CollectionExpressionTypeKind.ImplementsIEnumerableT => CollectionExpressionTypeKind.ImplementsIEnumerableT,
-                    CSharp.CollectionExpressionTypeKind.ImplementsIEnumerable => CollectionExpressionTypeKind.ImplementsIEnumerable,
-                    CSharp.CollectionExpressionTypeKind.ArrayInterface => CollectionExpressionTypeKind.ArrayInterface,
-                    CSharp.CollectionExpressionTypeKind.ImmutableArray => CollectionExpressionTypeKind.ImmutableArray,
-                    var value => throw ExceptionUtilities.UnexpectedValue(value),
-                };
-
-                IOperation? createCollection;
-                switch (expr.CollectionTypeKind)
-                {
-                    case CSharp.CollectionExpressionTypeKind.None:
-                    case CSharp.CollectionExpressionTypeKind.Array:
-                    case CSharp.CollectionExpressionTypeKind.Span:
-                    case CSharp.CollectionExpressionTypeKind.ReadOnlySpan:
-                    case CSharp.CollectionExpressionTypeKind.ArrayInterface:
-                    case CSharp.CollectionExpressionTypeKind.ImmutableArray: // PROTOTYPE: Test with .NET 7 where ImmutableCollectionsMarshal is included but [CollectionBuilder] is not.
-                        createCollection = null;
-                        break;
-                    case CSharp.CollectionExpressionTypeKind.CollectionBuilder:
-                        Debug.Assert(expr.CollectionBuilderInvocationConversion is { });
-                        createCollection = Create(expr.CollectionBuilderInvocationConversion);
-                        break;
-                    case CSharp.CollectionExpressionTypeKind.ImplementsIEnumerableT:
-                    case CSharp.CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        Debug.Assert(expr.CollectionCreation is { });
-                        createCollection = Create(expr.CollectionCreation);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
-                }
-
-                var elements = CreateFromArray<BoundNode, IOperation>(expr.Elements);
-                return new CollectionExpressionOperation(
-                    typeKind,
-                    expr.ElementType.GetPublicSymbol(),
-                    createCollection,
-                    elements,
+                    if (element is BoundCollectionExpressionSpreadElement spread)
+                    {
+                        Debug.Assert(spread.IteratorBody is { });
+                        return CreateBoundCollectionExpressionSpreadElement(spread, createAddInvocation(((BoundExpressionStatement)spread.IteratorBody).Expression));
+                    }
+                    else
+                    {
+                        return createAddInvocation((BoundExpression)element);
+                    }
+                });
+            // PROTOTYPE: Test with missing List<T>.Add().
+            IOperation createAddInvocation(BoundExpression convertedElement)
+            {
+                IOperation e = Create(convertedElement);
+                IArgumentOperation argument = new ArgumentOperation(
+                    ArgumentKind.Explicit,
+                    addMethod.Parameters[0],
+                    e,
+                    inConversion: OperationFactory.IdentityConversion,
+                    outConversion: OperationFactory.IdentityConversion,
                     _semanticModel,
-                    syntax,
-                    collectionType,
-                    isImplicit);
+                    e.Syntax,
+                    isImplicit: true);
+                return new InvocationOperation(
+                    addMethod,
+                    constrainedToType: null,
+                    instance: new InstanceReferenceOperation(
+                        InstanceReferenceKind.ImplicitReceiver,
+                        _semanticModel,
+                        syntax,
+                        instanceType,
+                        isImplicit: true),
+                    isVirtual: false,
+                    arguments: ImmutableArray.Create(argument),
+                    _semanticModel,
+                    e.Syntax,
+                    addMethod.ReturnType,
+                    isImplicit: true);
             }
         }
 
