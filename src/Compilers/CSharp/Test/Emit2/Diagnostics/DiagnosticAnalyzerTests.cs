@@ -4051,7 +4051,7 @@ public record A(int X, int Y);";
 class Base(int a) { }
 
 class Derived(int a) : Base(a);";
-            
+
             var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
