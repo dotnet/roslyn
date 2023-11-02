@@ -18,12 +18,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
 
-        public bool IsPrettyListingOn(string languageName)
-            => _inProc.IsPrettyListingOn(languageName);
-
-        public void SetPrettyListing(string languageName, bool value)
-            => _inProc.SetPrettyListing(languageName, value);
-
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => _inProc.WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
 

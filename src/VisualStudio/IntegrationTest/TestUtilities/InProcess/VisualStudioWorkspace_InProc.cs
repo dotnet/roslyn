@@ -39,12 +39,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
 
-        public bool IsPrettyListingOn(string languageName)
-            => _globalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, languageName);
-
-        public void SetPrettyListing(string languageName, bool value)
-            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, languageName, value));
-
         public void SetFileScopedNamespaces(bool value)
             => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations,
                 new CodeStyleOption2<NamespaceDeclarationPreference>(value ? NamespaceDeclarationPreference.FileScoped : NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion)));

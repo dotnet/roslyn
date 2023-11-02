@@ -5,27 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
-using EnvDTE80;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Shell.Interop;
-using NuGet.SolutionRestoreManager;
 using Roslyn.Hosting.Diagnostics.Waiters;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class SolutionExplorer_InProc : InProcComponent
     {
         private readonly SendKeys_InProc _sendKeys;
-        private Solution2? _solution;
-        private string? _fileName;
-
-        private static readonly Lazy<IDictionary<string, string>> _csharpProjectTemplates = new Lazy<IDictionary<string, string>>(InitializeCSharpProjectTemplates);
-        private static readonly Lazy<IDictionary<string, string>> _visualBasicProjectTemplates = new Lazy<IDictionary<string, string>>(InitializeVisualBasicProjectTemplates);
 
         private SolutionExplorer_InProc()
         {
@@ -34,130 +24,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public static SolutionExplorer_InProc Create()
             => new SolutionExplorer_InProc();
-
-        private static IDictionary<string, string> InitializeCSharpProjectTemplates()
-        {
-            var localeID = GetDTE().LocaleID;
-
-            return new Dictionary<string, string>
-            {
-                [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
-                [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.CSharp.ConsoleApplication",
-                [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
-                [WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip",
-                [WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip",
-                [WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40"
-            };
-        }
-
-        private static IDictionary<string, string> InitializeVisualBasicProjectTemplates()
-        {
-            var localeID = GetDTE().LocaleID;
-
-            return new Dictionary<string, string>
-            {
-                [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
-                [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.VisualBasic.Windows.ConsoleApplication",
-                [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
-                [WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip",
-                [WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip",
-                [WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40"
-            };
-        }
-
-        public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
-
-        public string SolutionFileFullPath
-        {
-            get
-            {
-                Contract.ThrowIfNull(_solution);
-                Contract.ThrowIfNull(_fileName);
-
-                var solutionFullName = _solution.FullName;
-
-                return string.IsNullOrEmpty(solutionFullName)
-                    ? _fileName
-                    : solutionFullName;
-            }
-        }
-
-        public void CloseSolution(bool saveFirst = false)
-            => GetDTE().Solution.Close(saveFirst);
-
-        /// <summary>
-        /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
-        /// </summary>
-        public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
-        {
-            var dte = GetDTE();
-
-            if (dte.Solution.IsOpen)
-            {
-                CloseSolution(saveExistingSolutionIfExists);
-            }
-
-            var solutionPath = IntegrationHelper.CreateTemporaryPath();
-            var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
-            IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
-            Directory.CreateDirectory(solutionPath);
-
-            var solution = GetGlobalService<SVsSolution, IVsSolution>();
-            InvokeOnUIThread(cancellationToken =>
-            {
-                ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
-                ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
-            });
-
-            _solution = (Solution2)dte.Solution;
-            _fileName = Path.Combine(solutionPath, solutionFileName);
-        }
-
-        private static string ConvertLanguageName(string languageName)
-        {
-            const string CSharp = nameof(CSharp);
-            const string VisualBasic = nameof(VisualBasic);
-
-            switch (languageName)
-            {
-                case LanguageNames.CSharp:
-                    return CSharp;
-                case LanguageNames.VisualBasic:
-                    return VisualBasic;
-                default:
-                    throw new ArgumentException($"{languageName} is not supported.", nameof(languageName));
-            }
-        }
-
-        public void AddProject(string projectName, string projectTemplate, string languageName)
-        {
-            var projectPath = Path.Combine(DirectoryName, projectName);
-
-            var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
-
-            Contract.ThrowIfNull(_solution);
-            _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
-        }
-
-        // TODO: Adjust language name based on whether we are using a web template
-        private string GetProjectTemplatePath(string projectTemplate, string languageName)
-        {
-            Contract.ThrowIfNull(_solution);
-
-            if (languageName.Equals("csharp", StringComparison.OrdinalIgnoreCase) &&
-               _csharpProjectTemplates.Value.TryGetValue(projectTemplate, out var csharpProjectTemplate))
-            {
-                return _solution.GetProjectTemplate(csharpProjectTemplate, languageName);
-            }
-
-            if (languageName.Equals("visualbasic", StringComparison.OrdinalIgnoreCase) &&
-               _visualBasicProjectTemplates.Value.TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
-            {
-                return _solution.GetProjectTemplate(visualBasicProjectTemplate, languageName);
-            }
-
-            return _solution.GetProjectTemplate(projectTemplate, languageName);
-        }
 
         public void CleanUpOpenSolution()
         {
@@ -352,24 +218,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 AfterCloseSolution?.Invoke(this, EventArgs.Empty);
                 return VSConstants.S_OK;
             }
-        }
-
-        private EnvDTE.Project GetProject(string nameOrFileName)
-        {
-            Contract.ThrowIfNull(_solution);
-            return _solution.Projects.OfType<EnvDTE.Project>().First(
-                p => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
-                    || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
-        }
-
-        public bool RestoreNuGetPackages(string projectName)
-        {
-            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
-
-            var solutionRestoreService = InvokeOnUIThread(cancellationToken => GetComponentModel().GetExtensions<IVsSolutionRestoreService2>().Single());
-            var nominateProjectTask = solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, cancellationTokenSource.Token);
-            nominateProjectTask.Wait(cancellationTokenSource.Token);
-            return nominateProjectTask.Result;
         }
     }
 }
