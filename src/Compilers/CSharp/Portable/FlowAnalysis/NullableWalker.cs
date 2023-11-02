@@ -6192,6 +6192,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
             {
                 var method = node.Method;
+
+                // TODO: (async2) for now just say that thunks never return null
+                if (node.Method is AsyncThunkForAsync2Method)
+                {
+                    var rs = GetReturnTypeWithState(method);
+                    rs = rs.WithNotNullState();
+                    SetResult(node, rs, method.ReturnTypeWithAnnotations);
+                    SetUpdatedSymbol(node, node.Method, method);
+                    return;
+                }
+
                 ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
                 if (!receiverType.HasNullType)
                 {

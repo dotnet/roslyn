@@ -11,6 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         readonly TypeWithAnnotations _taskType;
 
+        // thunks are mostly wrapper symbols to express that a method call is done via a thunk
+        // it is not expected that thunks will be used as an input to generic instantiation
+        // (that should happen using actual async2 methods)
+        //
+        // the OriginalDefinition and ConstructedFrom as implemented here are just to satisfy asserts
+
+        private AsyncThunkForAsync2Method? _origDefinition;
+        private AsyncThunkForAsync2Method? _constructedFrom;
+
         internal AsyncThunkForAsync2Method(MethodSymbol underlyingMethod, TypeWithAnnotations taskType)
         {
             Debug.Assert(underlyingMethod.IsAsync2);
@@ -29,6 +38,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsAsync2 => false;
 
         public override RefKind RefKind => RefKind.None;
+
+        public override MethodSymbol OriginalDefinition
+        {
+            get
+            {
+                if (UnderlyingMethod.IsDefinition)
+                {
+                    return this;
+                }
+
+                if (_origDefinition == null)
+                {
+                    _origDefinition = new AsyncThunkForAsync2Method(UnderlyingMethod.OriginalDefinition, TypeWithAnnotations.Create(_taskType.Type.OriginalDefinition));
+                }
+
+                return _origDefinition;
+            }
+        }
+
+        public override MethodSymbol ConstructedFrom
+        {
+            get
+            {
+                if (UnderlyingMethod.IsDefinition)
+                {
+                    return this;
+                }
+
+                if (_constructedFrom == null)
+                {
+                    _constructedFrom = new AsyncThunkForAsync2Method(UnderlyingMethod.ConstructedFrom, TypeWithAnnotations.Create(_taskType.Type.OriginalDefinition));
+                }
+
+                return _constructedFrom;
+            }
+        }
+
+        internal override TypeMap TypeSubstitution => UnderlyingMethod.TypeSubstitution;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
