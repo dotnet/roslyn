@@ -138,8 +138,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 _conditionalAccessReceiverPlaceholderReplacementInfo.ForceCaptureIfReferenceType = True
 
                             ElseIf Not receiverType.IsReferenceType Then
-                                ' A case where T Is actually a class must be handled specially.
-                                ' Taking a reference to a class instance Is fragile because the value behind the 
+                                ' A case where T is actually a class must be handled specially.
+                                ' Taking a reference to a class instance is fragile because the value behind the 
                                 ' reference might change while arguments are evaluated. However, the call should be
                                 ' performed on the instance that is behind reference at the time we push the
                                 ' reference to the stack. So, for a class we need to emit a reference to a temporary
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 If referenceReceiverSpillSequence IsNot Nothing Then
                                     ' If condition `(object)default(T) != null` is true at execution time,
-                                    ' the T Is a value type. And it is a reference type otherwise.
+                                    ' the T is a value type. And it is a reference type otherwise.
                                     Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), receiverType),
                                                                                       Me.F.SpecialType(SpecialType.System_Object)))
 
@@ -657,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                     If referenceReceiverSpillSequence IsNot Nothing Then
                                         ' If condition `(object)default(T) != null` is true at execution time,
-                                        ' the T Is a value type. And it is a reference type otherwise.
+                                        ' the T is a value type. And it is a reference type otherwise.
                                         Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), receiver.Type),
                                                                                       Me.F.SpecialType(SpecialType.System_Object)))
 

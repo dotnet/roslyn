@@ -329,8 +329,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(Not receiverOpt.Type.IsReferenceType)
 
-                ' A case where T Is actually a class must be handled specially.
-                ' Taking a reference to a class instance Is fragile because the value behind the 
+                ' A case where T is actually a class must be handled specially.
+                ' Taking a reference to a class instance is fragile because the value behind the 
                 ' reference might change while arguments are evaluated. However, the call should be
                 ' performed on the instance that is behind reference at the time we push the
                 ' reference to the stack. So, for a class we need to emit a reference to a temporary
