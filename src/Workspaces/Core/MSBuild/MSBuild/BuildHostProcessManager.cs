@@ -249,10 +249,26 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // we'll load the XML of the project directly, and inspect for certain elements.
         XDocument document;
 
-        // Read the XML, prohibiting DTD processing due the the usual concerns there.
-        using (var fileStream = new FileStream(projectFilePath, FileMode.Open, FileAccess.Read))
-        using (var xmlReader = XmlReader.Create(fileStream, s_xmlSettings))
-            document = XDocument.Load(xmlReader);
+        var frameworkHostType = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
+
+        try
+        {
+            // Read the XML, prohibiting DTD processing due the the usual security concerns there.
+            using (var fileStream = FileUtilities.OpenRead(projectFilePath))
+            using (var xmlReader = XmlReader.Create(fileStream, s_xmlSettings))
+                document = XDocument.Load(xmlReader);
+        }
+        catch (Exception e) when (e is IOException or XmlException)
+        {
+            // We were unable to read the file; rather than having callers of the build process manager have to deal with this special case
+            // we'll instead just give them a host that corresponds to what they are running as; we know that host unquestionably exists
+            // and the rest of the code can deal with this cleanly.
+#if NET
+            return BuildHostProcessKind.NetCore;
+#else
+            return frameworkHostType;
+#endif
+        }
 
         // If we don't have a root, doesn't really matter which. This project is just malformed.
         if (document.Root == null)
@@ -276,7 +292,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             return BuildHostProcessKind.NetCore;
 
         // Nothing that indicates it's an SDK-style project, so use our .NET framework host
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
+        return frameworkHostType;
     }
 
     public enum BuildHostProcessKind
