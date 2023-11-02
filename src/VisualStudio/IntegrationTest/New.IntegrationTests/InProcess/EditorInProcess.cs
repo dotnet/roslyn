@@ -741,27 +741,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return broker.IsSignatureHelpActive(view);
         }
 
-        public async Task<ImmutableArray<Completion>> GetCompletionItemsAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            await WaitForCompletionSetAsync(cancellationToken);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-            if (view is null)
-                return ImmutableArray<Completion>.Empty;
-
-            var broker = await GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
-            var sessions = broker.GetSessions(view);
-            if (sessions.Count != 1)
-            {
-                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-            }
-
-            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-            return selectedCompletionSet.Completions.ToImmutableArray();
-        }
-
         public async Task<string[]> GetLightBulbActionsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

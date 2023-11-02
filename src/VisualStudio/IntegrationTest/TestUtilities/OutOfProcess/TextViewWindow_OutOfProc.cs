@@ -28,28 +28,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public int GetCaretPosition()
             => _textViewWindowInProc.GetCaretPosition();
 
-        public string[] GetCompletionItems()
-        {
-            WaitForCompletionSet();
-            return _textViewWindowInProc.GetCompletionItems();
-        }
-
-        public void PlaceCaret(
-            string marker,
-            int charsOffset = 0,
-            int occurrence = 0,
-            bool extendSelection = false,
-            bool selectBlock = false)
-            => _textViewWindowInProc.PlaceCaret(
-                marker,
-                charsOffset,
-                occurrence,
-                extendSelection,
-                selectBlock);
-
-        public string[] GetCurrentClassifications()
-            => _textViewWindowInProc.GetCurrentClassifications();
-
         public void ShowLightBulb()
             => _textViewWindowInProc.ShowLightBulb();
 
@@ -73,12 +51,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public bool ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
             => _textViewWindowInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
-
-        public void InvokeCompletionList()
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.CompletionSet);
-        }
 
         public void InvokeCodeActionList()
         {

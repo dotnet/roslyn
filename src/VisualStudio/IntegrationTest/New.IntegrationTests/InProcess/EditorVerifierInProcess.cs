@@ -170,17 +170,5 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 return builder.ToString();
             }
         }
-
-        public async Task CurrentTokenTypeAsync(string tokenType, CancellationToken cancellationToken)
-        {
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification },
-                cancellationToken);
-
-            var actualTokenTypes = await TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);
-            Assert.Equal(1, actualTokenTypes.Length);
-            Assert.Contains(tokenType, actualTokenTypes[0]);
-            Assert.NotEqual("text", tokenType);
-        }
     }
 }

@@ -36,13 +36,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         internal static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
-        private readonly SendKeys_InProc _sendKeys;
-
-        private Editor_InProc()
-        {
-            _sendKeys = new SendKeys_InProc(VisualStudio_InProc.Create());
-        }
-
         public static Editor_InProc Create()
             => new Editor_InProc();
 
@@ -200,83 +193,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 view.Caret.MoveTo(point);
             });
-
-        public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
-        {
-            return JoinableTaskFactory.Run(async () =>
-            {
-                await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                var view = GetActiveTextView();
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
-                return await GetLightbulbPreviewClassificationsAsync(
-                    menuText,
-                    broker,
-                    view,
-                    classifierAggregatorService).ConfigureAwait(false);
-            });
-        }
-
-        private async Task<ClassifiedToken[]> GetLightbulbPreviewClassificationsAsync(
-            string menuText,
-            ILightBulbBroker broker,
-            IWpfTextView view,
-            IViewClassifierAggregatorService viewClassifierAggregator)
-        {
-            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view).ConfigureAwait(true);
-
-            var bufferType = view.TextBuffer.ContentType.DisplayName;
-            if (!broker.IsLightBulbSessionActive(view))
-            {
-                throw new Exception(string.Format("No Active Smart Tags in View!  Buffer content type={0}", bufferType));
-            }
-
-            var activeSession = broker.GetSession(view);
-            if (activeSession == null || !activeSession.IsExpanded)
-            {
-                throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
-            }
-
-            if (!string.IsNullOrEmpty(menuText))
-            {
-#pragma warning disable CS0618 // Type or member is obsolete
-                if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
-                {
-                    actionSets = Array.Empty<SuggestedActionSet>();
-                }
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                var set = actionSets.SelectMany(s => s.Actions).FirstOrDefault(a => a.DisplayText == menuText);
-                if (set == null)
-                {
-                    throw new InvalidOperationException(
-                        string.Format("ISuggestionAction {0} not found.  Buffer content type={1}", menuText, bufferType));
-                }
-
-                IWpfTextView? preview = null;
-                var pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
-                if (pane is System.Windows.Controls.UserControl)
-                {
-                    var container = ((System.Windows.Controls.UserControl)pane).FindName("PreviewDockPanel") as DockPanel;
-                    var host = container?.FindDescendants<UIElement>().OfType<IWpfTextViewHost>().LastOrDefault();
-                    preview = host?.TextView;
-                }
-
-                if (preview == null)
-                {
-                    throw new InvalidOperationException(string.Format("Could not find light bulb preview.  Buffer content type={0}", bufferType));
-                }
-
-                activeSession.Collapse();
-                var classifier = viewClassifierAggregator.GetClassifier(preview);
-                var classifiedSpans = classifier.GetClassificationSpans(new SnapshotSpan(preview.TextBuffer.CurrentSnapshot, 0, preview.TextBuffer.CurrentSnapshot.Length));
-                return classifiedSpans.Select(x => new ClassifiedToken(x.Span.GetText().ToString(), x.ClassificationType.Classification)).ToArray();
-            }
-
-            activeSession.Collapse();
-            return Array.Empty<ClassifiedToken>();
-        }
 
         public void Undo()
             => ExecuteCommand(WellKnownCommandNames.Edit_Undo);

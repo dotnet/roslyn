@@ -5,6 +5,7 @@
 using System;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 

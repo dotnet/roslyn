@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 {
@@ -141,6 +142,18 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             {
                 throw new InvalidOperationException("Expected no light bulb session, but one was found.");
             }
+        }
+
+        public static async Task CurrentTokenTypeAsync(this ITextViewWindowVerifierInProcess textViewWindowVerifier, string tokenType, CancellationToken cancellationToken)
+        {
+            await textViewWindowVerifier.TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[] { FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification },
+                cancellationToken);
+
+            var actualTokenTypes = await textViewWindowVerifier.TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);
+            Assert.Equal(1, actualTokenTypes.Length);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
         }
 
         private static WorkspaceEventRestorer WithWorkspaceChangedHandler(Workspace workspace, EventHandler<WorkspaceChangeEventArgs> eventHandler)

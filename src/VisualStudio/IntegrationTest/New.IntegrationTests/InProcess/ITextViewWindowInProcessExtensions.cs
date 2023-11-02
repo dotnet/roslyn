@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
@@ -15,6 +16,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
@@ -70,6 +72,35 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             await LightBulbHelper.WaitForLightBulbSessionAsync(textViewWindow.TestServices, broker, view, cancellationToken);
         }
 
+        public static async Task InvokeCompletionListAsync(this ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
+        {
+            await textViewWindow.TestServices.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await textViewWindow.TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.ListMembers, cancellationToken);
+            await textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
+        }
+
+        public static async Task<ImmutableArray<Completion>> GetCompletionItemsAsync(this ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
+        {
+            await textViewWindow.TestServices.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await WaitForCompletionSetAsync(textViewWindow, cancellationToken);
+
+            var view = await textViewWindow.GetActiveTextViewAsync(cancellationToken);
+            if (view is null)
+                return ImmutableArray<Completion>.Empty;
+
+            var broker = await textViewWindow.TestServices.Shell.GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+            }
+
+            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+            return selectedCompletionSet.Completions.ToImmutableArray();
+        }
+
         public static async Task InvokeCodeActionListAsync(this ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
         {
             await textViewWindow.TestServices.Workarounds.WaitForLightBulbAsync(cancellationToken);
@@ -115,6 +146,9 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             return true;
         }
+
+        public static Task PlaceCaretAsync(this ITextViewWindowInProcess textViewWindow, string marker, CancellationToken cancellationToken)
+            => textViewWindow.PlaceCaretAsync(marker, charsOffset: 0, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
 
         public static Task PlaceCaretAsync(this ITextViewWindowInProcess textViewWindow, string marker, int charsOffset, CancellationToken cancellationToken)
             => textViewWindow.PlaceCaretAsync(marker, charsOffset, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
@@ -205,6 +239,11 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             Assumes.Present(subjectBuffer);
 
             return view.Caret.Position;
+        }
+
+        private static async Task WaitForCompletionSetAsync(ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
+        {
+            await textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
         }
     }
 }

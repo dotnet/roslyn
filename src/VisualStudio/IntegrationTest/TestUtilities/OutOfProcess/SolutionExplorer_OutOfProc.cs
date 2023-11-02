@@ -32,12 +32,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void AddMetadataReference(ProjectUtils.AssemblyReference fullyQualifiedAssemblyName, ProjectUtils.Project projectName)
-        {
-            _inProc.AddMetadataReference(fullyQualifiedAssemblyName.Name, projectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
@@ -47,21 +41,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetFileContents(ProjectUtils.Project project, string fileName)
             => _inProc.GetFileContents(project.Name, fileName);
 
-        public void OpenFile(ProjectUtils.Project project, string fileName)
-        {
-            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
-            _inProc.OpenFile(project.Name, fileName);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
         public void RestoreNuGetPackages(ProjectUtils.Project project)
             => _inProc.RestoreNuGetPackages(project.Name);
-
-        /// <summary>
-        /// Selects an item named by the <paramref name="itemName"/> parameter.
-        /// Note that this selects the first item of the given name found.
-        /// </summary>
-        public void SelectItem(string itemName)
-            => _inProc.SelectItem(itemName);
     }
 }

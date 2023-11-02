@@ -74,9 +74,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Redo()
             => _editorInProc.Redo();
 
-        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText)
-            => _editorInProc.GetLightbulbPreviewClassifications(menuText);
-
         public void SetUseSuggestionMode(bool value)
         {
             Assert.False(IsCompletionActive());

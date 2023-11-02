@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -117,41 +116,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 {
                     throw new InvalidOperationException("Expected no light bulb session, but one was found.");
                 }
-            }
-
-            public void CurrentTokenType(string tokenType)
-            {
-                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawlerLegacy);
-                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
-                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Classification);
-                var actualTokenTypes = _textViewWindow.GetCurrentClassifications();
-                Assert.Equal(actualTokenTypes.Length, 1);
-                Assert.Contains(tokenType, actualTokenTypes[0]);
-                Assert.NotEqual("text", tokenType);
-            }
-
-            public void CompletionItemsExist(params string[] expectedItems)
-            {
-                var completionItems = _textViewWindow.GetCompletionItems();
-                foreach (var expectedItem in expectedItems)
-                {
-                    Assert.Contains(expectedItem, completionItems);
-                }
-            }
-
-            public void CompletionItemsDoNotExist(params string[] unexpectedItems)
-            {
-                var completionItems = _textViewWindow.GetCompletionItems();
-                foreach (var unexpectedItem in unexpectedItems)
-                {
-                    Assert.DoesNotContain(unexpectedItem, completionItems);
-                }
-            }
-
-            public void CaretPosition(int expectedCaretPosition)
-            {
-                var position = _textViewWindow.GetCaretPosition();
-                Assert.Equal(expectedCaretPosition, position);
             }
         }
     }

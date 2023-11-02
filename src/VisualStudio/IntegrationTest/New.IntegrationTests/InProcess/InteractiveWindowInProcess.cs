@@ -226,8 +226,20 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             }
         }
 
+        public async Task WaitForReplOutputAsync(string outputText, CancellationToken cancellationToken)
+            => await WaitForPredicateAsync(GetReplTextAsync, outputText + Environment.NewLine + ReplPromptText, s_endsWith, "end with", cancellationToken);
+
         public async Task WaitForLastReplOutputAsync(string outputText, CancellationToken cancellationToken)
             => await WaitForPredicateAsync(GetLastReplOutputAsync, outputText, s_equals, "is", cancellationToken);
+
+        public async Task WaitForLastReplOutputContainsAsync(string outputText, CancellationToken cancellationToken)
+            => await WaitForPredicateAsync(GetLastReplOutputAsync, outputText, s_contains, "contain", cancellationToken);
+
+        public async Task WaitForLastReplInputAsync(string outputText, CancellationToken cancellationToken)
+            => await WaitForPredicateAsync(GetLastReplInputAsync, outputText, s_equals, "is", cancellationToken);
+
+        public async Task WaitForLastReplInputContainsAsync(string outputText, CancellationToken cancellationToken)
+            => await WaitForPredicateAsync(GetLastReplInputAsync, outputText, s_contains, "contain", cancellationToken);
 
         public async Task ClearScreenAsync(CancellationToken cancellationToken)
             => await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.InteractiveConsole.ClearScreen, cancellationToken);

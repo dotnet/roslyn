@@ -141,6 +141,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return RemoveReference(projectName, assemblyName, cancellationToken);
         }
 
+        public async Task AddMetadataReferenceAsync(string assemblyName, string projectName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var vsproject = ((VSProject)project.Object);
+            vsproject.References.Add(assemblyName);
+        }
+
         private async Task RemoveReference(string projectName, string referenceName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -310,6 +319,46 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 },
                 TimeSpan.FromMilliseconds(50),
                 cancellationToken);
+        }
+
+        public async Task SelectItemAsync(string itemName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE80.DTE2>(cancellationToken);
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+            Contract.ThrowIfNull(item);
+
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        private static EnvDTE.UIHierarchyItem? FindFirstItemRecursively(
+            EnvDTE.UIHierarchyItems currentItems,
+            string itemName)
+        {
+            if (currentItems == null)
+            {
+                return null;
+            }
+
+            foreach (var item in currentItems.Cast<EnvDTE.UIHierarchyItem>())
+            {
+                if (item.Name == itemName)
+                {
+                    return item;
+                }
+
+                var result = FindFirstItemRecursively(item.UIHierarchyItems, itemName);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
 
         public async Task SaveAllAsync(CancellationToken cancellationToken)

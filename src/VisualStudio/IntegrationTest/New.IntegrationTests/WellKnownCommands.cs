@@ -19,8 +19,20 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public static class Edit
         {
             public const VSConstants.VSStd97CmdID ClearAll = VSConstants.VSStd97CmdID.ClearPane;
+            public const string Copy = "Edit.Copy";
+            public const string Cut = "Edit.Cut";
+            public const string Delete = "Edit.Delete";
+            public const string LineDown = "Edit.LineDown";
+            public const string LineEnd = "Edit.LineEnd";
+            public const string LineEndExtend = "Edit.LineEndExtend";
+            public const string LineStart = "Edit.LineStart";
+            public const string LineStartExtend = "Edit.LineStartExtend";
+            public const string LineUp = "Edit.LineUp";
             public const VSConstants.VSStd2KCmdID ListMembers = VSConstants.VSStd2KCmdID.SHOWMEMBERLIST;
             public const VSConstants.VSStd2KCmdID ParameterInfo = VSConstants.VSStd2KCmdID.PARAMINFO;
+            public const string Paste = "Edit.Paste";
+            public const VSConstants.VSStd97CmdID Redo = VSConstants.VSStd97CmdID.Redo;
+            public const string SelectAll = "Edit.SelectAll";
             public const VSConstants.VSStd2KCmdID SelectionCancel = VSConstants.VSStd2KCmdID.CANCEL;
             public const VSConstants.VSStd2KCmdID ToggleCompletionMode = VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode;
             public const VSConstants.VSStd97CmdID Undo = VSConstants.VSStd97CmdID.Undo;

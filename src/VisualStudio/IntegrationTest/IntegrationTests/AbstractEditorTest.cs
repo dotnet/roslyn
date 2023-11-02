@@ -86,10 +86,5 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 VisualStudio.Workspace.SetPrettyListing(LanguageName, originalValue);
             }
         }
-
-        protected ClassifiedToken[] GetLightbulbPreviewClassification(string menuText)
-        {
-            return VisualStudio.Editor.GetLightbulbPreviewClassification(menuText);
-        }
     }
 }

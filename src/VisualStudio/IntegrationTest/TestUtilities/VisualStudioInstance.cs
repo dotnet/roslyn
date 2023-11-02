@@ -30,8 +30,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
-        public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
-
         public Editor_OutOfProc Editor { get; }
 
         public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
@@ -99,7 +97,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
-            InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
@@ -176,7 +173,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.WaitForAllAsyncOperationsOrFail(Helper.HangMitigatingTimeout);
 
             // Close any windows leftover from previous (failed) tests
-            InteractiveWindow.CloseInteractiveWindow();
             MoveToNamespaceDialog.CloseWindow();
             StartPage.CloseWindow();
 

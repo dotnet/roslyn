@@ -68,13 +68,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        public void AddMetadataReference(string assemblyName, string projectName)
-        {
-            var project = GetProject(projectName);
-            var vsproject = ((VSProject)project.Object);
-            vsproject.References.Add(assemblyName);
-        }
-
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
         public string SolutionFileFullPath
@@ -441,44 +434,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var nominateProjectTask = solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, cancellationTokenSource.Token);
             nominateProjectTask.Wait(cancellationTokenSource.Token);
             return nominateProjectTask.Result;
-        }
-
-        public void SelectItem(string itemName)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
-            Contract.ThrowIfNull(item);
-
-            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
-            solutionExplorer.Parent.Activate();
-        }
-
-        private static EnvDTE.UIHierarchyItem? FindFirstItemRecursively(
-            EnvDTE.UIHierarchyItems currentItems,
-            string itemName)
-        {
-            if (currentItems == null)
-            {
-                return null;
-            }
-
-            foreach (var item in currentItems.Cast<EnvDTE.UIHierarchyItem>())
-            {
-                if (item.Name == itemName)
-                {
-                    return item;
-                }
-
-                var result = FindFirstItemRecursively(item.UIHierarchyItems, itemName);
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-
-            return null;
         }
     }
 }

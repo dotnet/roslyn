@@ -27,9 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => _inProc.WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
-            => _inProc.WaitForAllAsyncOperations(timeout, featureNames);
-
         public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
             => _inProc.WaitForAllAsyncOperationsOrFail(timeout, featureNames);
 
@@ -41,11 +38,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
-
-        public void SetTriggerCompletionInArgumentLists(bool value)
-            => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
-
-        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
-            => _inProc.SetGlobalOption(option, language, value);
     }
 }
