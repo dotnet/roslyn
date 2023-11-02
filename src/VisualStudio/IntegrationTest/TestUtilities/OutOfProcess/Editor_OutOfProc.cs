@@ -57,23 +57,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.IsCompletionActive();
         }
 
-        /// <summary>
-        /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:
-        /// <see cref="string"/> (each character will be sent separately, <see cref="char"/>, <see cref="VirtualKey"/>
-        /// and <see cref="KeyPress"/>.
-        /// </summary>
-        public void SendKeys(params object[] keys)
-        {
-            Activate();
-            VisualStudioInstance.SendKeys.Send(keys);
-        }
-
-        public void Undo()
-            => _editorInProc.Undo();
-
-        public void Redo()
-            => _editorInProc.Redo();
-
         public void SetUseSuggestionMode(bool value)
         {
             Assert.False(IsCompletionActive());

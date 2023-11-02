@@ -4,25 +4,15 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -193,12 +183,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 view.Caret.MoveTo(point);
             });
-
-        public void Undo()
-            => ExecuteCommand(WellKnownCommandNames.Edit_Undo);
-
-        public void Redo()
-            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Redo);
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {

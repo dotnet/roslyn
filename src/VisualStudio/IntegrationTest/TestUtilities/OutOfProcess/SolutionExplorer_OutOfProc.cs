@@ -35,12 +35,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
-        public void AddFile(ProjectUtils.Project project, string fileName, string? contents = null, bool open = false)
-            => _inProc.AddFile(project.Name, fileName, contents, open);
-
-        public string GetFileContents(ProjectUtils.Project project, string fileName)
-            => _inProc.GetFileContents(project.Name, fileName);
-
         public void RestoreNuGetPackages(ProjectUtils.Project project)
             => _inProc.RestoreNuGetPackages(project.Name);
     }

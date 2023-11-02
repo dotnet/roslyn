@@ -11,13 +11,10 @@ using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
 using NuGet.SolutionRestoreManager;
 using Roslyn.Hosting.Diagnostics.Waiters;
 using Roslyn.Utilities;
-using VSLangProj;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -363,67 +360,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return _solution.Projects.OfType<EnvDTE.Project>().First(
                 p => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                     || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
-        }
-
-        /// <summary>
-        /// Add new file to project.
-        /// </summary>
-        /// <param name="projectName">The project that contains the file.</param>
-        /// <param name="fileName">The name of the file to add.</param>
-        /// <param name="contents">The contents of the file to overwrite. An empty file is create if null is passed.</param>
-        /// <param name="open">Whether to open the file after it has been updated.</param>
-        public void AddFile(string projectName, string fileName, string? contents = null, bool open = false)
-        {
-            var project = GetProject(projectName);
-            var projectDirectory = Path.GetDirectoryName(project.FullName);
-            var filePath = Path.Combine(projectDirectory, fileName);
-            var directoryPath = Path.GetDirectoryName(filePath);
-            Directory.CreateDirectory(directoryPath);
-
-            if (contents != null)
-            {
-                File.WriteAllText(filePath, contents);
-            }
-            else if (!File.Exists(filePath))
-            {
-                File.Create(filePath).Dispose();
-            }
-
-            _ = project.ProjectItems.AddFromFile(filePath);
-
-            if (open)
-            {
-                OpenFile(projectName, fileName);
-            }
-        }
-
-        public string GetFileContents(string projectName, string relativeFilePath)
-        {
-            var project = GetProject(projectName);
-            var projectPath = Path.GetDirectoryName(project.FullName);
-            var filePath = Path.Combine(projectPath, relativeFilePath);
-
-            return File.ReadAllText(filePath);
-        }
-
-        public void OpenFile(string projectName, string relativeFilePath)
-        {
-            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
-            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Code_guid, out _, out _, out _, out var view);
-
-            // Reliably set focus using NavigateToLineAndColumn
-            var textManager = GetGlobalService<SVsTextManager, IVsTextManager>();
-            ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
-            ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
-            ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
-        }
-
-        private string GetAbsolutePathForProjectRelativeFilePath(string projectName, string relativeFilePath)
-        {
-            Contract.ThrowIfNull(_solution);
-            var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
-            var projectPath = Path.GetDirectoryName(project.FullName);
-            return Path.Combine(projectPath, relativeFilePath);
         }
 
         public bool RestoreNuGetPackages(string projectName)
