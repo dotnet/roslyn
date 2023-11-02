@@ -4014,21 +4014,32 @@ public record A(int X, int Y);";
         {
             public const string DiagnosticId = "MyDiagnostic";
             internal const string Title = "MyDiagnostic";
-            internal const string MessageFormat = "MyDiagnostic";
+            internal const string MessageFormat = "SyntaxKind: {0}, Symbol: {1}";
             internal const string Category = "Category";
-
+            private readonly SyntaxNode _topmostNode;
+            private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
             internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public PrimaryConstructorBaseTypeAnalyzer(SyntaxNode topmostNode, ImmutableArray<SyntaxKind> syntaxKinds)
+            {
+                _topmostNode = topmostNode;
+                _syntaxKinds = syntaxKinds;
+            }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterSyntaxNodeAction(AnalyzePrimaryConstructorBaseType, SyntaxKind.BaseList, SyntaxKind.PrimaryConstructorBaseType);
+                context.RegisterSyntaxNodeAction(AnalyzePrimaryConstructorBaseType, _syntaxKinds);
             }
 
-            private static void AnalyzePrimaryConstructorBaseType(SyntaxNodeAnalysisContext context)
+            private void AnalyzePrimaryConstructorBaseType(SyntaxNodeAnalysisContext context)
             {
-                var diagnostic = CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation());
+                // Bail out on callbacks outside the topmost node to analyze.
+                if (!_topmostNode.FullSpan.Contains(context.Node.FullSpan))
+                    return;
+
+                var diagnostic = CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation(), context.Node.Kind(), context.ContainingSymbol.Name);
                 context.ReportDiagnostic(diagnostic);
             }
         }
@@ -4040,13 +4051,24 @@ public record A(int X, int Y);";
 class Base(int a) { }
 
 class Derived(int a) : Base(a);";
-            var analyzers = new DiagnosticAnalyzer[] { new PrimaryConstructorBaseTypeAnalyzer() };
+            
+            var compilation = CreateCompilation(source);
 
-            CreateCompilation(source)
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var baseListNode = root.DescendantNodes().OfType<BaseListSyntax>().Single();
+            var syntaxKinds = baseListNode.DescendantNodesAndSelf().Select(node => node.Kind()).Distinct().AsImmutable();
+            var analyzers = new DiagnosticAnalyzer[] { new PrimaryConstructorBaseTypeAnalyzer(baseListNode, syntaxKinds) };
+
+            compilation
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
-                     Diagnostic("MyDiagnostic", @": Base(a)").WithLocation(4, 22),
-                     Diagnostic("MyDiagnostic", @"Base(a)").WithLocation(4, 24));
+                    Diagnostic("MyDiagnostic", ": Base(a)").WithArguments("BaseList", "Derived").WithLocation(4, 22),
+                    Diagnostic("MyDiagnostic", "Base(a)").WithArguments("PrimaryConstructorBaseType", ".ctor").WithLocation(4, 24),
+                    Diagnostic("MyDiagnostic", "Base").WithArguments("IdentifierName", "Derived").WithLocation(4, 24),
+                    Diagnostic("MyDiagnostic", "(a)").WithArguments("ArgumentList", ".ctor").WithLocation(4, 28),
+                    Diagnostic("MyDiagnostic", "a").WithArguments("Argument", ".ctor").WithLocation(4, 29),
+                    Diagnostic("MyDiagnostic", "a").WithArguments("IdentifierName", ".ctor").WithLocation(4, 29));
         }
 
         [Theory, CombinatorialData]
