@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             if (AdaptedMethodSymbol.IsDefinition && // can't be generic instantiation
-                AdaptedMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule) // must be declared in the module we are building
+                AdaptedMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule &&  // must be declared in the module we are building
+                AdaptedMethodSymbol is not AsyncThunkForAsync2Method)  // must not be a thunk to an async2 method
             {
                 Debug.Assert((object)AdaptedMethodSymbol.PartialDefinitionPart == null); // must be definition
                 return this;
