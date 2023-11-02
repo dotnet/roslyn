@@ -549,6 +549,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (loweredReceiver.Kind)
             {
+                case BoundKind.Call:
+                    return ((BoundCall)loweredReceiver).Method.RefKind;
+
                 case BoundKind.Parameter:
                     Debug.Assert(!LocalRewriter.IsCapturedPrimaryConstructorParameter(loweredReceiver));
                     goto case BoundKind.Local;

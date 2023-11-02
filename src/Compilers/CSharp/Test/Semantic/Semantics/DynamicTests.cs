@@ -1510,6 +1510,72 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void RefReturn_Method([CombinatorialValues("int", "dynamic")] string type)
+        {
+            var source = $$"""
+                {{type}} d = 1;
+                S s = default;
+                GetS(ref s).M(d);
+                System.Console.Write(s.X);
+
+                static ref S GetS(ref S s) => ref s;
+
+                struct S
+                {
+                    public int X { get; private set; }
+
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(source, new[] { CSharpRef },
+                expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void RefReturn_Property([CombinatorialValues("int", "dynamic")] string type)
+        {
+            var source = $$"""
+                {{type}} d = 1;
+                S s = default;
+                s.Self.M(d);
+                System.Console.Write(s.X);
+
+                struct S
+                {
+                    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+                    public ref S Self => ref this;
+                    public int X { get; private set; }
+
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, new[] { CSharpRef },
+                expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void RefReturn_Indexer([CombinatorialValues("int", "dynamic")] string type)
+        {
+            var source = $$"""
+                {{type}} d = 1;
+                S s = default;
+                s[0].M(d);
+                System.Console.Write(s.X);
+
+                struct S
+                {
+                    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+                    public ref S this[int _] => ref this;
+                    public int X { get; private set; }
+
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, new[] { CSharpRef },
+                expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
         #endregion
 
         #region Type Inference
