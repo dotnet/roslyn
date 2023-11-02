@@ -89,15 +89,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             VisualStudioInstance.SendKeys.Send(keys);
         }
 
-        public void VerifyDialog(string dialogName, bool isOpen)
-            => _editorInProc.VerifyDialog(dialogName, isOpen);
-
-        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
-            => _editorInProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
-
-        public void DialogSendKeys(string dialogAutomationName, params object[] keys)
-            => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
-
         public void Undo()
             => _editorInProc.Undo();
 

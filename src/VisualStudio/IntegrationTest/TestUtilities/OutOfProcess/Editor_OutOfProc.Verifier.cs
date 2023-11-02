@@ -137,13 +137,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     Assert.DoesNotContain(expectedItem, completionItems);
                 }
             }
-
-            public void Dialog(
-                string dialogName,
-                bool isOpen)
-            {
-                _textViewWindow.VerifyDialog(dialogName, isOpen);
-            }
         }
     }
 }
