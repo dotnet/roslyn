@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Return complexReceiver.Update(spilledValueReceiver, spilledReferenceReceiver, complexReceiver.Type)
                             Else
                                 ' If condition `(object)default(T) != null` is true at execution time,
-                                ' the T Is a value type. And it is a reference type otherwise.
+                                ' the T is a value type. And it is a reference type otherwise.
                                 Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), complexReceiver.Type),
                                                                                           Me.F.SpecialType(SpecialType.System_Object)))
                                 builder.AssumeFieldsIfNeeded(referenceReceiverSpillSequence)
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ElseIf referenceReceiverSpillSequence Is Nothing Then
                             ' If condition `(object)default(T) != null` is true at execution time,
-                            ' the T Is a value type. And it is a reference type otherwise.
+                            ' the T is a value type. And it is a reference type otherwise.
                             Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), complexReceiver.Type),
                                                                                           Me.F.SpecialType(SpecialType.System_Object)))
                             builder.AssumeFieldsIfNeeded(valueReceiverSpillSequence)
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Else
 
                             ' If condition `(object)default(T) != null` is true at execution time,
-                            ' the T Is a value type. And it is a reference type otherwise.
+                            ' the T is a value type. And it is a reference type otherwise.
                             Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), complexReceiver.Type),
                                                                                           Me.F.SpecialType(SpecialType.System_Object)))
                             builder.AssumeFieldsIfNeeded(valueReceiverSpillSequence)

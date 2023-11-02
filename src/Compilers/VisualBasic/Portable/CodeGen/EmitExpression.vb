@@ -303,10 +303,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     If Not receiverType.IsReferenceType Then
                         If receiverTemp Is Nothing Then
-                            ' unconstrained case needs to handle case where T Is actually a struct.
+                            ' unconstrained case needs to handle case where T is actually a struct.
                             ' such values are never nulls
-                            ' we will emit a check for such case, but the check Is really a JIT-time 
-                            ' constant since JIT will know if T Is a struct Or Not.
+                            ' we will emit a check for such case, but the check is really a JIT-time 
+                            ' constant since JIT will know if T is a struct Or Not.
                             '
                             ' if ((object)default(T) != null) 
                             ' {
