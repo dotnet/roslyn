@@ -186,6 +186,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitAssignmentOperator(node);
             }
 
+            public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+            {
+                if (node.LeftConversion is BoundConversion leftConversion)
+                {
+                    VerifyExpression(leftConversion);
+                }
+
+                Visit(node.Left);
+                Visit(node.Right);
+                return null;
+            }
+
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
                 VisitBinaryOperatorChildren(node);
