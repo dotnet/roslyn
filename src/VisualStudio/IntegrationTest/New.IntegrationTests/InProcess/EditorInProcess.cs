@@ -46,20 +46,31 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 using IComponentModel = Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using IPersistFile = Microsoft.VisualStudio.OLE.Interop.IPersistFile;
-using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using SComponentModel = Microsoft.VisualStudio.ComponentModelHost.SComponentModel;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    internal partial class EditorInProcess
+    internal partial class EditorInProcess : ITextViewWindowInProcess
     {
+        TestServices ITextViewWindowInProcess.TestServices => TestServices;
+
+        Task<IWpfTextView> ITextViewWindowInProcess.GetActiveTextViewAsync(CancellationToken cancellationToken)
+            => GetActiveTextViewAsync(cancellationToken);
+
+        async Task<ITextBuffer?> ITextViewWindowInProcess.GetBufferContainingCaretAsync(IWpfTextView view, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return view.GetBufferContainingCaret();
+        }
+
         public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -219,8 +230,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task SelectTextInCurrentDocumentAsync(string text, CancellationToken cancellationToken)
         {
-            await PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
-            await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false, cancellationToken);
+            await this.PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
+            await this.PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false, cancellationToken);
         }
 
         public async Task DeleteTextAsync(string text, CancellationToken cancellationToken)
@@ -301,36 +312,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             activeSession.Collapse();
             return Array.Empty<ClassificationSpan>();
-        }
-
-        public async Task InvokeQuickInfoAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var broker = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncQuickInfoBroker>(cancellationToken);
-            var session = await broker.TriggerQuickInfoAsync(await TestServices.Editor.GetActiveTextViewAsync(cancellationToken), cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(session);
-        }
-
-        public async Task<string> GetQuickInfoAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-            var broker = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncQuickInfoBroker>(cancellationToken);
-
-            var session = broker.GetSession(view);
-
-            // GetSession will not return null if preceded by a call to InvokeQuickInfo
-            Contract.ThrowIfNull(session);
-
-            while (session.State != QuickInfoSessionState.Visible)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Task.Delay(50, cancellationToken).ConfigureAwait(true);
-            }
-
-            return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
         }
 
         public async Task<string[]> GetCurrentClassificationsAsync(CancellationToken cancellationToken)
@@ -779,69 +760,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return selectedCompletionSet.Completions.ToImmutableArray();
         }
 
-        public async Task ShowLightBulbAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var shell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell>(cancellationToken);
-            var cmdGroup = typeof(VSConstants.VSStd14CmdID).GUID;
-            var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
-
-            var cmdID = VSConstants.VSStd14CmdID.ShowQuickFixes;
-            object? obj = null;
-            shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
-            await LightBulbHelper.WaitForLightBulbSessionAsync(TestServices, broker, view, cancellationToken);
-        }
-
-        public async Task InvokeCodeActionListAsync(CancellationToken cancellationToken)
-        {
-            await TestServices.Workarounds.WaitForLightBulbAsync(cancellationToken);
-
-            await InvokeCodeActionListWithoutWaitingAsync(cancellationToken);
-
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
-        }
-
-        public async Task InvokeCodeActionListWithoutWaitingAsync(CancellationToken cancellationToken)
-        {
-            if (Version.Parse("17.2.32210.308") > await TestServices.Shell.GetVersionAsync(cancellationToken))
-            {
-                // Workaround for extremely unstable async lightbulb (can dismiss itself when SuggestedActionsChanged
-                // fires while expanding the light bulb).
-                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL), cancellationToken);
-                await Task.Delay(5000, cancellationToken);
-
-                await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
-                await Task.Delay(5000, cancellationToken);
-            }
-
-            await ShowLightBulbAsync(cancellationToken);
-        }
-
-        public async Task<bool> IsLightBulbSessionExpandedAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
-            if (!broker.IsLightBulbSessionActive(view))
-            {
-                return false;
-            }
-
-            var session = broker.GetSession(view);
-            if (session == null || !session.IsExpanded)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         public async Task<string[]> GetLightBulbActionsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -1041,96 +959,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             return null;
-        }
-
-        public Task PlaceCaretAsync(string marker, int charsOffset, CancellationToken cancellationToken)
-            => PlaceCaretAsync(marker, charsOffset, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
-
-        public async Task PlaceCaretAsync(
-            string marker,
-            int charsOffset,
-            int occurrence,
-            bool extendSelection,
-            bool selectBlock,
-            CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
-            dte.Find.FindWhat = marker;
-            dte.Find.MatchCase = true;
-            dte.Find.MatchInHiddenText = true;
-            dte.Find.Target = EnvDTE.vsFindTarget.vsFindTargetCurrentDocument;
-            dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
-
-            var originalPosition = (await GetCaretPositionAsync(cancellationToken)).BufferPosition.Position;
-            view.Caret.MoveTo(new SnapshotPoint(view.GetBufferContainingCaret()!.CurrentSnapshot, 0));
-
-            if (occurrence > 0)
-            {
-                var result = EnvDTE.vsFindResult.vsFindResultNotFound;
-                for (var i = 0; i < occurrence; i++)
-                {
-                    result = dte.Find.Execute();
-                }
-
-                if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                {
-                    throw new Exception("Occurrence " + occurrence + " of marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                }
-            }
-            else
-            {
-                var result = dte.Find.Execute();
-                if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                {
-                    throw new Exception("Marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                }
-            }
-
-            if (charsOffset > 0)
-            {
-                for (var i = 0; i < charsOffset - 1; i++)
-                {
-                    view.Caret.MoveToNextCaretPosition();
-                }
-
-                view.Selection.Clear();
-            }
-
-            if (charsOffset < 0)
-            {
-                // On the first negative charsOffset, move to anchor-point position, as if the user hit the LEFT key
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, view.Selection.AnchorPoint.Position.Position));
-
-                for (var i = 0; i < -charsOffset - 1; i++)
-                {
-                    view.Caret.MoveToPreviousCaretPosition();
-                }
-
-                view.Selection.Clear();
-            }
-
-            if (extendSelection)
-            {
-                var newPosition = view.Selection.ActivePoint.Position.Position;
-                view.Selection.Select(new VirtualSnapshotPoint(view.TextSnapshot, originalPosition), new VirtualSnapshotPoint(view.TextSnapshot, newPosition));
-                view.Selection.Mode = selectBlock ? TextSelectionMode.Box : TextSelectionMode.Stream;
-            }
-        }
-
-        public async Task<CaretPosition> GetCaretPositionAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var subjectBuffer = view.GetBufferContainingCaret();
-            Assumes.Present(subjectBuffer);
-
-            return view.Caret.Position;
         }
 
         public async Task<int> GetCaretColumnAsync(CancellationToken cancellationToken)
