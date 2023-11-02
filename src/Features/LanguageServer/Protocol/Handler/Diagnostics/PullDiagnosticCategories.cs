@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         // Fine-grained document pull categories to allow diagnostics to more quickly reach the user.
 
-        public const string DocumentCompilerSyntax = nameof(DocumentCompilerSyntax);
+        public static readonly string DocumentCompilerSyntax = VSInternalDiagnosticKind.Syntax.Value;
         public const string DocumentCompilerSemantic = nameof(DocumentCompilerSemantic);
         public const string DocumentAnalyzerSyntax = nameof(DocumentAnalyzerSyntax);
         public const string DocumentAnalyzerSemantic = nameof(DocumentAnalyzerSemantic);
