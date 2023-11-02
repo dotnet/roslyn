@@ -23,7 +23,7 @@ internal static class VSBranchInfo
         new FSharp(),
     };
 
-    public static async Task<int> GetInfoAsync(string branch, string product, bool showArtifacts, RoslynToolsSettings settings, ILogger logger)
+    public static async Task<int> GetInfoAsync(string gitVersion, GitVersionType gitVersionType, string product, bool showArtifacts, RoslynToolsSettings settings, ILogger logger)
     {
         try
         {
@@ -35,10 +35,10 @@ internal static class VSBranchInfo
                 if (product.Equals("all", StringComparison.OrdinalIgnoreCase) ||
                     product.Equals(productConfig.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    WriteHeader($"{productConfig.Name} info from VS branch {branch}");
+                    WriteHeader($"{productConfig.Name} info from VS {gitVersionType} {gitVersion}");
 
-                    await WritePackageInfo(productConfig, branch, devdivConnection);
-                    await WriteBuildInfo(productConfig, branch, showArtifacts, devdivConnection, dncengConnection);
+                    await WritePackageInfo(productConfig, gitVersion, gitVersionType, devdivConnection);
+                    await WriteBuildInfo(productConfig, gitVersion, gitVersionType, showArtifacts, devdivConnection, dncengConnection);
 
                     Console.WriteLine();
                 }
@@ -56,21 +56,21 @@ internal static class VSBranchInfo
         return 1;
     }
 
-    private static async Task WritePackageInfo(IProduct product, string branch, AzDOConnection devdiv)
+    private static async Task WritePackageInfo(IProduct product, string gitVersion, GitVersionType gitVersionType, AzDOConnection devdiv)
     {
         if (product.PackageName is null)
         {
             return;
         }
 
-        var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(branch, GitVersionType.Branch, devdiv, product.PackageName);
+        var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(gitVersion, gitVersionType, devdiv, product.PackageName);
 
         WriteNameAndValue("Package Version", packageVersion);
     }
 
-    private static async Task WriteBuildInfo(IProduct product, string branch, bool showArtifacts, AzDOConnection devdiv, AzDOConnection dnceng)
+    private static async Task WriteBuildInfo(IProduct product, string gitVersion, GitVersionType gitVersionType, bool showArtifacts, AzDOConnection devdiv, AzDOConnection dnceng)
     {
-        var buildNumber = await VisualStudioRepository.GetBuildNumberFromComponentJsonFileAsync(branch, GitVersionType.Branch, devdiv, product.ComponentJsonFileName, product.ComponentName);
+        var buildNumber = await VisualStudioRepository.GetBuildNumberFromComponentJsonFileAsync(gitVersion, gitVersionType, devdiv, product.ComponentJsonFileName, product.ComponentName);
 
         // Try getting build info from dnceng first
         var buildConnection = dnceng;
