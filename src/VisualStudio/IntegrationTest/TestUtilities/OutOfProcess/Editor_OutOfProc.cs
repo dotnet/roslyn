@@ -57,27 +57,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.IsCompletionActive();
         }
 
-        public void SelectTextInCurrentDocument(string text)
-        {
-            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
-            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
-        }
-
-        public void AddWinFormButton(string buttonName)
-            => _editorInProc.AddWinFormButton(buttonName);
-
-        public void DeleteWinFormButton(string buttonName)
-            => _editorInProc.DeleteWinFormButton(buttonName);
-
-        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string? propertyTypeName = null)
-            => _editorInProc.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
-
-        public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
-            => _editorInProc.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
-
-        public string? GetWinFormButtonPropertyValue(string buttonName, string propertyName)
-            => _editorInProc.GetWinFormButtonPropertyValue(buttonName, propertyName);
-
         /// <summary>
         /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:
         /// <see cref="string"/> (each character will be sent separately, <see cref="char"/>, <see cref="VirtualKey"/>

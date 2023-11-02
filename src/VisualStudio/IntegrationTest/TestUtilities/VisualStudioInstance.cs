@@ -32,16 +32,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
-        public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
-
-        public Debugger_OutOfProc Debugger { get; }
-
         public Editor_OutOfProc Editor { get; }
 
-        public ErrorList_OutOfProc ErrorList { get; }
-
         public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
-        public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
 
         public SendKeys SendKeys { get; }
 
@@ -107,12 +100,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             _inProc.WaitForSystemIdle();
 
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
-            ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
-            Debugger = new Debugger_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
-            ErrorList = new ErrorList_OutOfProc(this);
             MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
-            PickMembersDialog = new PickMembersDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
@@ -188,9 +177,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
-            ObjectBrowserWindow.CloseWindow();
             MoveToNamespaceDialog.CloseWindow();
-            PickMembersDialog.CloseWindow();
             StartPage.CloseWindow();
 
             // Prevent the start page from showing after each solution closes

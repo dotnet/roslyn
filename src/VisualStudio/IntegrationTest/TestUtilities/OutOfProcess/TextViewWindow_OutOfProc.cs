@@ -50,12 +50,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetCurrentClassifications()
             => _textViewWindowInProc.GetCurrentClassifications();
 
-        public string GetQuickInfo()
-            => _textViewWindowInProc.GetQuickInfo();
-
-        public void VerifyTags(string tagTypeName, int expectedCount)
-            => _textViewWindowInProc.VerifyTags(tagTypeName, expectedCount);
-
         public void ShowLightBulb()
             => _textViewWindowInProc.ShowLightBulb();
 
@@ -95,8 +89,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             WaitForLightBulbSession();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
-
-        public void InvokeQuickInfo()
-            => _textViewWindowInProc.InvokeQuickInfo();
     }
 }

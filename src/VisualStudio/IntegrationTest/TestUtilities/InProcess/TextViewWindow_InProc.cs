@@ -220,65 +220,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 action(view);
             };
 
-        public void InvokeQuickInfo()
-        {
-            JoinableTaskFactory.Run(async () =>
-            {
-                await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
-                var session = await broker.TriggerQuickInfoAsync(GetActiveTextView());
-                Contract.ThrowIfNull(session);
-            });
-        }
-
-        public string GetQuickInfo()
-        {
-            return JoinableTaskFactory.Run(async () =>
-            {
-                await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                var view = GetActiveTextView();
-                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
-
-                var session = broker.GetSession(view);
-
-                // GetSession will not return null if preceded by a call to InvokeQuickInfo
-                Contract.ThrowIfNull(session);
-
-                using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
-                while (session.State != QuickInfoSessionState.Visible)
-                {
-                    cts.Token.ThrowIfCancellationRequested();
-                    await Task.Delay(50, cts.Token).ConfigureAwait(true);
-                }
-
-                return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
-            });
-        }
-
-        public void VerifyTags(string tagTypeName, int expectedCount)
-            => ExecuteOnActiveView(view =>
-        {
-            var type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
-            bool filterTag(IMappingTagSpan<ITag> tag)
-            {
-                return tag.Tag.GetType().Equals(type);
-            }
-
-            var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
-            var aggregator = service.CreateTagAggregator<ITag>(view);
-            var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
-            var tags = allTags.Where(filterTag).Cast<IMappingTagSpan<ITag>>();
-            var actualCount = tags.Count();
-
-            if (expectedCount != actualCount)
-            {
-                var tagsTypesString = string.Join(",", allTags.Select(tag => tag.Tag.ToString()));
-                throw new Exception($"Failed to verify {tagTypeName} tags. Expected count: {expectedCount}, Actual count: {actualCount}. All tags: {tagsTypesString}");
-            }
-        });
-
         public bool IsLightBulbSessionExpanded()
        => ExecuteOnActiveView(view =>
        {

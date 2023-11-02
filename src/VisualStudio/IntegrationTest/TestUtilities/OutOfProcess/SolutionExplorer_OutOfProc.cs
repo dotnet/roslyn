@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
@@ -21,9 +20,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
         }
 
-        public void CloseSolution(bool saveFirst = false)
-            => _inProc.CloseSolution(saveFirst);
-
         /// <summary>
         /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
         /// </summary>
@@ -33,12 +29,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
         {
             _inProc.AddProject(projectName.Name, projectTemplate, languageName);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
-        public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
-        {
-            _inProc.AddProjectReference(fromProjectName.Name, toProjectName.Name);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
@@ -57,12 +47,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetFileContents(ProjectUtils.Project project, string fileName)
             => _inProc.GetFileContents(project.Name, fileName);
 
-        public void BuildSolution()
-            => _inProc.BuildSolution();
-
-        public void OpenFileWithDesigner(ProjectUtils.Project project, string fileName)
-            => _inProc.OpenFileWithDesigner(project.Name, fileName);
-
         public void OpenFile(ProjectUtils.Project project, string fileName)
         {
             // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
@@ -70,39 +54,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void CloseDesignerFile(ProjectUtils.Project project, string fileName, bool saveFile)
-            => _inProc.CloseDesignerFile(project.Name, fileName, saveFile);
-
-        public void CloseCodeFile(ProjectUtils.Project project, string fileName, bool saveFile)
-            => _inProc.CloseCodeFile(project.Name, fileName, saveFile);
-
-        public void SaveFile(ProjectUtils.Project project, string fileName)
-            => _inProc.SaveFile(project.Name, fileName);
-
         public void RestoreNuGetPackages(ProjectUtils.Project project)
             => _inProc.RestoreNuGetPackages(project.Name);
 
-        public void SaveAll()
-        {
-            _inProc.SaveAll();
-
-            // Wait for async save operations to complete before proceeding
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
         /// <summary>
         /// Selects an item named by the <paramref name="itemName"/> parameter.
-        /// Note that this selects the first item of the given name found. In situations where
-        /// there may be more than one item of a given name, use <see cref="SelectItemAtPath(string[])"/>
-        /// instead.
+        /// Note that this selects the first item of the given name found.
         /// </summary>
         public void SelectItem(string itemName)
             => _inProc.SelectItem(itemName);
-
-        /// <summary>
-        /// Selects the specific item at the given "path".
-        /// </summary>
-        public void SelectItemAtPath(params string[] path)
-            => _inProc.SelectItemAtPath(path);
     }
 }

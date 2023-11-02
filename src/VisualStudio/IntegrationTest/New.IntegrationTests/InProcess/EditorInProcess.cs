@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Design;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -1088,6 +1090,185 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
+        }
+
+        public async Task AddWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var componentChangeService = (IComponentChangeService)designerHost;
+
+            var waitHandle = new AsyncManualResetEvent(false);
+
+            void ComponentAdded(object sender, ComponentEventArgs e)
+            {
+                var control = (System.Windows.Forms.Control)e.Component;
+                if (control.Name == buttonName)
+                {
+                    waitHandle.Set();
+                }
+            }
+
+            componentChangeService.ComponentAdded += ComponentAdded;
+
+            try
+            {
+                var mainForm = (System.Windows.Forms.Form)designerHost.RootComponent;
+                var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
+                newControl.Parent = mainForm;
+                await waitHandle.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                componentChangeService.ComponentAdded -= ComponentAdded;
+            }
+        }
+
+        public async Task DeleteWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var componentChangeService = (IComponentChangeService)designerHost;
+
+            var waitHandle = new AsyncManualResetEvent(false);
+
+            void ComponentRemoved(object sender, ComponentEventArgs e)
+            {
+                var control = (System.Windows.Forms.Control)e.Component;
+                if (control.Name == buttonName)
+                {
+                    waitHandle.Set();
+                }
+            }
+
+            componentChangeService.ComponentRemoved += ComponentRemoved;
+
+            try
+            {
+                designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
+                await waitHandle.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                componentChangeService.ComponentRemoved -= ComponentRemoved;
+            }
+        }
+
+        public Task EditWinFormButtonPropertyAsync(string buttonName, string propertyName, string propertyValue, CancellationToken cancellationToken)
+            => EditWinFormButtonPropertyAsync(buttonName, propertyName, propertyValue, propertyTypeName: null, cancellationToken);
+
+        public async Task EditWinFormButtonPropertyAsync(string buttonName, string propertyName, string propertyValue, string? propertyTypeName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var componentChangeService = (IComponentChangeService)designerHost;
+
+            var waitHandle = new AsyncManualResetEvent(false);
+
+            object GetEnumPropertyValue(string typeName, string value)
+            {
+                var type = Type.GetType(typeName);
+                var converter = new EnumConverter(type);
+                return converter.ConvertFromInvariantString(value);
+            }
+
+            bool EqualToPropertyValue(object newValue)
+            {
+                if (propertyTypeName == null)
+                {
+                    return (newValue as string)?.Equals(propertyValue) == true;
+                }
+                else
+                {
+                    var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
+                    return newValue?.Equals(enumPropertyValue) == true;
+                }
+            }
+
+            void ComponentChanged(object sender, ComponentChangedEventArgs e)
+            {
+                if (e.Member.Name == propertyName && EqualToPropertyValue(e.NewValue))
+                {
+                    waitHandle.Set();
+                }
+            }
+
+            componentChangeService.ComponentChanged += ComponentChanged;
+
+            try
+            {
+                var button = designerHost.Container.Components[buttonName];
+                var properties = TypeDescriptor.GetProperties(button);
+                var property = properties[propertyName];
+                if (propertyTypeName == null)
+                {
+                    property.SetValue(button, propertyValue);
+                }
+                else
+                {
+                    var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
+                    property.SetValue(button, enumPropertyValue);
+                }
+
+                await waitHandle.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                componentChangeService.ComponentChanged -= ComponentChanged;
+            }
+        }
+
+        public async Task EditWinFormButtonEventAsync(string buttonName, string eventName, string eventHandlerName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var componentChangeService = (IComponentChangeService)designerHost;
+
+            var waitHandle = new AsyncManualResetEvent(false);
+
+            void ComponentChanged(object sender, ComponentChangedEventArgs e)
+            {
+                if (e.Member.Name == eventName)
+                {
+                    waitHandle.Set();
+                }
+            }
+
+            componentChangeService.ComponentChanged += ComponentChanged;
+
+            try
+            {
+                var button = designerHost.Container.Components[buttonName];
+                var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
+                var events = TypeDescriptor.GetEvents(button);
+                var eventProperty = eventBindingService.GetEventProperty(events.Find(eventName, ignoreCase: true));
+                eventProperty.SetValue(button, eventHandlerName);
+
+                await waitHandle.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                componentChangeService.ComponentChanged -= ComponentChanged;
+            }
+        }
+
+        public async Task<string?> GetWinFormButtonPropertyValueAsync(string buttonName, string propertyName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var button = designerHost.Container.Components[buttonName];
+            var properties = TypeDescriptor.GetProperties(button);
+            return properties[propertyName].GetValue(button) as string;
         }
     }
 }
