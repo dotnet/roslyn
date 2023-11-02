@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             ' unconstrained case needs to handle case where T is actually a struct.
                             ' such values are never nulls
                             ' we will emit a check for such case, but the check is really a JIT-time 
-                            ' constant since JIT will know if T is a struct Or Not.
+                            ' constant since JIT will know if T is a struct or not.
                             '
                             ' if ((object)default(T) != null) 
                             ' {
