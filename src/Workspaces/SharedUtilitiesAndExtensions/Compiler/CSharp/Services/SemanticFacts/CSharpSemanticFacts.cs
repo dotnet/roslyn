@@ -234,10 +234,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+        public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-            return syntaxRefs.Any(static (n, cancellationToken) => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword), cancellationToken);
+            foreach (var syntaxRef in syntaxRefs)
+            {
+                var node = syntaxRef.GetSyntax(cancellationToken);
+                if (node is BaseTypeDeclarationSyntax { Modifiers: { } modifiers } &&
+                    modifiers.Any(SyntaxKind.PartialKeyword))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(

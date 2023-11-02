@@ -137,6 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasDeclarativeSecurity { get; }
 
+        internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
+
 #nullable enable
         /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.
@@ -1179,6 +1181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;
+
+        int IMethodSymbolInternal.ParameterCount => ParameterCount;
+
+        ImmutableArray<IParameterSymbolInternal> IMethodSymbolInternal.Parameters => Parameters.Cast<ParameterSymbol, IParameterSymbolInternal>();
 
         int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 

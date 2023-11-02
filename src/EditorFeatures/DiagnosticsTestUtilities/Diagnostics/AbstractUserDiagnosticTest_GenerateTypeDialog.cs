@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             Assert.Equal(action.Title, FeaturesResources.Generate_new_type);
             var operations = await action.GetOperationsAsync(
-                workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
+                workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
             Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
 
             if (!isNewFile)

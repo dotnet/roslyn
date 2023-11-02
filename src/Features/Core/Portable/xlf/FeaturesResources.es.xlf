@@ -785,6 +785,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">'Buscar todas las referencias' no invocado en el símbolo aplicable</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corregir error de escritura "{0}"</target>
@@ -2870,6 +2875,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Desencapsular la cadena de llamadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="new">Unwrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Desajustar la expresión</target>
@@ -3040,6 +3050,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Encapsular la cadena de llamadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="new">Wrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">Ajustar todos los argumentos</target>
@@ -3068,6 +3083,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Encapsular la cadena de llamadas larga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="new">Wrap long collection</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3813,11 +3833,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">No se pudo extraer la interfaz: el tipo no contiene ningún miembro que se pueda extraer a una interfaz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">no se puede construir el árbol final</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">

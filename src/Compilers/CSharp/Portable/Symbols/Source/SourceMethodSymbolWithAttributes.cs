@@ -506,35 +506,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.PreserveSigAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.PreserveSigAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().SetPreserveSignature(arguments.Index);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MethodImplAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MethodImplAttribute))
             {
                 AttributeData.DecodeMethodImplAttribute<MethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DllImportAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DllImportAttribute))
             {
                 DecodeDllImportAttribute(ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SpecialNameAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ConditionalAttribute))
             {
                 ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicSecurityMethodAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DynamicSecurityMethodAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDynamicSecurityMethodAttribute = true;
             }
@@ -553,42 +553,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.CaseSensitiveExtensionAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
-                || attribute.IsTargetAttribute(this, AttributeDescription.SecuritySafeCriticalAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
+                || attribute.IsTargetAttribute(AttributeDescription.SecuritySafeCriticalAttribute))
             {
                 if (IsAsync)
                 {
                     diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<MethodWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DoesNotReturnAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDoesNotReturnAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MemberNotNullAttribute))
             {
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullWhenAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MemberNotNullWhenAttribute))
             {
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ModuleInitializerAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ModuleInitializerAttribute))
             {
                 MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 DecodeModuleInitializerAttribute(arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.UnmanagedCallersOnlyAttribute))
             {
                 DecodeUnmanagedCallersOnlyAttribute(ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
                 if (this.IsValidUnscopedRefAttributeTarget())
                 {
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.InterceptsLocationAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
             {
                 DecodeInterceptsLocationAttribute(arguments);
             }
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
             AttributeDescription description)
         {
-            if (arguments.Attribute.IsTargetAttribute(this, description))
+            if (arguments.Attribute.IsTargetAttribute(description))
             {
                 if (this.IsAccessor())
                 {
@@ -709,8 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (name == null || !SyntaxFacts.IsValidIdentifier(name))
                 {
                     // CS0633: The argument to the '{0}' attribute must be a valid identifier
-                    CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, node);
-                    diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
+                    diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, attribute.GetAttributeArgumentLocation(0), node.GetErrorDisplayName());
                 }
             }
         }
@@ -736,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.MarshalAsAttribute))
             {
                 // MarshalAs applied to the return value:
                 MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
@@ -752,15 +751,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.NativeIntegerAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.MaybeNullAttribute))
             {
                 arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasMaybeNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.NotNullAttribute))
             {
                 arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasNotNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.NotNullIfNotNullAttribute))
             {
                 arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().AddNotNullIfParameterNotNull(attribute.DecodeNotNullIfNotNullAttribute());
             }
@@ -803,8 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MetadataHelpers.IsValidMetadataIdentifier(moduleName))
             {
                 // Dev10 reports CS0647: "Error emitting attribute ..."
-                CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attribute.GetAttributeArgumentLocation(0), arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 hasErrors = true;
                 moduleName = null;
             }
@@ -978,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attributeFilePath = (string?)attributeArguments[0].Value;
             if (attributeFilePath is null)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax));
+                diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeData.GetAttributeArgumentLocation(filePathParameterIndex));
                 return;
             }
 
@@ -1015,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(
                         ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate,
-                        attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax),
+                        attributeData.GetAttributeArgumentLocation(filePathParameterIndex),
                         attributeFilePath,
                         mapPath(referenceResolver, unmappedMatch));
                     return;
@@ -1034,19 +1032,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(
                         ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate,
-                        attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax),
+                        attributeData.GetAttributeArgumentLocation(filePathParameterIndex),
                         attributeFilePath,
                         mapPath(referenceResolver, suffixMatch));
                     return;
                 }
 
-                diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), attributeFilePath);
+                diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), attributeFilePath);
 
                 return;
             }
             else if (matchingTrees.Count > 1)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentSyntaxLocation(filePathParameterIndex, attributeSyntax), attributeFilePath);
+                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), attributeFilePath);
                 return;
             }
 
@@ -1057,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (lineNumberZeroBased < 0 || characterNumberZeroBased < 0)
             {
-                var location = attributeData.GetAttributeArgumentSyntaxLocation(lineNumberZeroBased < 0 ? lineNumberParameterIndex : characterNumberParameterIndex, attributeSyntax);
+                var location = attributeData.GetAttributeArgumentLocation(lineNumberZeroBased < 0 ? lineNumberParameterIndex : characterNumberParameterIndex);
                 diagnostics.Add(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, location);
                 return;
             }
@@ -1067,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (lineNumberZeroBased >= referencedLineCount)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeData.GetAttributeArgumentSyntaxLocation(lineNumberParameterIndex, attributeSyntax), referencedLineCount, lineNumberOneBased);
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeData.GetAttributeArgumentLocation(lineNumberParameterIndex), referencedLineCount, lineNumberOneBased);
                 return;
             }
 
@@ -1075,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var lineLength = line.End - line.Start;
             if (characterNumberZeroBased >= lineLength)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeData.GetAttributeArgumentSyntaxLocation(characterNumberParameterIndex, attributeSyntax), lineLength, characterNumberOneBased);
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeData.GetAttributeArgumentLocation(characterNumberParameterIndex), lineLength, characterNumberOneBased);
                 return;
             }
 

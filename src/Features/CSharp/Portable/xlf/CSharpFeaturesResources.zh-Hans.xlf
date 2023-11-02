@@ -127,6 +127,11 @@
         <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">更改为 "as" 表达式</target>
@@ -150,6 +155,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">转换为原始字符串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="new">Convert to regular constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -310,11 +320,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">删除 "this" 资格</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">无法确定要提取的语句的有效范围</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">

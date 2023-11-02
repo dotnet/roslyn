@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70627")]
         public async Task ClosedRazorFile()
         {
             var source = """

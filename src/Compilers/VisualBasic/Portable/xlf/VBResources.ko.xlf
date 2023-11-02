@@ -42,6 +42,11 @@
         <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute'는 컴파일러 용도로만 예약되어 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">분석기 구성 파일 여러 개가 동일한 디렉터리('{0}')에 있을 수 없습니다.</target>

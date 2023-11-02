@@ -785,6 +785,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">„Alle Verweise suchen“ wurde für das anwendbare Symbol nicht aufgerufen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: '{0}'</source>
+        <target state="new">Fix All: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Tippfehler "{0}" korrigieren</target>
@@ -2870,6 +2875,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Umbruch für alle Aufrufkette aufheben</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="new">Unwrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Umbruch für Ausdruck aufheben</target>
@@ -3040,6 +3050,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Aufrufkette umbrechen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="new">Wrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">Jedes Argument umbrechen</target>
@@ -3068,6 +3083,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Lange Aufrufkette umbrechen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="new">Wrap long collection</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3813,11 +3833,6 @@ Bei Verwendung des Formatbezeichners "M" ohne weitere benutzerdefinierte Formatb
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">Schnittstelle konnte nicht extrahiert werden: Der Typ enthält kein Element, das in eine Schnittstelle extrahiert werden kann.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">Endgültiger Baum konnte nicht erstellt werden</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">

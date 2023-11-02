@@ -3,13 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -883,7 +879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             argument = argumentWithCapture.OriginalArgument
                         End If
 
-                        Dim useTwice = UseTwiceRewriter.UseTwice(container, argument, temps)
+                        Dim useTwice = UseTwiceRewriter.UseTwice(container, argument, isForRegularCompoundAssignment:=False, temps)
 
                         If argument.IsPropertyOrXmlPropertyAccess Then
                             argument = useTwice.First.SetAccessKind(PropertyAccessKind.Get)
@@ -990,16 +986,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function TryGetSpecialMember(Of T As Symbol)(<Out> ByRef result As T,
                                                        memberId As SpecialMember,
-                                                       syntax As SyntaxNode) As Boolean
+                                                       syntax As SyntaxNode,
+                                                       Optional isOptional As Boolean = False) As Boolean
 
             result = Nothing
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
             Dim memberSymbol = Binder.GetSpecialTypeMember(Me._topMethod.ContainingAssembly, memberId, useSiteInfo)
 
-            If Binder.ReportUseSite(_diagnostics, syntax.GetLocation(), useSiteInfo) Then
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                If Not isOptional Then
+                    Binder.ReportUseSite(_diagnostics, syntax.GetLocation(), useSiteInfo)
+                End If
+
                 Return False
             End If
 
+            _diagnostics.AddDependencies(useSiteInfo)
             result = DirectCast(memberSymbol, T)
             Return True
         End Function

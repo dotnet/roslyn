@@ -13286,19 +13286,28 @@ generated_code = auto");
         [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
         [Theory]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
-        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file setting is specified.
-        [InlineData(false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and config file bumps severity to 'Error'
-        [InlineData(false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' and config file bumps severity to 'Error'
-        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
         public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
             bool warnAsErrorMinus,
+            bool useGlobalConfig,
             DiagnosticSeverity defaultSeverity,
             DiagnosticSeverity? severityInConfigFile,
             DiagnosticSeverity expectedEffectiveSeverity)
@@ -13313,9 +13322,20 @@ generated_code = auto");
             if (severityInConfigFile.HasValue)
             {
                 var severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString();
-                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+
+                TempFile analyzerConfig;
+                if (useGlobalConfig)
+                {
+                    analyzerConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+                }
+                else
+                {
+                    analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+                }
 
                 additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray();
             }
@@ -14874,6 +14894,125 @@ public class C
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExperimentalWithWhitespaceDiagnosticID_WarnForInvalidDiagID()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(" ")]
+public class C
+{
+    public static void M() { }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+    }
+}
+""");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.CS9211.severity = warning
+""");
+            Assert.Equal((ErrorCode)9211, ErrorCode.ERR_InvalidExperimentalDiagID);
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith("test.cs(3,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier",
+                outWriter.ToString());
+        }
+
+        [Fact]
+        public void ExperimentalWithValidDiagnosticID_WarnForDiagID()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID")]
+public class C
+{
+    public static void M() { }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+    }
+}
+""");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.DiagID.severity = warning
+""");
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.StartsWith("test.cs(1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
+                outWriter.ToString());
+        }
+
+        [Fact]
+        public void ExperimentalWithValidDiagnosticID_WarnForExperimental()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID")]
+public class C
+{
+    public static void M() { }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+    }
+}
+""");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.CS9204.severity = warning
+""");
+            Assert.Equal((ErrorCode)9204, ErrorCode.WRN_Experimental);
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith("test.cs(1,1): error DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
+                outWriter.ToString());
         }
     }
 
