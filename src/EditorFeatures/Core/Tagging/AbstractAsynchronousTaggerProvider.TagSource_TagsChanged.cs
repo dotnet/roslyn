@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (tagsChanged == null)
                     return ValueTaskFactory.CompletedTask;
 
-                var hasFiredTagsChanged = false;
-
                 foreach (var collection in snapshotSpans)
                 {
                     if (collection.Count == 0)
@@ -63,11 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ? new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(collection.First().Start, collection.Last().End))
                         : collection;
 
-                    if (!hasFiredTagsChanged)
-                    {
-                        hasFiredTagsChanged = true;
-                        _dataSource.BeforeTagsChanged(snapshot);
-                    }
+                    _dataSource.BeforeTagsChanged(snapshot);
 
                     foreach (var span in coalesced)
                         tagsChanged(this, new SnapshotSpanEventArgs(span));
