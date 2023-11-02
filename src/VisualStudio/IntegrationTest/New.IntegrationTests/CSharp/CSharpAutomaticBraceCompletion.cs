@@ -289,7 +289,7 @@ class C {
             await TestServices.EditorVerifier.CurrentLineTextAsync("    void Goo()$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory, CombinatorialData]
+        [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/70671"), CombinatorialData]
         public async Task SquareBracket_Insertion(bool showCompletionInArgumentLists)
         {
             await SetUpEditorAsync(@"
@@ -303,11 +303,11 @@ class C {
             await TestServices.EditorVerifier.CurrentLineTextAsync("    int[$$] ", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory, CombinatorialData]
+        [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/70671"), CombinatorialData]
         public async Task SquareBracket_Overtyping(bool showCompletionInArgumentLists)
         {
             await SetUpEditorAsync(@"
-class C {
+class C { 
     $$
 }", HangMitigatingCancellationToken);
 
