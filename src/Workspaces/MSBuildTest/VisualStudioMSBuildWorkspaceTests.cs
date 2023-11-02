@@ -3271,8 +3271,8 @@ class C { }";
             Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
         }
 
-        // On .NET Core this tests fails with "CodePape Not Found"
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        // On .NET Core this tests fails with "CodePage Not Found"
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(CoreClrOnly))]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleCodePageProperty()
         {
