@@ -6414,11 +6414,6 @@ oneMoreTime:
             return PopStackFrame(frame, instance);
         }
 
-        public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
         private void AddCollectionExpressionElement(IOperation element)
         {
             // PROTOTYPE: What is _currentStatement used for, and is saving, setting, restoring _currentStatement necessary?
@@ -6426,23 +6421,19 @@ oneMoreTime:
             _currentStatement = element;
 
             EvalStackFrame frame = PushStackFrame();
-
-            IOperation? statement;
-            if (element is ISpreadOperation spreadElement)
-            {
-                statement = MakeCollectionExpressionSpreadElement((SpreadOperation)spreadElement);
-            }
-            else
-            {
-                statement = VisitAndCapture(element);
-            }
+            IOperation? statement = Visit(element);
             AddStatement(statement);
             PopStackFrameAndLeaveRegion(frame);
 
             _currentStatement = saveCurrentStatement;
         }
 
-        private IOperation? MakeCollectionExpressionSpreadElement(SpreadOperation operation)
+        public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
+        {
+            return RewriteSpread((SpreadOperation)operation);
+        }
+
+        private IOperation? RewriteSpread(SpreadOperation operation)
         {
             if (operation.IteratorBody is null)
             {
