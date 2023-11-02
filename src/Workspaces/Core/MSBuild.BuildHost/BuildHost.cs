@@ -23,14 +23,16 @@ namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 internal sealed class BuildHost
 {
     private readonly ILogger _logger;
+    private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
     private readonly string? _binaryLogPath;
     private readonly RpcServer _server;
     private readonly object _gate = new object();
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(ILoggerFactory loggerFactory, string? binaryLogPath, RpcServer server)
+    public BuildHost(ILoggerFactory loggerFactory, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
     {
         _logger = loggerFactory.CreateLogger<BuildHost>();
+        _globalMSBuildProperties = globalMSBuildProperties;
         _binaryLogPath = binaryLogPath;
         _server = server;
     }
@@ -120,8 +122,8 @@ internal sealed class BuildHost
                 _logger.LogInformation($"Logging builds to {_binaryLogPath}");
             }
 
-            _buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
-            _buildManager.StartBatchBuild();
+            _buildManager = new ProjectBuildManager(_globalMSBuildProperties, logger);
+            _buildManager.StartBatchBuild(_globalMSBuildProperties);
         }
     }
 

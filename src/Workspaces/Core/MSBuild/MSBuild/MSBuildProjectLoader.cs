@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var buildHostProcessManager = new BuildHostProcessManager();
+            var buildHostProcessManager = new BuildHostProcessManager(Properties);
             await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
             var worker = new Worker(
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var buildHostProcessManager = new BuildHostProcessManager();
+            var buildHostProcessManager = new BuildHostProcessManager(Properties);
             await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
             var worker = new Worker(

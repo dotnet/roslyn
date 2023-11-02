@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.CommandLine;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MSBuild.Rpc;
 using Microsoft.Extensions.Logging;
@@ -16,10 +16,20 @@ internal static class Program
 {
     internal static async Task Main(string[] args)
     {
+        var propertyOption = new CliOption<string[]>("--property") { Arity = ArgumentArity.ZeroOrMore };
         var binaryLogOption = new CliOption<string?>("--binlog") { Required = false };
-        var command = new CliRootCommand { binaryLogOption };
+        var command = new CliRootCommand { binaryLogOption, propertyOption };
         var parsedArguments = command.Parse(args);
+        var properties = parsedArguments.GetValue(propertyOption)!;
         var binaryLogPath = parsedArguments.GetValue(binaryLogOption);
+
+        var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string>();
+
+        foreach (var property in properties)
+        {
+            var propertyParts = property.Split(['='], count: 2);
+            propertiesBuilder.Add(propertyParts[0], propertyParts[1]);
+        }
 
         // Create a console logger that logs everything to standard error instead of standard out; by setting the threshold to Trace
         // everything will go to standard error.
@@ -40,7 +50,7 @@ internal static class Program
 
         var server = new RpcServer(sendingStream: Console.OpenStandardOutput(), receivingStream: Console.OpenStandardInput());
 
-        var targetObject = server.AddTarget(new BuildHost(loggerFactory, binaryLogPath, server));
+        var targetObject = server.AddTarget(new BuildHost(loggerFactory, propertiesBuilder.ToImmutable(), binaryLogPath, server));
         Contract.ThrowIfFalse(targetObject == 0, "The first object registered should have target 0, which is assumed by the client.");
 
         await server.RunAsync().ConfigureAwait(false);

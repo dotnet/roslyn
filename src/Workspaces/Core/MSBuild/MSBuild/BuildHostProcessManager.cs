@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class BuildHostProcessManager : IAsyncDisposable
 {
+    private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly ILogger? _logger;
     private readonly string? _binaryLogPath;
@@ -28,11 +30,12 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = new();
 
-    public BuildHostProcessManager(ILoggerFactory? loggerFactory = null, string? binaryLogPath = null)
+    public BuildHostProcessManager(ImmutableDictionary<string, string>? globalMSBuildProperties = null, string? binaryLogPath = null, ILoggerFactory? loggerFactory = null)
     {
+        _globalMSBuildProperties = globalMSBuildProperties ?? ImmutableDictionary<string, string>.Empty;
+        _binaryLogPath = binaryLogPath;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory?.CreateLogger<BuildHostProcessManager>();
-        _binaryLogPath = binaryLogPath;
     }
 
     /// <summary>
@@ -195,6 +198,12 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo)
     {
+        foreach (var globalMSBuildProperty in _globalMSBuildProperties)
+        {
+            AddArgument(processStartInfo, "--property");
+            AddArgument(processStartInfo, globalMSBuildProperty.Key + '=' + globalMSBuildProperty.Value);
+        }
+
         if (_binaryLogPath is not null)
         {
             AddArgument(processStartInfo, "--binlog");

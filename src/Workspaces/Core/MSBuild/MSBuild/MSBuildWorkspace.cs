@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 try
                 {
                     Debug.Assert(_applyChangesBuildHostProcessManager == null);
-                    _applyChangesBuildHostProcessManager = new BuildHostProcessManager();
+                    _applyChangesBuildHostProcessManager = new BuildHostProcessManager(Properties);
 
                     return base.TryApplyChanges(newSolution, progressTracker);
                 }

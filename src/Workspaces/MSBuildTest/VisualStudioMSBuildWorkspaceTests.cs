@@ -1644,8 +1644,8 @@ class C1
             var project = sol.Projects.First();
             var options = project.ParseOptions;
 
-            Assert.DoesNotContain(options.PreprocessorSymbolNames, name => name == "DEBUG");
-            Assert.Contains(options.PreprocessorSymbolNames, name => name == "TRACE");
+            Assert.DoesNotContain("DEBUG", options.PreprocessorSymbolNames);
+            Assert.Contains("TRACE", options.PreprocessorSymbolNames);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]

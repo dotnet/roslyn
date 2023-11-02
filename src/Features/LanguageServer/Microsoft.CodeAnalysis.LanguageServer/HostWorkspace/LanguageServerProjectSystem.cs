@@ -96,8 +96,8 @@ internal sealed class LanguageServerProjectSystem
 
             // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
             // and we don't want any MSBuild registration to set environment variables in our process that might impact child processes.
-            await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory);
-            var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetCore, CancellationToken.None);
+            await using var buildHostProcessManager = new BuildHostProcessManager(loggerFactory: _loggerFactory);
+            var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
 
             // If we don't have a .NET Core SDK on this machine at all, try .NET Framework
             if (!await buildHost.HasUsableMSBuildAsync(solutionFilePath, CancellationToken.None))
@@ -140,7 +140,7 @@ internal sealed class LanguageServerProjectSystem
 
         var binaryLogPath = GetMSBuildBinaryLogPath();
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory, binaryLogPath);
+        await using var buildHostProcessManager = new BuildHostProcessManager(binaryLogPath: binaryLogPath, loggerFactory: _loggerFactory);
 
         var displayedToast = 0;
 
