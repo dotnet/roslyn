@@ -959,7 +959,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">方法 '{0}' 必须是非泛型的，才能匹配 '{1}'。</target>
+        <target state="translated">方法“{0}”必须是非泛型方法才能与“{1}”匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
