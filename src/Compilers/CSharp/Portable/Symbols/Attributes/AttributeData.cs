@@ -756,6 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute) ||
                             IsTargetAttribute(target, AttributeDescription.MethodImplAttribute) ||
                             IsTargetAttribute(target, AttributeDescription.DllImportAttribute) ||
+                            IsTargetAttribute(target, AttributeDescription.ValueTaskAttribute) ||
                             IsTargetAttribute(target, AttributeDescription.PreserveSigAttribute) ||
                             IsTargetAttribute(target, AttributeDescription.DynamicSecurityMethodAttribute) ||
                             IsSecurityAttribute(target.DeclaringCompilation))

@@ -41,15 +41,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.IsAsync2)
             {
+                bool isValueTask = false;
+                foreach (var attr in this.GetAttributes())
+                {
+                    if (attr.IsTargetAttribute(this, AttributeDescription.ValueTaskAttribute))
+                    {
+                        isValueTask = true;
+                    }
+                }
+
                 CustomModifier modifier;
                 if (returnType.IsVoidType())
                 {
-                    var task = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                    var task = isValueTask ?
+                        this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask):
+                        this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+
                     modifier = CSharpCustomModifier.CreateOptional(task);
                 }
                 else
                 {
-                    var openTask = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).ConstructUnboundGenericType();
+                    var openTask = isValueTask ?
+                        this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask_T).ConstructUnboundGenericType():
+                        this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).ConstructUnboundGenericType();
+
                     modifier = CSharpCustomModifier.CreateOptional(openTask);
                 }
 

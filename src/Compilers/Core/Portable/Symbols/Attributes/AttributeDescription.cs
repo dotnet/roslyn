@@ -383,6 +383,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription DefaultCharSetAttribute = new AttributeDescription("System.Runtime.InteropServices", "DefaultCharSetAttribute", s_signaturesOfDefaultCharSetAttribute);
         internal static readonly AttributeDescription SpecialNameAttribute = new AttributeDescription("System.Runtime.CompilerServices", "SpecialNameAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription SerializableAttribute = new AttributeDescription("System", "SerializableAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription ValueTaskAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ValueTaskAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription NonSerializedAttribute = new AttributeDescription("System", "NonSerializedAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription StructLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "StructLayoutAttribute", s_signaturesOfStructLayoutAttribute);
         internal static readonly AttributeDescription FieldOffsetAttribute = new AttributeDescription("System.Runtime.InteropServices", "FieldOffsetAttribute", s_signatures_HasThis_Void_Int32_Only);
