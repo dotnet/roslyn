@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
-        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
+        <target state="translated">Questa versione di '{0}' non può essere utilizzata con espressioni di raccolta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -959,7 +959,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">Il metodo '{0}' deve essere non generico per corrispondere '{1}'.</target>
+        <target state="translated">Il metodo '{0}' deve essere non generico per corrispondere a '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
