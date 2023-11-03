@@ -82,7 +82,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     _isRenamableIdentifierTask.SafeContinueWithFromAsync(
                         async t =>
                         {
-                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
+
+                            // Avoid throwing an exception in this common case
+                            if (_cancellationToken.IsCancellationRequested)
+                                return;
 
                             stateMachine.UpdateTrackingSessionIfRenamable();
                         },
@@ -109,7 +115,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 task.SafeContinueWithFromAsync(async t =>
                    {
-                       await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
+                       await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
+
+                       // Avoid throwing an exception in this common case
+                       if (_cancellationToken.IsCancellationRequested)
+                           return;
 
                        if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
                        {
