@@ -568,16 +568,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isAsync2_1 != isAsync2_2)
             {
-                if (!isAsync2_1)
+                if (isAsync2_1)
                 {
-                    // non-async2 that returns Task is equivalent to async2 that returns void
-                    if (unsubstitutedReturnType1.Type.MetadataName == "Task" && isVoid2)
-                        return true;
+                    if (isVoid1)
+                    {
+                        // when comparing with non-async2 type, use the thunk type
+                        unsubstitutedReturnType1 = TypeWithAnnotations.Create(unsubstitutedReturnType1.GetAsync2ThunkType());
+                    }
                 }
                 else
                 {
-                    if (unsubstitutedReturnType2.Type.MetadataName == "Task" && isVoid1)
-                        return true;
+                    if (isVoid2)
+                    {
+                        unsubstitutedReturnType2 = TypeWithAnnotations.Create(unsubstitutedReturnType2.GetAsync2ThunkType());
+                    }
                 }
             }
 
@@ -600,21 +604,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isAsync2_1 != isAsync2_2)
             {
-                if (!isAsync2_1)
+                if (isAsync2_1)
                 {
-                    // non-async2 that returns Task<T> is equivalent to async2 that returns T
-                    if (returnType1.Type.MetadataName == "Task`1")
+                    if (!isVoid1)
                     {
-                        returnType1 = ((NamedTypeSymbol)returnType1.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                        returnType2 = returnType2.WithModifiers(ImmutableArray<CustomModifier>.Empty);
+                        // when comparing with non-async2 type, use the thunk type
+                        returnType1 = TypeWithAnnotations.Create(returnType1.GetAsync2ThunkType());
                     }
                 }
                 else
                 {
-                    if (returnType2.Type.MetadataName == "Task`1")
+                    if (!isVoid2)
                     {
-                        returnType2 = ((NamedTypeSymbol)returnType2.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                        returnType1 = returnType1.WithModifiers(ImmutableArray<CustomModifier>.Empty);
+                        returnType2 = TypeWithAnnotations.Create(returnType2.GetAsync2ThunkType());
                     }
                 }
             }

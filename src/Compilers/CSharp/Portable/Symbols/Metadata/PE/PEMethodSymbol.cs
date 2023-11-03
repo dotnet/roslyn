@@ -519,10 +519,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var modifierType = modifier.Modifier;
                 if (this.ReturnsVoid)
                 {
-                    return modifierType.MetadataName == "Task";
+                    return modifierType.MetadataName == "Task" || modifierType.MetadataName == "ValueTask";
                 }
 
-                return modifierType.MetadataName == "Task`1";
+                return modifierType.MetadataName == "Task`1" || modifierType.MetadataName == "ValueTask`1";
             }
         }
 

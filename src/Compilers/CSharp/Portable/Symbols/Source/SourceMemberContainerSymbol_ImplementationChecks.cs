@@ -1217,26 +1217,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isAsync2_1 != isAsync2_2)
             {
-                if (!isAsync2_1)
+                var isVoid1 = overridingReturnType.IsVoidType();
+                var isVoid2 = overriddenReturnType.IsVoidType();
+
+                if (isAsync2_1)
                 {
-                    // TODO: VS unwrap Task to void
-
-
-
-                    // non-async2 that returns Task<T> is equivalent to async2 that returns T
-                    if (overridingReturnType.Type.MetadataName == "Task`1")
-                    {
-                        overridingReturnType = ((NamedTypeSymbol)overridingReturnType.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                        overriddenReturnType = overriddenReturnType.WithModifiers(ImmutableArray<CustomModifier>.Empty);
-                    }
+                    // when comparing with non-async2 type, use the thunk type
+                    overridingReturnType = TypeWithAnnotations.Create(overridingReturnType.GetAsync2ThunkType());
                 }
                 else
                 {
-                    if (overriddenReturnType.Type.MetadataName == "Task`1")
-                    {
-                        overriddenReturnType = ((NamedTypeSymbol)overriddenReturnType.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                        overridingReturnType = overridingReturnType.WithModifiers(ImmutableArray<CustomModifier>.Empty);
-                    }
+                    overriddenReturnType = TypeWithAnnotations.Create(overriddenReturnType.GetAsync2ThunkType());
                 }
             }
 
