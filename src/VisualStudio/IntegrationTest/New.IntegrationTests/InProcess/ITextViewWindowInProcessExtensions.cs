@@ -86,6 +86,9 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             await WaitForCompletionSetAsync(textViewWindow, cancellationToken);
 
+            // It's not known why WaitForCompletionSetAsync fails to stabilize calls to GetCompletionItemsAsync.
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
             var view = await textViewWindow.GetActiveTextViewAsync(cancellationToken);
             if (view is null)
                 return ImmutableArray<Completion>.Empty;

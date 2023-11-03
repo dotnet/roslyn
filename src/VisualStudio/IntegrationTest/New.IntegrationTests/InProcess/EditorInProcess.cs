@@ -717,6 +717,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             await WaitForCompletionSetAsync(cancellationToken);
 
+            // It's not known why WaitForCompletionSetAsync fails to stabilize calls to IsCompletionActive.
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
             var view = await GetActiveTextViewAsync(cancellationToken);
             if (view is null)
                 return false;
