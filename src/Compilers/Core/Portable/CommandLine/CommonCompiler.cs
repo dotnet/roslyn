@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigSet? analyzerConfigSet,
             ImmutableArray<AdditionalText> additionalTextFiles,
             DiagnosticBag diagnostics,
-            ref Compilation compilation,
+            Compilation compilation,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions)
         {
             var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
@@ -1116,7 +1116,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (HasSuppressableWarningsOrErrors(diagnostics) && analyzers.Any(a => a is DiagnosticSuppressor))
                 {
-                    var analyzerConfigProvider = GetCompilerAnalyzerConfigOptionsProvider(analyzerConfigSet, additionalTextFiles, diagnostics, ref compilation, sourceFileAnalyzerConfigOptions);
+                    var analyzerConfigProvider = GetCompilerAnalyzerConfigOptionsProvider(analyzerConfigSet, additionalTextFiles, diagnostics, compilation, sourceFileAnalyzerConfigOptions);
 
                     AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
 
@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
                 var analyzerConfigProvider =
-                    GetCompilerAnalyzerConfigOptionsProvider(analyzerConfigSet, additionalTextFiles, diagnostics, ref compilation, sourceFileAnalyzerConfigOptions);
+                    GetCompilerAnalyzerConfigOptionsProvider(analyzerConfigSet, additionalTextFiles, diagnostics, compilation, sourceFileAnalyzerConfigOptions);
 
                 if (!generators.IsEmpty)
                 {
