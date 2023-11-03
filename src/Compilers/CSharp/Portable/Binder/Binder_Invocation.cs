@@ -1200,9 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (returnType.IsVoidType())
                     {
-                        var modifiers = method.ReturnTypeWithAnnotations.CustomModifiers;
-                        var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
-                        returnType = modifier.ModifierSymbol;
+                        returnType = method.ReturnTypeWithAnnotations.GetAsync2ThunkType();
                     }
                     else
                     {
@@ -1213,9 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var modifiers = method.ReturnTypeWithAnnotations.CustomModifiers;
-                            var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
-                            returnType = modifier.ModifierSymbol.OriginalDefinition.Construct(returnType);
+                            returnType = method.ReturnTypeWithAnnotations.GetAsync2ThunkType();
                         }
                     }
 
