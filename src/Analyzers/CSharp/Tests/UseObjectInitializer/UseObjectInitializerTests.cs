@@ -78,6 +78,68 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         }
 
         [Fact]
+        public async Task TestNotForField1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    C c = new C();
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotForField2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    C c = new C() { };
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotForField3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    C c = new C { };
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotForField4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int P;
+                    C c = new C() { P = 1 };
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotForField5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int P;
+                    C c = new C { P = 1 };
+                }
+                """);
+        }
+
+        [Fact]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
         {
             await TestInRegularAndScriptAsync(

@@ -7,7 +7,7 @@
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>net8.0;net472</TargetFrameworks>
     <!-- The RESX resources generator produces invalid comments when the string has a line starting with '/' -->
     <NoWarn>$(NoWarn);1570;1587</NoWarn>
   </PropertyGroup>

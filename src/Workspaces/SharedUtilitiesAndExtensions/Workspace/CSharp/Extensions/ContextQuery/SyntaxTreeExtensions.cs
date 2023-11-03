@@ -1441,7 +1441,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // For instance:
             // e is { A.$$ }
-            if (leftToken.IsKind(SyntaxKind.DotToken))
+            // e is { A->$$ }
+            if (leftToken.IsKind(SyntaxKind.DotToken) ||
+                leftToken.IsKind(SyntaxKind.MinusGreaterThanToken))
             {
                 return false;
             }

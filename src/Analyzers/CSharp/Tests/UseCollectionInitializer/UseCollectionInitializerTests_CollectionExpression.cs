@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -65,6 +62,272 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1
                     };
                 }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWithConstructorArguments1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>(new[] { 1, 2, 3 });
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithConstructorArguments2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = [|new|] List<int>(new[] { 1, 2, 3 });
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>(new[] { 1, 2, 3 })
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>();
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>() { 1, 2, 3 };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [1, 2, 3];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>()
+                {
+                    1,
+                    2,
+                    3
+                };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c =
+                [
+                    1,
+                    2,
+                    3
+                ];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField4()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = new List<int>(new[] { 1, 2, 3 });
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int> { };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int> { 1, 2, 3 };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [1, 2, 3];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>
+                {
+                    1,
+                    2,
+                    3
+                };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c =
+                [
+                    1,
+                    2,
+                    3
+                ];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInArgument1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X([|new|] List<int>());
+                }
+
+                void X(List<int> list) { }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    X([]);
+                }
+            
+                void X(List<int> list) { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInArgument2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X(new List<int>());
+                }
+
+                void X(IEnumerable<int> list) { }
             }
             """);
     }
@@ -1837,9 +2100,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16241")]
     public async Task TestNestedCollectionInitializer()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
-                    using System.Collections.Generic;
+            using System.Collections.Generic;
             using System.Linq;
 
             class Program
@@ -1847,7 +2110,21 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 static void Main(string[] args)
                 {
                     string[] myStringArray = new string[] { "Test", "123", "ABC" };
-                    List<string> myStringList = myStringArray?.ToList() ?? new List<string>();
+                    List<string> myStringList = myStringArray?.ToList() ?? [|new|] List<string>();
+                    myStringList.Add("Done");
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    string[] myStringArray = new string[] { "Test", "123", "ABC" };
+                    List<string> myStringList = myStringArray?.ToList() ?? [];
                     myStringList.Add("Done");
                 }
             }

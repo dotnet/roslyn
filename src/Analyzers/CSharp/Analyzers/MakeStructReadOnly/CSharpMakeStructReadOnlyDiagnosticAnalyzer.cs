@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
 
@@ -86,11 +85,10 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
         if (typeSymbol.IsReadOnly)
             return false;
 
-        if (typeSymbol.DeclaringSyntaxReferences.Length == 0)
+        if (typeSymbol.DeclaringSyntaxReferences is not [var typeReference, ..])
             return false;
 
-        var typeDeclaration = typeSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as TypeDeclarationSyntax;
-        if (typeDeclaration is null)
+        if (typeReference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax typeDeclaration)
             return false;
 
         var options = context.GetCSharpAnalyzerOptions(typeDeclaration.SyntaxTree);
@@ -106,6 +104,12 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
             {
                 hasField = true;
                 if (!field.IsReadOnly)
+                    return false;
+            }
+            else if (member is IEventSymbol ev)
+            {
+                // field-like events are not allowed in readonly structs.
+                if (ev.AddMethod is { DeclaringSyntaxReferences.Length: 0 })
                     return false;
             }
         }

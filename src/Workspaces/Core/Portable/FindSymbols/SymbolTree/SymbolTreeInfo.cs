@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -71,15 +70,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
         private SpellChecker? _spellChecker;
-        private SpellChecker SpellChecker
-        {
-            get
-            {
-                _spellChecker ??= CreateSpellChecker(Checksum, _nodes);
-
-                return _spellChecker.Value;
-            }
-        }
 
         private SymbolTreeInfo(
             Checksum checksum,
@@ -181,11 +171,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var similarNames = TemporaryArray<string>.Empty;
             using var result = TemporaryArray<ISymbol>.Empty;
 
-            SpellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
+            // Ensure the spell checker is initialized.  This is concurrency safe.  Technically multiple threads may end
+            // up overwriting the field, but even if that happens, we are sure to see a fully written spell checker as
+            // the runtime guarantees that the initialize of the SpellChecker instnace completely written when we read
+            // our field.
+            _spellChecker ??= CreateSpellChecker(Checksum, _nodes);
+            _spellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
 
             foreach (var similarName in similarNames)
             {
-                var symbols = await FindAsync(lazyAssembly, similarName, ignoreCase: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var symbols = await FindAsync(lazyAssembly, similarName, ignoreCase: true, cancellationToken).ConfigureAwait(false);
                 result.AddRange(symbols);
             }
 

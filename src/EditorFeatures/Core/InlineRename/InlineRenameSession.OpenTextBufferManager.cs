@@ -262,8 +262,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // in tests `ActiveTextview` could be null so don't depend on it
                 return ActiveTextView == null ||
-                    _referenceSpanToLinkedRenameSpanMap.Keys
-                    .Select(s => s.ToSpan())
+                    _referenceSpanToLinkedRenameSpanMap.Values
+                    .Select(renameTrackingSpan => renameTrackingSpan.TrackingSpan.GetSpan(_subjectBuffer.CurrentSnapshot))
                     .All(s =>
                         s.End <= _subjectBuffer.CurrentSnapshot.Length && // span is valid for the snapshot
                         ActiveTextView.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s)).Count != 0); // spans were successfully projected

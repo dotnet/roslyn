@@ -147,6 +147,9 @@
   <data name="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4" xml:space="preserve">
     <value>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</value>
   </data>
+  <data name="Failed_to_read_runsettings_file_at_0:1" xml:space="preserve">
+    <value>Failed to read .runsettings file at {0}:{1}</value>
+  </data>
   <data name="Found_0_tests_in_1" xml:space="preserve">
     <value>Found {0} tests in {1}</value>
   </data>
@@ -161,6 +164,9 @@
   </data>
   <data name="Running_tests" xml:space="preserve">
     <value>Running tests...</value>
+  </data>
+  <data name="Runsettings_file_does_not_exist_at_0" xml:space="preserve">
+    <value>.runsettings file does not exist at {0}</value>
   </data>
   <data name="Show_csharp_logs" xml:space="preserve">
     <value>Show C# logs</value>
@@ -191,5 +197,8 @@
   </data>
   <data name="There_were_problems_loading_your_projects_See_log_for_details" xml:space="preserve">
     <value>There were problems loading your projects. See log for details.</value>
+  </data>
+  <data name="Using_runsettings_file_at_0" xml:space="preserve">
+    <value>Using .runsettings file at {0}</value>
   </data>
 </root>

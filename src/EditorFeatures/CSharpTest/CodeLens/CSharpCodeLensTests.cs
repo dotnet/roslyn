@@ -18,60 +18,64 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeLens
         [Fact]
         public async Task TestCount()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public class A
-{
-    {|0: public void B()
-    {
-        C();
-    }|}
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                public class A
+                {
+                    {|0: public void B()
+                    {
+                        C();
+                    }|}
 
-    {|2: public void C()
-    {
-        D();
-    }|}
+                    {|2: public void C()
+                    {
+                        D();
+                    }|}
 
-    {|1: public void D()
-    {
-        C();
-    }|}
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+                    {|1: public void D()
+                    {
+                        C();
+                    }|}
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
             await RunCountTest(input);
         }
 
         [Fact]
         public async Task TestCapping()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public class A
-{
-    {|0: public void B()
-    {
-        C();
-    }|}
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                public class A
+                {
+                    {|0: public void B()
+                    {
+                        C();
+                    }|}
 
-    {|capped1: public void C()
-    {
-        D();
-    }|}
+                    {|capped1: public void C()
+                    {
+                        D();
+                    }|}
 
-    {|1: public void D()
-    {
-        C();
-    }|}
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+                    {|1: public void D()
+                    {
+                        C();
+                    }|}
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await RunCountTest(input, 1);
         }
@@ -79,45 +83,47 @@ public class A
         [Fact]
         public async Task TestLinkedFiles()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public class A
-{
-    {|0: public void B()
-    {
-        C();
-    }|}
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                public class A
+                {
+                    {|0: public void B()
+                    {
+                        C();
+                    }|}
 
-    {|3: public void C()
-    {
-        D();
-    }|}
+                    {|3: public void C()
+                    {
+                        D();
+                    }|}
 
-    {|3: public void D()
-    {
-        C();
-    }|}
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
-        <Document FilePath=""AdditionalDocument.cs""><![CDATA[
-class E
-{
-    void F()
-    {
-        A.C();
-        A.D();
-        A.D();
-    }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+                    {|3: public void D()
+                    {
+                        C();
+                    }|}
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                        <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
+                        <Document FilePath="AdditionalDocument.cs"><![CDATA[
+                class E
+                {
+                    void F()
+                    {
+                        A.C();
+                        A.D();
+                        A.D();
+                    }
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await RunReferenceTest(input);
         }
@@ -125,30 +131,32 @@ class E
         [Fact]
         public async Task TestDisplay()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public class A
-{
-    {|0: public void B()
-    {
-        C();
-    }|}
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                public class A
+                {
+                    {|0: public void B()
+                    {
+                        C();
+                    }|}
 
-    {|2: public void C()
-    {
-        D();
-    }|}
+                    {|2: public void C()
+                    {
+                        D();
+                    }|}
 
-    {|1: public void D()
-    {
-        C();
-    }|}
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+                    {|1: public void D()
+                    {
+                        C();
+                    }|}
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await RunReferenceTest(input);
         }
@@ -156,63 +164,67 @@ public class A
         [Fact]
         public async Task TestMethodReferences()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public class A
-{
-    {|0: public void B()
-    {
-        C();
-    }|}
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                public class A
+                {
+                    {|0: public void B()
+                    {
+                        C();
+                    }|}
 
-    {|2: public void C()
-    {
-        D();
-    }|}
+                    {|2: public void C()
+                    {
+                        D();
+                    }|}
 
-    {|1: public void D()
-    {
-        C();
-    }|}
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+                    {|1: public void D()
+                    {
+                        C();
+                    }|}
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
             await RunMethodReferenceTest(input);
         }
 
         [Fact]
         public async Task TestMethodReferencesWithDocstrings()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public class A
-{
-    /// <summary>
-    ///     <see cref=""A.C""/>
-    /// </summary>
-    {|0: public void B()
-    {
-        C();
-    }|}
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                public class A
+                {
+                    /// <summary>
+                    ///     <see cref="A.C"/>
+                    /// </summary>
+                    {|0: public void B()
+                    {
+                        C();
+                    }|}
 
-    {|2: public void C()
-    {
-        D();
-    }|}
+                    {|2: public void C()
+                    {
+                        D();
+                    }|}
 
-    {|1: public void D()
-    {
-        C();
-    }|}
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+                    {|1: public void D()
+                    {
+                        C();
+                    }|}
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
             await RunMethodReferenceTest(input);
         }
 
@@ -258,126 +270,136 @@ public {typeKind} A
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestExplicitParameterlessConstructor()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-{|2:public class Foo|}
-{
-    public Foo() { }
-}
-public class B
-{
-    private void Test()
-    {
-        var foo = new Foo();
-    }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                {|2:public class Foo|}
+                {
+                    public Foo() { }
+                }
+                public class B
+                {
+                    private void Test()
+                    {
+                        var foo = new Foo();
+                    }
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
             await RunReferenceTest(input);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestExplicitParameterlessConstructor_TwoCalls()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-{|3:public class Foo|}
-{
-    public Foo() { }
-}
-public class B
-{
-    private void Test()
-    {
-        var foo1 = new Foo();
-        var foo2 = new Foo();
-    }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                {|3:public class Foo|}
+                {
+                    public Foo() { }
+                }
+                public class B
+                {
+                    private void Test()
+                    {
+                        var foo1 = new Foo();
+                        var foo2 = new Foo();
+                    }
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
             await RunReferenceTest(input);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestImplicitParameterlessConstructor()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-{|1:public class Foo|}
-{
-}
-public class B
-{
-    private void Test()
-    {
-        var foo = new Foo();
-    }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                {|1:public class Foo|}
+                {
+                }
+                public class B
+                {
+                    private void Test()
+                    {
+                        var foo = new Foo();
+                    }
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
             await RunReferenceTest(input);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestImplicitParameterlessConstructor_TwoCalls()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-{|2:public class Foo|}
-{
-}
-public class B
-{
-    private void Test()
-    {
-        var foo1 = new Foo();
-        var foo2 = new Foo();
-    }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>";
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="CurrentDocument.cs"><![CDATA[
+                {|2:public class Foo|}
+                {
+                }
+                public class B
+                {
+                    private void Test()
+                    {
+                        var foo1 = new Foo();
+                        var foo2 = new Foo();
+                    }
+                }
+                ]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
             await RunReferenceTest(input);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51633")]
         public async Task TestMethodRefSourceGeneratedDocument()
         {
-            const string input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""Program.cs""><![CDATA[
-namespace ConsoleSample
-{
-    class Program
-    {
-        {|1:public Program()
-        {
-        }|}
-    }
-}]]>
-        </Document>
-        <DocumentFromSourceGenerator><![CDATA[
-namespace ConsoleSample
-{
-    internal partial class Program
-    {
-        public static CreateProgram() => new Program();
-    }
-}]]>
-        </DocumentFromSourceGenerator>
-    </Project>
-</Workspace>";
+            const string input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                        <Document FilePath="Program.cs"><![CDATA[
+                namespace ConsoleSample
+                {
+                    class Program
+                    {
+                        {|1:public Program()
+                        {
+                        }|}
+                    }
+                }]]>
+                        </Document>
+                        <DocumentFromSourceGenerator><![CDATA[
+                namespace ConsoleSample
+                {
+                    internal partial class Program
+                    {
+                        public static CreateProgram() => new Program();
+                    }
+                }]]>
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>
+                """;
             await RunMethodReferenceTest(input);
         }
     }

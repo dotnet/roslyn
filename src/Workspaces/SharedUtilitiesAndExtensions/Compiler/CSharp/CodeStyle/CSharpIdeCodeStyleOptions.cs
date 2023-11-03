@@ -37,9 +37,6 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
     private static readonly CodeStyleOption2<string> s_defaultModifierOrder =
         new(string.Join(",", s_preferredModifierOrderDefault.Select(SyntaxFacts.GetText)), NotificationOption2.Silent);
 
-    public static readonly CodeStyleOption2<AddImportPlacement> s_outsideNamespacePlacementWithSilentEnforcement =
-        new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
-
     private static readonly CodeStyleOption2<ExpressionBodyPreference> s_whenPossibleWithSilentEnforcement =
         new(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent);
 

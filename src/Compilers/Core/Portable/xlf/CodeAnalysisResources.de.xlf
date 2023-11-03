@@ -42,13 +42,6 @@
         <target state="translated">Das Ändern der Version eines Assemblyverweises ist während des Debuggens nicht zulässig: "{0}" hat die Version in "{1}" geändert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">Das Analysetool "{0}" hat die folgende Ausnahme ausgelöst:
-"{1}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
         <target state="translated">Unterdrücken Sie die folgende Diagnose, um dieses Analysetool zu deaktivieren: {0}</target>
@@ -212,7 +205,7 @@
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
-        <target state="new">The temporary path for legacy file signing is unavailable.</target>
+        <target state="translated">Der temporäre Pfad für das Signieren von Legacydateien ist nicht verfügbar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
@@ -746,16 +739,13 @@
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverThrows">
-        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
-        <target state="translated">Der Analysetreiber hat eine Ausnahme vom Typ "{0}" mit der Meldung "{1}" ausgelöst.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerDriverThrowsDescription">
-        <source>Analyzer driver threw the following exception:
-'{0}'.</source>
-        <target state="translated">Der Analysetreiber hat die folgende Ausnahme ausgelöst:
-"{0}".</target>
-        <note />
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</source>
+        <target state="translated">Der Analysetreiber hat eine Ausnahme vom Typ "{0}" mit der Meldung "{1}" ausgelöst.
+{2}</target>
+        <note>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>

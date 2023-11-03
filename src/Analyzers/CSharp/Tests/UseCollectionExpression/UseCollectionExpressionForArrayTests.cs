@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -432,7 +433,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = {|CS0826:{|CS0029:new[] { }|}|};
+                    string[] i = {|CS0826:new[] { }|};
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -619,6 +620,24 @@ public class UseCollectionExpressionForArrayTests
                     void M()
                     {
                         var c = (int[])[1];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedToComplexCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var c = {|CS0030:(int)new int[] { 1 }|};
                     }
                 }
                 """,
@@ -957,7 +976,18 @@ public class UseCollectionExpressionForArrayTests
                     }
                 }
                 """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(5,22): info IDE0300: Collection initialization can be simplified
+                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 25).WithSpan(5, 22, 5, 39).WithSeverity(DiagnosticSeverity.Info),
+                    // /0/Test0.cs(5,22): hidden IDE0300: Collection initialization can be simplified
+                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 27).WithSpan(5, 22, 5, 39).WithSpan(5, 22, 5, 27).WithSeverity(DiagnosticSeverity.Hidden),
+                }
+            },
             LanguageVersion = LanguageVersion.CSharp12,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
     }
 
@@ -1041,15 +1071,6 @@ public class UseCollectionExpressionForArrayTests
                     public XAttribute(int[] values) { }
                 }
                 """,
-            FixedState =
-                {
-                    // THis will tart working once https://github.com/dotnet/roslyn/issues/69133 is fixed.
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(1,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                        DiagnosticResult.CompilerError("CS0182").WithSpan(1, 4, 1, 13),
-                    }
-                },
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
@@ -2550,17 +2571,6 @@ public class UseCollectionExpressionForArrayTests
                 """,
             FixedCode = """
                 using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r = [new[] { 1 }, new int[] { 2 }];
-                    }
-                }
-                """,
-            BatchFixedCode = """
-                using System;
                 
                 class C
                 {
@@ -2595,22 +2605,6 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             FixedCode = """
-                using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r =
-                        [
-                            // Leading
-                            new[] { 1 }, // Trailing
-                            new int[] { 2 },
-                        ];
-                    }
-                }
-                """,
-            BatchFixedCode = """
                 using System;
                 
                 class C
@@ -2654,25 +2648,6 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             FixedCode = """
-                using System;
-
-                class C
-                {
-                    void M(int i, int j)
-                    {
-                        int[][] r =
-                        [
-                            new[]
-                            {
-                                // Leading
-                                1 // Trailing
-                            },
-                            new int[] { 2 },
-                        ];
-                    }
-                }
-                """,
-            BatchFixedCode = """
                 using System;
                 
                 class C
@@ -2734,6 +2709,37 @@ public class UseCollectionExpressionForArrayTests
                     3,
                 ];
                 """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+        }.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int[] i =
+                [|{|]
+                    1,
+                    2,
+                    3,
+                };
+                """.ReplaceLineEndings(endOfLine),
+            FixedCode = """
+                int[] i =
+                [
+                    1,
+                    2,
+                    3,
+                ];
+                """.ReplaceLineEndings(endOfLine),
             LanguageVersion = LanguageVersion.CSharp12,
             TestState =
             {

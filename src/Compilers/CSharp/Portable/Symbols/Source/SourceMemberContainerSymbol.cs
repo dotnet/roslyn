@@ -3387,7 +3387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in nonTypeMembersToCheck)
             {
-                if (member.IsAccessor() || member.IsIndexer())
+                if (member.IsAccessor())
                 {
                     continue;
                 }

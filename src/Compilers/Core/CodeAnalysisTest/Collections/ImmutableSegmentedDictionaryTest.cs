@@ -300,6 +300,32 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Contains(missingKey, exception.Message);
         }
 
+        [Fact]
+        public void Keys_All()
+        {
+            var map = ImmutableSegmentedDictionary.Create<string, string>()
+                .Add("a", "1")
+                .Add("b", "2");
+
+            Assert.False(map.Keys.All((key, arg) => key == arg, "a"));
+            Assert.True(map.Keys.All((key, arg) => key.Length == arg, 1));
+
+            Assert.True(ImmutableSegmentedDictionary<int, int>.Empty.Keys.All((_, _) => false, 0));
+        }
+
+        [Fact]
+        public void Values_All()
+        {
+            var map = ImmutableSegmentedDictionary.Create<string, string>()
+                .Add("a", "1")
+                .Add("b", "2");
+
+            Assert.False(map.Values.All((key, arg) => key == arg, "1"));
+            Assert.True(map.Values.All((key, arg) => key.Length == arg, 1));
+
+            Assert.True(ImmutableSegmentedDictionary<int, int>.Empty.Values.All((_, _) => false, 0));
+        }
+
         protected override IImmutableDictionary<TKey, TValue> Empty<TKey, TValue>()
         {
             return ImmutableSegmentedDictionaryTest.Empty<TKey, TValue>();

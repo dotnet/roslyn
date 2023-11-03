@@ -68,13 +68,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
         }
 
-        [Theory, CombinatorialData]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/fsharp/issues/15972")]
         public async Task TestDocumentDiagnosticsForOpenFilesWithFSAOff_Categories(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A : B {";
+
+            var additionalAnalyzers = new DiagnosticAnalyzer[] { new CSharpSyntaxAnalyzer(), new CSharpSemanticAnalyzer() };
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
+                markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true, additionalAnalyzers: additionalAnalyzers);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -99,6 +101,52 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             Assert.Equal(syntaxResults.Single().ResultId, syntaxResults2.Single().ResultId);
             Assert.Equal(semanticResults.Single().ResultId, semanticResults2.Single().ResultId);
+
+            var syntaxAnalyzerResults = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, category: PullDiagnosticCategories.DocumentAnalyzerSyntax);
+
+            var semanticAnalyzerResults = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, category: PullDiagnosticCategories.DocumentAnalyzerSemantic);
+
+            Assert.Equal(CSharpSyntaxAnalyzer.RuleId, syntaxAnalyzerResults.Single().Diagnostics.Single().Code);
+            Assert.Equal(CSharpSemanticAnalyzer.RuleId, semanticAnalyzerResults.Single().Diagnostics.Single().Code);
+
+            var syntaxAnalyzerResults2 = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, previousResultId: syntaxAnalyzerResults.Single().ResultId, category: PullDiagnosticCategories.DocumentAnalyzerSyntax);
+            var semanticAnalyzerResults2 = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, previousResultId: semanticAnalyzerResults.Single().ResultId, category: PullDiagnosticCategories.DocumentAnalyzerSemantic);
+
+            Assert.Equal(syntaxAnalyzerResults.Single().ResultId, syntaxAnalyzerResults2.Single().ResultId);
+            Assert.Equal(semanticAnalyzerResults.Single().ResultId, semanticAnalyzerResults2.Single().ResultId);
+        }
+
+        private sealed class CSharpSyntaxAnalyzer : DiagnosticAnalyzer
+        {
+            public const string RuleId = "SYN0001";
+            private readonly DiagnosticDescriptor _descriptor = new(RuleId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxTreeAction(context =>
+                    context.ReportDiagnostic(Diagnostic.Create(_descriptor, context.Tree.GetRoot(context.CancellationToken).GetLocation())));
+            }
+        }
+
+        private sealed class CSharpSemanticAnalyzer : DiagnosticAnalyzer
+        {
+            public const string RuleId = "SEM0001";
+            private readonly DiagnosticDescriptor _descriptor = new(RuleId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(context =>
+                    context.ReportDiagnostic(Diagnostic.Create(_descriptor, context.Node.GetLocation())),
+                    CSharp.SyntaxKind.CompilationUnit);
+            }
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65172")]

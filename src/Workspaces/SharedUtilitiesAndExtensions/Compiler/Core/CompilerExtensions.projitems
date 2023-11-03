@@ -513,7 +513,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PredefinedType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PredefinedTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleIntervalTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SpecialTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
