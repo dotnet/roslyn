@@ -2312,9 +2312,9 @@
         <target state="translated">常數字串上的模式比對 ReadOnly/Span&lt;char&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_ImplicitIndexInitializer">
-        <source>implicit Index initializer</source>
-        <target state="new">implicit Index initializer</target>
+      <trans-unit id="IDS_ImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="new">implicit indexer initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">

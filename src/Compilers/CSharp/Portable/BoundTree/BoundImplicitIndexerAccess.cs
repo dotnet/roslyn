@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -12,6 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundImplicitIndexerAccess WithLengthOrCountAccess(BoundExpression lengthOrCountAccess)
         {
             return this.Update(this.Receiver, this.Argument, lengthOrCountAccess, this.ReceiverPlaceholder,
+                this.IndexerOrSliceAccess, this.ArgumentPlaceholders, this.Type);
+        }
+
+        internal BoundImplicitIndexerAccess WithArgument(BoundExpression argument)
+        {
+            Debug.Assert(TypeSymbol.Equals(this.Argument.Type, argument.Type, TypeCompareKind.ConsiderEverything));
+
+            return this.Update(this.Receiver, argument, this.LengthOrCountAccess, this.ReceiverPlaceholder,
                 this.IndexerOrSliceAccess, this.ArgumentPlaceholders, this.Type);
         }
 

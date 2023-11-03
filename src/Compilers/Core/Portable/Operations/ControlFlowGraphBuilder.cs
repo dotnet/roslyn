@@ -6174,10 +6174,9 @@ oneMoreTime:
                     case OperationKind.ImplicitIndexerReference:
                         var indexerReference = (IImplicitIndexerReferenceOperation)originalTarget;
                         instance = PopOperand();
-                        IOperation argument = PopOperand();
-
-                        return new ImplicitIndexerReferenceOperation(instance, argument, indexerReference.LengthSymbol, indexerReference.IndexerSymbol,
-                            semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+                        IOperation index = PopOperand();
+                        return new ImplicitIndexerReferenceOperation(instance, index, indexerReference.LengthSymbol, indexerReference.IndexerSymbol,
+                                                                      semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
 
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicAccess = (DynamicIndexerAccessOperation)originalTarget;

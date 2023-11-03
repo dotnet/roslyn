@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
         IDS_StringEscapeCharacter = MessageBase + 12839,
 
-        IDS_ImplicitIndexInitializer = MessageBase + 12840,
+        IDS_ImplicitIndexerInitializer = MessageBase + 12840,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_StringEscapeCharacter:
-                case MessageID.IDS_ImplicitIndexInitializer:
+                case MessageID.IDS_ImplicitIndexerInitializer:
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.

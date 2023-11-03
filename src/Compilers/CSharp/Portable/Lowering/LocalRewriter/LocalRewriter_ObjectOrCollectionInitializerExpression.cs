@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -272,26 +272,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenReceiver != null);
             Debug.Assert(!_inExpressionLambda);
 
-            // Update the receiver for the field/property access as we might have introduced a temp for the initializer rewrite.
-
-            BoundExpression? rewrittenLeft = null;
-
-            // Do not lower pointer or implicit indexer access yet, we'll do them later.
-            BoundKind leftKind = assignment.Left.Kind;
-            if (leftKind != BoundKind.PointerElementAccess && leftKind != BoundKind.ImplicitIndexerAccess)
-            {
-                rewrittenLeft = assignment.Left is BoundObjectInitializerMember member ? VisitObjectInitializerMember(member, ref rewrittenReceiver, result, ref temps) : VisitExpression(assignment.Left);
-            }
-
-            BoundKind rhsKind = assignment.Right.Kind;
-            bool isRhsNestedInitializer = rhsKind == BoundKind.ObjectInitializerExpression || rhsKind == BoundKind.CollectionInitializerExpression;
+            BoundExpression left = assignment.Left;
+            BoundExpression right = assignment.Right;
+            bool isRhsNestedInitializer = right.Kind is BoundKind.ObjectInitializerExpression or BoundKind.CollectionInitializerExpression;
 
             BoundExpression rewrittenAccess;
-            switch ((rewrittenLeft ?? assignment.Left).Kind)
+            switch (left.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
                     {
-                        var memberInit = (BoundObjectInitializerMember?)rewrittenLeft;
+                        var memberInit = (BoundObjectInitializerMember)VisitObjectInitializerMember(
+                            (BoundObjectInitializerMember)left, ref rewrittenReceiver, result, ref temps);
+
                         Debug.Assert(memberInit is { });
 
                         if (!memberInit.Arguments.IsDefaultOrEmpty)
@@ -324,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (!isRhsNestedInitializer)
                             {
-                                var rewrittenRight = VisitExpression(assignment.Right);
+                                var rewrittenRight = VisitExpression(right);
                                 var setMember = _dynamicFactory.MakeDynamicSetIndex(
                                     rewrittenReceiver,
                                     memberInit.Arguments,
@@ -354,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!isRhsNestedInitializer)
                             {
                                 // Rewrite simple assignment to field/property.
-                                var rewrittenRight = VisitExpression(assignment.Right);
+                                var rewrittenRight = VisitExpression(right);
                                 result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, assignment.Type, used: false));
                                 return;
                             }
@@ -364,17 +356,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DynamicObjectInitializerMember:
                     {
+                        var initializerMember = (BoundDynamicObjectInitializerMember)VisitExpression(left);
+                        Debug.Assert(initializerMember is { });
                         if (dynamicSiteInitializers == null)
                         {
                             dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
                         }
 
-                        Debug.Assert(rewrittenLeft is { });
-                        var initializerMember = (BoundDynamicObjectInitializerMember)rewrittenLeft;
-
                         if (!isRhsNestedInitializer)
                         {
-                            var rewrittenRight = VisitExpression(assignment.Right);
+                            var rewrittenRight = VisitExpression(right);
                             var setMember = _dynamicFactory.MakeDynamicSetMember(rewrittenReceiver, initializerMember.MemberName, rewrittenRight);
                             Debug.Assert(setMember.SiteInitialization is { });
                             dynamicSiteInitializers.Add(setMember.SiteInitialization);
@@ -391,8 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                     {
-                        Debug.Assert(rewrittenLeft is { });
-                        var arrayAccess = (BoundArrayAccess)rewrittenLeft;
+                        var arrayAccess = (BoundArrayAccess)VisitExpression(left);
+                        Debug.Assert(arrayAccess is { });
+
                         var indices = EvaluateSideEffectingArgumentsToTemps(
                             arrayAccess.Indices,
                             paramRefKindsOpt: default,
@@ -403,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!isRhsNestedInitializer)
                         {
                             // Rewrite simple assignment to field/property.
-                            var rewrittenRight = VisitExpression(assignment.Right);
+                            var rewrittenRight = VisitExpression(right);
                             result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                             return;
                         }
@@ -413,8 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PointerElementAccess:
                     {
-                        // Remember we haven't lowered this node yet.
-                        var pointerAccess = (BoundPointerElementAccess)assignment.Left;
+                        var pointerAccess = (BoundPointerElementAccess)left;
                         var rewrittenIndex = VisitExpression(pointerAccess.Index);
 
                         if (CanChangeValueBetweenReads(rewrittenIndex))
@@ -436,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!isRhsNestedInitializer)
                         {
                             // Rewrite as simple assignment.
-                            var rewrittenRight = VisitExpression(assignment.Right);
+                            var rewrittenRight = VisitExpression(right);
                             result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                             return;
                         }
@@ -445,11 +436,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.ImplicitIndexerAccess:
-                    rewrittenAccess = VisitImplicitIndexerAccess((BoundImplicitIndexerAccess)assignment.Left, isLeftOfAssignment: !isRhsNestedInitializer);
+                    if (temps == null)
+                    {
+                        temps = ArrayBuilder<LocalSymbol>.GetInstance();
+                    }
+
+                    // In top-level initialization scenarios, the receiver is a temp so doesn't need caching.
+                    // In nested scenarios, we intend to evaluate the receiver for each of the initializers,
+                    // but that receiver would have cached all its arguments already.
+                    var implicitIndexer = (BoundImplicitIndexerAccess)left;
+                    BoundExpression transformedImplicitIndexer;
+                    var argumentType = implicitIndexer.Argument.Type;
+                    if (TypeSymbol.Equals(argumentType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything))
+                    {
+                        transformedImplicitIndexer = VisitRangePatternIndexerAccess(implicitIndexer, temps, result, inInitializer: true);
+
+                        Debug.Assert(transformedImplicitIndexer is BoundCall
+                        {
+                            Arguments: [BoundPassByCopy { Expression: BoundLocal { LocalSymbol: SynthesizedLocal } },
+                                        BoundPassByCopy { Expression: BoundLocal { LocalSymbol: SynthesizedLocal } }]
+                        });
+                    }
+                    else
+                    {
+                        transformedImplicitIndexer = TransformImplicitIndexerAccess(implicitIndexer,
+                            isRegularAssignmentOrRegularCompoundAssignment: true, inInitializer: true, result, temps, isDynamicAssignment: false);
+
+                        Debug.Assert(transformedImplicitIndexer is BoundArrayAccess { Indices: [BoundLocal { LocalSymbol: SynthesizedLocal }] }
+                            or BoundIndexerAccess { Arguments: [BoundLiteral or BoundLocal { LocalSymbol: SynthesizedLocal }] }
+                            or BoundLocal { LocalSymbol: SynthesizedLocal });
+                    }
+
+                    if (transformedImplicitIndexer is BoundIndexerAccess indexerAccess)
+                    {
+                        rewrittenAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment: !isRhsNestedInitializer || indexerAccess.Indexer.RefKind != RefKind.None);
+                    }
+                    else
+                    {
+                        rewrittenAccess = transformedImplicitIndexer;
+                    }
 
                     if (!isRhsNestedInitializer)
                     {
-                        var rewrittenRight = VisitExpression(assignment.Right);
+                        var rewrittenRight = VisitExpression(right);
                         result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, assignment.Type, used: false));
                         return;
                     }
@@ -457,10 +486,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue((rewrittenLeft ?? assignment.Left).Kind);
+                    throw ExceptionUtilities.UnexpectedValue(left.Kind);
             }
 
-            AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenAccess, assignment.Right);
+            AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenAccess, right);
         }
 
         private ImmutableArray<BoundExpression> EvaluateSideEffectingArgumentsToTemps(

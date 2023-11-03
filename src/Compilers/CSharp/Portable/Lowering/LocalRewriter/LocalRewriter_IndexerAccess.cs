@@ -430,6 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
                 node, isLeftOfAssignment,
                 isRegularAssignmentOrRegularCompoundAssignment: isLeftOfAssignment,
+                inInitializer: false,
                 sideeffects, locals);
 
             return _factory.Sequence(
@@ -442,6 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundImplicitIndexerAccess node,
             bool isLeftOfAssignment,
             bool isRegularAssignmentOrRegularCompoundAssignment,
+            bool inInitializer,
             ArrayBuilder<BoundExpression> sideeffects,
             ArrayBuilder<LocalSymbol> locals)
         {
@@ -458,37 +460,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = VisitExpression(node.Receiver);
 
-            // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
-            // If length access is a local, then we are evaluating a pattern
-            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
+            // Do not capture receiver if we're in an initializer
+            if (!inInitializer)
             {
-                Debug.Assert(receiver.Type is { });
-
-                var receiverLocal = F.StoreToTemp(
-                    receiver,
-                    out var receiverStore,
-                    // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
-                    receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
-                locals.Add(receiverLocal.LocalSymbol);
-
-                if (receiverLocal.LocalSymbol.IsRef &&
-                    CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
-                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
-                    ((isLeftOfAssignment && !isRegularAssignmentOrRegularCompoundAssignment) ||
-                     !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
+                // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
+                // If length access is a local, then we are evaluating a pattern
+                if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
                 {
-                    BoundAssignmentOperator? extraRefInitialization;
-                    ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, locals);
+                    Debug.Assert(receiver.Type is { });
 
-                    if (extraRefInitialization is object)
+                    var receiverLocal = F.StoreToTemp(
+                        receiver,
+                        out var receiverStore,
+                        // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                        receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
+                    locals.Add(receiverLocal.LocalSymbol);
+
+                    if (receiverLocal.LocalSymbol.IsRef &&
+                        CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
+                        !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
+                        ((isLeftOfAssignment && !isRegularAssignmentOrRegularCompoundAssignment) ||
+                         !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
                     {
-                        sideeffects.Add(extraRefInitialization);
+                        BoundAssignmentOperator? extraRefInitialization;
+                        ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, locals);
+
+                        if (extraRefInitialization is object)
+                        {
+                            sideeffects.Add(extraRefInitialization);
+                        }
                     }
+
+                    sideeffects.Add(receiverStore);
+
+                    receiver = receiverLocal;
                 }
-
-                sideeffects.Add(receiverStore);
-
-                receiver = receiverLocal;
             }
 
             AddPlaceholderReplacement(node.ReceiverPlaceholder, receiver);
@@ -532,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IndexerOrSliceAccess is BoundIndexerAccess indexerAccess)
             {
-                if (isLeftOfAssignment && indexerAccess.GetRefKind() == RefKind.None)
+                if (isLeftOfAssignment && (inInitializer || indexerAccess.GetRefKind() == RefKind.None))
                 {
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,
@@ -561,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                rewrittenIndexerAccess = (BoundExpression)VisitArrayAccess(((BoundArrayAccess)node.IndexerOrSliceAccess));
+                rewrittenIndexerAccess = (BoundExpression)VisitArrayAccess((BoundArrayAccess)node.IndexerOrSliceAccess);
             }
 
             RemovePlaceholderReplacement(argumentPlaceholder);
@@ -696,6 +702,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node)
         {
+            var F = _factory;
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+
+            var rewrittenIndexerAccess = VisitRangePatternIndexerAccess(node, localsBuilder, sideEffectsBuilder, inInitializer: false);
+            Debug.Assert(rewrittenIndexerAccess is BoundCall);
+
+            return F.Sequence(
+                localsBuilder.ToImmutableAndFree(),
+                sideEffectsBuilder.ToImmutableAndFree(),
+                rewrittenIndexerAccess);
+        }
+
+        private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder, bool inInitializer)
+        {
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
             Debug.Assert(node.IndexerOrSliceAccess is BoundCall);
 
@@ -721,9 +742,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? startMakeOffsetInput, endMakeOffsetInput, rewrittenRangeArg;
             PatternIndexOffsetLoweringStrategy startStrategy, endStrategy;
             RewriteRangeParts(rangeArg, out rangeExpr, out startMakeOffsetInput, out startStrategy, out endMakeOffsetInput, out endStrategy, out rewrittenRangeArg);
-
-            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
 
             // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
             // If length access is a local, then we are evaluating a pattern
@@ -890,6 +908,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 startExpr = MakePatternIndexOffsetExpression(startMakeOffsetInput, lengthAccess, startStrategy);
                 BoundExpression endExpr = MakePatternIndexOffsetExpression(endMakeOffsetInput, lengthAccess, endStrategy);
                 rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
+
+                if (inInitializer)
+                {
+                    var startLocal = F.StoreToTemp(startExpr, out var startStore);
+                    localsBuilder.Add(startLocal.LocalSymbol);
+                    sideEffectsBuilder.Add(startStore);
+                    startExpr = startLocal;
+
+                    var rangeSizeLocal = F.StoreToTemp(rangeSizeExpr, out var rangeSizeStore);
+                    localsBuilder.Add(rangeSizeLocal.LocalSymbol);
+                    sideEffectsBuilder.Add(rangeSizeStore);
+                    rangeSizeExpr = startLocal;
+                }
             }
             else
             {
@@ -908,10 +939,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);
             RemovePlaceholderReplacement(node.ReceiverPlaceholder);
 
-            return F.Sequence(
-                localsBuilder.ToImmutableAndFree(),
-                sideEffectsBuilder.ToImmutableAndFree(),
-                rewrittenIndexerAccess);
+            Debug.Assert(!inInitializer ||
+                rewrittenIndexerAccess is BoundCall
+                {
+                    Arguments: [BoundPassByCopy { Expression: BoundLocal { LocalSymbol: SynthesizedLocal } },
+                                BoundPassByCopy { Expression: BoundLocal { LocalSymbol: SynthesizedLocal } }]
+                });
+
+            return rewrittenIndexerAccess;
         }
 
         private BoundExpression MakeRangeSize(ref BoundExpression startExpr, BoundExpression endExpr, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)
