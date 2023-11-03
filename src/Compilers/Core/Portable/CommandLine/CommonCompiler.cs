@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis
                         out compilation,
                         analyzerCts.Token);
 
-                    analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                    analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, analyzerCts.Token);
                 }
                 return;
             }
@@ -1257,7 +1257,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     return;
                 }
-                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+
+                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, cancellationToken);
                 return;
             }
 
