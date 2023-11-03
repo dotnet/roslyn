@@ -592,6 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to include conversions from expression.
             switch (kind)
             {
+                case ConversionKind.NullLiteral:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.MethodGroup:
                 case ConversionKind.ImplicitEnumeration:
@@ -616,7 +617,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Identity:
                 case ConversionKind.ImplicitNumeric:
                 case ConversionKind.ImplicitNullable:
-                case ConversionKind.NullLiteral:
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
@@ -640,6 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: Identity conversions
             // SPEC: Implicit numeric conversions
             // SPEC: Implicit nullable conversions
+            // SPEC: Null literal conversions
             // SPEC: Implicit reference conversions
             // SPEC: Boxing conversions
             // SPEC: Implicit constant expression conversions
