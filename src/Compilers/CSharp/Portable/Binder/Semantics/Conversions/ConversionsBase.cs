@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // See https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#standard-conversions:
+        // See https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/conversions.md#1042-standard-implicit-conversions:
         // "The standard conversions are those pre-defined conversions that can occur as part of a user-defined conversion."
         private static bool IsStandardImplicitConversionFromType(ConversionKind kind)
         {
@@ -616,6 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Identity:
                 case ConversionKind.ImplicitNumeric:
                 case ConversionKind.ImplicitNullable:
+                case ConversionKind.NullLiteral:
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
