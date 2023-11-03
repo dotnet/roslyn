@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
-        private sealed partial class State
+        private sealed partial class State(TService service, SemanticDocument document, CodeCleanupOptions options)
         {
-            public SemanticDocument Document { get; }
-            public CodeCleanupOptions Options { get; }
+            public SemanticDocument Document { get; } = document;
+            public CodeCleanupOptions Options { get; } = options;
             public TExpressionSyntax Expression { get; private set; }
 
             public bool InAttributeContext { get; private set; }
@@ -38,14 +38,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             public bool IsConstant { get; private set; }
 
             private SemanticMap _semanticMap;
-            private readonly TService _service;
-
-            public State(TService service, SemanticDocument document, CodeCleanupOptions options)
-            {
-                _service = service;
-                Document = document;
-                Options = options;
-            }
+            private readonly TService _service = service;
 
             public static async Task<State> GenerateAsync(
                 TService service,

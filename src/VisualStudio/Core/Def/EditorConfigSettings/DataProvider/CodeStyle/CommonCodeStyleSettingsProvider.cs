@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
 {
     internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<CodeStyleSetting, OptionUpdater, IOption2, object>
     {
-        public CommonCodeStyleSettingsProvider(string filePath, OptionUpdater settingsUpdater, Workspace workspace)
-            : base(filePath, settingsUpdater, workspace)
+        public CommonCodeStyleSettingsProvider(string filePath, OptionUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
+            : base(filePath, settingsUpdater, workspace, globalOptions)
         {
             Update();
         }
@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         private static IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferObjectInitializer, description: ServicesVSResources.Prefer_object_initializer, options, updater);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionExpression, description: ServicesVSResources.Prefer_collection_expression, options, updater);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionInitializer, description: ServicesVSResources.Prefer_collection_initializer, options, updater);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, description: ServicesVSResources.Prefer_simplified_boolean_expressions, options, updater);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, description: ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, options, updater);

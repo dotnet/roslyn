@@ -1405,6 +1405,79 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void NullablePointer()
+        {
+            UsingExpression("int?* () => default");
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.PointerType);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.AsteriskToken);
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.DefaultLiteralExpression);
+                {
+                    N(SyntaxKind.DefaultKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ArrayPointer()
+        {
+            UsingExpression("int[]* () => default");
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.PointerType);
+                {
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.AsteriskToken);
+                }
+
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.DefaultLiteralExpression);
+                {
+                    N(SyntaxKind.DefaultKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void NullableReturnTypeOrConditional_18()
         {
             string source = "int*? () => x : y";

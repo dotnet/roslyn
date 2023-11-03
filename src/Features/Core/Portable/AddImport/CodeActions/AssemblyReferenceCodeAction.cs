@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class AssemblyReferenceCodeAction : AddImportCodeAction
+        private sealed class AssemblyReferenceCodeAction : AddImportCodeAction
         {
             /// <summary>
             /// This code action only works by adding a reference.  As such, it requires a non document change (and is
@@ -28,13 +29,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ReferenceAssemblySymbol);
             }
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-                => ComputeOperationsAsync(isPreview: true, cancellationToken);
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+                => await ComputeOperationsAsync(isPreview: true, cancellationToken).ConfigureAwait(false);
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 => ComputeOperationsAsync(isPreview: false, cancellationToken);
 
-            private async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(bool isPreview, CancellationToken cancellationToken)
+            private async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(bool isPreview, CancellationToken cancellationToken)
             {
                 var newDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
                 var newProject = newDocument.Project;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     // If this is a preview, just return an ApplyChangesOperation for the updated document
                     var operation = new ApplyChangesOperation(newProject.Solution);
-                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
+                    return ImmutableArray.Create<CodeActionOperation>(operation);
                 }
                 else
                 {
@@ -52,25 +53,18 @@ namespace Microsoft.CodeAnalysis.AddImport
                         FixData.AssemblyReferenceAssemblyName,
                         FixData.AssemblyReferenceFullyQualifiedTypeName,
                         newProject);
-                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
+                    return ImmutableArray.Create<CodeActionOperation>(operation);
                 }
             }
 
-            private sealed class AddAssemblyReferenceCodeActionOperation : CodeActionOperation
+            private sealed class AddAssemblyReferenceCodeActionOperation(
+                string assemblyReferenceAssemblyName,
+                string assemblyReferenceFullyQualifiedTypeName,
+                Project newProject) : CodeActionOperation
             {
-                private readonly string _assemblyReferenceAssemblyName;
-                private readonly string _assemblyReferenceFullyQualifiedTypeName;
-                private readonly Project _newProject;
-
-                public AddAssemblyReferenceCodeActionOperation(
-                    string assemblyReferenceAssemblyName,
-                    string assemblyReferenceFullyQualifiedTypeName,
-                    Project newProject)
-                {
-                    _assemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
-                    _assemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
-                    _newProject = newProject;
-                }
+                private readonly string _assemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
+                private readonly string _assemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
+                private readonly Project _newProject = newProject;
 
                 internal override bool ApplyDuringTests => true;
 
@@ -84,7 +78,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 internal override Task<bool> TryApplyAsync(
-                    Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                    Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
                 {
                     var operation = GetApplyChangesOperation(workspace);
                     if (operation is null)

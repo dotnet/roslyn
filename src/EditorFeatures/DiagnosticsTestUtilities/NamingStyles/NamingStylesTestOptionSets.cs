@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         public NamingStylesTestOptionSets(string languageName)
         {
             _languageName = languageName;
-            _optionKey = NamingStyleOptions.GetNamingPreferencesOptionKey(languageName);
+            _optionKey = new OptionKey2(NamingStyleOptions.NamingPreferences, languageName);
         }
 
         public OptionKey2 OptionKey => _optionKey;

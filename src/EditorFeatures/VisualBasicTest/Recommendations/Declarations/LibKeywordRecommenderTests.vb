@@ -22,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsMissing(<ClassDeclaration>Declare Sub goo Lib |</ClassDeclaration>, "Lib")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <ClassDeclaration>Declare Sub goo 
 |</ClassDeclaration>, "Lib")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <ClassDeclaration>Declare Sub goo _

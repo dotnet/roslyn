@@ -441,7 +441,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(48564, "https://github.com/dotnet/roslyn/issues/48564")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48564")]
         public async Task TestAddingProjectsWithExplicitOptions(bool useDefaultOptionValue)
         {
             using var workspace = TestWorkspace.CreateCSharp(@"public class C { }");
@@ -469,8 +469,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 ? FormattingOptions2.NewLine.DefaultValue
                 : FormattingOptions2.NewLine.DefaultValue + FormattingOptions2.NewLine.DefaultValue;
             solution = solution.WithOptions(solution.Options
-                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.CSharp, newOptionValue)
-                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.VisualBasic, newOptionValue));
+                .WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, newOptionValue)
+                .WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, newOptionValue));
 
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);

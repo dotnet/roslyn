@@ -88,6 +88,12 @@ namespace RunTests
         public string? HelixQueueName { get; set; }
 
         /// <summary>
+        /// Access token to send jobs to helix (only valid when <see cref="UseHelix" /> is <see langword="true" />).
+        /// This should only be set when using internal helix queues.
+        /// </summary>
+        public string? HelixApiAccessToken { get; set; }
+
+        /// <summary>
         /// Path to the dotnet executable we should use for running dotnet test
         /// </summary>
         public string DotnetFilePath { get; set; }
@@ -142,6 +148,7 @@ namespace RunTests
             var sequential = false;
             var helix = false;
             var helixQueueName = "Windows.10.Amd64.Open";
+            string? helixApiAccessToken = null;
             var retry = false;
             string? testFilter = null;
             int? timeout = null;
@@ -168,6 +175,7 @@ namespace RunTests
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", (string s) => helixQueueName = s },
+                { "helixApiAccessToken=", "Access token for internal helix queues", (string s) => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", (string s) => testFilter = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", (string s) => resultFileDirectory = s },
@@ -254,6 +262,7 @@ namespace RunTests
                 Sequential = sequential,
                 UseHelix = helix,
                 HelixQueueName = helixQueueName,
+                HelixApiAccessToken = helixApiAccessToken,
                 IncludeHtml = includeHtml,
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,

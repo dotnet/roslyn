@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -59,6 +59,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // only one span has start position within the span:
             Assert.Equal(new Range(5, 6), ActiveStatementsMap.GetSpansStartingInSpan(span.Start, span.End, array, startPositionComparer: (x, y) => x.Start.CompareTo(y)));
+        }
+
+        [Theory]
+        [InlineData(/*span*/ 5, 1, 5, 2,     /*expected*/ 0, 2)]
+        [InlineData(/*span*/ 5, 1, 5, 8,     /*expected*/ 0, 2)]
+        public void GetSpansStartingInSpan_MultipleSameStart1(int sl, int sc, int el, int ec, int s, int e)
+        {
+            var span = new LinePositionSpan(new(sl, sc), new(el, ec));
+            var array = ImmutableArray.Create(
+                new LinePositionSpan(new(5, 1), new(5, 2)),
+                new LinePositionSpan(new(5, 1), new(5, 8)),
+                new LinePositionSpan(new(6, 4), new(6, 18)));
+
+            Assert.Equal(new Range(s, e), ActiveStatementsMap.GetSpansStartingInSpan(span.Start, span.End, array, startPositionComparer: (x, y) => x.Start.CompareTo(y)));
+        }
+
+        [Theory]
+        [InlineData(/*span*/ 5, 1, 5, 2,     /*expected*/ 0, 3)]
+        public void GetSpansStartingInSpan_MultipleSameStart2(int sl, int sc, int el, int ec, int s, int e)
+        {
+            var span = new LinePositionSpan(new(sl, sc), new(el, ec));
+            var array = ImmutableArray.Create(
+                new LinePositionSpan(new(5, 1), new(5, 2)),
+                new LinePositionSpan(new(5, 1), new(5, 3)),
+                new LinePositionSpan(new(5, 1), new(5, 8)));
+
+            Assert.Equal(new Range(s, e), ActiveStatementsMap.GetSpansStartingInSpan(span.Start, span.End, array, startPositionComparer: (x, y) => x.Start.CompareTo(y)));
         }
 
         [Fact]

@@ -53,10 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeParams = containingType.TypeParameters;
 
                     int parameterCount = typeParams.Length - (voidReturnTypeOpt is null ? 1 : 0);
-                    var parameters = ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, ScopedKind Scope, ConstantValue? DefaultValue, bool IsParams)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<SynthesizedDelegateInvokeMethod.ParameterDescription>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
-                        parameters.Add((TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], ScopedKind.None, DefaultValue: null, IsParams: false));
+                        parameters.Add(
+                            new SynthesizedDelegateInvokeMethod.ParameterDescription(TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], ScopedKind.None, defaultValue: null, isParams: false, hasUnscopedRefAttribute: false));
                     }
 
                     // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var returnsVoid = returnParameter.Type.IsVoidType();
 
                     var parameterCount = fields.Length - 1;
-                    var parameters = ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, ScopedKind Scope, ConstantValue? DefaultValue, bool IsParams)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<SynthesizedDelegateInvokeMethod.ParameterDescription>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
                         var field = fields[i];
@@ -130,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             type = TypeWithAnnotations.Create(ArrayTypeSymbol.CreateSZArray(containingType.ContainingAssembly, type));
                         }
 
-                        parameters.Add((type, field.RefKind, field.Scope, field.DefaultValue, field.IsParams));
+                        parameters.Add(
+                            new SynthesizedDelegateInvokeMethod.ParameterDescription(type, field.RefKind, field.Scope, field.DefaultValue, isParams: field.IsParams, hasUnscopedRefAttribute: field.HasUnscopedRefAttribute));
                     }
 
                     // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate
@@ -185,11 +187,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeMap typeMap)
                 {
                     var parameterCount = fields.Length - 1;
-                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, ScopedKind, ConstantValue?, bool)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<SynthesizedDelegateInvokeMethod.ParameterDescription>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
                         var field = fields[i];
-                        parameters.Add((typeMap.SubstituteType(field.Type), field.RefKind, field.Scope, field.DefaultValue, field.IsParams));
+                        parameters.Add(
+                            new SynthesizedDelegateInvokeMethod.ParameterDescription(typeMap.SubstituteType(field.Type), field.RefKind, field.Scope, field.DefaultValue, isParams: field.IsParams, hasUnscopedRefAttribute: field.HasUnscopedRefAttribute));
                     }
 
                     var returnParameter = fields[^1];

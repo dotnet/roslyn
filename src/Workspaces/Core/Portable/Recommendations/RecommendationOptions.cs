@@ -10,15 +10,20 @@ namespace Microsoft.CodeAnalysis.Recommendations;
 #pragma warning disable RS0030 // Do not used banned APIs: PerLanguageOption<T>
 public static class RecommendationOptions
 {
-    public static PerLanguageOption<bool> HideAdvancedMembers { get; } = (PerLanguageOption<bool>)RecommendationOptions2.HideAdvancedMembers;
-    public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = (PerLanguageOption<bool>)RecommendationOptions2.FilterOutOfScopeLocals;
+    public static PerLanguageOption<bool> HideAdvancedMembers { get; } = RecommendationOptions2.HideAdvancedMembers.ToPublicOption();
+    public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = RecommendationOptions2.FilterOutOfScopeLocals.ToPublicOption();
 }
 #pragma warning restore
 
 internal static class RecommendationOptions2
 {
-    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("RecommendationOptions", "HideAdvancedMembers", RecommendationServiceOptions.Default.HideAdvancedMembers);
-    public static readonly PerLanguageOption2<bool> FilterOutOfScopeLocals = new("RecommendationOptions", "FilterOutOfScopeLocals", RecommendationServiceOptions.Default.FilterOutOfScopeLocals);
+    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new PerLanguageOption2<bool>(
+        "RecommendationOptions_HideAdvancedMembers", RecommendationServiceOptions.Default.HideAdvancedMembers)
+        .WithPublicOption("RecommendationOptions", "HideAdvancedMembers");
+
+    public static readonly PerLanguageOption2<bool> FilterOutOfScopeLocals = new PerLanguageOption2<bool>(
+        "RecommendationOptions_FilterOutOfScopeLocals", RecommendationServiceOptions.Default.FilterOutOfScopeLocals)
+        .WithPublicOption("RecommendationOptions", "FilterOutOfScopeLocals");
 }
 
 [DataContract]

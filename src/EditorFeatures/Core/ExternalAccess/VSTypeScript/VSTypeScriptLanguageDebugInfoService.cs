@@ -14,14 +14,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Shared]
     [ExportLanguageService(typeof(ILanguageDebugInfoService), InternalLanguageNames.TypeScript)]
-    internal sealed class VSTypeScriptLanguageDebugInfoService : ILanguageDebugInfoService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptLanguageDebugInfoService(IVSTypeScriptLanguageDebugInfoServiceImplementation implementation) : ILanguageDebugInfoService
     {
-        private readonly IVSTypeScriptLanguageDebugInfoServiceImplementation _implementation;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptLanguageDebugInfoService(IVSTypeScriptLanguageDebugInfoServiceImplementation implementation)
-            => _implementation = implementation;
+        private readonly IVSTypeScriptLanguageDebugInfoServiceImplementation _implementation = implementation;
 
         public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken)
             => (await _implementation.GetDataTipInfoAsync(document, position, cancellationToken).ConfigureAwait(false)).UnderlyingObject;

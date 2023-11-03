@@ -24,19 +24,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         [CombinatorialData]
         public async Task PreprocessorSymbols1(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-#if SOME_DEFINED_CONSTANT
-    public void [|M|]()
-    {
-    }
-#else
-    public void M()
-    {
-    }
-#endif
-}";
+            var source = """
+                public class C
+                {
+                #if SOME_DEFINED_CONSTANT
+                    public void [|M|]()
+                    {
+                    }
+                #else
+                    public void M()
+                    {
+                    }
+                #endif
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), preprocessorSymbols: new[] { "SOME_DEFINED_CONSTANT" });
         }
 
@@ -44,19 +45,20 @@ public class C
         [CombinatorialData]
         public async Task PreprocessorSymbols2(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-#if SOME_DEFINED_CONSTANT
-    public void M()
-    {
-    }
-#else
-    public void [|M|]()
-    {
-    }
-#endif
-}";
+            var source = """
+                public class C
+                {
+                #if SOME_DEFINED_CONSTANT
+                    public void M()
+                    {
+                    }
+                #else
+                    public void [|M|]()
+                    {
+                    }
+                #endif
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"));
         }
 
@@ -64,14 +66,15 @@ public class C
         [CombinatorialData]
         public async Task Method(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public void [|M|]()
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class C
+                {
+                    public void [|M|]()
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"));
         }
 
@@ -79,14 +82,15 @@ public class C
         [CombinatorialData]
         public async Task Constructor(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public [|C|]()
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class C
+                {
+                    public [|C|]()
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
         }
 
@@ -94,14 +98,15 @@ public class C
         [CombinatorialData]
         public async Task Parameter(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public void M(int [|a|])
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class C
+                {
+                    public void M(int [|a|])
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember<IMethodSymbol>("C.M").Parameters.First());
         }
 
@@ -109,11 +114,12 @@ public class C
         [CombinatorialData]
         public async Task Class_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class [|C|]
-{
-    // this is a comment that wouldn't appear in decompiled source
-}";
+            var source = """
+                public class [|C|]
+                {
+                    // this is a comment that wouldn't appear in decompiled source
+                }
+                """;
 
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C"));
         }
@@ -122,11 +128,12 @@ public class [|C|]
         [CombinatorialData]
         public async Task Constructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class [|C|]
-{
-    // this is a comment that wouldn't appear in decompiled source
-}";
+            var source = """
+                public class [|C|]
+                {
+                    // this is a comment that wouldn't appear in decompiled source
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
         }
 
@@ -134,14 +141,15 @@ public class [|C|]
         [CombinatorialData]
         public async Task NestedClass_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class Outer
-{
-    public class [|C|]
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class Outer
+                {
+                    public class [|C|]
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C"));
         }
 
@@ -149,14 +157,15 @@ public class Outer
         [CombinatorialData]
         public async Task NestedClassConstructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class Outer
-{
-    public class [|C|]
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class Outer
+                {
+                    public class [|C|]
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C..ctor"));
         }
 
@@ -164,14 +173,15 @@ public class Outer
         [CombinatorialData]
         public async Task Class_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class [|Outer|]
-{
-    public class C
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class [|Outer|]
+                {
+                    public class C
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer"));
         }
 
@@ -179,14 +189,15 @@ public class [|Outer|]
         [CombinatorialData]
         public async Task Constructor_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class [|Outer|]
-{
-    public class C
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class [|Outer|]
+                {
+                    public class C
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer..ctor"));
 
         }
@@ -195,17 +206,18 @@ public class [|Outer|]
         [CombinatorialData]
         public async Task NestedClass_FromMethodDocument(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class Outer
-{
-    public class [|C|]
-    {
-        public void M()
-        {
-            // this is a comment that wouldn't appear in decompiled source
-        }
-    }
-}";
+            var source = """
+                public class Outer
+                {
+                    public class [|C|]
+                    {
+                        public void M()
+                        {
+                            // this is a comment that wouldn't appear in decompiled source
+                        }
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C"));
         }
 
@@ -213,17 +225,18 @@ public class Outer
         [CombinatorialData]
         public async Task NestedClassConstructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class Outer
-{
-    public class [|C|]
-    {
-        public void M()
-        {
-            // this is a comment that wouldn't appear in decompiled source
-        }
-    }
-}";
+            var source = """
+                public class Outer
+                {
+                    public class [|C|]
+                    {
+                        public void M()
+                        {
+                            // this is a comment that wouldn't appear in decompiled source
+                        }
+                    }
+                }
+                """;
 
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C..ctor"));
         }
@@ -232,17 +245,18 @@ public class Outer
         [CombinatorialData]
         public async Task Class_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class [|Outer|]
-{
-    public class C
-    {
-        public void M()
-        {
-            // this is a comment that wouldn't appear in decompiled source
-        }
-    }
-}";
+            var source = """
+                public class [|Outer|]
+                {
+                    public class C
+                    {
+                        public void M()
+                        {
+                            // this is a comment that wouldn't appear in decompiled source
+                        }
+                    }
+                }
+                """;
 
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer"));
         }
@@ -251,17 +265,18 @@ public class [|Outer|]
         [CombinatorialData]
         public async Task Constructor_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class [|Outer|]
-{
-    public class C
-    {
-        public void M()
-        {
-            // this is a comment that wouldn't appear in decompiled source
-        }
-    }
-}";
+            var source = """
+                public class [|Outer|]
+                {
+                    public class C
+                    {
+                        public void M()
+                        {
+                            // this is a comment that wouldn't appear in decompiled source
+                        }
+                    }
+                }
+                """;
 
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer..ctor"));
         }
@@ -270,14 +285,15 @@ public class [|Outer|]
         [CombinatorialData]
         public async Task Class_FromMethodDocument(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class [|C|]
-{
-    public void M()
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class [|C|]
+                {
+                    public void M()
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C"));
         }
 
@@ -285,14 +301,15 @@ public class [|C|]
         [CombinatorialData]
         public async Task Constructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class [|C|]
-{
-    public void M()
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+            var source = """
+                public class [|C|]
+                {
+                    public void M()
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
         }
 
@@ -300,11 +317,12 @@ public class [|C|]
         [CombinatorialData]
         public async Task Field(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public int [|f|];
-}";
+            var source = """
+                public class C
+                {
+                    public int [|f|];
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.f"));
         }
 
@@ -312,11 +330,12 @@ public class C
         [CombinatorialData]
         public async Task Property(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public int [|P|] { get; set; }
-}";
+            var source = """
+                public class C
+                {
+                    public int [|P|] { get; set; }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.P"));
         }
 
@@ -324,11 +343,12 @@ public class C
         [CombinatorialData]
         public async Task Property_WithBody(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public int [|P|] { get { return 1; } }
-}";
+            var source = """
+                public class C
+                {
+                    public int [|P|] { get { return 1; } }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.P"));
         }
 
@@ -336,11 +356,12 @@ public class C
         [CombinatorialData]
         public async Task EventField(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|];
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|];
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
         }
 
@@ -348,16 +369,17 @@ public class C
         [CombinatorialData]
         public async Task EventField_WithMethod(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|];
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|];
 
-    public void M()
-    {
-        // this is a comment that wouldn't appear in decompiled source
-    }
-}";
+                    public void M()
+                    {
+                        // this is a comment that wouldn't appear in decompiled source
+                    }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
         }
 
@@ -365,22 +387,24 @@ public class C
         [CombinatorialData]
         public async Task Event(Location pdbLocation, Location sourceLocation)
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
         }
 
         [Fact]
         public async Task ReferenceAssembly_NullResult()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
             // A pdb won't be emitted when building a reference assembly so the first two parameters don't actually matter
             await TestAsync(Location.OnDisk, Location.OnDisk, source, c => c.GetMember("C.E"), buildReferenceAssembly: true, expectNullResult: true);
         }
@@ -388,12 +412,13 @@ public class C
         [Fact]
         public async Task NugetPackageLayout()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -417,12 +442,13 @@ public class C
         [Fact]
         public async Task Net6SdkLayout()
         {
-            var source = @"
-public class C
-{
-    // A change
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -452,14 +478,14 @@ public class C
         [Fact]
         public async Task Net6SdkLayout_WithOtherReferences()
         {
-            var source = @"
-public class C
-{
-    public void [|M|](string d)
-    {
-    }
-}
-";
+            var source = """
+                public class C
+                {
+                    public void [|M|](string d)
+                    {
+                    }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -496,17 +522,17 @@ public class C
         [Fact]
         public async Task Net6SdkLayout_TypeForward()
         {
-            var source = @"
-public class [|C|]
-{
-    public void M(string d)
-    {
-    }
-}
-";
-            var typeForwardSource = @"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-";
+            var source = """
+                public class [|C|]
+                {
+                    public void M(string d)
+                    {
+                    }
+                }
+                """;
+            var typeForwardSource = """
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -558,11 +584,12 @@ public class [|C|]
         [Fact]
         public async Task NoPdb_NullResult()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -580,11 +607,12 @@ public class C
         [Fact]
         public async Task NoDll_NullResult()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -602,11 +630,12 @@ public class C
         [Fact]
         public async Task NoSource_NullResult()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
             await RunTestAsync(async path =>
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
@@ -623,11 +652,12 @@ public class C
         [Fact]
         public async Task WindowsPdb_NullResult()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
             await RunTestAsync(async path =>
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
@@ -642,11 +672,12 @@ public class C
         [Fact]
         public async Task EmptyPdb_NullResult()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -664,11 +695,12 @@ public class C
         [Fact]
         public async Task CorruptPdb_NullResult()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -688,17 +720,19 @@ public class C
         [Fact]
         public async Task OldPdb_NullResult()
         {
-            var source1 = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
-            var source2 = @"
-public class C
-{
-    // A change
-    public event System.EventHandler E { add { } remove { } }
-}";
+            var source1 = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
+            var source2 = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler E { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -725,17 +759,19 @@ public class C
         [CombinatorialData]
         public async Task SourceFileChecksumIncorrect_NullResult(Location pdbLocation)
         {
-            var source1 = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
-            var source2 = @"
-public class C
-{
-    // A change
-    public event System.EventHandler E { add { } remove { } }
-}";
+            var source1 = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
+            var source2 = """
+                public class C
+                {
+                    // A change
+                    public event System.EventHandler E { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -766,11 +802,12 @@ public class C
         [InlineData(Location.OnDisk, "utf-8")]
         public async Task EncodedEmbeddedSource(Location pdbLocation, string encodingWebName)
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler E { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler E { add { } remove { } }
+                }
+                """;
 
             var encoding = Encoding.GetEncoding(encodingWebName);
 
@@ -794,12 +831,13 @@ public class C
         [CombinatorialData]
         public async Task EncodedEmbeddedSource_SJIS(Location pdbLocation)
         {
-            var source = @"
-public class C
-{
-    // ワ
-    public event System.EventHandler E { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    // ワ
+                    public event System.EventHandler E { add { } remove { } }
+                }
+                """;
 
             var encoding = Encoding.GetEncoding("SJIS");
 
@@ -823,12 +861,13 @@ public class C
         [CombinatorialData]
         public async Task EncodedEmbeddedSource_SJIS_FallbackEncoding(Location pdbLocation)
         {
-            var source = @"
-public class C
-{
-    // ワ
-    public event System.EventHandler E { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    // ワ
+                    public event System.EventHandler E { add { } remove { } }
+                }
+                """;
 
             var encoding = Encoding.GetEncoding("SJIS");
 
@@ -851,11 +890,12 @@ public class C
         [Fact]
         public async Task OptionTurnedOff_NullResult()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler E { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler E { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -886,26 +926,26 @@ public class C
         [Fact]
         public async Task MethodInPartialType_NavigateToCorrectFile()
         {
-            var source1 = @"
-public partial class C
-{
-    public void M1()
-    {
-    }
-}
-";
-            var source2 = @"
-using System.Threading.Tasks;
+            var source1 = """
+                public partial class C
+                {
+                    public void M1()
+                    {
+                    }
+                }
+                """;
+            var source2 = """
+                using System.Threading.Tasks;
 
-public partial class C
-{
-    public static async Task [|M2|]() => await M3();
+                public partial class C
+                {
+                    public static async Task [|M2|]() => await M3();
 
-    private static async Task M3()
-    {
-    }
-}
-";
+                    private static async Task M3()
+                    {
+                    }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {

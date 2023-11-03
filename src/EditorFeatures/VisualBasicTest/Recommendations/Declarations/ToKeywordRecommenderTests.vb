@@ -57,14 +57,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<MethodBody>ReDim i(0 To 4, 0 |</MethodBody>, "To")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>Dim i(0 
 |</MethodBody>, "To")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>Dim i(0 _

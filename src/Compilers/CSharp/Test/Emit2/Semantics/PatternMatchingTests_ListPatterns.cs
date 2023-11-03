@@ -8922,4 +8922,18 @@ public static class Extension
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "int[]").WithLocation(9, 27)
             );
     }
+
+    [Fact]
+    public void NotExhaustive_LongList()
+    {
+        string source = """
+            var a = new[] { 1, 2, 3 };
+            _ = a switch { { Length: < 1000 } => 0 };
+            """;
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 1000 }' is not covered.
+            // _ = a switch { { Length: < 1000 } => 0 };
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 1000 }").WithLocation(2, 7));
+    }
 }

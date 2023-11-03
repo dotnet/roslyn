@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -23,8 +24,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal sealed partial class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>
     {
-        public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource, IGlobalOptionService globalOptions)
-            : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, IDiagnosticsRefresher diagnosticsRefresher, IGlobalOptionService globalOptions)
+            : base(analyzerService, diagnosticsRefresher, globalOptions)
         {
         }
 
@@ -53,11 +54,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
-        protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
+        protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
         {
             // All workspace diagnostics are potential duplicates given that they can be overridden by the diagnostics
             // produced by document diagnostics.
-            return ConvertTags(diagnosticData, potentialDuplicate: true);
+            return ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: true);
         }
 
         protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
@@ -168,6 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             var solution = context.Solution;
             var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
+            var codeAnalysisService = solution.Workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
             foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
                 await AddDocumentsAndProject(project, cancellationToken).ConfigureAwait(false);
@@ -176,8 +178,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             async Task AddDocumentsAndProject(Project project, CancellationToken cancellationToken)
             {
-                var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                if (!fullSolutionAnalysisEnabled)
+                // There are two potential sources for reporting workspace diagnostics:
+                //
+                //  1. Full solution analysis: If the user has enabled Full solution analysis, we always run analysis on the latest
+                //                             project snapshot and return up-to-date diagnostics computed from this analysis.
+                //
+                //  2. Code analysis service: Otherwise, if full solution analysis is disabled, and if we have diagnostics from an explicitly
+                //                            triggered code analysis execution on either the current or a prior project snapshot, we return
+                //                            diagnostics from this execution. These diagnostics may be stale with respect to the current
+                //                            project snapshot, but they match user's intent of not enabling continuous background analysis
+                //                            for always having up-to-date workspace diagnostics, but instead computing them explicitly on
+                //                            specific project snapshots by manually running the "Run Code Analysis" command on a project or solution.
+                //
+                // If full solution analysis is disabled AND code analysis was never executed for the given project,
+                // we have no workspace diagnostics to report and bail out.
+                var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
+                if (!fullSolutionAnalysisEnabled && !codeAnalysisService.HasProjectBeenAnalyzed(project.Id))
                     return;
 
                 var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
@@ -189,14 +205,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     documents = documents.AddRange(sourceGeneratedDocuments);
                 }
 
+                Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
+                    ? ShouldIncludeAnalyzer : null;
                 foreach (var document in documents)
                 {
                     if (!ShouldSkipDocument(context, document))
-                        result.Add(new WorkspaceDocumentDiagnosticSource(document));
+                    {
+                        // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
+                        var documentDiagnosticSource = fullSolutionAnalysisEnabled
+                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, shouldIncludeAnalyzer)
+                            : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
+                        result.Add(documentDiagnosticSource);
+                    }
                 }
 
-                // Finally, add the project source to get project specific diagnostics, not associated with any document.
-                result.Add(new ProjectDiagnosticSource(project));
+                // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
+                var projectDiagnosticSource = fullSolutionAnalysisEnabled
+                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, shouldIncludeAnalyzer)
+                    : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
+                result.Add(projectDiagnosticSource);
+
+                bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
+                {
+                    if (analyzer.IsCompilerAnalyzer())
+                        return compilerFullSolutionAnalysisEnabled;
+                    else
+                        return analyzersFullSolutionAnalysisEnabled;
+                }
             }
         }
     }

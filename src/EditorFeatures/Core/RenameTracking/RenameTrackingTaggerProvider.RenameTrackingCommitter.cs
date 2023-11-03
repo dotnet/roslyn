@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _displayText = displayText;
-                _renameSymbolResultGetter = new AsyncLazy<RenameTrackingSolutionSet>(c => RenameSymbolWorkerAsync(c), cacheResult: true);
+                _renameSymbolResultGetter = AsyncLazy.Create(c => RenameSymbolWorkerAsync(c));
             }
 
             /// <summary>

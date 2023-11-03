@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         void ClearAllDiagnosticsForProject(ProjectId projectId);
         void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference fileReference, string language, ProjectId projectId);
         void ClearDiagnosticsForProject(ProjectId projectId, object key);
+        DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId projectId, string language);
         void UpdateDiagnosticsForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items);
     }
 }

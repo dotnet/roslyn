@@ -150,13 +150,12 @@ namespace Microsoft.CodeAnalysis.LanguageService
         }
 
         public void AddDeclaredSymbolInfos(
-            Document document,
+            ProjectState project,
             SyntaxNode root,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
             CancellationToken cancellationToken)
         {
-            var project = document.Project;
             var stringTable = SyntaxTreeIndex.GetStringTable(project);
             var rootNamespace = this.GetRootNamespace(project.CompilationOptions!);
 

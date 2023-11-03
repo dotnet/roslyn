@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
 {
@@ -304,17 +305,35 @@ namespace Roslyn.Utilities
             return RethrowExceptionsAsIOException(() => new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous));
         }
 
-        internal static T RethrowExceptionsAsIOException<T>(Func<T> operation)
+        public static T RethrowExceptionsAsIOException<T>(Func<T> operation)
+            => RethrowExceptionsAsIOException(
+                static operation => operation(),
+                operation);
+
+        public static T RethrowExceptionsAsIOException<T, TArg>(Func<TArg, T> operation, TArg arg)
         {
             try
             {
-                return operation();
+                return operation(arg);
             }
-            catch (IOException)
+            catch (Exception e) when (e is not IOException)
             {
-                throw;
+                throw new IOException(e.Message, e);
             }
-            catch (Exception e)
+        }
+
+        public static Task<T> RethrowExceptionsAsIOExceptionAsync<T>(Func<Task<T>> operation)
+            => RethrowExceptionsAsIOExceptionAsync(
+                static operation => operation(),
+                operation);
+
+        public static async Task<T> RethrowExceptionsAsIOExceptionAsync<T, TArg>(Func<TArg, Task<T>> operation, TArg arg)
+        {
+            try
+            {
+                return await operation(arg).ConfigureAwait(false);
+            }
+            catch (Exception e) when (e is not IOException)
             {
                 throw new IOException(e.Message, e);
             }
@@ -388,6 +407,31 @@ namespace Roslyn.Utilities
             {
                 var info = new FileInfo(fullPath);
                 return info.Length;
+            }
+            catch (IOException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message, e);
+            }
+        }
+
+        /// <exception cref="IOException"/>
+        /// <summary>
+        /// Preferred mechanism to obtain both length and last write time of a file. Querying independently
+        /// requires multiple i/o hits which are expensive, even if cached.
+        /// </summary>
+        internal static void GetFileLengthAndTimeStamp(string fullPath, out long fileLength, out DateTime timeStamp)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+            try
+            {
+                var info = new FileInfo(fullPath);
+
+                fileLength = info.Length;
+                timeStamp = info.LastWriteTimeUtc;
             }
             catch (IOException)
             {

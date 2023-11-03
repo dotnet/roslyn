@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TaskList;
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteSemanticClassificationService), null),
             (typeof(IRemoteDocumentHighlightsService), null),
             (typeof(IRemoteEncapsulateFieldService), typeof(IRemoteEncapsulateFieldService.ICallback)),
+            (typeof(IRemoteKeepAliveService), null),
             (typeof(IRemoteRenamerService), typeof(IRemoteRenamerService.ICallback)),
             (typeof(IRemoteConvertTupleToStructCodeRefactoringService), typeof(IRemoteConvertTupleToStructCodeRefactoringService.ICallback)),
             (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
             (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteMissingImportDiscoveryService), typeof(IRemoteMissingImportDiscoveryService.ICallback)),
-            (typeof(IRemoteSymbolSearchUpdateService), typeof(IRemoteSymbolSearchUpdateService.ICallback)),
+            (typeof(IRemoteSymbolSearchUpdateService), null),
             (typeof(IRemoteExtensionMethodImportCompletionService), null),
             (typeof(IRemoteDependentTypeFinderService), null),
             (typeof(IRemoteGlobalNotificationDeliveryService), null),
@@ -82,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteLegacySolutionEventsAggregationService), null),
             (typeof(IRemoteStackTraceExplorerService), null),
             (typeof(IRemoteUnitTestingSearchService), null),
+            (typeof(IRemoteSourceGenerationService), null),
         });
 
         internal readonly RemoteSerializationOptions Options;

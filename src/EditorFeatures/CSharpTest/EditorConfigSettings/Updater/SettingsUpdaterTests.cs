@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return workspace;
         }
 
+        private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
+            => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
         private static AnalyzerConfigDocument CreateAnalyzerConfigDocument(Workspace workspace, string contents)
         {
             var solution = workspace.CurrentSolution;
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             Assert.Equal(updatedEditorConfig, result?.ToString());
         }
 
-        private static async Task TestAsync(string initialEditorConfig, string updatedEditorConfig, params (AnalyzerSetting, DiagnosticSeverity)[] options)
+        private static async Task TestAsync(string initialEditorConfig, string updatedEditorConfig, params (AnalyzerSetting, ReportDiagnostic)[] options)
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var analyzerConfigDocument = CreateAnalyzerConfigDocument(workspace, initialEditorConfig);
@@ -87,19 +90,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Fact]
         public async Task TestAddNewBoolCodeStyleOptionWithSeverityAsync()
         {
-            ICodeStyleOption option = CSharpCodeStyleOptions.PreferThrowExpression.DefaultValue;
-            option = option.WithValue(true).WithNotification(NotificationOption2.Suggestion);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_style_throw_expression = true:suggestion",
-                (CSharpCodeStyleOptions.PreferThrowExpression, option));
+                (CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
         public async Task TestAddNewEnumCodeStyleOptionWithSeverityAsync()
         {
-            ICodeStyleOption option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
-            option = option.WithValue(AddImportPlacement.InsideNamespace).WithNotification(NotificationOption2.Warning);
+            var option = new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Warning);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_using_directive_placement = inside_namespace:warning",
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         internal async Task TestAddNewAnalyzerOptionOptionAsync(
             [CombinatorialValues(Language.CSharp, Language.VisualBasic, (Language.CSharp | Language.VisualBasic))]
             Language language,
-            [CombinatorialValues(DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Info, DiagnosticSeverity.Hidden)]
-            DiagnosticSeverity severity)
+            [CombinatorialValues(ReportDiagnostic.Warn, ReportDiagnostic.Error, ReportDiagnostic.Info, ReportDiagnostic.Hidden, ReportDiagnostic.Suppress)]
+            ReportDiagnostic severity)
         {
             var expectedHeader = "";
             if (language.HasFlag(Language.CSharp) && language.HasFlag(Language.VisualBasic))
@@ -331,7 +331,7 @@ csharp_new_line_before_else = true";
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
             var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
-            analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
+            analyzerSetting.ChangeSeverity(ReportDiagnostic.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity = error", update.NewText);
@@ -341,23 +341,26 @@ csharp_new_line_before_else = true";
         public async Task TestCodeStyleSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var globalOptions = GetGlobalOptions(workspace);
+
             var updater = new OptionUpdater(workspace, EditorconfigPath);
-            var solution = workspace.CurrentSolution;
 
             var value = "false:silent";
 
             var options = new TieredAnalyzerConfigOptions(
                 new TestAnalyzerConfigOptions(key => value),
-                solution.Options.AsAnalyzerConfigOptions(solution.Services.GetRequiredService<IEditorConfigOptionMappingService>(), LanguageNames.CSharp),
+                globalOptions,
                 LanguageNames.CSharp,
                 EditorconfigPath);
 
             var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, "description", options, updater);
-            setting.ChangeSeverity(DiagnosticSeverity.Error);
+            setting.ChangeSeverity(ReportDiagnostic.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:error", update.NewText);
             value = "false:error";
+
+            var solution = workspace.CurrentSolution;
             var editorconfig = solution.Projects.SelectMany(p => p.AnalyzerConfigDocuments.Where(a => a.FilePath == EditorconfigPath)).Single();
             var text = await editorconfig.GetTextAsync();
 
@@ -374,12 +377,12 @@ csharp_new_line_before_else = true";
         public async Task TestWhitespaceSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var globalOptions = GetGlobalOptions(workspace);
             var updater = new OptionUpdater(workspace, EditorconfigPath);
 
-            var solution = workspace.CurrentSolution;
             var options = new TieredAnalyzerConfigOptions(
                 TestAnalyzerConfigOptions.Instance,
-                solution.Options.AsAnalyzerConfigOptions(solution.Services.GetRequiredService<IEditorConfigOptionMappingService>(), LanguageNames.CSharp),
+                globalOptions,
                 LanguageNames.CSharp,
                 EditorconfigPath);
 

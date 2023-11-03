@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -84,14 +85,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Given a result of binding of initial set of collection range variables, the source,
         ''' bind the rest of the operators in the enumerator.
-        ''' 
+        '''
         ''' There is a special method to bind an operator of each kind, the common thing among them is that
-        ''' all of them take the result we have so far, the source, and return result of an application 
-        ''' of one or two following operators. 
+        ''' all of them take the result we have so far, the source, and return result of an application
+        ''' of one or two following operators.
         ''' Some of the methods also take operators enumerator in order to be able to do a necessary look-ahead
         ''' and in some cases even to advance the enumerator themselves.
-        ''' Join and From operators absorb following Select or Let, that is when the process of binding of 
-        ''' a single operator actually handles two and advances the enumerator. 
+        ''' Join and From operators absorb following Select or Let, that is when the process of binding of
+        ''' a single operator actually handles two and advances the enumerator.
         ''' </summary>
         Private Function BindSubsequentQueryOperators(
             source As BoundQueryClauseBase,
@@ -158,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Bind query expression that starts with From keyword, as opposed to the one that starts with Aggregate.
-        ''' 
+        '''
         '''     From {collection range variables} [{other operators}]
         ''' </summary>
         Private Function BindFromQueryExpression(
@@ -183,9 +184,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Bind query expression that starts with Aggregate keyword, as opposed to the one that starts with From.
-        ''' 
+        '''
         '''     Aggregate {collection range variables} [{other operators}] Into {aggregation range variables}
-        ''' 
+        '''
         ''' If Into clause has one item, a single value is produced. If it has multiple items, values are
         ''' combined into an instance of an Anonymous Type.
         ''' </summary>
@@ -239,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       aggregationSelector.Type)
 
                 Case Else
-                    ' Complex case, need to build an instance of an Anonymous Type. 
+                    ' Complex case, need to build an instance of an Anonymous Type.
                     Dim declaredNames As HashSet(Of String) = CreateSetOfDeclaredNames()
 
                     Dim selectors = New BoundExpression(aggregationVariablesCount - 1) {}
@@ -279,9 +280,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Aggregate operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Aggregate {collection range variables} [{other operators}] Into {aggregation range variables}
-        ''' 
+        '''
         ''' Depending on how many items we have in the INTO clause,
         ''' we will interpret Aggregate operator as follows:
         '''
@@ -569,10 +570,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Apply implicit Select operator at the end of the query to 
+        ''' Apply implicit Select operator at the end of the query to
         ''' ensure that at least one query operator is called.
-        ''' 
-        ''' Basically makes query like: 
+        '''
+        ''' Basically makes query like:
         '''     From a In AA
         ''' into:
         '''     From a In AA Select a
@@ -636,11 +637,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Select operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Select {expression range variables}
-        ''' 
+        '''
         ''' From a In AA Select b  ==> AA.Select(Function(a) b)
-        ''' 
+        '''
         ''' From a In AA Select b, c  ==> AA.Select(Function(a) New With {b, c})
         ''' </summary>
         Private Function BindSelectClause(
@@ -736,23 +737,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Let operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Let {expression range variables}
-        ''' 
+        '''
         ''' Ex: From a In AA Let b  ==> AA.Select(Function(a) New With {a, b})
-        ''' 
+        '''
         ''' Ex: From a In AA Let b, c  ==> AA.Select(Function(a) New With {a, b}).Select(Function({a, b}) New With {a, b, c})
-        ''' 
+        '''
         ''' Note, that preceding Select operator can introduce unnamed range variable, which is dropped by the Let
-        ''' 
-        ''' Ex: From a In AA Select a + 1 Let b ==> AA.Select(Function(a) a + 1).Select(Function(unnamed) b)  
-        ''' 
+        '''
+        ''' Ex: From a In AA Select a + 1 Let b ==> AA.Select(Function(a) a + 1).Select(Function(unnamed) b)
+        '''
         ''' Also, depending on the amount of expression range variables declared by the Let, and the following query operators,
         ''' translation can produce a nested, as opposed to flat, compound variable.
-        ''' 
+        '''
         ''' Ex: From a In AA Let b, c, d ==> AA.Select(Function(a) New With {a, b}).
         '''                                     Select(Function({a, b}) New With {{a, b}, c}).
-        '''                                     Select(Function({{a, b}, c}) New With {a, b, c, d})   
+        '''                                     Select(Function({{a, b}, c}) New With {a, b, c, d})
         ''' </summary>
         Private Function BindLetClause(
             source As BoundQueryClauseBase,
@@ -855,7 +856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' In some scenarios, it is safe to leave compound variable in nested form when there is an
-        ''' operator down the road that does its own projection (Select, Group By, ...). 
+        ''' operator down the road that does its own projection (Select, Group By, ...).
         ''' All following operators have to take an Anonymous Type in both cases and, since there is no way to
         ''' restrict the shape of the Anonymous Type in method's declaration, the operators should be
         ''' insensitive to the shape of the Anonymous Type.
@@ -875,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
 
                     Case SyntaxKind.GroupByClause
-                        ' If [Group By] doesn't have selector for a group's element, we must produce flat result. 
+                        ' If [Group By] doesn't have selector for a group's element, we must produce flat result.
                         ' Element of the group can be observed through result of the query.
                         Dim groupBy = DirectCast(operatorsEnumerator.Current, GroupByClauseSyntax)
                         Return groupBy.Items.Count = 0
@@ -887,7 +888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' In some scenarios, it is safe to leave compound variable in nested form when there is an
-        ''' operator down the road that does its own projection (Select, Group By, ...). 
+        ''' operator down the road that does its own projection (Select, Group By, ...).
         ''' All following operators have to take an Anonymous Type in both cases and, since there is no way to
         ''' restrict the shape of the Anonymous Type in method's declaration, the operators should be
         ''' insensitive to the shape of the Anonymous Type.
@@ -917,38 +918,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, if any, bind the following From operator.
-        ''' 
+        '''
         '''     [{Preceding query operators}] From {collection range variables}
-        ''' 
+        '''
         ''' Ex: From a In AA  ==> AA
-        ''' 
+        '''
         ''' Ex: From a In AA, b in BB  ==> AA.SelectMany(Function(a) BB, Function(a, b) New With {a, b})
-        ''' 
+        '''
         ''' Ex: {source with range variable 'd'} From a In AA, b in BB  ==> source.SelectMany(Function(d) AA, Function(d, a) New With {d, a}).
-        '''                                                                        SelectMany(Function({d, a}) BB, 
+        '''                                                                        SelectMany(Function({d, a}) BB,
         '''                                                                                   Function({d, a}, b) New With {d, a, b})
-        ''' 
+        '''
         ''' Note, that preceding Select operator can introduce unnamed range variable, which is dropped by the From
-        ''' 
+        '''
         ''' Ex: From a In AA Select a + 1 From b in BB ==> AA.Select(Function(a) a + 1).
         '''                                                   SelectMany(Function(unnamed) BB,
-        '''                                                              Function(unnamed, b) b)  
-        ''' 
+        '''                                                              Function(unnamed, b) b)
+        '''
         ''' Also, depending on the amount of collection range variables declared by the From, and the following query operators,
         ''' translation can produce a nested, as opposed to flat, compound variable.
-        ''' 
+        '''
         ''' Ex: From a In AA From b In BB, c In CC, d In DD ==> AA.SelectMany(Function(a) BB, Function(a, b) New With {a, b}).
         '''                                                        SelectMany(Function({a, b}) CC, Function({a, b}, c) New With {{a, b}, c}).
-        '''                                                        SelectMany(Function({{a, b}, c}) DD, 
-        '''                                                                   Function({{a, b}, c}, d) New With {a, b, c, d})   
-        ''' 
-        ''' If From operator translation results in a SelectMany call and the From is immediately followed by a Select or a Let operator, 
+        '''                                                        SelectMany(Function({{a, b}, c}) DD,
+        '''                                                                   Function({{a, b}, c}, d) New With {a, b, c, d})
+        '''
+        ''' If From operator translation results in a SelectMany call and the From is immediately followed by a Select or a Let operator,
         ''' they are absorbed by the From translation. When this happens, operatorsEnumerator is advanced appropriately.
-        ''' 
+        '''
         ''' Ex: From a In AA From b In BB Select a + b ==> AA.SelectMany(Function(a) BB, Function(a, b) a + b)
-        ''' 
+        '''
         ''' Ex: From a In AA From b In BB Let c ==> AA.SelectMany(Function(a) BB, Function(a, b) new With {a, b, c})
-        ''' 
+        '''
         ''' </summary>
         Private Function BindFromClause(
             sourceOpt As BoundQueryClauseBase,
@@ -1097,11 +1098,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         joinSelectorBinder = New QueryLambdaBinder(joinSelectorLambdaSymbol, joinSelectorRangeVariables)
 
                         ' If it is not the last variable in the list, we simply combine source's
-                        ' compound variable (an instance of its Anonymous Type) with our new variable, 
+                        ' compound variable (an instance of its Anonymous Type) with our new variable,
                         ' creating new compound variable of nested Anonymous Type.
 
                         ' In some scenarios, it is safe to leave compound variable in nested form when there is an
-                        ' operator down the road that does its own projection (Select, Group By, ...). 
+                        ' operator down the road that does its own projection (Select, Group By, ...).
                         ' All following operators have to take an Anonymous Type in both cases and, since there is no way to
                         ' restrict the shape of the Anonymous Type in method's declaration, the operators should be
                         ' insensitive to the shape of the Anonymous Type.
@@ -1333,24 +1334,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the outer, bind the following Join operator.
-        ''' 
-        '''     [{Preceding query operators}] Join {collection range variable} 
-        '''                                        [{additional joins}] 
+        '''
+        '''     [{Preceding query operators}] Join {collection range variable}
+        '''                                        [{additional joins}]
         '''                                   On {condition}
-        ''' 
-        ''' Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b), 
+        '''
+        ''' Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b),
         '''                                                                    Function(a, b) New With {a, b})
-        ''' 
+        '''
         ''' Ex: From a In AA                       AA.Join(
         '''     Join b in BB                               BB.Join(CC, Function(b) Key(b), Function(c) Key(c),
         '''          Join c in CC             ==>                  Function(b, c) New With {b, c}),
         '''          On Key(c) Equals Key(b)               Function(a) Key(a), Function({b, c}) Key(b),
         '''     On Key(a) Equals Key(b)                    Function(a, {b, c}) New With {a, b, c})
-        '''                                                                    
-        ''' 
+        '''
+        '''
         ''' Also, depending on the amount of collection range variables in scope, and the following query operators,
         ''' translation can produce a nested, as opposed to flat, compound variable.
-        ''' 
+        '''
         ''' Ex: From a In AA                       AA.Join(BB, Function(a) Key(a), Function(b) Key(b),
         '''     Join b in BB                               Function(a, b) New With {a, b}).
         '''     On Key(a) Equals Key(b)               Join(CC, Function({a, b}) Key(a, b), Function(c) Key(c),
@@ -1358,16 +1359,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     On Key(c) Equals Key(a, b)            Join(DD, Function({{a, b}, c}) Key(a, b, c), Function(d) Key(d),
         '''     Join d in DD                               Function({{a, b}, c}, d) New With {a, b, c, d})
         '''     On Key(a, b, c) Equals Key(d)
-        ''' 
-        ''' If Join is immediately followed by a Select or a Let operator, they are absorbed by the translation. 
+        '''
+        ''' If Join is immediately followed by a Select or a Let operator, they are absorbed by the translation.
         ''' When this happens, operatorsEnumerator is advanced appropriately.
-        ''' 
-        ''' Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b), 
+        '''
+        ''' Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b),
         '''     Select a + b                                                   Function(a, b) a + b)
-        ''' 
-        ''' Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b), 
+        '''
+        ''' Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b),
         '''     Let c                                                   Function(a, b) New With {a, b, c})
-        ''' 
+        '''
         ''' </summary>
         Private Function BindInnerJoinClause(
             outer As BoundQueryClauseBase,
@@ -1490,7 +1491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Need to build an Anonymous Type.
 
                 ' In some scenarios, it is safe to leave compound variable in nested form when there is an
-                ' operator down the road that does its own projection (Select, Group By, ...). 
+                ' operator down the road that does its own projection (Select, Group By, ...).
                 ' All following operators have to take an Anonymous Type in both cases and, since there is no way to
                 ' restrict the shape of the Anonymous Type in method's declaration, the operators should be
                 ' insensitive to the shape of the Anonymous Type.
@@ -1585,21 +1586,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the outer, bind the following Group Join operator.
-        ''' 
-        '''     [{Preceding query operators}] Group Join {collection range variable} 
-        '''                                              [{additional joins}] 
+        '''
+        '''     [{Preceding query operators}] Group Join {collection range variable}
+        '''                                              [{additional joins}]
         '''                                   On {condition}
         '''                                   Into {aggregation range variables}
-        ''' 
-        ''' Ex: From a In AA Group Join b in BB          AA.GroupJoin(BB, Function(a) Key(a), Function(b) Key(b), 
+        '''
+        ''' Ex: From a In AA Group Join b in BB          AA.GroupJoin(BB, Function(a) Key(a), Function(b) Key(b),
         '''                  On Key(a) Equals Key(b) ==>              Function(a, group_b) New With {a, group_b.Count()})
         '''                  Into Count()
-        ''' 
+        '''
         ''' Also, depending on the amount of collection range variables in scope, and the following query operators,
         ''' translation can produce a nested, as opposed to flat, compound variable (see BindInnerJoinClause for an example).
-        ''' 
-        ''' Note, that type of the group must be inferred from the set of available GroupJoin operators in order to be able to 
-        ''' interpret the aggregation range variables. 
+        '''
+        ''' Note, that type of the group must be inferred from the set of available GroupJoin operators in order to be able to
+        ''' interpret the aggregation range variables.
         ''' </summary>
         Private Function BindGroupJoinClause(
             outer As BoundQueryClauseBase,
@@ -1618,9 +1619,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '     Range variables from outer's outer are not in scope and, therefore, are never shadowed by the
             '     same-named inner source range variables. Range variables declared within the inner source that
             '     go out of scope before interpretation reaches the [On] clause do not shadow even same-named
-            '     outer's range variables. 
+            '     outer's range variables.
             '
-            '  2) Range variables declared in the [Into] clause must not shadow outer's range variables simply 
+            '  2) Range variables declared in the [Into] clause must not shadow outer's range variables simply
             '     because they are merged into the same Anonymous Type by the [Into] selector. They also must
             '     not shadow outer's outer range variables (possibly throughout the whole hierarchy),
             '     with which they will later get into the same scope within an [On] clause. Note, that declaredNames
@@ -1712,7 +1713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     callDiagnostics = BindingDiagnosticBag.Discarded
                 End If
 
-                ' Reusing method group that we got while inferring group type, this way we can avoid doing name lookup again. 
+                ' Reusing method group that we got while inferring group type, this way we can avoid doing name lookup again.
                 boundCallOrBadExpression = BindQueryOperatorCall(groupJoin, outer,
                                                                StringConstants.GroupJoinMethod,
                                                                methodGroup,
@@ -1732,20 +1733,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Group By operator.
-        ''' 
-        '''     [{Preceding query operators}] Group [{items expression range variables}] 
+        '''
+        '''     [{Preceding query operators}] Group [{items expression range variables}]
         '''                                   By {keys expression range variables}
         '''                                   Into {aggregation range variables}
-        ''' 
-        ''' Ex: From a In AA Group By Key(a)          AA.GroupBy(Function(a) Key(a), 
+        '''
+        ''' Ex: From a In AA Group By Key(a)          AA.GroupBy(Function(a) Key(a),
         '''                  Into Count()     ==>                Function(key, group_a) New With {key, group_a.Count()})
-        '''                  
-        ''' Ex: From a In AA Group Item(a)            AA.GroupBy(Function(a) Key(a), 
-        '''                  By Key(a)        ==>                Function(a) Item(a), 
+        '''
+        ''' Ex: From a In AA Group Item(a)            AA.GroupBy(Function(a) Key(a),
+        '''                  By Key(a)        ==>                Function(a) Item(a),
         '''                  Into Count()                        Function(key, group_a) New With {key, group_a.Count()})
-        ''' 
-        ''' Note, that type of the group must be inferred from the set of available GroupBy operators in order to be able to 
-        ''' interpret the aggregation range variables. 
+        '''
+        ''' Note, that type of the group must be inferred from the set of available GroupBy operators in order to be able to
+        ''' interpret the aggregation range variables.
         ''' </summary>
         Private Function BindGroupByClause(
             source As BoundQueryClauseBase,
@@ -1817,7 +1818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     callDiagnostics = BindingDiagnosticBag.Discarded
                 End If
 
-                ' Reusing method group that we got while inferring group type, this way we can avoid doing name lookup again. 
+                ' Reusing method group that we got while inferring group type, this way we can avoid doing name lookup again.
                 boundCallOrBadExpression = BindQueryOperatorCall(groupBy, source,
                                                                StringConstants.GroupByMethod,
                                                                methodGroup,
@@ -1931,12 +1932,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Infer type of the group for a Group By operator from the set of available GroupBy methods.
-        ''' 
+        '''
         ''' In short, given already bound itemsLambda and keysLambda, this method performs overload
         ''' resolution over the set of available GroupBy operator methods using fake Into lambda:
         '''     Function(key, group As typeToBeInferred) New With {group}
-        ''' 
-        ''' If resolution succeeds, the type inferred for the best candidate is our result.  
+        '''
+        ''' If resolution succeeds, the type inferred for the best candidate is our result.
         ''' </summary>
         Private Function InferGroupType(
             source As BoundQueryClauseBase,
@@ -2007,12 +2008,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Infer type of the group for a Group Join operator from the set of available GroupJoin methods.
-        ''' 
+        '''
         ''' In short, given already bound inner source and the join key lambdas, this method performs overload
         ''' resolution over the set of available GroupJoin operator methods using fake Into lambda:
         '''     Function(outerVar, group As typeToBeInferred) New With {group}
-        ''' 
-        ''' If resolution succeeds, the type inferred for the best candidate is our result.  
+        '''
+        ''' If resolution succeeds, the type inferred for the best candidate is our result.
         ''' </summary>
         Private Function InferGroupType(
             outer As BoundQueryClauseBase,
@@ -2083,8 +2084,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' This is a helper method to create a BoundQueryLambda for an Into clause 
-        ''' of a Group By or a Group Join operator. 
+        ''' This is a helper method to create a BoundQueryLambda for an Into clause
+        ''' of a Group By or a Group Join operator.
         ''' </summary>
         Private Function BindIntoSelectorLambda(
             clauseSyntax As QueryClauseSyntax,
@@ -2230,11 +2231,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Where operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Where {expression}
-        ''' 
+        '''
         ''' Ex: From a In AA Where a > 0 ==> AA.Where(Function(a) a > b)
-        ''' 
+        '''
         ''' </summary>
         Private Function BindWhereClause(
             source As BoundQueryClauseBase,
@@ -2248,11 +2249,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Skip While operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Skip While {expression}
-        ''' 
+        '''
         ''' Ex: From a In AA Skip While a > 0 ==> AA.SkipWhile(Function(a) a > b)
-        ''' 
+        '''
         ''' </summary>
         Private Function BindSkipWhileClause(
             source As BoundQueryClauseBase,
@@ -2277,11 +2278,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Take While operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Take While {expression}
-        ''' 
+        '''
         ''' Ex: From a In AA Skip While a > 0 ==> AA.TakeWhile(Function(a) a > b)
-        ''' 
+        '''
         ''' </summary>
         Private Function BindTakeWhileClause(
             source As BoundQueryClauseBase,
@@ -2320,10 +2321,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Create binder for a filter condition.
             Dim filterBinder As New QueryLambdaBinder(lambdaSymbol, source.RangeVariables)
 
-            ' Bind condition as a value, conversion should take care of the rest (making it an RValue, etc.). 
+            ' Bind condition as a value, conversion should take care of the rest (making it an RValue, etc.).
             Dim predicate As BoundExpression = filterBinder.BindValue(condition, diagnostics)
 
-            ' Need to verify result type of the condition and enforce ExprIsOperandOfConditionalBranch for possible future conversions. 
+            ' Need to verify result type of the condition and enforce ExprIsOperandOfConditionalBranch for possible future conversions.
             ' In order to do verification, we simply attempt conversion to boolean in the same manner as BindBooleanExpression.
             Dim conversionDiagnostic = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
@@ -2397,11 +2398,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Distinct operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Distinct
-        ''' 
+        '''
         ''' Ex: From a In AA Distinct ==> AA.Distinct()
-        ''' 
+        '''
         ''' </summary>
         Private Function BindDistinctClause(
             source As BoundQueryClauseBase,
@@ -2433,11 +2434,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Skip operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Skip {expression}
-        ''' 
+        '''
         ''' Ex: From a In AA Skip 10 ==> AA.Skip(10)
-        ''' 
+        '''
         ''' </summary>
         Private Function BindSkipClause(
             source As BoundQueryClauseBase,
@@ -2449,11 +2450,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Take operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Take {expression}
-        ''' 
+        '''
         ''' Ex: From a In AA Take 10 ==> AA.Take(10)
-        ''' 
+        '''
         ''' </summary>
         Private Function BindTakeClause(
             source As BoundQueryClauseBase,
@@ -2473,7 +2474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
 
-            ' Bind the Count expression as a value, conversion should take care of the rest (making it an RValue, etc.). 
+            ' Bind the Count expression as a value, conversion should take care of the rest (making it an RValue, etc.).
             Dim boundCount As BoundExpression = Me.BindValue(partition.Count, diagnostics)
 
             ' Now bind the call.
@@ -2505,13 +2506,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Order By operator.
-        ''' 
+        '''
         '''     {Preceding query operators} Order By {orderings}
-        ''' 
+        '''
         ''' Ex: From a In AA Order By a ==> AA.OrderBy(Function(a) a)
-        ''' 
+        '''
         ''' Ex: From a In AA Order By a.Key1, a.Key2 Descending ==> AA.OrderBy(Function(a) a.Key1).ThenByDescending(Function(a) a.Key2)
-        ''' 
+        '''
         ''' </summary>
         Private Function BindOrderByClause(
             source As BoundQueryClauseBase,
@@ -2555,7 +2556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Create binder for a key expression.
                 keyBinder = New QueryLambdaBinder(lambdaSymbol, source.RangeVariables)
 
-                ' Bind expression as a value, conversion during overload resolution should take care of the rest (making it an RValue, etc.). 
+                ' Bind expression as a value, conversion during overload resolution should take care of the rest (making it an RValue, etc.).
                 Dim key As BoundExpression = keyBinder.BindValue(ordering.Expression, diagnostics)
 
                 Dim keyLambda = CreateBoundQueryLambda(lambdaSymbol,
@@ -2746,7 +2747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(item.NameEquals Is Nothing OrElse item.NameEquals.AsClause Is Nothing)
 
                     ' Using enclosing binder for shadowing check, because range variables brought in scope by the current binder
-                    ' are no longer in scope after the Select. So, it is fine to shadow them. 
+                    ' are no longer in scope after the Select. So, it is fine to shadow them.
                     Dim rangeVar As RangeVariableSymbol = Me.BindExpressionRangeVariable(item, requireRangeVariable, Me.ContainingBinder, Nothing, selector, diagnostics)
 
                     If rangeVar IsNot Nothing Then
@@ -2771,7 +2772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(selectVariables(i).NameEquals Is Nothing OrElse selectVariables(i).NameEquals.AsClause Is Nothing)
 
                         ' Using enclosing binder for shadowing check, because range variables brought in scope by the current binder
-                        ' are no longer in scope after the Select. So, it is fine to shadow them. 
+                        ' are no longer in scope after the Select. So, it is fine to shadow them.
                         Dim rangeVar As RangeVariableSymbol = Me.BindExpressionRangeVariable(selectVariables(i), True, Me.ContainingBinder, declaredNames, selectors(i), diagnostics)
                         Debug.Assert(rangeVar IsNot Nothing)
                         rangeVariables(i) = rangeVar
@@ -2856,7 +2857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If rangeVarName IsNot Nothing AndAlso rangeVarName.Length = 0 Then
-                    ' Empty string must have been a syntax error. 
+                    ' Empty string must have been a syntax error.
                     rangeVarName = Nothing
                 End If
 
@@ -2878,10 +2879,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' We are creating BoundRangeVariableAssignment before doing any shadowing checks
                     ' so that SemanticModel can find the declared symbol, but, if the variable will conflict with another
                     ' variable in the same child scope, we will not add it to the scope. Instead, we create special
-                    ' error recovery range variable symbol and add it to the scope at the same place, making sure 
+                    ' error recovery range variable symbol and add it to the scope at the same place, making sure
                     ' that the earlier declared range variable wins during name lookup.
                     ' As an alternative, we could still add the original range variable symbol to the scope and then,
-                    ' while we are binding the rest of the query in error recovery mode, references to the name would 
+                    ' while we are binding the rest of the query in error recovery mode, references to the name would
                     ' cause ambiguity. However, this could negatively affect IDE experience. Also, as we build an
                     ' Anonymous Type for the compound range variables, we would end up with a type with duplicate members,
                     ' which could cause problems elsewhere.
@@ -2947,11 +2948,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Need to build an Anonymous Type.
 
                     ' If it is not the last variable in the list, we simply combine source's
-                    ' compound variable (an instance of its Anonymous Type) with our new variable, 
+                    ' compound variable (an instance of its Anonymous Type) with our new variable,
                     ' creating new compound variable of nested Anonymous Type.
 
                     ' In some scenarios, it is safe to leave compound variable in nested form when there is an
-                    ' operator down the road that does its own projection (Select, Group By, ...). 
+                    ' operator down the road that does its own projection (Select, Group By, ...).
                     ' All following operators have to take an Anonymous Type in both cases and, since there is no way to
                     ' restrict the shape of the Anonymous Type in method's declaration, the operators should be
                     ' insensitive to the shape of the Anonymous Type.
@@ -3163,11 +3164,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' Bind Join/Let like and mixed selector in context of this binder.
-            ''' 
+            '''
             ''' Join like selector: Function(a, b) New With {a, b}
-            ''' 
+            '''
             ''' Let like selector: Function(a) New With {a, letExpressionRangeVariable}
-            ''' 
+            '''
             ''' Mixed selector: Function(a, b) New With {a, b, letExpressionRangeVariable}
             ''' </summary>
             Public Function BuildJoinSelector(
@@ -3185,7 +3186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim fields As AnonymousTypeField()
 
                 ' In some scenarios, it is safe to leave compound variable in nested form when there is an
-                ' operator down the road that does its own projection (Select, Group By, ...). 
+                ' operator down the road that does its own projection (Select, Group By, ...).
                 ' All following operators have to take an Anonymous Type in both cases and, since there is no way to
                 ' restrict the shape of the Anonymous Type in method's declaration, the operators should be
                 ' insensitive to the shape of the Anonymous Type.
@@ -3200,7 +3201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Selector lambda should be:
                 '     Function(unnamed, y) New With {y, .z=Zz}
                 ' The lambda has two parameters, but we have only one range variable that should be carried over.
-                ' If we were simply copying lambda's parameters to the Anonymous Type instance, we would 
+                ' If we were simply copying lambda's parameters to the Anonymous Type instance, we would
                 ' copy data that aren't needed (value of the first parameter should be dropped).
                 If _rangeVariables.Length = 1 OrElse mustProduceFlatCompoundVariable Then
                     ' Need to flatten
@@ -3409,8 +3410,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' small and very simple, so rebinding them shouldn't create a noticeable performance impact.
                 ' If that will not turn out to be the case, we might try to optimize by tracking if someone
                 ' requested ContainingMember from outerKeyBinder while an expression is being bound and
-                ' rebind only in that case. 
-                ' Similarly, in some scenarios we bind right key with innerKeyBinder first and then rebind 
+                ' rebind only in that case.
+                ' Similarly, in some scenarios we bind right key with innerKeyBinder first and then rebind
                 ' it with outerKeyBinder.
 
                 Dim keysAreGood As Boolean
@@ -3480,7 +3481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If (operatorKind And BinaryOperatorKind.Equals) <> 0 AndAlso
                        (operatorKind And Not (BinaryOperatorKind.Equals Or BinaryOperatorKind.Lifted)) = 0 AndAlso
                        intrinsicOperatorType <> SpecialType.None Then
-                        ' There is an intrinsic (=) operator, use its argument type. 
+                        ' There is an intrinsic (=) operator, use its argument type.
                         Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty)
                         diagnostics.AddDependencies(useSiteInfo)
                         targetType = innerKeyBinder.GetSpecialTypeForBinaryOperator(joinCondition, outerKey.Type, innerKey.Type, intrinsicOperatorType,
@@ -3722,9 +3723,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Knows how to bind FunctionAggregationSyntax and GroupAggregationSyntax
-        ''' within particular [Into] clause. 
-        ''' 
-        ''' Also implements Lookup/LookupNames methods to make sure that lookup without 
+        ''' within particular [Into] clause.
+        '''
+        ''' Also implements Lookup/LookupNames methods to make sure that lookup without
         ''' container type, uses type of the group as the container type.
         ''' </summary>
         Private Class IntoClauseBinder
@@ -3931,7 +3932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If functionAggregationSyntax.Argument Is Nothing Then
                     arguments = ImmutableArray(Of BoundExpression).Empty
                 Else
-                    ' Bind argument as a value, conversion during overload resolution should take care of the rest (making it an RValue, etc.). 
+                    ' Bind argument as a value, conversion during overload resolution should take care of the rest (making it an RValue, etc.).
                     Dim aggregationSelector = aggregationBinder.BindValue(functionAggregationSyntax.Argument, diagnostics)
 
                     aggregationLambda = CreateBoundQueryLambda(aggregationLambdaSymbol,
@@ -3981,7 +3982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 End If
 
-                ' Should look for group's methods only. 
+                ' Should look for group's methods only.
                 AddMemberLookupSymbolsInfo(nameSet,
                                   m_GroupReference.Type,
                                   options Or CType(LookupOptions.MethodsOnly Or LookupOptions.MustBeInstance, LookupOptions))
@@ -3992,7 +3993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 End If
 
-                ' Should look for group's methods only. 
+                ' Should look for group's methods only.
                 LookupMember(lookupResult,
                              m_GroupReference.Type,
                              name,
@@ -4044,7 +4045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 selector = BindRValue(item.Aggregation, diagnostics)
 
                 If rangeVarName IsNot Nothing AndAlso rangeVarName.Length = 0 Then
-                    ' Empty string must have been a syntax error. 
+                    ' Empty string must have been a syntax error.
                     rangeVarName = Nothing
                 End If
 
@@ -4058,10 +4059,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' We are creating BoundRangeVariableAssignment before doing any shadowing checks
                     ' so that SemanticModel can find the declared symbol, but, if the variable will conflict with another
                     ' variable in the same child scope, we will not add it to the scope. Instead, we create special
-                    ' error recovery range variable symbol and add it to the scope at the same place, making sure 
+                    ' error recovery range variable symbol and add it to the scope at the same place, making sure
                     ' that the earlier declared range variable wins during name lookup.
                     ' As an alternative, we could still add the original range variable symbol to the scope and then,
-                    ' while we are binding the rest of the query in error recovery mode, references to the name would 
+                    ' while we are binding the rest of the query in error recovery mode, references to the name would
                     ' cause ambiguity. However, this could negatively affect IDE experience. Also, as we build an
                     ' Anonymous Type for the compound range variables, we would end up with a type with duplicate members,
                     ' which could cause problems elsewhere.
@@ -4114,7 +4115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
 
         ''' <summary>
-        ''' Bind CollectionRangeVariableSyntax, applying AsQueryable/AsEnumerable/Cast(Of Object) calls and 
+        ''' Bind CollectionRangeVariableSyntax, applying AsQueryable/AsEnumerable/Cast(Of Object) calls and
         ''' Select with implicit type conversion as appropriate.
         ''' </summary>
         Private Function BindCollectionRangeVariable(
@@ -4180,7 +4181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rangeVariableOpt As RangeVariableSymbol = Nothing
 
             If rangeVarName IsNot Nothing AndAlso rangeVarName.Length = 0 Then
-                ' Empty string must have been a syntax error. 
+                ' Empty string must have been a syntax error.
                 rangeVarName = Nothing
             End If
 
@@ -4191,10 +4192,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' We are capturing rangeVariableOpt before doing any shadowing checks
                 ' so that SemanticModel can find the declared symbol, but, if the variable will conflict with another
                 ' variable in the same child scope, we will not add it to the scope. Instead, we create special
-                ' error recovery range variable symbol and add it to the scope at the same place, making sure 
+                ' error recovery range variable symbol and add it to the scope at the same place, making sure
                 ' that the earlier declared range variable wins during name lookup.
                 ' As an alternative, we could still add the original range variable symbol to the scope and then,
-                ' while we are binding the rest of the query in error recovery mode, references to the name would 
+                ' while we are binding the rest of the query in error recovery mode, references to the name would
                 ' cause ambiguity. However, this could negatively affect IDE experience. Also, as we build an
                 ' Anonymous Type for the compound range variables, we would end up with a type with duplicate members,
                 ' which could cause problems elsewhere.
@@ -4207,7 +4208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     doErrorRecovery = True  ' Shouldn't add to the scope.
                 Else
 
-                    ' Check shadowing etc. 
+                    ' Check shadowing etc.
                     VerifyRangeVariableName(variable, syntax.Identifier.Identifier, diagnostics)
 
                     If Not beginsTheQuery AndAlso declaredNames Is Nothing Then
@@ -4309,9 +4310,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Convert source expression to queryable type by inferring control variable type 
-        ''' and applying AsQueryable/AsEnumerable or Cast(Of Object) calls.   
-        ''' 
+        ''' Convert source expression to queryable type by inferring control variable type
+        ''' and applying AsQueryable/AsEnumerable or Cast(Of Object) calls.
+        '''
         ''' In case of success, returns possibly "converted" source and non-Nothing controlVariableType.
         ''' In case of failure, returns passed in source and Nothing as controlVariableType.
         ''' </summary>
@@ -4409,8 +4410,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given query operator source, infer control variable type from available
-        ''' 'Select' methods. 
-        ''' 
+        ''' 'Select' methods.
+        '''
         ''' Returns inferred type or Nothing.
         ''' </summary>
         Private Function InferControlVariableType(source As BoundExpression, diagnostics As BindingDiagnosticBag) As TypeSymbol
@@ -4439,7 +4440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = InferControlVariableType(lookupResult.Symbols, failedDueToAnAmbiguity)
 
                 If result Is Nothing AndAlso Not failedDueToAnAmbiguity AndAlso Not lookupResult.Symbols(0).IsReducedExtensionMethod() Then
-                    ' We tried to infer from instance methods and there were no suitable 'Select' method, 
+                    ' We tried to infer from instance methods and there were no suitable 'Select' method,
                     ' let's try to infer from extension methods.
                     lookupResult.Clear()
                     Me.LookupExtensionMethods(lookupResult, source.Type, StringConstants.SelectMethod, 0, QueryOperatorLookupOptions, useSiteInfo)
@@ -4457,8 +4458,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given a set of 'Select' methods, infer control variable type. 
-        ''' 
+        ''' Given a set of 'Select' methods, infer control variable type.
+        '''
         ''' Returns inferred type or Nothing.
         ''' </summary>
         Private Function InferControlVariableType(
@@ -4490,8 +4491,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given a method, infer control variable type. 
-        ''' 
+        ''' Given a method, infer control variable type.
+        '''
         ''' Returns inferred type or Nothing.
         ''' </summary>
         Private Function InferControlVariableType(method As MethodSymbol) As TypeSymbol
@@ -4560,10 +4561,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' NOTE: Lookup may return Kind = LookupResultKind.Inaccessible or LookupResultKind.MustBeInstance;
             '
-            '       It looks we intentionally pass LookupResultKind.Inaccessible to CreateBoundMethodGroup(...) 
+            '       It looks we intentionally pass LookupResultKind.Inaccessible to CreateBoundMethodGroup(...)
             '       causing BC30390 to be generated instead of BC36594 reported by Dev11 (more accurate message?)
             '
-            '       As CreateBoundMethodGroup(...) only expects Kind = LookupResultKind.Good or 
+            '       As CreateBoundMethodGroup(...) only expects Kind = LookupResultKind.Good or
             '       LookupResultKind.Inaccessible in all other cases we just skip calling this method
             '       so that BC36594 is generated which what seems to what Dev11 does.
             If Not lookupResult.IsClear AndAlso (lookupResult.Kind = LookupResultKind.Good OrElse lookupResult.Kind = LookupResultKind.Inaccessible) Then

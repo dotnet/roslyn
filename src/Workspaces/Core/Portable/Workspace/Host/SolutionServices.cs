@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Host
             _services = services;
         }
 
+        [Obsolete("Only use to implement obsolete public API")]
+        internal HostWorkspaceServices WorkspaceServices => _services;
+
         internal IMefHostExportProvider ExportProvider => (IMefHostExportProvider)_services.HostServices;
 
         /// <inheritdoc cref="HostWorkspaceServices.GetService"/>
@@ -53,5 +56,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         public TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
             => this.GetLanguageServices(language).GetRequiredService<TLanguageService>();
+
+        internal IEnumerable<T> FindLanguageServices<T>(HostWorkspaceServices.MetadataFilter filter)
+            => _services.FindLanguageServices<T>(filter);
     }
 }

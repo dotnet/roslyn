@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                if (TypeManager.IsTargetAttribute(UnderlyingMethod, attrData, AttributeDescription.LCIDConversionAttribute))
+                if (TypeManager.IsTargetAttribute(attrData, AttributeDescription.LCIDConversionAttribute, out int signatureIndex))
                 {
-                    if (attrData.CommonConstructorArguments.Length == 1)
+                    if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out var constructorArguments, out var namedArguments, syntaxNodeOpt, diagnostics))
                     {
-                        return TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_LCIDConversionAttribute__ctor, attrData, syntaxNodeOpt, diagnostics);
+                        return TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_LCIDConversionAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics);
                     }
                 }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 StateMachineMoveNextBodyDebugInfo Cci.IMethodBody.MoveNextBodyInfo => null;
 
-                DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => null;
+                ImmutableArray<SourceSpan> Cci.IMethodBody.CodeCoverageSpans => ImmutableArray<SourceSpan>.Empty;
 
                 ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes =>
                     ImmutableArray<Cci.LocalScope>.Empty;
@@ -165,6 +165,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     => default;
 
                 public DebugId MethodId => default(DebugId);
+
+                public bool IsPrimaryConstructor => false;
             }
 
             IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters => _typeParameters;

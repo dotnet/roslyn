@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -17,6 +18,40 @@ namespace Microsoft.CodeAnalysis
         public UserFunctionException(Exception innerException)
             : base("User provided code threw an exception", innerException)
         {
+        }
+    }
+
+    internal sealed class WrappedUserComparer<T> : IEqualityComparer<T>
+    {
+        private readonly IEqualityComparer<T> _inner;
+
+        public WrappedUserComparer(IEqualityComparer<T> inner)
+        {
+            _inner = inner;
+        }
+
+        public bool Equals(T? x, T? y)
+        {
+            try
+            {
+                return _inner.Equals(x, y);
+            }
+            catch (Exception e)
+            {
+                throw new UserFunctionException(e);
+            }
+        }
+
+        public int GetHashCode([DisallowNull] T obj)
+        {
+            try
+            {
+                return _inner.GetHashCode(obj);
+            }
+            catch (Exception e)
+            {
+                throw new UserFunctionException(e);
+            }
         }
     }
 
@@ -70,6 +105,11 @@ namespace Microsoft.CodeAnalysis
                     throw new UserFunctionException(e);
                 }
             };
+        }
+
+        internal static IEqualityComparer<T> WrapUserComparer<T>(this IEqualityComparer<T> comparer)
+        {
+            return new WrappedUserComparer<T>(comparer);
         }
     }
 }

@@ -69,12 +69,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return;
             }
 
-            if (module.Module == null)
-            {
-                // Only resolve breakpoints if symbols have been loaded.
-                return;
-            }
-
             OnModuleLoad(module.Process, module, OnFunctionResolved(workList));
         }
 

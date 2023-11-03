@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var label in section.SwitchLabels)
                 {
                     if (reachableLabels.Contains(label.Label) || label.HasErrors ||
-                        label == node.DefaultLabel && node.Expression.ConstantValue == null && IsTraditionalSwitch(node))
+                        label == node.DefaultLabel && node.Expression.ConstantValueOpt == null && IsTraditionalSwitch(node))
                     {
                         SetState(initialState.Clone());
                     }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TLocalState afterSwitchState = UnreachableState();
             if (node.ReachabilityDecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
-                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
+                (node.DefaultLabel == null && node.Expression.ConstantValueOpt == null && IsTraditionalSwitch(node)))
             {
                 Join(ref afterSwitchState, ref initialState);
             }

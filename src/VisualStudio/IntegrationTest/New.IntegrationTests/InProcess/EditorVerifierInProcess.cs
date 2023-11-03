@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -65,6 +65,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
             Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);
             Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
+        }
+
+        public async Task TextEqualsAsync(
+            string expectedText,
+            CancellationToken cancellationToken)
+        {
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var editorText = view.TextSnapshot.GetText();
+            var caretPosition = await TestServices.Editor.GetCaretPositionAsync(cancellationToken);
+            editorText = editorText.Insert(caretPosition, "$$");
+            AssertEx.EqualOrDiff(expectedText, editorText);
         }
 
         public async Task TextContainsAsync(
@@ -255,21 +266,26 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 var actualTaggedText = actualTaggedSpan.Span.GetText();
                 Assert.Equal(expectedTag.taggedText, actualTaggedText);
 
+                AssertEx.NotNull(actualTaggedSpan.Tag.ToolTipContent);
                 var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
                 var actualTooltipText = CollectTextInRun(containerElement);
                 Assert.Equal(expectedTag.tooltipText, actualTooltipText);
             }
 
-            static string CollectTextInRun(ContainerElement containerElement)
+            static string CollectTextInRun(ContainerElement? containerElement)
             {
                 var builder = new StringBuilder();
-                foreach (var element in containerElement.Elements)
+
+                if (containerElement is not null)
                 {
-                    if (element is ClassifiedTextElement classifiedTextElement)
+                    foreach (var element in containerElement.Elements)
                     {
-                        foreach (var run in classifiedTextElement.Runs)
+                        if (element is ClassifiedTextElement classifiedTextElement)
                         {
-                            builder.Append(run.Text);
+                            foreach (var run in classifiedTextElement.Runs)
+                            {
+                                builder.Append(run.Text);
+                            }
                         }
                     }
                 }

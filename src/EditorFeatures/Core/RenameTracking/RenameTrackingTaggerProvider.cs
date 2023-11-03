@@ -38,29 +38,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
-    internal sealed partial class RenameTrackingTaggerProvider : ITaggerProvider
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal sealed partial class RenameTrackingTaggerProvider(
+        IThreadingContext threadingContext,
+        IInlineRenameService inlineRenameService,
+        IDiagnosticAnalyzerService diagnosticAnalyzerService,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider) : ITaggerProvider
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IInlineRenameService _inlineRenameService;
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RenameTrackingTaggerProvider(
-            IThreadingContext threadingContext,
-            IInlineRenameService inlineRenameService,
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _threadingContext = threadingContext;
-            _inlineRenameService = inlineRenameService;
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
-            _globalOptions = globalOptions;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
+        private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {

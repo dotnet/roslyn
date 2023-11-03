@@ -1009,7 +1009,7 @@ interface I
             Assert.Equal(expected, actual);
         }
 
-        [Fact, WorkItem(2650, "https://github.com/dotnet/roslyn/issues/2650")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2650")]
         public async Task TestEditExplicitInterfaceIndexer()
         {
             var code =

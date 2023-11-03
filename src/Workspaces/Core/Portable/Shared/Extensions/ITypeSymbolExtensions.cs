@@ -211,22 +211,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new UnnamedErrorTypeRemover(compilation));
         }
 
-        public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
-            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
-        {
-            result ??= new List<ITypeParameterSymbol>();
-            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
-            return result;
-        }
-
-        public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
-            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
-        {
-            result ??= new List<ITypeParameterSymbol>();
-            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
-            return result;
-        }
-
         [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,
@@ -247,6 +231,44 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             where TType2 : ITypeSymbol
         {
             return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
+        }
+
+        public static bool CanBeEnumerated(this ITypeSymbol type)
+        {
+            // Type itself is IEnumerable/IEnumerable<SomeType>
+            if (type.OriginalDefinition is { SpecialType: SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable })
+            {
+                return true;
+            }
+
+            return type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
+        }
+
+        public static bool CanBeAsynchronouslyEnumerated(this ITypeSymbol type, Compilation compilation)
+        {
+            var asyncEnumerableType = compilation.IAsyncEnumerableOfTType();
+
+            if (asyncEnumerableType is null)
+            {
+                return false;
+            }
+
+            // Type itself is an IAsyncEnumerable<SomeType>
+            if (type.TypeKind == TypeKind.Interface &&
+                type.OriginalDefinition.Equals(asyncEnumerableType, SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
+
+            foreach (var @interface in type.AllInterfaces)
+            {
+                if (@interface.OriginalDefinition.Equals(asyncEnumerableType, SymbolEqualityComparer.Default))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -35,8 +35,10 @@
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
@@ -74,10 +76,13 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Test.Utilities" />
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />

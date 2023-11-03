@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private NotificationOptionViewModel _selectedNotificationPreference;
 
         public BooleanCodeStyleOptionViewModel(
-            IOption option,
+            IOption2 option,
             string description,
             string truePreview,
             string falsePreview,
@@ -38,8 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _truePreview = truePreview;
             _falsePreview = falsePreview;
 
-            var codeStyleOption = (ICodeStyleOption)optionStore.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null));
-            _selectedPreference = Preferences.Single(c => c.IsChecked == (bool)codeStyleOption.Value);
+            var codeStyleOption = optionStore.GetOption<CodeStyleOption2<bool>>(option, option.IsPerLanguage ? info.Language : null);
+            _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
 
             var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Severity == codeStyleOption.Notification.Severity);
             _selectedNotificationPreference = NotificationPreferences.Single(p => p.Notification.Severity == notificationViewModel.Notification.Severity);

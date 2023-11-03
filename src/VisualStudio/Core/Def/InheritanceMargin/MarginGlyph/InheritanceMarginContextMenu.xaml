@@ -27,7 +27,7 @@
         <!-- Style used to display a single target menu item -->
         <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
-            <Setter Property="Header" Value="{Binding  DisplayContent}"/>
+            <Setter Property="Header" Value="{Binding DisplayContent}"/>
             <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
             <Setter Property="IsCheckable" Value="False"/>
             <EventSetter Event="Click" Handler="TargetMenuItem_OnClick"/>
@@ -51,9 +51,15 @@
 
                             <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="5"/>
                             <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="22,1,4,1" Width="16" Height="16" VerticalAlignment="Center"
-                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
                             <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="4,1,4,1"
-                                                VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                              VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                <ContentPresenter.ContentTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" />
+                                    </DataTemplate>
+                                </ContentPresenter.ContentTemplate>
+                            </ContentPresenter>
                             <TextBlock Grid.Column="2" Text="{TemplateBinding MenuItem.InputGestureText}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
                         </Grid>
                         <ControlTemplate.Triggers>
@@ -109,8 +115,14 @@
                                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Moniker="{Binding LanguageMoniker}" />
 
                             <ContentPresenter Grid.Column="2" ContentSource="Header" Margin="4,1,4,1"
-                                                VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            <TextBlock Grid.Column="3" Text="{TemplateBinding MenuItem.InputGestureText}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
+                                              VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                <ContentPresenter.ContentTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" />
+                                    </DataTemplate>
+                                </ContentPresenter.ContentTemplate>
+                            </ContentPresenter>
+                                <TextBlock Grid.Column="3" Text="{TemplateBinding MenuItem.InputGestureText}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="Icon" Value="{x:Null}">
@@ -160,9 +172,15 @@
 
                             <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="5"/>
                             <ContentPresenter x:Name="Icon" Grid.Column="0" Margin="4,1,4,1" Width="16" Height="16" VerticalAlignment="Center"
-                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
                             <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="4,1,4,1"
-                                                VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                              VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                <ContentPresenter.ContentTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" />
+                                    </DataTemplate>
+                                </ContentPresenter.ContentTemplate>
+                            </ContentPresenter>
                             <TextBlock Grid.Column="2" Text="{TemplateBinding MenuItem.InputGestureText}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
                             <Path x:Uid="Path_1" x:Name="Arrow" Grid.Column="3" VerticalAlignment="Center" Margin="4,0,0,0" Fill="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuSubmenuGlyphBrushKey}}" Data="{StaticResource RightArrow}"/>
                             <Popup x:Uid="Popup_1" x:Name="PART_Popup" AllowsTransparency="true" Placement="Right" VerticalOffset="0" HorizontalOffset="0"

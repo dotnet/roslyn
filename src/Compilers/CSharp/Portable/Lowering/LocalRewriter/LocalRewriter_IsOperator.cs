@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandType = rewrittenOperand.Type;
             var targetType = rewrittenTargetType.Type;
 
-            Debug.Assert(operandType is { } || rewrittenOperand.ConstantValue!.IsNull);
+            Debug.Assert(operandType is { } || rewrittenOperand.ConstantValueOpt!.IsNull);
             Debug.Assert(targetType is { });
 
             // TODO: Handle dynamic operand type and target type
 
             if (!_inExpressionLambda)
             {
-                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValue);
+                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValueOpt);
 
                 if (constantValue != null)
                 {

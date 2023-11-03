@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -124,14 +126,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Keep usings sorted if they were originally sorted.
             usings.SortUsingDirectives(root.Usings, placeSystemNamespaceFirst);
 
+            var addBlankLine = false;
             if (root.Externs.Count == 0)
             {
-                root = AddImportHelpers.MoveTrivia(
+                (root, addBlankLine) = AddImportHelpers.MoveTrivia(
                     CSharpSyntaxFacts.Instance, root, root.Usings, usings);
             }
 
-            return root.WithUsings(
+            var rootWithNewUsings = root.WithUsings(
                 usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToSyntaxList());
+            if (addBlankLine)
+            {
+                var lastUsing = rootWithNewUsings.Usings.Last();
+                var nextToken = lastUsing.GetLastToken(includeZeroWidth: true, includeSkipped: true).GetNextTokenOrEndOfFile(includeZeroWidth: true, includeSkipped: true);
+                var endOfLine = lastUsing.GetTrailingTrivia().LastOrDefault(CSharpSyntaxFacts.Instance.IsEndOfLineTrivia);
+                Debug.Assert(!endOfLine.IsKind(SyntaxKind.None));
+                if (!endOfLine.IsKind(SyntaxKind.None))
+                {
+                    rootWithNewUsings = rootWithNewUsings.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(endOfLine));
+                }
+            }
+
+            return rootWithNewUsings;
         }
 
         private static List<UsingDirectiveSyntax> AddUsingDirectives(

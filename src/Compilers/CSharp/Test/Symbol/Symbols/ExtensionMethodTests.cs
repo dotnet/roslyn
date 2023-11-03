@@ -2745,8 +2745,9 @@ class Program
             methodSymbol = (MethodSymbol)symbolInfo.Symbol.GetSymbol<MethodSymbol>();
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
-            // 9341 is resolved as Won't Fix since ThisParameter property is internal.
-            Assert.Throws<InvalidOperationException>(() => methodSymbol.ThisParameter);
+            parameter = methodSymbol.ThisParameter;
+            Assert.Equal(-1, parameter.Ordinal);
+            Assert.Equal(parameter.ContainingSymbol, methodSymbol);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, Action<ModuleSymbol> validator = null,
@@ -4078,6 +4079,33 @@ public static class C
             }
 
             CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+        }
+
+        [Fact]
+        [WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        public void ReduceExtensionsMethodOnReceiverTypeSystemVoid()
+        {
+            var source =
+@"static class C
+{
+    static void M(this object x)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            compilation.VerifyDiagnostics();
+
+            var extensionMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.True(extensionMethod.IsExtensionMethod);
+
+            var systemVoidType = compilation.GetSpecialType(SpecialType.System_Void);
+            Assert.Equal(SpecialType.System_Void, systemVoidType.SpecialType);
+
+            var reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, null!);
+            Assert.Null(reduced);
+
+            reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, compilation);
+            Assert.Null(reduced);
         }
     }
 }

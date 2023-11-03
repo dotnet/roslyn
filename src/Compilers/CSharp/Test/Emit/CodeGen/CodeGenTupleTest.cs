@@ -3261,7 +3261,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))] // The used assemblies test hook is blocked by https://github.com/dotnet/roslyn/issues/39976
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
         [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {
@@ -3282,10 +3282,13 @@ class C
     }
 }
 ";
-            CreateCompilation(source);
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = (1, 1, ..., 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3305,7 +3308,10 @@ class C
     }
 }
 ";
-            CreateCompilation(source);
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,15015): warning CS0168: The variable 'x' is declared but never used
+                //         (int, int, ..., int) x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 15015));
         }
 
         [Fact]
@@ -5400,24 +5406,22 @@ class C
             var source = @"
 using VT2 = (int, int);
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (2,13): error CS1001: Identifier expected
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,13): error CS8773: Feature 'using type alias' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
-                // (2,14): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
-                // (2,19): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int, int)").WithArguments("using type alias", "12.0").WithLocation(2, 13),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = ").WithLocation(2, 1)
-                );
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = (int, int);").WithLocation(2, 1));
+
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = (int, int);").WithLocation(2, 1));
         }
 
         [Fact]
@@ -7042,7 +7046,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8135: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -7063,13 +7067,12 @@ class C
                 // (14,17): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         x = (1, null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 17),
-                // (15,17): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (15,20): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         x = (1, (t)=>t);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(15, 20),
                 // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13)
-                );
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13));
         }
 
         [Fact]
@@ -7099,7 +7102,7 @@ class C
                 // (12,32): error CS1525: Invalid expression term ')'
                 //         x = ((int, int))(1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 32),
-                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8135: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = ((int, int))(null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((int, int))(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0030: Cannot convert type '(int, int, int)' to '(int, int)'
@@ -7120,13 +7123,12 @@ class C
                 // (14,29): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         x = ((int, int))(1, null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 29),
-                // (15,29): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (15,32): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         x = ((int, int))(1, (t)=>t);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 29),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(15, 32),
                 // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = ((int, int))null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "((int, int))null").WithArguments("(int, int)").WithLocation(16, 13)
-                );
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "((int, int))null").WithArguments("(int, int)").WithLocation(16, 13));
         }
 
         [Fact]
@@ -7157,7 +7159,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,13): error CS8135: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -7178,14 +7180,12 @@ class C
                 // (14,17): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         x = (1, null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 17),
-                // (15,17): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (15,20): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         x = (1, (t)=>t);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(15, 20),
                 // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13)
-
-            );
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13));
         }
 
         [Fact]
@@ -7216,7 +7216,7 @@ class C
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
-                // (8,13): error CS8129: Tuple with 3 elements cannot be converted to type '(string, string)'.
+                // (8,13): error CS8135: Tuple with 3 elements cannot be converted to type '(string, string)'.
                 //         x = (null, null, null);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(string, string)").WithLocation(8, 13),
                 // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(string, string)'
@@ -7234,14 +7234,12 @@ class C
                 // (15,14): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         x = (1, (t)=>t);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(15, 14),
-                // (15,17): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                // (15,20): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
                 //         x = (1, (t)=>t);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "string").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(15, 20),
                 // (16,13): error CS0037: Cannot convert null to '(string, string)' because it is a non-nullable value type
                 //         x = null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(string, string)").WithLocation(16, 13)
-                );
-
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(string, string)").WithLocation(16, 13));
         }
 
         [Fact]
@@ -7272,7 +7270,7 @@ class C
                 // (12,21): error CS1525: Invalid expression term ')'
                 //         x = ((1, 1, ), 1);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 21),
-                // (8,14): error CS8129: Tuple with 3 elements cannot be converted to type '(int, int)'.
+                // (8,14): error CS8135: Tuple with 3 elements cannot be converted to type '(int, int)'.
                 //         x = ((null, null, null), 1);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 14),
                 // (9,14): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
@@ -7293,14 +7291,12 @@ class C
                 // (14,18): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         x = ((1, null), 1);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 18),
-                // (15,18): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (15,21): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         x = ((1, (t)=>t), 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(15, 21),
                 // (16,14): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //         x = (null, 1);
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 14)
-
-             );
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 14));
         }
 
         [Fact]
@@ -7374,9 +7370,6 @@ class C
                 // (17,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple`3").WithLocation(17, 13),
-                // (17,13): error CS0029: Cannot implicitly convert type 'System.ValueTuple<(int, int), int, int, int, int, int, int, (int, int, int)>' to '((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)'
-                //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple<(int, int), int, int, int, int, int, int, (int, int, int)>", "((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)").WithLocation(17, 13),
                 // (18,37): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1,1,1)").WithArguments("System.ValueTuple`3").WithLocation(18, 37));
@@ -13323,6 +13316,69 @@ namespace System
                 "readonly System.Boolean (T1, T2).Equals(System.Object obj)",
                 "readonly System.Boolean (T1, T2).Equals((T1, T2) other)",
                 "readonly void (T1, T2).Deconstruct(out T1 Item1, out T2 Item2)",
+                "(T1, T2)..ctor()",
+                "T1 (T1, T2).Item1",
+                "T2 (T1, T2).Item2"
+                );
+        }
+
+        [Fact]
+        [WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_StructWithPrimaryConstructor()
+        {
+            var source = @"
+#pragma warning disable CS" + ((int)ErrorCode.WRN_UnreadPrimaryConstructorParameter).ToString() + @" // Parameter is unread.
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>(T1 Item1, T2 Item2)
+    {
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilation(source, assemblyName: "test");
+            comp.VerifyEmitDiagnostics(
+                // error CS7038: Failed to emit module 'test': Unable to determine specific cause of the failure.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("test", "Unable to determine specific cause of the failure.").WithLocation(1, 1)
+                );
+
+            var valuetuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
+
+            AssertTestDisplayString(valuetuple.GetMembers(),
+                "(T1, T2)..ctor(T1 Item1, T2 Item2)",
+                "(T1, T2)..ctor()",
+                "T1 (T1, T2).Item1",
+                "T2 (T1, T2).Item2"
+                );
+        }
+
+        [Fact]
+        [WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_StructWithRegularConstructor()
+        {
+            var source = @"
+#pragma warning disable CS" + ((int)ErrorCode.WRN_UnreadPrimaryConstructorParameter).ToString() + @" // Parameter is unread.
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 Item1, T2 Item2){}
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilation(source, assemblyName: "test");
+            comp.VerifyEmitDiagnostics(
+                // error CS7038: Failed to emit module 'test': Unable to determine specific cause of the failure.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("test", "Unable to determine specific cause of the failure.").WithLocation(1, 1)
+                );
+
+            var valuetuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
+
+            AssertTestDisplayString(valuetuple.GetMembers(),
+                "(T1, T2)..ctor(T1 Item1, T2 Item2)",
                 "(T1, T2)..ctor()",
                 "T1 (T1, T2).Item1",
                 "T2 (T1, T2).Item2"

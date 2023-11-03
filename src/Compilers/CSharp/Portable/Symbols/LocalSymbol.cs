@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
@@ -37,7 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract SyntaxNode ScopeDesignatorOpt { get; }
 
-        internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
+        internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            );
 
         internal abstract bool IsImportedFromMetadata
         {
@@ -265,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the syntax node that declares the variable.
+        /// Returns the syntax node that declares the variable.  Should always return a value if <see
+        /// cref="HasSourceLocation"/> returns <see langword="true"/>.  May throw if it returns <see langword="false"/>.
         /// </summary>
         /// <remarks>
         /// All user-defined and long-lived synthesized variables must return a reference to a node that is 
@@ -275,6 +284,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The location of the declarator is used to calculate <see cref="LocalDebugId.SyntaxOffset"/> during emit.
         /// </remarks>
         internal abstract SyntaxNode GetDeclaratorSyntax();
+
+        /// <summary>
+        /// <see langword="true"/> if this has a real syntax location in source code, <see langword="false"/> otherwise.
+        /// A common example of a local without a source location is an EE local symbol.
+        /// </summary>
+        internal abstract bool HasSourceLocation { get; }
 
         /// <summary>
         /// Describes whether this represents a modifiable variable. Note that

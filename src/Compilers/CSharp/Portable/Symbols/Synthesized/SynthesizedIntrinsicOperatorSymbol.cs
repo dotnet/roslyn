@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            internal override bool IsMetadataIn => RefKind == RefKind.In;
+            internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
 
             internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
@@ -504,6 +504,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return null; }
             }
+
+            internal override bool HasUnscopedRefAttribute => false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
         }
     }
 }

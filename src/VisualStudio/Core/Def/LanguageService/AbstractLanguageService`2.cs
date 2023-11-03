@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -276,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => this.LanguageDebugInfo = null;
 
         protected virtual IVsContainedLanguage CreateContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator, VisualStudioProject project,
+            IVsTextBufferCoordinator bufferCoordinator, ProjectSystemProject project,
             IVsHierarchy hierarchy, uint itemid)
         {
             return new ContainedLanguage(

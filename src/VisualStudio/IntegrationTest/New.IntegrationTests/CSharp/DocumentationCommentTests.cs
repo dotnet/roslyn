@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact, WorkItem(54391, "https://github.com/dotnet/roslyn/issues/54391")]
+        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/54391")]
         public async Task TypingCharacter_MultiCaret()
         {
             var code =

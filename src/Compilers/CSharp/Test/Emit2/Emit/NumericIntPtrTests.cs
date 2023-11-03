@@ -8998,7 +8998,7 @@ $@"public class Library
                 comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
                 // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
-                CompileAndVerify(comp, verify: Verification.PassesOrFailFast | Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
+                CompileAndVerify(comp, verify: new Verification() { Status = VerificationStatus.PassesOrFailFast | VerificationStatus.FailsPEVerify }, expectedOutput: IncludeExpectedOutput(expectedResult));
                 Assert.NotNull(expectedResult);
             }
 
@@ -9033,7 +9033,7 @@ class Program
                 }
 
                 // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
-                CompileAndVerify(comp, verify: Verification.FailsPEVerify | Verification.PassesOrFailFast, expectedOutput: IncludeExpectedOutput(expectedResult)).VerifyDiagnostics(expectedDiagnostics);
+                CompileAndVerify(comp, verify: new Verification() { Status = VerificationStatus.FailsPEVerify | VerificationStatus.PassesOrFailFast }, expectedOutput: IncludeExpectedOutput(expectedResult)).VerifyDiagnostics(expectedDiagnostics);
                 Assert.NotNull(expectedResult);
             }
         }
@@ -11755,6 +11755,29 @@ class Program
 }
 """);
             }
+        }
+
+        [WorkItem(67041, "https://github.com/dotnet/roslyn/issues/67041")]
+        [Theory]
+        [CombinatorialData]
+        public void PointerSubtraction(bool useNumericIntPtr)
+        {
+            var source = """
+                class Program
+                {
+                    static unsafe long F(int* p1)
+                    {
+                        byte* p2 = (byte*)p1;
+                        p2++;
+                        return p2 - (byte*)p1;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.UnsafeReleaseDll,
+                targetFramework: useNumericIntPtr ? TargetFramework.Net60 : TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
         }
 
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)

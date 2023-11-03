@@ -7,52 +7,42 @@ using Microsoft.CodeAnalysis.PatternMatching;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal readonly struct MatchResult
+    internal readonly struct MatchResult(
+        CompletionItem completionItem,
+        bool shouldBeConsideredMatchingFilterText,
+        PatternMatch? patternMatch,
+        int index,
+        string? matchedAdditionalFilterText,
+        int recentItemIndex = -1)
     {
         /// <summary>
-        /// The CompletinoItem used to create this MatchResult.
+        /// The CompletionItem used to create this MatchResult.
         /// </summary>
-        public readonly CompletionItem CompletionItem;
+        public readonly CompletionItem CompletionItem = completionItem;
 
-        public readonly PatternMatch? PatternMatch;
+        public readonly PatternMatch? PatternMatch = patternMatch;
 
-        // The value of `ShouldBeConsideredMatchingFilterText` doesn't 100% refect the actual PatternMatch result.
+        // The value of `ShouldBeConsideredMatchingFilterText` doesn't 100% reflect the actual PatternMatch result.
         // In certain cases, there'd be no match but we'd still want to consider it a match (e.g. when the item is in MRU list,)
         // and this is why PatternMatch can be null. There's also cases it's a match but we want to consider it a non-match
-        // (e.g. when not a prefix match in deleteion sceanrio).
-        public readonly bool ShouldBeConsideredMatchingFilterText;
+        // (e.g. when not a prefix match in deletion scenario).
+        public readonly bool ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
 
-        public string FilterTextUsed => _matchedAddtionalFilterText ?? CompletionItem.FilterText;
+        public string FilterTextUsed => MatchedAdditionalFilterText ?? CompletionItem.FilterText;
 
         // We want to preserve the original alphabetical order for items with same pattern match score,
         // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
-        // integer to archieve this.
-        public readonly int IndexInOriginalSortedOrder;
-        public readonly int RecentItemIndex;
+        // integer to achieve this.
+        public readonly int IndexInOriginalSortedOrder = index;
+        public readonly int RecentItemIndex = recentItemIndex;
 
         /// <summary>
         /// If `CompletionItem.AdditionalFilterTexts` was used to create this MatchResult, then this is set to the one that was used.
         /// Otherwise this is set to null.
         /// </summary>
-        private readonly string? _matchedAddtionalFilterText;
+        public readonly string? MatchedAdditionalFilterText = matchedAdditionalFilterText;
 
-        public bool MatchedWithAdditionalFilterTexts => _matchedAddtionalFilterText is not null;
-
-        public MatchResult(
-            CompletionItem completionItem,
-            bool shouldBeConsideredMatchingFilterText,
-            PatternMatch? patternMatch,
-            int index,
-            string? matchedAdditionalFilterText,
-            int recentItemIndex = -1)
-        {
-            CompletionItem = completionItem;
-            ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
-            PatternMatch = patternMatch;
-            IndexInOriginalSortedOrder = index;
-            RecentItemIndex = recentItemIndex;
-            _matchedAddtionalFilterText = matchedAdditionalFilterText;
-        }
+        public bool MatchedWithAdditionalFilterTexts => MatchedAdditionalFilterText is not null;
 
         public static IComparer<MatchResult> SortingComparer { get; } = new Comparer();
 

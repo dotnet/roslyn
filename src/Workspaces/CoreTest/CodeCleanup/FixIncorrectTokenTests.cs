@@ -684,7 +684,7 @@ End Module
             await VerifyAsync(@"[|" + code + @"|]", expectedResult: code);
         }
 
-        [Fact, WorkItem(606015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606015")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606015")]
         public async Task FixFullWidthSingleQuotes()
         {
             var code = @"[|
@@ -709,7 +709,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact, WorkItem(707135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707135")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707135")]
         public async Task FixFullWidthSingleQuotes2()
         {
             var savedCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
@@ -738,8 +738,7 @@ End Module
             codeWithMarker = FixLineEndings(codeWithMarker);
             expectedResult = FixLineEndings(expectedResult);
 
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.FixIncorrectTokens or PredefinedCodeCleanupProviderNames.Format);

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -260,14 +261,18 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_composition)
                 ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
                 For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
-                    workspace.GlobalOptions.SetGlobalOption(New OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language), BackgroundAnalysisScope.OpenFiles)
+                    workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language, BackgroundAnalysisScope.OpenFiles)
                 Next
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
                 registrationService.Register(workspace)
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace).Result
+                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace, projectId:=Nothing, documentId:=Nothing,
+                                                                                     includeSuppressedDiagnostics:=False,
+                                                                                     includeLocalDocumentDiagnostics:=True,
+                                                                                     includeNonLocalDocumentDiagnostics:=True,
+                                                                                     CancellationToken.None).Result
 
                 registrationService.Unregister(workspace)
 

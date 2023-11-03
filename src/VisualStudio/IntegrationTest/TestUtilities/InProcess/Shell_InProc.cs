@@ -12,9 +12,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public static Shell_InProc Create() => new Shell_InProc();
 
-        public IntPtr GetHWnd()
-            => GetDTE().MainWindow.HWnd;
-
         public bool IsUIContextActive(Guid context)
         {
             return UIContext.FromUIContextGuid(context).IsActive;

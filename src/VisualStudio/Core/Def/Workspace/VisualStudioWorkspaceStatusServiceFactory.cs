@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,23 +10,23 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.OperationProgress;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Task = System.Threading.Tasks.Task;
-
 using IAsyncServiceProvider2 = Microsoft.VisualStudio.Shell.IAsyncServiceProvider2;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
-    internal class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
+    internal sealed class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
+        private static readonly Option2<bool> s_partialLoadModeFeatureFlag = new("visual_studio_workspace_partial_load_mode", defaultValue: false);
+
         private readonly IAsyncServiceProvider2 _serviceProvider;
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptions;
@@ -55,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             if (workspaceServices.Workspace is VisualStudioWorkspace)
             {
-                if (!_globalOptions.GetOption(Options.PartialLoadModeFeatureFlag))
+                if (!_globalOptions.GetOption(s_partialLoadModeFeatureFlag))
                 {
                     // don't enable partial load mode for ones that are not in experiment yet
                     return new WorkspaceStatusService();
@@ -113,8 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _progressStageStatus = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    // pre-emptively make sure event is subscribed. if APIs are called before it is done, calls will be blocked
-                    // until event subscription is done
+                    // preemptively make sure event is subscribed. if APIs are called before it is done, calls will be
+                    // blocked until event subscription is done
                     using var asyncToken = listener.BeginAsyncOperation("StatusChanged_EventSubscription");
 
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
@@ -146,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
 
                     var completionTask = status.WaitForCompletionAsync();
-                    Logger.Log(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.Create(LogType.Trace, m => m["AlreadyFullyLoaded"] = completionTask.IsCompleted));
+                    Logger.Log(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.Create(LogType.Trace, m => m["AlreadyFullyLoaded"] = completionTask.IsCompleted, LogLevel.Debug));
 
                     // TODO: WaitForCompletionAsync should accept cancellation directly.
                     //       for now, use WithCancellation to indirectly add cancellation
@@ -156,49 +155,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            // unfortunately, IVsOperationProgressStatusService requires UI thread to let project system to proceed to next stages.
-            // this method should only be used with either await or JTF.Run, it should be never used with Task.Wait otherwise, it can
-            // deadlock
             public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
             {
                 var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
-                if (status == null)
-                {
-                    return false;
-                }
-
-                return !status.IsInProgress;
+                return status != null && !status.IsInProgress;
             }
 
             private async ValueTask<IVsOperationProgressStageStatusForSolutionLoad?> GetProgressStageStatusAsync(CancellationToken cancellationToken)
-            {
-                // Workaround for lack of fast path in JoinAsync; avoid calling when already completed
-                // https://github.com/microsoft/vs-threading/pull/696
-                if (_progressStageStatus.Task.IsCompleted)
-                {
-                    return await _progressStageStatus.Task.ConfigureAwait(false);
-                }
-
-                return await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        [Export(typeof(IOptionProvider)), Shared]
-        internal sealed class Options : IOptionProvider
-        {
-            private const string FeatureName = "VisualStudioWorkspaceStatusService";
-
-            public static readonly Option2<bool> PartialLoadModeFeatureFlag = new(FeatureName, nameof(PartialLoadModeFeatureFlag), defaultValue: false,
-                new FeatureFlagStorageLocation("Roslyn.PartialLoadMode"));
-
-            ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
-                PartialLoadModeFeatureFlag);
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Options()
-            {
-            }
+                => await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

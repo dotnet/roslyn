@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             SyntaxNode functionDeclaration,
             IMethodSymbol method,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             ImmutableArray<SyntaxNode> listOfParameterNodes,
             TextSpan parameterSpan,
             CleanCodeGenerationOptionsProvider fallbackOptions,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (!TryGetParameterSymbol(selectedParameter, semanticModel, out var parameter, cancellationToken))
                 return;
 
-            var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
-            if (methodSymbol.IsAbstract ||
+            if (parameter.ContainingSymbol is not IMethodSymbol methodSymbol ||
+                methodSymbol.IsAbstract ||
                 methodSymbol.IsExtern ||
                 methodSymbol.PartialImplementationPart != null ||
                 methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
@@ -140,15 +140,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 parameter = (IParameterSymbol?)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
 
-                return parameter != null && parameter.Name != "";
+                return parameter is { Name: not "" };
             }
         }
 
         protected bool CanOfferRefactoring(
             SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken, out IBlockOperation? blockStatementOpt)
+            CancellationToken cancellationToken, out IBlockOperation? blockStatement)
         {
-            blockStatementOpt = null;
+            blockStatement = null;
 
             var functionBody = GetBody(functionDeclaration);
             if (functionBody == null)
@@ -167,17 +167,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 cancellationToken);
 
             if (operation == null)
-            {
                 return false;
-            }
 
             switch (operation.Kind)
             {
                 case OperationKind.AnonymousFunction:
-                    blockStatementOpt = ((IAnonymousFunctionOperation)operation).Body;
+                    blockStatement = ((IAnonymousFunctionOperation)operation).Body;
                     break;
                 case OperationKind.Block:
-                    blockStatementOpt = (IBlockOperation)operation;
+                    blockStatement = (IBlockOperation)operation;
                     break;
                 default:
                     return false;
@@ -185,10 +183,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             return true;
         }
-
-        protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-        => operation.UnwrapImplicitConversion() is IParameterReferenceOperation parameterReference &&
-           parameter.Equals(parameterReference.Parameter);
 
         protected static bool ContainsParameterReference(
             SemanticModel semanticModel,
@@ -199,7 +193,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             foreach (var child in condition.Syntax.DescendantNodes().OfType<TExpressionSyntax>())
             {
                 var childOperation = semanticModel.GetOperation(child, cancellationToken);
-                if (childOperation != null && IsParameterReference(childOperation, parameter))
+                if (childOperation != null && InitializeParameterHelpersCore.IsParameterReference(childOperation, parameter))
                     return true;
             }
 
@@ -236,8 +230,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
-                if (memberReference.Member is IFieldSymbol or
-                    IPropertySymbol)
+                if (memberReference.Member is IFieldSymbol or IPropertySymbol)
                 {
                     fieldOrProperty = memberReference.Member;
                     return true;

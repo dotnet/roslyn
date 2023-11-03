@@ -17,26 +17,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         internal partial class WorkCoordinator
         {
-            private abstract class AsyncWorkItemQueue<TKey> : IDisposable
+            private abstract class AsyncWorkItemQueue<TKey>(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) : IDisposable
                 where TKey : class
             {
                 private readonly object _gate = new();
-                private readonly SemaphoreSlim _semaphore;
+                private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 0);
                 private bool _disposed;
 
-                private readonly Workspace _workspace;
-                private readonly SolutionCrawlerProgressReporter _progressReporter;
+                private readonly Workspace _workspace = workspace;
+                private readonly SolutionCrawlerProgressReporter _progressReporter = progressReporter;
 
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
-
-                public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
-                {
-                    _semaphore = new SemaphoreSlim(initialCount: 0);
-
-                    _workspace = workspace;
-                    _progressReporter = progressReporter;
-                }
 
                 protected abstract int WorkItemCount_NoLock { get; }
 
@@ -46,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTake_NoLock(TKey key, out WorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service, out WorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem);
 
                 public int WorkItemCount
                 {
@@ -217,14 +209,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public bool TryTakeAnyWork(
                     ProjectId? preferableProjectId,
                     ProjectDependencyGraph dependencyGraph,
-                    IDiagnosticAnalyzerService? analyzerService,
                     out WorkItem workItem,
                     out CancellationToken cancellationToken)
                 {
                     lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
-                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, analyzerService, out workItem))
+                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, out workItem))
                         {
                             cancellationToken = GetNewCancellationToken_NoLock(workItem.Key);
                             workItem.AsyncToken.Dispose();
@@ -248,9 +239,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return source.Token;
                 }
 
-                protected ProjectId GetBestProjectId_NoLock<T>(
+                protected static ProjectId GetBestProjectId_NoLock<T>(
                     Dictionary<ProjectId, T> workQueue, ProjectId? projectId,
-                    ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService)
+                    ProjectDependencyGraph dependencyGraph)
                 {
                     if (projectId != null)
                     {
@@ -259,23 +250,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return projectId;
                         }
 
-                        // prefer project that directly depends on the given project and has diagnostics as next project to
+                        // prefer project that directly depends on the given project as next project to
                         // process
                         foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId))
                         {
-                            if (workQueue.ContainsKey(dependingProjectId) && analyzerService?.ContainsDiagnostics(Workspace, dependingProjectId) == true)
+                            if (workQueue.ContainsKey(dependingProjectId))
                             {
                                 return dependingProjectId;
                             }
-                        }
-                    }
-
-                    // prefer a project that has diagnostics as next project to process.
-                    foreach (var pendingProjectId in workQueue.Keys)
-                    {
-                        if (analyzerService?.ContainsDiagnostics(Workspace, pendingProjectId) == true)
-                        {
-                            return pendingProjectId;
                         }
                     }
 

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
         }
 
-        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
                 new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 cancellationToken).ConfigureAwait(false);
 
             var fieldName = rule.NamingStyle.MakeCompliant(property.Name).First();
-            return NameGenerator.GenerateUniqueName(fieldName, n => !property.ContainingType.GetMembers(n).Any());
+            return NameGenerator.GenerateUniqueName(fieldName, n => !(property.ContainingType.Name == n || property.ContainingType.GetMembers(n).Any()));
         }
 
-        internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
+        protected override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             CSharpCodeGenerationContextInfo info, SyntaxNode property,
-            string fieldName, SyntaxGenerator generator)
+            string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken)
         {
             // C# might have trivia with the accessors that needs to be preserved.  
             // so we will update the existing accessors instead of creating new ones
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
             var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
-            var newGetter = GetUpdatedAccessor(info, getAccessor, getAccessorStatement);
+            var newGetter = GetUpdatedAccessor(info, getAccessor, getAccessorStatement, cancellationToken);
 
             SyntaxNode newSetter = null;
             if (setAccessor != null)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(fieldName),
                     generator.IdentifierName("value")));
-                newSetter = GetUpdatedAccessor(info, setAccessor, setAccessorStatement);
+                newSetter = GetUpdatedAccessor(info, setAccessor, setAccessorStatement, cancellationToken);
             }
 
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
@@ -72,11 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
             GetExistingAccessors(AccessorListSyntax accessorListSyntax)
             => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
-                accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
-                                                                 a.IsKind(SyntaxKind.InitAccessorDeclaration)));
+                accessorListSyntax.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration));
 
         private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationContextInfo info,
-            SyntaxNode accessor, SyntaxNode statement)
+            SyntaxNode accessor, SyntaxNode statement, CancellationToken cancellationToken)
         {
             var newAccessor = AddStatement(accessor, statement);
             var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             }
 
             if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
-                    accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference,
+                    accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference, cancellationToken,
                     out var arrowExpression, out _))
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return ((AccessorDeclarationSyntax)accessor).WithBody(blockSyntax);
         }
 
-        internal override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
+        protected override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
             CSharpCodeGenerationContextInfo info, SyntaxNode property)
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)property;
@@ -139,13 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return propertyDeclaration.WithSemicolonToken(default);
         }
 
-        internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
+        protected override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
             => syntaxNode;
 
-        internal override SyntaxNode GetInitializerValue(SyntaxNode property)
+        protected override SyntaxNode GetInitializerValue(SyntaxNode property)
             => ((PropertyDeclarationSyntax)property).Initializer?.Value;
 
-        internal override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
+        protected override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
             => ((PropertyDeclarationSyntax)property).WithInitializer(null);
     }
 }

@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             for (var current = symbol; current != null; current = current.ContainingSymbol)
             {
+                if (current.DeclaringSyntaxReferences.Length == 0)
+                    continue;
+
                 if (current is IPropertySymbol)
                     return current;
 
@@ -75,19 +78,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // search for results within the property itself.
                 if (current is IFieldSymbol field)
                 {
-                    if (field.IsImplicitlyDeclared &&
-                        field.AssociatedSymbol?.Kind == SymbolKind.Property)
-                    {
-                        return field.AssociatedSymbol;
-                    }
-                    else
-                    {
-                        return field;
-                    }
+                    return field is { IsImplicitlyDeclared: true, AssociatedSymbol.Kind: SymbolKind.Property }
+                        ? field.AssociatedSymbol
+                        : field;
                 }
 
-                if (current is IMethodSymbol { MethodKind: not MethodKind.AnonymousFunction and not MethodKind.LocalFunction } method)
-                    return method;
+                // Note: this may hit a containing local-function/lambda.  That's fine as that's still the scope we want
+                // to look for this local within.
+                if (current is IMethodSymbol)
+                    return current;
             }
 
             return null;

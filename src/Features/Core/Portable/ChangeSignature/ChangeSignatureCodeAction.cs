@@ -14,10 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal class ChangeSignatureCodeAction : CodeActionWithOptions
+    internal class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context) : CodeActionWithOptions
     {
-        private readonly AbstractChangeSignatureService _changeSignatureService;
-        private readonly ChangeSignatureAnalysisSucceededContext _context;
+        private readonly AbstractChangeSignatureService _changeSignatureService = changeSignatureService;
+        private readonly ChangeSignatureAnalysisSucceededContext _context = context;
 
         /// <summary>
         /// This code action currently pops up a confirmation dialog to the user.  As such, it does more than make
@@ -25,18 +25,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
-        public ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context)
-        {
-            _changeSignatureService = changeSignatureService;
-            _context = context;
-        }
-
         public override string Title => FeaturesResources.Change_signature;
 
         public override object? GetOptions(CancellationToken cancellationToken)
             => AbstractChangeSignatureService.GetChangeSignatureOptions(_context);
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (options is ChangeSignatureOptionsResult changeSignatureOptions && changeSignatureOptions != null)
             {

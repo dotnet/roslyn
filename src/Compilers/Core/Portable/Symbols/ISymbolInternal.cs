@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -23,7 +25,15 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         string Name { get; }
 
+        /// <summary>
+        /// Gets the name of a symbol as it appears in metadata.
+        /// </summary>
         string MetadataName { get; }
+
+        /// <summary>
+        /// Gets the metadata token associated with this symbol, or 0 if the symbol is not loaded from metadata.
+        /// </summary>
+        int MetadataToken { get; }
 
 #nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
         Compilation DeclaringCompilation { get; }
@@ -142,5 +152,14 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// is to use it on a symbol that is a definition.
         /// </summary>
         Cci.IReference GetCciAdapter();
+
+        /// <summary>
+        /// <see langword="true"/> if this symbol has any location that is within <paramref name="tree"/>. <see
+        /// langword="false"/> otherwise. Can be more efficient than iteration over all the <see
+        /// cref="ISymbol.Locations"/> as it will avoid an unnecessary array allocation.
+        /// </summary>
+        /// <param name="definedWithinSpan">Optional span.  If present, the location of this symbol must be both inside
+        /// this tree and within the span passed in.</param>
+        bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default);
     }
 }

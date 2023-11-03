@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         protected abstract (SyntaxList<TStatementSyntax> tryStatements, SyntaxList<TStatementSyntax> finallyStatements) GetTryFinallyStatements(TTryStatementSyntax tryStatement);
 
         protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxList<TStatementSyntax> statementsToSurround);
+        protected abstract bool TryCreateUsingLocalDeclaration(ParseOptions options, TLocalDeclarationSyntax declarationStatement, [NotNullWhen(true)] out TLocalDeclarationSyntax? usingDeclarationStatement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -144,30 +146,42 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
             else
             {
-                var statementsToSurround = GetStatementsToSurround(declarationStatement, semanticModel, syntaxFacts, cancellationToken);
-                var usingStatement = CreateUsingStatement(declarationStatement, statementsToSurround);
+                var statementsToSurround = GetStatementsToSurround(
+                    declarationStatement, surroundingStatements, semanticModel, syntaxFacts, out var consumedLastSurroundingStatement, cancellationToken);
 
-                if (statementsToSurround.Any())
+                // If we're intending on surrounding all the statements that follow the declaration, and the language supports it.
+                // then generate `using var x = ...;` instead of `using (var x = ...) { }`
+                if (consumedLastSurroundingStatement &&
+                    this.TryCreateUsingLocalDeclaration(root.SyntaxTree.Options, declarationStatement, out var usingDeclarationStatement))
                 {
-                    var newParent = WithStatements(
-                        declarationStatement.GetRequiredParent(),
-                        new SyntaxList<TStatementSyntax>(surroundingStatements
-                            .Take(declarationStatementIndex)
-                            .Concat(usingStatement)
-                            .Concat(surroundingStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
-
-                    return document.WithSyntaxRoot(root.ReplaceNode(
-                        declarationStatement.GetRequiredParent(),
-                        newParent.WithAdditionalAnnotations(Formatter.Annotation)));
+                    return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement, usingDeclarationStatement));
                 }
                 else
                 {
-                    // Either the parent is not blocklike, meaning WithStatements can’t be used as in the other branch,
-                    // or there’s just no need to replace more than the statement itself because no following statements
-                    // will be surrounded.
-                    return document.WithSyntaxRoot(root.ReplaceNode(
-                        declarationStatement,
-                        usingStatement.WithAdditionalAnnotations(Formatter.Annotation)));
+                    var usingStatement = CreateUsingStatement(declarationStatement, statementsToSurround);
+
+                    if (statementsToSurround.Any())
+                    {
+                        var newParent = WithStatements(
+                            declarationStatement.GetRequiredParent(),
+                            new SyntaxList<TStatementSyntax>(surroundingStatements
+                                .Take(declarationStatementIndex)
+                                .Concat(usingStatement)
+                                .Concat(surroundingStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
+
+                        return document.WithSyntaxRoot(root.ReplaceNode(
+                            declarationStatement.GetRequiredParent(),
+                            newParent.WithAdditionalAnnotations(Formatter.Annotation)));
+                    }
+                    else
+                    {
+                        // Either the parent is not blocklike, meaning WithStatements can’t be used as in the other branch,
+                        // or there’s just no need to replace more than the statement itself because no following statements
+                        // will be surrounded.
+                        return document.WithSyntaxRoot(root.ReplaceNode(
+                            declarationStatement,
+                            usingStatement.WithAdditionalAnnotations(Formatter.Annotation)));
+                    }
                 }
             }
         }
@@ -213,12 +227,16 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             return true;
         }
 
-        private SyntaxList<TStatementSyntax> GetStatementsToSurround(
+        private static SyntaxList<TStatementSyntax> GetStatementsToSurround(
             TLocalDeclarationSyntax declarationStatement,
+            SyntaxList<TStatementSyntax> surroundingStatements,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
+            out bool consumedLastSurroundingStatement,
             CancellationToken cancellationToken)
         {
+            consumedLastSurroundingStatement = false;
+
             // Find the minimal number of statements to move into the using block
             // in order to not break existing references to the local.
             var lastUsageStatement = FindSiblingStatementContainingLastUsage(
@@ -230,7 +248,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             if (lastUsageStatement == declarationStatement)
                 return default;
 
-            var surroundingStatements = GetSurroundingStatements(declarationStatement);
+            consumedLastSurroundingStatement = lastUsageStatement == surroundingStatements.Last();
             var declarationStatementIndex = surroundingStatements.IndexOf(declarationStatement);
             var lastUsageStatementIndex = surroundingStatements.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
 

@@ -74,12 +74,12 @@ End Class",
 public class [|C|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -89,12 +89,12 @@ public class [|C|]
 public class [|C|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -102,7 +102,7 @@ public class [|C|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546241"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546241"), CombinatorialData]
         public async Task TestInterface(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public interface I {}";
@@ -131,12 +131,12 @@ End Interface",
 public interface [|I|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -146,12 +146,12 @@ public interface [|I|]
 public interface [|I|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -190,12 +190,12 @@ End Class",
 public class [|C|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -205,12 +205,12 @@ public class [|C|]
 public class [|C|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -256,12 +256,12 @@ public class C
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -274,12 +274,12 @@ public class C
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -323,12 +323,12 @@ public class C
 {{
     public string [|S|];
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -339,12 +339,12 @@ public class C
 {{
     public string [|S|];
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -352,7 +352,7 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546240"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546240"), CombinatorialData]
         public async Task TestProperty(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public class C { public string S { get; protected set; } }";
@@ -388,12 +388,12 @@ public class C
 {{
     public string [|S|] {{ get; protected set; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -404,12 +404,12 @@ public class C
 {{
     public string [|S|] {{ get; protected set; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -417,8 +417,8 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546291"), CombinatorialData]
-        [WorkItem(546194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546194")]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546291"), CombinatorialData]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546194")]
         public async Task TestEvent(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "using System; public class C { public event Action E; }";
@@ -460,12 +460,12 @@ public class C
 {{
     public event Action [|E|];
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -478,12 +478,12 @@ public class C
 {{
     public event Action [|E|];
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -534,12 +534,12 @@ public class C
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -552,12 +552,12 @@ public class C
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -565,7 +565,7 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546195"), WorkItem(546269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546269"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546195"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546269"), CombinatorialData]
         public async Task TestEnum(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public enum E { A, B, C }";
@@ -603,12 +603,12 @@ public enum [|E|]
     B,
     C
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -621,12 +621,12 @@ public enum [|E|]
     B,
     C
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -634,7 +634,7 @@ public enum [|E|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546195"), WorkItem(546269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546269"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546195"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546269"), CombinatorialData]
         public async Task TestEnumFromField(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public enum E { A, B, C }";
@@ -672,12 +672,12 @@ public enum E
     B,
     [|C|]
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -690,12 +690,12 @@ public enum E
     B,
     [|C|]
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -703,7 +703,7 @@ public enum E
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546273"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546273"), CombinatorialData]
         public async Task TestEnumWithUnderlyingType(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public enum E : short { A = 0, B = 1, C = 2 }";
@@ -741,12 +741,12 @@ public enum E : short
     B,
     [|C|]
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -759,12 +759,12 @@ public enum E : short
     B,
     [|C|]
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -772,7 +772,7 @@ public enum E : short
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(650741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650741"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650741"), CombinatorialData]
         public async Task TestEnumWithOverflowingUnderlyingType(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public enum E : ulong { A = 9223372036854775808 }";
@@ -804,12 +804,12 @@ public enum E : ulong
 {{
     [|A|] = 9223372036854775808uL
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -820,12 +820,12 @@ public enum E : ulong
 {{
     [|A|] = 9223372036854775808uL
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -871,12 +871,12 @@ public enum E : short
     B,
     [|C|]
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -889,12 +889,12 @@ public enum E : short
     B,
     [|C|]
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -902,7 +902,7 @@ public enum E : short
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198"), CombinatorialData]
         public async Task TestTypeInNamespace(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -935,36 +935,34 @@ End Namespace",
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
-namespace N
+namespace N;
+
+public class [|C|]
 {{
-    public class [|C|]
-    {{
-    }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
-namespace N
+namespace N;
+
+public class [|C|]
 {{
-    public class [|C|]
-    {{
-    }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -972,7 +970,7 @@ namespace N
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfFact, WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
         public async Task TestTypeInFileScopedNamespace1()
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -994,7 +992,7 @@ public class [|C|]
                 fileScopedNamespaces: true);
         }
 
-        [WpfFact, WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
         public async Task TestTypeInFileScopedNamespace2()
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -1016,7 +1014,7 @@ namespace N
 }}", fileScopedNamespaces: true);
         }
 
-        [WpfFact, WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
         public async Task TestTypeInFileScopedNamespace3()
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -1038,7 +1036,7 @@ namespace N
 }}");
         }
 
-        [WpfTheory, WorkItem(546223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546223"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546223"), CombinatorialData]
         public async Task TestInlineConstant(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"public class C { public const string S = ""Hello mas""; }";
@@ -1074,12 +1072,12 @@ public class C
 {{
     public const string [|S|] = ""Hello mas"";
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1090,12 +1088,12 @@ public class C
 {{
     public const string [|S|] = ""Hello mas"";
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1103,7 +1101,7 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546221"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546221"), CombinatorialData]
         public async Task TestInlineTypeOf(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -1147,12 +1145,12 @@ End Class",
 public class [|C|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1163,12 +1161,12 @@ public class [|C|]
 public class [|C|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1176,7 +1174,7 @@ public class [|C|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546231"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546231"), CombinatorialData]
         public async Task TestNoDefaultConstructorInStructs(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public struct S {}";
@@ -1208,12 +1206,12 @@ using System.Runtime.InteropServices;
 public struct [|S|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1226,12 +1224,12 @@ using System.Runtime.InteropServices;
 public struct [|S|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1278,12 +1276,12 @@ public class [|C|]
         return new C();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1297,12 +1295,12 @@ public class [|C|]
         return new C();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1310,7 +1308,7 @@ public class [|C|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227"), CombinatorialData]
         public async Task TestGenericType(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public class G<SomeType> { public SomeType S; }";
@@ -1346,12 +1344,12 @@ public class [|G|]<SomeType>
 {{
     public SomeType S;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1362,12 +1360,12 @@ public class [|G|]<SomeType>
 {{
     public SomeType S;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1376,7 +1374,7 @@ public class [|G|]<SomeType>
         }
 
         [WpfTheory, CombinatorialData]
-        [WorkItem(38916, "https://github.com/dotnet/roslyn/issues/38916")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38916")]
         public async Task TestParameterAttributes(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -1421,12 +1419,12 @@ public class [|C|]<[My] T>
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1439,12 +1437,12 @@ public class [|C|]<[My] T>
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1453,7 +1451,7 @@ public class [|C|]<[My] T>
         }
 
         [WpfTheory, CombinatorialData]
-        [WorkItem(38916, "https://github.com/dotnet/roslyn/issues/38916")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38916")]
         public async Task TestGenericWithNullableReferenceTypes(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -1493,12 +1491,12 @@ public interface [|C|]<T>
 {{
     bool Equals([AllowNull] T other);
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1509,12 +1507,12 @@ public interface [|C|]<T>
 {{
     bool Equals([AllowNull] T other);
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1522,7 +1520,7 @@ public interface [|C|]<T>
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227"), CombinatorialData]
         public async Task TestGenericDelegate(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "public class C { public delegate void D<SomeType>(SomeType s); }";
@@ -1557,12 +1555,12 @@ public class C
 {{
     public delegate void [|D|]<SomeType>(SomeType s);
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1573,12 +1571,12 @@ public class C
 {{
     public delegate void [|D|]<SomeType>(SomeType s);
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1586,7 +1584,7 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(546200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546200"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546200"), CombinatorialData]
         public async Task TestAttribute(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -1639,12 +1637,12 @@ using N;
 public class [|C|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -1657,12 +1655,12 @@ using N;
 public class [|C|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1756,7 +1754,7 @@ public class [|C|]
             TestContext.VerifyDocumentNotReused(a, b);
         }
 
-        [WpfFact, WorkItem(546311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
         public async Task FormatMetadataAsSource()
         {
             using var context = TestContext.Create(LanguageNames.CSharp);
@@ -1765,7 +1763,7 @@ public class [|C|]
             await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
-        [WpfFact, WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
         public async Task IndexedProperty()
         {
             var metadataSource = @"
@@ -1794,7 +1792,7 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected);
         }
 
-        [WpfFact, WorkItem(566688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566688")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566688")]
         public async Task AttributeReferencingInternalNestedType()
         {
             var metadataSource = @"using System;
@@ -1824,7 +1822,7 @@ public class [|C|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected);
         }
 
-        [WpfTheory, WorkItem(530978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530978"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530978"), CombinatorialData]
         public async Task TestAttributesOnMembers(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"using System;
@@ -2030,12 +2028,12 @@ public class [|C|]
         return new C();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -2118,12 +2116,12 @@ public class [|C|]
         return new C();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -2131,7 +2129,7 @@ public class [|C|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(530923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530923"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530923"), CombinatorialData]
         public async Task TestEmptyLineBetweenMembers(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"using System;
@@ -2290,12 +2288,12 @@ public class [|C|]
         return new C();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -2369,12 +2367,12 @@ public class [|C|]
         return new C();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -2382,7 +2380,7 @@ public class [|C|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(728644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728644"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728644"), CombinatorialData]
         public async Task TestEmptyLineBetweenMembers2(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var source = @"
@@ -2455,16 +2453,16 @@ public interface [|IGoo|]
 
     Uri Method1();
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "System.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "System.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -2479,16 +2477,16 @@ public interface [|IGoo|]
 
     Uri Method1();
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "System.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "System.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -2496,7 +2494,7 @@ public interface [|IGoo|]
             await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, includeXmlDocComments: true);
         }
 
-        [WpfTheory, WorkItem(679114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679114"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679114"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013"), CombinatorialData]
         public async Task TestDefaultValueEnum(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var source = @"
@@ -2547,12 +2545,12 @@ public class [|Test|]
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -2567,12 +2565,12 @@ public class [|Test|]
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -2580,7 +2578,7 @@ public class [|Test|]
             await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(651261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651261"), CombinatorialData]
+        [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651261"), CombinatorialData]
         public async Task TestNullAttribute(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var source = @"
@@ -2634,12 +2632,12 @@ public class [|TestAttribute|] : Attribute
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -2655,12 +2653,12 @@ public class [|TestAttribute|] : Attribute
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -2668,7 +2666,7 @@ public class [|TestAttribute|] : Attribute
             await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfFact, WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
         public async Task TestNavigationViaReducedExtensionMethodCS()
         {
             var metadata = @"using System;
@@ -2703,7 +2701,7 @@ public static class ObjectExtensions
             TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
-        [WpfFact, WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
         public async Task TestNavigationViaReducedExtensionMethodVB()
         {
             var metadata = @"Imports System.Runtime.CompilerServices
@@ -2823,12 +2821,12 @@ public class [|Program|]
         return new Program();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -2853,12 +2851,12 @@ public class [|Program|]
         return new Program();
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -2866,7 +2864,7 @@ public class [|Program|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/15387"), CombinatorialData]
         public async Task TestComImport1(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -2925,20 +2923,20 @@ using System.Runtime.InteropServices;
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
 public interface [|IComImport|]
 {{
-    int Prop {{ get; }}
-
     void MOverload();
 
     void X();
 
     void MOverload(int i);
+
+    int Prop {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -2951,20 +2949,20 @@ using System.Runtime.InteropServices;
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
 public interface [|IComImport|]
 {{
-    int Prop {{ get; }}
-
     void MOverload();
 
     void X();
 
     void MOverload(int i);
+
+    int Prop {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3021,12 +3019,12 @@ public class [|C|]
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3041,12 +3039,12 @@ public class [|C|]
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3061,7 +3059,7 @@ public class [|C|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, languageVersion: languageVersion);
         }
 
-        [WpfTheory, WorkItem(446567, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=446567"), CombinatorialData]
+        [WpfTheory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=446567"), CombinatorialData]
         public async Task TestDocCommentsWithUnixNewLine(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var source = @"
@@ -3134,16 +3132,16 @@ public interface [|IGoo|]
 
     Uri Method1();
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "System.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "System.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3158,16 +3156,16 @@ public interface [|IGoo|]
 
     Uri Method1();
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "System.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "System.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3279,7 +3277,7 @@ public delegate void [|D|]<T>() where T : unmanaged;";
             TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
-        [WpfFact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestSByteMinValue()
         {
             var source = @"
@@ -3293,7 +3291,7 @@ class C
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
-        [WpfFact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestSByteMinValueVB()
         {
             var source = @"
@@ -3306,7 +3304,7 @@ End Class";
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
-        [WpfFact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt16MinValue()
         {
             var source = @"
@@ -3320,7 +3318,7 @@ class C
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
-        [WpfFact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt16MinValueVB()
         {
             var source = @"
@@ -3333,7 +3331,7 @@ End Class";
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
-        [WpfFact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt32MinValue()
         {
             var source = @"
@@ -3347,7 +3345,7 @@ class C
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
-        [WpfFact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt32MinValueVB()
         {
             var source = @"
@@ -3360,7 +3358,7 @@ End Class";
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
-        [WpfFact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt64MinValue()
         {
             var source = @"
@@ -3374,7 +3372,7 @@ class C
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
-        [WpfFact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt64MinValueVB()
         {
             var source = @"
@@ -3387,7 +3385,7 @@ End Class";
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestReadOnlyStruct_ReadOnlyField(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3426,12 +3424,12 @@ public readonly struct [|S|]
 {{
     public readonly int i;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3442,12 +3440,12 @@ public readonly struct [|S|]
 {{
     public readonly int i;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3455,7 +3453,7 @@ public readonly struct [|S|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStruct_ReadOnlyField(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3492,12 +3490,12 @@ public struct [|S|]
 {{
     public readonly int i;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3508,12 +3506,12 @@ public struct [|S|]
 {{
     public readonly int i;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3521,7 +3519,7 @@ public struct [|S|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestRefStruct(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3560,12 +3558,12 @@ using System.Runtime.InteropServices;
 public ref struct [|S|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3578,12 +3576,12 @@ using System.Runtime.InteropServices;
 public ref struct [|S|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3591,7 +3589,7 @@ public ref struct [|S|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestReadOnlyRefStruct(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3630,12 +3628,12 @@ using System.Runtime.InteropServices;
 public readonly ref struct [|S|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3648,12 +3646,12 @@ using System.Runtime.InteropServices;
 public readonly ref struct [|S|]
 {{
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3661,7 +3659,7 @@ public readonly ref struct [|S|]
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestReadOnlyMethod(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3704,12 +3702,12 @@ public struct S
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3725,12 +3723,12 @@ public struct S
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3738,7 +3736,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestReadOnlyMethod_InReadOnlyStruct(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3782,12 +3780,12 @@ public readonly struct S
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3803,12 +3801,12 @@ public readonly struct S
     {{
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3816,7 +3814,7 @@ public readonly struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStructProperty_ReadOnly(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3853,12 +3851,12 @@ public struct S
 {{
     public int [|P|] {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3869,12 +3867,12 @@ public struct S
 {{
     public int [|P|] {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3882,7 +3880,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStructProperty_ReadOnly_CSharp7_3(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3919,12 +3917,12 @@ public struct S
 {{
     public int [|P|] {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -3935,12 +3933,12 @@ public struct S
 {{
     public int [|P|] {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -3955,7 +3953,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, metadataLanguageVersion: metadataLanguageVersion);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStructProperty_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -3992,12 +3990,12 @@ public struct S
 {{
     public int [|P|] {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4008,12 +4006,12 @@ public struct S
 {{
     public int [|P|] {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -4021,7 +4019,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestReadOnlyStructProperty_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -4060,12 +4058,12 @@ public readonly struct S
 {{
     public int [|P|] {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4076,12 +4074,12 @@ public readonly struct S
 {{
     public int [|P|] {{ get; }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -4089,7 +4087,7 @@ public readonly struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStructProperty_ReadOnlyGet_Set(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -4138,12 +4136,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4166,12 +4164,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -4179,7 +4177,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStructProperty_Get_ReadOnlySet(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -4228,12 +4226,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4256,12 +4254,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -4269,7 +4267,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStructProperty_ReadOnlyGet_ReadOnlySet(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -4318,12 +4316,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4346,12 +4344,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -4359,7 +4357,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStructIndexer_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -4405,12 +4403,12 @@ public struct S
 {{
     public readonly int [|this|][int i] => i;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4424,12 +4422,12 @@ public struct S
 {{
     public readonly int [|this|][int i] => i;
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -4437,7 +4435,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStructIndexer_ReadOnlyGet_Set(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -4492,12 +4490,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4520,12 +4518,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -4533,7 +4531,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestStruct_ReadOnlyEvent(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -4586,12 +4584,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4614,12 +4612,12 @@ public struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -4627,7 +4625,7 @@ public struct S
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WpfTheory, WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
         public async Task TestReadOnlyStruct_ReadOnlyEvent(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = @"
@@ -4681,12 +4679,12 @@ public readonly struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
@@ -4709,12 +4707,12 @@ public readonly struct S
         }}
     }}
 }}
-#if false // {CSharpEditorResources.Decompilation_log}
-{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+#if false // {FeaturesResources.Decompilation_log}
+{string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -5569,7 +5567,7 @@ public class TestType
             TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
-        [WpfFact, WorkItem(22431, "https://github.com/dotnet/roslyn/issues/22431")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22431")]
         public async Task TestCDATAComment()
         {
             var source = @"

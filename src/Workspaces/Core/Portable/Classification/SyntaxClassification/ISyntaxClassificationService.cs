@@ -7,8 +7,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -20,33 +20,33 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <inheritdoc cref="IClassificationService.AddLexicalClassifications"/>
         void AddLexicalClassifications(SourceText text,
             TextSpan textSpan,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
         /// <inheritdoc cref="IClassificationService.AddSyntacticClassificationsAsync"/>
         void AddSyntacticClassifications(
             SyntaxNode root,
-            TextSpan textSpan,
-            ArrayBuilder<ClassifiedSpan> result,
+            ImmutableArray<TextSpan> textSpans,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
         /// <inheritdoc cref="IClassificationService.AddSemanticClassificationsAsync"/>
         Task AddSemanticClassificationsAsync(
             Document document,
-            TextSpan textSpan,
+            ImmutableArray<TextSpan> textSpans,
             ClassificationOptions options,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
         /// <inheritdoc cref="AddSemanticClassificationsAsync"/>
         void AddSemanticClassifications(
             SemanticModel semanticModel,
-            TextSpan textSpan,
+            ImmutableArray<TextSpan> textSpans,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             ClassificationOptions options,
             CancellationToken cancellationToken);
 

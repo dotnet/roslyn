@@ -7,10 +7,18 @@
     <SignAssembly>false</SignAssembly>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <IsShipping>false</IsShipping>
+
+    <!-- 
+      Bumping MSBuildStructuredLoggerVersion for entire repo would move us to newer version of MSBuild Pacakge,
+      which no longer support netcoreapp3.1. Therefore we only change the version referenced here to get the binlog 
+      checker to work for logs produced by newer MSBuild in CI without requiring product change.
+     -->
+    <MSBuildStructuredLoggerVersion>2.1.787</MSBuildStructuredLoggerVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />

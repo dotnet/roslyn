@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             => container is TCompilationUnitSyntax or TNamespaceDeclarationSyntax;
 
         protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
-            => parts.Length == 1 && parts[0].Length == 0;
+            => parts is [""];
 
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
 
                 // Simplify the check by assuming no multiple partial declarations in one document
-                if (memberSymbol is ITypeSymbol typeSymbol
+                if (memberSymbol is INamedTypeSymbol typeSymbol
                     && typeSymbol.DeclaringSyntaxReferences.Length > 1
                     && semanticFacts.IsPartial(typeSymbol, cancellationToken))
                 {
@@ -498,17 +498,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
-        private readonly struct LocationForAffectedSymbol
+        private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
         {
-            public LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
-            {
-                ReferenceLocation = location;
-                IsReferenceToExtensionMethod = isReferenceToExtensionMethod;
-            }
+            public ReferenceLocation ReferenceLocation { get; } = location;
 
-            public ReferenceLocation ReferenceLocation { get; }
-
-            public bool IsReferenceToExtensionMethod { get; }
+            public bool IsReferenceToExtensionMethod { get; } = isReferenceToExtensionMethod;
 
             public Document Document => ReferenceLocation.Document;
         }

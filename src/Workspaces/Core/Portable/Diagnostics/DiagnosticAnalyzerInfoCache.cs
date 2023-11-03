@@ -39,23 +39,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo;
 
         /// <summary>
+        /// Supported suppressions of each <see cref="DiagnosticSuppressor"/>. 
+        /// </summary>
+        /// <remarks>
+        /// Holds on <see cref="DiagnosticSuppressor"/> instances weakly so that we don't keep suppressors coming from package references alive.
+        /// They need to be released when the project stops referencing the suppressor.
+        /// 
+        /// The purpose of this map is to avoid multiple calls to <see cref="DiagnosticSuppressor.SupportedSuppressions"/> that might return different values
+        /// (they should not but we need a guarantee to function correctly).
+        /// </remarks>
+        private readonly ConditionalWeakTable<DiagnosticSuppressor, SuppressionDescriptorsInfo> _suppressionsInfo;
+
+        /// <summary>
         /// Lazily populated map from diagnostic IDs to diagnostic descriptor.
         /// If same diagnostic ID is reported by multiple descriptors, a null value is stored in the map for that ID.
         /// </summary>
         private readonly ConcurrentDictionary<string, DiagnosticDescriptor?> _idToDescriptorsMap;
 
-        private sealed class DiagnosticDescriptorsInfo
+        private sealed class DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
         {
-            public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors;
-            public readonly bool TelemetryAllowed;
-            public readonly bool HasCompilationEndDescriptor;
+            public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors = supportedDescriptors;
+            public readonly bool TelemetryAllowed = telemetryAllowed;
+            public readonly bool HasCompilationEndDescriptor = supportedDescriptors.Any(DiagnosticDescriptorExtensions.IsCompilationEnd);
+        }
 
-            public DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
-            {
-                SupportedDescriptors = supportedDescriptors;
-                TelemetryAllowed = telemetryAllowed;
-                HasCompilationEndDescriptor = supportedDescriptors.Any(DiagnosticDescriptorExtensions.IsCompilationEnd);
-            }
+        private sealed class SuppressionDescriptorsInfo(ImmutableArray<SuppressionDescriptor> supportedSuppressions)
+        {
+            public readonly ImmutableArray<SuppressionDescriptor> SupportedSuppressions = supportedSuppressions;
         }
 
         [Export, Shared]
@@ -73,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal DiagnosticAnalyzerInfoCache()
         {
             _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
+            _suppressionsInfo = new ConditionalWeakTable<DiagnosticSuppressor, SuppressionDescriptorsInfo>();
             _idToDescriptorsMap = new ConcurrentDictionary<string, DiagnosticDescriptor?>();
         }
 
@@ -81,6 +92,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
             => GetOrCreateDescriptorsInfo(analyzer).SupportedDescriptors;
+
+        /// <summary>
+        /// Returns <see cref="DiagnosticSuppressor.SupportedSuppressions"/> of given <paramref name="suppressor"/>.
+        /// </summary>
+        public ImmutableArray<SuppressionDescriptor> GetDiagnosticSuppressions(DiagnosticSuppressor suppressor)
+            => GetOrCreateSuppressionsInfo(suppressor).SupportedSuppressions;
 
         /// <summary>
         /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>
@@ -92,6 +109,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return !descriptorInfo.HasCompilationEndDescriptor
                 ? descriptorInfo.SupportedDescriptors
                 : descriptorInfo.SupportedDescriptors.WhereAsArray(d => !d.IsCompilationEnd());
+        }
+
+        /// <summary>
+        /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>
+        /// that are compilation end descriptors.
+        /// </summary>
+        public ImmutableArray<DiagnosticDescriptor> GetCompilationEndDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
+        {
+            var descriptorInfo = GetOrCreateDescriptorsInfo(analyzer);
+            return descriptorInfo.HasCompilationEndDescriptor
+                ? descriptorInfo.SupportedDescriptors.WhereAsArray(d => d.IsCompilationEnd())
+                : ImmutableArray<DiagnosticDescriptor>.Empty;
         }
 
         /// <summary>
@@ -131,6 +160,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             PopulateIdToDescriptorMap(descriptors);
             var telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
             return new DiagnosticDescriptorsInfo(descriptors, telemetryAllowed);
+        }
+
+        private SuppressionDescriptorsInfo GetOrCreateSuppressionsInfo(DiagnosticSuppressor suppressor)
+            => _suppressionsInfo.GetValue(suppressor, CalculateSuppressionsInfo);
+
+        private SuppressionDescriptorsInfo CalculateSuppressionsInfo(DiagnosticSuppressor suppressor)
+        {
+            ImmutableArray<SuppressionDescriptor> suppressions;
+            try
+            {
+                // SupportedSuppressions is user code and can throw an exception.
+                suppressions = suppressor.SupportedSuppressions.NullToEmpty();
+            }
+            catch
+            {
+                // No need to report the exception to the user.
+                // Eventually, when the suppressor runs the compiler analyzer driver will report a diagnostic.
+                suppressions = ImmutableArray<SuppressionDescriptor>.Empty;
+            }
+
+            return new SuppressionDescriptorsInfo(suppressions);
         }
 
         private static bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticDescriptor> descriptors)

@@ -28,10 +28,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public readonly bool IsParams;
 
+        public readonly bool HasUnscopedRefAttribute;
+
         /// <summary>Anonymous type field type</summary>
         public TypeSymbol Type => TypeWithAnnotations.Type;
 
-        public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations, RefKind refKind, ScopedKind scope, ConstantValue? defaultValue = null, bool isParams = false)
+        public AnonymousTypeField(
+            string name,
+            Location location,
+            TypeWithAnnotations typeWithAnnotations,
+            RefKind refKind,
+            ScopedKind scope,
+            ConstantValue? defaultValue = null,
+            bool isParams = false,
+            bool hasUnscopedRefAttribute = false)
         {
             this.Name = name;
             this.Location = location;
@@ -40,6 +50,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.Scope = scope;
             this.DefaultValue = defaultValue;
             this.IsParams = isParams;
+            this.HasUnscopedRefAttribute = hasUnscopedRefAttribute;
+        }
+
+        public AnonymousTypeField WithType(TypeWithAnnotations type)
+        {
+            return new AnonymousTypeField(Name, Location, type, RefKind, Scope, DefaultValue, IsParams, HasUnscopedRefAttribute);
+        }
+
+        internal static bool Equals(in AnonymousTypeField x, in AnonymousTypeField y, TypeCompareKind comparison)
+        {
+            return x.TypeWithAnnotations.Equals(y.TypeWithAnnotations, comparison)
+                && x.RefKind == y.RefKind
+                && x.Scope == y.Scope
+                && x.DefaultValue == y.DefaultValue
+                && x.IsParams == y.IsParams
+                && x.HasUnscopedRefAttribute == y.HasUnscopedRefAttribute;
         }
 
         [Conditional("DEBUG")]

@@ -19,10 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {
         }
 
-        [Fact]
-        public async Task TestProjectsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestProjectsAsync(bool mutatingLspWorkspace)
         {
-            await using var testLspServer = await CreateTestLspServerAsync(string.Empty);
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
             var solution = testLspServer.GetCurrentSolution();
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 

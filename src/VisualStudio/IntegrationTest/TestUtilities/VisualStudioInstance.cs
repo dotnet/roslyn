@@ -52,8 +52,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public ImmediateWindow_OutOfProc ImmediateWindow { get; }
 
-        public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
-
         public LocalsWindow_OutOfProc LocalsWindow { get; set; }
         public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
         public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
@@ -131,7 +129,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ErrorList = new ErrorList_OutOfProc(this);
             ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
-            InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
             ImmediateWindow = new ImmediateWindow_OutOfProc(this);
             LocalsWindow = new LocalsWindow_OutOfProc(this);
             MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);

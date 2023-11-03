@@ -2535,6 +2535,34 @@ End Module
             CompileAndVerify(vb, expectedOutput:="5")
         End Sub
 
+        <Fact>
+        <WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")>
+        Public Sub ReduceExtensionMethodOnReceiverTypeSystemVoid()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Structure C
+End Structure
+Module E
+    <Extension()>
+    Friend Sub ExtMethod(o As ValueType)
+    End Sub
+End Module
+]]></file>
+</compilation>, {Net40.SystemCore})
+
+            Dim extensionMethod = DirectCast(compilation.GetSymbolsWithName("ExtMethod", SymbolFilter.Member).Single(), IMethodSymbol)
+            Assert.NotNull(extensionMethod)
+
+            Dim reducedMethodOnC = extensionMethod.ReduceExtensionMethod(compilation.GetTypeByMetadataName("C"))
+            Assert.NotNull(reducedMethodOnC)
+            Assert.Equal("Sub System.ValueType.ExtMethod()", reducedMethodOnC.ToTestDisplayString())
+
+            Dim reducedMethodOnVoid = extensionMethod.ReduceExtensionMethod(compilation.GetSpecialType(SpecialType.System_Void))
+            Assert.Null(reducedMethodOnVoid)
+        End Sub
     End Class
 
 End Namespace

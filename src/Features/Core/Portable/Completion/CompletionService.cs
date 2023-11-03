@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
-            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionValueSet.Empty;
+            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionSet.Empty;
 
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
         }
@@ -137,7 +136,15 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet passThroughOptions,
             ImmutableHashSet<string>? roles = null)
         {
+            // The trigger kind guarantees that user wants a completion.
+            if (trigger.Kind is CompletionTriggerKind.Invoke or CompletionTriggerKind.InvokeAndCommitIfUnique)
+                return true;
+
             if (!options.TriggerOnTyping)
+                return false;
+
+            // Enter does not trigger completion.
+            if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == '\n')
             {
                 return false;
             }
@@ -227,6 +234,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
                 var change = await provider.GetChangeAsync(document, item, commitCharacter, cancellationToken).ConfigureAwait(false);
                 GC.KeepAlive(semanticModel);
+
+                Debug.Assert(item.Span == change.TextChange.Span || item.IsComplexTextEdit);
                 return change;
             }
             else
@@ -252,14 +261,14 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionItem> items,
             string filterText)
         {
-            var helper = CompletionHelper.GetHelper(document);
-            var filterDataList = new SegmentedList<MatchResult>(items.Select(
-                item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            using var helper = new PatternMatchHelper(filterText);
+            var filterDataList = new SegmentedList<MatchResult>(
+                items.Select(item => helper.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
 
             var builder = s_listOfMatchResultPool.Allocate();
             try
             {
-                FilterItems(helper, filterDataList, filterText, builder);
+                FilterItems(CompletionHelper.GetHelper(document), filterDataList, filterText, builder);
                 return builder.SelectAsArray(result => result.CompletionItem);
             }
             finally
@@ -281,8 +290,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
 
-            var helper = CompletionHelper.GetHelper(document);
-            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            using var completionPatternMatchers = new PatternMatchHelper(filterText);
+            builder.AddRange(filteredItems.Select(item => completionPatternMatchers.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
         }
 
         /// <summary>
@@ -350,12 +359,9 @@ namespace Microsoft.CodeAnalysis.Completion
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(CompletionService completionServiceWithProviders)
         {
-            private readonly CompletionService _completionServiceWithProviders;
-
-            public TestAccessor(CompletionService completionServiceWithProviders)
-                => _completionServiceWithProviders = completionServiceWithProviders;
+            private readonly CompletionService _completionServiceWithProviders = completionServiceWithProviders;
 
             public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
                 => _completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
@@ -371,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 CompletionOptions options,
                 CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var defaultItemSpan = _completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
 
                 return await CompletionService.GetContextAsync(

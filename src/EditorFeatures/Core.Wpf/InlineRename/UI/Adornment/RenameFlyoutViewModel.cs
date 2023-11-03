@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
-            InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(VisualStudio.Text.SpanTrackingMode.EdgeInclusive);
+            InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
             RegisterOleComponent();
         }
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (value != _session.ReplacementText)
                 {
-                    _session.ApplyReplacementText(value, propagateEditImmediately: true);
+                    _session.ApplyReplacementText(value, propagateEditImmediately: true, updateSelection: false);
                     NotifyPropertyChanged(nameof(IdentifierText));
                 }
             }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.Options.RenameInComments;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInComments = value });
             }
         }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.Options.RenameInStrings;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInStrings = value });
             }
         }
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.Options.RenameFile;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameFile), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameFile = value });
             }
         }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.PreviewChanges;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.PreviewChanges), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, value);
                 _session.SetPreviewChanges(value);
             }
         }
@@ -158,19 +158,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.Options.RenameOverloads;
             set
             {
-                _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), value);
+                _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameOverloads = value });
             }
         }
 
         public bool IsCollapsed
         {
-            get => _globalOptionService.GetOption(InlineRenameUIOptions.CollapseUI);
+            get => _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseUI);
             set
             {
                 if (value != IsCollapsed)
                 {
-                    _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameUIOptions.CollapseUI), value);
+                    _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseUI, value);
                     NotifyPropertyChanged(nameof(IsCollapsed));
                     NotifyPropertyChanged(nameof(IsExpanded));
                 }
@@ -353,8 +353,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {
-            var fileCount = renameLocations.GroupBy(s => s.Document).Count();
-            var referenceCount = renameLocations.Length;
+            // Collapse the same edits across multiple instances of the same linked-file.
+            var fileCount = renameLocations.GroupBy(s => s.Document.FilePath).Count();
+            var referenceCount = renameLocations.Select(loc => (loc.Document.FilePath, loc.TextSpan)).Distinct().Count();
 
             if (referenceCount == 1 && fileCount == 1)
             {

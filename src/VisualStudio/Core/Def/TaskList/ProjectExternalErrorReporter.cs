@@ -233,6 +233,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 documentId = TryGetDocumentId(bstrFileName);
             }
 
+            if (iEndLine < 0)
+                iEndLine = iStartLine;
+            if (iEndColumn < 0)
+                iEndColumn = iStartColumn;
+
             var diagnostic = GetDiagnosticData(
                 documentId,
                 _projectId,

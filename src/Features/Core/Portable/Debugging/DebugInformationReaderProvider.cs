@@ -5,9 +5,11 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,12 +39,9 @@ namespace Microsoft.CodeAnalysis.Debugging
                 => throw ExceptionUtilities.Unreachable();
         }
 
-        private sealed class Portable : DebugInformationReaderProvider
+        private sealed class Portable(MetadataReaderProvider pdbReaderProvider) : DebugInformationReaderProvider
         {
-            private readonly MetadataReaderProvider _pdbReaderProvider;
-
-            public Portable(MetadataReaderProvider pdbReaderProvider)
-                => _pdbReaderProvider = pdbReaderProvider;
+            private readonly MetadataReaderProvider _pdbReaderProvider = pdbReaderProvider;
 
             public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
                 => EditAndContinueMethodDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
@@ -63,18 +62,11 @@ namespace Microsoft.CodeAnalysis.Debugging
                 => _pdbReaderProvider.Dispose();
         }
 
-        private sealed class Native : DebugInformationReaderProvider
+        private sealed class Native(Stream stream, ISymUnmanagedReader5 symReader, int version) : DebugInformationReaderProvider
         {
-            private readonly Stream _stream;
-            private readonly int _version;
-            private ISymUnmanagedReader5 _symReader;
-
-            public Native(Stream stream, ISymUnmanagedReader5 symReader, int version)
-            {
-                _stream = stream;
-                _symReader = symReader;
-                _version = version;
-            }
+            private readonly Stream _stream = stream;
+            private readonly int _version = version;
+            private ISymUnmanagedReader5 _symReader = symReader;
 
             public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
                 => EditAndContinueMethodDebugInfoReader.Create(_symReader, _version);
@@ -100,6 +92,9 @@ namespace Microsoft.CodeAnalysis.Debugging
                 var symReader = Interlocked.Exchange(ref _symReader, null);
                 if (symReader != null && Marshal.IsComObject(symReader))
                 {
+#if NETCOREAPP
+                    Debug.Assert(OperatingSystem.IsWindows());
+#endif
                     Marshal.ReleaseComObject(symReader);
                 }
             }
@@ -146,6 +141,13 @@ namespace Microsoft.CodeAnalysis.Debugging
                 return new Portable(MetadataReaderProvider.FromPortablePdbStream(stream));
             }
 
+            return CreateNative(stream);
+        }
+
+        // Do not inline to avoid loading Microsoft.DiaSymReader until it's actually needed.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static DebugInformationReaderProvider CreateNative(Stream stream)
+        {
             // We can use DummySymReaderMetadataProvider since we do not need to decode signatures, 
             // which is the only operation SymReader needs the provider for.
             return new Native(stream, SymUnmanagedReaderFactory.CreateReader<ISymUnmanagedReader5>(

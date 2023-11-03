@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// an augmenting provider instead.
         /// </summary>
         internal virtual async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
-            => ShouldTriggerCompletion(document.Project.Services, await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options, document.Project.Solution.Options);
+            => ShouldTriggerCompletion(document.Project.Services, await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options, document.Project.Solution.Options);
 
         /// <summary>
         /// Gets the description of the specified item.

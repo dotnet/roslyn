@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
             Debug.Assert(locals.NestedVariables is object);
 
-            var deconstructionDiagnostics = new BindingDiagnosticBag(new DiagnosticBag(), diagnostics.DependenciesBag);
+            var deconstructionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
             BoundExpression boundRight = rightPlaceholder ?? BindValue(right, deconstructionDiagnostics, BindValueKind.RValue);
 
             boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, deconstructionDiagnostics);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, deconstructionDiagnostics);
             DeconstructionVariable.FreeDeconstructionVariables(locals.NestedVariables);
 
-            diagnostics.AddRange(deconstructionDiagnostics.DiagnosticBag);
+            diagnostics.AddRangeAndFree(deconstructionDiagnostics);
             return assignment;
         }
 
@@ -852,7 +852,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.Type);
+            var type = declTypeWithAnnotations.Type;
+            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.NullableAnnotation, isInferred: type is null, type);
         }
 
         /// <summary>
@@ -885,6 +886,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (typeSyntax is RefTypeSyntax refType)
                     {
                         diagnostics.Add(ErrorCode.ERR_DeconstructVariableCannotBeByRef, refType.RefKeyword.GetLocation());
+                    }
+
+                    if (declTypeWithAnnotations.HasType)
+                    {
+                        CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeWithAnnotations.Type, diagnostics, typeSyntax);
                     }
 
                     if (declTypeWithAnnotations.HasType &&

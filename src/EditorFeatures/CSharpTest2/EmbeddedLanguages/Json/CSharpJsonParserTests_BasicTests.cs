@@ -5932,7 +5932,7 @@ b""</StringToken>
 </Diagnostics>");
         }
 
-        [Fact, WorkItem(1691963, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
         public void TestAllColons_BecomesNestedProperties()
         {
             Test(@"""::::::::""", expected: @"<Tree>

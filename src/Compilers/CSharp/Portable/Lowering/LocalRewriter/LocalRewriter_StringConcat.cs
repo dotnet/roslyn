@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             loweredLeft = ConvertConcatExprToString(syntax, loweredLeft);
             loweredRight = ConvertConcatExprToString(syntax, loweredRight);
 
-            Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValue?.IsNull == true);
-            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValue?.IsNull == true);
+            Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValueOpt?.IsNull == true);
+            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValueOpt?.IsNull == true);
 
             // try fold two args without flattening.
             var folded = TryFoldTwoConcatOperands(loweredLeft, loweredRight);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // To be safe, check that the constant value is actually a string before
                     // attempting to access its value as a string.
 
-                    var rightConstant = boundCoalesce.RightOperand.ConstantValue;
+                    var rightConstant = boundCoalesce.RightOperand.ConstantValueOpt;
                     if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
                     {
                         arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression? TryFoldTwoConcatOperands(BoundExpression loweredLeft, BoundExpression loweredRight)
         {
             // both left and right are constants
-            var leftConst = loweredLeft.ConstantValue;
-            var rightConst = loweredRight.ConstantValue;
+            var leftConst = loweredLeft.ConstantValueOpt;
+            var rightConst = loweredRight.ConstantValueOpt;
 
             if (leftConst != null && rightConst != null)
             {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullOrEmptyStringConstant(BoundExpression operand)
         {
-            return (operand.ConstantValue != null && string.IsNullOrEmpty(operand.ConstantValue.StringValue)) ||
+            return (operand.ConstantValueOpt != null && string.IsNullOrEmpty(operand.ConstantValueOpt.StringValue)) ||
                     operand.IsDefaultValue();
         }
 
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
         }
 
         private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), loweredArgs);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, array);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, array);
         }
 
         /// <summary>
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // simply make it a literal string instead and avoid any 
             // allocations for converting the char to a string at run time.
             // Similarly if it's a literal null, don't do anything special.
-            if (expr is { ConstantValue: { } cv })
+            if (expr is { ConstantValueOpt: { } cv })
             {
                 if (cv.SpecialType == SpecialType.System_Char)
                 {
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // types to all special value types.
             if (structToStringMethod != null && (expr.Type.SpecialType != SpecialType.None && !isFieldOfMarshalByRef(expr, _compilation)))
             {
-                return BoundCall.Synthesized(expr.Syntax, expr, structToStringMethod);
+                return BoundCall.Synthesized(expr.Syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
             }
 
             // - It's a reference type (excluding unconstrained generics): no copy
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This is to mimic the old behaviour, where value types would be boxed before ToString was called on them,
             // but with optimizations for readonly methods.
             bool callWithoutCopy = expr.Type.IsReferenceType ||
-                expr.ConstantValue != null ||
+                expr.ConstantValueOpt != null ||
                 (structToStringMethod == null && !expr.Type.IsTypeParameter()) ||
                 structToStringMethod?.IsEffectivelyReadOnly == true;
 
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     expr = new BoundPassByCopy(expr.Syntax, expr, expr.Type);
                 }
-                return BoundCall.Synthesized(expr.Syntax, expr, objectToStringMethod);
+                return BoundCall.Synthesized(expr.Syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
             }
 
             if (callWithoutCopy)
@@ -487,14 +487,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: BoundCall.Synthesized(
                         syntax,
                         new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         objectToStringMethod),
                     whenNullOpt: null,
                     id: currentConditionalAccessID,
+                    forceCopyOfNullableValueType: false,
                     type: _compilation.GetSpecialType(SpecialType.System_String));
             }
 
             static bool isFieldOfMarshalByRef(BoundExpression expr, CSharpCompilation compilation)
             {
+                Debug.Assert(!IsCapturedPrimaryConstructorParameter(expr));
+
                 if (expr is BoundFieldAccess fieldAccess)
                 {
                     return DiagnosticsPass.IsNonAgileFieldAccess(fieldAccess, compilation);

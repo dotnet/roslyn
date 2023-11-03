@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
                     }
                 }
-                else if (elementType.SpecialType.SizeInBytes() == 1)
+                else if (elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes() == 1)
                 {
                     // Initialize the stackalloc by copying the data from a metadata blob
                     var field = _builder.module.GetFieldForData(data, alignment: 1, inits.Syntax, _diagnostics.DiagnosticBag);
@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
-            if (!_module.SupportsPrivateImplClass)
+            if (_module.IsEncDelta)
             {
+                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
                 return ArrayInitializerStyle.Element;
             }
 
-            elementType = elementType.EnumUnderlyingTypeOrSelf();
-
-            if (elementType.SpecialType.IsBlittable())
+            if (elementType.EnumUnderlyingTypeOrSelf().SpecialType.IsBlittable())
             {
                 int initCount = 0;
                 int constCount = 0;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(!(init is BoundArrayInitialization), "Nested initializers are not allowed for stackalloc");
 
                 initCount += 1;
-                if (init.ConstantValue != null)
+                if (init.ConstantValueOpt != null)
                 {
                     constInits += 1;
                 }
@@ -125,10 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitElementStackAllocInitializers(TypeSymbol elementType, ImmutableArray<BoundExpression> inits, bool includeConstants)
         {
             int index = 0;
-            int elementTypeSizeInBytes = elementType.SpecialType.SizeInBytes();
+            int elementTypeSizeInBytes = elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes();
             foreach (BoundExpression init in inits)
             {
-                if (includeConstants || init.ConstantValue == null)
+                if (includeConstants || init.ConstantValueOpt == null)
                 {
                     _builder.EmitOpCode(ILOpCode.Dup);
                     EmitPointerElementAccess(init, elementType, elementTypeSizeInBytes, index);

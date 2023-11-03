@@ -1,5 +1,54 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## All locals of restricted types are disallowed in async methods 
+
+***Introduced in Visual Studio 2022 version 17.6p1***
+
+Locals of restricted types are disallowed in async methods. But in earlier versions,
+the compiler failed to notice some implicitly-declared locals. For instance, in 
+`foreach` or `using` statements or deconstructions.  
+Now, such implicitly-declared locals are disallowed as well.
+
+```csharp
+ref struct RefStruct { public void Dispose() { } }
+public class C 
+{
+    public async Task M() 
+    {
+        RefStruct local = default; // disallowed
+        using (default(RefStruct)) { } // now disallowed too ("error CS9104: A using statement resource of this type cannot be used in async methods or async lambda expressions")
+    }
+}
+```
+
+See https://github.com/dotnet/roslyn/pull/66264
+
+## Pointers must always be in unsafe contexts.
+
+***Introduced in Visual Studio 2022 version 17.6***
+
+In earlier SDKs, the compiler would occasionally allow locations where pointers could be referenced, without explicitly marking that location as unsafe. 
+Now, the `unsafe` modifier must be present.  
+For example `using Alias = List<int*[]>;` should be changed to `using unsafe Alias = List<int*[]>;` to be legal.  
+A usage such as `void Method(Alias a) ...` should be changed to `unsafe void Method(Alias a) ...`.  
+
+The rule is unconditional, except for `using` alias declarations (which didn't allow an `unsafe` modifier before C# 12).  
+So for `using` declarations, the rule only takes effect if the language version is chosen as C# 12 or higher.
+
+## System.TypedReference considered managed
+
+***Introduced in Visual Studio 2022 version 17.6***
+
+Moving forward the `System.TypedReference` type is considered managed.
+
+```csharp
+unsafe
+{
+    TypedReference* r = null; // warning: This takes the address of, gets the size of, or declares a pointer to a managed type
+    var a = stackalloc TypedReference[1]; // error: Cannot take the address of, get the size of, or declare a pointer to a managed type
+}
+```
+
 ## Ref safety errors do not affect conversion from lambda expression to delegate
 
 ***Introduced in Visual Studio 2022 version 17.5***
@@ -66,7 +115,7 @@ To workaround the overload resolution changes, use explicit types for the lambda
 
 ***Introduced in Visual Studio 2022 version 17.5***
 
-In .NET SDK XXX or earlier the following was erroneously allowed:
+In .NET SDK 7.0.100 or earlier the following was erroneously allowed:
 
 ```csharp
 var x = $"""

@@ -1883,13 +1883,13 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9133: A constant value of type 'bool' is expected
                 //             case new object() is int x1:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "new object() is int x1").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "new object() is int x1").WithArguments("bool").WithLocation(8, 18),
                 // (9,42): error CS0165: Use of unassigned local variable 'x1'
                 //                 System.Console.WriteLine(x1);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(9, 42)
-                );
+            );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3530,7 +3530,7 @@ ref int GetRef() => throw null;";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (2,1): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.<<Main>$>g__GetRef|0_0()' because it returns by reference
+                // (2,1): error CS8178: A reference returned by a call to 'Program.<<Main>$>g__GetRef|0_0()' cannot be preserved across 'await' or 'yield' boundary.
                 // GetRef() = 1 switch { _ => await System.Threading.Tasks.Task.FromResult(1) };
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetRef()").WithArguments("Program.<<Main>$>g__GetRef|0_0()").WithLocation(2, 1)
             );

@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         {
         }
 
-        [Fact]
-        public async Task TestFormatDocumentAsync()
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -40,7 +40,7 @@ void M()
         int i = 1;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
@@ -49,8 +49,8 @@ void M()
             Assert.Equal(expected, actualText);
         }
 
-        [Fact]
-        public async Task TestFormatDocument_UseTabsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocument_UseTabsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -68,7 +68,7 @@ void M()
 		int i = 1;
 	}
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
@@ -77,8 +77,8 @@ void M()
             Assert.Equal(expected, actualText);
         }
 
-        [Fact]
-        public async Task TestFormatDocument_ModifyTabIndentSizeAsync()
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocument_ModifyTabIndentSizeAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -96,7 +96,7 @@ void M()
     int i = 1;
   }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 

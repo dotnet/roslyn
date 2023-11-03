@@ -43,16 +43,10 @@ namespace Microsoft.CodeAnalysis.Rename
 
             internal abstract Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken);
 
-            internal readonly struct ErrorResource
+            internal readonly struct ErrorResource(string formatString, object[] arguments)
             {
-                public string FormatString { get; }
-                public object[] Arguments { get; }
-
-                public ErrorResource(string formatString, object[] arguments)
-                {
-                    FormatString = formatString;
-                    Arguments = arguments;
-                }
+                public string FormatString { get; } = formatString;
+                public object[] Arguments { get; } = arguments;
             }
         }
     }

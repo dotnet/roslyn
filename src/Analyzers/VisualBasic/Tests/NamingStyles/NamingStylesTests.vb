@@ -473,7 +473,7 @@ end module",
                 options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase)
         End Function
 
-        <Fact, WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38513")>
         Public Async Function TestInterfaceNamesStartWithI() As Task
             Await TestInRegularAndScriptAsync(
 "Interface [|test|]
@@ -483,7 +483,7 @@ End Interface",
                 options:=s_options.InterfaceNamesStartWithI)
         End Function
 
-        <Fact, WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38513")>
         Public Async Function TestTypeParameterNamesStartWithT() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class classHolder(Of [|type|])
@@ -493,7 +493,7 @@ End Class",
                 options:=s_options.TypeParameterNamesStartWithT)
         End Function
 
-        <Fact, WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51727")>
         Public Async Function TestExternMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Public Class C

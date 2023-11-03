@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     internal static class CodeActionOptionsStorage
     {
         public static readonly PerLanguageOption2<int> WrappingColumn =
-            new("FormattingOptions", "WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
+            new("FormattingOptions_WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
 
         public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
             => new()
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 WrappingColumn = globalOptions.GetOption(WrappingColumn, languageServices.Language),
                 ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language),
+                CollectionExpressionWrappingLength = globalOptions.GetOption(CollectionExpressionWrappingLength, languageServices.Language),
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
@@ -42,8 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
-            "UseConditionalExpressionOptions",
-            "ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength"));
+            "dotnet_conditional_expression_wrapping_length", CodeActionOptions.DefaultConditionalExpressionWrappingLength);
+
+        public static readonly PerLanguageOption2<int> CollectionExpressionWrappingLength = new(
+            "dotnet_collection_expression_wrapping_length", CodeActionOptions.DefaultCollectionExpressionWrappingLength);
     }
 }

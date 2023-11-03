@@ -282,7 +282,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(13159, "https://github.com/dotnet/roslyn/issues/13159")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13159")]
         public void ExpressionLocals_ExpressionStatement_02()
         {
             var source =
@@ -744,7 +744,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void Dynamic()
         {
             var source =
@@ -957,7 +957,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(1094107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
         public void ReferenceInSameDeclaration()
         {
             var source =
@@ -1067,7 +1067,7 @@ class C
         }
 
         [Fact(Skip = "1094104")]
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_Parameter()
         {
             var source =
@@ -1092,7 +1092,7 @@ class C
         }
 
         [Fact(Skip = "1094104")]
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_Local()
         {
             var source =
@@ -1118,7 +1118,7 @@ class C
         }
 
         [Fact(Skip = "1094104")]
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_OtherDeclaration()
         {
             var source =
@@ -1314,7 +1314,7 @@ class C
         /// <summary>
         /// Should not allow names with '$' prefix.
         /// </summary>
-        [Fact, WorkItem(1106819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
         public void NoPrefix()
         {
             var source =
@@ -1420,7 +1420,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1094148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
         public void OtherStatements()
         {
             var source =
@@ -1445,7 +1445,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void GenericType_Identifier()
         {
             var source = @"
@@ -1491,7 +1491,7 @@ class Generic<T>
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void GenericType_Keyword()
         {
             var source = @"
@@ -1537,7 +1537,7 @@ class Generic<T>
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void PointerType_Identifier()
         {
             var source = @"
@@ -1584,7 +1584,7 @@ struct S
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void PointerType_Keyword()
         {
             var source = @"
@@ -1627,7 +1627,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void NullableType_Identifier()
         {
             var source = @"
@@ -1676,7 +1676,7 @@ struct S
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void NullableType_Keyword()
         {
             var source = @"

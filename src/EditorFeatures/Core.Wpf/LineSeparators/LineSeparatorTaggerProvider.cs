@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
-        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray<IOption>.Empty;
+        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray<IOption2>.Empty;
 
         private readonly object _lineSeparatorTagGate = new();
         private LineSeparatorTag _lineSeparatorTag;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             if (document == null)
                 return;
 
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))
+            if (!GlobalOptions.GetOption(LineSeparatorsOptionsStorage.LineSeparator, document.Project.Language))
                 return;
 
             using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))

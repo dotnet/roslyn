@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -10,6 +13,18 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IWorkspaceConfigurationService : IWorkspaceService
     {
         WorkspaceConfigurationOptions Options { get; }
+    }
+
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService)), Shared]
+    internal sealed class DefaultWorkspaceConfigurationService : IWorkspaceConfigurationService
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DefaultWorkspaceConfigurationService()
+        {
+        }
+
+        public WorkspaceConfigurationOptions Options => WorkspaceConfigurationOptions.Default;
     }
 
     /// <summary>
@@ -25,9 +40,15 @@ namespace Microsoft.CodeAnalysis.Host
     internal readonly record struct WorkspaceConfigurationOptions(
         [property: DataMember(Order = 0)] StorageDatabase CacheStorage = StorageDatabase.SQLite,
         [property: DataMember(Order = 1)] bool EnableOpeningSourceGeneratedFiles = false,
-        [property: DataMember(Order = 2)] bool DisableCloneWhenProducingSkeletonReferences = false,
-        [property: DataMember(Order = 3)] bool DisableReferenceManagerRecoverableMetadata = false,
-        [property: DataMember(Order = 4)] bool DisableBackgroundCompilation = false)
+        [property: DataMember(Order = 2)] bool DisableSharedSyntaxTrees = false,
+        [property: DataMember(Order = 3)] bool DisableRecoverableText = false,
+        [property: DataMember(Order = 4)] bool ValidateCompilationTrackerStates =
+#if DEBUG // We will default this on in DEBUG builds
+            true,
+#else
+            false,
+#endif
+        [property: DataMember(Order = 5)] bool RunSourceGeneratorsInSameProcessOnly = false)
     {
         public WorkspaceConfigurationOptions()
             : this(CacheStorage: StorageDatabase.SQLite)
@@ -38,13 +59,13 @@ namespace Microsoft.CodeAnalysis.Host
 
         /// <summary>
         /// These values are such that the correctness of remote services is not affected if these options are changed from defaults
-        /// to non-defauls while the services have already been executing.
+        /// to non-defaults while the services have already been executing.
         /// </summary>
         public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
             CacheStorage: StorageDatabase.None,
             EnableOpeningSourceGeneratedFiles: false,
-            DisableCloneWhenProducingSkeletonReferences: false,
-            DisableReferenceManagerRecoverableMetadata: false,
-            DisableBackgroundCompilation: false);
+            DisableSharedSyntaxTrees: false,
+            DisableRecoverableText: false,
+            RunSourceGeneratorsInSameProcessOnly: false);
     }
 }

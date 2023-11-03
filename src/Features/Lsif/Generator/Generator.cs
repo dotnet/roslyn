@@ -5,14 +5,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
-using System.Reflection;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
@@ -22,6 +19,7 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LspProtocol = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private const bool DefinitionProvider = true;
         private const bool ReferencesProvider = true;
         private const bool TypeDefinitionProvider = false;
-        private const bool DocumentSymbolProvider = false;
+        private const bool DocumentSymbolProvider = true;
         private const bool FoldingRangeProvider = true;
         private const bool DiagnosticProvider = false;
 
@@ -57,27 +55,27 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         };
 
         private readonly ILsifJsonWriter _lsifJsonWriter;
+        private readonly ILogger _logger;
         private readonly IdFactory _idFactory = new IdFactory();
 
-        private Generator(ILsifJsonWriter lsifJsonWriter)
+        private Generator(ILsifJsonWriter lsifJsonWriter, ILogger logger)
         {
             _lsifJsonWriter = lsifJsonWriter;
+            _logger = logger;
         }
 
-        public static Generator CreateAndWriteCapabilitiesVertex(ILsifJsonWriter lsifJsonWriter)
+        public static Generator CreateAndWriteCapabilitiesVertex(ILsifJsonWriter lsifJsonWriter, ILogger logger)
         {
-            var generator = new Generator(lsifJsonWriter);
+            var generator = new Generator(lsifJsonWriter, logger);
 
-            // Pass the set of supported SemanticTokenTypes. Order must match
-            // the order used for serialization of semantic tokens array. This
-            // array is analogous to the equivalent array in https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_semanticTokens.
+            // Pass the set of supported SemanticTokenTypes. Order must match the order used for serialization of
+            // semantic tokens array. This array is analogous to the equivalent array in
+            // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_semanticTokens.
             //
-            // Ideally semantic tokens support would use the well-known, common
-            // set of token types specified in LSP's SemanticTokenTypes to reduce
-            // the number of tokens a particular LSIF consumer must understand,
-            // but Roslyn currently employs a large number of custom token types
-            // that aren't yet standardized in LSP or LSIF's well-known set so we
-            // will pass both LSP and Roslyn custom token types for now.
+            // Ideally semantic tokens support would use the well-known, common set of token types specified in LSP's
+            // SemanticTokenTypes to reduce the number of tokens a particular LSIF consumer must understand, but Roslyn
+            // currently employs a large number of custom token types that aren't yet standardized in LSP or LSIF's
+            // well-known set so we will pass both LSP and Roslyn custom token types for now.
             var capabilitiesVertex = new Capabilities(
                 generator._idFactory,
                 HoverProvider,
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 DocumentSymbolProvider,
                 FoldingRangeProvider,
                 DiagnosticProvider,
-                new SemanticTokensCapabilities(SemanticTokensHelpers.AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
+                new SemanticTokensCapabilities(SemanticTokensSchema.LegacyTokensSchemaForLSIF.AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
             generator._lsifJsonWriter.Write(capabilitiesVertex);
             return generator;
         }
@@ -104,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var projectVertex = new Graph.LsifProject(
                 kind: GetLanguageKind(compilation.Language),
-                new Uri(projectPath),
+                ProtocolConversions.CreateAbsoluteUri(projectPath),
                 Path.GetFileNameWithoutExtension(projectPath),
                 _idFactory);
 
@@ -132,9 +130,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
             };
 
+            var documents = (await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken)).ToList();
             var tasks = new List<Task>();
-            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
+            foreach (var document in documents)
             {
+                // Add a task for each document -- we'll keep them 1:1 for exception reporting later.
                 tasks.Add(Task.Run(async () =>
                 {
                     // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
@@ -153,11 +153,34 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }, cancellationToken));
             }
 
-            await Task.WhenAll(tasks);
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            catch
+            {
+                // We ran into some exceptions while processing documents, let's log it along with the document that failed
+                var exceptions = new List<Exception>();
 
-            _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray(), _idFactory));
+                for (var i = 0; i < documents.Count; i++)
+                {
+                    if (tasks[i].IsFaulted)
+                    {
+                        var exception = tasks[i].Exception!.InnerExceptions.Single();
+                        exceptions.Add(exception);
 
-            _lsifJsonWriter.Write(new Event(Event.EventKind.End, projectVertex.GetId(), _idFactory));
+                        _logger.LogError(exception, $"Exception while processing {documents[i].FilePath}");
+                    }
+                }
+
+                // Rethrow so we properly report this as a top-level failure
+                throw new AggregateException($"Exceptions were thrown while processing documents in {project.FilePath}", exceptions);
+            }
+            finally
+            {
+                _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray(), _idFactory));
+                _lsifJsonWriter.Write(new Event(Event.EventKind.End, projectVertex.GetId(), _idFactory));
+            }
         }
 
         /// <summary>
@@ -185,17 +208,18 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document, cancellationToken);
 
-            var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
+            var documentVertex = new Graph.LsifDocument(uri, GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
             // We will walk the file token-by-token, making a range for each one and then attaching information for it
             var rangeVertices = new List<Id<Graph.Range>>();
-            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, rangeVertices, cancellationToken);
+            var documentSymbols = new List<RangeBasedDocumentSymbol>();
+            await GenerateDocumentRangesAndLinks(document, documentVertex, options, topLevelSymbolsResultSetTracker, lsifJsonWriter, idFactory, rangeVertices, documentSymbols, cancellationToken);
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
             await GenerateDocumentFoldingRangesAsync(document, documentVertex, options, lsifJsonWriter, idFactory, cancellationToken).ConfigureAwait(false);
-
             await GenerateSemanticTokensAsync(document, lsifJsonWriter, idFactory, documentVertex);
+            GenerateDocumentSymbols(documentSymbols, lsifJsonWriter, idFactory, documentVertex);
 
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
 
@@ -227,6 +251,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory,
             List<Id<Graph.Range>> rangeVertices,
+            List<RangeBasedDocumentSymbol> documentSymbols,
             CancellationToken cancellationToken)
         {
             var languageServices = document.Project.Services;
@@ -265,19 +290,27 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             foreach (var syntaxToken in syntaxTree.GetRoot(cancellationToken).DescendantTokens(descendIntoTrivia: true))
             {
+                var declaredSymbol = semanticFactsService.GetDeclaredSymbol(semanticModel, syntaxToken, cancellationToken);
+
                 // We'll only create the Range vertex once it's needed, but any number of bits of code might create it first,
                 // so we'll just make it Lazy.
                 var lazyRangeVertex = new Lazy<Graph.Range>(() =>
                 {
-                    var rangeVertex = Graph.Range.FromTextSpan(syntaxToken.Span, sourceText, idFactory);
+                    var tagAndFullRangeSpan = declaredSymbol != null ? CreateRangeTagAndContainingSpanForDeclaredSymbol(declaredSymbol, syntaxToken, syntaxTree, syntaxFactsService, cancellationToken) : null;
+                    var rangeVertex = Graph.Range.FromTextSpan(syntaxToken.Span, sourceText, tagAndFullRangeSpan?.tag, idFactory);
 
                     lsifJsonWriter.Write(rangeVertex);
                     rangeVertices.Add(rangeVertex.GetId());
 
+                    if (tagAndFullRangeSpan is not null)
+                    {
+                        var newDocumentSymbol = new RangeBasedDocumentSymbol(rangeVertex.GetId(), tagAndFullRangeSpan.Value.fullRange);
+                        RangeBasedDocumentSymbol.AddNestedFromDocumentOrderTraversal(documentSymbols, newDocumentSymbol);
+                    }
+
                     return rangeVertex;
                 }, LazyThreadSafetyMode.None);
 
-                var declaredSymbol = semanticFactsService.GetDeclaredSymbol(semanticModel, syntaxToken, cancellationToken);
                 ISymbol? referencedSymbol = null;
 
                 if (syntaxFactsService.IsBindableToken(syntaxToken))
@@ -378,15 +411,41 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
         }
 
-        private static async Task<(string uri, string? contentBase64Encoded)> GetUriAndContentAsync(
+        private static (DefinitionRangeTag tag, TextSpan fullRange)? CreateRangeTagAndContainingSpanForDeclaredSymbol(ISymbol declaredSymbol, SyntaxToken syntaxToken, SyntaxTree syntaxTree, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        {
+            // Find the syntax node that declared the symbol in the tree we're processing
+            var syntaxReference = declaredSymbol.DeclaringSyntaxReferences.FirstOrDefault(static (r, syntaxTree) => r.SyntaxTree == syntaxTree, arg: syntaxTree);
+            var syntaxNode = syntaxReference?.GetSyntax(cancellationToken);
+
+            if (syntaxNode is null)
+                return null;
+
+            // The containing range is supposed to be "the full range of the declaration not including leading/trailing whitespace, but everything else,
+            // e.g. comments and code", so produce our start/end points looking through trivia
+            var firstNonWhitespaceTrivia = syntaxNode.GetLeadingTrivia().FirstOrNull(static (t, syntaxFacts) => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t), syntaxFacts);
+            var fullRangeStart = firstNonWhitespaceTrivia?.SpanStart ?? syntaxNode.SpanStart;
+
+            var lastNonWhitespaceTrivia = syntaxNode.GetTrailingTrivia().Reverse().FirstOrNull(static (t, syntaxFacts) => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t), syntaxFacts);
+            var fullRangeEnd = lastNonWhitespaceTrivia?.Span.End ?? syntaxNode.Span.End;
+
+            var fullRangeSpan = TextSpan.FromBounds(fullRangeStart, fullRangeEnd);
+            var fullRange = ProtocolConversions.TextSpanToRange(fullRangeSpan, syntaxTree.GetText(cancellationToken));
+            var symbolKind = ProtocolConversions.GlyphToSymbolKind(declaredSymbol.GetGlyph());
+
+            return (new DefinitionRangeTag(syntaxToken.Text, symbolKind, fullRange), fullRangeSpan);
+        }
+
+        private static async Task<(Uri uri, string? contentBase64Encoded)> GetUriAndContentAsync(
             Document document, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(document.FilePath);
+
             string? contentBase64Encoded = null;
-            var uri = document.FilePath ?? "";
+            Uri uri;
 
             if (document is SourceGeneratedDocument)
             {
-                var text = await document.GetTextAsync(cancellationToken);
+                var text = await document.GetValueTextAsync(cancellationToken);
 
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?
@@ -394,7 +453,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 // There is a triple slash here, so the "host" portion of the URI is empty, similar to
                 // how file URIs work.
-                uri = "source-generated:///" + uri.Replace('\\', '/');
+                uri = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath);
+            }
+            else
+            {
+                uri = ProtocolConversions.CreateAbsoluteUri(document.FilePath);
             }
 
             return (uri, contentBase64Encoded);
@@ -408,22 +471,33 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             // Compute colorization data.
             //
-            // Unlike the mainline LSP scenario, where we control both the syntatic colorizer (in-proc syntax tagger)
-            // and the semantic colorizer (LSP semantic tokens) LSIF is more likely to be consumed by clients
-            // which may have different syntatic classification behavior than us, resulting in missing colors. To avoid
-            // this, we include syntax tokens in the generated data.
+            // Unlike the mainline LSP scenario, where we control both the syntactic colorizer (in-proc syntax tagger)
+            // and the semantic colorizer (LSP semantic tokens) LSIF is more likely to be consumed by clients which may
+            // have different syntactic classification behavior than us, resulting in missing colors. To avoid this, we
+            // include syntax tokens in the generated data.
             var data = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                // Just get the pure-lsp semantic tokens here.
+                new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true },
                 document,
-                SemanticTokensHelpers.TokenTypeToIndex,
-                range: null,
-                Classification.ClassificationOptions.Default,
-                includeSyntacticClassifications: true,
-                CancellationToken.None);
+                ranges: null,
+                options: Classification.ClassificationOptions.Default,
+                cancellationToken: CancellationToken.None);
 
             var semanticTokensResult = new SemanticTokensResult(new SemanticTokens { Data = data }, idFactory);
             var semanticTokensEdge = Edge.Create(Methods.TextDocumentSemanticTokensFullName, documentVertex.GetId(), semanticTokensResult.GetId(), idFactory);
             lsifJsonWriter.Write(semanticTokensResult);
             lsifJsonWriter.Write(semanticTokensEdge);
+        }
+
+        private static void GenerateDocumentSymbols(
+            List<RangeBasedDocumentSymbol> documentSymbols,
+            ILsifJsonWriter lsifJsonWriter,
+            IdFactory idFactory,
+            LsifDocument documentVertex)
+        {
+            var documentSymbolResult = new DocumentSymbolResult(documentSymbols, idFactory);
+            lsifJsonWriter.Write(documentSymbolResult);
+            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentDocumentSymbolName, documentVertex.GetId(), documentSymbolResult.GetId(), idFactory));
         }
 
         private static bool IncludeSymbolInReferences(ISymbol symbol)

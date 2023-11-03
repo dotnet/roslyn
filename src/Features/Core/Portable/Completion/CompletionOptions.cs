@@ -24,8 +24,25 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool TargetTypedCompletionFilter { get; init; } = false;
         public bool ProvideDateAndTimeCompletions { get; init; } = true;
         public bool ProvideRegexCompletions { get; init; } = true;
+        public bool PerformSort { get; init; } = true;
+
+        /// <summary>
+        /// Test-only option.
+        /// </summary>
         public bool ForceExpandedCompletionIndexCreation { get; init; } = false;
+
+        /// <summary>
+        /// Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
+        /// (cache will always be refreshed when provider is triggered)
+        /// </summary>
         public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
+
+        /// <summary>
+        /// Whether completion can add import statement as part of committed change.
+        /// For example, adding import is not allowed in debugger view.
+        /// </summary>
+        public bool CanAddImportStatement { get; init; } = true;
+
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
         public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;

@@ -56,6 +56,7 @@ namespace Microsoft.Cci
 
             var properties = context.Module.SerializationProperties;
 
+            context.Module.TestData?.SetMetadataWriter(mdWriter);
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
             // Since we are producing a full assembly, we should not have a module version ID

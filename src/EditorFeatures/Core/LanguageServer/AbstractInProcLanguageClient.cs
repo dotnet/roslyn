@@ -24,16 +24,22 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
-    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
+    internal abstract partial class AbstractInProcLanguageClient(
+        AbstractLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        IThreadingContext threadingContext,
+        ExportProvider exportProvider,
+        AbstractLanguageClientMiddleLayer? middleLayer = null) : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly ILanguageClientMiddleLayer? _middleLayer;
-        private readonly ILspServiceLoggerFactory _lspLoggerFactory;
-        private readonly ExportProvider _exportProvider;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly ILanguageClientMiddleLayer? _middleLayer = middleLayer;
+        private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
+        private readonly ExportProvider _exportProvider = exportProvider;
 
-        protected readonly AbstractLspServiceProvider LspServiceProvider;
+        protected readonly AbstractLspServiceProvider LspServiceProvider = lspServiceProvider;
 
-        protected readonly IGlobalOptionService GlobalOptions;
+        protected readonly IGlobalOptionService GlobalOptions = globalOptions;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -99,22 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Unused, implementing <see cref="ILanguageClient"/>
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
-
-        public AbstractInProcLanguageClient(
-            AbstractLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            ExportProvider exportProvider,
-            AbstractLanguageClientMiddleLayer? middleLayer = null)
-        {
-            LspServiceProvider = lspServiceProvider;
-            GlobalOptions = globalOptions;
-            _lspLoggerFactory = lspLoggerFactory;
-            _threadingContext = threadingContext;
-            _exportProvider = exportProvider;
-            _middleLayer = middleLayer;
-        }
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {

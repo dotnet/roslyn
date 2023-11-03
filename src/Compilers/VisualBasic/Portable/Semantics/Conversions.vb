@@ -274,6 +274,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a string that represents the current object.
         ''' </summary>
         Public Overrides Function ToString() As String
+            ' Work around runtime change on Enum.ToString behavior for Flags values
+            If _convKind = ConversionKind.DelegateRelaxationLevelNone Then
+                Return "DelegateRelaxationLevelNone"
+            End If
             Return _convKind.ToString()
         End Function
     End Structure

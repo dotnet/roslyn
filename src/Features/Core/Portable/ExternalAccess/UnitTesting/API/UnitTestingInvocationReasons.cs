@@ -10,20 +10,17 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     [DataContract]
-    internal partial struct UnitTestingInvocationReasons : IEnumerable<string>
+    internal partial struct UnitTestingInvocationReasons(ImmutableHashSet<string> reasons) : IEnumerable<string>
     {
         public static readonly UnitTestingInvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
 
         [DataMember(Order = 0)]
-        private readonly ImmutableHashSet<string> _reasons;
+        private readonly ImmutableHashSet<string> _reasons = reasons ?? ImmutableHashSet<string>.Empty;
 
         public UnitTestingInvocationReasons(string reason)
             : this(ImmutableHashSet.Create(reason))
         {
         }
-
-        public UnitTestingInvocationReasons(ImmutableHashSet<string> reasons)
-            => _reasons = reasons ?? ImmutableHashSet<string>.Empty;
 
         public bool IsEmpty => _reasons.IsEmpty;
 

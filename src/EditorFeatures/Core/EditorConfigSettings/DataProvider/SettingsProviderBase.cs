@@ -31,19 +31,26 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         protected readonly string FileName;
         protected readonly TOptionsUpdater SettingsUpdater;
         protected readonly Workspace Workspace;
+        public readonly IGlobalOptionService GlobalOptions;
 
         protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope);
 
-        protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace)
+        protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
         {
             FileName = fileName;
             SettingsUpdater = settingsUpdater;
             Workspace = workspace;
+            GlobalOptions = globalOptions;
         }
 
         protected void Update()
         {
             var givenFolder = new DirectoryInfo(FileName).Parent;
+            if (givenFolder is null)
+            {
+                return;
+            }
+
             var solution = Workspace.CurrentSolution;
             var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
             var project = projects.FirstOrDefault();
@@ -53,15 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 return;
             }
 
-            var optionMappingService = solution.Services.GetRequiredService<IEditorConfigOptionMappingService>();
-
             var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
             var projectDirectoryOptions = project.GetAnalyzerConfigOptions();
 
             // TODO: Support for multiple languages https://github.com/dotnet/roslyn/issues/65859
             var options = new TieredAnalyzerConfigOptions(
                 new CombinedAnalyzerConfigOptions(configFileDirectoryOptions, projectDirectoryOptions),
-                solution.Options.AsAnalyzerConfigOptions(optionMappingService, LanguageNames.CSharp),
+                GlobalOptions,
                 language: LanguageNames.CSharp,
                 editorConfigFileName: FileName);
 
@@ -100,16 +105,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         public void RegisterViewModel(ISettingsEditorViewModel viewModel)
             => _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
 
-        private sealed class CombinedAnalyzerConfigOptions : StructuredAnalyzerConfigOptions
+        private sealed class CombinedAnalyzerConfigOptions(AnalyzerConfigData fileDirectoryConfigData, AnalyzerConfigData? projectDirectoryConfigData) : StructuredAnalyzerConfigOptions
         {
-            private readonly AnalyzerConfigData _fileDirectoryConfigData;
-            private readonly AnalyzerConfigData? _projectDirectoryConfigData;
-
-            public CombinedAnalyzerConfigOptions(AnalyzerConfigData fileDirectoryConfigData, AnalyzerConfigData? projectDirectoryConfigData)
-            {
-                _fileDirectoryConfigData = fileDirectoryConfigData;
-                _projectDirectoryConfigData = projectDirectoryConfigData;
-            }
+            private readonly AnalyzerConfigData _fileDirectoryConfigData = fileDirectoryConfigData;
+            private readonly AnalyzerConfigData? _projectDirectoryConfigData = projectDirectoryConfigData;
 
             public override NamingStylePreferences GetNamingStylePreferences()
             {

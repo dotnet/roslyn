@@ -49,14 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    return solution;
-                });
             }
 
             /// <summary>
@@ -88,13 +80,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await base.RunImplAsync(cancellationToken);
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                var parseOptions = (VisualBasicParseOptions)base.CreateParseOptions();
+                return parseOptions.WithLanguageVersion(LanguageVersion);
+            }
+
 #if !CODE_STYLE
 
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
                 => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
 
             protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, isBlocking: false, cancellationToken);
+                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
 
 #endif
 

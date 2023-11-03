@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed class DocumentDiagnosticSource
-    : AbstractDocumentDiagnosticSource<Document>
+internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Document document)
+    : AbstractDocumentDiagnosticSource<Document>(document)
 {
-    public DiagnosticKind DiagnosticKind { get; }
+    public DiagnosticKind DiagnosticKind { get; } = diagnosticKind;
 
-    public DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Document document)
-        : base(document)
-    {
-        DiagnosticKind = diagnosticKind;
-    }
+    /// <summary>
+    /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
+    /// </summary>
+    public override bool IsLiveSource()
+        => true;
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
@@ -26,8 +26,15 @@ internal sealed class DocumentDiagnosticSource
         // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf
         // characteristics. GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas
         // GetDiagnosticsForSpanAsync will only run analyzers against the request document.
+        // Also ensure we pass in "includeSuppressedDiagnostics = true" for unnecessary suppressions to be reported.
         var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
-            Document, range: null, diagnosticKind: this.DiagnosticKind, cancellationToken: cancellationToken).ConfigureAwait(false);
+            Document, range: null, diagnosticKind: this.DiagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // Drop the source suppressed diagnostics.
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1824321 tracks
+        // adding LSP support for returning source suppressed diagnostics.
+        allSpanDiagnostics = allSpanDiagnostics.WhereAsArray(diagnostic => !diagnostic.IsSuppressed);
+
         return allSpanDiagnostics;
     }
 }

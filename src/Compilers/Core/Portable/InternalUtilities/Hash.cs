@@ -265,14 +265,7 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static int GetFNVHashCode(ReadOnlySpan<char> data)
         {
-            int hashCode = Hash.FnvOffsetBias;
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                hashCode = unchecked((hashCode ^ data[i]) * Hash.FnvPrime);
-            }
-
-            return hashCode;
+            return CombineFNVHash(Hash.FnvOffsetBias, data);
         }
 
         /// <summary>
@@ -339,12 +332,22 @@ namespace Roslyn.Utilities
         internal static int GetFNVHashCode(System.Text.StringBuilder text)
         {
             int hashCode = Hash.FnvOffsetBias;
+
+#if NETCOREAPP3_1_OR_GREATER
+            foreach (var chunk in text.GetChunks())
+            {
+                hashCode = CombineFNVHash(hashCode, chunk.Span);
+            }
+#else
+            // StringBuilder.GetChunks is not available in this target framework. Since there is no other direct access
+            // to the underlying storage spans of StringBuilder, we fall back to using slower per-character operations.
             int end = text.Length;
 
             for (int i = 0; i < end; i++)
             {
                 hashCode = unchecked((hashCode ^ text[i]) * Hash.FnvPrime);
             }
+#endif
 
             return hashCode;
         }
@@ -411,6 +414,23 @@ namespace Roslyn.Utilities
         internal static int CombineFNVHash(int hashCode, char ch)
         {
             return unchecked((hashCode ^ ch) * Hash.FnvPrime);
+        }
+
+        /// <summary>
+        /// Combine a string with an existing FNV-1a hash code
+        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+        /// </summary>
+        /// <param name="hashCode">The accumulated hash code</param>
+        /// <param name="data">The string to combine</param>
+        /// <returns>The result of combining <paramref name="hashCode"/> with <paramref name="data"/> using the FNV-1a algorithm</returns>
+        internal static int CombineFNVHash(int hashCode, ReadOnlySpan<char> data)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                hashCode = unchecked((hashCode ^ data[i]) * Hash.FnvPrime);
+            }
+
+            return hashCode;
         }
     }
 }

@@ -19,16 +19,21 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     {
         internal static class LightweightOverloadResolution
         {
-            public static void RefineOverloadAndPickParameter(Document document, int position, SemanticModel semanticModel,
-                ImmutableArray<IMethodSymbol> candidates, SeparatedSyntaxList<ArgumentSyntax> arguments,
-                out IMethodSymbol? currentSymbol, out int parameterIndex)
+            public static void RefineOverloadAndPickParameter(
+                Document document,
+                int position,
+                SemanticModel semanticModel,
+                ImmutableArray<IMethodSymbol> candidates,
+                SeparatedSyntaxList<ArgumentSyntax> arguments,
+                out IMethodSymbol? currentSymbol,
+                out int parameterIndex)
             {
                 var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
                 if (candidates.Length == 1)
                 {
                     // The compiler told us the correct overload or we only have one choice, but we need to find out the parameter to highlight given cursor position
                     currentSymbol = candidates[0];
-                    _ = FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+                    FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
                 }
                 else
                 {
@@ -40,17 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             /// If the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload.
             /// </summary>
             private static (IMethodSymbol? symbol, int parameterIndex) GuessCurrentSymbolAndParameter(
-                SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup, int position,
-                SemanticModel semanticModel, ISemanticFactsService semanticFactsService)
+                SeparatedSyntaxList<ArgumentSyntax> arguments,
+                ImmutableArray<IMethodSymbol> methodGroup,
+                int position,
+                SemanticModel semanticModel,
+                ISemanticFactsService semanticFactsService)
             {
                 if (arguments.Count != 0)
                 {
                     foreach (var method in methodGroup)
                     {
                         if (FindParameterIndexIfCompatibleMethod(arguments, method, position, semanticModel, semanticFactsService, out var parameterIndex))
-                        {
                             return (method, parameterIndex);
-                        }
                     }
                 }
 
@@ -63,8 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             /// Returns true if an overload is acceptable. In that case, we output the parameter that should be highlighted given the cursor's
             /// position in the partial invocation.
             /// </summary>
-            internal static bool FindParameterIndexIfCompatibleMethod(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, int position,
-                SemanticModel semanticModel, ISemanticFactsService semanticFactsService, out int foundParameterIndex)
+            internal static bool FindParameterIndexIfCompatibleMethod(
+                SeparatedSyntaxList<ArgumentSyntax> arguments,
+                IMethodSymbol method,
+                int position,
+                SemanticModel semanticModel,
+                ISemanticFactsService semanticFactsService,
+                out int foundParameterIndex)
             {
                 // map the arguments to their corresponding parameters
                 var argumentCount = arguments.Count;
@@ -81,9 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 {
                     var parameterIndex = argToParamMap[argumentIndex];
                     if (parameterIndex < 0)
-                    {
                         continue;
-                    }
 
                     var parameter = parameters[parameterIndex];
                     var argument = arguments[argumentIndex];
@@ -269,18 +278,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             private static int TryGetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
             {
                 if (arguments.Count == 0)
-                {
                     return -1;
-                }
 
                 for (var i = 0; i < arguments.Count - 1; i++)
                 {
                     // `$$,` points to the argument before the separator
                     // but `,$$` points to the argument following the separator
                     if (position <= arguments.GetSeparator(i).Span.Start)
-                    {
                         return i;
-                    }
                 }
 
                 return arguments.Count - 1;

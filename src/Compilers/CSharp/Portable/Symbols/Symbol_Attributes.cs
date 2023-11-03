@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// can be decoded here.
         /// </summary>
         /// <remarks>
-        /// NOTE: If you are early decoding any new well-known attribute, make sure to update PostEarlyDecodeWellKnownAttributeTypes 
+        /// NOTE: If you are early decoding any new well-known attribute, make sure to update PostEarlyDecodeWellKnownAttributeTypes
         /// to default initialize this data.
         /// </remarks>
         internal virtual void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)
@@ -160,6 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.DeprecatedAttribute))
             {
                 kind = ObsoleteAttributeKind.Deprecated;
+            }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.WindowsExperimentalAttribute))
+            {
+                kind = ObsoleteAttributeKind.WindowsExperimental;
             }
             else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ExperimentalAttribute))
             {
@@ -214,11 +219,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(arguments.Diagnostics.DiagnosticBag is not null);
             Debug.Assert(arguments.AttributeSyntaxOpt is not null);
-            if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.CompilerFeatureRequiredAttribute))
+            if (arguments.Attribute.IsTargetAttribute(AttributeDescription.CompilerFeatureRequiredAttribute))
             {
                 // Do not use '{FullName}'. This is reserved for compiler usage.
                 arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.CompilerFeatureRequiredAttribute.FullName);
-                return;
+            }
+            else if (arguments.Attribute.IsTargetAttribute(AttributeDescription.ExperimentalAttribute))
+            {
+                if (!SyntaxFacts.IsValidIdentifier((string?)arguments.Attribute.CommonConstructorArguments[0].ValueInternal))
+                {
+                    var attrArgumentLocation = arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 0);
+                    arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
+                }
             }
 
             DecodeWellKnownAttributeImpl(ref arguments);
@@ -237,9 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method is called by the binder from <see cref="LoadAndValidateAttributes"/> after it has finished binding attributes on the symbol,
         /// has executed <see cref="DecodeWellKnownAttribute"/> for attributes applied on the symbol and has stored the decoded data in the
         /// lazyCustomAttributesBag on the symbol. Bound attributes haven't been stored on the bag yet.
-        /// 
+        ///
         /// Post-validation for attributes that is dependent on other attributes can be done here.
-        /// 
+        ///
         /// This method should not have any side effects on the symbol, i.e. it SHOULD NOT change the symbol state.
         /// </remarks>
         /// <param name="boundAttributes">Bound attributes.</param>
@@ -438,12 +450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // The TypeForwardedTo attribute takes only one argument, which must be System.Type and it
                     // designates the forwarded type. The only form of System.Type value accepted
                     // as an argument for an attribute is a 'typeof' expression. The only obsolete diagnostics
-                    // that can be reported for a 'typeof' expression, is diagnostics for its argument, which is 
+                    // that can be reported for a 'typeof' expression, is diagnostics for its argument, which is
                     // the reference to a type. A forwarded type, when we are dealing with a TypeForwardedTo
                     // application.
 
                     // The general strategy:
-                    //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.  
+                    //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.
                     //    2. Collect obsolete diagnostics reported within the span of those locations.
                     //    3. Remove the collected diagnostics, if any.
 
@@ -452,12 +464,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(totalAttributesCount == boundAttributes.Length);
 
-                    //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.  
+                    //    1. Collect locations of the first argument of each TypeForwardedTo attribute application.
                     for (int i = 0; i < totalAttributesCount; i++)
                     {
                         CSharpAttributeData boundAttribute = boundAttributes[i];
 
-                        if (!boundAttribute.HasErrors && boundAttribute.IsTargetAttribute(this, AttributeDescription.TypeForwardedToAttribute) &&
+                        if (!boundAttribute.HasErrors && boundAttribute.IsTargetAttribute(AttributeDescription.TypeForwardedToAttribute) &&
                             boundAttribute.CommonConstructorArguments[0].ValueInternal is TypeSymbol &&
                             attributesToBind[i].ArgumentList?.Arguments[0].Expression.Location is { } location)
                         {
@@ -589,7 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var attributeDeclarationSyntax in attributeDeclarationSyntaxList)
                     {
                         // We bind the attribute only if it has a matching target for the given ownerSymbol and attributeLocation.
-                        if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax.Target, diagnostics))
+                        if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax.Target, diagnostics) &&
+                            ShouldBindAttributes(attributeDeclarationSyntax, diagnostics))
                         {
                             if (syntaxBuilder == null)
                             {
@@ -643,6 +656,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected virtual bool ShouldBindAttributes(AttributeListSyntax attributeDeclarationSyntax, BindingDiagnosticBag diagnostics)
+        {
+            return true;
+        }
+
 #nullable enable
         private Binder GetAttributeBinder(SyntaxList<AttributeListSyntax> attributeDeclarationSyntaxList, CSharpCompilation compilation, Binder? rootBinder = null)
         {
@@ -657,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             IAttributeTargetSymbol attributesOwner = attributeTarget.AttributesOwner;
 
-            // Determine if the target symbol owns the attribute declaration. 
+            // Determine if the target symbol owns the attribute declaration.
             // We need to report diagnostics only once, so do it when visiting attributes for the owner.
             bool isOwner = symbolPart == AttributeLocation.None && ReferenceEquals(attributesOwner, attributeTarget);
 
@@ -921,15 +939,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Ensure that attributes are bound and the ObsoleteState of this symbol is known.
+        /// Ensure that attributes are bound and the ObsoleteState/ExperimentalState of this symbol is known.
         /// </summary>
         internal void ForceCompleteObsoleteAttribute()
         {
-            if (this.ObsoleteState == ThreeState.Unknown)
+            if (this.ObsoleteKind == ObsoleteAttributeKind.Uninitialized)
             {
                 this.GetAttributes();
             }
             Debug.Assert(this.ObsoleteState != ThreeState.Unknown, "ObsoleteState should be true or false now.");
+            Debug.Assert(this.ExperimentalState != ThreeState.Unknown, "ExperimentalState should be true or false now.");
+
+            this.ContainingSymbol?.ForceCompleteObsoleteAttribute();
         }
     }
 }

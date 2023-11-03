@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,12 +22,17 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             // Don't provide any refactoring option if the destination is not in source.
             // If the destination is generated code, also don't provide refactoring since we can't make sure if we won't break it.
             var isDestinationInSourceAndNotGeneratedCode =
-                destination.Locations.Any(static (location, arg) => location.IsInSource && !arg.solution.GetDocument(location.SourceTree).IsGeneratedCode(arg.cancellationToken), (solution, cancellationToken));
+                destination.Locations.Any(static (location, arg) => location.IsInSource && !arg.solution.GetRequiredDocument(location.SourceTree).IsGeneratedCode(arg.cancellationToken), (solution, cancellationToken));
             return isDestinationInSourceAndNotGeneratedCode;
         }
 
-        public static bool IsMemberValid(ISymbol member)
+        public static bool IsMemberValid([NotNullWhen(true)] ISymbol? member)
         {
+            if (member is null)
+            {
+                return false;
+            }
+
             if (member.IsImplicitlyDeclared)
             {
                 return false;

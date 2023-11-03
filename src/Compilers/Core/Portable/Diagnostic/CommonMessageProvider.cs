@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
+        public abstract int ERR_FunctionPointerTypesInAttributeNotSupported { get; }
 
         // Generators:
         public abstract int WRN_GeneratorFailedDuringInitialization { get; }
@@ -327,5 +328,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public abstract int ERR_BadAssemblyName { get; }
+
+        public abstract int? WRN_ByValArraySizeConstRequired { get; }
     }
 }

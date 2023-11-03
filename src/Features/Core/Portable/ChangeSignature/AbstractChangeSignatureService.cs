@@ -67,9 +67,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// For some Foo(int x, params int[] p), this helps convert the "1, 2, 3" in Foo(0, 1, 2, 3)
         /// to "new int[] { 1, 2, 3 }" in Foo(0, new int[] { 1, 2, 3 });
         /// </summary>
-        protected abstract SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int startingIndex, IParameterSymbol parameterSymbol);
+        protected abstract TArgumentSyntax CreateExplicitParamsArrayFromIndividualArguments<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> newArguments, int startingIndex, IParameterSymbol parameterSymbol)
+            where TArgumentSyntax : SyntaxNode;
 
-        protected abstract SyntaxNode AddNameToArgument(SyntaxNode argument, string name);
+        protected abstract TArgumentSyntax AddNameToArgument<TArgumentSyntax>(TArgumentSyntax argument, string name)
+            where TArgumentSyntax : SyntaxNode;
 
         /// <summary>
         /// Only some languages support:
@@ -750,9 +752,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return separators.ToImmutable();
         }
 
-        protected virtual async Task<SeparatedSyntaxList<SyntaxNode>> AddNewArgumentsToListAsync(
+        protected virtual async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
             ISymbol declarationSymbol,
-            SeparatedSyntaxList<SyntaxNode> newArguments,
+            SeparatedSyntaxList<TArgumentSyntax> newArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
@@ -760,8 +762,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             Document document,
             int position,
             CancellationToken cancellationToken)
+            where TArgumentSyntax : SyntaxNode
         {
-            var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
+            var fullList = ArrayBuilder<TArgumentSyntax>.GetInstance();
             var separators = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters();
@@ -815,10 +818,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
                         // https://github.com/dotnet/roslyn/issues/43354
                         var argument = generateAttributeArguments
-                            ? Generator.AttributeArgument(
+                            ? (TArgumentSyntax)Generator.AttributeArgument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 expression: expression)
-                            : Generator.Argument(
+                            : (TArgumentSyntax)Generator.Argument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 refKind: RefKind.None,
                                 expression: expression);

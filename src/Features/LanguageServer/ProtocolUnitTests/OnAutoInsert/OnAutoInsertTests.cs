@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         {
         }
 
-        [Fact]
-        public async Task OnAutoInsert_CommentCharacter()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_CommentCharacter(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 @"class A
 {
     /// <summary>
-    /// $0
-    /// </summary>
+/// $0
+/// </summary>
     void M()
     {
     }
 }";
-            await VerifyMarkupAndExpected("/", markup, expected);
+            await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_CommentCharacter_WithComment()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_CommentCharacter_WithComment(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 @"class A
 {
     /// <summary>
-    /// $0This is an existing comment
-    /// </summary>
+/// $0This is an existing comment
+/// </summary>
     void M()
     {
     }
 }";
-            await VerifyMarkupAndExpected("/", markup, expected);
+            await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_CommentCharacter_WithComment_NoSpace()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_CommentCharacter_WithComment_NoSpace(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -85,17 +85,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 @"class A
 {
     /// <summary>
-    /// $0This is an existing comment
-    /// </summary>
+/// $0This is an existing comment
+/// </summary>
     void M()
     {
     }
 }";
-            await VerifyMarkupAndExpected("/", markup, expected);
+            await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_CommentCharacter_VB()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_CommentCharacter_VB(bool mutatingLspWorkspace)
         {
             var markup =
 @"Class A
@@ -106,16 +106,16 @@ End Class";
             var expected =
 @"Class A
     ''' <summary>
-    ''' $0
-    ''' </summary>
+''' $0
+''' </summary>
     Sub M()
     End Sub
 End Class";
-            await VerifyMarkupAndExpected("'", markup, expected, languageName: LanguageNames.VisualBasic);
+            await VerifyMarkupAndExpected("'", markup, expected, mutatingLspWorkspace, languageName: LanguageNames.VisualBasic);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_ParametersAndReturns()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_ParametersAndReturns(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -129,20 +129,20 @@ End Class";
 @"class A
 {
     /// <summary>
-    /// $0
-    /// </summary>
-    /// <param name=""foo""></param>
-    /// <param name=""bar""></param>
-    /// <returns></returns>
+/// $0
+/// </summary>
+/// <param name=""foo""></param>
+/// <param name=""bar""></param>
+/// <returns></returns>
     string M(int foo, bool bar)
     {
     }
 }";
-            await VerifyMarkupAndExpected("/", markup, expected);
+            await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_CommentCharacterInsideMethod_Ignored()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_CommentCharacterInsideMethod_Ignored(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -152,11 +152,11 @@ End Class";
         ///{|type:|}
     }
 }";
-            await VerifyNoResult("/", markup);
+            await VerifyNoResult("/", markup, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_VisualBasicCommentCharacter_Ignored()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_VisualBasicCommentCharacter_Ignored(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -166,11 +166,11 @@ End Class";
     {
     }
 }";
-            await VerifyNoResult("'", markup);
+            await VerifyNoResult("'", markup, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_EnterKey()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_EnterKey(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -194,11 +194,11 @@ End Class";
     {
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_EnterKey2()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_EnterKey2(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -222,11 +222,11 @@ End Class";
     {
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_EnterKey3()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -250,11 +250,11 @@ End Class";
     {
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_BraceFormatting()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_BraceFormatting(bool mutatingLspWorkspace)
         {
             // The test starts with the closing brace already on a new line.
             // In LSP, hitting enter will first trigger a didChange event for the new line character
@@ -274,11 +274,11 @@ End Class";
         $0
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
+            await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_BraceFormattingWithTabs()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_BraceFormattingWithTabs(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -296,11 +296,11 @@ End Class";
 		$0
 	}
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
+            await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_BraceFormattingInsideMethod()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_BraceFormattingInsideMethod(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -322,11 +322,11 @@ End Class";
         }
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
+            await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
-        [Fact]
-        public async Task OnAutoInsert_BraceFormattingNoResultInInterpolation()
+        [Theory, CombinatorialData]
+        public async Task OnAutoInsert_BraceFormattingNoResultInInterpolation(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -336,11 +336,11 @@ End Class";
         var s = $""Hello {{|type:|}
         }
 }";
-            await VerifyNoResult("\n", markup);
+            await VerifyNoResult("\n", markup, mutatingLspWorkspace);
         }
 
-        [Fact, WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
-        public async Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
+        public async Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines(bool mutatingLspWorkspace)
         {
             // The test starts with the closing brace already on a new line.
             // In LSP, hitting enter will first trigger a didChange event for the new line character
@@ -355,11 +355,11 @@ End Class";
         {|type:|}
     }
 }";
-            await VerifyNoResult("\n", markup);
+            await VerifyNoResult("\n", markup, mutatingLspWorkspace);
         }
 
-        [Fact, WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
-        public async Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
+        public async Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces(bool mutatingLspWorkspace)
         {
             // The test starts with the closing brace already on a new line.
             // In LSP, hitting enter will first trigger a didChange event for the new line character
@@ -374,13 +374,14 @@ End Class";
 
     }
 }";
-            await VerifyNoResult("\n", markup);
+            await VerifyNoResult("\n", markup, mutatingLspWorkspace);
         }
 
         private async Task VerifyMarkupAndExpected(
             string characterTyped,
             string markup,
             string expected,
+            bool mutatingLspWorkspace,
             bool insertSpaces = true,
             int tabSize = 4,
             string languageName = LanguageNames.CSharp,
@@ -389,11 +390,11 @@ End Class";
             Task<TestLspServer> testLspServerTask;
             if (languageName == LanguageNames.CSharp)
             {
-                testLspServerTask = CreateTestLspServerAsync(markup, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions, ServerKind = serverKind });
+                testLspServerTask = CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions, ServerKind = serverKind });
             }
             else if (languageName == LanguageNames.VisualBasic)
             {
-                testLspServerTask = CreateVisualBasicTestLspServerAsync(markup, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions, ServerKind = serverKind });
+                testLspServerTask = CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions, ServerKind = serverKind });
             }
             else
             {
@@ -414,9 +415,9 @@ End Class";
             Assert.Equal(expected, actualText);
         }
 
-        private async Task VerifyNoResult(string characterTyped, string markup, bool insertSpaces = true, int tabSize = 4)
+        private async Task VerifyNoResult(string characterTyped, string markup, bool mutatingLspWorkspace, bool insertSpaces = true, int tabSize = 4)
         {
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 

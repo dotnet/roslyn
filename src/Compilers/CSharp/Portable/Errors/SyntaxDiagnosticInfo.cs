@@ -46,6 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxDiagnosticInfo(offset, this.Width, (ErrorCode)this.Code, this.Arguments);
         }
 
+        protected SyntaxDiagnosticInfo(SyntaxDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            Offset = original.Offset;
+            Width = original.Width;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new SyntaxDiagnosticInfo(this, severity);
+        }
+
         #region Serialization
 
         protected override void WriteTo(ObjectWriter writer)

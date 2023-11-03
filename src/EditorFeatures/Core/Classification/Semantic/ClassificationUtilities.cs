@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -35,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Classification
                 new ClassificationTag(typeMap.GetClassificationType(classifiedSpan.ClassificationType)));
         }
 
-        public static List<ITagSpan<IClassificationTag>> Convert(IClassificationTypeMap typeMap, ITextSnapshot snapshot, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        public static SegmentedList<ITagSpan<IClassificationTag>> Convert(IClassificationTypeMap typeMap, ITextSnapshot snapshot, SegmentedList<ClassifiedSpan> classifiedSpans)
         {
-            var result = new List<ITagSpan<IClassificationTag>>(capacity: classifiedSpans.Count);
+            var result = new SegmentedList<ITagSpan<IClassificationTag>>(capacity: classifiedSpans.Count);
             foreach (var span in classifiedSpans)
                 result.Add(Convert(typeMap, snapshot, span));
 
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
-                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+                    using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
                     await AddClassificationsAsync(
                         classificationService, options, document, snapshotSpan, classifiedSpans, type, cancellationToken).ConfigureAwait(false);
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationOptions options,
             Document document,
             SnapshotSpan snapshotSpan,
-            ArrayBuilder<ClassifiedSpan> classifiedSpans,
+            SegmentedList<ClassifiedSpan> classifiedSpans,
             ClassificationType type,
             CancellationToken cancellationToken)
         {

@@ -542,7 +542,7 @@ End Class
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
-                    New ProgressTracker,
+                    CodeAnalysisProgress.None,
                     options,
                     CancellationToken.None)
 
@@ -568,8 +568,8 @@ End Class
 
                 ' must set global options since incremental analyzer infra reads from global options
                 Dim globalOptions = workspace.GlobalOptions
-                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic), separateImportsGroups)
-                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic), systemImportsFirst)
+                globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)
+                globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst)
 
                 Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
                 {
@@ -594,7 +594,7 @@ End Class
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
-                    New ProgressTracker,
+                    CodeAnalysisProgress.None,
                     globalOptions.CreateProvider(),
                     CancellationToken.None)
 

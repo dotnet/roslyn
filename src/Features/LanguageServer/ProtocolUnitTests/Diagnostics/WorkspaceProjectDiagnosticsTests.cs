@@ -24,16 +24,16 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsReportsProjectDiagnostic(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsReportsProjectDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
-        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(2, results.Length);
         Assert.Empty(results[0].Diagnostics);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(ProtocolConversions.GetUriFromFilePath(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -43,16 +43,16 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsWithRemovedProject(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsWithRemovedProject(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
-        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(2, results.Length);
         Assert.Empty(results[0].Diagnostics);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(ProtocolConversions.GetUriFromFilePath(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         var initialSolution = testLspServer.GetCurrentSolution();
         var newSolution = initialSolution.RemoveProject(initialSolution.Projects.First().Id);

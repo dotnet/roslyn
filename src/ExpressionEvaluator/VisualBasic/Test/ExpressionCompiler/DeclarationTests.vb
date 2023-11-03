@@ -174,7 +174,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1098750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098750")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098750")>
         Public Sub ReferenceInSameDeclaration()
             Const source =
 "Module M
@@ -252,7 +252,7 @@ End Module"
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1100849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")>
         Public Sub PassByRef()
             Const source =
 "Module M
@@ -382,7 +382,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1101237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101237")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101237")>
         Public Sub TypeChar()
             Const source =
 "Module M
@@ -602,7 +602,7 @@ End Module"
         ''' <summary>
         ''' Should not allow names with '$' prefix.
         ''' </summary>
-        <Fact, WorkItem(1106819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")>
         Public Sub NoPrefix()
             Const source =
 "Module M
@@ -657,7 +657,7 @@ End Module"
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1101243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101243")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101243")>
         Public Sub [ReDim]()
             Const source =
 "Module M
@@ -730,7 +730,7 @@ End Module"
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1101318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101318")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101318")>
         Public Sub CompoundAssignment()
             Const source =
 "Module M
@@ -775,7 +775,7 @@ End Module"
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1115044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
         Public Sub CaseSensitivity()
             Const source =
 "Class C
@@ -808,7 +808,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1115044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
         Public Sub CaseSensitivity_ImplicitDeclaration()
             Const source =
 "Class C

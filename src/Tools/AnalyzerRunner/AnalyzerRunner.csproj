@@ -6,18 +6,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <ServerGarbageCollection>true</ServerGarbageCollection>
-    <!-- Automatically generate the necessary assembly binding redirects -->
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <!--
-      Avoid allocation interference due to a boxing bug which was fixed for .NET 5.
-      https://github.com/dotnet/runtime/issues/1713
-    -->
-    <TieredCompilation>false</TieredCompilation>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,6 +29,7 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />

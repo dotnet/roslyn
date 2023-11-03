@@ -634,11 +634,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool? IsMutableValueType(this ITypeSymbol type)
         {
-            if (type.IsNullable())
+            if (type.IsNullable(out var underlyingType))
             {
                 // Nullable<T> can only be mutable if T is mutable. This case ensures types like 'int?' are treated as
                 // immutable.
-                type = type.GetTypeArguments()[0];
+                type = underlyingType;
             }
 
             switch (type.SpecialType)
@@ -729,5 +729,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return symbol;
         }
+
+        public static bool IsSpanOrReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol
+            {
+                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                TypeArguments.Length: 1,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+            };
+
+        public static bool IsSpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol
+            {
+                Name: nameof(Span<int>),
+                TypeArguments.Length: 1,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+            };
+
+        public static bool IsInlineArray([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol namedType &&
+               namedType.OriginalDefinition.GetAttributes().Any(static a => a.AttributeClass?.SpecialType == SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute);
     }
 }

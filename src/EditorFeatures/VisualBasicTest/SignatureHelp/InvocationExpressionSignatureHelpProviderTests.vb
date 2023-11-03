@@ -32,7 +32,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25830")>
         Public Async Function PickCorrectOverload_PickString() As Task
 
             Dim markup = <Text><![CDATA[
@@ -59,7 +59,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25830")>
         Public Async Function PickCorrectOverload_PickInteger() As Task
 
             Dim markup = <Text><![CDATA[
@@ -86,7 +86,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(958593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958593")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958593")>
         Public Async Function TestInvocationInsideStringLiteral() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -244,7 +244,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_ProtectedAccessibility() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -271,7 +271,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_AbstractBase() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -298,7 +298,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -322,7 +322,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_Overridden() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -348,7 +348,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -372,7 +372,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -398,7 +398,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_ProtectedFriendAccessibility() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -424,7 +424,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -448,7 +448,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_PrivateAccessibility() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -472,7 +472,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_Constructor() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -495,7 +495,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188"), WorkItem(544989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
         Public Async Function TestInvocationOnBaseExpression_Finalizer() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -629,7 +629,7 @@ End Class]]></a>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(544068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544068")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544068")>
         Public Async Function TestExtension() As Task
             Dim markup = <a><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -689,7 +689,7 @@ $"List(Of 'a).Add(item As 'a)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
         Public Async Function TestStatic1() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -715,7 +715,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
         Public Async Function TestStatic2() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -742,7 +742,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(539111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539111")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539111")>
         Public Async Function TestFilteringInOverloadedGenericMethods() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -1782,7 +1782,7 @@ End Class
 #End Region
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(543038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543038")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543038")>
         Public Async Function TestSignatureHelpWhenALambdaExpressionDeclaredAndInvokedAtTheSameTime() As Task
             Dim markup = <text>
 Class C
@@ -1857,8 +1857,8 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
-        <WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/699")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")>
         Public Async Function TestGenericParameters1() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -1884,8 +1884,8 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
-        <WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/699")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")>
         Public Async Function TestGenericParameters2() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -1911,7 +1911,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(3537, "https://github.com/dotnet/roslyn/issues/3537")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3537")>
         Public Async Function TestEscapedIdentifiers() As Task
             Dim markup = "
 Class C
@@ -1925,7 +1925,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4144")>
         Public Async Function TestSigHelpIsVisibleOnInaccessibleItem() As Task
             Dim markup = "
 Imports System.Collections.Generic
@@ -1947,7 +1947,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2579")>
         Public Async Function TestInvocationOnMeExpression_Constructor() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -1967,7 +1967,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(40451, "https://github.com/dotnet/roslyn/issues/40451")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40451")>
         Public Async Function TestSigHelpIsVisibleWithDuplicateMethodNames() As Task
             Dim markup = "
 Class C

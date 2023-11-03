@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     {
                         return name[1..];
                     }
-                    else if (name.Length == 1 && name[0] == DefaultGenericParameterPrefix)
+                    else if (name is [DefaultGenericParameterPrefix])
                     {
                         return ITypeSymbolExtensions.DefaultParameterName;
                     }

@@ -1816,7 +1816,7 @@ End Structure
                                                      Optional optimize As Boolean = True,
                                                      Optional latestReferences As Boolean = False,
                                                      Optional addXmlReferences As Boolean = False,
-                                                     Optional verify As Verification = Verification.Passes) As CompilationVerifier
+                                                     Optional verify As Verification = Nothing) As CompilationVerifier
 
             Debug.Assert(Not latestReferences OrElse Not addXmlReferences) ' NYI
 
@@ -1839,7 +1839,7 @@ End Structure
                                         Optional latestReferences As Boolean = False,
                                         Optional addXmlReferences As Boolean = False,
                                         Optional diagnostics() As DiagnosticDescription = Nothing,
-                                        Optional verify As Verification = Verification.Passes)
+                                        Optional verify As Verification = Nothing)
 
             TestExpressionTreesVerifier(sourceFile, result, checked, optimize, latestReferences, addXmlReferences, verify).VerifyDiagnostics(If(diagnostics, {}))
         End Sub

@@ -147,7 +147,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttributes(this As Symbol, description As AttributeDescription) As IEnumerable(Of VisualBasicAttributeData)
-        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(this, description))
+        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(description))
     End Function
 
     <Extension>
@@ -323,7 +323,7 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Function Parameters(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
+    Friend Function ParameterSymbols(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
         Return DirectCast(this, MethodSymbol).Parameters
     End Function
 
@@ -415,7 +415,11 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetBoundMethodBody(this As MethodSymbol, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-        Return this.GetBoundMethodBody(compilationState, New BindingDiagnosticBag(diagnostics), methodBodyBinder)
+        Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
+        Dim result = this.GetBoundMethodBody(compilationState, builder, methodBodyBinder)
+        diagnostics.AddRange(builder.DiagnosticBag)
+        builder.Free()
+        Return result
     End Function
 
 End Module

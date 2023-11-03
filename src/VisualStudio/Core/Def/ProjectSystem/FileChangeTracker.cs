@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     return null;
                 }
-            }, cacheResult: true);
+            });
 
             lock (s_lastBackgroundTaskGate)
             {

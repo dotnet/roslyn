@@ -12,6 +12,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -27,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Symbol _containingSymbol;
 
         private readonly SyntaxToken _identifierToken;
-        private readonly ImmutableArray<Location> _locations;
         private readonly TypeSyntax _typeSyntax;
         private readonly RefKind _refKind;
         private readonly LocalDeclarationKind _declarationKind;
@@ -68,9 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : isScoped ? ScopedKind.ScopedValue : ScopedKind.None;
 
             this._declarationKind = declarationKind;
-
-            // create this eagerly as it will always be needed for the EnsureSingleDefinition
-            _locations = ImmutableArray.Create(identifierToken.GetLocation());
         }
 
         /// <summary>
@@ -229,7 +229,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return SynthesizedLocalKind.UserDefined; }
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -396,23 +403,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Location TryGetFirstLocation()
+            => _identifierToken.GetLocation();
+
         /// <summary>
         /// Gets the locations where the local symbol was originally defined in source.
         /// There should not be local symbols from metadata, and there should be only one local variable declared.
         /// TODO: check if there are multiple same name local variables - error symbol or local symbol?
         /// </summary>
         public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _locations;
-            }
-        }
+            => ImmutableArray.Create(GetFirstLocation());
 
         internal sealed override SyntaxNode GetDeclaratorSyntax()
         {
             return _identifierToken.Parent;
         }
+
+        internal override bool HasSourceLocation => true;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -551,7 +558,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsConst && _constantTuple == null)
                 {
                     var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
-                    Location initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = BindingDiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
                     var type = this.Type;
@@ -561,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
                     }
 
-                    value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
+                    value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, _initializer.Value, diagnostics);
                     Interlocked.CompareExchange(ref _constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
                 }
             }

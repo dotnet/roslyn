@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private DiagnosticData? _diagnosticData;
 
-        public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
+        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -57,18 +57,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : ImmutableArray.Create(new DiagnosticBucket(this, workspace, GetProjectId(workspace), GetDocumentId(workspace)));
         }
 
-        internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location, DiagnosticKind diagnosticKind)
+        internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location, DiagnosticKind diagnosticKind, bool isSuppressed)
         {
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            _diagnosticData = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
+            _diagnosticData = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0, isSuppressed: isSuppressed,
                 location: location),
                 document);
 
             analyzerService.AddDiagnostic(_diagnosticData, diagnosticKind);
-            DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+            DiagnosticsUpdated?.Invoke(this, ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 this, workspace, workspace.CurrentSolution,
                 GetProjectId(workspace), GetDocumentId(workspace),
-                ImmutableArray.Create(_diagnosticData)));
+                ImmutableArray.Create(_diagnosticData))));
         }
 
         private static DocumentId GetDocumentId(Workspace workspace)

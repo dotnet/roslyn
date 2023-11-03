@@ -14,19 +14,23 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSource<Document>
+using static PullDiagnosticConstants;
+
+internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionService globalOptions) : AbstractDocumentDiagnosticSource<Document>(document)
 {
-    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
+    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(TaskItemCustomTag);
+
+    private static readonly ImmutableDictionary<string, string?> s_lowPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Low);
+    private static readonly ImmutableDictionary<string, string?> s_mediumPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Medium);
+    private static readonly ImmutableDictionary<string, string?> s_highPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, High);
+
     private static Tuple<ImmutableArray<string>, ImmutableArray<TaskListItemDescriptor>> s_lastRequestedTokens =
         Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TaskListItemDescriptor>.Empty);
 
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    public TaskListDiagnosticSource(Document document, IGlobalOptionService globalOptions)
-        : base(document)
-    {
-        _globalOptions = globalOptions;
-    }
+    public override bool IsLiveSource()
+        => true;
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
@@ -51,11 +55,20 @@ internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSourc
             isEnabledByDefault: true,
             warningLevel: 0,
             customTags: s_todoCommentCustomTags,
-            properties: ImmutableDictionary<string, string?>.Empty,
+            properties: GetProperties(i.Priority),
             projectId: this.Document.Project.Id,
             language: this.Document.Project.Language,
             location: new DiagnosticDataLocation(i.Span, this.Document.Id, mappedFileSpan: i.MappedSpan)));
     }
+
+    private static ImmutableDictionary<string, string?> GetProperties(TaskListItemPriority priority)
+        => priority switch
+        {
+            TaskListItemPriority.Low => s_lowPriorityProperties,
+            TaskListItemPriority.Medium => s_mediumPriorityProperties,
+            TaskListItemPriority.High => s_highPriorityProperties,
+            _ => s_mediumPriorityProperties,
+        };
 
     private static ImmutableArray<TaskListItemDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
     {

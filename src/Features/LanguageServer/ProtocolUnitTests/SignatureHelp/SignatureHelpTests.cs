@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
         {
         }
 
-        [Fact]
-        public async Task TestGetSignatureHelpAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetSignatureHelpAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
     }
 
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SignatureHelp()
             {
                 ActiveParameter = 0,

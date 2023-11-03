@@ -9,21 +9,24 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class NameSyntaxClassifier : AbstractNameSyntaxClassifier
+    internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     {
         public override void AddClassifications(
             SyntaxNode syntax,
+            TextSpan textSpan,
             SemanticModel semanticModel,
             ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (syntax is NameSyntax name)
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private void ClassifyTypeSyntax(
             NameSyntax name,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
@@ -59,15 +62,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
                 TryClassifyFromIdentifier(name, symbolInfo, result) ||
                 TryClassifyValueIdentifier(name, symbolInfo, result) ||
-                TryClassifyNameOfIdentifier(name, symbolInfo, result) ||
-                TryClassifyAsyncIdentifier(name, symbolInfo, result);
+                TryClassifySomeContextualKeywordIdentifiersAsKeywords(name, symbolInfo, result);
         }
 
         private bool TryClassifySymbol(
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (symbolInfo.CandidateReason is
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
@@ -312,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static bool TryClassifyFromIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
+            SegmentedList<ClassifiedSpan> result)
         {
             // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
             // doesn't bind to anything then optimistically color from as a keyword.
@@ -334,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static bool TryClassifyValueIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
+            SegmentedList<ClassifiedSpan> result)
         {
             if (name is IdentifierNameSyntax identifierName &&
                 symbolInfo.Symbol.IsImplicitValueParameter())
@@ -346,30 +348,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private static bool TryClassifyNameOfIdentifier(
-            NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
+        private static bool TryClassifySomeContextualKeywordIdentifiersAsKeywords(NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
         {
-            if (name is IdentifierNameSyntax identifierName &&
-                identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword) &&
-                symbolInfo.GetAnySymbol() is null)
-            {
-                result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool TryClassifyAsyncIdentifier(NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
-        {
-            var symbol = symbolInfo.GetAnySymbol();
-
-            // Simple approach, if the user ever types 'async' and it doesn't actually bind to anything, presume that
-            // they intend to use it as a keyword and are about to create an async symbol.  This works for all error
-            // cases, while not conflicting with the extremely rare case where 'async' might actually be used to
-            // reference an actual symbol with that name.
-            if (symbol is null &&
-                name is IdentifierNameSyntax { Identifier.Text: "async" })
+            // Simple approach, if the user ever types one of identifiers from the list and it doesn't actually bind to anything, presume that
+            // they intend to use it as a keyword. This works for all error
+            // cases, while not conflicting with the extremely rare case where such identifiers might actually be used to
+            // reference actual symbols with that names.
+            if (symbolInfo.GetAnySymbol() is null &&
+                name is IdentifierNameSyntax { Identifier.Text: "async" or "nameof" or "partial" })
             {
                 result.Add(new(name.Span, ClassificationTypeNames.Keyword));
                 return true;

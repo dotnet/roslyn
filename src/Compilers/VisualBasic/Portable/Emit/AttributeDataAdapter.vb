@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Details: https://github.com/dotnet/roslyn/issues/19394
 
                 If reportDiagnostics Then
-                    context.Diagnostics.Add(ERRID.ERR_AttributeMustBeClassNotStruct1, If(context.SyntaxNode?.GetLocation(), NoLocation.Singleton), Me.AttributeClass)
+                    context.Diagnostics.Add(ERRID.ERR_AttributeMustBeClassNotStruct1, If(context.Location, NoLocation.Singleton), Me.AttributeClass)
                 End If
 
                 Return Nothing

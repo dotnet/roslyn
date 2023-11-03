@@ -49,23 +49,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
     internal sealed class VSTypeScriptDefinitionItem
     {
-        private sealed class ExternalDefinitionItem : DefinitionItem
+        private sealed class ExternalDefinitionItem(VSTypeScriptDefinitionItemNavigator navigator, ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts) : DefinitionItem(tags,
+                   displayParts,
+                   ImmutableArray<TaggedText>.Empty,
+                   originationParts: default,
+                   sourceSpans: default,
+                   properties: null,
+                   displayIfNoReferences: true)
         {
-            private readonly VSTypeScriptDefinitionItemNavigator _navigator;
+            private readonly VSTypeScriptDefinitionItemNavigator _navigator = navigator;
 
             internal override bool IsExternal => true;
-
-            public ExternalDefinitionItem(VSTypeScriptDefinitionItemNavigator navigator, ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts)
-                : base(tags,
-                       displayParts,
-                       ImmutableArray<TaggedText>.Empty,
-                       originationParts: default,
-                       sourceSpans: default,
-                       properties: null,
-                       displayIfNoReferences: true)
-            {
-                _navigator = navigator;
-            }
 
             public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
             {
@@ -121,17 +115,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         }
     }
 
-    internal sealed class VSTypeScriptSourceReferenceItem
+    internal sealed class VSTypeScriptSourceReferenceItem(
+        VSTypeScriptDefinitionItem definition,
+        VSTypeScriptDocumentSpan sourceSpan,
+        VSTypeScriptSymbolUsageInfo symbolUsageInfo)
     {
-        internal readonly SourceReferenceItem UnderlyingObject;
-
-        public VSTypeScriptSourceReferenceItem(
-            VSTypeScriptDefinitionItem definition,
-            VSTypeScriptDocumentSpan sourceSpan,
-            VSTypeScriptSymbolUsageInfo symbolUsageInfo)
-        {
-            UnderlyingObject = new SourceReferenceItem(definition.UnderlyingObject, sourceSpan.ToDocumentSpan(), symbolUsageInfo.UnderlyingObject);
-        }
+        internal readonly SourceReferenceItem UnderlyingObject = new SourceReferenceItem(definition.UnderlyingObject, sourceSpan.ToDocumentSpan(), symbolUsageInfo.UnderlyingObject);
 
         public VSTypeScriptDocumentSpan GetSourceSpan()
             => new(UnderlyingObject.SourceSpan);

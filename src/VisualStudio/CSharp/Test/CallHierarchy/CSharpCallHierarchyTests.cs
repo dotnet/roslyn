@@ -177,7 +177,7 @@ namespace N
             testState.VerifyResult(root, EditorFeaturesResources.Calls_To_Overrides, new[] { "N.D.Baz()" });
         }
 
-        [WpfFact, WorkItem(829705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829705")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829705")]
         public async Task Method_CallToBase()
         {
             var text = @"
@@ -440,7 +440,7 @@ namespace N
             testState.VerifyResult(root, EditorFeaturesResources.Overrides_, new[] { "N.G.Goo()" });
         }
 
-        [WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")]
         [WpfFact]
         public async Task AbstractMethodInclusionToOverrides()
         {
@@ -492,7 +492,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: new[] { "N.C.M()" });
         }
 
-        [WorkItem(57856, "https://github.com/dotnet/roslyn/issues/57856")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57856")]
         [WpfFact]
         public async Task PropertySet()
         {

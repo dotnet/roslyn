@@ -9,7 +9,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
@@ -1233,6 +1236,74 @@ class YAttribute : System.Attribute { }
         Assert.Equal(1, counter);
     }
 
+    [Fact, WorkItem(66451, "https://github.com/dotnet/roslyn/issues/66451")]
+    public void MultipleInputs_RemoveFirst_ModifySecond()
+    {
+        var source0 = "public class GenerateAttribute : System.Attribute { }";
+        var comp0 = CreateCompilation(source0).VerifyDiagnostics().EmitToImageReference();
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var provider = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("GenerateAttribute");
+            ctx.RegisterSourceOutput(provider, static (spc, syntax) => spc.AddSource(
+                $"{syntax.Identifier.Text}.g",
+                $"partial class {syntax.Identifier.Text} {{ /* generated */ }}"));
+        }));
+
+        var parseOptions = TestOptions.RegularPreview;
+
+        var source1 = """
+            [Generate]
+            [System.Obsolete]
+            public partial class Class1 { }
+            """;
+        var source2 = """
+            [Generate]
+            [System.Obsolete]
+            public partial class Class2 { }
+            """;
+
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, new[] { comp0 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+        verify(ref driver, compilation,
+            ("Class1.g.cs", "partial class Class1 { /* generated */ }"),
+            ("Class2.g.cs", "partial class Class2 { /* generated */ }"));
+
+        // Remove Class1 from the final provider via a TransformNode
+        // (by removing the Generate attribute).
+        replace(ref compilation, parseOptions, "Class1", """
+            //[Generate]
+            [System.Obsolete]
+            public partial class Class1 { }
+            """);
+        verify(ref driver, compilation,
+            ("Class2.g.cs", "partial class Class2 { /* generated */ }"));
+
+        // Modify Class2 (make it internal).
+        replace(ref compilation, parseOptions, "Class2", """
+            [Generate]
+            [System.Obsolete]
+            internal partial class Class2 { }
+            """);
+        verify(ref driver, compilation,
+            ("Class2.g.cs", "partial class Class2 { /* generated */ }"));
+
+        static void verify(ref GeneratorDriver driver, Compilation compilation, params (string HintName, string SourceText)[] expectedGeneratedSources)
+        {
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify();
+            Assert.Equal(expectedGeneratedSources, driver.GetRunResult().Results.Single().GeneratedSources.Select(s => (s.HintName, s.SourceText.ToString())));
+        }
+
+        static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string className, string source)
+        {
+            var tree = compilation.GetMember(className).DeclaringSyntaxReferences.Single().SyntaxTree;
+            compilation = compilation.ReplaceSyntaxTree(tree, CSharpSyntaxTree.ParseText(source, parseOptions));
+        }
+    }
+
     #endregion
 
     #region Incremental tests
@@ -1422,7 +1493,7 @@ class XAttribute : System.Attribute
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["result_ForAttributeInternal"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
     }
 
     [Fact]
@@ -1473,8 +1544,8 @@ class XAttribute : System.Attribute
             t => Assert.Equal(IncrementalStepRunReason.Cached, t.Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs,
-            t => Assert.Equal(IncrementalStepRunReason.Modified, t.Reason),
-            t => Assert.Equal(IncrementalStepRunReason.Modified, t.Reason));
+            t => Assert.Equal(IncrementalStepRunReason.New, t.Reason),
+            t => Assert.Equal(IncrementalStepRunReason.New, t.Reason));
     }
 
     [Fact]
@@ -1530,8 +1601,8 @@ class XAttribute : System.Attribute
             s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason));
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
-            s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason));
+            s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
     }
 
     [Fact]
@@ -1580,7 +1651,7 @@ class XAttribute : System.Attribute
         Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttributeInternal"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
@@ -1629,7 +1700,7 @@ class C { }
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttributeInternal"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);

@@ -141,6 +141,14 @@ namespace Microsoft.Cci
                     }
                 }
 
+                if (bodyOpt.IsPrimaryConstructor)
+                {
+                    _debugMetadataOpt.AddCustomDebugInformation(
+                        parent: methodHandle,
+                        kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.PrimaryConstructorInformationBlob),
+                        value: default(BlobHandle));
+                }
+
                 SerializeStateMachineLocalScopes(bodyOpt, methodHandle);
             }
 

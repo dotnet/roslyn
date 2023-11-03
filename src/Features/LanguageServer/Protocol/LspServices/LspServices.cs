@@ -9,10 +9,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class LspServices : ILspServices
+internal sealed class LspServices : ILspServices
 {
     private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
 
@@ -53,20 +54,18 @@ internal class LspServices : ILspServices
 
     public T GetRequiredService<T>() where T : notnull
     {
-        T? service;
-
-        // Check the base services first
-        service = GetBaseServices<T>().SingleOrDefault();
-        service ??= GetService<T>();
-
+        var service = GetService<T>();
         Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
         return service;
     }
 
     public T? GetService<T>()
     {
-        var type = typeof(T);
-        var service = (T?)TryGetService(type);
+        T? service;
+
+        // Check the base services first
+        service = GetBaseServices<T>().SingleOrDefault();
+        service ??= (T?)TryGetService(typeof(T));
 
         return service;
     }
@@ -105,7 +104,8 @@ internal class LspServices : ILspServices
         return lspService;
     }
 
-    public ImmutableArray<Type> GetRegisteredServices() => _lazyMefLspServices.Keys.ToImmutableArray();
+    public ImmutableArray<Type> GetRegisteredServices()
+        => _lazyMefLspServices.Keys.ToImmutableArray();
 
     public bool SupportsGetRegisteredServices()
     {
@@ -113,14 +113,9 @@ internal class LspServices : ILspServices
     }
 
     private IEnumerable<T> GetBaseServices<T>()
-    {
-        if (_baseServices.TryGetValue(typeof(T), out var baseServices))
-        {
-            return baseServices.Select(creatorFunc => (T)creatorFunc(this)).ToImmutableArray();
-        }
-
-        return ImmutableArray<T>.Empty;
-    }
+        => _baseServices.TryGetValue(typeof(T), out var baseServices)
+            ? baseServices.Select(creatorFunc => (T)creatorFunc(this)).ToImmutableArray()
+            : (IEnumerable<T>)ImmutableArray<T>.Empty;
 
     private IEnumerable<T> GetMefServices<T>()
     {

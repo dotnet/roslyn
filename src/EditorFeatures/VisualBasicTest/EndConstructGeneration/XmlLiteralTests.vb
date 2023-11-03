@@ -60,7 +60,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyInParameterDeclaration1()
+        Public Sub DoNotApplyInParameterDeclaration1()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1(<xml>)
@@ -70,7 +70,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyInParameterDeclaration2()
+        Public Sub DoNotApplyInParameterDeclaration2()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1(i As Integer,
@@ -81,7 +81,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterXmlStartElementWithEndElement()
+        Public Sub DoNotApplyAfterXmlStartElementWithEndElement()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1()
@@ -92,7 +92,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterXmlEndElement()
+        Public Sub DoNotApplyAfterXmlEndElement()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1()
@@ -103,7 +103,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterSingleXmlTag()
+        Public Sub DoNotApplyAfterSingleXmlTag()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1()
@@ -114,7 +114,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterProcessingInstruction()
+        Public Sub DoNotApplyAfterProcessingInstruction()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1()

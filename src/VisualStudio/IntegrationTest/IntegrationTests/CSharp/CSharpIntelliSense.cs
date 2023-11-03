@@ -13,7 +13,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -36,7 +35,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Workspace.SetImportCompletionOption(false);
         }
 
-        [WpfTheory, CombinatorialData]
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/70582"), CombinatorialData]
         public void AtNamespaceLevel(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"$$");
@@ -80,7 +79,7 @@ class C
 assertCaretPosition: true);
         }
 
-        [WpfTheory, CombinatorialData]
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/70582"), CombinatorialData]
         public void VerifyCompletionListMembersOnStaticTypesAndCompleteThem(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
@@ -107,7 +106,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
         }
 
-        [WpfTheory, CombinatorialData]
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/70582"), CombinatorialData]
         public void CtrlAltSpace(bool showCompletionInArgumentLists)
         {
             VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
@@ -194,7 +193,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CompletionItemsExist("System");
         }
 
-        [WpfTheory, CombinatorialData]
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/70582"), CombinatorialData]
         public void NavigatingWithDownKey(bool showCompletionInArgumentLists)
         {
             SetUpEditor("class c { void M() {$$ } }");
@@ -210,7 +209,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CompletionItemsExist("char");
         }
 
-        [WpfTheory, CombinatorialData]
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/70582"), CombinatorialData]
         public void XmlDocCommentIntelliSense(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
@@ -291,7 +290,7 @@ class Class1
         }
 
         [WpfTheory, CombinatorialData]
-        [WorkItem(33825, "https://github.com/dotnet/roslyn/issues/33825")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33825")]
         public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
@@ -325,7 +324,7 @@ assertCaretPosition: true);
         }
 
         [WpfTheory, CombinatorialData]
-        [WorkItem(33823, "https://github.com/dotnet/roslyn/issues/33823")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33823")]
         public void CommitOnShiftEnter(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
@@ -416,8 +415,8 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [WpfTheory, CombinatorialData]
-        [WorkItem(33822, "https://github.com/dotnet/roslyn/issues/33822")]
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/70582"), CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33822")]
         public void EnsureTheCaretIsVisibleAfterALongEdit(bool showCompletionInArgumentLists)
         {
             var visibleColumns = VisualStudio.Editor.GetVisibleColumnCount();

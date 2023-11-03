@@ -3,12 +3,44 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal readonly struct SemanticEditInfo
     {
+        public SemanticEditInfo(
+            SemanticEditKind kind,
+            SymbolKey symbol,
+            Func<SyntaxNode, SyntaxNode?>? syntaxMap,
+            SyntaxTree? syntaxMapTree,
+            SymbolKey? partialType,
+            SymbolKey? deletedSymbolContainer)
+        {
+            Debug.Assert(kind == SemanticEditKind.Delete || deletedSymbolContainer == null);
+            Debug.Assert(partialType == null || syntaxMap is null == syntaxMapTree is null);
+
+            Kind = kind;
+            Symbol = symbol;
+            SyntaxMap = syntaxMap;
+            SyntaxMapTree = syntaxMapTree;
+            PartialType = partialType;
+            DeletedSymbolContainer = deletedSymbolContainer;
+        }
+
+        public static SemanticEditInfo CreateInsert(SymbolKey symbol, SymbolKey? partialType)
+            => new(SemanticEditKind.Insert, symbol, syntaxMap: null, syntaxMapTree: null, partialType, deletedSymbolContainer: null);
+
+        public static SemanticEditInfo CreateUpdate(SymbolKey symbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap, SyntaxTree? syntaxMapTree, SymbolKey? partialType)
+            => new(SemanticEditKind.Update, symbol, syntaxMap, syntaxMapTree, partialType, deletedSymbolContainer: null);
+
+        public static SemanticEditInfo CreateReplace(SymbolKey symbol, SymbolKey? partialType)
+            => new(SemanticEditKind.Replace, symbol, syntaxMap: null, syntaxMapTree: null, partialType, deletedSymbolContainer: null);
+
+        public static SemanticEditInfo CreateDelete(SymbolKey symbol, SymbolKey deletedSymbolContainer, SymbolKey? partialType)
+            => new(SemanticEditKind.Delete, symbol, syntaxMap: null, syntaxMapTree: null, partialType, deletedSymbolContainer);
+
         /// <summary>
         /// <see cref="SemanticEditKind.Insert"/> or <see cref="SemanticEditKind.Update"/> or <see cref="SemanticEditKind.Delete"/>.
         /// </summary>
@@ -36,7 +68,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// The syntax map for nodes in the tree for this edit, which will be merged with other maps from other trees for this type.
-        /// Only available when <see cref="PartialType"/> is not null.
         /// </summary>
         public Func<SyntaxNode, SyntaxNode?>? SyntaxMap { get; }
 
@@ -52,21 +83,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// If specified, the <see cref="SyntaxMap"/> is either null or incomplete: it only provides mapping of the changed members of a single partial type declaration.
         /// </summary>
         public SymbolKey? PartialType { get; }
-
-        public SemanticEditInfo(
-            SemanticEditKind kind,
-            SymbolKey symbol,
-            Func<SyntaxNode, SyntaxNode?>? syntaxMap,
-            SyntaxTree? syntaxMapTree,
-            SymbolKey? partialType,
-            SymbolKey? deletedSymbolContainer = null)
-        {
-            Kind = kind;
-            Symbol = symbol;
-            SyntaxMap = syntaxMap;
-            SyntaxMapTree = syntaxMapTree;
-            PartialType = partialType;
-            DeletedSymbolContainer = deletedSymbolContainer;
-        }
     }
 }
