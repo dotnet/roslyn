@@ -262,20 +262,33 @@ public static void Main(string[] args)
             // VerifyErrorCount(0);
         }
 
-        [IdeFact]
-        public async Task WorkspaceClearedAfterReset()
+        [IdeTheory]
+        [InlineData("32")]
+        [InlineData("64")]
+        [InlineData("core")]
+        public async Task WorkspaceClearedAfterReset(string environment)
         {
+            await TestServices.InteractiveWindow.SubmitTextAsync($"#reset {environment}", HangMitigatingCancellationToken);
+            await TestServices.InteractiveWindow.WaitForLastReplOutputAsync(@"Resetting execution engine.
+Loading context from 'CSharpInteractive.rsp'.", HangMitigatingCancellationToken);
+
+            var errorText = environment switch
+            {
+                "core" => "Stack overflow.",
+                _ => "StackOverflowException.",
+            };
+
             await TestServices.InteractiveWindow.SubmitTextAsync("double M() { return 13.1; }", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("M()", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("13.1", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("double M() { return M(); }", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("M()", HangMitigatingCancellationToken);
-            await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("Stack overflow.", HangMitigatingCancellationToken);
+            await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync(errorText, HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("M()", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("CS0103", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("double M() { return M(); }", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("M()", HangMitigatingCancellationToken);
-            await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync("Stack overflow.", HangMitigatingCancellationToken);
+            await TestServices.InteractiveWindow.WaitForLastReplOutputContainsAsync(errorText, HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("double M() { return 13.2; }", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("M()", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("13.2", HangMitigatingCancellationToken);
