@@ -82,9 +82,7 @@ End Module";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
             await TestServices.EditorVerifier.TextContainsAsync(expectedText, cancellationToken: HangMitigatingCancellationToken);
-            var tags = (await TestServices.Editor.GetTagsAsync<ITextMarkerTag>(HangMitigatingCancellationToken)).SelectAsArray(
-                predicate: tag => tag.Tag.Type == RenameFieldBackgroundAndBorderTag.TagId,
-                selector: tag => tag.Span.Span.ToTextSpan());
+            var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
             AssertEx.SetEqual(spans, tags);
 
             await TestServices.Input.SendAsync(["SayHello", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
@@ -128,9 +126,7 @@ End Module";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
             Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-            var tags = (await TestServices.Editor.GetTagsAsync<ITextMarkerTag>(HangMitigatingCancellationToken)).SelectAsArray(
-                predicate: tag => tag.Tag.Type == RenameFieldBackgroundAndBorderTag.TagId,
-                selector: tag => tag.Span.Span.ToTextSpan());
+            var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
             AssertEx.SetEqual(spans, tags);
         }
     }
