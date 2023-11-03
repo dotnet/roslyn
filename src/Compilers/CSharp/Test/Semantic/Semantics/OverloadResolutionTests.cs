@@ -11920,7 +11920,7 @@ class B : A
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70659")]
-        public void Issue70659()
+        public void IsStandardImplicitConversion_NullLiteral()
         {
             var source = """
                 class C
