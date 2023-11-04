@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isValueTask = false;
                 foreach (var attr in this.GetAttributes())
                 {
-                    if (attr.IsTargetAttribute(this, AttributeDescription.ValueTaskAttribute))
+                    if (attr.IsTargetAttribute(this, AttributeDescription.ValueTaskAsyncAttribute))
                     {
                         isValueTask = true;
                     }
