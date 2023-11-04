@@ -7304,15 +7304,15 @@ namespace System.Runtime.CompilerServices
     }
 
     [AttributeUsage(AttributeTargets.Method)]
-    class ValueTaskAttribute : Attribute
+    class ValueTaskAsyncAttribute : Attribute
     {
-        public ValueTaskAttribute() { }
+        public ValueTaskAsyncAttribute() { }
     }
 }
 
 class TT
 {
-    [ValueTaskAttribute]
+    [ValueTaskAsyncAttribute]
     public static async2 int M1()
     {
         return 42;
@@ -7447,15 +7447,15 @@ namespace System.Runtime.CompilerServices
     }
 
     [AttributeUsage(AttributeTargets.Method)]
-    class ValueTaskAttribute : Attribute
+    class ValueTaskAsyncAttribute : Attribute
     {
-        public ValueTaskAttribute() { }
+        public ValueTaskAsyncAttribute() { }
     }
 }
 
 public class TT
 {
-    [ValueTaskAttribute]
+    [ValueTaskAsyncAttribute]
     public static async2 int M1()
     {
         // async2 awaits ordinary awaitable
@@ -7686,15 +7686,15 @@ namespace System.Runtime.CompilerServices
     }
 
     [AttributeUsage(AttributeTargets.Method)]
-    class ValueTaskAttribute : Attribute
+    class ValueTaskAsyncAttribute : Attribute
     {
-        public ValueTaskAttribute() { }
+        public ValueTaskAsyncAttribute() { }
     }
 }
 
 class Base
 {
-    [ValueTaskAttribute]
+    [ValueTaskAsyncAttribute]
     public virtual async2 int M1()
     {
         await Task.Yield();
@@ -7713,7 +7713,7 @@ class Derived1 : Base
 
 class Derived2 : Derived1
 {
-    [ValueTaskAttribute]
+    [ValueTaskAsyncAttribute]
     public override async2 int M1()
     {
         await Task.Yield();
@@ -7732,7 +7732,7 @@ class Base1
 
 class Derived11 : Base1
 {
-    [ValueTaskAttribute]
+    [ValueTaskAsyncAttribute]
     public override async2 int M1()
     {
         await Task.Yield();
