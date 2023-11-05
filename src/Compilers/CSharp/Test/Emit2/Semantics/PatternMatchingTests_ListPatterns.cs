@@ -9009,6 +9009,89 @@ public static class Extension
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_DeclarationPatternOfNarrowedTypeInBetween_Array_CodeGen()
+    {
+        var source = """
+            class C
+            {
+                string[] M(object[] s)
+                {
+                    if (s is ["(", ..string[] between, ")"])
+                    {
+                        return between;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size      101 (0x65)
+              .maxstack  4
+              .locals init (string[] V_0, //between
+                            int V_1,
+                            string V_2,
+                            string V_3)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0063
+              IL_0003:  ldarg.1
+              IL_0004:  ldlen
+              IL_0005:  conv.i4
+              IL_0006:  stloc.1
+              IL_0007:  ldloc.1
+              IL_0008:  ldc.i4.2
+              IL_0009:  blt.s      IL_0063
+              IL_000b:  ldarg.1
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldelem.ref
+              IL_000e:  isinst     "string"
+              IL_0013:  stloc.2
+              IL_0014:  ldloc.2
+              IL_0015:  brfalse.s  IL_0063
+              IL_0017:  ldloc.2
+              IL_0018:  ldstr      "("
+              IL_001d:  call       "bool string.op_Equality(string, string)"
+              IL_0022:  brfalse.s  IL_0063
+              IL_0024:  ldarg.1
+              IL_0025:  ldc.i4.1
+              IL_0026:  ldc.i4.0
+              IL_0027:  newobj     "System.Index..ctor(int, bool)"
+              IL_002c:  ldc.i4.1
+              IL_002d:  ldc.i4.1
+              IL_002e:  newobj     "System.Index..ctor(int, bool)"
+              IL_0033:  newobj     "System.Range..ctor(System.Index, System.Index)"
+              IL_0038:  call       "object[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<object>(object[], System.Range)"
+              IL_003d:  isinst     "string[]"
+              IL_0042:  stloc.0
+              IL_0043:  ldloc.0
+              IL_0044:  brfalse.s  IL_0063
+              IL_0046:  ldarg.1
+              IL_0047:  ldloc.1
+              IL_0048:  ldc.i4.1
+              IL_0049:  sub
+              IL_004a:  ldelem.ref
+              IL_004b:  isinst     "string"
+              IL_0050:  stloc.3
+              IL_0051:  ldloc.3
+              IL_0052:  brfalse.s  IL_0063
+              IL_0054:  ldloc.3
+              IL_0055:  ldstr      ")"
+              IL_005a:  call       "bool string.op_Equality(string, string)"
+              IL_005f:  brfalse.s  IL_0063
+              IL_0061:  ldloc.0
+              IL_0062:  ret
+              IL_0063:  ldnull
+              IL_0064:  ret
+            }
+            """);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
     [InlineData("var")]
     [InlineData("string")]
@@ -9208,6 +9291,77 @@ public static class Extension
               IL_0037:  ret
               IL_0038:  ldnull
               IL_0039:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_FirstDeclarationPatternOfNarrowedType_Array_CodeGen()
+    {
+        var source = """
+            class C
+            {
+                string[] M(object[] s)
+                {
+                    if (s is [..string[] start, ")"])
+                    {
+                        return start;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       76 (0x4c)
+              .maxstack  4
+              .locals init (string[] V_0, //start
+                            int V_1,
+                            string V_2)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_004a
+              IL_0003:  ldarg.1
+              IL_0004:  ldlen
+              IL_0005:  conv.i4
+              IL_0006:  stloc.1
+              IL_0007:  ldloc.1
+              IL_0008:  ldc.i4.1
+              IL_0009:  blt.s      IL_004a
+              IL_000b:  ldarg.1
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  newobj     "System.Index..ctor(int, bool)"
+              IL_0013:  ldc.i4.1
+              IL_0014:  ldc.i4.1
+              IL_0015:  newobj     "System.Index..ctor(int, bool)"
+              IL_001a:  newobj     "System.Range..ctor(System.Index, System.Index)"
+              IL_001f:  call       "object[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<object>(object[], System.Range)"
+              IL_0024:  isinst     "string[]"
+              IL_0029:  stloc.0
+              IL_002a:  ldloc.0
+              IL_002b:  brfalse.s  IL_004a
+              IL_002d:  ldarg.1
+              IL_002e:  ldloc.1
+              IL_002f:  ldc.i4.1
+              IL_0030:  sub
+              IL_0031:  ldelem.ref
+              IL_0032:  isinst     "string"
+              IL_0037:  stloc.2
+              IL_0038:  ldloc.2
+              IL_0039:  brfalse.s  IL_004a
+              IL_003b:  ldloc.2
+              IL_003c:  ldstr      ")"
+              IL_0041:  call       "bool string.op_Equality(string, string)"
+              IL_0046:  brfalse.s  IL_004a
+              IL_0048:  ldloc.0
+              IL_0049:  ret
+              IL_004a:  ldnull
+              IL_004b:  ret
             }
             """);
     }
