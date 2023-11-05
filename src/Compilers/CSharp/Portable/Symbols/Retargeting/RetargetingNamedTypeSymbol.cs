@@ -424,6 +424,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
             return result;
         }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            if (_underlyingType.HasAsyncMethodBuilderAttribute(out builderArgument))
+            {
+                builderArgument = this.RetargetingTranslator.Retarget(builderArgument, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                return true;
+            }
+
+            builderArgument = null;
+            return false;
+        }
 #nullable disable
     }
 }

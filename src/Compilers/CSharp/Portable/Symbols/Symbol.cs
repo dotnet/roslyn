@@ -1368,28 +1368,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract ObsoleteAttributeData? ObsoleteAttributeData { get; }
 #nullable disable
 
-        /// <summary>
-        /// Returns true and a <see cref="string"/> from the first <see cref="GuidAttribute"/> on the symbol, 
-        /// the string might be null or an invalid guid representation. False, 
-        /// if there is no <see cref="GuidAttribute"/> with string argument.
-        /// </summary>
-        internal bool GetGuidStringDefaultImplementation(out string guidString)
-        {
-            foreach (var attrData in this.GetAttributes())
-            {
-                if (attrData.IsTargetAttribute(AttributeDescription.GuidAttribute))
-                {
-                    if (attrData.TryGetGuidAttributeValue(out guidString))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            guidString = null;
-            return false;
-        }
-
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
             return SymbolDisplay.ToDisplayString(ISymbol, format);
@@ -1462,6 +1440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var attribute = arguments.Attribute;
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+
+            Debug.Assert(attribute is SourceAttributeData);
 
             if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
                 attribute.IsTargetAttribute(AttributeDescription.DynamicAttribute))

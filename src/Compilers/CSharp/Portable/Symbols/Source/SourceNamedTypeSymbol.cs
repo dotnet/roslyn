@@ -1451,6 +1451,12 @@ next:;
             }
         }
 
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = GetDecodedWellKnownAttributeData()?.GuidString;
+            return guidString != null;
+        }
+
         internal override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
