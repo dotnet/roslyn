@@ -1618,7 +1618,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
                 }
                 """;
             CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Net70,
-                expectedOutput: "1").VerifyDiagnostics();
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
@@ -1646,7 +1646,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
                 }
                 """;
             CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, new[] { CSharpRef },
-                expectedOutput: ro ? "0" : "1").VerifyDiagnostics();
+                expectedOutput: ro ? "0" : "1", verify: ro ? Verification.FailsPEVerify : default).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
