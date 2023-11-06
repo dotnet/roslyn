@@ -217,7 +217,7 @@ namespace System
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
-        public void ExplicitInterfaceImplementation()
+        public void ExplicitInterfaceImplementation_Minimal()
         {
             var source = """
                 #nullable enable
@@ -246,6 +246,41 @@ namespace System
                 // (14,17): error CS0540: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.ITuple.this[int]': containing type does not implement interface 'ITuple'
                 //         object? System.Runtime.CompilerServices.ITuple.this[int index] => throw null!;
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.Runtime.CompilerServices.ITuple").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.System.Runtime.CompilerServices.ITuple.this[int]", "System.Runtime.CompilerServices.ITuple").WithLocation(14, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_Valid()
+        {
+            var source = """
+                #nullable enable
+                namespace System
+                {
+                    public struct ValueTuple<T1>
+                    {
+                        public T1 Item1;
+                        public ValueTuple(T1 item1) { }
+                    }
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
+                        System.Runtime.CompilerServices.ITuple
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                        bool System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => false;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
         }
     }
 }
