@@ -249,7 +249,7 @@ namespace System
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
-        public void ExplicitInterfaceImplementation_Valid()
+        public void ExplicitInterfaceImplementation_Indexer()
         {
             var source = """
                 #nullable enable
@@ -273,7 +273,42 @@ namespace System
                         public T6 Item6;
                         public T7 Item7;
                         public TRest Rest;
-                        object? System.Runtime.CompilerServices.ITuple.this[int index] { get { throw null; } }
+                        object? System.Runtime.CompilerServices.ITuple.this[int index] => throw null!;
+                        bool System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => false;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_Property()
+        {
+            var source = """
+                #nullable enable
+                namespace System
+                {
+                    public struct ValueTuple<T1>
+                    {
+                        public T1 Item1;
+                        public ValueTuple(T1 item1) { }
+                    }
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
+                        System.Runtime.CompilerServices.ITuple
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        int System.Runtime.CompilerServices.ITuple.Length => throw null!;
                         bool System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => false;
                     }
                 }
