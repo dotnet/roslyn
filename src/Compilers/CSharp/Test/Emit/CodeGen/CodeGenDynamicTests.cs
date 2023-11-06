@@ -9235,10 +9235,10 @@ public struct S
 ";
             CompileAndVerifyIL(source, "C.M", @"
 {
-  // Code size       97 (0x61)
+  // Code size       98 (0x62)
   .maxstack  9
-  IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
-  IL_0005:  brtrue.s   IL_0045
+  IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
+  IL_0005:  brtrue.s   IL_0046
   IL_0007:  ldc.i4     0x100
   IL_000c:  ldstr      ""goo""
   IL_0011:  ldnull
@@ -9248,27 +9248,27 @@ public struct S
   IL_001d:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
   IL_0022:  dup
   IL_0023:  ldc.i4.0
-  IL_0024:  ldc.i4.1
-  IL_0025:  ldnull
-  IL_0026:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_002b:  stelem.ref
-  IL_002c:  dup
-  IL_002d:  ldc.i4.1
-  IL_002e:  ldc.i4.0
-  IL_002f:  ldnull
-  IL_0030:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0035:  stelem.ref
-  IL_0036:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_003b:  call       ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0040:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
-  IL_0045:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
-  IL_004a:  ldfld      ""System.Action<System.Runtime.CompilerServices.CallSite, S, object> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>>.Target""
-  IL_004f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
-  IL_0054:  ldarg.0
-  IL_0055:  ldfld      ""S C.s""
-  IL_005a:  ldarg.1
-  IL_005b:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, S, object)""
-  IL_0060:  ret
+  IL_0024:  ldc.i4.s   9
+  IL_0026:  ldnull
+  IL_0027:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_002c:  stelem.ref
+  IL_002d:  dup
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldc.i4.0
+  IL_0030:  ldnull
+  IL_0031:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0036:  stelem.ref
+  IL_0037:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_003c:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0041:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
+  IL_0046:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
+  IL_004b:  ldfld      ""<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>>.Target""
+  IL_0050:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>> C.<>o__1.<>p__0""
+  IL_0055:  ldarg.0
+  IL_0056:  ldflda     ""S C.s""
+  IL_005b:  ldarg.1
+  IL_005c:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
+  IL_0061:  ret
 }
 ");
         }
