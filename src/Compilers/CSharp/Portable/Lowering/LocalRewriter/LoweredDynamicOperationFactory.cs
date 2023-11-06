@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasHome = Binder.HasHome(loweredReceiver,
                 Binder.AddressKind.Writeable,
                 _factory.CurrentFunction,
-                _factory.Compilation.IsPeVerifyCompatEnabled,
+                peVerifyCompatEnabled: false,
                 stackLocalsOpt: null);
             return hasHome ? RefKind.Ref : RefKind.None;
         }

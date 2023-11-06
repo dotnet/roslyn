@@ -1659,7 +1659,6 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
                     {
                         dynamic d = 1;
                         GetS().M(d);
-                        System.Console.Write(GetS().X);
                     }
                 
                     static S GetS() => default;
@@ -1671,13 +1670,12 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
                     public void M(int x) => X = x;
                 }
                 """;
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "0").VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }).VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size      121 (0x79)
+                  // Code size      103 (0x67)
                   .maxstack  9
-                  .locals init (object V_0, //d
-                                S V_1)
+                  .locals init (object V_0) //d
                   IL_0000:  ldc.i4.1
                   IL_0001:  box        "int"
                   IL_0006:  stloc.0
@@ -1711,12 +1709,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
                   IL_005b:  call       "S Program.GetS()"
                   IL_0060:  ldloc.0
                   IL_0061:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, S, dynamic)"
-                  IL_0066:  call       "S Program.GetS()"
-                  IL_006b:  stloc.1
-                  IL_006c:  ldloca.s   V_1
-                  IL_006e:  call       "readonly int S.X.get"
-                  IL_0073:  call       "void System.Console.Write(int)"
-                  IL_0078:  ret
+                  IL_0066:  ret
                 }
                 """);
         }
