@@ -118,7 +118,7 @@ public class C2
 }
 ",
                 new[] { new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception())) },
-                diagnostics: new[] { diagnostic, diagnostic, diagnostic });
+                diagnostics: [diagnostic, diagnostic, diagnostic]);
         }
 
         [Fact]
@@ -128,7 +128,7 @@ public class C2
 
             await VerifyCSharpAsync("public class C { }",
                 new[] { new ThrowExceptionFromSupportedDiagnostics(new Exception()) },
-                diagnostics: new[] { diagnostic });
+                diagnostics: [diagnostic]);
         }
     }
 }

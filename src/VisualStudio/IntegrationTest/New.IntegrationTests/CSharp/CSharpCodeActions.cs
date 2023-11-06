@@ -229,13 +229,12 @@ class C
             MarkupTestFile.GetSpans(markup, out _, out var _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionsNotShowingAsync(HangMitigatingCancellationToken);
 
@@ -248,13 +247,12 @@ csharp_style_expression_bodied_properties = true:warning
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", editorConfig, open: false, HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
@@ -275,13 +273,12 @@ csharp_style_expression_bodied_properties = true:warning
             await TestServices.SolutionExplorer.SetFileContentsAsync(ProjectName, ".editorconfig", editorConfig.Replace("true:warning", "false:warning"), HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
@@ -501,10 +498,9 @@ public class Program
 
 public class P2 { }", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream" }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendAsync([VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream"], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
@@ -513,7 +509,7 @@ public class P2 { }", HangMitigatingCancellationToken);
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Suspend file change notification during code action application, since spurious file change notifications
@@ -567,10 +563,9 @@ namespace NS
         }
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Foober" }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendAsync([VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Foober"], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
@@ -579,7 +574,7 @@ namespace NS
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -779,13 +774,12 @@ class C
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Verify CS0168 warning in original code.
@@ -816,13 +810,12 @@ class C
             }
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Verify CS0168 is now reported as an error.
@@ -832,9 +825,9 @@ class C
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
                 string[] expectedContents =
-                {
+                [
                     $"(Compiler) Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
-                };
+                ];
 
                 var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
                 AssertEx.EqualOrDiff(
@@ -859,13 +852,12 @@ class C
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Verify CS0168 warning in original code.
@@ -879,25 +871,23 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
 
             // NOTE: Below wait is a critical step in repro-ing the original regression.
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync("error", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Verify CS0168 is now reported as an error.
@@ -907,9 +897,9 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
                 string[] expectedContents =
-                {
+                [
                     $"(Compiler) Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
-                };
+                ];
 
                 var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
                 AssertEx.EqualOrDiff(
@@ -949,25 +939,23 @@ class C2
             await SetUpEditorAsync(markup2, HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup1, open: true, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Verify compiler and analyzer diagnostics in original code.
@@ -981,13 +969,12 @@ dotnet_diagnostic.CS0219.severity = error
 dotnet_diagnostic.IDE0059.severity = error", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Verify compiler and analyzer diagnostics are now reported as errors.
@@ -1000,13 +987,12 @@ dotnet_diagnostic.CS0219.severity = none
 dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Verify compiler and analyzer diagnostics are now cleared.
@@ -1107,13 +1093,12 @@ class OtherType
             MarkupTestFile.GetSpans(markup, out _, out var _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -1273,13 +1258,12 @@ class OtherType2
             MarkupTestFile.GetSpans(markup1, out _, out var _);
             await SetUpEditorAsync(markup1, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -1353,13 +1337,12 @@ class C2
             MarkupTestFile.GetSpans(markup, out _, out var _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -1487,13 +1470,12 @@ class C2
             MarkupTestFile.GetSpans(markup1, out _, out var _);
             await SetUpEditorAsync(markup1, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -1524,8 +1506,7 @@ public class Program
 ", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
@@ -1534,7 +1515,7 @@ public class Program
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             // Suspend file change notification during code action application, since spurious file change notifications
@@ -1565,13 +1546,12 @@ public class Program
             MarkupTestFile.GetSpans(markup, out _, out var _);
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);

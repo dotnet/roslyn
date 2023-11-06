@@ -236,7 +236,7 @@ $@"<Workspace>
 }";
             var clientCapabilities = new LSP.ClientCapabilities
             {
-                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
             };
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
@@ -366,7 +366,7 @@ Remarks are cool too.
 }";
             var clientCapabilities = new LSP.ClientCapabilities
             {
-                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
             };
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
@@ -410,7 +410,7 @@ _italic\_ \*\*text\*\*_
 }";
             var clientCapabilities = new LSP.ClientCapabilities
             {
-                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
             };
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var expectedLocation = testLspServer.GetLocations("caret").Single();

@@ -247,7 +247,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var provider = await TestServices.Shell.GetComponentModelServiceAsync<IAsynchronousOperationListenerProvider>(cancellationToken);
             var waiter = (IAsynchronousOperationWaiter)provider.GetListener(FeatureAttribute.AddImportsOnPaste);
 
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy], cancellationToken);
             Clipboard.SetText(text);
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Paste, cancellationToken);
 
@@ -479,7 +479,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 iEndIndex = column,
             };
 
-            ErrorHandler.ThrowOnFailure(languageContextProvider.UpdateLanguageContext(dwHint: 0, textLines, new[] { span }, emptyUserContext));
+            ErrorHandler.ThrowOnFailure(languageContextProvider.UpdateLanguageContext(dwHint: 0, textLines, [span], emptyUserContext));
             ErrorHandler.ThrowOnFailure(emptyUserContext.CountAttributes("keyword", fIncludeChildren: Convert.ToInt32(true), out var count));
             var results = ImmutableArray.CreateBuilder<string>(count);
             for (var i = 0; i < count; i++)
@@ -989,7 +989,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.GotoDefn, cancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo, FeatureAttribute.GoToDefinition },
+                [FeatureAttribute.Workspace, FeatureAttribute.NavigateTo, FeatureAttribute.GoToDefinition],
                 cancellationToken);
         }
 
@@ -1028,14 +1028,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.GoToImplementation, cancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.GoToImplementation },
+                [FeatureAttribute.Workspace, FeatureAttribute.GoToImplementation],
                 cancellationToken);
         }
 
         public async Task<ImmutableArray<(bool Collapsed, TextSpan Span)>> GetOutliningSpansAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.Outlining },
+                [FeatureAttribute.Workspace, FeatureAttribute.Outlining],
                 cancellationToken);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

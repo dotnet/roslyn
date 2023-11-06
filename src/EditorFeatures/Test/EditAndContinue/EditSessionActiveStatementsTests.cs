@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var activeStatements = GetActiveStatementDebugInfosCSharp(
                 markedSources,
-                methodRowIds: new[] { 1, 2, 3, 4, 5 },
-                ilOffsets: new[] { 1, 1, 1, 2, 3 },
-                modules: new[] { module1, module1, module2, module2, module2 });
+                methodRowIds: [1, 2, 3, 4, 5],
+                ilOffsets: [1, 1, 1, 2, 3],
+                modules: [module1, module1, module2, module2, module2]);
 
             // add an extra active statement that has no location, it should be ignored:
             activeStatements = activeStatements.Add(
@@ -327,16 +327,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var baseActiveStatementInfos = GetActiveStatementDebugInfosCSharp(
                 new[] { baseSource },
-                modules: new[] { module1, module1 },
-                methodVersions: new[] { 1, 1 },
-                flags: new[]
-                {
+                modules: [module1, module1],
+                methodVersions: [1, 1],
+                flags:
+                [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, // F1
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame,    // F2
-                });
+                ]);
 
             using var workspace = new TestWorkspace(composition: s_composition);
-            var solution = await AddDefaultTestSolutionAsync(workspace, new[] { baseSource });
+            var solution = await AddDefaultTestSolutionAsync(workspace, [baseSource]);
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
@@ -479,15 +479,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var sourceTextV3 = SourceText.From(markedSourceV3);
 
             var activeStatementsPreRemap = GetActiveStatementDebugInfosCSharp(new[] { markedSourceV1 },
-                modules: new[] { module1, module1, module1, module1 },
-                methodVersions: new[] { 2, 2, 1, 1 }, // method F3 and F4 were not remapped
-                flags: new[]
-                {
+                modules: [module1, module1, module1, module1],
+                methodVersions: [2, 2, 1, 1], // method F3 and F4 were not remapped
+                flags:
+                [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, // F1
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, // F2
                     ActiveStatementFlags.None | ActiveStatementFlags.NonLeafFrame,           // F3
                     ActiveStatementFlags.None | ActiveStatementFlags.NonLeafFrame,           // F4
-                });
+                ]);
 
             var exceptionSpans = SourceMarkers.GetExceptionRegions(markedSourceV1);
 
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }.ToImmutableDictionary();
 
             using var workspace = new TestWorkspace(composition: s_composition);
-            var solution = await AddDefaultTestSolutionAsync(workspace, new[] { markedSourceV2 });
+            var solution = await AddDefaultTestSolutionAsync(workspace, [markedSourceV2]);
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
@@ -644,13 +644,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var activeStatements = GetActiveStatementDebugInfosCSharp(
                 markedSources,
-                methodRowIds: new[] { 1, 2 },
-                ilOffsets: new[] { 1, 1 },
-                flags: new[]
-                {
+                methodRowIds: [1, 2],
+                ilOffsets: [1, 1],
+                flags:
+                [
                     ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.NonUserCode | ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.MethodUpToDate,
                     ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame | ActiveStatementFlags.MethodUpToDate
-                });
+                ]);
 
             using var workspace = new TestWorkspace(composition: s_composition);
             var solution = await AddDefaultTestSolutionAsync(workspace, markedSources);
