@@ -106,6 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasDeclaredRequiredMembers => false;
 
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             Symbol constructor = this.Constructor;
@@ -219,6 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             builderType = null;
             methodName = null;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
             return false;
         }
 #nullable disable

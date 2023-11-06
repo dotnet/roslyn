@@ -384,6 +384,11 @@ Friend Class MockNamedTypeSymbol
             Return False
         End Get
     End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
 End Class
 
 Friend Class MockMethodSymbol
@@ -886,5 +891,10 @@ Friend Class MockAssemblySymbol
             Return Nothing
         End Get
     End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
 
 End Class

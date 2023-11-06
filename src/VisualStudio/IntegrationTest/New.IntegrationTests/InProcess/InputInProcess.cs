@@ -43,17 +43,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
 
-            TestServices.JoinableTaskFactory.Run(async () =>
-            {
-                await TestServices.Editor.ActivateAsync(cancellationToken);
-            });
+            await TestServices.Editor.ActivateAsync(cancellationToken);
 
             callback(new InputSimulator());
 
-            TestServices.JoinableTaskFactory.Run(async () =>
-            {
-                await WaitForApplicationIdleAsync(cancellationToken);
-            });
+            await WaitForApplicationIdleAsync(cancellationToken);
         }
 
         internal Task SendWithoutActivateAsync(InputKey key, CancellationToken cancellationToken)
@@ -78,26 +72,20 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             callback(new InputSimulator());
 
-            TestServices.JoinableTaskFactory.Run(async () =>
-            {
-                await WaitForApplicationIdleAsync(cancellationToken);
-            });
+            await WaitForApplicationIdleAsync(cancellationToken);
         }
 
         internal async Task SendToNavigateToAsync(InputKey[] keys, CancellationToken cancellationToken)
         {
+            // Take no direct action regarding activation, but assert the correct item already has focus
+            await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var searchBox = Assert.IsAssignableFrom<Control>(Keyboard.FocusedElement);
+            // Validate the focused control against the "old" search experience as well as the 
+            // all-in-one search experience.
+            Assert.Contains(searchBox.Name, new[] { "PART_SearchBox", "SearchBoxControl" });
+
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
-
-            // Take no direct action regarding activation, but assert the correct item already has focus
-            TestServices.JoinableTaskFactory.Run(async () =>
-            {
-                await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var searchBox = Assert.IsAssignableFrom<Control>(Keyboard.FocusedElement);
-                // Validate the focused control against the "old" search experience as well as the 
-                // all-in-one search experience.
-                Assert.Contains(searchBox.Name, new[] { "PART_SearchBox", "SearchBoxControl" });
-            });
 
             var inputSimulator = new InputSimulator();
             foreach (var key in keys)
@@ -112,10 +100,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             }
 
-            TestServices.JoinableTaskFactory.Run(async () =>
-            {
-                await WaitForApplicationIdleAsync(cancellationToken);
-            });
+            await WaitForApplicationIdleAsync(cancellationToken);
         }
 
         private async Task WaitNavigationItemShowsUpAsync(CancellationToken cancellationToken)

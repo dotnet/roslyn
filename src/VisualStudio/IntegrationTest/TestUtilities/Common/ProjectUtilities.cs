@@ -36,31 +36,4 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils
         /// </summary>
         public string? RelativePath { get; }
     }
-
-    public class ProjectReference : Identity
-    {
-        public ProjectReference(string name)
-            : base(name)
-        {
-        }
-    }
-
-    public class AssemblyReference : Identity
-    {
-        public AssemblyReference(string name)
-            : base(name)
-        {
-        }
-    }
-
-    public class PackageReference : Identity
-    {
-        public string Version { get; }
-
-        public PackageReference(string name, string version)
-            : base(name)
-        {
-            Version = version;
-        }
-    }
 }

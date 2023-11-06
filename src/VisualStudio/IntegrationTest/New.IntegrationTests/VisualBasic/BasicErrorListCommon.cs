@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
