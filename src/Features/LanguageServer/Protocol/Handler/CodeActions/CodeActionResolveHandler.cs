@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
-            if (data.NestedCodeAction is not null && !data.NestedCodeAction.NestedActions.IsEmpty)
+            if (data.NestedCodeAction?.NestedActions.Any() is true)
             {
                 return codeAction;
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 fixAllScope: null,
                 cancellationToken).ConfigureAwait(false);
 
-            var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
+            var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(codeAction.Title, codeActions);
             Contract.ThrowIfNull(codeActionToResolve);
 
             // LSP currently has no way to report progress for code action computation.
