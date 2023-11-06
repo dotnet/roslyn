@@ -35,7 +35,7 @@ internal sealed class DotnetCliHelper
     /// </summary>
     private async Task<string> GetDotnetSdkFolderFromDotnetExecutableAsync(string projectOutputDirectory, CancellationToken cancellationToken)
     {
-        using var process = Run("--info", workingDirectory: projectOutputDirectory, shouldLocalizeOutput: false);
+        using var process = Run(["--info"], workingDirectory: projectOutputDirectory, shouldLocalizeOutput: false);
 
         string? dotnetSdkFolderPath = null;
         process.OutputDataReceived += (_, e) =>
@@ -68,17 +68,19 @@ internal sealed class DotnetCliHelper
         return dotnetSdkFolderPath;
     }
 
-    public Process Run(string arguments, string? workingDirectory, bool shouldLocalizeOutput)
+    public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput)
     {
         _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments {arguments}");
 
-        var startInfo = new ProcessStartInfo(_dotnetExecutablePath.Value, arguments)
+        var startInfo = new ProcessStartInfo(_dotnetExecutablePath.Value)
         {
             CreateNoWindow = true,
             UseShellExecute = false,
             RedirectStandardOutput = true,
-            RedirectStandardError = true
+            RedirectStandardError = true,
         };
+
+        startInfo.ArgumentList.AddRange(arguments);
 
         if (workingDirectory != null)
         {

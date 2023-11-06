@@ -140,7 +140,7 @@ class Program
     }
 }", cancellationToken: HangMitigatingCancellationToken);
             // Undo should only undo the formatting
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Undo, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 using System;
 class Program

@@ -41,9 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public new abstract SyntaxReference? ApplicationSyntaxReference { get; }
 
-        // Overridden to be able to apply MemberNotNull to the new members
-        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
+        [MemberNotNullWhen(false, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal abstract override bool HasErrors { get; }
+
+        internal abstract DiagnosticInfo? ErrorInfo { get; }
 
         internal abstract override bool IsConditionallyOmitted { get; }
 
@@ -99,8 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyIsSecurityAttribute == ThreeState.Unknown)
             {
-                Debug.Assert(!this.HasErrors);
-
                 // CLI spec (Partition II Metadata), section 21.11 "DeclSecurity : 0x0E" states:
                 // SPEC:    If the attribute's type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
                 // SPEC:    it is a security custom attribute and requires special treatment.
@@ -110,12 +109,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NOTE:    We will follow the specification.
                 // NOTE:    See Devdiv Bug #13762 "Custom security attributes deriving from SecurityAttribute are not treated as security attributes" for details.
 
-                // Well-known type SecurityAttribute is optional.
-                // Native compiler doesn't generate a use-site error if it is not found, we do the same.
-                var wellKnownType = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAttribute);
-                Debug.Assert(AttributeClass is object);
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                _lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref discardedUseSiteInfo).ToThreeState();
+                if (AttributeClass is object)
+                {
+                    // Well-known type SecurityAttribute is optional.
+                    // Native compiler doesn't generate a use-site error if it is not found, we do the same.
+                    var wellKnownType = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAttribute);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    _lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref discardedUseSiteInfo).ToThreeState();
+                }
+                else
+                {
+                    _lazyIsSecurityAttribute = ThreeState.False;
+                }
             }
 
             return _lazyIsSecurityAttribute.Value();
@@ -668,11 +673,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(target is SourceAssemblySymbol || target.ContainingAssembly is SourceAssemblySymbol);
 
-            if (HasErrors)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-
             // Attribute type is conditionally omitted if both the following are true:
             //  (a) It has at least one applied/inherited conditional attribute AND
             //  (b) None of conditional symbols are defined in the source file where the given attribute was defined.
@@ -804,6 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string? DecodeNotNullIfNotNullAttribute(this CSharpAttributeData attribute)
         {
+            Debug.Assert(attribute is SourceAttributeData);
             var arguments = attribute.CommonConstructorArguments;
             return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_String, out string? value) ? value : null;
         }

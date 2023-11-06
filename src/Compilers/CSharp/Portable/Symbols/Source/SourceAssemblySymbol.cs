@@ -1335,6 +1335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var totalIndex = i + sourceAttributesCount;
 
                 CSharpAttributeData attribute = attributesFromNetModules[i];
+
+                diagnostics.Add(attribute.ErrorInfo, NoLocation.Singleton);
+
                 if (!attribute.HasErrors && ValidateAttributeUsageForNetModuleAttribute(attribute, netModuleNames[i], diagnostics, ref uniqueAttributes))
                 {
                     arguments.Attribute = attribute;

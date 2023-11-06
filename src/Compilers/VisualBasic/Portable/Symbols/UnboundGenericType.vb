@@ -344,6 +344,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            Return OriginalDefinition.GetGuidString(guidString)
+        End Function
+
         Private NotInheritable Class ConstructedSymbol
             Inherits UnboundGenericType
 

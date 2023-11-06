@@ -3194,5 +3194,27 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class MinimumReportedSeverityAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public DiagnosticSeverity MinimumReportedSeverity { get; private set; }
+            public bool AnalyzerInvoked { get; private set; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                MinimumReportedSeverity = context.MinimumReportedSeverity;
+                AnalyzerInvoked = true;
+            }
+        }
     }
 }
