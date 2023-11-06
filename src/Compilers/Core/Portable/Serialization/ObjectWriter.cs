@@ -815,21 +815,6 @@ namespace Roslyn.Utilities
             Type,
 
             /// <summary>
-            /// An object reference with the id encoded as 1 byte.
-            /// </summary>
-            ObjectRef_1Byte,
-
-            /// <summary>
-            /// An object reference with the id encode as 2 bytes.
-            /// </summary>
-            ObjectRef_2Bytes,
-
-            /// <summary>
-            /// An object reference with the id encoded as 4 bytes.
-            /// </summary>
-            ObjectRef_4Bytes,
-
-            /// <summary>
             /// A string encoded as UTF-8 (using BinaryWriter.Write(string))
             /// </summary>
             StringUtf8,

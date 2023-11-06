@@ -45,9 +45,8 @@ namespace Roslyn.Utilities
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Map of reference id's to deserialized objects.
+        /// Map of reference id's to deserialized strings.
         /// </summary>
-        private readonly ReaderReferenceMap<object> _objectReferenceMap;
         private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
         /// <summary>
@@ -66,7 +65,6 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
-            _objectReferenceMap = ReaderReferenceMap<object>.Create();
             _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
             _cancellationToken = cancellationToken;
@@ -148,7 +146,6 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
         }
 
@@ -235,10 +232,8 @@ namespace Roslyn.Utilities
                 case TypeCode.StringRef_1Byte:
                 case TypeCode.StringRef_2Bytes:
                     return ReadStringValue(code);
-                case TypeCode.ObjectRef_4Bytes: return _objectReferenceMap.GetValue(_reader.ReadInt32());
-                case TypeCode.ObjectRef_1Byte: return _objectReferenceMap.GetValue(_reader.ReadByte());
-                case TypeCode.ObjectRef_2Bytes: return _objectReferenceMap.GetValue(_reader.ReadUInt16());
-                case TypeCode.DateTime: return DateTime.FromBinary(_reader.ReadInt64());
+                case TypeCode.DateTime:
+                    return DateTime.FromBinary(_reader.ReadInt64());
                 case TypeCode.Array:
                 case TypeCode.Array_0:
                 case TypeCode.Array_1:
