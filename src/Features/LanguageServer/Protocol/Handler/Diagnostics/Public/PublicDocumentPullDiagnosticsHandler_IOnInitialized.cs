@@ -32,8 +32,8 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
                 methodName: Methods.ClientRegisterCapabilityName,
                 @params: new RegistrationParams()
                 {
-                    Registrations = new[]
-                    {
+                    Registrations =
+                    [
                         new Registration
                         {
                             Id = _nonLocalDiagnosticsSourceRegistrationId,
@@ -43,7 +43,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
                                 Identifier = DocumentNonLocalDiagnosticIdentifier.ToString()
                             }
                         }
-                    }
+                    ]
                 },
                 cancellationToken).ConfigureAwait(false);
         }

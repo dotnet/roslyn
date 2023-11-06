@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,6 +33,29 @@ namespace Microsoft.CodeAnalysis.Classification
             bool includeAdditiveSpans,
             CancellationToken cancellationToken)
         {
+            return await GetClassifiedSpansAsync(document, ImmutableArray.Create(span), options, includeAdditiveSpans, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Classifies the provided <paramref name="spans"/> in the given <paramref name="document"/>. This will do this
+        /// using an appropriate <see cref="IClassificationService"/> if that can be found.  <see
+        /// cref="ImmutableArray{T}.IsDefault"/> will be returned if this fails.
+        /// </summary>
+        /// <param name="document">the current document.</param>
+        /// <param name="spans">The non-intersecting portions of the document to get classified spans for.</param>
+        /// <param name="options">The options to use when getting classified spans.</param>
+        /// <param name="includeAdditiveSpans">Whether or not 'additive' classification spans are included in the
+        /// results or not.  'Additive' spans are things like 'this variable is static' or 'this variable is
+        /// overwritten'.  i.e. they add additional information to a previous classification.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
+            Document document,
+            ImmutableArray<TextSpan> spans,
+            ClassificationOptions options,
+            bool includeAdditiveSpans,
+            CancellationToken cancellationToken)
+        {
             var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
                 return default;
@@ -46,12 +70,12 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _1 = Classifier.GetPooledList(out var syntaxSpans);
             using var _2 = Classifier.GetPooledList(out var semanticSpans);
 
-            await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
+            await classificationService.AddSyntacticClassificationsAsync(document, spans, syntaxSpans, cancellationToken).ConfigureAwait(false);
 
             // Intentional that we're adding both semantic and embedded lang classifications to the same array.  Both
             // are 'semantic' from the perspective of this helper method.
-            await classificationService.AddSemanticClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
-            await classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
+            await classificationService.AddSemanticClassificationsAsync(document, spans, options, semanticSpans, cancellationToken).ConfigureAwait(false);
+            await classificationService.AddEmbeddedLanguageClassificationsAsync(document, spans, options, semanticSpans, cancellationToken).ConfigureAwait(false);
 
             // MergeClassifiedSpans will ultimately filter multiple classifications for the same
             // span down to one. We know that additive classifications are there just to 
@@ -65,7 +89,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 RemoveAdditiveSpans(semanticSpans);
             }
 
-            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
+            var widenedSpan = new TextSpan(spans[0].Start, spans[^1].End);
+            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, widenedSpan);
             return classifiedSpans;
         }
 

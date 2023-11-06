@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // set `parts` to empty to indicate that.
                 var parts = state.RelativeDeclaredNamespace.Length == 0
                     ? ImmutableArray<string>.Empty
-                    : state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
+                    : state.RelativeDeclaredNamespace.Split(['.']).ToImmutableArray();
 
                 // Invalid char can only appear in namespace name when there's error,
                 // which we have checked before creating any code actions.

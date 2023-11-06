@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class MultipleStatementsCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                Public Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
                     MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
 
@@ -23,13 +23,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' change this to more smarter one.
                     Dim semanticModel = SemanticDocument.SemanticModel
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
-                    Dim containingScope = Me.VBSelectionResult.GetContainingScope()
+                    Dim containingScope = Me.SelectionResult.GetContainingScope()
                     Return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
                 Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
-                    Dim firstStatementUnderContainer = Me.VBSelectionResult.GetFirstStatementUnderContainer()
-                    Dim lastStatementUnderContainer = Me.VBSelectionResult.GetLastStatementUnderContainer()
+                    Dim firstStatementUnderContainer = Me.SelectionResult.GetFirstStatementUnderContainer()
+                    Dim lastStatementUnderContainer = Me.SelectionResult.GetLastStatementUnderContainer()
 
                     Dim statements = firstStatementUnderContainer.Parent.GetStatements()
 
@@ -47,11 +47,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return Me.VBSelectionResult.GetFirstStatementUnderContainer()
+                    Return Me.SelectionResult.GetFirstStatementUnderContainer()
                 End Function
 
                 Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return Me.VBSelectionResult.GetLastStatementUnderContainer()
+                    Return Me.SelectionResult.GetLastStatementUnderContainer()
                 End Function
 
                 Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)

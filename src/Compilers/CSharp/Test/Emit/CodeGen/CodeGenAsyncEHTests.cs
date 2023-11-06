@@ -2267,5 +2267,73 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70483")]
+        public void NestedCatch_DuplicateLocal_NoAwaitInNestedCatch(bool awaitInTry2)
+        {
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+                using static System.Console;
+                
+                class C
+                {
+                    static async Task Main()
+                    {
+                        await new C().M1(catchFirst: false);
+                        WriteLine("--- catch first ---");
+                        await new C().M1(catchFirst: true);
+                    }
+                
+                    bool F(string caller, bool result)
+                    {
+                        WriteLine($"F: {caller}");
+                        return result;
+                    }
+                
+                    async Task M1(bool catchFirst)
+                    {
+                        try
+                        {
+                            throw new Exception("M1");
+                        }
+                        catch (Exception ex) when (F("M1-catch1", catchFirst))
+                        {
+                            await M2("M1-catch1", ex);
+                        }
+                        catch (Exception ex) when (F("M1-catch2", true))
+                        {
+                            try
+                            {
+                                {{(awaitInTry2 ? "await Task.Yield();" : "")}}
+                                throw new Exception("M1-catch2");
+                            }
+                            catch 
+                            {
+                                _ = M2("M1-catch2-catch", ex);
+                            }
+                        }
+                    }
+                
+                    async Task M2(string caller, Exception ex)
+                    {
+                        WriteLine($"M2: {caller} {ex.Message}");
+                        await Task.Yield();
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                F: M1-catch1
+                F: M1-catch2
+                M2: M1-catch2-catch M1
+                --- catch first ---
+                F: M1-catch1
+                M2: M1-catch1 M1
+                """;
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
     }
 }
