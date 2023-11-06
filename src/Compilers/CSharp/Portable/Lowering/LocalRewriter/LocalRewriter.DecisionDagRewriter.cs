@@ -758,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var stringPatternInput = isStringInput ? StringPatternInput.String : (isSpanInput ? StringPatternInput.SpanChar : StringPatternInput.ReadOnlySpanChar);
 
                         if (!this._localRewriter._compilation.FeatureDisableLengthBasedSwitch &&
+                            this._factory.Compilation.Options.OptimizationLevel == OptimizationLevel.Release &&
                             LengthBasedStringSwitchData.Create(node.Cases) is var lengthBasedDispatch &&
                             lengthBasedDispatch.ShouldGenerateLengthBasedSwitch(node.Cases.Length) &&
                             hasLengthBasedDispatchRequiredMembers(stringPatternInput))

@@ -40,7 +40,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         /// <seealso cref="__VSFPROPID.VSFPROPID_GuidPersistenceSlot"/>
         private static readonly ImmutableHashSet<Guid> s_windowsToClose = ImmutableHashSet.Create(
             FindReferencesWindowInProcess.FindReferencesWindowGuid,
-            new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser));
+            new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser),
+            new Guid(ToolWindowGuids80.CodedefinitionWindow),
+            VSConstants.StandardToolWindows.Immediate);
 
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
@@ -61,6 +63,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
             ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
+            ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);
             ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.TriggerInArgumentLists);
             ResetPerLanguageOption(globalOptions, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports);
             ResetPerLanguageOption(globalOptions, InheritanceMarginOptionsStorage.ShowInheritanceMargin);
@@ -103,6 +106,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
             options.SetOptionValue(latencyGuardOptionKey, false);
 
+            await CloseActiveWindowsAsync(cancellationToken);
+        }
+
+        public async Task CloseActiveWindowsAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.AddParameterDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.ChangeSignatureDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.ExtractInterfaceDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.MoveToNamespaceDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.PickMembersDialog.CloseWindowAsync(cancellationToken);
+
             // Close any modal windows
             var mainWindow = await TestServices.Shell.GetMainWindowAsync(cancellationToken);
             var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
@@ -122,6 +136,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     // Don't loop forever if windows aren't closing.
                     break;
                 }
+
+                modalWindow = nextModalWindow;
             }
 
             // Close tool windows where desired (see s_windowsToClose)
