@@ -257,7 +257,7 @@ namespace Roslyn.Utilities
         /// <param name="span">The array data.</param>
         public void WriteValue(ReadOnlySpan<byte> span)
         {
-            int length = span.Length;
+            var length = span.Length;
             switch (length)
             {
                 case 0:
@@ -290,7 +290,7 @@ namespace Roslyn.Utilities
             // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
             // object heap.
             var buffer = new byte[Math.Min(length, 8192)];
-            for (int offset = 0; offset < length; offset += buffer.Length)
+            for (var offset = 0; offset < length; offset += buffer.Length)
             {
                 var segmentLength = Math.Min(buffer.Length, length - offset);
                 span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
@@ -401,8 +401,8 @@ namespace Roslyn.Utilities
             }
             else if (value <= (ushort.MaxValue >> 2))
             {
-                byte byte0 = (byte)(((value >> 8) & 0xFFu) | Byte2Marker);
-                byte byte1 = (byte)(value & 0xFFu);
+                var byte0 = (byte)(((value >> 8) & 0xFFu) | Byte2Marker);
+                var byte1 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
                 _writer.Write(byte0);
@@ -410,10 +410,10 @@ namespace Roslyn.Utilities
             }
             else if (value <= (uint.MaxValue >> 2))
             {
-                byte byte0 = (byte)(((value >> 24) & 0xFFu) | Byte4Marker);
-                byte byte1 = (byte)((value >> 16) & 0xFFu);
-                byte byte2 = (byte)((value >> 8) & 0xFFu);
-                byte byte3 = (byte)(value & 0xFFu);
+                var byte0 = (byte)(((value >> 24) & 0xFFu) | Byte4Marker);
+                var byte1 = (byte)((value >> 16) & 0xFFu);
+                var byte2 = (byte)((value >> 8) & 0xFFu);
+                var byte3 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
                 _writer.Write(byte0);
@@ -435,7 +435,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                if (_stringReferenceMap.TryGetReferenceId(value, out int id))
+                if (_stringReferenceMap.TryGetReferenceId(value, out var id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -471,7 +471,7 @@ namespace Roslyn.Utilities
                         _writer.Write((byte)TypeCode.StringUtf16);
 
                         // This is rare, just allocate UTF16 bytes for simplicity.
-                        byte[] bytes = new byte[(uint)value.Length * sizeof(char)];
+                        var bytes = new byte[(uint)value.Length * sizeof(char)];
                         fixed (char* valuePtr = value)
                         {
                             Marshal.Copy((IntPtr)valuePtr, bytes, 0, bytes.Length);
@@ -486,7 +486,7 @@ namespace Roslyn.Utilities
 
         private void WriteArray(Array array)
         {
-            int length = array.GetLength(0);
+            var length = array.GetLength(0);
 
             switch (length)
             {
@@ -523,7 +523,7 @@ namespace Roslyn.Utilities
 
         private void WriteArrayValues(Array array)
         {
-            for (int i = 0; i < array.Length; i++)
+            for (var i = 0; i < array.Length; i++)
             {
                 this.WriteValue(array.GetValue(i));
             }

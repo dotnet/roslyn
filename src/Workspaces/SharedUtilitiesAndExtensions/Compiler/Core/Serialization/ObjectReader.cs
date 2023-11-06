@@ -298,8 +298,8 @@ namespace Roslyn.Utilities
         internal uint ReadCompressedUInt()
         {
             var info = _reader.ReadByte();
-            byte marker = (byte)(info & ObjectWriter.ByteMarkerMask);
-            byte byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
+            var marker = (byte)(info & ObjectWriter.ByteMarkerMask);
+            var byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
 
             if (marker == ObjectWriter.Byte1Marker)
             {
@@ -362,8 +362,8 @@ namespace Roslyn.Utilities
             else
             {
                 // This is rare, just allocate UTF-16 bytes for simplicity.
-                int characterCount = (int)ReadCompressedUInt();
-                byte[] bytes = _reader.ReadBytes(characterCount * sizeof(char));
+                var characterCount = (int)ReadCompressedUInt();
+                var bytes = _reader.ReadBytes(characterCount * sizeof(char));
                 fixed (byte* bytesPtr = bytes)
                 {
                     value = new string((char*)bytesPtr, 0, characterCount);
@@ -415,13 +415,17 @@ namespace Roslyn.Utilities
             Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
 
             // optimizations for supported array type by binary reader
-            if (type == typeof(byte)) { return _reader.ReadBytes(length); }
-            if (type == typeof(char)) { return _reader.ReadChars(length); }
+            if (type == typeof(byte))
+                return _reader.ReadBytes(length);
+            if (type == typeof(char))
+                return _reader.ReadChars(length);
 
             // optimizations for string where object reader/writer has its own mechanism to
             // reduce duplicated strings
-            if (type == typeof(string)) { return ReadStringArrayElements(CreateArray<string>(length)); }
-            if (type == typeof(bool)) { return ReadBooleanArrayElements(CreateArray<bool>(length)); }
+            if (type == typeof(string))
+                return ReadStringArrayElements(CreateArray<string>(length));
+            if (type == typeof(bool))
+                return ReadBooleanArrayElements(CreateArray<bool>(length));
 
             // otherwise, read elements directly from underlying binary writer
             switch (kind)
