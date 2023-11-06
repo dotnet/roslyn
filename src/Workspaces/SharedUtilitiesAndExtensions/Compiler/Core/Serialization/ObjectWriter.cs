@@ -39,7 +39,7 @@ namespace Roslyn.Utilities
         /// Map of serialized string reference ids.  The string-reference-map uses value-equality for greater cache hits
         /// and reuse.
         ///
-        /// This are not readonly because it is a struct that is mutated.
+        /// This is a mutable struct, and as such is not readonly.
         ///
         /// When we write out strings we give each successive, unique, item a monotonically increasing integral ID
         /// starting at 0.  I.e. the first string gets ID-0, the next gets ID-1 and so on and so forth.  We do *not*
