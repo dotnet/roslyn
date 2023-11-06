@@ -46,11 +46,7 @@ variables:
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
-  # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
-  # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
-  - group: DotNet-Blob-Feed
-  - group: DotNet-Symbol-Server-Pats
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
@@ -200,12 +196,7 @@ stages:
                    /p:RepositoryName=$(Build.Repository.Name)
                    /p:VisualStudioDropName=$(VisualStudio.DropName)
                    /p:DotNetSignType=$(SignType)
-                   /p:DotNetPublishToBlobFeed=true
-                   /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                   /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
                    /p:PublishToSymbolServer=true
-                   /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                   /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
