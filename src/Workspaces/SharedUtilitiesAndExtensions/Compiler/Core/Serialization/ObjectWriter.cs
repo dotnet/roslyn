@@ -72,7 +72,7 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
-            _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
+            _stringReferenceMap = new WriterReferenceMap();
             _cancellationToken = cancellationToken;
 
             WriteVersion();
@@ -353,39 +353,29 @@ namespace Roslyn.Utilities
             // PERF: Use segmented collection to avoid Large Object Heap allocations during serialization.
             // https://github.com/dotnet/roslyn/issues/43401
             private readonly SegmentedDictionary<object, int> _valueToIdMap;
-            private readonly bool _valueEquality;
             private int _nextId;
-
-            private static readonly ObjectPool<SegmentedDictionary<object, int>> s_referenceDictionaryPool =
-                new(() => new SegmentedDictionary<object, int>(128, ReferenceEqualityComparer.Instance));
 
             private static readonly ObjectPool<SegmentedDictionary<object, int>> s_valueDictionaryPool =
                 new(() => new SegmentedDictionary<object, int>(128));
 
-            public WriterReferenceMap(bool valueEquality)
+            public WriterReferenceMap()
             {
-                _valueEquality = valueEquality;
-                _valueToIdMap = GetDictionaryPool(valueEquality).Allocate();
+                _valueToIdMap = s_valueDictionaryPool.Allocate();
                 _nextId = 0;
             }
 
-            private static ObjectPool<SegmentedDictionary<object, int>> GetDictionaryPool(bool valueEquality)
-                => valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
-
             public void Dispose()
             {
-                var pool = GetDictionaryPool(_valueEquality);
-
                 // If the map grew too big, don't return it to the pool.
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
                 if (_valueToIdMap.Count > 1024)
                 {
-                    pool.ForgetTrackedObject(_valueToIdMap);
+                    s_valueDictionaryPool.ForgetTrackedObject(_valueToIdMap);
                 }
                 else
                 {
                     _valueToIdMap.Clear();
-                    pool.Free(_valueToIdMap);
+                    s_valueDictionaryPool.Free(_valueToIdMap);
                 }
             }
 
