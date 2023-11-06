@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
+#pragma warning disable IDE0060 // Remove unused parameter
+
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ObjectSerializationTests
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Null(reader);
         }
 
-        private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
+        private static void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
             using var stream = new MemoryStream();
 
@@ -44,13 +46,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             readAction(reader);
         }
 
-        private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
+        private static void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
         {
             RoundTrip(writeAction, readAction, recursive: true);
             RoundTrip(writeAction, readAction, recursive: false);
         }
 
-        private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
+        private static T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
             using var stream = new MemoryStream();
 
@@ -64,19 +66,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return readAction(reader);
         }
 
-        private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
+        private static void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
             var newValue = RoundTrip(value, writeAction, readAction, recursive);
             Assert.True(Equalish(value, newValue));
         }
 
-        private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
+        private static void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
         {
             TestRoundTrip(value, writeAction, readAction, recursive: true);
             TestRoundTrip(value, writeAction, readAction, recursive: false);
         }
 
-        private T RoundTripValue<T>(T value, bool recursive)
+        private static T RoundTripValue<T>(T value, bool recursive)
         {
             return RoundTrip(value,
                 (w, v) =>
@@ -95,13 +97,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     : (T)r.ReadValue(), recursive);
         }
 
-        private void TestRoundTripValue<T>(T value, bool recursive)
+        private static void TestRoundTripValue<T>(T value, bool recursive)
         {
             var newValue = RoundTripValue(value, recursive);
             Assert.True(Equalish(value, newValue));
         }
 
-        private void TestRoundTripValue<T>(T value)
+        private static void TestRoundTripValue<T>(T value)
         {
             TestRoundTripValue(value, recursive: true);
             TestRoundTripValue(value, recursive: false);
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return false;
             }
 
-            for (int i = 0; i < seq1.Length; i++)
+            for (var i = 0; i < seq1.Length; i++)
             {
                 if (!Equalish(seq1.GetValue(i), seq2.GetValue(i)))
                 {
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ObjectWriter.TypeCode.UInt32_10, ObjectWriter.TypeCode.UInt32_0 + 10);
         }
 
-        private void TestRoundTripType(Type type)
+        private static void TestRoundTripType(Type type)
         {
             TestRoundTrip(type, (w, v) => w.WriteType(v), r => r.ReadType());
         }
@@ -233,7 +235,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripType(typeof(ObjectSerializationTests));
         }
 
-        private void TestRoundTripCompressedUint(uint value)
+        private static void TestRoundTripCompressedUint(uint value)
         {
             TestRoundTrip(value, (w, v) => ((ObjectWriter)w).WriteCompressedUInt(v), r => ((ObjectReader)r).ReadCompressedUInt());
         }
@@ -275,7 +277,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestArrayValues<string>("1", "2", "3", "4", "5");
         }
 
-        private void TestArrayValues<T>(T v1, T v2, T v3, T v4, T v5)
+        private static void TestArrayValues<T>(T v1, T v2, T v3, T v4, T v5)
         {
             TestRoundTripValue((T[])null);
             TestRoundTripValue(new T[] { });
@@ -297,7 +299,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestByteSpan([CombinatorialValues(0, 1, 2, 3, 1000, 1000000)] int size)
         {
             var data = new byte[size];
-            for (int i = 0; i < data.Length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
                 data[i] = (byte)i;
             }
@@ -729,7 +731,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void TestRoundTripChar(Char ch)
+        private static void TestRoundTripChar(Char ch)
         {
             TestRoundTrip(ch, (w, v) => w.WriteChar(v), r => r.ReadChar());
         }
@@ -746,7 +748,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             test(new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
             test(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
             test(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 test(Guid.NewGuid());
             }
@@ -771,12 +773,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripString(sb.ToString());
         }
 
-        private void TestRoundTripString(string text)
+        private static void TestRoundTripString(string text)
         {
             TestRoundTrip(text, (w, v) => w.WriteString(v), r => r.ReadString());
         }
 
-        private void TestRoundTripStringCharacter(ushort code)
+        private static void TestRoundTripStringCharacter(ushort code)
         {
             TestRoundTripString(new String((char)code, 1));
         }
@@ -793,7 +795,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripArray(new string[] { "hello", null, "world" });
         }
 
-        private void TestRoundTripArray<T>(T[] values)
+        private static void TestRoundTripArray<T>(T[] values)
         {
             TestRoundTripValue(values);
         }
@@ -866,3 +868,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #endif
     }
 }
+
+#pragma warning restore IDE0060 // Remove unused parameter
