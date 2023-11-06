@@ -44,20 +44,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 }
             }
 
-            internal WithManyChildrenBase(ObjectReader reader)
-                : base(reader)
-            {
-                var length = reader.ReadInt32();
-
-                this.children = new ArrayElement<GreenNode>[length];
-                for (var i = 0; i < length; i++)
-                {
-                    this.children[i].Value = (GreenNode)reader.ReadValue();
-                }
-
-                this.InitializeChildren();
-            }
-
             protected override int GetSlotCount()
             {
                 return children.Length;
@@ -114,11 +100,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             internal WithManyChildren(DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations, ArrayElement<GreenNode>[] children)
                 : base(diagnostics, annotations, children)
-            {
-            }
-
-            internal WithManyChildren(ObjectReader reader)
-                : base(reader)
             {
             }
 

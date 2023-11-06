@@ -25,12 +25,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 _childOffsets = childOffsets;
             }
 
-            internal WithLotsOfChildren(ObjectReader reader)
-                : base(reader)
-            {
-                _childOffsets = CalculateOffsets(this.children);
-            }
-
             public override int GetSlotOffset(int index)
             {
                 return _childOffsets[index];

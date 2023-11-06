@@ -32,16 +32,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 _child1 = child1;
             }
 
-            internal WithTwoChildren(ObjectReader reader)
-                : base(reader)
-            {
-                this.SlotCount = 2;
-                _child0 = (GreenNode)reader.ReadValue();
-                this.AdjustFlagsAndWidth(_child0);
-                _child1 = (GreenNode)reader.ReadValue();
-                this.AdjustFlagsAndWidth(_child1);
-            }
-
             internal override GreenNode? GetSlot(int index)
             {
                 switch (index)

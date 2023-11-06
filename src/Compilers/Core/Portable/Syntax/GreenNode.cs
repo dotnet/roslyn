@@ -419,35 +419,6 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
-        #region Serialization 
-        // use high-bit on Kind to identify serialization of extra info
-        private const UInt16 ExtendedSerializationInfoMask = unchecked((UInt16)(1u << 15));
-
-        internal GreenNode(ObjectReader reader)
-        {
-            var kindBits = reader.ReadUInt16();
-            _kind = (ushort)(kindBits & ~ExtendedSerializationInfoMask);
-
-            if ((kindBits & ExtendedSerializationInfoMask) != 0)
-            {
-                var diagnostics = (DiagnosticInfo[])reader.ReadValue();
-                if (diagnostics != null && diagnostics.Length > 0)
-                {
-                    this.flags |= NodeFlags.ContainsDiagnostics;
-                    s_diagnosticsTable.Add(this, diagnostics);
-                }
-
-                var annotations = (SyntaxAnnotation[])reader.ReadValue();
-                if (annotations != null && annotations.Length > 0)
-                {
-                    this.flags |= NodeFlags.ContainsAnnotations;
-                    s_annotationsTable.Add(this, annotations);
-                }
-            }
-        }
-
-        #endregion
-
         #region Annotations 
         public bool HasAnnotations(string annotationKind)
         {
