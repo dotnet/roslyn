@@ -50,8 +50,6 @@ namespace Roslyn.Utilities
         private readonly ReaderReferenceMap<object> _objectReferenceMap;
         private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
-        private int _recursionDepth;
-
         /// <summary>
         /// Creates a new instance of a <see cref="ObjectReader"/>.
         /// </summary>
@@ -152,7 +150,6 @@ namespace Roslyn.Utilities
         {
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
-            _recursionDepth = 0;
         }
 
         public bool ReadBoolean() => _reader.ReadBoolean();
@@ -183,40 +180,6 @@ namespace Roslyn.Utilities
         }
 
         public object ReadValue()
-        {
-            var oldDepth = _recursionDepth;
-            _recursionDepth++;
-
-            object value;
-            if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                // If we're recursing too deep, move the work to another thread to do so we
-                // don't blow the stack.
-                var task = SerializationThreadPool.RunOnBackgroundThreadAsync(() => ReadValueWorker());
-
-                // We must not proceed until the additional task completes. After returning from a read, the underlying
-                // stream providing access to raw memory will be closed; if this occurs before the separate thread
-                // completes its read then an access violation can occur attempting to read from unmapped memory.
-                //
-                // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
-                // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
-                // so the wait can complete.
-                value = task.GetAwaiter().GetResult();
-            }
-            else
-            {
-                value = ReadValueWorker();
-            }
-
-            _recursionDepth--;
-            Debug.Assert(oldDepth == _recursionDepth);
-
-            return value;
-        }
-
-        private object ReadValueWorker()
         {
             var code = (TypeCode)_reader.ReadByte();
             switch (code)

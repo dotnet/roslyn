@@ -56,8 +56,6 @@ namespace Roslyn.Utilities
         /// </summary>
         private WriterReferenceMap _stringReferenceMap;
 
-        internal const int MaxRecursionDepth = 50;
-
         /// <summary>
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
