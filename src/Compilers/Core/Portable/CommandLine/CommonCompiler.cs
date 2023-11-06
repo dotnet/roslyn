@@ -1120,33 +1120,13 @@ namespace Microsoft.CodeAnalysis
 
                     AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
 
-                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                    var severityFilter = SeverityFilter.Hidden;
-
-                    if (Arguments.ErrorLogPath == null)
-                        severityFilter |= SeverityFilter.Info;
-
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
-                        compilation,
-                        analyzers,
-                        analyzerOptions,
-                        new AnalyzerManager(analyzers),
-                        analyzerExceptionDiagnostics.Add,
-                        Arguments.ReportAnalyzer,
-                        severityFilter,
-                        trackSuppressedDiagnosticIds: true,
-                        out compilation,
-                        analyzerCts.Token);
+                    (analyzerCts, analyzerExceptionDiagnostics, analyzerDriver) = initializeAnalyzerDriver(analyzerOptions, ref compilation);
 
                     analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, analyzerCts.Token);
                 }
                 return;
             }
+
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
                 var analyzerConfigProvider =
@@ -1223,27 +1203,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (!analyzers.IsEmpty)
                 {
-                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                    var severityFilter = SeverityFilter.Hidden;
-                    if (Arguments.ErrorLogPath == null)
-                        severityFilter |= SeverityFilter.Info;
-
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
-                        compilation,
-                        analyzers,
-                        analyzerOptions,
-                        new AnalyzerManager(analyzers),
-                        analyzerExceptionDiagnostics.Add,
-                        reportAnalyzer: Arguments.ReportAnalyzer || errorLogger != null,
-                        severityFilter,
-                        trackSuppressedDiagnosticIds: errorLogger != null,
-                        out compilation,
-                        analyzerCts.Token);
+                    (analyzerCts, analyzerExceptionDiagnostics, analyzerDriver) = initializeAnalyzerDriver(analyzerOptions, ref compilation);
                 }
             }
 
@@ -1537,6 +1497,33 @@ namespace Microsoft.CodeAnalysis
             if (!WriteTouchedFiles(diagnostics, touchedFilesLogger, finalXmlFilePath))
             {
                 return;
+            }
+
+            (CancellationTokenSource, DiagnosticBag, AnalyzerDriver) initializeAnalyzerDriver(AnalyzerOptions analyzerOptions, ref Compilation compilation)
+            {
+                var analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var analyzerExceptionDiagnostics = new DiagnosticBag();
+
+                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                var severityFilter = SeverityFilter.Hidden;
+                if (Arguments.ErrorLogPath == null)
+                    severityFilter |= SeverityFilter.Info;
+
+                var analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
+                    compilation,
+                    analyzers,
+                    analyzerOptions,
+                    new AnalyzerManager(analyzers),
+                    analyzerExceptionDiagnostics.Add,
+                    reportAnalyzer: Arguments.ReportAnalyzer || errorLogger != null,
+                    severityFilter,
+                    trackSuppressedDiagnosticIds: errorLogger != null,
+                    out compilation,
+                    analyzerCts.Token);
+
+                return (analyzerCts, analyzerExceptionDiagnostics, analyzerDriver);
             }
         }
 
