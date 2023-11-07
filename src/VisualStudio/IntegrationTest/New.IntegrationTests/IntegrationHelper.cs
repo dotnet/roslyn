@@ -4,21 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using EnvDTE;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.Win32;
-using Roslyn.Utilities;
-using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -50,33 +41,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return Path.Combine(TempRoot.Root, Path.GetRandomFileName());
         }
 
-        public static async Task DownloadFileAsync(string downloadUrl, string fileName)
-        {
-            using (var webClient = new WebClient())
-            {
-                await webClient.DownloadFileTaskAsync(downloadUrl, fileName).ConfigureAwait(continueOnCapturedContext: false);
-            }
-        }
-
-        public static IntPtr GetForegroundWindow()
-        {
-            // Attempt to get the foreground window in a loop, as the NativeMethods function can return IntPtr.Zero
-            // in certain circumstances, such as when a window is losing activation. If no foreground window is
-            // identified after a short timeout, none is returned. This only impacts the ability of the test to restore
-            // focus to a previous window, which is fine.
-
-            IntPtr foregroundWindow;
-            var stopwatch = Stopwatch.StartNew();
-
-            do
-            {
-                foregroundWindow = NativeMethods.GetForegroundWindow();
-            }
-            while (foregroundWindow == IntPtr.Zero && stopwatch.Elapsed < TimeSpan.FromMilliseconds(250));
-
-            return foregroundWindow;
-        }
-
         /// <summary>Gets the Modal Window that is currently blocking interaction with the specified window or <see cref="IntPtr.Zero"/> if none exists.</summary>
         public static IntPtr GetModalWindowFromParentWindow(IntPtr parentWindow)
         {
@@ -97,19 +61,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
 
             return IntPtr.Zero;
-        }
-
-        public static object GetRegistryKeyValue(RegistryKey baseKey, string subKeyName, string valueName)
-        {
-            using (var registryKey = baseKey.OpenSubKey(subKeyName))
-            {
-                if (registryKey == null)
-                {
-                    throw new Exception($@"The specified registry key could not be found. Registry Key: '{baseKey}\{subKeyName}'");
-                }
-
-                return registryKey.GetValue(valueName);
-            }
         }
 
         /// <summary>
@@ -154,147 +105,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return topLevelWindows;
         }
 
-        /// <summary>
-        /// Kills the specified process if it is not <c>null</c> and has not already exited.
-        /// </summary>
-        public static void KillProcess(Process process)
-        {
-            if (process != null && !process.HasExited)
-            {
-                process.Kill();
-            }
-        }
-
-        /// <summary>
-        /// Kills all processes matching the specified name.
-        /// </summary>
-        public static void KillProcess(string processName)
-        {
-            foreach (var process in Process.GetProcessesByName(processName))
-            {
-                KillProcess(process);
-            }
-        }
-
-        public static bool TrySetForegroundWindow(IntPtr window)
-        {
-            var activeWindow = NativeMethods.GetLastActivePopup(window);
-            activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
-            NativeMethods.SwitchToThisWindow(activeWindow, true);
-
-            if (!NativeMethods.SetForegroundWindow(activeWindow))
-            {
-                if (!NativeMethods.AllocConsole())
-                {
-                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-                }
-
-                try
-                {
-                    var consoleWindow = NativeMethods.GetConsoleWindow();
-                    if (consoleWindow == IntPtr.Zero)
-                    {
-                        throw new InvalidOperationException("Failed to obtain the console window.");
-                    }
-
-                    if (!NativeMethods.SetWindowPos(consoleWindow, IntPtr.Zero, 0, 0, 0, 0, NativeMethods.SWP_NOZORDER))
-                    {
-                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-                    }
-                }
-                finally
-                {
-                    if (!NativeMethods.FreeConsole())
-                    {
-                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-                    }
-                }
-
-                if (!NativeMethods.SetForegroundWindow(activeWindow))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public static void SendInput(NativeMethods.INPUT[] inputs)
-        {
-            // NOTE: This assumes that Visual Studio is the active foreground window.
-
-            var eventsInserted = NativeMethods.SendInput((uint)inputs.Length, inputs, NativeMethods.SizeOf_INPUT);
-
-            if (eventsInserted == 0)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-                throw new ExternalException("Sending input failed because input was blocked by another thread.", hresult);
-            }
-        }
-
-        public static bool TryDeleteDirectoryRecursively(string path)
-        {
-            try
-            {
-                DeleteDirectoryRecursively(path);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"Warning: Failed to recursively delete the specified directory. (Name: '{path}')");
-                Debug.WriteLine($"\t{e}");
-                return false;
-            }
-        }
-
-        /// <summary>Locates the DTE object for the specified process.</summary>
-        public static DTE? TryLocateDteForProcess(Process process)
-        {
-            object? dte = null;
-            var monikers = new IMoniker?[1];
-
-            NativeMethods.GetRunningObjectTable(0, out var runningObjectTable);
-            runningObjectTable.EnumRunning(out var enumMoniker);
-            NativeMethods.CreateBindCtx(0, out var bindContext);
-
-            do
-            {
-                monikers[0] = null;
-                var hresult = enumMoniker.Next(1, monikers, out _);
-
-                if (hresult == VSConstants.S_FALSE)
-                {
-                    // There's nothing further to enumerate, so fail
-                    return null;
-                }
-                else
-                {
-                    Marshal.ThrowExceptionForHR(hresult);
-                }
-
-                var moniker = monikers[0];
-                Contract.ThrowIfNull(moniker);
-
-                moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
-
-                // FullDisplayName will look something like: <ProgID>:<ProcessId>
-                var displayNameParts = fullDisplayName.Split(':');
-                if (!int.TryParse(displayNameParts.Last(), out var displayNameProcessId))
-                {
-                    continue;
-                }
-
-                if (displayNameParts[0].StartsWith("!VisualStudio.DTE", StringComparison.OrdinalIgnoreCase) &&
-                    displayNameProcessId == process.Id)
-                {
-                    runningObjectTable.GetObject(moniker, out dte);
-                }
-            }
-            while (dte == null);
-
-            return (DTE)dte;
-        }
-
         public static async Task WaitForResultAsync<T>(Func<T> action, T expectedResult)
             where T : notnull
         {
@@ -302,19 +112,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 await Task.Yield();
             }
-        }
-
-        public static async Task<T> WaitForNotNullAsync<T>(Func<T?> action) where T : class
-        {
-            var result = action();
-
-            while (result == null)
-            {
-                await Task.Yield();
-                result = action();
-            }
-
-            return result;
         }
     }
 }

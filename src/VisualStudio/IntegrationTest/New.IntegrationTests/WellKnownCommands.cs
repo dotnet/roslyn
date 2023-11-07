@@ -49,6 +49,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             /// <seealso cref="InteractiveShell.CommandIds.ClearScreen"/>
             public static readonly CommandID ClearScreen = new(InteractiveShell::Guids.InteractiveCommandSetId, 264);
+
+            public const string ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
+        }
+
+        public static class ProjectandSolutionContextMenus
+        {
+            public static class Project
+            {
+                public const string ResetCSharpInteractiveFromProject = "ProjectandSolutionContextMenus.Project.ResetC#InteractiveFromProject";
+            }
         }
 
         public static class Refactor
